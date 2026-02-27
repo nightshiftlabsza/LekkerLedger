@@ -43,7 +43,7 @@ function WizardContent() {
     const defaultEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
 
     const [hours, setHours] = React.useState({ ordinary: "", overtime: "", sunday: "", holiday: "" });
-    const [daysWorked, setDaysWorked] = React.useState("1");
+    const [shortFallHours, setShortFallHours] = React.useState("");
     const [dates, setDates] = React.useState({ start: defaultStart, end: defaultEnd });
     const [periodError, setPeriodError] = React.useState("");
     const [includeAccommodation, setIncludeAccommodation] = React.useState(false);
@@ -76,8 +76,10 @@ function WizardContent() {
             overtimeHours: Number(hours.overtime) || 0,
             sundayHours: Number(hours.sunday) || 0,
             publicHolidayHours: Number(hours.holiday) || 0,
-            daysWorked: Math.max(1, Number(daysWorked) || 1),
+            daysWorked: 1, // Legacy
+            shortFallHours: Number(shortFallHours) || 0,
             hourlyRate: employee.hourlyRate,
+            ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
             includeAccommodation,
             accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
             otherDeductions: 0,
@@ -118,8 +120,10 @@ function WizardContent() {
             overtimeHours: Number(hours.overtime) || 0,
             sundayHours: Number(hours.sunday) || 0,
             publicHolidayHours: Number(hours.holiday) || 0,
-            daysWorked: Math.max(1, Number(daysWorked) || 1),
+            daysWorked: 1, // Legacy
+            shortFallHours: Number(shortFallHours) || 0,
             hourlyRate: employee.hourlyRate,
+            ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
             includeAccommodation,
             accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
             otherDeductions: 0,
@@ -267,17 +271,17 @@ function WizardContent() {
                                 >
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="space-y-2">
-                                            <Label htmlFor="daysWorked">Total Days Worked</Label>
+                                            <Label htmlFor="shortFallHours">Shortfall Hrs (4-hr rule)</Label>
                                             <Input
-                                                id="daysWorked"
+                                                id="shortFallHours"
                                                 type="number"
-                                                min="1"
-                                                placeholder="e.g. 20"
-                                                value={daysWorked}
-                                                onChange={(e) => setDaysWorked(e.target.value)}
+                                                min="0"
+                                                placeholder="e.g. 2"
+                                                value={shortFallHours}
+                                                onChange={(e) => setShortFallHours(e.target.value)}
                                             />
                                             <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                                For the 4-hr minimum rule
+                                                Hours to add to meet shift minimums
                                             </p>
                                         </div>
                                         <div className="space-y-2">
@@ -320,7 +324,7 @@ function WizardContent() {
                                     </AlertDescription>
                                 </Alert>
                                 <div className="space-y-2">
-                                    <Label htmlFor="sunday">Sunday Hours (2× rate)</Label>
+                                    <Label htmlFor="sunday">Sunday Hours ({employee.ordinarilyWorksSundays ? '1.5× rate' : '2× rate'})</Label>
                                     <Input
                                         id="sunday"
                                         type="number"
@@ -428,7 +432,7 @@ function WizardContent() {
                                     <div className="px-4 pt-4 pb-2 space-y-2">
                                         <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--amber-500)" }}>Earnings</p>
                                         <Row
-                                            label={`Ordinary ${Math.max((Number(daysWorked) || 1) * 4, Number(hours.ordinary) || 0) > (Number(hours.ordinary) || 0) ? '(4-hr shift minimum applied)' : `(${Number(hours.ordinary) || 0}h)`}`}
+                                            label={`Ordinary (${breakdown.effectiveOrdinaryHours}h${Number(shortFallHours) > 0 ? " inc. 4-hr minimum top-up" : ""})`}
                                             value={`R ${breakdown.ordinaryPay.toFixed(2)}`}
                                         />
                                         {(Number(hours.overtime) || 0) > 0 && <Row label={`Overtime (${Number(hours.overtime)}h)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}

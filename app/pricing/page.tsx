@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
     ArrowLeft, Check, Sparkles, Coffee, ShieldCheck, Zap,
     Cloud, FileText, Smartphone, AlertTriangle, Shield,
@@ -12,9 +13,30 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { getSettings, saveSettings } from "@/lib/storage";
 
+const PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c";
+
+// Load Paystack dynamically to prevent Next.js SSR window errors
+const PaystackHookWrapper = dynamic(
+    () => Promise.resolve(({ config, onSuccess, onClose }: any) => {
+        const { usePaystackPayment } = require('react-paystack');
+        const initializePayment = usePaystackPayment(config);
+
+        React.useEffect(() => {
+            if (config.amount > 0) {
+                initializePayment({ onSuccess, onClose });
+            }
+        }, [config.amount]);
+
+        return null;
+    }),
+    { ssr: false }
+);
+
 export default function PricingPage() {
     const [status, setStatus] = React.useState<"free" | "annual" | "pro" | "trial">("free");
     const [loading, setLoading] = React.useState(true);
+    const [selectedPlan, setSelectedPlan] = React.useState<"annual" | "pro" | null>(null);
+    const [makePayment, setMakePayment] = React.useState(false);
 
     React.useEffect(() => {
         async function load() {
@@ -25,11 +47,17 @@ export default function PricingPage() {
         load();
     }, []);
 
-    const handleUpgrade = async (plan: "annual" | "pro") => {
+    const handleUpgradeSuccess = async (plan: "annual" | "pro") => {
         const s = await getSettings();
         await saveSettings({ ...s, proStatus: plan });
         setStatus(plan);
-        alert(`Welcome to Lekker ${plan === "pro" ? "Pro Lifetime" : "Annual Support"}! Access activated.`);
+        setMakePayment(false);
+        alert(`Payment Successful! Welcome to Lekker ${plan === "pro" ? "Pro Lifetime" : "Annual Support"}! Access activated.`);
+    };
+
+    const handleAction = (plan: "annual" | "pro") => {
+        setSelectedPlan(plan);
+        setMakePayment(true);
     };
 
     const handleStartTrial = async () => {
@@ -47,6 +75,19 @@ export default function PricingPage() {
 
     return (
         <div className="min-h-screen flex flex-col selection:bg-amber-200" style={{ backgroundColor: "var(--bg-base)" }}>
+            {makePayment && selectedPlan && (
+                <PaystackHookWrapper
+                    config={{
+                        reference: (new Date()).getTime().toString(),
+                        email: "user@lekkerledger.co.za",
+                        amount: selectedPlan === "pro" ? 29900 : 9900,
+                        publicKey: PAYSTACK_PUBLIC_KEY,
+                        currency: 'ZAR',
+                    }}
+                    onSuccess={() => handleUpgradeSuccess(selectedPlan)}
+                    onClose={() => setMakePayment(false)}
+                />
+            )}
             <header className="sticky top-0 z-40 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] backdrop-blur-md bg-opacity-80">
                 <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -119,7 +160,7 @@ export default function PricingPage() {
                         ]}
                         buttonText={status === "annual" ? "Active" : "Subscribe Yearly"}
                         buttonVariant="outline"
-                        onAction={() => handleUpgrade("annual")}
+                        onAction={() => handleAction("annual")}
                         highlight
                     />
 
@@ -139,7 +180,7 @@ export default function PricingPage() {
                         ]}
                         buttonText={status === "pro" ? "Activated" : "Get Lifetime Access"}
                         buttonVariant="primary"
-                        onAction={() => handleUpgrade("pro")}
+                        onAction={() => handleAction("pro")}
                         isPro
                     />
                 </div>
