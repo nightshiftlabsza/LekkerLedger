@@ -67,7 +67,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                 break;
         }
 
-        const baseClasses = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold ring-offset-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97] select-none";
+        const baseClasses = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold ring-offset-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 active-scale select-none";
 
         const hoverMap: Record<string, string> = {
             default: "hover:opacity-90 hover:shadow-md",

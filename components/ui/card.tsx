@@ -4,13 +4,8 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     ({ className, style, ...props }, ref) => (
         <div
             ref={ref}
-            className={["rounded-2xl transition-all duration-200", className].filter(Boolean).join(" ")}
-            style={{
-                backgroundColor: "var(--bg-surface)",
-                border: "1px solid var(--border-subtle)",
-                boxShadow: "var(--shadow-md)",
-                ...style,
-            }}
+            className={["rounded-2xl transition-all duration-200 bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-[var(--shadow-md)]", className].filter(Boolean).join(" ")}
+            style={style}
             {...props}
         />
     )

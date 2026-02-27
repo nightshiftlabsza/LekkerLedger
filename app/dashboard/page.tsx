@@ -181,11 +181,9 @@ export default function DashboardPage() {
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
             {/* Header */}
             <header
-                className="sticky top-0 z-30 px-4 py-3 flex items-center justify-between"
+                className="sticky top-0 z-30 px-4 py-3 flex items-center justify-between glass-panel shadow-[var(--shadow-sm)]"
                 style={{
-                    backgroundColor: "var(--bg-surface)",
                     borderBottom: "1px solid var(--border-subtle)",
-                    boxShadow: "var(--shadow-sm)",
                 }}
             >
                 <div className="flex items-center gap-3">
@@ -290,7 +288,7 @@ export default function DashboardPage() {
 
                         {/* Summary Cards */}
                         <div className="grid grid-cols-2 gap-3 animate-slide-up">
-                            <Card>
+                            <Card className="glass-panel hover-lift active-scale">
                                 <CardContent className="p-4 flex flex-col items-center text-center">
                                     <div
                                         className="h-10 w-10 rounded-xl flex items-center justify-center mb-2"
@@ -306,7 +304,7 @@ export default function DashboardPage() {
                                     </p>
                                 </CardContent>
                             </Card>
-                            <Card>
+                            <Card className="glass-panel hover-lift active-scale">
                                 <CardContent className="p-4 flex flex-col items-start text-left relative overflow-hidden">
                                     <div className="flex items-center gap-2 mb-1">
                                         <DollarSign className="h-4 w-4" style={{ color: "var(--amber-500)" }} />
@@ -339,7 +337,7 @@ export default function DashboardPage() {
 
                         {/* Bulk Action Banner */}
                         {summaries.length > 1 && stats.current === 0 && (
-                            <Card className={`animate-slide-up border-2 ${settings?.proStatus === "free" ? 'border-zinc-200 bg-zinc-50' : 'border-[var(--amber-500)] bg-[var(--amber-500)]/5'}`}>
+                            <Card className={`animate-slide-up glass-panel hover-lift active-scale border-2 ${settings?.proStatus === "free" ? 'border-zinc-200' : 'border-[var(--amber-500)]'}`}>
                                 <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                                     <div className="flex items-center gap-3">
                                         <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${settings?.proStatus === "free" ? 'bg-zinc-200' : 'bg-[var(--amber-500)]'}`}>
@@ -386,7 +384,7 @@ export default function DashboardPage() {
                             </div>
 
                             {summaries.length === 0 ? (
-                                <Card>
+                                <Card className="glass-panel hover-lift active-scale">
                                     <CardContent className="p-8 text-center">
                                         <Users className="h-10 w-10 mx-auto mb-3" style={{ color: "var(--text-muted)" }} />
                                         <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>No employees yet</p>
@@ -402,7 +400,7 @@ export default function DashboardPage() {
                                 </Card>
                             ) : (
                                 summaries.map(({ employee, latestPayslip, netPay }) => (
-                                    <Card key={employee.id} className="animate-slide-up">
+                                    <Card key={employee.id} className="animate-slide-up glass-panel hover-lift active-scale">
                                         <CardContent className="p-4">
                                             <div className="flex items-center justify-between mb-3">
                                                 <div className="flex items-center gap-3">

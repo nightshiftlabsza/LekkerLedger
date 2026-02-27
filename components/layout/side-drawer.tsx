@@ -73,7 +73,7 @@ export function SideDrawer() {
             <button
                 onClick={() => setOpen(true)}
                 aria-label="Open menu"
-                className="h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-[var(--bg-subtle)] active:scale-95 text-[var(--text-secondary)]"
+                className="h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-[var(--bg-subtle)] active-scale text-[var(--text-secondary)]"
             >
                 <Menu className="h-5 w-5" />
             </button>
@@ -89,11 +89,10 @@ export function SideDrawer() {
             {/* Drawer Panel */}
             <div
                 className={[
-                    "fixed top-0 left-0 h-full w-72 z-50 flex flex-col",
+                    "fixed top-0 left-0 h-full w-72 z-50 flex flex-col glass-panel",
                     "shadow-[var(--shadow-xl)] transition-transform duration-300",
                     open ? "translate-x-0 animate-drawer-in" : "-translate-x-full",
                 ].join(" ")}
-                style={{ backgroundColor: "var(--bg-surface)", borderRight: "1px solid var(--border-subtle)" }}
                 aria-modal="true"
                 role="dialog"
             >
@@ -110,7 +109,7 @@ export function SideDrawer() {
                     <button
                         onClick={() => setOpen(false)}
                         aria-label="Close menu"
-                        className="h-8 w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--bg-subtle)] active:scale-95"
+                        className="h-8 w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--bg-subtle)] active-scale"
                         style={{ color: "var(--text-muted)" }}
                     >
                         <X className="h-4 w-4" />
@@ -183,7 +182,7 @@ export function SideDrawer() {
                                 <button
                                     key={value}
                                     onClick={() => setTheme(value)}
-                                    className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-md text-xs font-medium transition-all duration-200 active:scale-95"
+                                    className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-md text-xs font-medium transition-all duration-200 active-scale"
                                     style={{
                                         backgroundColor: active ? "var(--bg-surface)" : "transparent",
                                         color: active ? "var(--amber-500)" : "var(--text-muted)",

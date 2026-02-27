@@ -14,6 +14,7 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { getSettings, saveSettings } from "@/lib/storage";
 
 const PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c";
+const PAYSTACK_PLAN_ANNUAL = "PLN_xdijjb5u3pqneld";
 
 // Load Paystack dynamically to prevent Next.js SSR window errors
 const PaystackHookWrapper = dynamic(
@@ -47,6 +48,19 @@ export default function PricingPage() {
         load();
     }, []);
 
+    // Payment Config builder
+    const getPaystackConfig = () => {
+        const isAnnual = selectedPlan === "annual";
+        return {
+            reference: (new Date()).getTime().toString(),
+            email: "user@lekkerledger.co.za",
+            amount: isAnnual ? 9900 : 29900,
+            publicKey: PAYSTACK_PUBLIC_KEY,
+            currency: 'ZAR',
+            plan: isAnnual ? PAYSTACK_PLAN_ANNUAL : undefined, // Attach plan only if it's the annual subscription
+        };
+    };
+
     const handleUpgradeSuccess = async (plan: "annual" | "pro") => {
         const s = await getSettings();
         await saveSettings({ ...s, proStatus: plan });
@@ -74,26 +88,13 @@ export default function PricingPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col selection:bg-amber-200" style={{ backgroundColor: "var(--bg-base)" }}>
-            {makePayment && selectedPlan && (
-                <PaystackHookWrapper
-                    config={{
-                        reference: (new Date()).getTime().toString(),
-                        email: "user@lekkerledger.co.za",
-                        amount: selectedPlan === "pro" ? 29900 : 9900,
-                        publicKey: PAYSTACK_PUBLIC_KEY,
-                        currency: 'ZAR',
-                    }}
-                    onSuccess={() => handleUpgradeSuccess(selectedPlan)}
-                    onClose={() => setMakePayment(false)}
-                />
-            )}
-            <header className="sticky top-0 z-40 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] backdrop-blur-md bg-opacity-80">
+        <div className="min-h-screen flex flex-col selection:bg-amber-200 relative" style={{ backgroundColor: "var(--bg-base)" }}>
+            <header className="sticky top-0 z-40 glass-panel border-b border-[var(--border-subtle)]">
                 <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SideDrawer />
                         <Link href="/dashboard">
-                            <button className="h-10 w-10 flex items-center justify-center rounded-2xl bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-amber-600 transition-all">
+                            <button className="h-10 w-10 flex items-center justify-center rounded-2xl bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-amber-600 transition-all active-scale">
                                 <ArrowLeft className="h-5 w-5" />
                             </button>
                         </Link>
@@ -108,6 +109,16 @@ export default function PricingPage() {
                     </div>
                 </div>
             </header>
+
+            {makePayment && selectedPlan && (
+                <div className="fixed inset-0 z-[100] pointer-events-none">
+                    <PaystackHookWrapper
+                        config={getPaystackConfig()}
+                        onSuccess={() => handleUpgradeSuccess(selectedPlan)}
+                        onClose={() => setMakePayment(false)}
+                    />
+                </div>
+            )}
 
             <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-12 md:py-20 space-y-20">
                 {/* Hero section */}
@@ -297,7 +308,7 @@ function PricingCard({
     isPro?: boolean;
 }) {
     return (
-        <Card className={`relative overflow-hidden transition-all duration-300 hover:scale-[1.02] ${isPro ? 'border-2 border-amber-500 shadow-2xl scale-105 z-10' : 'border border-[var(--border-subtle)]'}`}>
+        <Card className={`relative overflow-hidden transition-all duration-300 glass-panel hover-lift active-scale ${isPro ? 'border-2 border-amber-500 shadow-2xl scale-105 z-10' : ''}`}>
             {badge && (
                 <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest shadow-sm z-10 ${isPro ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-600 border-l border-b border-amber-100'}`}>
                     {badge}
