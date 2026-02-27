@@ -16,6 +16,7 @@ import {
     Palmtree,
     FileSpreadsheet,
     Settings,
+    BookOpen,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 
@@ -26,6 +27,7 @@ const NAV_LINKS = [
     { href: "/leave", label: "Leave Tracker", icon: Palmtree, note: "Select an employee first" },
     { href: "/contracts", label: "Contracts", icon: FileText },
     { href: "/ufiling", label: "uFiling Export", icon: FileSpreadsheet },
+    { href: "/rules", label: "SA Rules Guide", icon: BookOpen },
     { href: "/settings", label: "Settings", icon: Settings },
 ];
 

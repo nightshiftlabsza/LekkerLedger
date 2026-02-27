@@ -14,6 +14,7 @@ import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { generatePayslipPdfBytes } from "@/lib/pdf";
 import { shareViaWhatsApp } from "@/lib/share";
+import { getSettings } from "@/lib/storage";
 
 function Row({ label, value, bold, red }: { label: string; value: string; bold?: boolean; red?: boolean }) {
     return (
@@ -41,6 +42,7 @@ function PreviewContent() {
     const [loading, setLoading] = React.useState(true);
     const [downloading, setDownloading] = React.useState(false);
     const [sharing, setSharing] = React.useState(false);
+    const [settings, setSettings] = React.useState<any>(null);
     const [error, setError] = React.useState("");
 
     React.useEffect(() => {
@@ -48,15 +50,16 @@ function PreviewContent() {
             if (!payslipId || !empId) { setError("Payslip not found."); setLoading(false); return; }
 
             try {
-                const [empList, payslips] = await Promise.all([
+                const [empList, payslips, s] = await Promise.all([
                     getEmployees(),
                     getPayslipsForEmployee(empId),
+                    getSettings(),
                 ]);
-                const emp = empList.find((e) => e.id === empId);
-                const ps = payslips.find((p) => p.id === payslipId);
+                const emp = empList.find((e: Employee) => e.id === empId);
+                const ps = payslips.find((p: PayslipInput) => p.id === payslipId);
 
                 if (!emp || !ps) { setError("Payslip data not found."); }
-                else { setEmployee(emp); setPayslip(ps); }
+                else { setEmployee(emp); setPayslip(ps); setSettings(s); }
             } catch (e) {
                 console.error(e);
                 setError("Failed to load payslip data.");
@@ -68,10 +71,10 @@ function PreviewContent() {
     }, [payslipId, empId]);
 
     const handleDownload = async () => {
-        if (!employee || !payslip) return;
+        if (!employee || !payslip || !settings) return;
         setDownloading(true);
         try {
-            const bytes = await generatePayslipPdfBytes(employee, payslip);
+            const bytes = await generatePayslipPdfBytes(employee, payslip, settings);
             // Create a proper copy of the buffer to avoid SharedArrayBuffer issues
             const copy = bytes.slice(0);
             const blob = new Blob([copy], { type: "application/pdf" });
@@ -285,10 +288,10 @@ function PreviewContent() {
                         className="w-full gap-2 h-12 text-base"
                         disabled={sharing}
                         onClick={async () => {
-                            if (!employee || !payslip) return;
+                            if (!employee || !payslip || !settings) return;
                             setSharing(true);
                             try {
-                                const bytes = await generatePayslipPdfBytes(employee, payslip);
+                                const bytes = await generatePayslipPdfBytes(employee, payslip, settings);
                                 const periodLabel = format(payslip.payPeriodStart, "MMM_yyyy");
                                 await shareViaWhatsApp(bytes.slice(0), employee.name, employee.phone || "", periodLabel);
                             } catch (e) {

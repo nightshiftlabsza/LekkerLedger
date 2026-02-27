@@ -1,5 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import { Employee, PayslipInput } from "./schema";
+import { Employee, PayslipInput, EmployerSettings } from "./schema";
 import { calculatePayslip } from "./calculator";
 import { format } from "date-fns";
 
@@ -15,7 +15,8 @@ const LINE = rgb(0.88, 0.86, 0.83);
 
 export async function generatePayslipPdfBytes(
     employee: Employee,
-    payslip: PayslipInput
+    payslip: PayslipInput,
+    employer: EmployerSettings
 ): Promise<Uint8Array> {
     const breakdown = calculatePayslip(payslip);
 
@@ -73,12 +74,19 @@ export async function generatePayslipPdfBytes(
     rect(0, height - 100, width, 100, DARK);
 
     t("PAYSLIP", 48, height - 46, { font: bold, size: 28, color: WHITE });
-    t("LekkerLedger", 48, height - 70, { font: regular, size: 12, color: rgb(0.6, 0.55, 0.5), maxWidth: 250 });
+
+    // Employer Identity Header (Legal Requirement)
+    t(employer.employerName || "Employer Name Not Set", 48, height - 70, { font: bold, size: 12, color: rgb(0.8, 0.75, 0.7), maxWidth: 280 });
+    t(employer.employerAddress || "Address Not Set", 48, height - 85, { font: regular, size: 9, color: rgb(0.6, 0.55, 0.5), maxWidth: 280 });
 
     // Right side of header
     t("CONFIDENTIAL DOCUMENT", width - 48, height - 46, {
         font: bold, size: 9.5, color: rgb(0.5, 0.45, 0.40), align: "right",
     });
+    // Employer UIF Ref (Legal Requirement if UIF is paid)
+    if (employer.uifRefNumber) {
+        t(`UIF Ref: ${employer.uifRefNumber}`, width - 48, height - 60, { font: regular, size: 9, color: rgb(0.5, 0.45, 0.40), align: "right" });
+    }
 
     // ── Amber accent bar ─────────────────────────────────────────────────────
     rect(0, height - 104, width, 4, AMBER);

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Calculator, Shield, Clock, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,8 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { NMW_RATE } from "@/lib/calculator";
+import { getSettings } from "@/lib/storage";
 
 export default function Home() {
+  const router = useRouter();
   const [hours, setHours] = React.useState("160");
   const [rate, setRate] = React.useState("30.23");
   const [showCalc, setShowCalc] = React.useState(false);
@@ -31,6 +34,20 @@ export default function Home() {
     return { gross, uif, net, uifActive, effectiveRate };
   }, [rateNum, hoursNum]);
 
+  const handleStart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      const s = await getSettings();
+      if (!s.employerName) {
+        router.push("/onboarding");
+      } else {
+        router.push("/employees");
+      }
+    } catch {
+      router.push("/employees");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
       {/* Header */}
@@ -46,11 +63,9 @@ export default function Home() {
         <p className="text-sm font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
           LekkerLedger
         </p>
-        <Link href="/employees">
-          <Button size="sm" variant="default">
-            Get Started
-          </Button>
-        </Link>
+        <Button size="sm" variant="default" onClick={handleStart}>
+          Get Started
+        </Button>
       </header>
 
       {/* Hero */}
@@ -90,11 +105,9 @@ export default function Home() {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-            <Link href="/employees">
-              <Button size="lg" className="w-full sm:w-auto gap-2 font-bold">
-                Manage Employees <ArrowRight className="h-5 w-5" />
-              </Button>
-            </Link>
+            <Button size="lg" className="w-full sm:w-auto gap-2 font-bold" onClick={handleStart}>
+              Manage Employees <ArrowRight className="h-5 w-5" />
+            </Button>
             <Button
               size="lg"
               variant="outline"
@@ -221,11 +234,9 @@ export default function Home() {
                   Estimate only. Create a full payslip PDF via the wizard.
                 </p>
 
-                <Link href="/employees" className="block">
-                  <Button className="w-full gap-2">
-                    Create Full Payslip <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <Button className="w-full gap-2" onClick={handleStart}>
+                  Create Full Payslip <ChevronRight className="h-4 w-4" />
+                </Button>
               </CardContent>
             </Card>
           )}
