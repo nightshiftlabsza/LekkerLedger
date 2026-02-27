@@ -178,6 +178,7 @@ export async function generateContractPdfBytes(input: ContractInput): Promise<Ui
     heading("6. Deductions");
     para("The Employer shall deduct 1% of gross remuneration as the Employee's contribution to the Unemployment Insurance Fund (UIF), and shall contribute a further 1% as the Employer's contribution. These contributions shall be paid to the UIF monthly.");
     para("No deductions shall be made without the written consent of the Employee, except where required by law.");
+    para("Deductions for damages or loss may only be made if the Employer follows a fair procedure, the Employee agrees in writing, and the total deduction does not exceed 25% of the Employee's net remuneration (BCEA Section 34).");
 
     // ── Leave ────────────────────────────────────────────────────────────────
     heading("7. Leave Entitlements");

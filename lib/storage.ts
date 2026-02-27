@@ -31,13 +31,13 @@ export async function deleteEmployee(id: string): Promise<void> {
     await payslipStore.iterate<PayslipInput, void>((val: PayslipInput, key: string) => {
         if (val.employeeId === id) toDelete.push(key);
     });
-    await Promise.all(toDelete.map((k) => payslipStore.removeItem(k)));
+    await Promise.allSettled(toDelete.map((k) => payslipStore.removeItem(k)));
     // Also delete associated leave records
     const leaveToDelete: string[] = [];
     await leaveStore.iterate<LeaveRecord, void>((val: LeaveRecord, key: string) => {
         if (val.employeeId === id) leaveToDelete.push(key);
     });
-    await Promise.all(leaveToDelete.map((k) => leaveStore.removeItem(k)));
+    await Promise.allSettled(leaveToDelete.map((k) => leaveStore.removeItem(k)));
 }
 
 // ─── Payslip CRUD ───────────────────────────────────────────────────────────
@@ -106,4 +106,26 @@ export async function getSettings(): Promise<EmployerSettings> {
 
 export async function saveSettings(settings: EmployerSettings): Promise<void> {
     await settingsStore.setItem(SETTINGS_KEY, settings);
+}
+
+// ─── Time Verification ──────────────────────────────────────────────────────
+
+export async function getSecureTime(): Promise<Date> {
+    try {
+        const res = await fetch("https://worldtimeapi.org/api/timezone/Etc/UTC", { cache: "no-store", signal: AbortSignal.timeout(3000) });
+        if (!res.ok) throw new Error("API fail");
+        const data = await res.json();
+        const serverDate = new Date(data.datetime);
+        await settingsStore.setItem("lastKnownTime", serverDate.getTime());
+        return serverDate;
+    } catch {
+        // Fallback to local time, but protect against backwards drift (users moving their PC clock back to bypass expiry)
+        const localTime = new Date();
+        const lastKnown = await settingsStore.getItem<number>("lastKnownTime") || 0;
+        if (localTime.getTime() < lastKnown) {
+            return new Date(lastKnown);
+        }
+        await settingsStore.setItem("lastKnownTime", localTime.getTime());
+        return localTime;
+    }
 }

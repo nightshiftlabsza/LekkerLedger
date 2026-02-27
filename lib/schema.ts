@@ -12,6 +12,8 @@ export const EmployeeSchema = z.object({
         .min(NMW_DOMESTIC, `Hourly rate must be at least R${NMW_DOMESTIC} (National Minimum Wage)`),
     phone: z.string().optional().default(""),
     startDate: z.string().optional().default(""), // ISO date string — when employment began
+    ordinarilyWorksSundays: z.boolean().default(false),
+    ordinaryHoursPerDay: z.number().min(1).max(24).default(8),
 });
 
 export type Employee = z.infer<typeof EmployeeSchema>;
@@ -26,6 +28,7 @@ export const PayslipInputSchema = z.object({
     sundayHours: z.number().min(0).default(0),
     publicHolidayHours: z.number().min(0).default(0),
     daysWorked: z.number().min(1).default(1),
+    shortFallHours: z.number().min(0).default(0),
     hourlyRate: z
         .number()
         .min(NMW_DOMESTIC, `Hourly rate must be at least R${NMW_DOMESTIC} (National Minimum Wage)`),
@@ -33,6 +36,8 @@ export const PayslipInputSchema = z.object({
     accommodationCost: z.number().min(0).optional(),
     otherDeductions: z.number().min(0).default(0),
     createdAt: z.date(),
+    ordinarilyWorksSundays: z.boolean().default(false),
+    ordinaryHoursPerDay: z.number().min(1).max(24).default(8),
     // Phase 1: Leave tracking per payslip
     annualLeaveTaken: z.number().min(0).default(0),
     sickLeaveTaken: z.number().min(0).default(0),

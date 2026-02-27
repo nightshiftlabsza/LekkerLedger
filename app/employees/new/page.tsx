@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Save, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Sparkles, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,8 @@ export default function AddEmployeePage() {
         role: "Domestic Worker",
         phone: "",
         startDate: new Date().toISOString().slice(0, 10),
+        ordinarilyWorksSundays: false,
+        ordinaryHoursPerDay: "8",
     });
     const [errors, setErrors] = React.useState<Record<string, string>>({});
     const [canAdd, setCanAdd] = React.useState(true);
@@ -57,6 +59,7 @@ export default function AddEmployeePage() {
             id: crypto.randomUUID(),
             ...formData,
             hourlyRate: parseFloat(formData.hourlyRate),
+            ordinaryHoursPerDay: Number(formData.ordinaryHoursPerDay) || 8,
         };
 
         const parsed = EmployeeSchema.safeParse(submissionData);
@@ -234,6 +237,50 @@ export default function AddEmployeePage() {
                                     </p>
                                 )}
                             </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="ordinaryHoursPerDay">Ordinary Hours per Day</Label>
+                                <Input
+                                    id="ordinaryHoursPerDay"
+                                    type="number"
+                                    min="1"
+                                    max="24"
+                                    value={formData.ordinaryHoursPerDay}
+                                    onChange={(e) => setFormData({ ...formData, ordinaryHoursPerDay: e.target.value })}
+                                    disabled={loading}
+                                />
+                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                                    Default 8 hrs. Used to calculate Minimum Sunday Shift Pay (BCEA).
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
+                                className="w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all duration-200 active:scale-[0.99] hover:bg-[var(--bg-subtle)]"
+                                style={{
+                                    border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--amber-500)" : "var(--border-default)"}`,
+                                    backgroundColor: formData.ordinarilyWorksSundays ? "rgba(196,122,28,0.04)" : "transparent",
+                                }}
+                            >
+                                <div
+                                    className="h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200"
+                                    style={{
+                                        backgroundColor: formData.ordinarilyWorksSundays ? "var(--amber-500)" : "transparent",
+                                        border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--amber-500)" : "var(--border-strong)"}`,
+                                    }}
+                                >
+                                    {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />}
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
+                                        Ordinarily works on Sundays
+                                    </p>
+                                    <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                                        If toggled ON, Sunday pay is calculated at 1.5× normal rate. If OFF, Sunday pay is calculated at 2.0× normal rate (BCEA Sect. 16).
+                                    </p>
+                                </div>
+                            </button>
 
                             <div
                                 className="pt-4"

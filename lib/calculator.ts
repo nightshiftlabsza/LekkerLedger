@@ -32,14 +32,28 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
     // Enforce NMW guardrail (backup to schema validation)
     const rate = Math.max(input.hourlyRate, NMW_RATE);
 
-    // 4-hour shift rule: if total ordinary hours < (days worked * 4), 
-    // we must pay them for at least (days worked * 4) ordinary hours.
-    const minimumOrdinaryHours = (input.daysWorked || 1) * 4;
-    const effectiveOrdinaryHours = Math.max(input.ordinaryHours, minimumOrdinaryHours);
+    // 4-hour shift rule: if total ordinary hours on specific days < 4, 
+    // the wizard passes 'shortFallHours' to precisely top-up the pay.
+    const effectiveOrdinaryHours = input.ordinaryHours + (input.shortFallHours ?? 0);
 
     const ordinaryPay = effectiveOrdinaryHours * rate;
     const overtimePay = input.overtimeHours * rate * OVERTIME_MULTIPLIER;
-    const sundayPay = input.sundayHours * rate * SUNDAY_PH_MULTIPLIER;
+
+    // BCEA Section 16: If they ordinarily work on a Sunday, it's 1.5x. Otherwise, 2.0x.
+    const sundayMultiplier = input.ordinarilyWorksSundays ? 1.5 : 2.0;
+
+    let sundayPay = 0;
+    if (input.sundayHours > 0) {
+        sundayPay = input.sundayHours * rate * sundayMultiplier;
+
+        // BCEA Section 16(3): If they work less than their ordinary shift on a Sunday, 
+        // Sunday pay cannot be less than their ordinary daily wage.
+        const ordinaryDailyWage = (input.ordinaryHoursPerDay ?? 8) * rate;
+        if (sundayPay < ordinaryDailyWage) {
+            sundayPay = ordinaryDailyWage;
+        }
+    }
+
     const publicHolidayPay = input.publicHolidayHours * rate * SUNDAY_PH_MULTIPLIER;
 
     const grossPay = ordinaryPay + overtimePay + sundayPay + publicHolidayPay;

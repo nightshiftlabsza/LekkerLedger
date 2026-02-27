@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SideDrawer } from "@/components/layout/side-drawer";
-import { getEmployees, getLatestPayslip, getPayslipsForEmployee, savePayslip, getSettings, saveSettings } from "@/lib/storage";
+import { getEmployees, getLatestPayslip, getPayslipsForEmployee, savePayslip, getSettings, saveSettings, getSecureTime } from "@/lib/storage";
 import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { format, addDays, isAfter, isBefore } from "date-fns";
@@ -41,9 +41,10 @@ export default function DashboardPage() {
         async function load() {
             const s = await getSettings();
 
-            // Check trial expiry
+            // Check trial expiry securely against monotonic world time to prevent local-clock tampering
             if (s.proStatus === "trial" && s.trialExpiry) {
-                if (new Date() > new Date(s.trialExpiry)) {
+                const nowSecure = await getSecureTime();
+                if (nowSecure > new Date(s.trialExpiry)) {
                     const updated = { ...s, proStatus: "free" as const };
                     await saveSettings(updated);
                     setSettings(updated);
