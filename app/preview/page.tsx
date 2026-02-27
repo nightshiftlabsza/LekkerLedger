@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Download, Loader2, CheckCircle2, RefreshCw, MessageCircle } from "lucide-react";
+import confetti from "canvas-confetti";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, getPayslipsForEmployee } from "@/lib/storage";
 import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
-import { generatePayslipPdfBytes } from "@/lib/pdf";
+import { Share } from "lucide-react";
 import { shareViaWhatsApp } from "@/lib/share";
 import { getSettings } from "@/lib/storage";
 
@@ -59,7 +60,18 @@ function PreviewContent() {
                 const ps = payslips.find((p: PayslipInput) => p.id === payslipId);
 
                 if (!emp || !ps) { setError("Payslip data not found."); }
-                else { setEmployee(emp); setPayslip(ps); setSettings(s); }
+                else {
+                    setEmployee(emp);
+                    setPayslip(ps);
+                    setSettings(s);
+                    // Celebrate!
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#d97706', '#f59e0b', '#10b981']
+                    });
+                }
             } catch (e) {
                 console.error(e);
                 setError("Failed to load payslip data.");
@@ -74,8 +86,21 @@ function PreviewContent() {
         if (!employee || !payslip || !settings) return;
         setDownloading(true);
         try {
-            const bytes = await generatePayslipPdfBytes(employee, payslip, settings);
-            // Create a proper copy of the buffer to avoid SharedArrayBuffer issues
+            const bytes: Uint8Array = await new Promise((resolve, reject) => {
+                const worker = new Worker(new URL('../../lib/pdf.worker.ts', import.meta.url));
+                worker.onmessage = (e) => {
+                    const { bytes, error } = e.data;
+                    if (error) reject(new Error(error));
+                    else resolve(bytes);
+                    worker.terminate();
+                };
+                worker.onerror = (e) => {
+                    reject(new Error(e.message));
+                    worker.terminate();
+                };
+                worker.postMessage({ employee, payslip, settings, msgId: 'dl' });
+            });
+
             const copy = bytes.slice(0);
             const blob = new Blob([copy], { type: "application/pdf" });
             const url = URL.createObjectURL(blob);
@@ -291,9 +316,19 @@ function PreviewContent() {
                             if (!employee || !payslip || !settings) return;
                             setSharing(true);
                             try {
-                                const bytes = await generatePayslipPdfBytes(employee, payslip, settings);
+                                const bytes: Uint8Array = await new Promise((resolve, reject) => {
+                                    const worker = new Worker(new URL('../../lib/pdf.worker.ts', import.meta.url));
+                                    worker.onmessage = (e) => {
+                                        const { bytes, error } = e.data;
+                                        if (error) reject(new Error(error));
+                                        else resolve(bytes);
+                                        worker.terminate();
+                                    };
+                                    worker.onerror = (e) => { reject(new Error(e.message)); worker.terminate(); };
+                                    worker.postMessage({ employee, payslip, settings, msgId: 'wa' });
+                                });
                                 const periodLabel = format(payslip.payPeriodStart, "MMM_yyyy");
-                                await shareViaWhatsApp(bytes.slice(0), employee.name, employee.phone || "", periodLabel);
+                                await shareViaWhatsApp(bytes, employee.name, employee.phone || "", periodLabel);
                             } catch (e) {
                                 console.error("Share failed:", e);
                             }

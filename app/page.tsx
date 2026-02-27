@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Calculator, Shield, Clock, ChevronRight } from "lucide-react";
+import { ArrowRight, Calculator, Shield, Clock, ChevronRight, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ export default function Home() {
   const router = useRouter();
   const [hours, setHours] = React.useState("160");
   const [rate, setRate] = React.useState("30.23");
-  const [showCalc, setShowCalc] = React.useState(false);
+  const [showCalc, setShowCalc] = React.useState(true);
 
   const rateNum = parseFloat(rate) || 0;
   const hoursNum = parseFloat(hours) || 0;
@@ -59,10 +59,12 @@ export default function Home() {
           boxShadow: "var(--shadow-sm)",
         }}
       >
-        <SideDrawer />
-        <p className="text-sm font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
-          LekkerLedger
-        </p>
+        <div className="flex items-center gap-3">
+          <SideDrawer />
+          <div className="flex items-center gap-2">
+            <img src="/brand/logo-full.png" alt="LekkerLedger Logo" className="h-6 w-auto" />
+          </div>
+        </div>
         <Button size="sm" variant="default" onClick={handleStart}>
           Get Started
         </Button>
@@ -81,7 +83,7 @@ export default function Home() {
             }}
           >
             <Shield className="h-3.5 w-3.5" />
-            BCEA &amp; Sectoral Determination 7 Compliant
+            The Domestic Standard — BCEA & Sectional Determination 7
           </div>
 
           {/* Headline */}
@@ -122,16 +124,16 @@ export default function Home() {
           {/* Quick Calculator */}
           {showCalc && (
             <Card className="max-w-lg mx-auto text-left animate-scale-in">
-              <CardContent className="p-6 space-y-5">
+              <CardContent className="p-6 sm:p-8 space-y-7">
                 <h2
-                  className="text-base font-bold flex items-center gap-2"
+                  className="text-lg font-extrabold flex items-center gap-2 mb-2"
                   style={{ color: "var(--text-primary)" }}
                 >
-                  <Calculator className="h-5 w-5" style={{ color: "var(--amber-500)" }} />
+                  <Calculator className="h-6 w-6" style={{ color: "var(--amber-500)" }} />
                   Minimum Wage &amp; UIF Calculator
                 </h2>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label htmlFor="calc-hours">Hours Worked</Label>
                     <Input
@@ -179,11 +181,11 @@ export default function Home() {
 
                 {preview && (
                   <div
-                    className="rounded-xl overflow-hidden"
+                    className="rounded-xl overflow-hidden mt-2"
                     style={{ border: "1px solid var(--border-subtle)" }}
                   >
                     <div
-                      className="flex justify-between items-center px-5 py-3.5 text-sm"
+                      className="flex justify-between items-center px-5 py-4 text-sm"
                       style={{ borderBottom: "1px solid var(--border-subtle)" }}
                     >
                       <span style={{ color: "var(--text-secondary)" }}>
@@ -243,21 +245,28 @@ export default function Home() {
 
           {/* Trust signals */}
           <div
-            className="flex flex-wrap justify-center gap-x-6 gap-y-2 pt-4 text-sm"
+            className="flex flex-wrap justify-center items-center gap-x-6 gap-y-3 pt-6 text-sm font-medium"
             style={{ color: "var(--text-muted)" }}
           >
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-2">
               <Shield className="h-4 w-4" style={{ color: "var(--green-500)" }} />
-              Data stays on your device
+              Private (Local & Google Drive)
             </span>
-            <span className="flex items-center gap-1.5">
+            <span className="hidden md:inline-flex items-center text-[var(--border-strong)]">|</span>
+            <span className="flex items-center gap-2">
               <Clock className="h-4 w-4" style={{ color: "var(--amber-500)" }} />
-              Under 90 seconds
+              Generated in 90s
             </span>
-            <span className="flex items-center gap-1.5">
-              <Calculator className="h-4 w-4" style={{ color: "var(--green-500)" }} />
-              Free during beta
-            </span>
+            <span className="hidden md:inline-flex items-center text-[var(--border-strong)]">|</span>
+            <a
+              href="https://github.com/nightshiftlabsza/LekkerLedger"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:text-[var(--text-primary)] transition-all"
+            >
+              <Github className="h-4 w-4" />
+              Verifiably Open Source
+            </a>
           </div>
         </div>
       </main>

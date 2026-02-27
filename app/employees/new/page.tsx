@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +11,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { EmployeeSchema, Employee } from "@/lib/schema";
-import { saveEmployee } from "@/lib/storage";
+import { saveEmployee, getEmployees, getSettings } from "@/lib/storage";
 import { NMW_RATE } from "@/lib/calculator";
+import { EmployerSettings } from "@/lib/schema";
 
 export default function AddEmployeePage() {
     const router = useRouter();
@@ -26,6 +27,24 @@ export default function AddEmployeePage() {
         startDate: new Date().toISOString().slice(0, 10),
     });
     const [errors, setErrors] = React.useState<Record<string, string>>({});
+    const [canAdd, setCanAdd] = React.useState(true);
+    const [tierLimitReached, setTierLimitReached] = React.useState<"free" | "annual" | null>(null);
+
+    React.useEffect(() => {
+        async function checkLimit() {
+            const [emps, settings] = await Promise.all([getEmployees(), getSettings()]);
+            const tier = settings.proStatus || "free";
+
+            if (tier === "free" && emps.length >= 1) {
+                setCanAdd(false);
+                setTierLimitReached("free");
+            } else if (tier === "annual" && emps.length >= 3) {
+                setCanAdd(false);
+                setTierLimitReached("annual");
+            }
+        }
+        checkLimit();
+    }, []);
 
     const hourlyRateNum = parseFloat(formData.hourlyRate) || 0;
     const belowNMW = hourlyRateNum > 0 && hourlyRateNum < NMW_RATE;
@@ -93,6 +112,17 @@ export default function AddEmployeePage() {
                 <Card className="animate-slide-up">
                     <CardContent className="p-6">
                         <form onSubmit={handleSave} className="space-y-5">
+                            {!canAdd && (
+                                <Alert variant="default" className="border-amber-500 bg-amber-50">
+                                    <Sparkles className="h-4 w-4 text-amber-600" />
+                                    <AlertDescription className="text-amber-800">
+                                        <strong>{tierLimitReached === "annual" ? "Annual" : "Standard"} Tier Limit:</strong>
+                                        {tierLimitReached === "annual" ? " You can only have up to 3 active workers." : " You can only have 1 active worker."}
+                                        <Link href="/pricing" className="ml-1 underline font-bold">Upgrade to Pro</Link> for unlimited seats.
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+
                             {errors.form && (
                                 <Alert variant="error">
                                     <AlertDescription>{errors.form}</AlertDescription>
@@ -212,7 +242,7 @@ export default function AddEmployeePage() {
                                 <Button
                                     type="submit"
                                     className="w-full gap-2 h-12 text-base"
-                                    disabled={loading || belowNMW}
+                                    disabled={loading || belowNMW || !canAdd}
                                 >
                                     {loading ? (
                                         <>

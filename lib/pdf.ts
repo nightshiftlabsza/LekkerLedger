@@ -24,6 +24,21 @@ export async function generatePayslipPdfBytes(
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 portrait
     const { width, height } = page.getSize();
 
+    // Embed logo if exists
+    let logoImage = null;
+    if (employer.logoData) {
+        try {
+            // Check if it's PNG or JPEG
+            if (employer.logoData.startsWith("data:image/png")) {
+                logoImage = await pdfDoc.embedPng(employer.logoData);
+            } else {
+                logoImage = await pdfDoc.embedJpg(employer.logoData);
+            }
+        } catch (e) {
+            console.error("Failed to embed logo", e);
+        }
+    }
+
     const regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
@@ -73,16 +88,53 @@ export async function generatePayslipPdfBytes(
     // ── Header band ──────────────────────────────────────────────────────────
     rect(0, height - 100, width, 100, DARK);
 
-    t("PAYSLIP", 48, height - 46, { font: bold, size: 28, color: WHITE });
+    // Embed and Draw Logo
+    // Embed and Draw Logo (Pro Feature)
+    let logoDrawn = false;
+    if (employer.proStatus === "pro" && employer.logoData) {
+        try {
+            // Assume base64 data URL: "data:image/png;base64,..."
+            const base64Data = employer.logoData.split(",")[1];
+            if (base64Data) {
+                const logoBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+                const logoImg = await pdfDoc.embedPng(logoBytes);
+                const logoDims = logoImg.scale(0.12);
+                page.drawImage(logoImg, {
+                    x: 48,
+                    y: height - 65,
+                    width: logoDims.width,
+                    height: logoDims.height,
+                });
+                logoDrawn = true;
+            }
+        } catch (e) {
+            console.error("Failed to embed custom logo", e);
+        }
+    }
+
+    if (!logoDrawn) {
+        // Default branding text for Free users or failed Pro logos
+        t("LekkerLedger", 48, height - 46, { font: bold, size: 28, color: WHITE });
+    }
 
     // Employer Identity Header (Legal Requirement)
-    t(employer.employerName || "Employer Name Not Set", 48, height - 70, { font: bold, size: 12, color: rgb(0.8, 0.75, 0.7), maxWidth: 280 });
-    t(employer.employerAddress || "Address Not Set", 48, height - 85, { font: regular, size: 9, color: rgb(0.6, 0.55, 0.5), maxWidth: 280 });
+    t(employer.employerName || "Employer Name Not Set", 48, height - 78, { font: bold, size: 11, color: rgb(0.8, 0.75, 0.7), maxWidth: 280 });
+    t(employer.employerAddress || "Address Not Set", 48, height - 90, { font: regular, size: 8, color: rgb(0.6, 0.55, 0.5), maxWidth: 280 });
 
     // Right side of header
-    t("CONFIDENTIAL DOCUMENT", width - 48, height - 46, {
-        font: bold, size: 9.5, color: rgb(0.5, 0.45, 0.40), align: "right",
-    });
+    if (logoImage) {
+        const dims = logoImage.scaleToFit(140, 60);
+        page.drawImage(logoImage, {
+            x: width - 48 - dims.width,
+            y: height - 100 + (100 - dims.height) / 2,
+            width: dims.width,
+            height: dims.height,
+        });
+    } else {
+        t("CONFIDENTIAL DOCUMENT", width - 48, height - 46, {
+            font: bold, size: 9.5, color: rgb(0.5, 0.45, 0.40), align: "right",
+        });
+    }
     // Employer UIF Ref (Legal Requirement if UIF is paid)
     if (employer.uifRefNumber) {
         t(`UIF Ref: ${employer.uifRefNumber}`, width - 48, height - 60, { font: regular, size: 9, color: rgb(0.5, 0.45, 0.40), align: "right" });
@@ -118,8 +170,11 @@ export async function generatePayslipPdfBytes(
     t("EARNINGS", 48, cy, { font: bold, size: 8, color: AMBER });
     cy -= 22;
 
+    const showRuleNote = breakdown.effectiveOrdinaryHours > payslip.ordinaryHours;
+    const ordinaryLabel = `Ordinary hours  (${breakdown.effectiveOrdinaryHours} h × R${payslip.hourlyRate.toFixed(2)}/hr)${showRuleNote ? ' *' : ''}`;
+
     const earningRows: [string, number][] = [
-        [`Ordinary hours  (${payslip.ordinaryHours} h × R${payslip.hourlyRate.toFixed(2)}/hr)`, breakdown.ordinaryPay],
+        [ordinaryLabel, breakdown.ordinaryPay],
     ];
     if (payslip.overtimeHours > 0) {
         earningRows.push([`Overtime hours  (${payslip.overtimeHours} h × R${(payslip.hourlyRate * 1.5).toFixed(2)}/hr — 1.5×)`, breakdown.overtimePay]);
@@ -138,6 +193,10 @@ export async function generatePayslipPdfBytes(
     }
 
     cy -= 6;
+    if (showRuleNote) {
+        t(`* Includes minimum 4 hours per day worked (BCEA Rule).`, 48, cy, { font: regular, size: 7, color: SLATE });
+        cy -= 12;
+    }
     line(cy + 2);
     cy -= 16;
     t("Gross Pay", 48, cy, { font: bold, size: 11 });
@@ -194,10 +253,14 @@ export async function generatePayslipPdfBytes(
     // ── Footer ────────────────────────────────────────────────────────────────
     const footerY = 44;
     line(footerY + 18);
+    const isProOrAnnual = employer.proStatus === "pro" || employer.proStatus === "annual" || employer.proStatus === "trial";
+
     t(
-        "Generated by LekkerLedger — in compliance with the Basic Conditions of Employment Act (BCEA) and Sectoral Determination 7 (Domestic Workers).",
+        isProOrAnnual
+            ? "Lekker Pro Legal Shield — in compliance with the Basic Conditions of Employment Act & Sectoral Determination 7."
+            : "Generated by LekkerLedger Free. Upgrade for CCMA-compliant cloud backups and unlimited legal history.",
         48, footerY + 6,
-        { font: regular, size: 7.5, color: SLATE }
+        { font: isProOrAnnual ? bold : regular, size: 7.5, color: isProOrAnnual ? rgb(0.3, 0.3, 0.3) : RED }
     );
     t("lekkerledger.app · By Nightshift Labs ZA · Data processed locally — never stored on external servers.", 48, footerY - 8, {
         font: regular, size: 7, color: rgb(0.65, 0.6, 0.55),

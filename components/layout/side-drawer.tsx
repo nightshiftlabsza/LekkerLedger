@@ -17,6 +17,12 @@ import {
     FileSpreadsheet,
     Settings,
     BookOpen,
+    Sparkles,
+    HelpCircle,
+    CreditCard,
+    Share2,
+    MessageCircle,
+    Mail, // Ensure Mail is imported
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 
@@ -28,6 +34,7 @@ const NAV_LINKS = [
     { href: "/contracts", label: "Contracts", icon: FileText },
     { href: "/ufiling", label: "uFiling Export", icon: FileSpreadsheet },
     { href: "/rules", label: "SA Rules Guide", icon: BookOpen },
+    { href: "/pricing", label: "Support & Pro", icon: Sparkles },
     { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -135,6 +142,32 @@ export function SideDrawer() {
                     ))}
                 </nav>
 
+                {/* Support & Version Info */}
+                <div
+                    className="p-6 space-y-4"
+                    style={{ borderTop: "1px solid var(--border-subtle)" }}
+                >
+                    <a
+                        href="mailto:nightshiftlabsza@gmail.com?subject=LekkerLedger%20Support%20Request"
+                        className="flex items-center gap-3 text-sm font-medium transition-colors hover:text-[var(--text-primary)]"
+                        style={{ color: "var(--text-secondary)" }}
+                    >
+                        <div className="h-8 w-8 rounded-lg bg-[var(--amber-500)] flex items-center justify-center text-white">
+                            <Mail className="h-4 w-4" />
+                        </div>
+                        Email Support
+                    </a>
+
+                    <div className="space-y-1">
+                        <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: "var(--text-muted)" }}>
+                            LekkerLedger v0.1.0
+                        </p>
+                        <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                            Secure local data · Google Drive Sync
+                        </p>
+                    </div>
+                </div>
+
                 {/* Theme Switcher */}
                 <div className="px-4 py-4" style={{ borderTop: "1px solid var(--border-subtle)" }}>
                     <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
@@ -184,7 +217,7 @@ export function SideDrawer() {
                         </div>
                     </div>
                     <p className="text-xs mt-3" style={{ color: "var(--text-muted)" }}>
-                        Beta v0.2 · Data saved on your device only. No accounts, no servers.
+                        Beta v0.2 · Support the project by going Pro. Securely sync your data with Google Drive.
                     </p>
                 </div>
             </div>

@@ -10,7 +10,7 @@ const settingsStore = localforage.createInstance({ name: "LekkerLedger", storeNa
 
 export async function getEmployees(): Promise<Employee[]> {
     const employees: Employee[] = [];
-    await employeeStore.iterate<Employee, void>((val) => {
+    await employeeStore.iterate<Employee, void>((val: Employee) => {
         employees.push(val);
     });
     return employees.sort((a, b) => a.name.localeCompare(b.name));
@@ -28,13 +28,13 @@ export async function deleteEmployee(id: string): Promise<void> {
     await employeeStore.removeItem(id);
     // Also delete associated payslips
     const toDelete: string[] = [];
-    await payslipStore.iterate<PayslipInput, void>((val, key) => {
+    await payslipStore.iterate<PayslipInput, void>((val: PayslipInput, key: string) => {
         if (val.employeeId === id) toDelete.push(key);
     });
     await Promise.all(toDelete.map((k) => payslipStore.removeItem(k)));
     // Also delete associated leave records
     const leaveToDelete: string[] = [];
-    await leaveStore.iterate<LeaveRecord, void>((val, key) => {
+    await leaveStore.iterate<LeaveRecord, void>((val: LeaveRecord, key: string) => {
         if (val.employeeId === id) leaveToDelete.push(key);
     });
     await Promise.all(leaveToDelete.map((k) => leaveStore.removeItem(k)));
@@ -48,7 +48,7 @@ export async function savePayslip(payslip: PayslipInput): Promise<void> {
 
 export async function getPayslipsForEmployee(employeeId: string): Promise<PayslipInput[]> {
     const payslips: PayslipInput[] = [];
-    await payslipStore.iterate<PayslipInput, void>((val) => {
+    await payslipStore.iterate<PayslipInput, void>((val: PayslipInput) => {
         if (val.employeeId === employeeId) payslips.push(val);
     });
     return payslips.sort(
@@ -63,7 +63,7 @@ export async function getLatestPayslip(employeeId: string): Promise<PayslipInput
 
 export async function getAllPayslips(): Promise<PayslipInput[]> {
     const payslips: PayslipInput[] = [];
-    await payslipStore.iterate<PayslipInput, void>((val) => {
+    await payslipStore.iterate<PayslipInput, void>((val: PayslipInput) => {
         payslips.push(val);
     });
     return payslips.sort(
@@ -79,12 +79,20 @@ export async function saveLeaveRecord(record: LeaveRecord): Promise<void> {
 
 export async function getLeaveForEmployee(employeeId: string): Promise<LeaveRecord[]> {
     const records: LeaveRecord[] = [];
-    await leaveStore.iterate<LeaveRecord, void>((val) => {
+    await leaveStore.iterate<LeaveRecord, void>((val: LeaveRecord) => {
         if (val.employeeId === employeeId) records.push(val);
     });
     return records.sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
+}
+
+export async function getAllLeaveRecords(): Promise<LeaveRecord[]> {
+    const records: LeaveRecord[] = [];
+    await leaveStore.iterate<LeaveRecord, void>((val: LeaveRecord) => {
+        records.push(val);
+    });
+    return records;
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────
@@ -93,7 +101,7 @@ const SETTINGS_KEY = "employer-settings";
 
 export async function getSettings(): Promise<EmployerSettings> {
     const s = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
-    return s ?? { employerName: "", employerAddress: "", employerIdNumber: "", uifRefNumber: "", sdlNumber: "" };
+    return s ?? { employerName: "", employerAddress: "", employerIdNumber: "", uifRefNumber: "", sdlNumber: "", proStatus: "free" };
 }
 
 export async function saveSettings(settings: EmployerSettings): Promise<void> {

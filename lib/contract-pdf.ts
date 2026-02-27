@@ -28,6 +28,20 @@ export async function generateContractPdfBytes(input: ContractInput): Promise<Ui
     const regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+    // Embed logo if exists
+    let logoImage = null;
+    if (input.employer.logoData) {
+        try {
+            if (input.employer.logoData.startsWith("data:image/png")) {
+                logoImage = await pdfDoc.embedPng(input.employer.logoData);
+            } else {
+                logoImage = await pdfDoc.embedJpg(input.employer.logoData);
+            }
+        } catch (e) {
+            console.error("Failed to embed logo", e);
+        }
+    }
+
     const MARGIN = 56;
     const PAGE_W = 595.28;
     const PAGE_H = 841.89;
@@ -113,7 +127,18 @@ export async function generateContractPdfBytes(input: ContractInput): Promise<Ui
         y: PAGE_H - 42, size: 11, font: bold, color: AMBER,
     });
 
-    cy = PAGE_H - 110;
+    if (logoImage) {
+        const dims = logoImage.scaleToFit(140, 50);
+        page.drawImage(logoImage, {
+            x: PAGE_W - MARGIN - dims.width,
+            y: PAGE_H - 104 - 24, // below amber bar
+            width: dims.width,
+            height: dims.height,
+        });
+        cy = PAGE_H - 104 - 24 - dims.height - 20;
+    } else {
+        cy = PAGE_H - 110;
+    }
 
     // ── Parties ──────────────────────────────────────────────────────────────
     heading("1. Parties to This Agreement");

@@ -14,6 +14,7 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, savePayslip } from "@/lib/storage";
 import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
+import { getHolidaysInRange } from "@/lib/holidays";
 
 const STEPS = [
     { label: "Hours", description: "Ordinary & overtime" },
@@ -42,6 +43,7 @@ function WizardContent() {
     const defaultEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
 
     const [hours, setHours] = React.useState({ ordinary: "", overtime: "", sunday: "", holiday: "" });
+    const [daysWorked, setDaysWorked] = React.useState("1");
     const [dates, setDates] = React.useState({ start: defaultStart, end: defaultEnd });
     const [periodError, setPeriodError] = React.useState("");
     const [includeAccommodation, setIncludeAccommodation] = React.useState(false);
@@ -74,13 +76,19 @@ function WizardContent() {
             overtimeHours: Number(hours.overtime) || 0,
             sundayHours: Number(hours.sunday) || 0,
             publicHolidayHours: Number(hours.holiday) || 0,
+            daysWorked: Math.max(1, Number(daysWorked) || 1),
             hourlyRate: employee.hourlyRate,
             includeAccommodation,
             accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
             otherDeductions: 0,
+            annualLeaveTaken: 0,
+            sickLeaveTaken: 0,
+            familyLeaveTaken: 0,
             createdAt: new Date(),
         })
         : null;
+
+    const detectedHolidays = getHolidaysInRange(dates.start, dates.end);
 
     const handleNext = async () => {
         if (currentStep === 0) {
@@ -110,10 +118,14 @@ function WizardContent() {
             overtimeHours: Number(hours.overtime) || 0,
             sundayHours: Number(hours.sunday) || 0,
             publicHolidayHours: Number(hours.holiday) || 0,
+            daysWorked: Math.max(1, Number(daysWorked) || 1),
             hourlyRate: employee.hourlyRate,
             includeAccommodation,
             accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
             otherDeductions: 0,
+            annualLeaveTaken: 0,
+            sickLeaveTaken: 0,
+            familyLeaveTaken: 0,
             createdAt: new Date(),
         };
 
@@ -128,8 +140,22 @@ function WizardContent() {
 
     if (loadingInitial) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
-                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--amber-500)" }} />
+            <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
+                <header className="sticky top-0 z-30 px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)]">
+                    <div className="max-w-xl mx-auto flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-xl bg-[var(--bg-subtle)] animate-pulse" />
+                            <div className="space-y-2">
+                                <div className="h-4 w-28 bg-[var(--bg-subtle)] animate-pulse rounded" />
+                                <div className="h-3 w-20 bg-[var(--bg-subtle)] animate-pulse rounded" />
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-5 flex flex-col">
+                    <div className="h-24 w-full rounded-2xl bg-[var(--bg-surface)] animate-pulse border border-[var(--border-subtle)]" />
+                    <div className="flex-1 w-full rounded-2xl bg-[var(--bg-surface)] animate-pulse border border-[var(--border-subtle)]" />
+                </main>
             </div>
         );
     }
@@ -239,19 +265,35 @@ function WizardContent() {
                                     className="pt-4 space-y-4"
                                     style={{ borderTop: "1px solid var(--border-subtle)" }}
                                 >
-                                    <div className="space-y-2">
-                                        <Label htmlFor="ordinary">Ordinary Hours Worked</Label>
-                                        <Input
-                                            id="ordinary"
-                                            type="number"
-                                            min="0"
-                                            placeholder="e.g. 160"
-                                            value={hours.ordinary}
-                                            onChange={(e) => setHours({ ...hours, ordinary: e.target.value })}
-                                        />
-                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                            40hrs/week = ±160 hrs/month
-                                        </p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="daysWorked">Total Days Worked</Label>
+                                            <Input
+                                                id="daysWorked"
+                                                type="number"
+                                                min="1"
+                                                placeholder="e.g. 20"
+                                                value={daysWorked}
+                                                onChange={(e) => setDaysWorked(e.target.value)}
+                                            />
+                                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                                                For the 4-hr minimum rule
+                                            </p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="ordinary">Ordinary Hours Worked</Label>
+                                            <Input
+                                                id="ordinary"
+                                                type="number"
+                                                min="0"
+                                                placeholder="e.g. 160"
+                                                value={hours.ordinary}
+                                                onChange={(e) => setHours({ ...hours, ordinary: e.target.value })}
+                                            />
+                                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                                                40hrs/week = ±160 hrs/month
+                                            </p>
+                                        </div>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="overtime">Overtime Hours (1.5× rate)</Label>
@@ -294,10 +336,15 @@ function WizardContent() {
                                         id="holiday"
                                         type="number"
                                         min="0"
-                                        placeholder="0"
+                                        placeholder={detectedHolidays.length > 0 ? `Suggested: ${detectedHolidays.length * 8}` : "0"}
                                         value={hours.holiday}
                                         onChange={(e) => setHours({ ...hours, holiday: e.target.value })}
                                     />
+                                    {detectedHolidays.length > 0 && (
+                                        <p className="text-[10px] font-medium animate-fade-in" style={{ color: "var(--amber-500)" }}>
+                                            Found {detectedHolidays.length} holiday{detectedHolidays.length > 1 ? 's' : ''}: {detectedHolidays.map(h => h.name).join(", ")}.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -380,7 +427,10 @@ function WizardContent() {
                                     {/* Earnings */}
                                     <div className="px-4 pt-4 pb-2 space-y-2">
                                         <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--amber-500)" }}>Earnings</p>
-                                        <Row label={`Ordinary (${Number(hours.ordinary) || 0}h)`} value={`R ${breakdown.ordinaryPay.toFixed(2)}`} />
+                                        <Row
+                                            label={`Ordinary ${Math.max((Number(daysWorked) || 1) * 4, Number(hours.ordinary) || 0) > (Number(hours.ordinary) || 0) ? '(4-hr shift minimum applied)' : `(${Number(hours.ordinary) || 0}h)`}`}
+                                            value={`R ${breakdown.ordinaryPay.toFixed(2)}`}
+                                        />
                                         {(Number(hours.overtime) || 0) > 0 && <Row label={`Overtime (${Number(hours.overtime)}h)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}
                                         {(Number(hours.sunday) || 0) > 0 && <Row label={`Sunday (${Number(hours.sunday)}h)`} value={`R ${breakdown.sundayPay.toFixed(2)}`} />}
                                         {(Number(hours.holiday) || 0) > 0 && <Row label={`Public Holiday (${Number(hours.holiday)}h)`} value={`R ${breakdown.publicHolidayPay.toFixed(2)}`} />}
@@ -440,7 +490,7 @@ function WizardContent() {
                     </CardFooter>
                 </Card>
             </main>
-        </div>
+        </div >
     );
 }
 

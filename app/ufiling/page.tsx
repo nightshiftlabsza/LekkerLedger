@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-    ArrowLeft, Download, Loader2, CalendarDays, FileSpreadsheet, AlertCircle,
+    ArrowLeft, Download, Loader2, CalendarDays, FileSpreadsheet, AlertCircle, ChevronDown, ChevronUp, Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,6 +27,7 @@ export default function UFilingPage() {
     const [payslips, setPayslips] = React.useState<PayslipInput[]>([]);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [rows, setRows] = React.useState<UFilingRow[]>([]);
+    const [showGuide, setShowGuide] = React.useState(false);
 
     React.useEffect(() => {
         async function load() {
@@ -53,8 +54,18 @@ export default function UFilingPage() {
         }
     }, [employees, payslips, month, year]);
 
+    // Calculate if the selected month is within the allowed window
+    const selectedDate = new Date(year, month, 1);
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const isLocked = (settings?.proStatus === "free" && selectedDate < threeMonthsAgo) ||
+        (settings?.proStatus === "annual" && selectedDate < oneYearAgo);
+
     const handleDownload = () => {
-        if (!settings) return;
+        if (!settings || isLocked) return;
         const csv = rowsToCsv(rows, settings);
         downloadCsv(csv, `uFiling_${MONTHS[month]}_${year}.csv`);
     };
@@ -108,6 +119,50 @@ export default function UFilingPage() {
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {/* Educational Guide - Hidden by default */}
+                        <div className="animate-slide-up delay-100">
+                            <button
+                                type="button"
+                                onClick={() => setShowGuide(!showGuide)}
+                                className="w-full flex items-center justify-between p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)] transition-colors"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Info className="h-4 w-4 text-[var(--amber-500)]" />
+                                    <span className="text-sm font-bold">How to upload this to uFiling</span>
+                                </div>
+                                {showGuide ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            </button>
+
+                            {showGuide && (
+                                <div className="mt-2 p-5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] space-y-4 animate-fade-in shadow-sm">
+                                    <div className="space-y-2">
+                                        <p className="text-xs font-bold uppercase tracking-widest text-[var(--amber-500)]">Step 1: Download</p>
+                                        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                            Select the month you want to declare and click the <strong>Download CSV</strong> button at the bottom of this page.
+                                        </p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-xs font-bold uppercase tracking-widest text-[var(--amber-500)]">Step 2: Login to uFiling</p>
+                                        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                            Go to <a href="https://www.ufiling.co.za" target="_blank" className="underline font-medium text-[var(--amber-500)]">ufiling.co.za</a> and log in with your employer credentials.
+                                        </p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-xs font-bold uppercase tracking-widest text-[var(--amber-500)]">Step 3: Declarations</p>
+                                        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                            Navigate to <strong>Declarations</strong> → <strong>Electronic Declarations</strong> → <strong>Upload CSV File</strong>.
+                                        </p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-xs font-bold uppercase tracking-widest text-[var(--amber-500)]">Step 4: Select & Submit</p>
+                                        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                            Select the file you just downloaded. uFiling will validate it. Once successful, remember to <strong>submit</strong> the declaration and pay the 2% total via the uFiling platform.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Settings warning */}
                         {settings && !settings.employerName && (
@@ -222,14 +277,23 @@ export default function UFilingPage() {
                         </Card>
 
                         {/* Download */}
-                        <Button
-                            className="w-full gap-2 h-12 text-base"
-                            onClick={handleDownload}
-                            disabled={rows.length === 0}
-                        >
-                            <Download className="h-5 w-5" />
-                            Download CSV for uFiling
-                        </Button>
+                        {isLocked ? (
+                            <Link href="/pricing" className="block mt-4">
+                                <Button className="w-full gap-2 h-14 text-base font-bold shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all bg-amber-500 hover:bg-amber-600 text-white animate-slide-up">
+                                    <AlertCircle className="h-5 w-5" />
+                                    Unlock 5-Year History (Pro)
+                                </Button>
+                            </Link>
+                        ) : (
+                            <Button
+                                className="w-full gap-2 h-12 text-base"
+                                onClick={handleDownload}
+                                disabled={rows.length === 0}
+                            >
+                                <Download className="h-5 w-5" />
+                                Download CSV for uFiling
+                            </Button>
+                        )}
                     </>
                 )}
             </main>

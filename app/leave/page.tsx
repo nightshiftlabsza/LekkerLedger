@@ -9,9 +9,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SideDrawer } from "@/components/layout/side-drawer";
-import { getEmployee, getLeaveForEmployee } from "@/lib/storage";
-import { Employee, LeaveRecord } from "@/lib/schema";
+import { getEmployee, getLeaveForEmployee, saveLeaveRecord } from "@/lib/storage";
+import { Employee, LeaveRecord, LeaveType } from "@/lib/schema";
 import { calculateLeaveBalances, LeaveBalances } from "@/lib/leave";
+import { Plus, X, Tag } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function LeaveCard({
     icon: Icon,
@@ -71,22 +74,44 @@ function LeaveContent() {
     const [employee, setEmployee] = React.useState<Employee | null>(null);
     const [balances, setBalances] = React.useState<LeaveBalances | null>(null);
     const [records, setRecords] = React.useState<LeaveRecord[]>([]);
+    const [showAdd, setShowAdd] = React.useState(false);
+    const [newLeave, setNewLeave] = React.useState({
+        type: "annual" as LeaveType,
+        days: "1",
+        date: new Date().toISOString().slice(0, 10),
+    });
+
+    const load = React.useCallback(async () => {
+        if (!employeeId) { setLoading(false); return; }
+        const emp = await getEmployee(employeeId);
+        setEmployee(emp);
+        if (emp) {
+            const leaveRecords = await getLeaveForEmployee(employeeId);
+            setRecords(leaveRecords);
+            const bal = calculateLeaveBalances(emp.startDate || "", leaveRecords);
+            setBalances(bal);
+        }
+        setLoading(false);
+    }, [employeeId]);
 
     React.useEffect(() => {
-        async function load() {
-            if (!employeeId) { setLoading(false); return; }
-            const emp = await getEmployee(employeeId);
-            setEmployee(emp);
-            if (emp) {
-                const leaveRecords = await getLeaveForEmployee(employeeId);
-                setRecords(leaveRecords);
-                const bal = calculateLeaveBalances(emp.startDate || "", leaveRecords);
-                setBalances(bal);
-            }
-            setLoading(false);
-        }
         load();
-    }, [employeeId]);
+    }, [load]);
+
+    const handleAddLeave = async () => {
+        if (!employee) return;
+        const record: LeaveRecord = {
+            id: crypto.randomUUID(),
+            employeeId: employee.id,
+            type: newLeave.type,
+            days: parseFloat(newLeave.days),
+            date: newLeave.date,
+            note: "",
+        };
+        await saveLeaveRecord(record);
+        setShowAdd(false);
+        load();
+    };
 
     if (loading) {
         return (
@@ -140,6 +165,60 @@ function LeaveContent() {
                     </p>
                 </div>
             </div>
+
+            {/* Manual Leave Form */}
+            {showAdd ? (
+                <Card className="animate-slide-down border-2 border-[var(--amber-500)]">
+                    <CardContent className="p-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-sm">Add Leave Record</h3>
+                            <button onClick={() => setShowAdd(false)} className="text-[var(--text-muted)] p-1 hover:bg-[var(--bg-subtle)] rounded-md">
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label className="text-xs">Type</Label>
+                                <select
+                                    className="w-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] rounded-lg p-2 text-sm"
+                                    value={newLeave.type}
+                                    onChange={(e) => setNewLeave({ ...newLeave, type: e.target.value as LeaveType })}
+                                >
+                                    <option value="annual">Annual</option>
+                                    <option value="sick">Sick</option>
+                                    <option value="family">Family Responsibility</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs">Days</Label>
+                                <Input
+                                    type="number"
+                                    step="0.5"
+                                    value={newLeave.days}
+                                    onChange={(e) => setNewLeave({ ...newLeave, days: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-xs">Date</Label>
+                            <Input
+                                type="date"
+                                value={newLeave.date}
+                                onChange={(e) => setNewLeave({ ...newLeave, date: e.target.value })}
+                            />
+                        </div>
+                        <Button className="w-full h-11" onClick={handleAddLeave}>Save Record</Button>
+                    </CardContent>
+                </Card>
+            ) : (
+                <Button
+                    variant="outline"
+                    className="w-full border-dashed border-2 py-6 gap-2"
+                    onClick={() => setShowAdd(true)}
+                >
+                    <Plus className="h-4 w-4" /> Log Historical Leave
+                </Button>
+            )}
 
             {/* Leave balance cards */}
             {balances && (

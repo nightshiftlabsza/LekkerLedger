@@ -10,6 +10,7 @@ const SUNDAY_PH_MULTIPLIER = 2.0;
 
 export interface PayBreakdown {
     ordinaryPay: number;
+    effectiveOrdinaryHours: number;
     overtimePay: number;
     sundayPay: number;
     publicHolidayPay: number;
@@ -28,10 +29,15 @@ export interface PayBreakdown {
 }
 
 export function calculatePayslip(input: PayslipInput): PayBreakdown {
-    // Enforce NMW guardrail
+    // Enforce NMW guardrail (backup to schema validation)
     const rate = Math.max(input.hourlyRate, NMW_RATE);
 
-    const ordinaryPay = input.ordinaryHours * rate;
+    // 4-hour shift rule: if total ordinary hours < (days worked * 4), 
+    // we must pay them for at least (days worked * 4) ordinary hours.
+    const minimumOrdinaryHours = (input.daysWorked || 1) * 4;
+    const effectiveOrdinaryHours = Math.max(input.ordinaryHours, minimumOrdinaryHours);
+
+    const ordinaryPay = effectiveOrdinaryHours * rate;
     const overtimePay = input.overtimeHours * rate * OVERTIME_MULTIPLIER;
     const sundayPay = input.sundayHours * rate * SUNDAY_PH_MULTIPLIER;
     const publicHolidayPay = input.publicHolidayHours * rate * SUNDAY_PH_MULTIPLIER;
@@ -39,7 +45,7 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
     const grossPay = ordinaryPay + overtimePay + sundayPay + publicHolidayPay;
 
     const totalHours =
-        input.ordinaryHours + input.overtimeHours + input.sundayHours + input.publicHolidayHours;
+        effectiveOrdinaryHours + input.overtimeHours + input.sundayHours + input.publicHolidayHours;
 
     // UIF: only if > 24 hours this period
     const uifBase = Math.min(grossPay, UIF_MONTHLY_CAP);
@@ -55,10 +61,12 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
 
     const totalDeductions = uifEmployee + (accommodation ?? 0) + otherDeductions;
 
-    const netPay = grossPay - totalDeductions;
+    // Net pay cannot drop below 0
+    const netPay = Math.max(0, grossPay - totalDeductions);
 
     return {
         ordinaryPay,
+        effectiveOrdinaryHours,
         overtimePay,
         sundayPay,
         publicHolidayPay,

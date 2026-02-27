@@ -25,7 +25,10 @@ export const PayslipInputSchema = z.object({
     overtimeHours: z.number().min(0).default(0),
     sundayHours: z.number().min(0).default(0),
     publicHolidayHours: z.number().min(0).default(0),
-    hourlyRate: z.number().positive(),
+    daysWorked: z.number().min(1).default(1),
+    hourlyRate: z
+        .number()
+        .min(NMW_DOMESTIC, `Hourly rate must be at least R${NMW_DOMESTIC} (National Minimum Wage)`),
     includeAccommodation: z.boolean().default(false),
     accommodationCost: z.number().min(0).optional(),
     otherDeductions: z.number().min(0).default(0),
@@ -42,6 +45,8 @@ export const PayslipSchema = PayslipInputSchema;
 export type PayslipInput = z.infer<typeof PayslipInputSchema>;
 
 // ─── Leave Record (Phase 1) ─────────────────────────────────────────────────
+export type LeaveType = "annual" | "sick" | "family";
+
 export const LeaveRecordSchema = z.object({
     id: z.string(),
     employeeId: z.string(),
@@ -61,6 +66,9 @@ export const EmployerSettingsSchema = z.object({
     employerIdNumber: z.string().default(""),
     uifRefNumber: z.string().default(""), // uFiling reference number
     sdlNumber: z.string().default(""),
+    proStatus: z.enum(["free", "annual", "pro", "trial"]).optional().default("free"),
+    trialExpiry: z.string().optional(),
+    logoData: z.string().optional(),
 });
 
 export type EmployerSettings = z.infer<typeof EmployerSettingsSchema>;

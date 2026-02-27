@@ -134,111 +134,141 @@ export default function ContractsPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Employee selector */}
-                        <Card className="animate-slide-up">
-                            <CardContent className="p-5 space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="contract-employee">Select Employee</Label>
-                                    <select
-                                        id="contract-employee"
-                                        value={selectedId}
-                                        onChange={(e) => setSelectedId(e.target.value)}
-                                        className="w-full rounded-lg px-3 py-2.5 text-sm font-medium"
-                                        style={{
-                                            backgroundColor: "var(--bg-subtle)",
-                                            color: "var(--text-primary)",
-                                            border: "1px solid var(--border-subtle)",
-                                        }}
-                                    >
-                                        {employees.map((e) => (
-                                            <option key={e.id} value={e.id}>{e.name} — {e.role}</option>
-                                        ))}
-                                    </select>
-                                </div>
+                        {settings?.proStatus === "pro" ? (
+                            <>
+                                {/* Employee selector */}
+                                <Card className="animate-slide-up delay-75">
+                                    <CardContent className="p-5 space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="contract-employee">Select Employee</Label>
+                                            <select
+                                                id="contract-employee"
+                                                value={selectedId}
+                                                onChange={(e) => setSelectedId(e.target.value)}
+                                                className="w-full rounded-lg px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-amber-500/50 transition-all outline-none"
+                                                style={{
+                                                    backgroundColor: "var(--bg-subtle)",
+                                                    color: "var(--text-primary)",
+                                                    border: "1px solid var(--border-subtle)",
+                                                }}
+                                            >
+                                                {employees.map((e) => (
+                                                    <option key={e.id} value={e.id}>{e.name} — {e.role}</option>
+                                                ))}
+                                            </select>
+                                        </div>
 
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="contract-start">Start Date</Label>
-                                        <Input
-                                            id="contract-start"
-                                            type="date"
-                                            value={form.startDate}
-                                            onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                                        />
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="contract-start">Start Date</Label>
+                                                <Input
+                                                    id="contract-start"
+                                                    type="date"
+                                                    value={form.startDate}
+                                                    onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                                                    className="focus:ring-2 focus:ring-amber-500/50"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="contract-probation">Probation (months)</Label>
+                                                <Input
+                                                    id="contract-probation"
+                                                    type="number"
+                                                    min="0"
+                                                    max="12"
+                                                    value={form.probationMonths}
+                                                    onChange={(e) => setForm({ ...form, probationMonths: e.target.value })}
+                                                    className="focus:ring-2 focus:ring-amber-500/50"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="contract-days">Work Days</Label>
+                                                <Input
+                                                    id="contract-days"
+                                                    placeholder="Monday to Friday"
+                                                    value={form.workDays}
+                                                    onChange={(e) => setForm({ ...form, workDays: e.target.value })}
+                                                    className="focus:ring-2 focus:ring-amber-500/50"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="contract-hours">Hours/Day</Label>
+                                                <Input
+                                                    id="contract-hours"
+                                                    type="number"
+                                                    min="1"
+                                                    max="12"
+                                                    value={form.workHoursPerDay}
+                                                    onChange={(e) => setForm({ ...form, workHoursPerDay: e.target.value })}
+                                                    className="focus:ring-2 focus:ring-amber-500/50"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="contract-duties">Job Duties</Label>
+                                            <textarea
+                                                id="contract-duties"
+                                                rows={3}
+                                                value={form.duties}
+                                                onChange={(e) => setForm({ ...form, duties: e.target.value })}
+                                                className="w-full rounded-lg px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-amber-500/50 transition-all outline-none"
+                                                style={{
+                                                    backgroundColor: "var(--bg-subtle)",
+                                                    color: "var(--text-primary)",
+                                                    border: "1px solid var(--border-subtle)",
+                                                }}
+                                            />
+                                        </div>
+
+                                        {settings && !settings.employerName && (
+                                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                                                <p className="text-xs" style={{ color: "var(--amber-600)" }}>
+                                                    <span className="font-bold">⚠ Employer details not set.</span>{" "}
+                                                    <Link href="/settings" className="underline font-bold">Add them in Settings</Link> for a complete contract.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+
+                                {/* Generate button */}
+                                <Button
+                                    className="w-full gap-2 h-14 text-base font-bold shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all bg-amber-500 hover:bg-amber-600 text-white animate-slide-up delay-150"
+                                    onClick={handleGenerate}
+                                    disabled={generating || !selectedEmployee}
+                                >
+                                    {generating ? (
+                                        <><Loader2 className="h-5 w-5 animate-spin" /> Generating PDF…</>
+                                    ) : (
+                                        <><Download className="h-5 w-5" /> Download Contract PDF</>
+                                    )}
+                                </Button>
+                            </>
+                        ) : (
+                            <Card className="animate-slide-up delay-75 border border-dashed border-amber-500/40 bg-amber-500/5 overflow-hidden relative">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -mr-10 -mt-10" />
+                                <CardContent className="p-8 text-center space-y-5 relative z-10">
+                                    <div className="h-16 w-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                                        <FileText className="h-8 w-8 text-amber-600" />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="contract-probation">Probation (months)</Label>
-                                        <Input
-                                            id="contract-probation"
-                                            type="number"
-                                            min="0"
-                                            max="12"
-                                            value={form.probationMonths}
-                                            onChange={(e) => setForm({ ...form, probationMonths: e.target.value })}
-                                        />
+                                        <h3 className="text-xl font-black tracking-tight text-amber-900 dark:text-amber-500">Contract Generator Locked</h3>
+                                        <p className="text-sm text-amber-800/70 dark:text-amber-200/70 leading-relaxed max-w-sm mx-auto">
+                                            A watertight employment contract is your first line of defense at the CCMA. Upgrade to Pro to generate unlimited BCEA-compliant contracts instantly.
+                                        </p>
                                     </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="contract-days">Work Days</Label>
-                                        <Input
-                                            id="contract-days"
-                                            placeholder="Monday to Friday"
-                                            value={form.workDays}
-                                            onChange={(e) => setForm({ ...form, workDays: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="contract-hours">Hours/Day</Label>
-                                        <Input
-                                            id="contract-hours"
-                                            type="number"
-                                            min="1"
-                                            max="12"
-                                            value={form.workHoursPerDay}
-                                            onChange={(e) => setForm({ ...form, workHoursPerDay: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="contract-duties">Job Duties</Label>
-                                    <textarea
-                                        id="contract-duties"
-                                        rows={3}
-                                        value={form.duties}
-                                        onChange={(e) => setForm({ ...form, duties: e.target.value })}
-                                        className="w-full rounded-lg px-4 py-3 text-sm resize-none"
-                                        style={{
-                                            backgroundColor: "var(--bg-subtle)",
-                                            color: "var(--text-primary)",
-                                            border: "1px solid var(--border-subtle)",
-                                        }}
-                                    />
-                                </div>
-
-                                {settings && !settings.employerName && (
-                                    <p className="text-xs" style={{ color: "var(--amber-500)" }}>
-                                        ⚠ Employer details not set.{" "}
-                                        <Link href="/settings" className="underline">Add them in Settings</Link> for a complete contract.
-                                    </p>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        {/* Generate button */}
-                        <Button
-                            className="w-full gap-2 h-12 text-base"
-                            onClick={handleGenerate}
-                            disabled={generating || !selectedEmployee}
-                        >
-                            {generating ? (
-                                <><Loader2 className="h-5 w-5 animate-spin" /> Generating…</>
-                            ) : (
-                                <><Download className="h-5 w-5" /> Download Contract PDF</>
-                            )}
-                        </Button>
+                                    <Link href="/pricing" className="block pt-2">
+                                        <Button className="w-full h-12 gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-md shadow-amber-500/20">
+                                            Unlock with Pro Lifetime
+                                        </Button>
+                                    </Link>
+                                </CardContent>
+                            </Card>
+                        )}
                     </>
                 )}
             </main>
