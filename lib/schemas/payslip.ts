@@ -14,17 +14,13 @@ import { z } from "zod";
 
 /** Schema for a single payslip entry */
 export const PayslipSchema = z.object({
-    employeeName: z.string().min(1, "Employee name is required"),
-    idNumber: z
-        .string()
-        .length(13, "SA ID number must be 13 digits")
-        .regex(/^\d+$/, "ID number must contain only digits"),
-    grossSalary: z.number().positive("Gross salary must be positive"),
-    taxPeriod: z.enum([
-        "monthly",
-        "weekly",
-        "fortnightly",
-    ]),
+  employeeName: z.string().min(1, "Employee name is required"),
+  idNumber: z
+    .string()
+    .length(13, "SA ID number must be 13 digits")
+    .regex(/^\d+$/, "ID number must contain only digits"),
+  grossSalary: z.number().positive("Gross salary must be positive"),
+  taxPeriod: z.enum(["monthly", "weekly", "fortnightly"]),
 });
 
 /** TypeScript type inferred from the schema — keeps types & validation in sync */
