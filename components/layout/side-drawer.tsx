@@ -23,6 +23,7 @@ import {
     Share2,
     MessageCircle,
     Mail, // Ensure Mail is imported
+    Cloud, // Added Cloud import
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 
@@ -35,7 +36,7 @@ const NAV_LINKS = [
     { href: "/ufiling", label: "uFiling Export", icon: FileSpreadsheet },
     { href: "/rules", label: "SA Rules Guide", icon: BookOpen },
     { href: "/pricing", label: "Support & Pro", icon: Sparkles },
-    { href: "/settings", label: "Settings", icon: Settings },
+    { href: "/settings", label: "Settings & Backups", icon: Settings },
 ];
 
 const THEME_OPTIONS = [
@@ -44,7 +45,7 @@ const THEME_OPTIONS = [
     { value: "dark" as const, label: "Dark", icon: Moon },
 ];
 
-export function SideDrawer() {
+export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
     const [open, setOpen] = React.useState(false);
     const { theme, setTheme } = useTheme();
 
@@ -69,19 +70,21 @@ export function SideDrawer() {
 
     return (
         <>
-            {/* Hamburger Button */}
-            <button
-                onClick={() => setOpen(true)}
-                aria-label="Open menu"
-                className="h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-[var(--bg-subtle)] active-scale text-[var(--text-secondary)]"
-            >
-                <Menu className="h-5 w-5" />
-            </button>
+            {/* Hamburger Button (Mobile Only) */}
+            {showButton && (
+                <button
+                    onClick={() => setOpen(true)}
+                    aria-label="Open menu"
+                    className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-[var(--bg-subtle)] active-scale text-[var(--text-secondary)]"
+                >
+                    <Menu className="h-5 w-5" />
+                </button>
+            )}
 
-            {/* Backdrop */}
+            {/* Backdrop (Mobile Only) */}
             {open && (
                 <div
-                    className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in"
+                    className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in lg:hidden"
                     onClick={() => setOpen(false)}
                 />
             )}
@@ -89,9 +92,9 @@ export function SideDrawer() {
             {/* Drawer Panel */}
             <div
                 className={[
-                    "fixed top-0 left-0 h-full w-72 z-50 flex flex-col glass-panel",
+                    "fixed top-0 left-0 h-full w-72 lg:w-64 z-50 flex flex-col glass-panel lg:border-r lg:border-[var(--border-subtle)] lg:shadow-none",
                     "shadow-[var(--shadow-xl)] transition-transform duration-300",
-                    open ? "translate-x-0 animate-drawer-in" : "-translate-x-full",
+                    open ? "translate-x-0 animate-drawer-in" : "-translate-x-full lg:translate-x-0",
                 ].join(" ")}
                 aria-modal="true"
                 role="dialog"
@@ -99,17 +102,21 @@ export function SideDrawer() {
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 pt-5 pb-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                     <div>
-                        <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: "var(--amber-500)" }}>
-                            LekkerLedger
-                        </p>
-                        <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                        <Link href="/" onClick={() => setOpen(false)} className="block focus-ring rounded-lg">
+                            <img
+                                src="/brand/logo-light.png"
+                                alt="LekkerLedger"
+                                className="h-10 w-auto transition-opacity hover:opacity-80"
+                            />
+                        </Link>
+                        <p className="text-[10px] mt-1 opacity-60" style={{ color: "var(--text-muted)" }}>
                             By Nightshift Labs ZA
                         </p>
                     </div>
                     <button
                         onClick={() => setOpen(false)}
                         aria-label="Close menu"
-                        className="h-8 w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--bg-subtle)] active-scale"
+                        className="lg:hidden h-8 w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--bg-subtle)] active-scale"
                         style={{ color: "var(--text-muted)" }}
                     >
                         <X className="h-4 w-4" />

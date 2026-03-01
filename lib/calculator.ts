@@ -1,12 +1,20 @@
 import { PayslipInput } from "./schema";
+import { LEGAL_REGISTRY, getNMWForDate } from "./legal/registry";
 
-export const NMW_RATE = 30.23; // SD7 as of March 2025
-const UIF_MONTHLY_CAP = 17712; // UIF contribution ceiling
-const ACCOMMODATION_MAX_PCT = 0.10;
-const UIF_RATE = 0.01;
-const UIF_THRESHOLD_HOURS = 24; // No UIF if worker ≤ 24 hours
-const OVERTIME_MULTIPLIER = 1.5;
-const SUNDAY_PH_MULTIPLIER = 2.0;
+/**
+ * National Minimum Wage (NMW) for Domestic Workers in South Africa.
+ */
+export function getNMW(date: Date = new Date()): number {
+    return getNMWForDate(date);
+}
+
+export const NMW_RATE = getNMW();
+const UIF_MONTHLY_CAP = LEGAL_REGISTRY.UIF.MONTHLY_CAP;
+export const ACCOMMODATION_MAX_PCT = LEGAL_REGISTRY.SD7.ACCOMMODATION_MAX_PCT;
+export const UIF_RATE = LEGAL_REGISTRY.UIF.RATE;
+export const UIF_THRESHOLD_HOURS = LEGAL_REGISTRY.UIF.THRESHOLD_HOURS;
+const OVERTIME_MULTIPLIER = LEGAL_REGISTRY.SD7.OVERTIME_MULTIPLIER;
+const SUNDAY_PH_MULTIPLIER = LEGAL_REGISTRY.SD7.SUNDAY_PH_MULTIPLIER;
 
 export interface PayBreakdown {
     ordinaryPay: number;
@@ -26,6 +34,8 @@ export interface PayBreakdown {
         uifEmployer: number;
     };
     netPay: number;
+    complianceWarnings: string[];
+    leaveAccruedDays: number;
 }
 
 export function calculatePayslip(input: PayslipInput): PayBreakdown {
@@ -78,6 +88,15 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
     // Net pay cannot drop below 0
     const netPay = Math.max(0, grossPay - totalDeductions);
 
+    // Compliance Warnings
+    const complianceWarnings: string[] = [];
+    if (input.hourlyRate < NMW_RATE) {
+        complianceWarnings.push("Hourly rate is below the statutory NMW.");
+    }
+
+    // Leave Accrual (SD7: 1 day for every 17 days worked)
+    const leaveAccruedDays = Number(((input.daysWorked ?? 1) / 17).toFixed(2));
+
     return {
         ordinaryPay,
         effectiveOrdinaryHours,
@@ -96,5 +115,7 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
             uifEmployer,
         },
         netPay,
+        complianceWarnings,
+        leaveAccruedDays,
     };
 }

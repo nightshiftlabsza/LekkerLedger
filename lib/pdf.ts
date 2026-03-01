@@ -1,6 +1,6 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Employee, PayslipInput, EmployerSettings } from "./schema";
-import { calculatePayslip } from "./calculator";
+import { calculatePayslip, getNMW } from "./calculator";
 import { format } from "date-fns";
 
 // SA amber gold in PDF colour
@@ -19,25 +19,11 @@ export async function generatePayslipPdfBytes(
     employer: EmployerSettings
 ): Promise<Uint8Array> {
     const breakdown = calculatePayslip(payslip);
+    const nmw = getNMW(payslip.payPeriodStart);
 
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 portrait
     const { width, height } = page.getSize();
-
-    // Embed logo if exists
-    let logoImage = null;
-    if (employer.logoData) {
-        try {
-            // Check if it's PNG or JPEG
-            if (employer.logoData.startsWith("data:image/png")) {
-                logoImage = await pdfDoc.embedPng(employer.logoData);
-            } else {
-                logoImage = await pdfDoc.embedJpg(employer.logoData);
-            }
-        } catch (e) {
-            console.error("Failed to embed logo", e);
-        }
-    }
 
     const regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -88,17 +74,15 @@ export async function generatePayslipPdfBytes(
     // ── Header band ──────────────────────────────────────────────────────────
     rect(0, height - 100, width, 100, DARK);
 
-    // Embed and Draw Logo
-    // Embed and Draw Logo (Pro Feature)
+    // Logo Handling
     let logoDrawn = false;
     if (employer.proStatus === "pro" && employer.logoData) {
         try {
-            // Assume base64 data URL: "data:image/png;base64,..."
             const base64Data = employer.logoData.split(",")[1];
             if (base64Data) {
                 const logoBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
                 const logoImg = await pdfDoc.embedPng(logoBytes);
-                const logoDims = logoImg.scale(0.12);
+                const logoDims = logoImg.scaleToFit(120, 40);
                 page.drawImage(logoImg, {
                     x: 48,
                     y: height - 65,
@@ -113,158 +97,131 @@ export async function generatePayslipPdfBytes(
     }
 
     if (!logoDrawn) {
-        // Default branding text for Free users or failed Pro logos
-        t("LekkerLedger", 48, height - 46, { font: bold, size: 28, color: WHITE });
+        t("LekkerLedger", 48, height - 46, { font: bold, size: 24, color: WHITE });
     }
 
-    // Employer Identity Header (Legal Requirement)
-    t(employer.employerName || "Employer Name Not Set", 48, height - 78, { font: bold, size: 11, color: rgb(0.8, 0.75, 0.7), maxWidth: 280 });
-    t(employer.employerAddress || "Address Not Set", 48, height - 90, { font: regular, size: 8, color: rgb(0.6, 0.55, 0.5), maxWidth: 280 });
+    t(employer.employerName || "Employer Name Not Set", 48, height - 74, { font: bold, size: 10, color: rgb(0.8, 0.75, 0.7), maxWidth: 280 });
+    t(employer.employerAddress || "Address Not Set", 48, height - 86, { font: regular, size: 7.5, color: rgb(0.6, 0.55, 0.5), maxWidth: 280 });
 
-    // Right side of header
-    if (logoImage) {
-        const dims = logoImage.scaleToFit(140, 60);
-        page.drawImage(logoImage, {
-            x: width - 48 - dims.width,
-            y: height - 100 + (100 - dims.height) / 2,
-            width: dims.width,
-            height: dims.height,
-        });
-    } else {
-        t("CONFIDENTIAL DOCUMENT", width - 48, height - 46, {
-            font: bold, size: 9.5, color: rgb(0.5, 0.45, 0.40), align: "right",
-        });
-    }
-    // Employer UIF Ref (Legal Requirement if UIF is paid)
-    if (employer.uifRefNumber) {
-        t(`UIF Ref: ${employer.uifRefNumber}`, width - 48, height - 60, { font: regular, size: 9, color: rgb(0.5, 0.45, 0.40), align: "right" });
-    }
+    t("PAYSLIP", width - 48, height - 46, { font: bold, size: 20, color: AMBER, align: "right" });
+    t(format(payslip.payPeriodEnd, "MMMM yyyy").toUpperCase(), width - 48, height - 70, { font: bold, size: 10, color: WHITE, align: "right" });
 
     // ── Amber accent bar ─────────────────────────────────────────────────────
     rect(0, height - 104, width, 4, AMBER);
 
-    // ── Employee + Period block ───────────────────────────────────────────────
-    const blockY = height - 145;
+    // ── User Information ─────────────────────────────────────────────────────
+    const infoY = height - 140;
 
-    // Left: Employee info
-    t("EMPLOYEE", 48, blockY + 2, { font: bold, size: 8, color: SLATE });
-    t(employee.name, 48, blockY - 16, { font: bold, size: 16, maxWidth: 250 });
-    t(employee.role, 48, blockY - 34, { font: regular, size: 10.5, color: SLATE, maxWidth: 250 });
+    // Employee Box
+    t("EMPLOYEE", 48, infoY, { font: bold, size: 8, color: SLATE });
+    t(employee.name, 48, infoY - 18, { font: bold, size: 14 });
+    t(employee.role, 48, infoY - 32, { font: regular, size: 9, color: SLATE });
     if (employee.idNumber) {
-        t(`ID / Passport: ${employee.idNumber}`, 48, blockY - 50, { font: regular, size: 9.5, color: SLATE });
+        t(`ID: ${employee.idNumber}`, 48, infoY - 44, { font: regular, size: 8, color: SLATE });
     }
 
-    // Right: Pay period
-    const periodStr = `${format(payslip.payPeriodStart, "d MMM yyyy")} – ${format(payslip.payPeriodEnd, "d MMM yyyy")}`;
-    t("PAY PERIOD", width - 48, blockY + 2, { font: bold, size: 8, color: SLATE, align: "right" });
-    t(periodStr, width - 48, blockY - 16, { font: regular, size: 11, align: "right" });
-    t(`Generated: ${format(new Date(), "d MMM yyyy")}`, width - 48, blockY - 34, {
-        font: regular, size: 9.5, color: SLATE, align: "right",
-    });
+    // Period Box
+    t("PAY PERIOD", width - 180, infoY, { font: bold, size: 8, color: SLATE });
+    t(`${format(payslip.payPeriodStart, "dd MMM")} – ${format(payslip.payPeriodEnd, "dd MMM yyyy")}`, width - 180, infoY - 18, { font: regular, size: 10 });
+    t(`Days Worked: ${payslip.daysWorked}`, width - 180, infoY - 32, { font: regular, size: 9, color: SLATE });
 
-    line(height - 205); // Move separator line down
+    line(height - 200);
 
-    // ── Earnings section ──────────────────────────────────────────────────────
-    let cy = height - 215;
+    // ── Earnings Table ───────────────────────────────────────────────────────
+    let cy = height - 220;
+    t("DESCRIPTION", 48, cy, { font: bold, size: 8, color: SLATE });
+    t("HOURS", width - 150, cy, { font: bold, size: 8, color: SLATE, align: "right" });
+    t("RATE", width - 100, cy, { font: bold, size: 8, color: SLATE, align: "right" });
+    t("TOTAL", width - 48, cy, { font: bold, size: 8, color: SLATE, align: "right" });
 
-    t("EARNINGS", 48, cy, { font: bold, size: 8, color: AMBER });
-    cy -= 22;
-
-    const showRuleNote = breakdown.effectiveOrdinaryHours > payslip.ordinaryHours;
-    const ordinaryLabel = `Ordinary hours  (${breakdown.effectiveOrdinaryHours} h × R${payslip.hourlyRate.toFixed(2)}/hr)${showRuleNote ? ' *' : ''}`;
-
-    const earningRows: [string, number][] = [
-        [ordinaryLabel, breakdown.ordinaryPay],
-    ];
-    if (payslip.overtimeHours > 0) {
-        earningRows.push([`Overtime hours  (${payslip.overtimeHours} h × R${(payslip.hourlyRate * 1.5).toFixed(2)}/hr — 1.5×)`, breakdown.overtimePay]);
-    }
-    if (payslip.sundayHours > 0) {
-        earningRows.push([`Sunday hours  (${payslip.sundayHours} h × R${(payslip.hourlyRate * 2).toFixed(2)}/hr — 2×)`, breakdown.sundayPay]);
-    }
-    if (payslip.publicHolidayHours > 0) {
-        earningRows.push([`Public holiday hours  (${payslip.publicHolidayHours} h × R${(payslip.hourlyRate * 2).toFixed(2)}/hr — 2×)`, breakdown.publicHolidayPay]);
-    }
-
-    for (const [label, amount] of earningRows) {
-        t(label, 48, cy, { font: regular, size: 10, color: SLATE });
-        t(`R ${amount.toFixed(2)}`, width - 48, cy, { font: regular, size: 10, align: "right" });
-        cy -= 20;
-    }
-
-    cy -= 6;
-    if (showRuleNote) {
-        t(`* Includes minimum 4 hours per day worked (BCEA Rule).`, 48, cy, { font: regular, size: 7, color: SLATE });
-        cy -= 12;
-    }
-    line(cy + 2);
-    cy -= 16;
-    t("Gross Pay", 48, cy, { font: bold, size: 11 });
-    t(`R ${breakdown.grossPay.toFixed(2)}`, width - 48, cy, { font: bold, size: 11, align: "right" });
-
-    // ── Deductions section ────────────────────────────────────────────────────
-    cy -= 32;
-    t("DEDUCTIONS", 48, cy, { font: bold, size: 8, color: AMBER });
-    cy -= 22;
-
-    const uifLabel = breakdown.totalHours > 24
-        ? `UIF — employee contribution (1% of capped base)`
-        : `UIF — not applicable (worker ≤ 24 hours this period)`;
-    t(uifLabel, 48, cy, { font: regular, size: 10, color: SLATE });
-    t(`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`, width - 48, cy, { font: regular, size: 10, color: RED, align: "right" });
     cy -= 20;
 
-    if (payslip.includeAccommodation && breakdown.deductions.accommodation) {
-        t(`Accommodation deduction (max 10% of gross — SD7)`, 48, cy, { font: regular, size: 10, color: SLATE });
-        t(`-R ${breakdown.deductions.accommodation.toFixed(2)}`, width - 48, cy, { font: regular, size: 10, color: RED, align: "right" });
-        cy -= 20;
+    // Ordinary
+    t("Ordinary Hours", 48, cy, { size: 10 });
+    t(breakdown.effectiveOrdinaryHours.toString(), width - 150, cy, { size: 10, align: "right" });
+    t(`R ${payslip.hourlyRate.toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
+    t(`R ${breakdown.ordinaryPay.toFixed(2)}`, width - 48, cy, { font: bold, size: 10, align: "right" });
+    cy -= 18;
+
+    // Overtime
+    if (payslip.overtimeHours > 0) {
+        t("Overtime (1.5x)", 48, cy, { size: 10 });
+        t(payslip.overtimeHours.toString(), width - 150, cy, { size: 10, align: "right" });
+        t(`R ${(payslip.hourlyRate * 1.5).toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
+        t(`R ${breakdown.overtimePay.toFixed(2)}`, width - 48, cy, { size: 10, align: "right" });
+        cy -= 18;
     }
 
-    cy -= 6;
-    line(cy + 2);
-    cy -= 16;
-    t("Total Deductions", 48, cy, { font: bold, size: 11 });
-    t(`R ${breakdown.deductions.total.toFixed(2)}`, width - 48, cy, { font: bold, size: 11, align: "right" });
+    // Sunday
+    if (payslip.sundayHours > 0) {
+        const mult = employee.ordinarilyWorksSundays ? 1.5 : 2.0;
+        t(`Sunday Pay (${mult}x)`, 48, cy, { size: 10 });
+        t(payslip.sundayHours.toString(), width - 150, cy, { size: 10, align: "right" });
+        t(`R ${(payslip.hourlyRate * mult).toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
+        t(`R ${breakdown.sundayPay.toFixed(2)}`, width - 48, cy, { size: 10, align: "right" });
+        cy -= 18;
+    }
 
-    // ── Net Pay banner ────────────────────────────────────────────────────────
-    // Space below total deductions
-    cy -= 24;
-    const netBannerHeight = 52;
-    cy -= netBannerHeight; // cy is now the bottom of the Net Pay rectangle
+    // Holiday
+    if (payslip.publicHolidayHours > 0) {
+        t("Public Holiday (2x)", 48, cy, { size: 10 });
+        t(payslip.publicHolidayHours.toString(), width - 150, cy, { size: 10, align: "right" });
+        t(`R ${(payslip.hourlyRate * 2).toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
+        t(`R ${breakdown.publicHolidayPay.toFixed(2)}`, width - 48, cy, { size: 10, align: "right" });
+        cy -= 18;
+    }
 
-    // Draw Net Pay Background
-    rect(48, cy, width - 96, netBannerHeight, AMBER);
+    line(cy + 5);
+    cy -= 15;
+    t("GROSS EARNINGS", 48, cy, { font: bold, size: 10 });
+    t(`R ${breakdown.grossPay.toFixed(2)}`, width - 48, cy, { font: bold, size: 12, align: "right" });
 
-    // Text is drawn relative to cy (baseline is ~18px from bottom)
-    t("NET PAY", 68, cy + 20, { font: bold, size: 12, color: WHITE });
-    t(`R ${breakdown.netPay.toFixed(2)}`, width - 68, cy + 16, { font: bold, size: 24, color: WHITE, align: "right" });
+    // ── Deductions Table ─────────────────────────────────────────────────────
+    cy -= 40;
+    t("DEDUCTIONS", 48, cy, { font: bold, size: 8, color: SLATE });
+    cy -= 20;
 
-    // ── Employer contribution note ────────────────────────────────────────────
-    const empNoteHeight = 44;
-    cy -= empNoteHeight; // cy is now the bottom of employer note rectangle
+    // UIF
+    t("UIF (Employee contribution 1%)", 48, cy, { size: 9, color: SLATE });
+    t(`- R ${breakdown.deductions.uifEmployee.toFixed(2)}`, width - 48, cy, { size: 9, align: "right", color: RED });
+    cy -= 18;
 
-    // Draw Employer Note Background
-    rect(48, cy, width - 96, empNoteHeight, LIGHT_BG);
+    // Accommodation
+    if (payslip.includeAccommodation && breakdown.deductions.accommodation) {
+        t("Accommodation Deduction (Capped at 10%)", 48, cy, { size: 9, color: SLATE });
+        t(`- R ${breakdown.deductions.accommodation.toFixed(2)}`, width - 48, cy, { size: 9, align: "right", color: RED });
+        cy -= 18;
+    }
 
-    // Text inside Employer Note
-    t("Employer Contributions (for your records — not deducted from worker):", 68, cy + 24, { font: bold, size: 8.5, color: SLATE });
-    t(`UIF employer contribution (1%): R ${breakdown.employerContributions.uifEmployer.toFixed(2)}`, 68, cy + 10, { font: regular, size: 9, color: SLATE });
+    line(cy + 5);
+    cy -= 15;
+    t("TOTAL DEDUCTIONS", 48, cy, { font: bold, size: 9, color: SLATE });
+    t(`R ${breakdown.deductions.total.toFixed(2)}`, width - 48, cy, { font: bold, size: 9, align: "right" });
 
-    // ── Footer ────────────────────────────────────────────────────────────────
-    const footerY = 44;
-    line(footerY + 18);
-    const isProOrAnnual = employer.proStatus === "pro" || employer.proStatus === "annual" || employer.proStatus === "trial";
+    // ── Net Pay Block ────────────────────────────────────────────────────────
+    cy -= 50;
+    rect(48, cy, width - 96, 50, AMBER);
+    t("NET PAYABLE", 64, cy + 18, { font: bold, size: 12, color: WHITE });
+    t(`R ${breakdown.netPay.toFixed(2)}`, width - 64, cy + 15, { font: bold, size: 22, color: WHITE, align: "right" });
 
-    t(
-        isProOrAnnual
-            ? "Lekker Pro Legal Shield — in compliance with the Basic Conditions of Employment Act & Sectoral Determination 7."
-            : "Generated by LekkerLedger Free. Upgrade for CCMA-compliant cloud backups and unlimited legal history.",
-        48, footerY + 6,
-        { font: isProOrAnnual ? bold : regular, size: 7.5, color: isProOrAnnual ? rgb(0.3, 0.3, 0.3) : RED }
-    );
-    t("lekkerledger.app · By Nightshift Labs ZA · Data processed locally — never stored on external servers.", 48, footerY - 8, {
-        font: regular, size: 7, color: rgb(0.65, 0.6, 0.55),
-    });
+    // ── Compliance Footer ────────────────────────────────────────────────────
+    const footerY = 80;
+    line(footerY + 20);
+
+    t("EMPLOYER CONTRIBUTIONS (For your records)", 48, footerY, { font: bold, size: 7, color: SLATE });
+    t(`UIF Employer (1%): R ${breakdown.employerContributions.uifEmployer.toFixed(2)}`, 48, footerY - 12, { size: 7, color: SLATE });
+
+    const legalText = `This payslip is generated in accordance with Sectoral Determination 7 and the BCEA. Minimum wage for this period: R${nmw.toFixed(2)}/hr.`;
+    t(legalText, 48, 40, { size: 7, color: SLATE });
+    t("Proudly South African · LekkerLedger.app", width - 48, 40, { size: 7, color: SLATE, align: "right" });
+
+    // ── Compliance Seal ──
+    const sealX = width - 100;
+    const sealY = 100;
+    page.drawCircle({ x: sealX, y: sealY, size: 30, color: rgb(0.95, 0.95, 0.95), borderColor: AMBER, borderWidth: 1 });
+    t("LEGAL", sealX, sealY + 8, { font: bold, size: 7, color: AMBER, align: "right" });
+    t("COMPLIANT", sealX, sealY - 2, { font: bold, size: 5, color: SLATE, align: "right" });
+    t("BCEA/SD7", sealX, sealY - 10, { font: bold, size: 5, color: SLATE, align: "right" });
 
     return pdfDoc.save();
 }

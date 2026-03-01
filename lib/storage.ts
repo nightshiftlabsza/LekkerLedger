@@ -111,21 +111,76 @@ export async function saveSettings(settings: EmployerSettings): Promise<void> {
 // ─── Time Verification ──────────────────────────────────────────────────────
 
 export async function getSecureTime(): Promise<Date> {
-    try {
-        const res = await fetch("https://worldtimeapi.org/api/timezone/Etc/UTC", { cache: "no-store", signal: AbortSignal.timeout(3000) });
-        if (!res.ok) throw new Error("API fail");
-        const data = await res.json();
-        const serverDate = new Date(data.datetime);
-        await settingsStore.setItem("lastKnownTime", serverDate.getTime());
-        return serverDate;
-    } catch {
-        // Fallback to local time, but protect against backwards drift (users moving their PC clock back to bypass expiry)
-        const localTime = new Date();
-        const lastKnown = await settingsStore.getItem<number>("lastKnownTime") || 0;
-        if (localTime.getTime() < lastKnown) {
-            return new Date(lastKnown);
+    const mirrors = [
+        "https://worldtimeapi.org/api/timezone/Etc/UTC",
+        "https://timeapi.io/api/Time/current/zone?timeZone=UTC",
+    ];
+
+    for (const url of mirrors) {
+        try {
+            const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(3000) });
+            if (!res.ok) continue;
+            const data = await res.json();
+            // worldtimeapi vs timeapi.io handling
+            const dateStr = data.datetime || data.dateTime;
+            if (!dateStr) continue;
+
+            const serverDate = new Date(dateStr);
+            await settingsStore.setItem("lastKnownTime", serverDate.getTime());
+            return serverDate;
+        } catch (e) {
+            console.warn(`Time mirror failed: ${url}`, e);
         }
-        await settingsStore.setItem("lastKnownTime", localTime.getTime());
-        return localTime;
     }
+
+    // Fallback to local time, but protect against backwards drift (monotonic protection)
+    const localTime = new Date();
+    const lastKnown = await settingsStore.getItem<number>("lastKnownTime") || 0;
+    if (localTime.getTime() < lastKnown) {
+        // Clock was moved back - return last known safe time instead
+        return new Date(lastKnown);
+    }
+    await settingsStore.setItem("lastKnownTime", localTime.getTime());
+    return localTime;
+}
+
+// ─── Export / Import ───────────────────────────────────────────────────────
+
+export async function exportData(): Promise<string> {
+    const data: any = {
+        employees: [],
+        payslips: [],
+        leave: [],
+        settings: {},
+    };
+
+    await employeeStore.iterate((val) => { data.employees.push(val); });
+    await payslipStore.iterate((val) => { data.payslips.push(val); });
+    await leaveStore.iterate((val) => { data.leave.push(val); });
+    const settings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
+    data.settings = settings || {};
+
+    return JSON.stringify(data);
+}
+
+export async function importData(json: string): Promise<void> {
+    const data = JSON.parse(json);
+
+    // Clear existing
+    await resetAllData();
+
+    // Import new
+    if (data.employees) await Promise.all(data.employees.map((e: any) => employeeStore.setItem(e.id, e)));
+    if (data.payslips) await Promise.all(data.payslips.map((p: any) => payslipStore.setItem(p.id, p)));
+    if (data.leave) await Promise.all(data.leave.map((l: any) => leaveStore.setItem(l.id, l)));
+    if (data.settings) await settingsStore.setItem(SETTINGS_KEY, data.settings);
+}
+
+export async function resetAllData(): Promise<void> {
+    await Promise.all([
+        employeeStore.clear(),
+        payslipStore.clear(),
+        leaveStore.clear(),
+        settingsStore.clear(),
+    ]);
 }

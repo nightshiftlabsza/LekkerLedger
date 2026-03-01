@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2, Building2, CheckCircle2, Image as ImageIcon, Upload, X, Sparkles, ChevronRight } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Building2, CheckCircle2, Image as ImageIcon, Upload, X, Sparkles, ChevronRight, AlertTriangle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SideDrawer } from "@/components/layout/side-drawer";
-import { getSettings, saveSettings } from "@/lib/storage";
+import { getSettings, saveSettings, resetAllData } from "@/lib/storage";
 import { EmployerSettings } from "@/lib/schema";
 import { GoogleSync } from "@/components/google-sync";
 
@@ -25,6 +25,7 @@ export default function SettingsPage() {
         logoData: "",
         proStatus: "free",
     });
+    const [confirmReset, setConfirmReset] = React.useState(false);
 
     React.useEffect(() => {
         async function load() {
@@ -263,6 +264,56 @@ export default function SettingsPage() {
                         <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
                             All data is stored on your device only. Nothing is sent to any server.
                         </p>
+
+                        <div className="pt-10">
+                            <Card className="border-red-500/20 bg-red-500/[0.02]">
+                                <CardContent className="p-5 space-y-4">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <AlertTriangle className="h-4 w-4 text-red-500" />
+                                        <h2 className="text-sm font-bold text-red-900 dark:text-red-400">
+                                            Danger Zone
+                                        </h2>
+                                    </div>
+                                    <p className="text-xs text-red-800/60 dark:text-red-400/60 leading-relaxed">
+                                        Permanently delete all employees, payslips, leave records, and settings from this device. <strong>This action cannot be undone.</strong>
+                                    </p>
+
+                                    {confirmReset ? (
+                                        <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-top-1">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-red-600 text-center mb-1">Are you absolutely sure?</p>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
+                                                    onClick={async () => {
+                                                        await resetAllData();
+                                                        window.location.href = "/";
+                                                    }}
+                                                >
+                                                    Yes, Delete Everything
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="flex-1"
+                                                    onClick={() => setConfirmReset(false)}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="w-full gap-2 border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300 transition-all font-bold"
+                                            onClick={() => setConfirmReset(true)}
+                                        >
+                                            <Trash2 className="h-4 w-4" /> Reset All Application Data
+                                        </Button>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </div>
                     </form>
                 )}
             </main>

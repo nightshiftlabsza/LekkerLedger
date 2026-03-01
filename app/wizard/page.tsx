@@ -11,9 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideDrawer } from "@/components/layout/side-drawer";
-import { getEmployees, savePayslip } from "@/lib/storage";
+import { getEmployees, savePayslip, getSecureTime, getSettings } from "@/lib/storage";
 import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
+import { useToast } from "@/components/ui/toast";
 import { getHolidaysInRange } from "@/lib/holidays";
 
 const STEPS = [
@@ -32,10 +33,11 @@ function WizardContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const empId = searchParams?.get("empId");
+    const { toast } = useToast();
 
     const [employee, setEmployee] = React.useState<Employee | null>(null);
     const [loadingInitial, setLoadingInitial] = React.useState(true);
-    const [currentStep, setCurrentStep] = React.useState(0);
+    const [currentStep, setCurrentStep] = React.useState<number>(0);
     const [loading, setLoading] = React.useState(false);
 
     const now = new Date();
@@ -44,6 +46,7 @@ function WizardContent() {
 
     const [hours, setHours] = React.useState({ ordinary: "", overtime: "", sunday: "", holiday: "" });
     const [shortFallHours, setShortFallHours] = React.useState("");
+    const [daysWorked, setDaysWorked] = React.useState("20");
     const [dates, setDates] = React.useState({ start: defaultStart, end: defaultEnd });
     const [periodError, setPeriodError] = React.useState("");
     const [includeAccommodation, setIncludeAccommodation] = React.useState(false);
@@ -76,7 +79,7 @@ function WizardContent() {
             overtimeHours: Number(hours.overtime) || 0,
             sundayHours: Number(hours.sunday) || 0,
             publicHolidayHours: Number(hours.holiday) || 0,
-            daysWorked: 1, // Legacy
+            daysWorked: Number(daysWorked) || 1,
             shortFallHours: Number(shortFallHours) || 0,
             hourlyRate: employee.hourlyRate,
             ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
@@ -112,31 +115,45 @@ function WizardContent() {
         if (!employee) return;
         setLoading(true);
 
-        const payslipInput: PayslipInput = {
-            id: crypto.randomUUID(),
-            employeeId: employee.id,
-            payPeriodStart: safeDate(dates.start),
-            payPeriodEnd: safeDate(dates.end),
-            ordinaryHours: Number(hours.ordinary) || 0,
-            overtimeHours: Number(hours.overtime) || 0,
-            sundayHours: Number(hours.sunday) || 0,
-            publicHolidayHours: Number(hours.holiday) || 0,
-            daysWorked: 1, // Legacy
-            shortFallHours: Number(shortFallHours) || 0,
-            hourlyRate: employee.hourlyRate,
-            ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
-            ordinaryHoursPerDay: employee.ordinaryHoursPerDay ?? 8,
-            includeAccommodation,
-            accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
-            otherDeductions: 0,
-            annualLeaveTaken: 0,
-            sickLeaveTaken: 0,
-            familyLeaveTaken: 0,
-            createdAt: new Date(),
-        };
-
         try {
+            // Trial Expiry Check
+            const [settings, nowSafe] = await Promise.all([getSettings(), getSecureTime()]);
+
+            // Note: In this MVP, we assume trial is 30 days from some epoch if not 'pro'.
+            // For now, we mainly check if the device clock has been moved back.
+            // If the pay period end is in the future relative to our secure 'now', that's a red flag.
+            const periodEnd = safeDate(dates.end);
+            if (periodEnd.getTime() > nowSafe.getTime() + (24 * 60 * 60 * 1000)) { // 1 day buffer
+                setPeriodError("Cannot generate payslips for future dates.");
+                setLoading(false);
+                return;
+            }
+
+            const payslipInput: PayslipInput = {
+                id: crypto.randomUUID(),
+                employeeId: employee.id,
+                payPeriodStart: safeDate(dates.start),
+                payPeriodEnd: safeDate(dates.end),
+                ordinaryHours: Number(hours.ordinary) || 0,
+                overtimeHours: Number(hours.overtime) || 0,
+                sundayHours: Number(hours.sunday) || 0,
+                publicHolidayHours: Number(hours.holiday) || 0,
+                daysWorked: Number(daysWorked) || 1,
+                shortFallHours: Number(shortFallHours) || 0,
+                hourlyRate: employee.hourlyRate,
+                ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
+                ordinaryHoursPerDay: employee.ordinaryHoursPerDay ?? 8,
+                includeAccommodation,
+                accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
+                otherDeductions: 0,
+                annualLeaveTaken: 0,
+                sickLeaveTaken: 0,
+                familyLeaveTaken: 0,
+                createdAt: new Date(),
+            };
+
             await savePayslip(payslipInput);
+            toast("Payslip generated successfully!");
             router.push(`/preview?payslipId=${payslipInput.id}&empId=${employee.id}`);
         } catch (err) {
             console.error(err);
@@ -282,10 +299,21 @@ function WizardContent() {
                                                 value={shortFallHours}
                                                 onChange={(e) => setShortFallHours(e.target.value)}
                                             />
-                                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                                Hours to add to meet shift minimums
-                                            </p>
                                         </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="daysWorked">Total Days Worked</Label>
+                                            <Input
+                                                id="daysWorked"
+                                                type="number"
+                                                min="1"
+                                                max="31"
+                                                placeholder="20"
+                                                value={daysWorked}
+                                                onChange={(e) => setDaysWorked(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
                                         <div className="space-y-2">
                                             <Label htmlFor="ordinary">Ordinary Hours Worked</Label>
                                             <Input
@@ -296,21 +324,18 @@ function WizardContent() {
                                                 value={hours.ordinary}
                                                 onChange={(e) => setHours({ ...hours, ordinary: e.target.value })}
                                             />
-                                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                                40hrs/week = ±160 hrs/month
-                                            </p>
                                         </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="overtime">Overtime Hours (1.5× rate)</Label>
-                                        <Input
-                                            id="overtime"
-                                            type="number"
-                                            min="0"
-                                            placeholder="0"
-                                            value={hours.overtime}
-                                            onChange={(e) => setHours({ ...hours, overtime: e.target.value })}
-                                        />
+                                        <div className="space-y-2">
+                                            <Label htmlFor="overtime">Overtime Hours (1.5× rate)</Label>
+                                            <Input
+                                                id="overtime"
+                                                type="number"
+                                                min="0"
+                                                placeholder="0"
+                                                value={hours.overtime}
+                                                onChange={(e) => setHours({ ...hours, overtime: e.target.value })}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

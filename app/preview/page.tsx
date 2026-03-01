@@ -16,6 +16,8 @@ import { calculatePayslip } from "@/lib/calculator";
 import { Share } from "lucide-react";
 import { shareViaWhatsApp } from "@/lib/share";
 import { getSettings } from "@/lib/storage";
+import { getComplianceAudit, ComplianceAudit, generateComplianceNoteText } from "@/lib/compliance";
+import { AlertCircle, CheckCircle, Info, ChevronDown, ChevronUp, FileText, ShieldCheck, Copy } from "lucide-react";
 
 function Row({ label, value, bold, red }: { label: string; value: string; bold?: boolean; red?: boolean }) {
     return (
@@ -45,6 +47,8 @@ function PreviewContent() {
     const [sharing, setSharing] = React.useState(false);
     const [settings, setSettings] = React.useState<any>(null);
     const [error, setError] = React.useState("");
+    const [showFullAudit, setShowFullAudit] = React.useState(false);
+    const [copied, setCopied] = React.useState(false);
 
     React.useEffect(() => {
         async function load() {
@@ -279,13 +283,18 @@ function PreviewContent() {
                 {/* Employer contribution note */}
                 <Card className="animate-slide-up delay-200">
                     <CardContent className="p-4">
-                        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>
-                            Employer Record (not deducted from worker)
-                        </p>
-                        <div className="flex justify-between text-sm">
-                            <span style={{ color: "var(--text-secondary)" }}>UIF — Employer contribution (1%)</span>
+                        <div className="flex justify-between items-center text-sm">
+                            <span style={{ color: "var(--text-muted)" }} className="text-xs font-bold uppercase tracking-widest">
+                                Employer UIF (Contribution)
+                            </span>
                             <span className="font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>
                                 R {breakdown.employerContributions.uifEmployer.toFixed(2)}
+                            </span>
+                        </div>
+                        <div className="flex justify-between text-sm mt-2">
+                            <span style={{ color: "var(--text-secondary)" }}>Leave Accrued This Period</span>
+                            <span className="font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>
+                                {breakdown.leaveAccruedDays} days
                             </span>
                         </div>
                     </CardContent>
@@ -354,8 +363,88 @@ function PreviewContent() {
                             <CheckCircle2 className="h-4 w-4" /> Done
                         </Button>
                     </Link>
+
+                    {/* Quick Compliance Audit */}
+                    {employee && breakdown && payslip && (
+                        <Card className="animate-slide-up delay-400 overflow-hidden border-2" style={{ borderColor: "var(--border-subtle)" }}>
+                            <div className="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-[var(--bg-subtle)] transition-colors"
+                                onClick={() => setShowFullAudit(!showFullAudit)}>
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="h-5 w-5 text-amber-500" />
+                                    <h3 className="font-bold text-sm uppercase tracking-tight" style={{ color: "var(--text-primary)" }}>
+                                        SD7 Compliance Audit
+                                    </h3>
+                                </div>
+                                {showFullAudit ? <ChevronUp className="h-4 w-4 text-muted" /> : <ChevronDown className="h-4 w-4 text-muted" />}
+                            </div>
+
+                            <div className="px-5 pb-5 space-y-3">
+                                <ComplianceRow
+                                    label="Minimum Wage Status"
+                                    status={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).wageCompliant}
+                                    text={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).wageStatusText}
+                                />
+                                {showFullAudit && (
+                                    <>
+                                        <ComplianceRow
+                                            label="UIF Deduction"
+                                            status={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).uifCompliant}
+                                            text={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).uifStatusText}
+                                        />
+                                        <ComplianceRow
+                                            label="Accommodation Capped"
+                                            status={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).accommodationCompliant}
+                                            text={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).accommodationStatusText}
+                                        />
+                                        <div className="pt-2 border-t border-[var(--border-subtle)] space-y-3">
+                                            <div>
+                                                <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1">Entitlements (BCEA)</p>
+                                                <ul className="text-xs space-y-1" style={{ color: "var(--text-secondary)" }}>
+                                                    <li>• Sunday Rate: {getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).sundayMultiplier}</li>
+                                                    <li>• Overtime Rate: 1.5x</li>
+                                                    <li>• Leave: 1 day per 17 days worked</li>
+                                                </ul>
+                                            </div>
+
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full h-8 text-[11px] gap-2 transition-all"
+                                                onClick={() => {
+                                                    const text = generateComplianceNoteText(employee, breakdown, payslip.payPeriodEnd);
+                                                    navigator.clipboard.writeText(text).then(() => {
+                                                        setCopied(true);
+                                                        setTimeout(() => setCopied(false), 2000);
+                                                    });
+                                                }}
+                                            >
+                                                {copied ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                                                {copied ? "Copied!" : "Copy Legal Summary"}
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </Card>
+                    )}
                 </div>
-            </main>
+            </main >
+        </div >
+    );
+}
+
+function ComplianceRow({ label, status, text }: { label: string; status: boolean; text: string }) {
+    return (
+        <div className="flex items-start gap-2.5">
+            {status ? (
+                <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+            ) : (
+                <AlertCircle className="h-4 w-4 text-rose-500 mt-0.5 flex-shrink-0" />
+            )}
+            <div>
+                <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{label}</p>
+                <p className="text-xs sm:text-[11px] leading-tight mt-0.5" style={{ color: status ? "var(--text-secondary)" : "var(--rose-500)" }}>{text}</p>
+            </div>
         </div>
     );
 }

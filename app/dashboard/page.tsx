@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
     Users, ChevronRight, RefreshCw, Loader2,
-    CalendarDays, DollarSign, Clock, ArrowRight, TrendingUp, TrendingDown, Minus, AlertTriangle, ShieldCheck, Lock, Shield
+    CalendarDays, Banknote, Clock, ArrowRight, TrendingUp, TrendingDown, Minus, AlertTriangle, ShieldCheck, Lock, Shield, Palmtree
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,9 @@ import { calculatePayslip } from "@/lib/calculator";
 import { format, addDays, isAfter, isBefore } from "date-fns";
 import { getHolidaysInRange } from "@/lib/holidays";
 import { EmployerSettings } from "@/lib/schema";
+import { usePWAInstall } from "@/app/hooks/usePWAInstall";
+import { useOnlineStatus } from "@/app/hooks/useOnlineStatus";
+import { Smartphone, CloudOff, Globe } from "lucide-react";
 
 interface EmployeeSummary {
     employee: Employee;
@@ -36,6 +39,8 @@ export default function DashboardPage() {
     const [stats, setStats] = React.useState<MonthlyStats>({ current: 0, previous: 0, percentChange: null });
     const [bulkLoading, setBulkLoading] = React.useState(false);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
+    const { isInstallable, installApp } = usePWAInstall();
+    const isOnline = useOnlineStatus();
 
     React.useEffect(() => {
         async function load() {
@@ -201,10 +206,21 @@ export default function DashboardPage() {
 
             <div className="px-4 py-2 border-b bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <Shield className="h-3 w-3 text-green-600" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                        Compliance Engine Active
-                    </span>
+                    {isOnline ? (
+                        <>
+                            <Shield className="h-3 w-3 text-green-600" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                                Compliance Engine Active
+                            </span>
+                        </>
+                    ) : (
+                        <>
+                            <CloudOff className="h-3 w-3 text-amber-600 animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600">
+                                Offline Sync Pending
+                            </span>
+                        </>
+                    )}
                 </div>
                 <Link href="/rules" className="text-[10px] font-black text-amber-600 hover:text-amber-700 transition-colors uppercase tracking-widest flex items-center gap-1">
                     Legal Rules <ChevronRight className="h-2 w-2" />
@@ -225,10 +241,31 @@ export default function DashboardPage() {
                             const upcomingHolidays = getHolidaysInRange(now, nextWeek);
                             const isPayrollSeason = now.getDate() >= 25;
 
-                            if (upcomingHolidays.length === 0 && !isPayrollSeason) return null;
+                            if (upcomingHolidays.length === 0 && !isPayrollSeason && !isInstallable) return null;
 
                             return (
                                 <div className="space-y-2 animate-slide-up">
+                                    {isInstallable && (
+                                        <div
+                                            onClick={installApp}
+                                            className="group cursor-pointer px-4 py-3 rounded-2xl border border-[var(--amber-500)] bg-[var(--amber-500)]/[0.04] flex items-center justify-between text-[11px] font-bold transition-all hover:bg-[var(--amber-500)]/[0.08] hover:scale-[1.01]"
+                                            style={{ color: "var(--amber-800)" }}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-8 w-8 rounded-xl bg-[var(--amber-500)] flex items-center justify-center shadow-lg shadow-amber-500/20">
+                                                    <Smartphone className="h-4 w-4 text-white" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[13px] font-black uppercase tracking-tight" style={{ color: "var(--amber-900)" }}>Get the App</span>
+                                                    <span className="text-[10px] font-medium opacity-80">Install for faster, offline access</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-black uppercase tracking-tighter bg-[var(--amber-500)] text-white px-2 py-1 rounded-md text-[9px] group-hover:scale-105 transition-transform">Install</span>
+                                                <ChevronRight className="h-4 w-4 opacity-50" />
+                                            </div>
+                                        </div>
+                                    )}
                                     {upcomingHolidays.map(h => (
                                         <div
                                             key={h.date}
@@ -305,11 +342,14 @@ export default function DashboardPage() {
                                 </CardContent>
                             </Card>
                             <Card className="glass-panel hover-lift active-scale">
-                                <CardContent className="p-4 flex flex-col items-start text-left relative overflow-hidden">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <DollarSign className="h-4 w-4" style={{ color: "var(--amber-500)" }} />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">This Month</span>
+                                <CardContent className="p-4 flex flex-col items-center text-center relative overflow-hidden">
+                                    <div
+                                        className="h-10 w-10 rounded-xl flex items-center justify-center mb-2"
+                                        style={{ backgroundColor: "rgba(196,122,28,0.12)" }}
+                                    >
+                                        <Banknote className="h-5 w-5" style={{ color: "var(--amber-500)" }} />
                                     </div>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>This Month</p>
                                     <p className="text-2xl font-black tabular-nums" style={{ color: "var(--text-primary)" }}>
                                         R {stats.current.toFixed(0)}
                                     </p>
@@ -436,29 +476,45 @@ export default function DashboardPage() {
                                                         {format(new Date(latestPayslip.payPeriodStart), "d MMM")} –{" "}
                                                         {format(new Date(latestPayslip.payPeriodEnd), "d MMM yyyy")}
                                                     </p>
-                                                    {settings?.proStatus === "free" ? (
-                                                        <Link href="/pricing">
-                                                            <Button size="sm" variant="outline" className="gap-1.5 text-xs text-amber-600 border-amber-200 bg-amber-50">
-                                                                <Lock className="h-3 w-3" /> 1-Click Repeat
+
+                                                    <div className="flex items-center gap-2">
+                                                        <Link href={`/leave?employeeId=${employee.id}`}>
+                                                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-amber-50 hover:text-amber-600">
+                                                                <Palmtree className="h-4 w-4" />
                                                             </Button>
                                                         </Link>
-                                                    ) : (
-                                                        <Button
-                                                            size="sm"
-                                                            className="gap-1.5 text-xs"
-                                                            onClick={() => handleRepeat(employee.id)}
-                                                        >
-                                                            <RefreshCw className="h-3.5 w-3.5" />
-                                                            Repeat
-                                                        </Button>
-                                                    )}
+
+                                                        {settings?.proStatus === "free" ? (
+                                                            <Link href="/pricing">
+                                                                <Button size="sm" variant="outline" className="gap-1.5 text-xs text-amber-600 border-amber-200 bg-amber-50 h-8">
+                                                                    <Lock className="h-3 w-3" /> 1-Click Repeat
+                                                                </Button>
+                                                            </Link>
+                                                        ) : (
+                                                            <Button
+                                                                size="sm"
+                                                                className="gap-1.5 text-xs h-8"
+                                                                onClick={() => handleRepeat(employee.id)}
+                                                            >
+                                                                <RefreshCw className="h-3 w-3.5" />
+                                                                Repeat
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             ) : (
-                                                <Link href={`/wizard?employeeId=${employee.id}`}>
-                                                    <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs">
-                                                        Create First Payslip <ChevronRight className="h-3.5 w-3.5" />
-                                                    </Button>
-                                                </Link>
+                                                <div className="flex items-center gap-2">
+                                                    <Link href={`/wizard?employeeId=${employee.id}`} className="flex-1">
+                                                        <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs">
+                                                            Create First Payslip <ChevronRight className="h-3.5 w-3.5" />
+                                                        </Button>
+                                                    </Link>
+                                                    <Link href={`/leave?employeeId=${employee.id}`}>
+                                                        <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-lg hover:bg-amber-50 hover:text-amber-600">
+                                                            <Palmtree className="h-4 w-4" />
+                                                        </Button>
+                                                    </Link>
+                                                </div>
                                             )}
                                         </CardContent>
                                     </Card>

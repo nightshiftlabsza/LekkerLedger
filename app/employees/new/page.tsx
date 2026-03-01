@@ -13,10 +13,12 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { EmployeeSchema, Employee } from "@/lib/schema";
 import { saveEmployee, getEmployees, getSettings } from "@/lib/storage";
 import { NMW_RATE } from "@/lib/calculator";
+import { useToast } from "@/components/ui/toast";
 import { EmployerSettings } from "@/lib/schema";
 
 export default function AddEmployeePage() {
     const router = useRouter();
+    const { toast } = useToast();
     const [loading, setLoading] = React.useState(false);
     const [formData, setFormData] = React.useState({
         name: "",
@@ -75,6 +77,7 @@ export default function AddEmployeePage() {
         setLoading(true);
         try {
             await saveEmployee(parsed.data as Employee);
+            toast(`${formData.name} saved successfully!`);
             router.push("/employees");
         } catch (err) {
             console.error(err);

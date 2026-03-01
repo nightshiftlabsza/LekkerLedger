@@ -1,0 +1,33 @@
+{
+    "packageId": "com.lekkerledger.twa",
+    "host": "lekkerledger.co.za",
+    "name": "LekkerLedger",
+    "launcherName": "LekkerLedger",
+    "description": "Create a compliant payslip in under 90 seconds",
+    "startUrl": "/?source=pwa",
+    "display": "standalone",
+    "themeColor": "#c47a1c",
+    "navigationColor": "#c47a1c",
+    "backgroundColor": "#c47a1c",
+    "appVersionName": "1.0.0",
+    "appVersionCode": 1,
+    "enableNotifications": true,
+    "iconUrl": "/brand/icon-512.png",
+    "maskableIconUrl": "/brand/icon-512.png",
+    "splashScreenFadeOutDuration": 300,
+    "signingKey": {
+        "path": "./android.keystore",
+        "alias": "android"
+    },
+    "webManifestUrl": "/manifest.webmanifest",
+    "alphaDependencies": {
+        "enabled": false
+    },
+    "enableSiteSettingsShortcut": true,
+    "isChromeOSOnly": false,
+    "isMetaQuest": false,
+    "minSdkVersion": 19,
+    "orientation": "any",
+    "fingerprints": [],
+    "additionalTrustedOrigins": []
+}

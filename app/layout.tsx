@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GoogleWrapper } from "@/components/google-wrapper";
+import { SplashPortal } from "@/components/ui/splash-portal";
+import { ToastProvider } from "@/components/ui/toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,7 +20,7 @@ export const metadata: Metadata = {
   title: "LekkerLedger | SA Domestic Worker Payslips",
   description:
     "Create a compliant payslip in under 90 seconds. Fast, reliable, and proudly South African.",
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
@@ -61,7 +63,12 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <GoogleWrapper>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <SplashPortal />
+              {children}
+            </ToastProvider>
+          </ThemeProvider>
         </GoogleWrapper>
       </body>
     </html>

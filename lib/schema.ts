@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { getNMW } from "./calculator";
 
-export const NMW_DOMESTIC = 30.23; // SD7 NMW as of March 2025
+export const NMW_DOMESTIC = getNMW(); // SD7 NMW as of current date
 
 export const EmployeeSchema = z.object({
     id: z.string().uuid(),
@@ -9,7 +10,9 @@ export const EmployeeSchema = z.object({
     role: z.string().min(1, "Role is required").default("Domestic Worker"),
     hourlyRate: z
         .number()
-        .min(NMW_DOMESTIC, `Hourly rate must be at least R${NMW_DOMESTIC} (National Minimum Wage)`),
+        .refine((val) => val >= getNMW(), {
+            message: `Hourly rate must be at least the National Minimum Wage`,
+        }),
     phone: z.string().optional().default(""),
     startDate: z.string().optional().default(""), // ISO date string — when employment began
     ordinarilyWorksSundays: z.boolean().default(false),
@@ -31,7 +34,9 @@ export const PayslipInputSchema = z.object({
     shortFallHours: z.number().min(0).default(0),
     hourlyRate: z
         .number()
-        .min(NMW_DOMESTIC, `Hourly rate must be at least R${NMW_DOMESTIC} (National Minimum Wage)`),
+        .refine((val) => val >= getNMW(), {
+            message: `Hourly rate must be at least the National Minimum Wage`,
+        }),
     includeAccommodation: z.boolean().default(false),
     accommodationCost: z.number().min(0).optional(),
     otherDeductions: z.number().min(0).default(0),
