@@ -55,7 +55,7 @@ export default function EmployeeHistoryPage() {
         setDownloading(ps.id);
         try {
             const bytes: Uint8Array = await new Promise((resolve, reject) => {
-                const worker = new Worker(new URL("../../../../lib/pdf.worker.ts", import.meta.url));
+                const worker = new Worker(new URL("../../../pdf.worker.ts", import.meta.url));
                 worker.onmessage = (e) => {
                     const { bytes, error } = e.data;
                     if (error) reject(new Error(error));

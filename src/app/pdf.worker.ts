@@ -1,5 +1,5 @@
 // worker file
-import { generatePayslipPdfBytes } from "./pdf";
+import { generatePayslipPdfBytes } from "../lib/pdf";
 
 self.onmessage = async (evt: MessageEvent) => {
     const { employee, payslip, settings, msgId, isLimited } = evt.data;

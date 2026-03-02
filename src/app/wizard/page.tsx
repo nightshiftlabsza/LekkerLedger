@@ -1,6 +1,6 @@
 "use client";
 
-// import "../../lib/pdf.worker.ts";
+// import "../pdf.worker.ts";
 
 import * as React from "react";
 import Link from "next/link";
