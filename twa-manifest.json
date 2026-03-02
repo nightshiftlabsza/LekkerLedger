@@ -1,33 +1,45 @@
 {
-    "packageId": "com.lekkerledger.twa",
-    "host": "lekkerledger.co.za",
-    "name": "LekkerLedger",
-    "launcherName": "LekkerLedger",
-    "description": "Create a compliant payslip in under 90 seconds",
-    "startUrl": "/?source=pwa",
-    "display": "standalone",
-    "orientation": "portrait",
-    "themeColor": "#c47a1c",
-    "navigationColor": "#c47a1c",
-    "backgroundColor": "#c47a1c",
-    "appVersionName": "1.0.0",
-    "appVersionCode": 1,
-    "enableNotifications": true,
-    "iconUrl": "/brand/icon-512.png",
-    "maskableIconUrl": "/brand/icon-512.png",
-    "splashScreenFadeOutDuration": 300,
-    "signingKey": {
-        "path": "./android.keystore",
-        "alias": "android"
-    },
-    "webManifestUrl": "/manifest.webmanifest",
-    "alphaDependencies": {
-        "enabled": false
-    },
-    "enableSiteSettingsShortcut": true,
-    "isChromeOSOnly": false,
-    "isMetaQuest": false,
-    "minSdkVersion": 19,
-    "fingerprints": [],
-    "additionalTrustedOrigins": []
+  "packageId": "com.lekkerledger.twa",
+  "host": "lekkerledger.co.za",
+  "name": "LekkerLedger",
+  "launcherName": "LekkerLedger",
+  "display": "standalone",
+  "themeColor": "#C47A1C",
+  "themeColorDark": "#000000",
+  "navigationColor": "#C47A1C",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#C47A1C",
+  "enableNotifications": true,
+  "startUrl": "/?source=pwa",
+  "iconUrl": "https://lekkerledger.co.za/brand/icon-512.png",
+  "maskableIconUrl": "https://lekkerledger.co.za/brand/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 2,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://lekkerledger.co.za/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 19,
+  "orientation": "portrait",
+  "fingerprints": [
+    "D5:60:94:0B:44:B5:94:22:FC:99:DB:65:A7:02:D0:17:E1:78:F1:5D:AB:B8:7A:C8:B9:55:A8:00:7F:79:01:88"
+  ],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "displayOverride": [],
+  "appVersion": "1.0.0"
 }
