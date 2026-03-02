@@ -1,3 +1,4 @@
+// worker file
 import { generatePayslipPdfBytes } from "./pdf";
 
 self.onmessage = async (evt: MessageEvent) => {

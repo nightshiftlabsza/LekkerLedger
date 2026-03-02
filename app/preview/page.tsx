@@ -1,5 +1,7 @@
 "use client";
 
+// import "../../lib/pdf.worker.ts";
+
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -101,6 +103,18 @@ function PreviewContent() {
 
     const handleDownload = async () => {
         if (!employee || !payslip || !settings) return;
+
+        // GA4 conversion tracking
+        try {
+            if (typeof window !== 'undefined' && (window as any).gtag) {
+                (window as any).gtag('event', 'payslip_export', {
+                    method: 'download_pdf',
+                });
+            }
+        } catch (e) {
+            console.error('GA4 tracking failed:', e);
+        }
+
         setDownloading(true);
         try {
             const bytes: Uint8Array = await new Promise((resolve, reject) => {

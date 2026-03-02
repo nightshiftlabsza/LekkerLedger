@@ -1,5 +1,7 @@
 "use client";
 
+// import "../../lib/pdf.worker.ts";
+
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -198,6 +200,16 @@ function WizardContent() {
             };
 
             await savePayslip(payslipInput);
+
+            // GA4 conversion tracking
+            try {
+                if (typeof window !== 'undefined' && (window as any).gtag) {
+                    (window as any).gtag('event', 'onboarding_complete');
+                }
+            } catch (e) {
+                console.error('GA4 tracking failed:', e);
+            }
+
             toast("Payslip generated successfully!");
             // Improvement #18: Trigger celebration
             if (typeof window !== 'undefined') {
