@@ -25,13 +25,13 @@ export type Employee = z.infer<typeof EmployeeSchema>;
 export const PayslipInputSchema = z.object({
     id: z.string(),
     employeeId: z.string(),
-    payPeriodStart: z.date(),
-    payPeriodEnd: z.date(),
+    payPeriodStart: z.coerce.date(),
+    payPeriodEnd: z.coerce.date(),
     ordinaryHours: z.number().min(0),
     overtimeHours: z.number().min(0).default(0),
     sundayHours: z.number().min(0).default(0),
     publicHolidayHours: z.number().min(0).default(0),
-    daysWorked: z.number().min(1).default(1),
+    daysWorked: z.number().min(0).default(0),
     shortFallHours: z.number().min(0).default(0),
     hourlyRate: z
         .number()

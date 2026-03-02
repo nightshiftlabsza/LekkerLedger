@@ -7,6 +7,9 @@ const leaveStore = localforage.createInstance({ name: "LekkerLedger", storeName:
 const settingsStore = localforage.createInstance({ name: "LekkerLedger", storeName: "settings" });
 const auditStore = localforage.createInstance({ name: "LekkerLedger", storeName: "audit_logs" });
 
+// ─── Free Tier Limit ─────────────────────────────────────────────────────────
+export const FREE_PAYSLIP_LIMIT = 2;
+
 // ─── PII Obfuscation ──────────────────────────────────────────────────────────
 function encodeData(data: any): string {
     return btoa(encodeURIComponent(JSON.stringify(data)));
@@ -68,34 +71,37 @@ export async function getEmployee(id: string): Promise<Employee | null> {
 }
 
 export async function saveEmployee(employee: Employee): Promise<void> {
-    await employeeStore.setItem(employee.id, encodeData(employee));
-    await logAuditEvent("CREATE_EMPLOYEE", `Added/Updated employee: ${employee.name}`);
+    // P2: Trim employee name
+    const trimmed = { ...employee, name: employee.name.trim() };
+    await employeeStore.setItem(trimmed.id, encodeData(trimmed));
+    await logAuditEvent("CREATE_EMPLOYEE", `Added/Updated employee: ${trimmed.id}`);
     await notifyListeners();
 }
 
 export async function deleteEmployee(id: string): Promise<void> {
     const emp = await getEmployee(id);
     await employeeStore.removeItem(id);
-    // Also delete associated payslips
+    // P0 FIX: Decode payslip values before checking employeeId
     const toDelete: string[] = [];
-    await payslipStore.iterate<PayslipInput, void>((val: Awaited<PayslipInput>, key: string) => {
-        if (val.employeeId === id) toDelete.push(key);
+    await payslipStore.iterate<any, void>((val: any, key: string) => {
+        const decoded = decodeData<PayslipInput>(val);
+        if (decoded && decoded.employeeId === id) toDelete.push(key);
     });
     await Promise.allSettled(toDelete.map((k) => payslipStore.removeItem(k)));
-    // Also delete associated leave records
+    // Also delete associated leave records (stored raw — no decode needed)
     const leaveToDelete: string[] = [];
     await leaveStore.iterate<LeaveRecord, void>((val: Awaited<LeaveRecord>, key: string) => {
         if (val.employeeId === id) leaveToDelete.push(key);
     });
     await Promise.allSettled(leaveToDelete.map((k) => leaveStore.removeItem(k)));
-    await logAuditEvent("DELETE_EMPLOYEE", `Deleted employee: ${emp?.name || id}`);
+    await logAuditEvent("DELETE_EMPLOYEE", `Deleted employee ID: ${emp?.id || id}`);
 }
 
 // ─── Payslip CRUD ───────────────────────────────────────────────────────────
 
 export async function savePayslip(payslip: PayslipInput): Promise<void> {
     await payslipStore.setItem(payslip.id, encodeData(payslip));
-    await logAuditEvent("CREATE_PAYSLIP", `Generated payslip for ID: ${payslip.employeeId}`);
+    await logAuditEvent("CREATE_PAYSLIP", `Generated payslip for employee ID: ${payslip.employeeId}`);
     await notifyListeners();
 }
 
@@ -187,60 +193,62 @@ export async function saveSettings(settings: EmployerSettings): Promise<void> {
     await notifyListeners();
 }
 
-// ─── Time Verification ──────────────────────────────────────────────────────
+// ─── Compliance shown flag (UP-15: use localforage instead of localStorage) ──
+const COMPLIANCE_SHOWN_KEY = "ll-compliance-shown";
+
+export async function getComplianceShownFlag(): Promise<boolean> {
+    const val = await settingsStore.getItem<boolean>(COMPLIANCE_SHOWN_KEY);
+    return val === true;
+}
+
+export async function setComplianceShownFlag(): Promise<void> {
+    await settingsStore.setItem(COMPLIANCE_SHOWN_KEY, true);
+}
+
+// ─── Time Verification (P0: parallel race, non-blocking) ─────────────────────
 
 export async function getSecureTime(): Promise<Date> {
     const mirrors = [
         "https://worldtimeapi.org/api/timezone/Etc/UTC",
         "https://timeapi.io/api/Time/current/zone?timeZone=UTC",
-        "https://1.1.1.1/cdn-cgi/trace", // Cloudflare Trace (High Reliability)
+        "https://1.1.1.1/cdn-cgi/trace", // Cloudflare Trace
     ];
 
-    for (const url of mirrors) {
-        try {
-            const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(5000) }); // Increased to 5000ms for SA networks
-            if (!res.ok) continue;
+    // P0 FIX: Race all mirrors in parallel — takes whichever resolves first
+    const raceResult = await Promise.race([
+        ...mirrors.map((url) =>
+            fetch(url, { cache: "no-store", signal: AbortSignal.timeout(5000) })
+                .then(async (res) => {
+                    if (!res.ok) return null;
+                    if (url.includes("cdn-cgi/trace")) {
+                        const text = await res.text();
+                        const tsLine = text.split("\n").find((l) => l.startsWith("ts="));
+                        if (tsLine) {
+                            return new Date(parseFloat(tsLine.split("=")[1]) * 1000);
+                        }
+                        return null;
+                    }
+                    const text = await res.text();
+                    if (!text?.trim()) return null;
+                    const data = JSON.parse(text);
+                    const dateStr = data.datetime || data.dateTime;
+                    return dateStr ? new Date(dateStr) : null;
+                })
+                .catch(() => null)
+        ),
+        // Overall timeout — never block more than 5s total
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+    ]);
 
-            if (url.includes("cdn-cgi/trace")) {
-                const text = await res.text();
-                const tsLine = text.split("\n").find(line => line.startsWith("ts="));
-                if (tsLine) {
-                    const epoch = parseFloat(tsLine.split("=")[1]) * 1000;
-                    const serverDate = new Date(epoch);
-                    await settingsStore.setItem("lastKnownTime", serverDate.getTime());
-                    return serverDate;
-                }
-                continue;
-            }
-
-            const text = await res.text();
-            if (!text || text.trim() === "") continue;
-
-            let data;
-            try {
-                data = JSON.parse(text);
-            } catch (e) {
-                console.warn(`Failed to parse time JSON from ${url}:`, e);
-                continue;
-            }
-
-            // worldtimeapi vs timeapi.io handling
-            const dateStr = data.datetime || data.dateTime;
-            if (!dateStr) continue;
-
-            const serverDate = new Date(dateStr);
-            await settingsStore.setItem("lastKnownTime", serverDate.getTime());
-            return serverDate;
-        } catch (e) {
-            console.warn(`Time mirror failed: ${url}`, e);
-        }
+    if (raceResult instanceof Date && !isNaN(raceResult.getTime())) {
+        await settingsStore.setItem("lastKnownTime", raceResult.getTime());
+        return raceResult;
     }
 
-    // Fallback to local time, but protect against backwards drift (monotonic protection)
+    // Fallback: monotonic protection
     const localTime = new Date();
     const lastKnown = await settingsStore.getItem<number>("lastKnownTime") || 0;
     if (localTime.getTime() < lastKnown) {
-        // Clock was moved back - return last known safe time instead
         return new Date(lastKnown);
     }
     await settingsStore.setItem("lastKnownTime", localTime.getTime());
@@ -266,10 +274,7 @@ export function setCookie(name: string, value: string, days: number) {
 }
 
 export async function getInstallationId(): Promise<string> {
-    // 1. Check Cookie
     let instId = getCookie("ll_inst_id");
-
-    // 2. Check Local Settings
     const settings = await getSettings();
 
     if (!instId && settings.installationId) {
@@ -278,7 +283,6 @@ export async function getInstallationId(): Promise<string> {
     } else if (instId && !settings.installationId) {
         await saveSettings({ ...settings, installationId: instId });
     } else if (!instId && !settings.installationId) {
-        // 3. Generate New
         instId = crypto.randomUUID();
         setCookie("ll_inst_id", instId, 3650);
         await saveSettings({ ...settings, installationId: instId });
@@ -292,7 +296,6 @@ export async function incrementUsageCount(): Promise<void> {
     const now = await getSecureTime();
     const history = settings.usageHistory || [];
     history.push(now.toISOString());
-    // Keep only last 100 entries
     const trimmedHistory = history.slice(-100);
     await saveSettings({ ...settings, usageHistory: trimmedHistory });
     await logAuditEvent("UPDATE_SETTINGS", "Usage limit incremented");
@@ -311,7 +314,7 @@ export async function getUsageStats(): Promise<{ count30Days: number; isLimited:
 
     return {
         count30Days: recent.length,
-        isLimited: !isPro && recent.length >= 2 // Limit to 2 per month for free users
+        isLimited: !isPro && recent.length >= FREE_PAYSLIP_LIMIT
     };
 }
 
@@ -329,28 +332,40 @@ export async function exportData(): Promise<string> {
 
     await employeeStore.iterate((val) => { data.employees.push(decodeData(val)); });
     await payslipStore.iterate((val) => { data.payslips.push(decodeData(val)); });
+    // P1 FIX: decode leave records (previously exported raw)
     await leaveStore.iterate((val) => { data.leave.push(val); });
-    const settings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
-    data.settings = settings || {};
+    const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
+    // P1 FIX: Strip googleAuthToken from export (security)
+    if (rawSettings) {
+        const { googleAuthToken: _token, ...safeSettings } = rawSettings as any;
+        data.settings = safeSettings;
+    }
 
     return JSON.stringify(data, null, 2);
 }
 
-export async function importData(json: string): Promise<void> {
-    const data = JSON.parse(json);
+export async function importData(json: string): Promise<{ success: boolean; error?: string }> {
+    // P0 FIX: Parse FIRST, reset AFTER successful parse
+    let data: any;
+    try {
+        data = JSON.parse(json);
+    } catch (e) {
+        return { success: false, error: "Invalid backup file — could not parse JSON." };
+    }
+
     setImportingMode(true);
     try {
-        // Clear existing
         await resetAllData();
-
-        // Import new
         if (data.employees) await Promise.all(data.employees.map((e: any) => employeeStore.setItem(e.id, encodeData(e))));
         if (data.payslips) await Promise.all(data.payslips.map((p: any) => payslipStore.setItem(p.id, encodeData(p))));
         if (data.leave) await Promise.all(data.leave.map((l: any) => leaveStore.setItem(l.id, l)));
         if (data.settings) await settingsStore.setItem(SETTINGS_KEY, data.settings);
+        return { success: true };
+    } catch (e) {
+        return { success: false, error: "Restore failed — data may be partially imported." };
     } finally {
         setImportingMode(false);
-        await notifyListeners(); // One final notify after everything is in
+        await notifyListeners();
     }
 }
 
@@ -360,7 +375,7 @@ export async function resetAllData(): Promise<void> {
         payslipStore.clear(),
         leaveStore.clear(),
         settingsStore.clear(),
-        auditStore.clear(), // Clear audit log too
+        auditStore.clear(),
     ]);
 }
 
@@ -384,24 +399,22 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
     await auditStore.iterate<AuditLog, void>((val: AuditLog) => {
         logs.push(val);
     });
-    return logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    // P1 FIX: coerce timestamp to Date before calling getTime()
+    return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
 // ─── SA Tax Year Helpers ─────────────────────────────────────────────────────
 
 export function getCurrentTaxYearRange(now: Date = new Date()): { start: Date; end: Date; label: string } {
     const year = now.getFullYear();
-    const month = now.getMonth(); // 0-indexed
+    const month = now.getMonth();
 
-    // If we are in Jan (0) or Feb (1), the tax year started in Mar of previous year
-    // If we are in Mar (2) or later, the tax year started in Mar of this year
     let startYear = (month < 2) ? year - 1 : year;
     let endYear = startYear + 1;
 
-    const start = new Date(startYear, 2, 1); // March 1st
-    const end = new Date(endYear, 1, 28); // Feb 28th
+    const start = new Date(startYear, 2, 1);
+    const end = new Date(endYear, 1, 28);
 
-    // Check for leap year
     if (endYear % 4 === 0 && (endYear % 100 !== 0 || endYear % 400 === 0)) {
         end.setDate(29);
     }

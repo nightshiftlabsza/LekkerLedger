@@ -1,0 +1,202 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { ArrowLeft, Download, Loader2, Clock, AlertCircle, FileText } from "lucide-react";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { SideDrawer } from "@/components/layout/side-drawer";
+import { getEmployees, getPayslipsForEmployee, getSettings, getUsageStats } from "@/lib/storage";
+import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
+import { calculatePayslip } from "@/lib/calculator";
+
+export default function EmployeeHistoryPage() {
+    const { id } = useParams<{ id: string }>();
+    const [employee, setEmployee] = React.useState<Employee | null>(null);
+    const [payslips, setPayslips] = React.useState<PayslipInput[]>([]);
+    const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
+    const [loading, setLoading] = React.useState(true);
+    const [downloading, setDownloading] = React.useState<string | null>(null);
+    const [error, setError] = React.useState("");
+
+    React.useEffect(() => {
+        async function load() {
+            try {
+                const [emps, s, stats] = await Promise.all([
+                    getEmployees(),
+                    getSettings(),
+                    getUsageStats(),
+                ]);
+                const emp = emps.find((e: Employee) => e.id === id);
+                if (!emp) { setError("Employee not found."); setLoading(false); return; }
+                const history = await getPayslipsForEmployee(id);
+                // Most recent first
+                history.sort((a: PayslipInput, b: PayslipInput) =>
+                    new Date(b.payPeriodStart).getTime() - new Date(a.payPeriodStart).getTime()
+                );
+                setEmployee(emp);
+                setPayslips(history);
+                setSettings(s);
+            } catch (e) {
+                console.error(e);
+                setError("Failed to load history.");
+            } finally {
+                setLoading(false);
+            }
+        }
+        load();
+    }, [id]);
+
+    const handleDownload = async (ps: PayslipInput) => {
+        if (!employee || !settings) return;
+        setDownloading(ps.id);
+        try {
+            const bytes: Uint8Array = await new Promise((resolve, reject) => {
+                const worker = new Worker(new URL("../../../../lib/pdf.worker.ts", import.meta.url));
+                worker.onmessage = (e) => {
+                    const { bytes, error } = e.data;
+                    if (error) reject(new Error(error));
+                    else resolve(bytes);
+                    worker.terminate();
+                };
+                worker.onerror = (e) => { reject(new Error(e.message)); worker.terminate(); };
+                worker.postMessage({ employee, payslip: ps, settings, msgId: "hist", isLimited: false });
+            });
+            const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `Payslip_${employee.name.replace(/\s+/g, "_")}_${format(new Date(ps.payPeriodStart), "MMM_yyyy")}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error("PDF generation failed:", e);
+        } finally {
+            setDownloading(null);
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
+            <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border-subtle)]">
+                <div className="max-w-xl mx-auto flex items-center gap-3">
+                    <SideDrawer />
+                    <Link href="/employees">
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl">
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                    </Link>
+                    <div className="min-w-0">
+                        <h1 className="font-bold text-base text-[var(--text-primary)] truncate">
+                            {employee ? `${employee.name}'s History` : "Payslip History"}
+                        </h1>
+                        {employee && (
+                            <p className="text-xs text-[var(--text-muted)]">{employee.role}</p>
+                        )}
+                    </div>
+                </div>
+            </header>
+
+            <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-3">
+                {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+                    </div>
+                ) : error ? (
+                    <Alert variant="error">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                ) : payslips.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 animate-fade-in">
+                        <div className="h-16 w-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(196,122,28,0.10)" }}>
+                            <Clock className="h-8 w-8" style={{ color: "var(--amber-500)" }} />
+                        </div>
+                        <div className="space-y-1">
+                            <p className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>No payslips yet</p>
+                            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                Generate a payslip for {employee?.name} to start building a compliance archive.
+                            </p>
+                        </div>
+                        {employee && (
+                            <Link href={`/wizard?empId=${employee.id}`}>
+                                <Button className="gap-2 mt-2 bg-amber-500 text-white font-bold">
+                                    <FileText className="h-4 w-4" /> Create Payslip
+                                </Button>
+                            </Link>
+                        )}
+                    </div>
+                ) : (
+                    <>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">
+                            {payslips.length} payslip{payslips.length !== 1 ? "s" : ""} on record
+                        </p>
+                        {payslips.map((ps, i) => {
+                            const breakdown = calculatePayslip(ps);
+                            return (
+                                <Card
+                                    key={ps.id}
+                                    className="glass-panel border-none animate-slide-up"
+                                    style={{ animationDelay: `${i * 50}ms` }}
+                                >
+                                    <CardContent className="p-4">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-sm text-[var(--text-primary)]">
+                                                    {format(new Date(ps.payPeriodStart), "d MMM")} – {format(new Date(ps.payPeriodEnd), "d MMM yyyy")}
+                                                </p>
+                                                <div className="flex items-center gap-3 mt-1">
+                                                    <span className="text-xs text-[var(--text-muted)]">
+                                                        Gross: <span className="font-semibold text-[var(--text-secondary)]">R{breakdown.grossPay.toFixed(2)}</span>
+                                                    </span>
+                                                    <span className="text-xs text-[var(--text-muted)]">·</span>
+                                                    <span className="text-xs text-[var(--text-muted)]">
+                                                        Net: <span className="font-bold text-amber-500">R{breakdown.netPay.toFixed(2)}</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                <Link href={`/preview?payslipId=${ps.id}&empId=${id}`}>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 text-xs font-bold border-amber-500/30 text-amber-500"
+                                                    >
+                                                        View
+                                                    </Button>
+                                                </Link>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8"
+                                                    disabled={downloading === ps.id}
+                                                    onClick={() => handleDownload(ps)}
+                                                >
+                                                    {downloading === ps.id
+                                                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                                                        : <Download className="h-4 w-4 text-[var(--text-muted)]" />
+                                                    }
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+
+                        <Alert className="mt-4 bg-[var(--bg-subtle)] border-[var(--border-subtle)]">
+                            <AlertDescription className="text-[11px] text-center text-[var(--text-muted)]">
+                                BCEA requires employers to retain payslip records for 5 years. This archive is stored privately on your device.
+                            </AlertDescription>
+                        </Alert>
+                    </>
+                )}
+            </main>
+        </div>
+    );
+}

@@ -1,0 +1,22 @@
+
+> lekkerledger@0.1.0 build
+> next build --webpack
+
+Γû▓ Next.js 16.1.6 (webpack)
+
+  Creating an optimized production build ...
+Γ£ô (serwist) Bundling the service worker script with the URL '/sw.js' and the scope '/'...
+Γ£ô Compiled successfully in 547.2ms
+  Running TypeScript ...
+Failed to compile.
+
+.next/dev/types/app/layout.ts:2:24
+Type error: Cannot find module '../../../../app/layout.js' or its corresponding type declarations.
+
+  1 | // File: D:\Apps\LekkerLedger\LekkerLedger-1\app\layout.tsx
+> 2 | import * as entry from '../../../../app/layout.js'
+    |                        ^
+  3 | import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
+  4 |
+  5 | import type { PrefetchForTypeCheckInternal } from 'next/dist/build/segment-config/app/app-segment-config.js'
+Next.js build worker exited with code: 1 and signal: null
