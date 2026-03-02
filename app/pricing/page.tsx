@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { getSettings, saveSettings } from "@/lib/storage";
+import { useToast } from "@/components/ui/toast";
 
 const PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c";
 const PAYSTACK_PLAN_ANNUAL = "PLN_xdijjb5u3pqneld";
@@ -34,6 +35,7 @@ const PaystackHookWrapper = dynamic(
 );
 
 export default function PricingPage() {
+    const { toast } = useToast();
     const [status, setStatus] = React.useState<"free" | "annual" | "pro" | "trial">("free");
     const [loading, setLoading] = React.useState(true);
     const [selectedPlan, setSelectedPlan] = React.useState<"annual" | "pro" | null>(null);
@@ -67,7 +69,7 @@ export default function PricingPage() {
         await saveSettings({ ...s, proStatus: plan });
         setStatus(plan);
         setMakePayment(false);
-        alert(`Payment Successful! Welcome to Lekker ${plan === "pro" ? "Pro Lifetime" : "Annual Support"}! Access activated.`);
+        toast(`Payment Successful! Welcome to Lekker ${plan === "pro" ? "Pro Lifetime" : "Annual Support"}! Access activated.`);
     };
 
     const handleAction = (plan: "annual" | "pro") => {
@@ -85,7 +87,7 @@ export default function PricingPage() {
             trialExpiry: expiry.toISOString()
         });
         setStatus("trial");
-        alert("Your 1-month Pro trial has started! Enjoy full access.");
+        toast("Your 1-month Pro trial has started! Enjoy full access.");
     };
 
     return (
@@ -283,7 +285,7 @@ export default function PricingPage() {
                 {/* Trust Footer */}
                 <div className="flex flex-wrap justify-center gap-x-12 gap-y-6 pt-10 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] grayscale opacity-50">
                     <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><Award className="h-4 w-4" /> BCEA Certified Math</div>
-                    <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><Lock className="h-4 w-4" /> AES-256 Local Storage</div>
+                    <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><Lock className="h-4 w-4" /> Local-Only Storage</div>
                     <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><History className="h-4 w-4" /> 5-Year Compliance Ready</div>
                 </div>
             </main>

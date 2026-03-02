@@ -72,6 +72,13 @@ function WizardContent() {
         if (dates.start && dates.end) {
             const start = safeDate(dates.start);
             const end = safeDate(dates.end);
+
+            // Prevent runaway loops if dates are invalid or start > end
+            if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+                setDaysWorked("0");
+                return;
+            }
+
             let count = 0;
             const cur = new Date(start);
             // Limit loop to prevent potential infinite if date logic bad
@@ -206,6 +213,8 @@ function WizardContent() {
             router.push(`/preview?payslipId=${payslipInput.id}&empId=${employee.id}`);
         } catch (err) {
             console.error(err);
+            toast(`Failed to generate payslip. ${err instanceof Error ? err.message : String(err)}`);
+        } finally {
             setLoading(false);
         }
     };

@@ -3,18 +3,25 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Clock, Users, Calendar, ArrowRight, TrendingUp, TrendingDown, Minus, AlertTriangle, ShieldCheck, Lock, Shield, Palmtree, Download, Sparkles, ChevronRight, Loader2, CalendarDays, Banknote, RefreshCw, Smartphone, CloudOff } from "lucide-react";
+import {
+    Plus, Clock, Users, ArrowRight, AlertTriangle, Lock,
+    Palmtree, Download, ChevronRight, Loader2, CalendarDays,
+    Banknote, RefreshCw, CloudOff, Shield, CheckCircle2
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, getLatestPayslip, getPayslipsForEmployee, savePayslip, getSettings, saveSettings, getSecureTime } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
-import { format, subMonths, addDays } from "date-fns";
+import { format, addDays } from "date-fns";
 import { getHolidaysInRange } from "@/lib/holidays";
 import { usePWAInstall } from "@/app/hooks/usePWAInstall";
 import { useOnlineStatus } from "@/app/hooks/useOnlineStatus";
-import { BulkActions } from "@/components/dashboard/BulkActions";
+
+// Thresholds that unlock advanced features
+const ADVANCED_EMPLOYEE_COUNT = 3;   // 3+ employees → show payroll trend chart
+const SKILLS_DEV_LEVY_THRESHOLD = 500_000; // R500k annual payroll → SDL applies (SARS requirement)
 
 interface EmployeeSummary {
     employee: Employee;
@@ -22,17 +29,18 @@ interface EmployeeSummary {
     netPay: number | null;
 }
 
-interface MonthlyStats {
-    current: number;
-    previous: number;
-    percentChange: number | null;
+interface MonthlyBucket {
+    label: string;
+    total: number;
 }
 
 export default function DashboardPage() {
     const router = useRouter();
     const [loading, setLoading] = React.useState(true);
     const [summaries, setSummaries] = React.useState<EmployeeSummary[]>([]);
-    const [stats, setStats] = React.useState<MonthlyStats>({ current: 0, previous: 0, percentChange: null });
+    const [thisMonthTotal, setThisMonthTotal] = React.useState(0);
+    const [annualEstimate, setAnnualEstimate] = React.useState(0);
+    const [monthlyBuckets, setMonthlyBuckets] = React.useState<MonthlyBucket[]>([]);
     const [bulkLoading, setBulkLoading] = React.useState(false);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const { isInstallable, installApp } = usePWAInstall();
@@ -61,11 +69,15 @@ export default function DashboardPage() {
             const results: EmployeeSummary[] = [];
             const now = new Date();
             const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-            let thisMonthTotal = 0;
-            let lastMonthTotal = 0;
+            let currentMonthTotal = 0;
+            let allTimeTotal = 0;
+
+            const bucketMap = new Map<string, number>();
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                bucketMap.set(`${d.getFullYear()}-${d.getMonth()}`, 0);
+            }
 
             for (const emp of employees) {
                 const latest = await getLatestPayslip(emp.id);
@@ -73,27 +85,35 @@ export default function DashboardPage() {
 
                 let netPay: number | null = null;
                 if (latest) {
-                    const breakdown = calculatePayslip(latest);
-                    netPay = breakdown.netPay;
+                    netPay = calculatePayslip(latest).netPay;
                 }
 
-                // Stats calculation
                 const monthPayslips = allPayslips.filter(ps => new Date(ps.payPeriodStart) >= thisMonthStart);
-                thisMonthTotal += monthPayslips.reduce((acc, ps) => acc + calculatePayslip(ps).grossPay, 0);
+                currentMonthTotal += monthPayslips.reduce((acc, ps) => acc + calculatePayslip(ps).grossPay, 0);
+                allTimeTotal += allPayslips.reduce((acc, ps) => acc + calculatePayslip(ps).grossPay, 0);
 
-                const prevMonthPayslips = allPayslips.filter(ps => {
+                for (const ps of allPayslips) {
                     const d = new Date(ps.payPeriodStart);
-                    return d >= lastMonthStart && d <= lastMonthEnd;
-                });
-                lastMonthTotal += prevMonthPayslips.reduce((acc, ps) => acc + calculatePayslip(ps).grossPay, 0);
+                    const key = `${d.getFullYear()}-${d.getMonth()}`;
+                    if (bucketMap.has(key)) {
+                        bucketMap.set(key, (bucketMap.get(key) || 0) + calculatePayslip(ps).grossPay);
+                    }
+                }
 
                 results.push({ employee: emp, latestPayslip: latest, netPay });
             }
 
-            const change = lastMonthTotal > 0 ? ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : null;
+            const buckets: MonthlyBucket[] = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = `${d.getFullYear()}-${d.getMonth()}`;
+                buckets.push({ label: format(d, "MMM"), total: bucketMap.get(key) || 0 });
+            }
 
             setSummaries(results);
-            setStats({ current: thisMonthTotal, previous: lastMonthTotal, percentChange: change });
+            setThisMonthTotal(currentMonthTotal);
+            setAnnualEstimate(currentMonthTotal * 12); // rough SDL trigger estimate
+            setMonthlyBuckets(buckets);
             setLoading(false);
         }
         load();
@@ -112,7 +132,6 @@ export default function DashboardPage() {
         const now = new Date();
         const start = new Date(now.getFullYear(), now.getMonth(), 1);
         const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
         try {
             for (const s of summaries) {
                 if (s.latestPayslip) {
@@ -134,12 +153,22 @@ export default function DashboardPage() {
         }
     };
 
+    // Computed flags for conditional feature visibility
     const employeeCount = summaries.length;
+    const showAdvancedStats = employeeCount >= ADVANCED_EMPLOYEE_COUNT;
+    const showSDLWarning = annualEstimate >= SKILLS_DEV_LEVY_THRESHOLD;
+    const showBulkRun = employeeCount > 1 && summaries.some(s => s.latestPayslip);
+    const showChart = showAdvancedStats && monthlyBuckets.some(b => b.total > 0);
+
+    // Upcoming holidays (always show — immediately useful)
+    const now = new Date();
+    const nextWeek = addDays(now, 7);
+    const upcomingHolidays = getHolidaysInRange(now, nextWeek);
 
     return (
         <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
             <header className="sticky top-0 z-30 px-4 py-3 flex items-center justify-between glass-panel border-b border-[var(--border-subtle)]">
-                <div className="max-w-5xl mx-auto w-full flex items-center justify-between">
+                <div className="max-w-3xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SideDrawer />
                         <Link href="/" className="flex items-center gap-2">
@@ -148,74 +177,174 @@ export default function DashboardPage() {
                             <span className="font-black text-xs uppercase tracking-widest pt-0.5 text-[var(--text-primary)]">Dashboard</span>
                         </Link>
                     </div>
-                    <Link href="/employees">
-                        <Button size="sm" variant="outline" className="gap-1.5 h-8">
-                            <Users className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Employees</span>
-                        </Button>
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        {!isOnline && (
+                            <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600">
+                                <CloudOff className="h-3 w-3" /> Offline
+                            </span>
+                        )}
+                        <Link href="/employees/new">
+                            <Button size="sm" className="gap-1.5 h-8 bg-amber-500 text-white font-bold hover:bg-amber-600">
+                                <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Add Employee</span>
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
             </header>
 
-            <div className="border-b bg-zinc-50 dark:bg-zinc-900/50">
-                <div className="max-w-5xl mx-auto w-full px-4 py-2 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        {isOnline ? (
-                            <div className="flex items-center gap-2">
-                                <Shield className="h-3 w-3 text-green-600" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Compliance Engine Active</span>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-2 text-amber-600">
-                                <CloudOff className="h-3 w-3 animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Offline Sync Pending</span>
-                            </div>
-                        )}
-                    </div>
-                    <Link href="/rules" className="text-[10px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1 hover:underline">
-                        Legal Rules <ChevronRight className="h-2 w-2" />
-                    </Link>
-                </div>
-            </div>
-
-            <main className="flex-1 px-4 py-6 max-w-5xl mx-auto w-full">
+            <main className="flex-1 px-4 py-6 max-w-3xl mx-auto w-full space-y-6">
                 {loading ? (
                     <div className="flex items-center justify-center py-20">
                         <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
                     </div>
                 ) : (
-                    <div className="grid lg:grid-cols-12 gap-8">
-                        {/* Left Column: Stats */}
-                        <div className="lg:col-span-4 space-y-6">
-                            {/* Improvement #9: Monthly Progress Graph */}
-                            {!settings?.simpleMode && (
-                                <div className="space-y-3">
-                                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Performance Trend</h2>
-                                    <Card className="glass-panel border-none p-4 h-32 flex items-end justify-between gap-1 overflow-hidden">
-                                        {/* Simple Pure CSS Bar Chart for Premium Look */}
-                                        {[...Array(6)].map((_, i) => {
-                                            const h = Math.max(10, Math.random() * 80); // Placeholder height
-                                            return (
-                                                <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-                                                    <div
-                                                        className="w-full rounded-t-sm transition-all duration-500 bg-amber-500/20 group-hover:bg-amber-500"
-                                                        style={{ height: `${h}%` }}
-                                                    />
-                                                    <span className="text-[8px] font-bold text-muted uppercase tracking-tighter">
-                                                        {format(addDays(new Date(), - (5 - i) * 30), "MMM")}
-                                                    </span>
+                    <>
+                        {/* Holiday alerts — always visible, immediately useful */}
+                        {upcomingHolidays.map(h => (
+                            <div key={h.date} className="px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-bold bg-amber-500 text-white shadow-sm">
+                                <CalendarDays className="h-4 w-4 shrink-0" />
+                                <span>{h.name} is this {format(new Date(h.date), "EEEE")} — check leave records.</span>
+                            </div>
+                        ))}
+
+                        {/* SDL warning — only shown when annual payroll estimate exceeds R500k */}
+                        {showSDLWarning && (
+                            <div className="px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold border border-amber-400 bg-amber-50 text-amber-900 dark:bg-amber-900/20 dark:text-amber-300">
+                                <AlertTriangle className="h-4 w-4 shrink-0" />
+                                <span>Your estimated annual payroll exceeds R500 000 — Skills Development Levy (SDL) may apply. <Link href="/rules" className="underline font-bold">Learn more</Link></span>
+                            </div>
+                        )}
+
+                        {/* Employee list — this is THE primary action */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between px-1">
+                                <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-primary)]">
+                                    {employeeCount === 0 ? "Get Started" : `Your Employees (${employeeCount})`}
+                                </h2>
+                                {employeeCount > 0 && (
+                                    <Link href="/employees/new">
+                                        <Button size="sm" variant="ghost" className="text-xs font-bold text-amber-500">
+                                            Add New <ArrowRight className="h-3 w-3 ml-1" />
+                                        </Button>
+                                    </Link>
+                                )}
+                            </div>
+
+                            {employeeCount === 0 ? (
+                                <Card className="glass-panel border-dashed border-2 p-12 text-center">
+                                    <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                                    <p className="font-bold text-[var(--text-primary)] mb-1">No employees yet</p>
+                                    <p className="text-sm text-[var(--text-secondary)] mb-6">Add your first employee to start generating payslips.</p>
+                                    <Link href="/employees/new">
+                                        <Button className="bg-amber-500 text-white font-bold hover:bg-amber-600">
+                                            <Plus className="h-4 w-4 mr-2" /> Add First Employee
+                                        </Button>
+                                    </Link>
+                                </Card>
+                            ) : (
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    {summaries.map((summary) => (
+                                        <Card key={summary.employee.id} className="glass-panel border-none hover-lift">
+                                            <CardContent className="p-5 flex flex-col h-full">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <div className="h-10 w-10 rounded-xl bg-amber-500 flex items-center justify-center text-white font-black text-lg">
+                                                        {summary.employee.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-sm text-[var(--text-primary)]">{summary.employee.name}</p>
+                                                        <p className="text-[10px] font-bold uppercase text-[var(--text-muted)]">{summary.employee.role || "Worker"}</p>
+                                                    </div>
                                                 </div>
-                                            );
-                                        })}
-                                    </Card>
+
+                                                {summary.latestPayslip ? (
+                                                    <div className="mb-4 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px]">
+                                                        <div>
+                                                            <span className="text-[var(--text-muted)] uppercase font-black block">Last Net Pay</span>
+                                                            <span className="text-[var(--text-primary)] font-mono text-sm">
+                                                                {summary.netPay !== null ? `R${summary.netPay.toFixed(2)}` : "—"}
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <span className="text-[var(--text-muted)] uppercase font-black block">Period</span>
+                                                            <span className="text-[var(--text-secondary)]">
+                                                                {format(new Date(summary.latestPayslip.payPeriodStart), "MMM yyyy")}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="mb-4 pt-3 border-t border-[var(--border-subtle)]">
+                                                        <p className="text-xs text-[var(--text-muted)]">No payslips yet</p>
+                                                    </div>
+                                                )}
+
+                                                <div className="mt-auto flex items-center gap-2">
+                                                    {summary.latestPayslip ? (
+                                                        <>
+                                                            <Link href={`/employees/${summary.employee.id}/history`} className="flex-1">
+                                                                <Button size="sm" variant="ghost" className="w-full text-xs font-bold gap-1.5 hover:bg-amber-500/10 hover:text-amber-500">
+                                                                    <Clock className="h-3.5 w-3.5" /> History
+                                                                </Button>
+                                                            </Link>
+                                                            <Link href={`/leave?employeeId=${summary.employee.id}`} className="flex-1">
+                                                                <Button size="sm" variant="ghost" className="w-full text-xs font-bold gap-1.5 hover:bg-amber-500/10 hover:text-amber-500">
+                                                                    <Palmtree className="h-3.5 w-3.5" /> Leave
+                                                                </Button>
+                                                            </Link>
+                                                            <Button
+                                                                size="sm"
+                                                                className="flex-1 text-xs font-bold bg-amber-500 text-white hover:bg-amber-600"
+                                                                onClick={() => handleRepeat(summary.employee.id)}
+                                                            >
+                                                                <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> New Payslip
+                                                            </Button>
+                                                        </>
+                                                    ) : (
+                                                        <Link href={`/wizard?empId=${summary.employee.id}`} className="flex-1">
+                                                            <Button size="sm" className="w-full bg-amber-500 text-white font-bold hover:bg-amber-600">
+                                                                Create First Payslip <ArrowRight className="h-3.5 w-3.5 ml-2" />
+                                                            </Button>
+                                                        </Link>
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
                                 </div>
                             )}
+                        </div>
 
-                            {/* Summary Cards */}
-                            <div className="space-y-3 animate-slide-up">
+                        {/* Bulk month run — only shown when 2+ employees have existing payslips */}
+                        {showBulkRun && thisMonthTotal === 0 && (
+                            <Card className={`glass-panel border-2 ${settings?.proStatus === "free" ? 'border-zinc-200 dark:border-zinc-700' : 'border-amber-500/40'}`}>
+                                <CardContent className="p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${settings?.proStatus === "free" ? 'bg-zinc-100 dark:bg-zinc-800' : 'bg-amber-500'}`}>
+                                            {settings?.proStatus === "free" ? <Lock className="h-6 w-6 text-zinc-400" /> : <RefreshCw className="h-6 w-6 text-white" />}
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-sm text-[var(--text-primary)]">Run {format(new Date(), "MMMM")} Payroll</p>
+                                            <p className="text-xs text-[var(--text-secondary)]">Repeat last month's payslips for all {employeeCount} employees at once.</p>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        onClick={settings?.proStatus === "free" ? () => router.push('/pricing') : handleBulkRepeat}
+                                        disabled={bulkLoading}
+                                        className="w-full sm:w-auto h-10 gap-2 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600"
+                                    >
+                                        {bulkLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                        {settings?.proStatus === "free" ? "Upgrade to Automate" : "Run Bulk"}
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Advanced stats — only shown when 3+ employees */}
+                        {showAdvancedStats && (
+                            <div className="space-y-3">
                                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">
-                                    Quick Stats
+                                    This Month's Payroll
                                 </h2>
-                                <div className={`grid gap-3 ${settings?.simpleMode ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                                <div className="grid grid-cols-2 gap-3">
                                     <Card className="glass-panel border-none">
                                         <CardContent className="p-4 flex flex-col items-center text-center">
                                             <Users className="h-5 w-5 mb-2 text-amber-500" />
@@ -223,157 +352,60 @@ export default function DashboardPage() {
                                             <p className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Employees</p>
                                         </CardContent>
                                     </Card>
-                                    {!settings?.simpleMode && (
-                                        <Card className="glass-panel border-none">
-                                            <CardContent className="p-4 flex flex-col items-center text-center">
-                                                <Banknote className="h-5 w-5 mb-2 text-amber-500" />
-                                                <p className="text-xl font-black tabular-nums text-[var(--text-primary)]">R{stats.current.toFixed(0)}</p>
-                                                <p className="text-[10px] uppercase font-bold text-[var(--text-muted)]">This Month</p>
-                                            </CardContent>
-                                        </Card>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Priority Alerts */}
-                            <div className="space-y-3">
-                                {!settings?.simpleMode && <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Priority Alerts</h2>}
-                                {(() => {
-                                    const now = new Date();
-                                    const nextWeek = addDays(now, 7);
-                                    const upcomingHolidays = getHolidaysInRange(now, nextWeek);
-                                    if (settings?.simpleMode && upcomingHolidays.length === 0) return null;
-                                    return (
-                                        <>
-                                            {upcomingHolidays.map(h => (
-                                                <div key={h.date} className="px-4 py-3 rounded-xl flex items-center gap-3 text-xs font-bold bg-amber-500 text-white shadow-sm">
-                                                    <CalendarDays className="h-4 w-4 shrink-0" />
-                                                    <span>{h.name} is this {format(new Date(h.date), "EEEE")}!</span>
-                                                </div>
-                                            ))}
-                                            {now.getDate() >= 25 && (
-                                                <div className="px-4 py-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] flex items-center gap-3 text-xs font-bold text-[var(--text-primary)]">
-                                                    <Clock className="h-4 w-4 text-amber-500 shrink-0" />
-                                                    <span>Payroll season is active.</span>
-                                                </div>
-                                            )}
-                                        </>
-                                    );
-                                })()}
-                            </div>
-                        </div>
-
-                        {/* Right Column: List */}
-                        <div className="lg:col-span-8 space-y-6">
-                            <BulkActions />
-
-                            {summaries.length > 1 && stats.current === 0 && (
-                                <Card className={`glass-panel border-2 ${settings?.proStatus === "free" ? 'border-zinc-200' : 'border-amber-500'}`}>
-                                    <CardContent className="p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${settings?.proStatus === "free" ? 'bg-zinc-200' : 'bg-amber-500'}`}>
-                                                {settings?.proStatus === "free" ? <Lock className="h-6 w-6 text-zinc-500" /> : <RefreshCw className="h-6 w-6 text-white" />}
-                                            </div>
-                                            <div>
-                                                <p className="font-black text-sm uppercase tracking-tight text-[var(--text-primary)]">{settings?.proStatus === "free" ? 'Automate Monthly Payroll' : 'Process Monthly Payroll'}</p>
-                                                <p className="text-xs text-[var(--text-secondary)]">Repeat last month's payslips instantly.</p>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            onClick={settings?.proStatus === "free" ? () => router.push('/pricing') : handleBulkRepeat}
-                                            disabled={bulkLoading}
-                                            className="w-full sm:w-auto h-12 gap-3 bg-amber-500 text-white font-bold rounded-xl"
-                                        >
-                                            {bulkLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                                            Run {format(new Date(), "MMMM")} Bulk
-                                        </Button>
-                                    </CardContent>
-                                </Card>
-                            )}
-
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between px-1">
-                                    <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-primary)]">Registered Employees</h2>
-                                    <Link href="/employees/new">
-                                        <Button size="sm" variant="ghost" className="text-xs font-bold text-amber-500">Add New <ArrowRight className="h-3 w-3 ml-1" /></Button>
-                                    </Link>
-                                </div>
-
-                                {summaries.length === 0 ? (
-                                    <Card className="glass-panel border-dashed border-2 p-12 text-center">
-                                        <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                                        <p className="font-bold">No employees yet</p>
-                                        <Link href="/employees/new" className="mt-4 block">
-                                            <Button className="bg-amber-500 text-white font-bold">Add Employee</Button>
-                                        </Link>
+                                    <Card className="glass-panel border-none">
+                                        <CardContent className="p-4 flex flex-col items-center text-center">
+                                            <Banknote className="h-5 w-5 mb-2 text-amber-500" />
+                                            <p className="text-xl font-black tabular-nums text-[var(--text-primary)]">R{thisMonthTotal.toFixed(0)}</p>
+                                            <p className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Gross This Month</p>
+                                        </CardContent>
                                     </Card>
-                                ) : (
-                                    <div className="grid sm:grid-cols-2 gap-4">
-                                        {summaries.map((summary) => (
-                                            <Card key={summary.employee.id} className="glass-panel border-none hover-lift">
-                                                <CardContent className="p-5 flex flex-col h-full">
-                                                    <div className="flex items-center justify-between mb-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="h-10 w-10 rounded-xl bg-amber-500 flex items-center justify-center text-white font-black">
-                                                                {summary.employee.name.charAt(0).toUpperCase()}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-bold text-sm text-[var(--text-primary)]">{summary.employee.name}</p>
-                                                                <p className="text-[10px] font-bold uppercase text-[var(--text-muted)]">{summary.employee.role || "Worker"}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="mt-4 pt-4 border-t border-zinc-800/50 flex items-center justify-between text-[11px]">
-                                                        <div className="flex flex-col">
-                                                            <span className="text-zinc-500 uppercase font-black">Last Net Pay</span>
-                                                            <span className="text-white font-mono">{summary.netPay ? `R${summary.netPay.toFixed(2)}` : "—"}</span>
-                                                        </div>
-                                                        <div className="flex flex-col items-end">
-                                                            <span className="text-zinc-500 uppercase font-black">Period</span>
-                                                            <span className="text-zinc-300">
-                                                                {summary.latestPayslip ? format(new Date(summary.latestPayslip.payPeriodStart), "MMM d") : "—"}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="mt-6 flex items-center gap-2">
-                                                        <Link href={`/leave?employeeId=${summary.employee.id}`} className="flex-1">
-                                                            <Button size="sm" variant="ghost" className="w-full text-xs font-bold gap-2 hover:bg-amber-500/10 hover:text-amber-500">
-                                                                <Palmtree className="h-4 w-4" /> Leave
-                                                            </Button>
-                                                        </Link>
-                                                        {summary.latestPayslip ? (
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="flex-1 text-xs font-bold border-amber-500/30 text-amber-500"
-                                                                onClick={() => handleRepeat(summary.employee.id)}
-                                                            >
-                                                                <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Repeat
-                                                            </Button>
-                                                        ) : (
-                                                            <Link href={`/wizard?empId=${summary.employee.id}`} className="flex-1">
-                                                                <Button size="sm" className="w-full bg-amber-500 text-white font-bold">
-                                                                    Create <ArrowRight className="h-3 w-3 ml-1" />
-                                                                </Button>
-                                                            </Link>
-                                                        )}
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
-                                )}
+                                </div>
                             </div>
+                        )}
+
+                        {/* Trend chart — only shown when 3+ employees AND chart has data */}
+                        {showChart && (
+                            <div className="space-y-3">
+                                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">6-Month Trend</h2>
+                                <Card className="glass-panel border-none p-4 h-36 flex items-end justify-between gap-1.5 overflow-hidden">
+                                    {(() => {
+                                        const maxVal = Math.max(...monthlyBuckets.map(b => b.total), 1);
+                                        return monthlyBuckets.map((bucket, i) => {
+                                            const h = bucket.total > 0 ? Math.max(12, (bucket.total / maxVal) * 85) : 6;
+                                            return (
+                                                <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                                                    <div
+                                                        className={`w-full rounded-t-sm transition-all duration-500 ${bucket.total > 0 ? 'bg-amber-500/25 group-hover:bg-amber-500' : 'bg-[var(--border-subtle)]'}`}
+                                                        style={{ height: `${h}%` }}
+                                                    />
+                                                    <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
+                                                        {bucket.label}
+                                                    </span>
+                                                </div>
+                                            );
+                                        });
+                                    })()}
+                                </Card>
+                            </div>
+                        )}
+
+                        {/* Compliance footer — subtle, not a banner */}
+                        <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] px-1 pt-2 border-t border-[var(--border-subtle)]">
+                            <div className="flex items-center gap-1.5">
+                                <CheckCircle2 className="h-3 w-3 text-green-500" />
+                                <span>SARS-compliant payslips</span>
+                            </div>
+                            <Link href="/rules" className="font-bold hover:text-amber-600 flex items-center gap-0.5">
+                                Tax Rules <ChevronRight className="h-3 w-3" />
+                            </Link>
                         </div>
-                    </div>
+                    </>
                 )}
             </main>
 
-            {/* Floating Install Button */}
+            {/* PWA install prompt */}
             {isInstallable && (
-                <div className="fixed bottom-24 right-6 z-50 animate-bounce">
+                <div className="fixed bottom-24 right-6 z-50 animate-slide-up">
                     <Button
                         onClick={installApp}
                         className="rounded-full h-14 w-14 shadow-2xl bg-amber-500 hover:bg-amber-600 border-4 border-zinc-950 flex items-center justify-center p-0"

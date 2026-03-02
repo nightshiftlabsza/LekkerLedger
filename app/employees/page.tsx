@@ -9,11 +9,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, deleteEmployee, getSettings } from "@/lib/storage";
+import { useToast } from "@/components/ui/toast";
 import { Employee, EmployerSettings } from "@/lib/schema";
 import { generateCertificateOfService } from "@/lib/certificate-pdf";
 
 export default function EmployeesPage() {
     const router = useRouter();
+    const { toast } = useToast();
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);

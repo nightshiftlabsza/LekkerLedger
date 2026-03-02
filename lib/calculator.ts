@@ -57,8 +57,14 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
     const rate = Math.max(input.hourlyRate, activeNmwRate);
 
     // 4-hour shift rule: if total ordinary hours on specific days < 4, 
-    // the wizard passes 'shortFallHours' to precisely top-up the pay.
-    const effectiveOrdinaryHours = input.ordinaryHours + (input.shortFallHours ?? 0);
+    // the calculation automatically tops up the pay.
+    let effectiveOrdinaryHours = input.ordinaryHours + (input.shortFallHours ?? 0);
+    const minimumRequiredHours = (input.daysWorked || 0) * 4;
+
+    // Only apply the minimum shift rule if they actually worked
+    if (effectiveOrdinaryHours > 0 && effectiveOrdinaryHours < minimumRequiredHours) {
+        effectiveOrdinaryHours = minimumRequiredHours;
+    }
 
     const ordinaryPay = effectiveOrdinaryHours * rate;
     const overtimePay = input.overtimeHours * rate * OVERTIME_MULTIPLIER;

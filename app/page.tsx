@@ -23,10 +23,10 @@ export default function Home() {
       const s = await getSettings();
       setSettings(s);
 
-      // Show compliance splash on first visit
-      if (!sessionStorage.getItem("ll-compliance-shown")) {
+      // Show compliance splash only once ever
+      if (!localStorage.getItem("ll-compliance-shown")) {
         setShowCompliance(true);
-        sessionStorage.setItem("ll-compliance-shown", "true");
+        localStorage.setItem("ll-compliance-shown", "true");
       }
     }
     load();
@@ -74,7 +74,6 @@ export default function Home() {
           <nav className="hidden md:flex items-center gap-8">
             <Link href="/rules" className="text-sm font-bold hover:text-[var(--amber-500)] transition-colors" style={{ color: "var(--text-secondary)" }}>The Rules</Link>
             <Link href="/pricing" className="text-sm font-bold hover:text-[var(--amber-500)] transition-colors" style={{ color: "var(--text-secondary)" }}>Support & Pro</Link>
-            <Button variant="ghost" className="text-sm font-bold" onClick={handleStart}>Login</Button>
             <Button className="bg-[var(--amber-500)] hover:bg-[var(--amber-600)] text-white font-black px-6 rounded-xl h-11" onClick={handleStart}>
               Get Started
             </Button>
@@ -223,7 +222,7 @@ export default function Home() {
           <div className="text-center space-y-4">
             <h2 className="text-3xl sm:text-5xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
               Protect Your Household. <br className="hidden sm:block" />
-              <span style={{ color: "var(--amber-500)" }}>Compliance is Non-Negotiable.</span>
+              <span style={{ color: "var(--amber-500)" }}>The stakes are real.</span>
             </h2>
             <p className="text-base sm:text-lg max-w-2xl mx-auto font-medium" style={{ color: "var(--text-secondary)" }}>
               In South Africa, a single procedural error in a payslip or contract can lead to CCMA awards of up to 12 months' salary.
@@ -279,7 +278,7 @@ export default function Home() {
                 The leading platform for domestic worker compliance in South Africa. Stay protected from CCMA risks with our automated labor engine.
               </p>
               <div className="pt-6">
-                <Button size="lg" className="bg-[var(--amber-500)] hover:bg-[var(--amber-600)] text-white font-black px-12 h-20 text-xl rounded-[1.5rem] active-scale shadow-2xl shadow-amber-500/40" onClick={scrollToCalculator}>
+                <Button size="lg" className="bg-[var(--amber-500)] hover:bg-[var(--amber-600)] text-white font-black px-12 h-20 text-xl rounded-[1.5rem] active-scale shadow-2xl shadow-amber-500/40" onClick={handleStart}>
                   Start My Free Audit Now
                 </Button>
               </div>
@@ -287,6 +286,52 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="mt-20 py-12 px-6 border-t border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <div className="space-y-4">
+              <Image src="/brand/logo-light.png" alt="LekkerLedger" width={140} height={35} className="h-8 w-auto block dark:hidden" />
+              <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={140} height={35} className="h-8 w-auto hidden dark:block" />
+              <p className="text-sm text-[var(--text-secondary)] font-medium">
+                Professional payroll and compliance for South African homeowners.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-primary)]">Product</h4>
+              <nav className="flex flex-col gap-2">
+                <Link href="/rules" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">SA Rules Guide</Link>
+                <Link href="/pricing" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">Pricing & Pro</Link>
+                <Link href="/ufiling" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">uFiling Export</Link>
+              </nav>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-primary)]">Legal</h4>
+              <nav className="flex flex-col gap-2">
+                <Link href="/legal/terms" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">Terms of Service</Link>
+                <Link href="/legal/privacy" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">Privacy Policy (POPIA)</Link>
+                <Link href="/legal/refunds" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">Refund & Cancellation</Link>
+              </nav>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-primary)]">Connect</h4>
+              <nav className="flex flex-col gap-2">
+                <a href="mailto:nightshiftlabsza@gmail.com" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">Support Email</a>
+                <a href="https://github.com/nightshiftlabsza/LekkerLedger" target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">GitHub Repository</a>
+              </nav>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-[var(--border-subtle)] flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-[var(--text-muted)]">
+            <p>© 2026 LekkerLedger. All rights reserved.</p>
+            <p>Crafted with ❤️ in South Africa 🇿🇦 by Nightshift Labs</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

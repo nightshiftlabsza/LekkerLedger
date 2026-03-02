@@ -44,18 +44,21 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900&display=swap"
           rel="stylesheet"
         />
-        {/* Inline script to apply theme before first paint — avoids flash */}
+        {/* Inline script — applies correct theme before first paint to avoid flash */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function(){
                 try{
-                  var t=localStorage.getItem('ll-theme')||'system';
-                  var d=t==='system'
-                    ?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')
-                    :t;
-                  document.documentElement.setAttribute('data-theme',d);
-                }catch(e){}
+                  var stored = localStorage.getItem('ll-theme');
+                  var theme = (stored === 'light' || stored === 'dark' || stored === 'system') ? stored : 'system';
+                  var resolved = theme === 'system'
+                    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                    : theme;
+                  document.documentElement.setAttribute('data-theme', resolved);
+                }catch(e){
+                  document.documentElement.setAttribute('data-theme', 'light');
+                }
               })();
             `,
           }}

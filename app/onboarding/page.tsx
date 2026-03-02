@@ -147,10 +147,15 @@ export default function OnboardingPage() {
                                 Next: Employer Details <ChevronRight className="h-5 w-5" />
                             </Button>
 
-                            <div className="text-center pt-2">
+                            <div className="text-center pt-2 space-y-2">
                                 <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
                                     Join South African households simplifying their compliance.
                                 </p>
+                                <div className="pt-2">
+                                    <Link href="/settings?tab=sync" className="text-[10px] font-bold uppercase tracking-widest text-[var(--amber-500)] hover:underline">
+                                        Returning user? Restore from Backup
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     )}

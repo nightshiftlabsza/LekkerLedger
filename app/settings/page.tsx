@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
     ArrowLeft,
     User,
@@ -25,6 +26,8 @@ import {
     Loader2,
     Zap,
     ArrowRight,
+    Download,
+    Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,30 +35,53 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { SideDrawer } from "@/components/layout/side-drawer";
-import { getSettings, saveSettings, resetAllData, getCurrentTaxYearRange } from "@/lib/storage";
+import { getSettings, saveSettings, resetAllData, getCurrentTaxYearRange, exportData, importData } from "@/lib/storage";
 import { EmployerSettings } from "@/lib/schema";
 import { useToast } from "@/components/ui/toast";
 import { GoogleSync } from "@/components/google-sync";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTheme } from "@/components/theme-provider";
+import { Moon, Sun, Monitor } from "lucide-react";
 
 type SettingsTab = "profile" | "compliance" | "sync" | "guide";
 
 export default function SettingsPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     const [activeTab, setActiveTab] = React.useState<SettingsTab>("profile");
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [saving, setSaving] = React.useState(false);
     const [saved, setSaved] = React.useState(false);
+    const { theme, setTheme } = useTheme();
+
+    const THEME_OPTIONS = [
+        { value: "system" as const, label: "Auto", icon: Monitor },
+        { value: "light" as const, label: "Light", icon: Sun },
+        { value: "dark" as const, label: "Dark", icon: Moon },
+    ];
 
     React.useEffect(() => {
         async function load() {
             const s = await getSettings();
             setSettings(s);
             setLoading(false);
+
+            // Handle tab parameter
+            const tabParam = searchParams.get("tab");
+            if (tabParam === "sync") {
+                setActiveTab("sync");
+            } else if (tabParam === "profile") {
+                setActiveTab("profile");
+            } else if (tabParam === "compliance") {
+                setActiveTab("compliance");
+            } else if (tabParam === "guide") {
+                setActiveTab("guide");
+            }
         }
         load();
-    }, []);
+    }, [searchParams]);
 
     const handleSave = async (updated: Partial<EmployerSettings>) => {
         if (!settings) return;
@@ -185,6 +211,35 @@ export default function SettingsPage() {
                                             onCheckedChange={(val) => handleSave({ advancedMode: val })}
                                         />
                                     </div>
+
+                                    {/* Theme Switcher added here */}
+                                    <div className="flex flex-col p-4 border-t border-[var(--border-subtle)]">
+                                        <p className="text-sm font-bold mb-1">Appearance</p>
+                                        <p className="text-[10px] text-[var(--text-muted)] mb-3">Choose how LekkerLedger looks</p>
+                                        <div
+                                            className="flex items-center rounded-lg p-1 gap-1"
+                                            style={{ backgroundColor: "var(--bg-subtle)" }}
+                                        >
+                                            {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
+                                                const active = theme === value;
+                                                return (
+                                                    <button
+                                                        key={value}
+                                                        onClick={() => setTheme(value)}
+                                                        className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-md text-xs font-medium transition-all duration-200 active-scale"
+                                                        style={{
+                                                            backgroundColor: active ? "var(--bg-surface)" : "transparent",
+                                                            color: active ? "var(--amber-500)" : "var(--text-muted)",
+                                                            boxShadow: active ? "var(--shadow-sm)" : "none",
+                                                        }}
+                                                    >
+                                                        <Icon className="h-4 w-4" />
+                                                        {label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
                                 </Card>
                             </section>
                         </div>
@@ -245,6 +300,62 @@ export default function SettingsPage() {
                     {activeTab === "sync" && (
                         <div className="space-y-6">
                             <GoogleSync proStatus={settings.proStatus} />
+
+                            <section className="space-y-4">
+                                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Backup & Restore</h2>
+                                <Card className="glass-panel border-none p-5 space-y-3">
+                                    <p className="text-xs text-[var(--text-secondary)]">Save a copy of all your employees and payslips as a JSON file, or restore from a previous backup.</p>
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1 gap-2 text-xs h-10 font-bold"
+                                            onClick={async () => {
+                                                try {
+                                                    const json = await exportData();
+                                                    const blob = new Blob([json], { type: "application/json" });
+                                                    const url = URL.createObjectURL(blob);
+                                                    const a = document.createElement("a");
+                                                    a.href = url;
+                                                    a.download = `lekkerledger-backup-${new Date().toISOString().split('T')[0]}.json`;
+                                                    document.body.appendChild(a);
+                                                    a.click();
+                                                    document.body.removeChild(a);
+                                                    URL.revokeObjectURL(url);
+                                                } catch (e) {
+                                                    alert("Export failed.");
+                                                }
+                                            }}
+                                        >
+                                            <Download className="h-3.5 w-3.5" /> Download Backup
+                                        </Button>
+                                        <label className="flex-1">
+                                            <span className="sr-only">Restore from backup</span>
+                                            <div className="flex items-center justify-center gap-2 text-xs h-10 font-bold border border-input rounded-md px-4 cursor-pointer hover:bg-[var(--bg-subtle)] transition-colors">
+                                                <Upload className="h-3.5 w-3.5" /> Restore Backup
+                                            </div>
+                                            <input
+                                                type="file"
+                                                className="sr-only"
+                                                accept=".json"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    if (!confirm("This will replace ALL your current data. Are you sure?")) return;
+                                                    const reader = new FileReader();
+                                                    reader.onload = async (ev) => {
+                                                        try {
+                                                            await importData(ev.target?.result as string);
+                                                            alert("Restored successfully. Reloading...");
+                                                            window.location.reload();
+                                                        } catch { alert("Restore failed — check the file."); }
+                                                    };
+                                                    reader.readAsText(file);
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
+                                </Card>
+                            </section>
 
                             <section className="space-y-4">
                                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Danger Zone</h2>

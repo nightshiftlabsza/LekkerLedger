@@ -32,7 +32,7 @@ describe("Calculation Logic (lib/calculator.ts)", () => {
         expect(bd.totalHours).toBe(160);
     });
 
-    it.skip("applies the 4-hour minimum shift rule", () => {
+    it("applies the 4-hour minimum shift rule", () => {
         // Worked 5 days, but only 10 ordinary hours entered (average 2h/day). 
         // Rule: must pay a minimum of 4 hours for each day worked
         const hourlyRate = 100;
@@ -49,7 +49,7 @@ describe("Calculation Logic (lib/calculator.ts)", () => {
         expect(bd.totalHours).toBe(20);
     });
 
-    it.skip("calculates overtime, sunday, and public holiday pay correctly", () => {
+    it("calculates overtime, sunday, and public holiday pay correctly", () => {
         const slip = {
             ...defaultPayslip,
             ordinaryHours: 40,
@@ -63,11 +63,11 @@ describe("Calculation Logic (lib/calculator.ts)", () => {
 
         expect(bd.ordinaryPay).toBe(4000);
         expect(bd.overtimePay).toBe(5 * 100 * 1.5);
-        expect(bd.sundayPay).toBe(3 * 100 * 2.0);
+        expect(bd.sundayPay).toBe(800); // 3 * 100 * 2 = 600, bumped to daily wage 8 * 100 = 800
         expect(bd.publicHolidayPay).toBe(2 * 100 * 2.0);
 
         expect(bd.grossPay).toBe(
-            4000 + 750 + 600 + 400
+            4000 + 750 + 800 + 400
         );
         expect(bd.totalHours).toBe(50);
     });
@@ -114,7 +114,7 @@ describe("Calculation Logic (lib/calculator.ts)", () => {
         expect(bd.employerContributions.uifEmployer).toBe(177.12);
     });
 
-    it.skip("prevents net pay from going negative when deductions exceed gross", () => {
+    it("prevents net pay from going negative when deductions exceed gross", () => {
         const slip = {
             ...defaultPayslip,
             ordinaryHours: 10,

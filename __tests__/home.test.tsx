@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, act } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import Page from "@/app/page";
 
@@ -7,8 +7,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Home page", () => {
-    it("renders without crashing", () => {
-        render(<Page />);
+    it("renders without crashing", async () => {
+        await act(async () => {
+            render(<Page />);
+        });
         expect(document.body).toBeTruthy();
     });
 });

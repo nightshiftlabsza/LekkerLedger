@@ -9,7 +9,7 @@ export function SplashScreen() {
     React.useEffect(() => {
         const timer = setTimeout(() => {
             setIsVisible(false);
-        }, 2200); // Show for 2.2s
+        }, 1200); // Show for 1.2s instead of 2.2s
 
         return () => clearTimeout(timer);
     }, []);
@@ -17,7 +17,7 @@ export function SplashScreen() {
     if (!isVisible) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-zinc-950 animate-fade-out" style={{ animationDelay: '1.8s' }}>
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-zinc-950 animate-fade-out" style={{ animationDelay: '0.8s' }}>
             <div className="relative animate-scale-in">
                 <Image
                     src="/brand/logo-dark.png"

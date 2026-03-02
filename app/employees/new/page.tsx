@@ -255,7 +255,12 @@ export default function AddEmployeePage() {
                                 <Label htmlFor="frequency">Pay Frequency</Label>
                                 <select
                                     id="frequency"
-                                    className="w-full h-10 px-3 rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm"
+                                    className="w-full h-10 px-3 rounded-md text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--amber-500)] focus:ring-offset-0 disabled:opacity-50"
+                                    style={{
+                                        border: "1px solid var(--border-default)",
+                                        backgroundColor: "var(--bg-surface)",
+                                        color: "var(--text-primary)",
+                                    }}
                                     value={formData.frequency}
                                     onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
                                     disabled={loading}

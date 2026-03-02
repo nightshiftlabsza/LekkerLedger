@@ -20,35 +20,56 @@ export function useTheme() {
     return React.useContext(ThemeContext);
 }
 
+/** Resolve "system" to the actual OS preference */
+function resolveTheme(t: Theme): "light" | "dark" {
+    if (t === "system") {
+        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    return t;
+}
+
+/** Apply data-theme attribute to the <html> element */
+function applyTheme(resolved: "light" | "dark") {
+    document.documentElement.setAttribute("data-theme", resolved);
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setThemeState] = React.useState<Theme>("system");
-    const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">("light");
+    // Initialise from localStorage — same key as the inline script in layout.tsx
+    const [theme, setThemeState] = React.useState<Theme>(() => {
+        if (typeof window === "undefined") return "system";
+        const stored = localStorage.getItem("ll-theme") as Theme | null;
+        return stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+    });
 
-    React.useEffect(() => {
-        const stored = (localStorage.getItem("ll-theme") as Theme) ?? "system";
-        setThemeState(stored);
-    }, []);
+    const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(() => {
+        if (typeof window === "undefined") return "light";
+        return resolveTheme(
+            (localStorage.getItem("ll-theme") as Theme | null) ?? "system"
+        );
+    });
 
+    // On mount and whenever the theme changes, apply to DOM and persist
     React.useEffect(() => {
-        const apply = (t: Theme) => {
-            const mq = window.matchMedia("(prefers-color-scheme: dark)");
-            const resolved = t === "system" ? (mq.matches ? "dark" : "light") : t;
-            document.documentElement.setAttribute("data-theme", resolved);
+        const resolved = resolveTheme(theme);
+        setResolvedTheme(resolved);
+        applyTheme(resolved);
+        localStorage.setItem("ll-theme", theme);
+    }, [theme]);
+
+    // Watch OS preference changes when theme === "system"
+    React.useEffect(() => {
+        if (theme !== "system") return;
+        const mq = window.matchMedia("(prefers-color-scheme: dark)");
+        const handler = (e: MediaQueryListEvent) => {
+            const resolved = e.matches ? "dark" : "light";
             setResolvedTheme(resolved);
+            applyTheme(resolved);
         };
-
-        apply(theme);
-
-        if (theme === "system") {
-            const mq = window.matchMedia("(prefers-color-scheme: dark)");
-            const handler = () => apply("system");
-            mq.addEventListener("change", handler);
-            return () => mq.removeEventListener("change", handler);
-        }
+        mq.addEventListener("change", handler);
+        return () => mq.removeEventListener("change", handler);
     }, [theme]);
 
     const setTheme = (t: Theme) => {
-        localStorage.setItem("ll-theme", t);
         setThemeState(t);
     };
 

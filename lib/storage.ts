@@ -13,10 +13,13 @@ function encodeData(data: any): string {
 }
 
 function decodeData<T>(str: any): T {
-    if (typeof str !== "string") return str as T; // Fallback for legacy unencoded data
+    if (typeof str !== "string" || !str) return str as T;
     try {
-        return JSON.parse(decodeURIComponent(atob(str))) as T;
-    } catch {
+        const decoded = decodeURIComponent(atob(str));
+        if (!decoded) return str as T;
+        return JSON.parse(decoded) as T;
+    } catch (e) {
+        console.warn("D-Data Failed", e);
         return str as unknown as T; // Fallback if invalid
     }
 }
@@ -210,7 +213,17 @@ export async function getSecureTime(): Promise<Date> {
                 continue;
             }
 
-            const data = await res.json();
+            const text = await res.text();
+            if (!text || text.trim() === "") continue;
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.warn(`Failed to parse time JSON from ${url}:`, e);
+                continue;
+            }
+
             // worldtimeapi vs timeapi.io handling
             const dateStr = data.datetime || data.dateTime;
             if (!dateStr) continue;

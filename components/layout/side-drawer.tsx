@@ -25,7 +25,7 @@ import {
     Mail, // Ensure Mail is imported
     Cloud, // Added Cloud import
 } from "lucide-react";
-import { useTheme } from "@/components/theme-provider";
+
 
 const NAV_LINKS = [
     { href: "/", label: "Home", icon: Home },
@@ -39,15 +39,10 @@ const NAV_LINKS = [
     { href: "/settings", label: "Settings & Backups", icon: Settings },
 ];
 
-const THEME_OPTIONS = [
-    { value: "system" as const, label: "Auto", icon: Monitor },
-    { value: "light" as const, label: "Light", icon: Sun },
-    { value: "dark" as const, label: "Dark", icon: Moon },
-];
+
 
 export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
     const [open, setOpen] = React.useState(false);
-    const { theme, setTheme } = useTheme();
 
     // Close on Escape
     React.useEffect(() => {
@@ -146,6 +141,21 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                             <ChevronRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--text-muted)" }} />
                         </Link>
                     ))}
+
+                    <div className="pt-4 pb-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest px-2 mb-2 opacity-40" style={{ color: "var(--text-muted)" }}>
+                            Legal & Compliance
+                        </p>
+                        <Link href="/legal/terms" onClick={() => setOpen(false)} className="flex items-center gap-3 px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--amber-500)] font-medium transition-colors">
+                            Terms of Service
+                        </Link>
+                        <Link href="/legal/privacy" onClick={() => setOpen(false)} className="flex items-center gap-3 px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--amber-500)] font-medium transition-colors">
+                            Privacy Policy (POPIA)
+                        </Link>
+                        <Link href="/legal/refunds" onClick={() => setOpen(false)} className="flex items-center gap-3 px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--amber-500)] font-medium transition-colors">
+                            Refund & Cancellation
+                        </Link>
+                    </div>
                 </nav>
 
                 {/* Support & Version Info */}
@@ -164,53 +174,15 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                         Email Support
                     </a>
 
-                    <div className="space-y-1">
-                        <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: "var(--text-muted)" }}>
-                            LekkerLedger v0.1.0
-                        </p>
-                        <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                            Secure local data · Google Sync
-                        </p>
-                    </div>
+                    {/* Removed version numbers */}
                 </div>
 
-                {/* Theme Switcher */}
-                <div className="px-4 py-4" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-                    <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
-                        Appearance
-                    </p>
-                    <div
-                        className="flex items-center rounded-lg p-1 gap-1"
-                        style={{ backgroundColor: "var(--bg-subtle)" }}
-                    >
-                        {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
-                            const active = theme === value;
-                            return (
-                                <button
-                                    key={value}
-                                    onClick={() => setTheme(value)}
-                                    className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-md text-xs font-medium transition-all duration-200 active-scale"
-                                    style={{
-                                        backgroundColor: active ? "var(--bg-surface)" : "transparent",
-                                        color: active ? "var(--amber-500)" : "var(--text-muted)",
-                                        boxShadow: active ? "var(--shadow-sm)" : "none",
-                                    }}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                    {label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
+
 
                 {/* Footer */}
                 <div className="px-5 pb-6 pt-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
                     <p className="text-[10px] uppercase tracking-[0.15em] font-bold opacity-40" style={{ color: "var(--text-muted)" }}>
                         Crafted in South Africa 🇿🇦
-                    </p>
-                    <p className="text-[10px] mt-2 opacity-50" style={{ color: "var(--text-muted)" }}>
-                        Beta v0.2 · Support the project by going Pro.
                     </p>
                 </div>
             </div>
