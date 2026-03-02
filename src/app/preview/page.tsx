@@ -14,6 +14,7 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, getPayslipsForEmployee, getSettings, getUsageStats, incrementUsageCount, getInstallationId } from "@/lib/storage";
 import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
+import { generatePayslipPdfBytes } from "@/lib/pdf";
 import { shareViaWhatsApp } from "@/lib/share";
 import { getComplianceAudit, generateComplianceNoteText } from "@/lib/compliance";
 
@@ -104,7 +105,7 @@ function PreviewContent() {
         setDownloading(true);
         try {
             const bytes: Uint8Array = await new Promise((resolve, reject) => {
-                const worker = new Worker(new URL('../../lib/pdf.worker.ts', import.meta.url));
+                const worker = new Worker(new URL('../../../lib/pdf.worker.ts', import.meta.url));
                 worker.onmessage = (e) => {
                     const { bytes, error } = e.data;
                     if (error) reject(new Error(error));
@@ -246,7 +247,7 @@ function PreviewContent() {
                             setSharing(true);
                             try {
                                 const bytes: Uint8Array = await new Promise((resolve, reject) => {
-                                    const worker = new Worker(new URL('../../lib/pdf.worker.ts', import.meta.url));
+                                    const worker = new Worker(new URL('../../../lib/pdf.worker.ts', import.meta.url));
                                     worker.onmessage = (e) => {
                                         const { bytes, error } = e.data;
                                         if (error) reject(new Error(error));

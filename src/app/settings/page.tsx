@@ -45,7 +45,7 @@ import { Moon, Sun, Monitor } from "lucide-react";
 
 type SettingsTab = "profile" | "compliance" | "sync" | "guide";
 
-export default function SettingsPage() {
+function SettingsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -443,6 +443,31 @@ export default function SettingsPage() {
                 </div>
             </main>
         </div>
+    );
+}
+
+export default function SettingsPage() {
+    return (
+        <React.Suspense fallback={
+            <div className="min-h-screen flex flex-col bg-[var(--bg-base)]">
+                <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border-subtle)]">
+                    <div className="max-w-xl mx-auto flex items-center gap-3">
+                        <Skeleton className="h-9 w-9 rounded-xl" />
+                        <Skeleton className="h-9 w-9 rounded-xl" />
+                        <Skeleton className="h-4 w-24" />
+                    </div>
+                </header>
+                <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-8">
+                    <Skeleton className="h-16 w-full rounded-[2.5rem]" />
+                    <section className="space-y-4">
+                        <Skeleton className="h-3 w-32 ml-1" />
+                        <Skeleton className="h-48 w-full rounded-2xl" />
+                    </section>
+                </main>
+            </div>
+        }>
+            <SettingsContent />
+        </React.Suspense>
     );
 }
 
