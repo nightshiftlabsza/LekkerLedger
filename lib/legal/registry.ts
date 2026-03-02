@@ -5,6 +5,8 @@
 
 export const LEGAL_REGISTRY = {
     NMW: [
+        { effectiveDate: "2022-03-01", rate: 23.19 },
+        { effectiveDate: "2023-03-01", rate: 25.42 },
         { effectiveDate: "2024-03-01", rate: 27.58 },
         { effectiveDate: "2025-03-01", rate: 28.79 },
         { effectiveDate: "2026-03-01", rate: 30.23 },

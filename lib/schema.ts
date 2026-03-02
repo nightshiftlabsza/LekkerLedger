@@ -17,6 +17,7 @@ export const EmployeeSchema = z.object({
     startDate: z.string().optional().default(""), // ISO date string — when employment began
     ordinarilyWorksSundays: z.boolean().default(false),
     ordinaryHoursPerDay: z.number().min(1).max(24).default(8),
+    frequency: z.enum(["Weekly", "Fortnightly", "Monthly"]).default("Monthly"),
 });
 
 export type Employee = z.infer<typeof EmployeeSchema>;
@@ -79,6 +80,24 @@ export const EmployerSettingsSchema = z.object({
     proStatus: z.enum(["free", "annual", "pro", "trial"]).optional().default("free"),
     trialExpiry: z.string().optional(),
     logoData: z.string().optional(),
+    defaultLanguage: z.enum(["en", "zu", "xh"]).optional().default("en"),
+    simpleMode: z.boolean().default(false),
+    advancedMode: z.boolean().default(false),
+    googleSyncEnabled: z.boolean().default(false),
+    googleAuthToken: z.string().optional(),
+    installationId: z.string().default(""),
+    usageHistory: z.array(z.string()).default([]),
 });
 
 export type EmployerSettings = z.infer<typeof EmployerSettingsSchema>;
+
+// ─── Audit Log (Phase 7) ───────────────────────────────────────────────────
+export const AuditLogSchema = z.object({
+    id: z.string().uuid(),
+    timestamp: z.date(),
+    action: z.enum(["CREATE_PAYSLIP", "DELETE_PAYSLIP", "CREATE_EMPLOYEE", "DELETE_EMPLOYEE", "UPDATE_SETTINGS", "SYNC_DRIVE"]),
+    details: z.string(),
+    metadata: z.record(z.string(), z.any()).optional(),
+});
+
+export type AuditLog = z.infer<typeof AuditLogSchema>;

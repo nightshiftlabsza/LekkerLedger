@@ -6,6 +6,7 @@ import { Cloud, Download, Upload, LogOut, CheckCircle2, AlertCircle, Loader2 } f
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { GOOGLE_SCOPES, syncDataToDrive, syncDataFromDrive } from "@/lib/google-drive";
+import { subscribeToDataChanges } from "@/lib/storage";
 
 interface GoogleSyncProps {
     proStatus?: string;
@@ -17,13 +18,30 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [statusMessage, setStatusMessage] = useState("");
 
-    // Look for existing token on mount
+    // 1. Setup subscription and auto-restore
     useEffect(() => {
         const storedToken = localStorage.getItem("google_access_token");
         const storedEmail = localStorage.getItem("google_email");
-        if (storedToken) setToken(storedToken);
-        if (storedEmail) setEmail(storedEmail);
-    }, []);
+
+        if (storedToken) {
+            setToken(storedToken);
+            if (storedEmail) setEmail(storedEmail);
+
+            // Auto-restore check on mount if sync is enabled
+            // (We could do this every time, but maybe once per session is safer)
+            // handleRestore(true); // silent restore
+        }
+
+        // Setup auto-sync listener
+        const unsubscribe = subscribeToDataChanges(() => {
+            const currentToken = localStorage.getItem("google_access_token");
+            if (currentToken && proStatus !== "free") {
+                handleBackup(true); // silent backup
+            }
+        });
+
+        return () => unsubscribe();
+    }, [proStatus]);
 
     const fetchUserInfo = async (accessToken: string) => {
         try {
@@ -47,6 +65,8 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
             setToken(accessToken);
             localStorage.setItem("google_access_token", accessToken);
             await fetchUserInfo(accessToken);
+            // Automatic restore after login
+            await handleRestore(false);
         },
         onError: () => {
             setStatus("error");
@@ -63,37 +83,51 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
         setStatus("idle");
     };
 
-    const handleBackup = async () => {
-        if (!token) return;
-        setStatus("loading");
-        setStatusMessage("Backing up to Google Drive...");
-        const success = await syncDataToDrive(token);
-        if (success) {
-            setStatus("success");
-            setStatusMessage("Successfully backed up to Drive!");
-        } else {
-            setStatus("error");
-            setStatusMessage("Failed to backup. You may need to log in again.");
+    const handleBackup = async (silent = false) => {
+        const currentToken = token || localStorage.getItem("google_access_token");
+        if (!currentToken) return;
+
+        if (!silent) {
+            setStatus("loading");
+            setStatusMessage("Backing up to Google Drive...");
         }
-        setTimeout(() => setStatus("idle"), 4000);
+
+        const success = await syncDataToDrive(currentToken);
+
+        if (!silent) {
+            if (success) {
+                setStatus("success");
+                setStatusMessage("Successfully backed up to Drive!");
+            } else {
+                setStatus("error");
+                setStatusMessage("Failed to backup. You may need to log in again.");
+            }
+            setTimeout(() => setStatus("idle"), 4000);
+        }
     };
 
-    const handleRestore = async () => {
-        if (!token) return;
+    const handleRestore = async (silent = false) => {
+        const currentToken = token || localStorage.getItem("google_access_token");
+        if (!currentToken) return;
 
-        if (!confirm("This will overwrite your local data with the version from Google Drive. Are you sure?")) {
+        if (!silent && !confirm("This will overwrite your local data with the version from Google Drive. Are you sure?")) {
             return;
         }
 
-        setStatus("loading");
-        setStatusMessage("Restoring from Google Drive...");
-        const success = await syncDataFromDrive(token);
+        if (!silent) {
+            setStatus("loading");
+            setStatusMessage("Restoring from Google Drive...");
+        }
+
+        const success = await syncDataFromDrive(currentToken);
+
         if (success) {
-            setStatus("success");
-            setStatusMessage("Successfully restored data!");
-            // Reload page to reflect new data
-            setTimeout(() => window.location.reload(), 2000);
-        } else {
+            if (!silent) {
+                setStatus("success");
+                setStatusMessage("Successfully restored data!");
+                setTimeout(() => window.location.reload(), 2000);
+            }
+        } else if (!silent) {
             setStatus("error");
             setStatusMessage("Failed to restore or no backup found.");
             setTimeout(() => setStatus("idle"), 4000);
@@ -182,7 +216,7 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
                                     <Button
                                         type="button"
                                         className="flex-1 gap-2"
-                                        onClick={handleBackup}
+                                        onClick={() => handleBackup()}
                                         disabled={status === "loading"}
                                     >
                                         <Upload className="h-4 w-4" /> Backup to Cloud
@@ -191,7 +225,7 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
                                         type="button"
                                         variant="outline"
                                         className="flex-1 gap-2 border-[var(--border-subtle)]"
-                                        onClick={handleRestore}
+                                        onClick={() => handleRestore()}
                                         disabled={status === "loading"}
                                     >
                                         <Download className="h-4 w-4" /> Restore from Cloud

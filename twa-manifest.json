@@ -6,6 +6,7 @@
     "description": "Create a compliant payslip in under 90 seconds",
     "startUrl": "/?source=pwa",
     "display": "standalone",
+    "orientation": "portrait",
     "themeColor": "#c47a1c",
     "navigationColor": "#c47a1c",
     "backgroundColor": "#c47a1c",
@@ -27,7 +28,6 @@
     "isChromeOSOnly": false,
     "isMetaQuest": false,
     "minSdkVersion": 19,
-    "orientation": "any",
     "fingerprints": [],
     "additionalTrustedOrigins": []
 }

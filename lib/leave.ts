@@ -35,19 +35,20 @@ export interface LeaveBalances {
 }
 
 /**
- * Calculate leave balances based on employment start date and leave records.
+ * Calculate leave balances based on employment statistics and leave records.
  * @param startDate - ISO date string when the worker started
+ * @param totalDaysWorked - Total days the worker has actually worked (summed from payslips)
  * @param leaveRecords - Array of leave records for this employee
  * @param asOfDate - Date to calculate balances as of (defaults to now)
  */
 export function calculateLeaveBalances(
     startDate: string,
+    totalDaysWorked: number,
     leaveRecords: LeaveRecord[],
     asOfDate: Date = new Date()
 ): LeaveBalances {
     const start = new Date(startDate);
     if (isNaN(start.getTime()) || start > asOfDate) {
-        // If invalid or future start date, return zeros
         return {
             annual: { accrued: 0, taken: 0, remaining: 0 },
             sick: { accrued: 0, taken: 0, remaining: 0 },
@@ -59,22 +60,42 @@ export function calculateLeaveBalances(
     const years = months / 12;
     const daysEmployed = daysBetween(start, asOfDate);
 
-    // Annual leave: 1 day for every 17 days worked (BCEA)
-    const annualAccrued = Math.floor(daysEmployed / 17);
+    // Current Cycle Calculation
+    const currentSickCycle = Math.floor(months / (SICK_LEAVE_CYCLE_YEARS * 12));
+    const cycleStartMonth = currentSickCycle * (SICK_LEAVE_CYCLE_YEARS * 12);
+    const cycleStartDate = new Date(start);
+    cycleStartDate.setMonth(start.getMonth() + cycleStartMonth);
+
+    const currentYear = Math.floor(months / 12);
+    const yearStartMonth = currentYear * 12;
+    const yearStartDate = new Date(start);
+    yearStartDate.setMonth(start.getMonth() + yearStartMonth);
+
+    // Annual leave: 1 day for every 17 days worked (SD7 / BCEA)
+    // We use actual totalDaysWorked to be accurate for part-time workers
+    const annualAccrued = Math.floor(totalDaysWorked / 17);
 
     // Sick leave: 30 days per 36-month cycle
-    const sickCycles = Math.min(years / SICK_LEAVE_CYCLE_YEARS, 1); // cap at 1 full cycle
-    const sickAccrued = Math.floor(sickCycles * SICK_LEAVE_DAYS_PER_CYCLE * 10) / 10;
+    // In the first 6 months, it's 1 day for every 26 days worked. After that, full 30 days.
+    let sickAccrued = SICK_LEAVE_DAYS_PER_CYCLE;
+    if (months < 6) {
+        sickAccrued = Math.floor(totalDaysWorked / 26);
+    }
 
     // Family responsibility: 3 days per year (only after 4 months employment)
-    const familyAccrued = daysEmployed > 120 ? Math.floor(years * FAMILY_LEAVE_DAYS_PER_YEAR * 10) / 10 : 0;
+    const familyAccrued = daysEmployed > 120 ? FAMILY_LEAVE_DAYS_PER_YEAR : 0;
 
-    // Sum taken days by type
+    // Sum taken days by type, filtered by current cycle/year
     const taken = { annual: 0, sick: 0, family: 0 };
     for (const r of leaveRecords) {
-        if (r.type === "annual") taken.annual += r.days;
-        else if (r.type === "sick") taken.sick += r.days;
-        else if (r.type === "family") taken.family += r.days;
+        const recordDate = new Date(r.date);
+        if (r.type === "annual") {
+            taken.annual += r.days;
+        } else if (r.type === "sick" && recordDate >= cycleStartDate) {
+            taken.sick += r.days;
+        } else if (r.type === "family" && recordDate >= yearStartDate) {
+            taken.family += r.days;
+        }
     }
 
     return {

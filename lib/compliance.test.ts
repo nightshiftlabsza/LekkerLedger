@@ -14,6 +14,7 @@ describe("Compliance Logic (SD7 & NMW)", () => {
         startDate: "2026-01-01",
         ordinarilyWorksSundays: false,
         ordinaryHoursPerDay: 8,
+        frequency: "Monthly",
     };
 
     const mockBreakdown: PayBreakdown = {
@@ -32,10 +33,16 @@ describe("Compliance Logic (SD7 & NMW)", () => {
         },
         employerContributions: {
             uifEmployer: 48.37,
+            sdlEmployer: 0,
         },
         netPay: 4788.43,
         complianceWarnings: [],
         leaveAccruedDays: 1.29,
+        leaveTaken: {
+            annual: 0,
+            sick: 0,
+            family: 0,
+        },
     };
 
     it("should mark wage as compliant if at or above NMW", () => {

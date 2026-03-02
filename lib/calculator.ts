@@ -1,15 +1,19 @@
 import { PayslipInput } from "./schema";
+import { roundTo } from "./money";
 import { LEGAL_REGISTRY, getNMWForDate } from "./legal/registry";
 
 /**
- * National Minimum Wage (NMW) for Domestic Workers in South Africa.
+ * Returns the National Minimum Wage applicable for a specific date (defaults to now).
  */
 export function getNMW(date: Date = new Date()): number {
     return getNMWForDate(date);
 }
 
+// 100 FIXES: Export a default NMW_RATE for simple default assignments in forms
 export const NMW_RATE = getNMW();
-const UIF_MONTHLY_CAP = LEGAL_REGISTRY.UIF.MONTHLY_CAP;
+
+
+export const UIF_MONTHLY_CAP = LEGAL_REGISTRY.UIF.MONTHLY_CAP;
 export const ACCOMMODATION_MAX_PCT = LEGAL_REGISTRY.SD7.ACCOMMODATION_MAX_PCT;
 export const UIF_RATE = LEGAL_REGISTRY.UIF.RATE;
 export const UIF_THRESHOLD_HOURS = LEGAL_REGISTRY.UIF.THRESHOLD_HOURS;
@@ -32,15 +36,25 @@ export interface PayBreakdown {
     };
     employerContributions: {
         uifEmployer: number;
+        sdlEmployer: number;
     };
     netPay: number;
     complianceWarnings: string[];
     leaveAccruedDays: number;
+    leaveTaken: {
+        annual: number;
+        sick: number;
+        family: number;
+    };
 }
 
 export function calculatePayslip(input: PayslipInput): PayBreakdown {
-    // Enforce NMW guardrail (backup to schema validation)
-    const rate = Math.max(input.hourlyRate, NMW_RATE);
+    // 100 FIXES: Use historical NMW rate based on the payslip date, not current system time.
+    const referenceDate = input.payPeriodEnd ? new Date(input.payPeriodEnd) : new Date();
+    const activeNmwRate = getNMWForDate(referenceDate);
+
+    // Enforce NMW guardrail based on the historical rate
+    const rate = Math.max(input.hourlyRate, activeNmwRate);
 
     // 4-hour shift rule: if total ordinary hours on specific days < 4, 
     // the wizard passes 'shortFallHours' to precisely top-up the pay.
@@ -76,6 +90,11 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
     const uifEmployee = totalHours > UIF_THRESHOLD_HOURS ? uifBase * UIF_RATE : 0;
     const uifEmployer = totalHours > UIF_THRESHOLD_HOURS ? uifBase * UIF_RATE : 0;
 
+    // SDL: Sectoral Determination 7 (Domestic Workers) technically exempts 
+    // most employers. Skill Development Levy is required only for payrolls > R500k/year.
+    const sdlEmployee = 0;
+    const sdlEmployer = 0;
+
     // Accommodation: provided cost, strictly capped at 10% of gross (SD7)
     const accommodationLimit = grossPay * ACCOMMODATION_MAX_PCT;
     const accommodation =
@@ -83,15 +102,15 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
 
     const otherDeductions = input.otherDeductions ?? 0;
 
-    const totalDeductions = uifEmployee + (accommodation ?? 0) + otherDeductions;
+    const totalDeductions = roundTo(uifEmployee + (accommodation ?? 0) + otherDeductions);
 
     // Net pay cannot drop below 0
-    const netPay = Math.max(0, grossPay - totalDeductions);
+    const netPay = Math.max(0, roundTo(grossPay - totalDeductions));
 
     // Compliance Warnings
     const complianceWarnings: string[] = [];
-    if (input.hourlyRate < NMW_RATE) {
-        complianceWarnings.push("Hourly rate is below the statutory NMW.");
+    if (input.hourlyRate < activeNmwRate) {
+        complianceWarnings.push(`Hourly rate (R${input.hourlyRate}) is below the statutory NMW for this period (R${activeNmwRate}).`);
     }
 
     // Leave Accrual (SD7: 1 day for every 17 days worked)
@@ -113,9 +132,15 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
         },
         employerContributions: {
             uifEmployer,
+            sdlEmployer,
         },
         netPay,
         complianceWarnings,
         leaveAccruedDays,
+        leaveTaken: {
+            annual: input.annualLeaveTaken ?? 0,
+            sick: input.sickLeaveTaken ?? 0,
+            family: input.familyLeaveTaken ?? 0,
+        }
     };
 }

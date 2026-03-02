@@ -110,8 +110,8 @@ export async function generateContractPdfBytes(input: ContractInput): Promise<Ui
     const sealX = PAGE_W - 80;
     const sealY = 100;
     page.drawCircle({ x: sealX, y: sealY, size: 30, color: rgb(0.95, 0.95, 0.95), borderColor: AMBER, borderWidth: 1 });
-    page.drawText("LEGAL", sealX - 10, sealY + 6, { size: 7, font: bold, color: AMBER });
-    page.drawText("SECURED", sealX - 10, sealY - 6, { size: 5, font: bold, color: SLATE });
+    page.drawText("LEGAL", { x: sealX - 10, y: sealY + 6, size: 7, font: bold, color: AMBER });
+    page.drawText("SECURED", { x: sealX - 10, y: sealY - 6, size: 5, font: bold, color: SLATE });
 
     return pdfDoc.save();
 }

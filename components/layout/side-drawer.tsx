@@ -109,8 +109,8 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                                 className="h-10 w-auto transition-opacity hover:opacity-80"
                             />
                         </Link>
-                        <p className="text-[10px] mt-1 opacity-60" style={{ color: "var(--text-muted)" }}>
-                            By Nightshift Labs ZA
+                        <p className="text-[9px] mt-0.5 opacity-40 font-medium" style={{ color: "var(--text-muted)" }}>
+                            By Nightshift Labs
                         </p>
                     </div>
                     <button
@@ -206,24 +206,11 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
 
                 {/* Footer */}
                 <div className="px-5 pb-6 pt-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-                    <div className="flex items-center gap-2">
-                        <div
-                            className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-black"
-                            style={{ backgroundColor: "var(--amber-500)", color: "var(--text-inverse)" }}
-                        >
-                            N
-                        </div>
-                        <div>
-                            <p className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
-                                Nightshift Labs ZA
-                            </p>
-                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                Crafted in South Africa 🇿🇦
-                            </p>
-                        </div>
-                    </div>
-                    <p className="text-xs mt-3" style={{ color: "var(--text-muted)" }}>
-                        Beta v0.2 · Support the project by going Pro. Securely sync your data with Google Drive.
+                    <p className="text-[10px] uppercase tracking-[0.15em] font-bold opacity-40" style={{ color: "var(--text-muted)" }}>
+                        Crafted in South Africa 🇿🇦
+                    </p>
+                    <p className="text-[10px] mt-2 opacity-50" style={{ color: "var(--text-muted)" }}>
+                        Beta v0.2 · Support the project by going Pro.
                     </p>
                 </div>
             </div>

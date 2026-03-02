@@ -28,7 +28,7 @@ describe("calculatePayslip() - Complex SD7 Edge Cases", () => {
 
     it("1. should flag a warning when hourly rate is below NMW", () => {
         const result = calculatePayslip({ ...mockInput, hourlyRate: 20 });
-        expect(result.complianceWarnings).toContain("Hourly rate is below the statutory NMW.");
+        expect(result.complianceWarnings[0]).toContain("is below the statutory NMW");
     });
 
     it("2. should strictly cap the accommodation deduction at 10% of gross pay", () => {

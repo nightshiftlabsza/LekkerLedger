@@ -10,6 +10,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <div className="flex flex-col gap-1 w-full">
                 <input
                     type={type}
+                    inputMode={type === "number" ? "decimal" : props.inputMode}
                     ref={ref}
                     className={["w-full rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all duration-200 placeholder:font-normal", className].filter(Boolean).join(" ")}
                     style={{

@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib";
 import { Employee, PayslipInput, EmployerSettings } from "./schema";
 import { calculatePayslip, getNMW } from "./calculator";
 import { format } from "date-fns";
@@ -13,11 +13,70 @@ const GREEN = rgb(0.10, 0.42, 0.23);
 const LIGHT_BG = rgb(0.98, 0.97, 0.97);
 const LINE = rgb(0.88, 0.86, 0.83);
 
+type SupportLang = "en" | "zu" | "xh";
+
+const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
+    en: {
+        payslip: "PAYSLIP",
+        netPayable: "NET PAYABLE",
+        employee: "EMPLOYEE",
+        employer: "EMPLOYER",
+        payPeriod: "PAY PERIOD",
+        description: "DESCRIPTION",
+        hours: "HOURS",
+        rate: "RATE",
+        total: "TOTAL",
+        grossEarnings: "GROSS EARNINGS",
+        deductions: "DEDUCTIONS",
+        totalDeductions: "TOTAL DEDUCTIONS",
+        uifEmployee: "UIF (Employee contribution 1%)",
+        accommodation: "Accommodation Deduction (Capped at 10%)",
+        employerContributions: "EMPLOYER CONTRIBUTIONS (For your records)",
+    },
+    zu: {
+        payslip: "ISILIPHU SEHOLO",
+        netPayable: "IMALO ETHOLAKALAYO",
+        employee: "UMSEBENZI",
+        employer: "UMQASHI",
+        payPeriod: "ISIKHATHI SOKUHOLA",
+        description: "INCAZELO",
+        hours: "AMAHORA",
+        rate: "IZINGA",
+        total: "ISIKHATHI",
+        grossEarnings: "INANI LILONKE",
+        deductions: "IZIMALI EZIDONSWAYO",
+        totalDeductions: "IZIMALI EZIDONSIWE ZONKE",
+        uifEmployee: "I-UIF (Umnikelo woMsebenzi 1%)",
+        accommodation: "Indawo yokuhlala (Inqunywe ku-10%)",
+        employerContributions: "IMINIKELO YOMQASHI (Amarekhodi akho)",
+    },
+    xh: {
+        payslip: "ISILIPHU SOMVUZO",
+        netPayable: "IMALI EPHUMAYO",
+        employee: "UMSEBENZI",
+        employer: "UMQASHI",
+        payPeriod: "IXESHA LOMVUZO",
+        description: "INKCAZELO",
+        hours: "IIYURE",
+        rate: "IZINGA",
+        total: "ISISEKO",
+        grossEarnings: "IMALI IONKE",
+        deductions: "IZITHABATHO",
+        totalDeductions: "IZITHABATHO ZONKE",
+        uifEmployee: "I-UIF (Igalelo lomsebenzi 1%)",
+        accommodation: "Indawo yokuhlala (Ilinganiselwe kwi-10%)",
+        employerContributions: "AMAGALELO OMQAHSIL (Iirekhodi zakho)",
+    }
+};
+
 export async function generatePayslipPdfBytes(
     employee: Employee,
     payslip: PayslipInput,
-    employer: EmployerSettings
+    settings: EmployerSettings,
+    lang: SupportLang = "en",
+    isLimited: boolean = false
 ): Promise<Uint8Array> {
+    const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
     const breakdown = calculatePayslip(payslip);
     const nmw = getNMW(payslip.payPeriodStart);
 
@@ -76,9 +135,9 @@ export async function generatePayslipPdfBytes(
 
     // Logo Handling
     let logoDrawn = false;
-    if (employer.proStatus === "pro" && employer.logoData) {
+    if (settings.proStatus === "pro" && settings.logoData) {
         try {
-            const base64Data = employer.logoData.split(",")[1];
+            const base64Data = settings.logoData.split(",")[1];
             if (base64Data) {
                 const logoBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
                 const logoImg = await pdfDoc.embedPng(logoBytes);
@@ -100,10 +159,10 @@ export async function generatePayslipPdfBytes(
         t("LekkerLedger", 48, height - 46, { font: bold, size: 24, color: WHITE });
     }
 
-    t(employer.employerName || "Employer Name Not Set", 48, height - 74, { font: bold, size: 10, color: rgb(0.8, 0.75, 0.7), maxWidth: 280 });
-    t(employer.employerAddress || "Address Not Set", 48, height - 86, { font: regular, size: 7.5, color: rgb(0.6, 0.55, 0.5), maxWidth: 280 });
+    t(settings.employerName || "Employer Name Not Set", 48, height - 74, { font: bold, size: 10, color: rgb(0.8, 0.75, 0.7), maxWidth: 280 });
+    t(settings.employerAddress || "Address Not Set", 48, height - 86, { font: regular, size: 7.5, color: rgb(0.6, 0.55, 0.5), maxWidth: 280 });
 
-    t("PAYSLIP", width - 48, height - 46, { font: bold, size: 20, color: AMBER, align: "right" });
+    t(dict.payslip, width - 48, height - 46, { font: bold, size: 20, color: AMBER, align: "right" });
     t(format(payslip.payPeriodEnd, "MMMM yyyy").toUpperCase(), width - 48, height - 70, { font: bold, size: 10, color: WHITE, align: "right" });
 
     // ── Amber accent bar ─────────────────────────────────────────────────────
@@ -113,7 +172,7 @@ export async function generatePayslipPdfBytes(
     const infoY = height - 140;
 
     // Employee Box
-    t("EMPLOYEE", 48, infoY, { font: bold, size: 8, color: SLATE });
+    t(dict.employee, 48, infoY, { font: bold, size: 8, color: SLATE });
     t(employee.name, 48, infoY - 18, { font: bold, size: 14 });
     t(employee.role, 48, infoY - 32, { font: regular, size: 9, color: SLATE });
     if (employee.idNumber) {
@@ -121,7 +180,7 @@ export async function generatePayslipPdfBytes(
     }
 
     // Period Box
-    t("PAY PERIOD", width - 180, infoY, { font: bold, size: 8, color: SLATE });
+    t(dict.payPeriod, width - 180, infoY, { font: bold, size: 8, color: SLATE });
     t(`${format(payslip.payPeriodStart, "dd MMM")} – ${format(payslip.payPeriodEnd, "dd MMM yyyy")}`, width - 180, infoY - 18, { font: regular, size: 10 });
     t(`Days Worked: ${payslip.daysWorked}`, width - 180, infoY - 32, { font: regular, size: 9, color: SLATE });
 
@@ -129,10 +188,10 @@ export async function generatePayslipPdfBytes(
 
     // ── Earnings Table ───────────────────────────────────────────────────────
     let cy = height - 220;
-    t("DESCRIPTION", 48, cy, { font: bold, size: 8, color: SLATE });
-    t("HOURS", width - 150, cy, { font: bold, size: 8, color: SLATE, align: "right" });
-    t("RATE", width - 100, cy, { font: bold, size: 8, color: SLATE, align: "right" });
-    t("TOTAL", width - 48, cy, { font: bold, size: 8, color: SLATE, align: "right" });
+    t(dict.description, 48, cy, { font: bold, size: 8, color: SLATE });
+    t(dict.hours, width - 150, cy, { font: bold, size: 8, color: SLATE, align: "right" });
+    t(dict.rate, width - 100, cy, { font: bold, size: 8, color: SLATE, align: "right" });
+    t(dict.total, width - 48, cy, { font: bold, size: 8, color: SLATE, align: "right" });
 
     cy -= 20;
 
@@ -173,45 +232,49 @@ export async function generatePayslipPdfBytes(
 
     line(cy + 5);
     cy -= 15;
-    t("GROSS EARNINGS", 48, cy, { font: bold, size: 10 });
+    t(dict.grossEarnings, 48, cy, { font: bold, size: 10 });
     t(`R ${breakdown.grossPay.toFixed(2)}`, width - 48, cy, { font: bold, size: 12, align: "right" });
 
     // ── Deductions Table ─────────────────────────────────────────────────────
     cy -= 40;
-    t("DEDUCTIONS", 48, cy, { font: bold, size: 8, color: SLATE });
+    t(dict.deductions, 48, cy, { font: bold, size: 8, color: SLATE });
     cy -= 20;
 
     // UIF
-    t("UIF (Employee contribution 1%)", 48, cy, { size: 9, color: SLATE });
+    t(dict.uifEmployee, 48, cy, { size: 9, color: SLATE });
     t(`- R ${breakdown.deductions.uifEmployee.toFixed(2)}`, width - 48, cy, { size: 9, align: "right", color: RED });
     cy -= 18;
 
     // Accommodation
     if (payslip.includeAccommodation && breakdown.deductions.accommodation) {
-        t("Accommodation Deduction (Capped at 10%)", 48, cy, { size: 9, color: SLATE });
+        t(dict.accommodation, 48, cy, { size: 9, color: SLATE });
         t(`- R ${breakdown.deductions.accommodation.toFixed(2)}`, width - 48, cy, { size: 9, align: "right", color: RED });
         cy -= 18;
     }
 
     line(cy + 5);
     cy -= 15;
-    t("TOTAL DEDUCTIONS", 48, cy, { font: bold, size: 9, color: SLATE });
+    t(dict.totalDeductions, 48, cy, { font: bold, size: 9, color: SLATE });
     t(`R ${breakdown.deductions.total.toFixed(2)}`, width - 48, cy, { font: bold, size: 9, align: "right" });
 
     // ── Net Pay Block ────────────────────────────────────────────────────────
     cy -= 50;
     rect(48, cy, width - 96, 50, AMBER);
-    t("NET PAYABLE", 64, cy + 18, { font: bold, size: 12, color: WHITE });
+    t(dict.netPayable, 64, cy + 18, { font: bold, size: 12, color: WHITE });
     t(`R ${breakdown.netPay.toFixed(2)}`, width - 64, cy + 15, { font: bold, size: 22, color: WHITE, align: "right" });
 
     // ── Compliance Footer ────────────────────────────────────────────────────
     const footerY = 80;
     line(footerY + 20);
 
-    t("EMPLOYER CONTRIBUTIONS (For your records)", 48, footerY, { font: bold, size: 7, color: SLATE });
+    t(dict.employerContributions, 48, footerY, { font: bold, size: 7, color: SLATE });
     t(`UIF Employer (1%): R ${breakdown.employerContributions.uifEmployer.toFixed(2)}`, 48, footerY - 12, { size: 7, color: SLATE });
+    t(`SDL Employer (0%): R 0.00 (Exempt)`, 48, footerY - 20, { size: 7, color: SLATE });
 
-    const legalText = `This payslip is generated in accordance with Sectoral Determination 7 and the BCEA. Minimum wage for this period: R${nmw.toFixed(2)}/hr.`;
+    const leaveText = `Leave Recorded: Annual: ${breakdown.leaveTaken.annual}d | Sick: ${breakdown.leaveTaken.sick}d | Family: ${breakdown.leaveTaken.family}d`;
+    t(leaveText, width - 48, footerY, { size: 7, color: SLATE, align: "right" });
+
+    const legalText = `This payslip is generated in accordance with Sectoral Determination 7 and the BCEA. Minimum wage: R${nmw.toFixed(2)}/hr.`;
     t(legalText, 48, 40, { size: 7, color: SLATE });
     t("Proudly South African · LekkerLedger.app", width - 48, 40, { size: 7, color: SLATE, align: "right" });
 

@@ -75,18 +75,8 @@ export async function syncDataFromDrive(accessToken: string) {
         const json = await res.json();
 
         if (json && json.version >= 1) {
-            if (json.employees) {
-                for (const emp of json.employees) await saveEmployee(emp);
-            }
-            if (json.payslips) {
-                for (const slip of json.payslips) await savePayslip(slip);
-            }
-            if (json.leave) {
-                for (const l of json.leave) await saveLeaveRecord(l);
-            }
-            if (json.settings) {
-                await saveSettings(json.settings);
-            }
+            const { importData } = await import("./storage");
+            await importData(JSON.stringify(json));
             return true;
         }
         return false;

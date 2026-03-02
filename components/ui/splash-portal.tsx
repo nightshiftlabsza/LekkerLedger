@@ -30,13 +30,14 @@ export function SplashPortal() {
 
     return (
         <div
-            className={`fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-300 ease-in-out ${fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+            className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-500 ease-in-out ${fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+            style={{ background: "linear-gradient(135deg, #ffffff 0%, #fdfcfb 100%)" }}
         >
-            <div className="relative w-72 h-72 animate-pulse">
+            <div className={`relative w-48 h-48 transition-all duration-700 ${fadeOut ? 'scale-110 blur-sm' : 'scale-100'}`}>
                 <img
-                    src="/brand/splash.png"
+                    src="/brand/icon-512.png"
                     alt="LekkerLedger"
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain animate-in fade-in zoom-in duration-1000"
                 />
             </div>
         </div>
