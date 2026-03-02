@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Trash2, Loader2, Users, ChevronRight, Palmtree, Sparkles, FileBadge } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Loader2, Users, ChevronRight, Palmtree, Sparkles, FileBadge, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -44,48 +44,25 @@ export default function EmployeesPage() {
     const canAddMore = employees.length < limit;
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
-            <header
-                className="sticky top-0 z-30 px-4 py-3"
-                style={{
-                    backgroundColor: "var(--bg-surface)",
-                    borderBottom: "1px solid var(--border-subtle)",
-                    boxShadow: "var(--shadow-sm)",
-                }}
-            >
-                <div className="max-w-xl mx-auto flex items-center justify-between">
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
+            {/* Header */}
+            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SideDrawer />
-                        <Link href="/">
-                            <button
-                                aria-label="Go home"
-                                className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--bg-subtle)]"
-                                style={{ color: "var(--text-secondary)" }}
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                            </button>
-                        </Link>
                         <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
                             Employees
                         </h1>
                     </div>
-                    {canAddMore ? (
-                        <Link href="/employees/new">
-                            <Button size="sm" className="gap-1.5" id="add-employee-btn">
-                                <Plus className="h-4 w-4" /> Add
-                            </Button>
-                        </Link>
-                    ) : (
-                        <Link href="/pricing">
-                            <Button size="sm" variant="outline" className="gap-1.5 border-amber-500 text-amber-600 bg-amber-50">
-                                <Sparkles className="h-4 w-4" /> Upgrade
-                            </Button>
-                        </Link>
-                    )}
+                    <Link href="/employees/new">
+                        <Button size="sm" className="gap-1.5 bg-[var(--amber-500)] hover:bg-[var(--amber-600)] text-white">
+                            <Plus className="h-4 w-4" /> Add New
+                        </Button>
+                    </Link>
                 </div>
             </header>
 
-            <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-4">
+            <main className="flex-1 px-4 py-6 content-container">
                 {loading ? (
                     <div className="space-y-3 animate-fade-in">
                         {[1, 2, 3].map((i) => (
@@ -133,31 +110,46 @@ export default function EmployeesPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="h-8 w-8 p-0"
-                                                title="Certificate"
-                                                onClick={async () => {
-                                                    if (!settings) return;
-                                                    const bytes = await generateCertificateOfService(emp, settings);
-                                                    const blob = new Blob([bytes as any], { type: "application/pdf" });
-                                                    const url = URL.createObjectURL(blob);
-                                                    const a = document.createElement("a");
-                                                    a.href = url;
-                                                    a.download = `${emp.name.replace(/\s+/g, "_")}_Certificate_of_Service.pdf`;
-                                                    a.click();
-                                                    URL.revokeObjectURL(url);
-                                                }}
-                                            >
-                                                <FileBadge className="h-4 w-4" />
-                                            </Button>
-                                            <Button size="sm" variant="default" className="gap-1.5 text-xs h-8" onClick={() => router.push(`/wizard?empId=${emp.id}`)}>
+                                            {!settings?.simpleMode && (
+                                                <>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-8 w-8 p-0"
+                                                        title="Certificate"
+                                                        onClick={async () => {
+                                                            if (!settings) return;
+                                                            const bytes = await generateCertificateOfService(emp, settings);
+                                                            const blob = new Blob([bytes as any], { type: "application/pdf" });
+                                                            const url = URL.createObjectURL(blob);
+                                                            const a = document.createElement("a");
+                                                            a.href = url;
+                                                            a.download = `${emp.name.replace(/\s+/g, "_")}_Certificate_of_Service.pdf`;
+                                                            a.click();
+                                                            URL.revokeObjectURL(url);
+                                                        }}
+                                                    >
+                                                        <FileBadge className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-8 w-8 p-0"
+                                                        title="Edit"
+                                                        onClick={() => router.push(`/employees/${emp.id}/edit`)}
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                </>
+                                            )}
+                                            <Button size="sm" variant="default" className="gap-1.5 text-xs h-8 bg-amber-500 text-white font-bold" onClick={() => router.push(`/wizard?empId=${emp.id}`)}>
                                                 Payslip <ChevronRight className="h-3.5 w-3.5" />
                                             </Button>
-                                            <button onClick={() => setConfirmDelete(emp.id)} className="h-8 w-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-red-500">
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
+                                            {!settings?.simpleMode && (
+                                                <button onClick={() => setConfirmDelete(emp.id)} className="h-8 w-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-red-500">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                     {confirmDelete === emp.id && (

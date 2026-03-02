@@ -24,6 +24,10 @@ export default function OnboardingPage() {
         sdlNumber: "",
         logoData: "",
         proStatus: "free",
+        defaultLanguage: "en",
+        simpleMode: false,
+        advancedMode: false,
+        googleSyncEnabled: false
     });
 
     React.useEffect(() => {

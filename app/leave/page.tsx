@@ -9,12 +9,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SideDrawer } from "@/components/layout/side-drawer";
-import { getEmployee, getLeaveForEmployee, saveLeaveRecord } from "@/lib/storage";
+import { getEmployee, getLeaveForEmployee, saveLeaveRecord, deleteLeaveRecord, getTotalDaysWorkedForEmployee } from "@/lib/storage";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Employee, LeaveRecord, LeaveType } from "@/lib/schema";
 import { calculateLeaveBalances, LeaveBalances } from "@/lib/leave";
-import { Plus, X, Tag } from "lucide-react";
+import { Plus, X, Tag, Trash2, Pencil, Save, MoreVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatDateSafe } from "@/lib/utils";
 
 function LeaveCard({
     icon: Icon,
@@ -78,17 +80,23 @@ function LeaveContent() {
     const [newLeave, setNewLeave] = React.useState({
         type: "annual" as LeaveType,
         days: "1",
-        date: new Date().toISOString().slice(0, 10),
+        date: formatDateSafe(new Date()),
+        note: "",
     });
+    const [editingNote, setEditingNote] = React.useState<string | null>(null);
+    const [noteValue, setNoteValue] = React.useState("");
 
     const load = React.useCallback(async () => {
         if (!employeeId) { setLoading(false); return; }
         const emp = await getEmployee(employeeId);
         setEmployee(emp);
         if (emp) {
-            const leaveRecords = await getLeaveForEmployee(employeeId);
+            const [leaveRecords, totalDaysWorked] = await Promise.all([
+                getLeaveForEmployee(employeeId),
+                getTotalDaysWorkedForEmployee(employeeId)
+            ]);
             setRecords(leaveRecords);
-            const bal = calculateLeaveBalances(emp.startDate || "", leaveRecords);
+            const bal = calculateLeaveBalances(emp.startDate || "", totalDaysWorked, leaveRecords);
             setBalances(bal);
         }
         setLoading(false);
@@ -106,17 +114,42 @@ function LeaveContent() {
             type: newLeave.type,
             days: parseFloat(newLeave.days),
             date: newLeave.date,
-            note: "",
+            note: newLeave.note,
         };
         await saveLeaveRecord(record);
         setShowAdd(false);
+        setNewLeave({ type: "annual", days: "1", date: formatDateSafe(new Date()), note: "" });
+        load();
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("Delete this leave record?")) return;
+        await deleteLeaveRecord(id);
+        load();
+    };
+
+    const handleUpdateNote = async (record: LeaveRecord) => {
+        await saveLeaveRecord({ ...record, note: noteValue });
+        setEditingNote(null);
         load();
     };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center py-20">
-                <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--amber-500)" }} />
+            <div className="space-y-4 animate-pulse">
+                <div className="flex items-center gap-3 mb-2">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-48" />
+                    </div>
+                </div>
+                <Skeleton className="h-14 w-full rounded-xl" />
+                <div className="space-y-3">
+                    <Skeleton className="h-32 w-full rounded-xl" />
+                    <Skeleton className="h-32 w-full rounded-xl" />
+                    <Skeleton className="h-32 w-full rounded-xl" />
+                </div>
             </div>
         );
     }
@@ -200,11 +233,11 @@ function LeaveContent() {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-xs">Date</Label>
+                            <Label className="text-xs">Note (Optional)</Label>
                             <Input
-                                type="date"
-                                value={newLeave.date}
-                                onChange={(e) => setNewLeave({ ...newLeave, date: e.target.value })}
+                                placeholder="e.g. Appointment, Flu"
+                                value={newLeave.note}
+                                onChange={(e) => setNewLeave({ ...newLeave, note: e.target.value })}
                             />
                         </div>
                         <Button className="w-full h-11" onClick={handleAddLeave}>Save Record</Button>
@@ -261,26 +294,57 @@ function LeaveContent() {
                             {records.map((r) => (
                                 <div
                                     key={r.id}
-                                    className="flex items-center justify-between py-2 text-sm"
+                                    className="py-3 space-y-2"
                                     style={{ borderBottom: "1px solid var(--border-subtle)" }}
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <span
-                                            className="h-2 w-2 rounded-full"
-                                            style={{
-                                                backgroundColor:
-                                                    r.type === "annual" ? "#c47a1c" :
-                                                        r.type === "sick" ? "#3b82f6" : "#10b981",
-                                            }}
-                                        />
-                                        <span style={{ color: "var(--text-primary)" }}>
-                                            {r.type.charAt(0).toUpperCase() + r.type.slice(1)}
-                                        </span>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span
+                                                className="h-2 w-2 rounded-full"
+                                                style={{
+                                                    backgroundColor:
+                                                        r.type === "annual" ? "#c47a1c" :
+                                                            r.type === "sick" ? "#3b82f6" : "#10b981",
+                                                }}
+                                            />
+                                            <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                                                {r.type.charAt(0).toUpperCase() + r.type.slice(1)}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{r.days}d</span>
+                                            <span className="text-xs" style={{ color: "var(--text-muted)" }}>{new Date(r.date).toLocaleDateString("en-ZA")}</span>
+                                            <div className="flex items-center gap-1 ml-2">
+                                                <button onClick={() => { setEditingNote(r.id); setNoteValue(r.note || ""); }} className="p-1.5 hover:bg-[var(--bg-subtle)] rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                                                    <Pencil className="h-3.5 w-3.5" />
+                                                </button>
+                                                <button onClick={() => handleDelete(r.id)} className="p-1.5 hover:bg-[var(--bg-subtle)] rounded-md text-[var(--text-muted)] hover:text-red-500">
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-4 text-xs" style={{ color: "var(--text-muted)" }}>
-                                        <span>{r.days}d</span>
-                                        <span>{new Date(r.date).toLocaleDateString("en-ZA")}</span>
-                                    </div>
+
+                                    {editingNote === r.id ? (
+                                        <div className="flex gap-2">
+                                            <Input
+                                                className="h-8 text-xs font-normal"
+                                                value={noteValue}
+                                                onChange={(e) => setNoteValue(e.target.value)}
+                                                autoFocus
+                                            />
+                                            <Button size="sm" className="h-8 px-2" onClick={() => handleUpdateNote(r)}>
+                                                <Save className="h-3 w-3" />
+                                            </Button>
+                                            <Button size="sm" variant="outline" className="h-8 px-2" onClick={() => setEditingNote(null)}>
+                                                <X className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                    ) : r.note && (
+                                        <p className="text-[11px] italic pl-4" style={{ color: "var(--text-secondary)" }}>
+                                            "{r.note}"
+                                        </p>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -299,14 +363,7 @@ function LeaveContent() {
 export default function LeavePage() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
-            <header
-                className="sticky top-0 z-30 px-4 py-3"
-                style={{
-                    backgroundColor: "var(--bg-surface)",
-                    borderBottom: "1px solid var(--border-subtle)",
-                    boxShadow: "var(--shadow-sm)",
-                }}
-            >
+            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                 <div className="max-w-xl mx-auto flex items-center gap-3">
                     <SideDrawer />
                     <Link href="/employees">
@@ -323,7 +380,7 @@ export default function LeavePage() {
                     </h1>
                 </div>
             </header>
-            <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6">
+            <main className="flex-1 px-4 py-6 content-container">
                 <React.Suspense
                     fallback={
                         <div className="flex items-center justify-center py-20">

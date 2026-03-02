@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-    ArrowLeft, Loader2, FileText, Download, Users,
+    ArrowLeft, Loader2, FileText, Download, Users, AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, getSettings } from "@/lib/storage";
 import { Employee, EmployerSettings } from "@/lib/schema";
 import { generateContractPdfBytes, ContractInput } from "@/lib/contract-pdf";
+import { generateDisciplinaryPdfBytes, DisciplinaryInput, DisciplinaryType } from "@/lib/disciplinary-pdf";
 
 export default function ContractsPage() {
     const [loading, setLoading] = React.useState(true);
@@ -71,16 +72,39 @@ export default function ContractsPage() {
         }, 50);
     };
 
+    const handleGenerateDisciplinary = async (type: DisciplinaryType) => {
+        if (!selectedEmployee || !settings) return;
+        setGenerating(true);
+        setTimeout(async () => {
+            try {
+                const input: DisciplinaryInput = {
+                    type,
+                    employee: selectedEmployee,
+                    employer: settings,
+                    date: new Date().toISOString(),
+                    offence: "General Misconduct",
+                    details: "Enter specific details of the incident here once printed.",
+                    actionRequired: "Ensure compliance with all site rules and regulations.",
+                };
+                const pdfBytes = await generateDisciplinaryPdfBytes(input);
+                const blob = new Blob([pdfBytes.slice(0)], { type: "application/pdf" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${type.replace("-", "_").toUpperCase()}_${selectedEmployee.name.replace(/\s+/g, "_")}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error("Disciplinary generation failed:", err);
+            } finally {
+                setGenerating(false);
+            }
+        }, 50);
+    };
+
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
-            <header
-                className="sticky top-0 z-30 px-4 py-3"
-                style={{
-                    backgroundColor: "var(--bg-surface)",
-                    borderBottom: "1px solid var(--border-subtle)",
-                    boxShadow: "var(--shadow-sm)",
-                }}
-            >
+            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                 <div className="max-w-xl mx-auto flex items-center gap-3">
                     <SideDrawer />
                     <Link href="/dashboard">
@@ -247,6 +271,37 @@ export default function ContractsPage() {
                                         <><Download className="h-5 w-5" /> Download Contract PDF</>
                                     )}
                                 </Button>
+
+                                {/* NEW: Disciplinary Templates Section */}
+                                <div className="pt-8 space-y-4 animate-slide-up delay-200">
+                                    <div className="flex items-center gap-2">
+                                        <AlertTriangle className="h-4 w-4 text-amber-600" />
+                                        <h2 className="font-black text-sm uppercase tracking-widest text-[var(--text-secondary)]">Disciplinary Templates</h2>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-3">
+                                        {[
+                                            { id: "verbal-warning", title: "Verbal Warning Record", icon: FileText },
+                                            { id: "written-warning", title: "Written Warning", icon: FileText },
+                                            { id: "final-warning", title: "Final Written Warning", icon: FileText },
+                                            { id: "disciplinary-notice", title: "Notice of Inquiry", icon: AlertTriangle },
+                                        ].map((t) => (
+                                            <Card key={t.id} className="hover:border-amber-500/50 cursor-pointer transition-all group" onClick={() => handleGenerateDisciplinary(t.id as any)}>
+                                                <CardContent className="p-4 flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+                                                            <t.icon className="h-4 w-4" />
+                                                        </div>
+                                                        <span className="text-sm font-bold">{t.title}</span>
+                                                    </div>
+                                                    <Download className="h-4 w-4 text-[var(--text-muted)] group-hover:text-amber-500" />
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                    <p className="text-[10px] text-[var(--text-muted)] italic text-center px-4">
+                                        Note: Disciplinary action must follow fair procedure as per the LRA. Consult a labor expert for complex cases.
+                                    </p>
+                                </div>
                             </>
                         ) : (
                             <Card className="animate-slide-up delay-75 border border-dashed border-amber-500/40 bg-amber-500/5 overflow-hidden relative">
@@ -256,14 +311,14 @@ export default function ContractsPage() {
                                         <FileText className="h-8 w-8 text-amber-600" />
                                     </div>
                                     <div className="space-y-2">
-                                        <h3 className="text-xl font-black tracking-tight text-amber-900 dark:text-amber-500">Contract Generator Locked</h3>
+                                        <h3 className="text-xl font-black tracking-tight text-amber-900 dark:text-amber-500">Legal Vault Locked</h3>
                                         <p className="text-sm text-amber-800/70 dark:text-amber-200/70 leading-relaxed max-w-sm mx-auto">
-                                            A watertight employment contract is your first line of defense at the CCMA. Upgrade to Pro to generate unlimited BCEA-compliant contracts instantly.
+                                            A watertight employment contract and proper disciplinary records are your first line of defense at the CCMA. Upgrade to Pro to unlock our full legal library.
                                         </p>
                                     </div>
                                     <Link href="/pricing" className="block pt-2">
                                         <Button className="w-full h-12 gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-md shadow-amber-500/20">
-                                            Unlock with Pro Lifetime
+                                            Unlock with Pro Lifetime (Save R3,000)
                                         </Button>
                                     </Link>
                                 </CardContent>
@@ -275,3 +330,4 @@ export default function ContractsPage() {
         </div>
     );
 }
+

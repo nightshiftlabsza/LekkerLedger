@@ -3,19 +3,23 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, Loader2, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Check, Clock, Sparkles, AlertCircle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Stepper } from "@/components/ui/stepper";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { SideDrawer } from "@/components/layout/side-drawer";
-import { getEmployees, savePayslip, getSecureTime, getSettings } from "@/lib/storage";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getEmployees, savePayslip, getSecureTime, getSettings, getUsageStats } from "@/lib/storage";
 import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import { getHolidaysInRange } from "@/lib/holidays";
+import { formatDateSafe } from "@/lib/utils";
 
 const STEPS = [
     { label: "Hours", description: "Ordinary & overtime" },
@@ -25,6 +29,7 @@ const STEPS = [
 ];
 
 const safeDate = (s: string): Date => {
+    if (!s) return new Date();
     const d = new Date(s);
     return isNaN(d.getTime()) ? new Date() : d;
 };
@@ -41,23 +46,56 @@ function WizardContent() {
     const [loading, setLoading] = React.useState(false);
 
     const now = new Date();
-    const defaultStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
-    const defaultEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+    const defaultStart = formatDateSafe(new Date(now.getFullYear(), now.getMonth(), 1));
+    const defaultEnd = formatDateSafe(new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
     const [hours, setHours] = React.useState({ ordinary: "", overtime: "", sunday: "", holiday: "" });
     const [shortFallHours, setShortFallHours] = React.useState("");
-    const [daysWorked, setDaysWorked] = React.useState("20");
+    const [daysWorked, setDaysWorked] = React.useState("0");
     const [dates, setDates] = React.useState({ start: defaultStart, end: defaultEnd });
+
+    // Automation States
+    const [showShortfallHelper, setShowShortfallHelper] = React.useState(false);
+    const [shortShiftCount, setShortShiftCount] = React.useState(0);
+    const [totalWorkedInShortShifts, setTotalWorkedInShortShifts] = React.useState(0);
+
+    const detectedHolidays = getHolidaysInRange(dates.start, dates.end);
+
+    const applyHolidays = () => {
+        const total = (detectedHolidays.length * 8).toString();
+        setHours(prev => ({ ...prev, holiday: total }));
+        toast(`Applied ${total} hours for ${detectedHolidays.length} holidays.`);
+    };
+
+    // Auto-calculate ordinary days (excluding Sundays) when period changes
+    React.useEffect(() => {
+        if (dates.start && dates.end) {
+            const start = safeDate(dates.start);
+            const end = safeDate(dates.end);
+            let count = 0;
+            const cur = new Date(start);
+            // Limit loop to prevent potential infinite if date logic bad
+            let safety = 0;
+            while (cur <= end && safety < 100) {
+                if (cur.getDay() !== 0) count++; // Exclude Sundays
+                cur.setDate(cur.getDate() + 1);
+                safety++;
+            }
+            setDaysWorked(count.toString());
+        }
+    }, [dates.start, dates.end]);
     const [periodError, setPeriodError] = React.useState("");
     const [includeAccommodation, setIncludeAccommodation] = React.useState(false);
     const [accommodationCost, setAccommodationCost] = React.useState("");
+    const [usageLimited, setUsageLimited] = React.useState(false);
 
     React.useEffect(() => {
         async function load() {
-            if (!empId) { router.push("/employees"); return; }
             const employees = await getEmployees();
             const emp = employees.find((e) => e.id === empId);
             if (emp) { setEmployee(emp); } else { router.push("/employees"); }
+            const stats = await getUsageStats();
+            setUsageLimited(stats.isLimited);
             setLoadingInitial(false);
         }
         load();
@@ -68,6 +106,8 @@ function WizardContent() {
         (Number(hours.overtime) || 0) +
         (Number(hours.sunday) || 0) +
         (Number(hours.holiday) || 0);
+
+    const [leave, setLeave] = React.useState({ annual: "", sick: "", family: "" });
 
     const breakdown = employee
         ? calculatePayslip({
@@ -87,14 +127,12 @@ function WizardContent() {
             includeAccommodation,
             accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
             otherDeductions: 0,
-            annualLeaveTaken: 0,
-            sickLeaveTaken: 0,
-            familyLeaveTaken: 0,
+            annualLeaveTaken: Number(leave.annual) || 0,
+            sickLeaveTaken: Number(leave.sick) || 0,
+            familyLeaveTaken: Number(leave.family) || 0,
             createdAt: new Date(),
         })
         : null;
-
-    const detectedHolidays = getHolidaysInRange(dates.start, dates.end);
 
     const handleNext = async () => {
         if (currentStep === 0) {
@@ -146,14 +184,25 @@ function WizardContent() {
                 includeAccommodation,
                 accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
                 otherDeductions: 0,
-                annualLeaveTaken: 0,
-                sickLeaveTaken: 0,
-                familyLeaveTaken: 0,
+                annualLeaveTaken: Number(leave.annual) || 0,
+                sickLeaveTaken: Number(leave.sick) || 0,
+                familyLeaveTaken: Number(leave.family) || 0,
                 createdAt: new Date(),
             };
 
             await savePayslip(payslipInput);
             toast("Payslip generated successfully!");
+            // Improvement #18: Trigger celebration
+            if (typeof window !== 'undefined') {
+                import('canvas-confetti').then(confetti => {
+                    confetti.default({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#f59e0b', '#fbbf24', '#ffffff']
+                    });
+                });
+            }
             router.push(`/preview?payslipId=${payslipInput.id}&empId=${employee.id}`);
         } catch (err) {
             console.error(err);
@@ -163,9 +212,9 @@ function WizardContent() {
 
     if (loadingInitial) {
         return (
-            <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
+            <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
                 <header className="sticky top-0 z-30 px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)]">
-                    <div className="max-w-xl mx-auto flex items-center justify-between">
+                    <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="h-9 w-9 rounded-xl bg-[var(--bg-subtle)] animate-pulse" />
                             <div className="space-y-2">
@@ -175,7 +224,7 @@ function WizardContent() {
                         </div>
                     </div>
                 </header>
-                <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-5 flex flex-col">
+                <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 space-y-5 flex flex-col">
                     <div className="h-24 w-full rounded-2xl bg-[var(--bg-surface)] animate-pulse border border-[var(--border-subtle)]" />
                     <div className="flex-1 w-full rounded-2xl bg-[var(--bg-surface)] animate-pulse border border-[var(--border-subtle)]" />
                 </main>
@@ -186,17 +235,10 @@ function WizardContent() {
     if (!employee) return null;
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
             {/* Header */}
-            <header
-                className="sticky top-0 z-30 px-4 py-3"
-                style={{
-                    backgroundColor: "var(--bg-surface)",
-                    borderBottom: "1px solid var(--border-subtle)",
-                    boxShadow: "var(--shadow-sm)",
-                }}
-            >
-                <div className="max-w-xl mx-auto flex items-center justify-between">
+            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SideDrawer />
                         <Link href="/employees">
@@ -229,7 +271,7 @@ function WizardContent() {
                 </div>
             </header>
 
-            <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-5">
+            <main className="flex-1 px-4 py-6 content-container">
                 {/* Stepper */}
                 <div
                     className="p-5 rounded-2xl"
@@ -242,7 +284,17 @@ function WizardContent() {
                     <Stepper steps={STEPS} currentStep={currentStep} />
                 </div>
 
-                {/* NMW notice */}
+                {usageLimited && (
+                    <Alert variant="warning" className="border-amber-500 bg-amber-50">
+                        <AlertCircle className="h-4 w-4 text-amber-600" />
+                        <AlertDescription className="text-amber-900">
+                            <strong>Free limit reached (2/month).</strong> Next payslip will be watermarked.
+                            <Link href="/pricing" className="ml-2 underline font-bold">Upgrade to Pro</Link>.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {/* National Minimum Wage notice */}
                 {employee.hourlyRate <= NMW_RATE && (
                     <Alert variant="warning">
                         <AlertDescription>
@@ -261,7 +313,7 @@ function WizardContent() {
                     <CardContent className="space-y-5">
                         {/* STEP 0 — Hours & Period */}
                         {currentStep === 0 && (
-                            <div className="space-y-5">
+                            <div className="space-y-6">
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="space-y-2">
                                         <Label htmlFor="start">Period Start</Label>
@@ -284,58 +336,124 @@ function WizardContent() {
                                     </div>
                                 </div>
 
-                                <div
-                                    className="pt-4 space-y-4"
-                                    style={{ borderTop: "1px solid var(--border-subtle)" }}
-                                >
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="shortFallHours">Shortfall Hrs (4-hr rule)</Label>
-                                            <Input
-                                                id="shortFallHours"
-                                                type="number"
-                                                min="0"
-                                                placeholder="e.g. 2"
-                                                value={shortFallHours}
-                                                onChange={(e) => setShortFallHours(e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="daysWorked">Total Days Worked</Label>
-                                            <Input
-                                                id="daysWorked"
-                                                type="number"
-                                                min="1"
-                                                max="31"
-                                                placeholder="20"
-                                                value={daysWorked}
-                                                onChange={(e) => setDaysWorked(e.target.value)}
-                                            />
+                                <div className="pt-4 space-y-5" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+                                            <Clock className="w-4 h-4 text-amber-500" />
+                                            Work Schedule
+                                        </h3>
+                                        <div className="flex gap-2">
+                                            {detectedHolidays.length > 0 && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 border-amber-500/30 text-amber-500 bg-amber-500/5 hover:bg-amber-500/10 text-[10px] gap-1.5 px-2"
+                                                    onClick={applyHolidays}
+                                                >
+                                                    <Sparkles className="w-3 h-3" />
+                                                    Apply Holidays
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
+
+                                    <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="ordinary">Ordinary Hours Worked</Label>
+                                            <Label htmlFor="ordinary" className="text-xs">Ordinary Hours</Label>
                                             <Input
                                                 id="ordinary"
                                                 type="number"
-                                                min="0"
-                                                placeholder="e.g. 160"
+                                                placeholder="160"
                                                 value={hours.ordinary}
                                                 onChange={(e) => setHours({ ...hours, ordinary: e.target.value })}
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="overtime">Overtime Hours (1.5× rate)</Label>
+                                            <Label htmlFor="daysWorked" className="text-xs">Days Worked</Label>
+                                            <Input
+                                                id="daysWorked"
+                                                type="number"
+                                                placeholder="20"
+                                                value={daysWorked}
+                                                onChange={(e) => setDaysWorked(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="overtime" className="text-xs">Overtime (1.5x)</Label>
                                             <Input
                                                 id="overtime"
                                                 type="number"
-                                                min="0"
                                                 placeholder="0"
                                                 value={hours.overtime}
                                                 onChange={(e) => setHours({ ...hours, overtime: e.target.value })}
                                             />
                                         </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="shortFallHours" className="text-xs">Shortfall (4-hr rule)</Label>
+                                            <Input
+                                                id="shortFallHours"
+                                                type="number"
+                                                placeholder="0"
+                                                value={shortFallHours}
+                                                onChange={(e) => setShortFallHours(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* 4-Hour Rule Assistant */}
+                                    <div className="p-4 rounded-xl border border-amber-500/10 bg-amber-500/[0.02] space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Info className="w-3.5 h-3.5 text-amber-500" />
+                                                <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-tight">4-Hour Rule Assistant</span>
+                                            </div>
+                                            <Switch
+                                                checked={showShortfallHelper}
+                                                onCheckedChange={setShowShortfallHelper}
+                                            />
+                                        </div>
+                                        {showShortfallHelper && (
+                                            <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-1">
+                                                        <Label className="text-[10px] text-zinc-500 font-bold uppercase">Short Shifts</Label>
+                                                        <Input
+                                                            type="number"
+                                                            className="h-8 text-xs bg-zinc-900 border-zinc-800"
+                                                            placeholder="e.g. 2"
+                                                            value={shortShiftCount || ""}
+                                                            onChange={(e) => setShortShiftCount(parseInt(e.target.value) || 0)}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label className="text-[10px] text-zinc-500 font-bold uppercase">Hrs Worked</Label>
+                                                        <Input
+                                                            type="number"
+                                                            className="h-8 text-xs bg-zinc-900 border-zinc-800"
+                                                            placeholder="e.g. 3"
+                                                            value={totalWorkedInShortShifts || ""}
+                                                            onChange={(e) => setTotalWorkedInShortShifts(parseFloat(e.target.value) || 0)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    className="w-full text-[10px] h-8 font-bold bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
+                                                    onClick={() => {
+                                                        const shortfall = (shortShiftCount * 4) - totalWorkedInShortShifts;
+                                                        if (shortfall > 0) {
+                                                            setShortFallHours((prev) => (parseFloat(prev || "0") + shortfall).toString());
+                                                            setShortShiftCount(0);
+                                                            setTotalWorkedInShortShifts(0);
+                                                            toast(`Added ${shortfall}h shortfall.`);
+                                                        }
+                                                    }}
+                                                >
+                                                    Calculate & Add
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -390,6 +508,45 @@ function WizardContent() {
                                         — worker has {totalHours > 24 ? "more than" : "24 or fewer"} hours per month.
                                     </AlertDescription>
                                 </Alert>
+
+                                <div className="pt-4 space-y-4" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+                                    <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4 text-amber-500" />
+                                        Leave Taken (This Month)
+                                    </h3>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] text-zinc-500 font-bold uppercase">Annual</Label>
+                                            <Input
+                                                type="number"
+                                                className="h-9 bg-zinc-900 border-zinc-800"
+                                                placeholder="0"
+                                                value={leave.annual}
+                                                onChange={(e) => setLeave({ ...leave, annual: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] text-zinc-500 font-bold uppercase">Sick</Label>
+                                            <Input
+                                                type="number"
+                                                className="h-9 bg-zinc-900 border-zinc-800"
+                                                placeholder="0"
+                                                value={leave.sick}
+                                                onChange={(e) => setLeave({ ...leave, sick: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] text-zinc-500 font-bold uppercase">Family</Label>
+                                            <Input
+                                                type="number"
+                                                className="h-9 bg-zinc-900 border-zinc-800"
+                                                placeholder="0"
+                                                value={leave.family}
+                                                onChange={(e) => setLeave({ ...leave, family: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <button
                                     type="button"
@@ -520,7 +677,7 @@ function WizardContent() {
                         </Button>
                     </CardFooter>
                 </Card>
-            </main>
+            </main >
         </div >
     );
 }

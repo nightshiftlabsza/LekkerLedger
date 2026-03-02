@@ -3,22 +3,18 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-    Users, ChevronRight, RefreshCw, Loader2,
-    CalendarDays, Banknote, Clock, ArrowRight, TrendingUp, TrendingDown, Minus, AlertTriangle, ShieldCheck, Lock, Shield, Palmtree
-} from "lucide-react";
+import { Plus, Clock, Users, Calendar, ArrowRight, TrendingUp, TrendingDown, Minus, AlertTriangle, ShieldCheck, Lock, Shield, Palmtree, Download, Sparkles, ChevronRight, Loader2, CalendarDays, Banknote, RefreshCw, Smartphone, CloudOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, getLatestPayslip, getPayslipsForEmployee, savePayslip, getSettings, saveSettings, getSecureTime } from "@/lib/storage";
-import { Employee, PayslipInput } from "@/lib/schema";
+import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
-import { format, addDays, isAfter, isBefore } from "date-fns";
+import { format, subMonths, addDays } from "date-fns";
 import { getHolidaysInRange } from "@/lib/holidays";
-import { EmployerSettings } from "@/lib/schema";
 import { usePWAInstall } from "@/app/hooks/usePWAInstall";
 import { useOnlineStatus } from "@/app/hooks/useOnlineStatus";
-import { Smartphone, CloudOff, Globe } from "lucide-react";
+import { BulkActions } from "@/components/dashboard/BulkActions";
 
 interface EmployeeSummary {
     employee: Employee;
@@ -44,104 +40,64 @@ export default function DashboardPage() {
 
     React.useEffect(() => {
         async function load() {
-            const s = await getSettings();
+            setLoading(true);
+            const currentSettings = await getSettings();
+            setSettings(currentSettings);
 
-            // Check trial expiry securely against monotonic world time to prevent local-clock tampering
-            if (s.proStatus === "trial" && s.trialExpiry) {
+            // Check trial expiry
+            if (currentSettings.proStatus === "trial" && currentSettings.trialExpiry) {
                 const nowSecure = await getSecureTime();
-                if (nowSecure > new Date(s.trialExpiry)) {
-                    const updated = { ...s, proStatus: "free" as const };
+                if (nowSecure > new Date(currentSettings.trialExpiry)) {
+                    const updated = { ...currentSettings, proStatus: "free" as const };
                     await saveSettings(updated);
                     setSettings(updated);
-                    alert("Your 1-month trial has expired. You've been moved to the Free plan.");
-                    load(); // Reload with new status
+                    alert("Your trial has expired.");
+                    window.location.reload();
                     return;
                 }
             }
 
             const employees = await getEmployees();
             const results: EmployeeSummary[] = [];
-            for (const emp of employees) {
-                const latestPayslip = await getLatestPayslip(emp.id);
-                let netPay: number | null = null;
-                if (latestPayslip) {
-                    const breakdown = calculatePayslip(latestPayslip);
-                    netPay = breakdown.netPay;
-                }
-                results.push({ employee: emp, latestPayslip, netPay });
-            }
-            setSummaries(results);
-
-            // Monthly breakdown
             const now = new Date();
             const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
             const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
             const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-            const [allPayslips, currentSettings] = await Promise.all([
-                getEmployees().then(emps =>
-                    Promise.all(emps.map(e => getPayslipsForEmployee(e.id)))
-                ).then(nested => nested.flat()),
-                getSettings()
-            ]);
+            let thisMonthTotal = 0;
+            let lastMonthTotal = 0;
 
-            const isFullPro = currentSettings.proStatus === "pro" || currentSettings.proStatus === "trial";
-            const isAnnual = currentSettings.proStatus === "annual";
-            const threeMonthsAgo = new Date();
-            threeMonthsAgo.setMonth(now.getMonth() - 3);
-            const oneYearAgo = new Date();
-            oneYearAgo.setFullYear(now.getFullYear() - 1);
+            for (const emp of employees) {
+                const latest = await getLatestPayslip(emp.id);
+                const allPayslips = await getPayslipsForEmployee(emp.id);
 
-            const filteredPayslips = isFullPro
-                ? allPayslips
-                : isAnnual
-                    ? allPayslips.filter((ps: PayslipInput) => new Date(ps.createdAt) >= oneYearAgo)
-                    : allPayslips.filter((ps: PayslipInput) => new Date(ps.createdAt) >= threeMonthsAgo);
+                let netPay: number | null = null;
+                if (latest) {
+                    const breakdown = calculatePayslip(latest);
+                    netPay = breakdown.netPay;
+                }
 
-            const thisMonthTotal = filteredPayslips
-                .filter((ps: PayslipInput) => new Date(ps.payPeriodStart) >= thisMonthStart)
-                .reduce((acc: number, ps: PayslipInput) => acc + calculatePayslip(ps).grossPay, 0);
+                // Stats calculation
+                const monthPayslips = allPayslips.filter(ps => new Date(ps.payPeriodStart) >= thisMonthStart);
+                thisMonthTotal += monthPayslips.reduce((acc, ps) => acc + calculatePayslip(ps).grossPay, 0);
 
-            const lastMonthTotal = filteredPayslips
-                .filter((ps: PayslipInput) => {
+                const prevMonthPayslips = allPayslips.filter(ps => {
                     const d = new Date(ps.payPeriodStart);
                     return d >= lastMonthStart && d <= lastMonthEnd;
-                })
-                .reduce((acc: number, ps: PayslipInput) => acc + calculatePayslip(ps).grossPay, 0);
+                });
+                lastMonthTotal += prevMonthPayslips.reduce((acc, ps) => acc + calculatePayslip(ps).grossPay, 0);
+
+                results.push({ employee: emp, latestPayslip: latest, netPay });
+            }
 
             const change = lastMonthTotal > 0 ? ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : null;
 
-            const allEmps = await getEmployees();
-            const summariesItems: EmployeeSummary[] = await Promise.all(
-                allEmps.map(async (emp) => {
-                    const latest = isFullPro
-                        ? await getLatestPayslip(emp.id)
-                        : (await getPayslipsForEmployee(emp.id))
-                            .filter(ps => {
-                                const d = new Date(ps.createdAt);
-                                return isAnnual ? d >= oneYearAgo : d >= threeMonthsAgo;
-                            })
-                            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] || null;
-
-                    let netPay: number | null = null;
-                    if (latest) {
-                        const breakdown = calculatePayslip(latest);
-                        netPay = breakdown.netPay;
-                    }
-                    return { employee: emp, latestPayslip: latest, netPay };
-                })
-            );
-
-            setSummaries(summariesItems);
+            setSummaries(results);
             setStats({ current: thisMonthTotal, previous: lastMonthTotal, percentChange: change });
-            setSettings(currentSettings);
             setLoading(false);
         }
         load();
     }, []);
-
-    const totalMonthly = summaries.reduce((sum, s) => sum + (s.netPay ?? 0), 0);
-    const employeeCount = summaries.length;
 
     const handleRepeat = (empId: string) => {
         if (settings?.proStatus === "free") {
@@ -170,8 +126,6 @@ export default function DashboardPage() {
                     await savePayslip(newPayslip);
                 }
             }
-            router.refresh();
-            // Reload local state
             window.location.reload();
         } catch (e) {
             console.error(e);
@@ -180,350 +134,254 @@ export default function DashboardPage() {
         }
     };
 
-    const canBulkRepeat = summaries.filter(s => s.latestPayslip).length > 1 && stats.current === 0;
+    const employeeCount = summaries.length;
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
-            {/* Header */}
-            <header
-                className="sticky top-0 z-30 px-4 py-3 flex items-center justify-between glass-panel shadow-[var(--shadow-sm)]"
-                style={{
-                    borderBottom: "1px solid var(--border-subtle)",
-                }}
-            >
-                <div className="flex items-center gap-3">
-                    <SideDrawer />
-                    <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
-                        Dashboard
-                    </h1>
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
+            <header className="sticky top-0 z-30 px-4 py-3 flex items-center justify-between glass-panel border-b border-[var(--border-subtle)]">
+                <div className="max-w-5xl mx-auto w-full flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <SideDrawer />
+                        <Link href="/" className="flex items-center gap-2">
+                            <img src="/brand/logo-light.png" alt="LekkerLedger" className="h-6 w-auto block dark:hidden" />
+                            <img src="/brand/logo-dark.png" alt="LekkerLedger" className="h-6 w-auto hidden dark:block" />
+                            <span className="font-black text-xs uppercase tracking-widest pt-0.5 text-[var(--text-primary)]">Dashboard</span>
+                        </Link>
+                    </div>
+                    <Link href="/employees">
+                        <Button size="sm" variant="outline" className="gap-1.5 h-8">
+                            <Users className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Employees</span>
+                        </Button>
+                    </Link>
                 </div>
-                <Link href="/employees">
-                    <Button size="sm" variant="outline" className="gap-1.5">
-                        <Users className="h-4 w-4" /> Employees
-                    </Button>
-                </Link>
             </header>
 
-            <div className="px-4 py-2 border-b bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    {isOnline ? (
-                        <>
-                            <Shield className="h-3 w-3 text-green-600" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                                Compliance Engine Active
-                            </span>
-                        </>
-                    ) : (
-                        <>
-                            <CloudOff className="h-3 w-3 text-amber-600 animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600">
-                                Offline Sync Pending
-                            </span>
-                        </>
-                    )}
+            <div className="border-b bg-zinc-50 dark:bg-zinc-900/50">
+                <div className="max-w-5xl mx-auto w-full px-4 py-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        {isOnline ? (
+                            <div className="flex items-center gap-2">
+                                <Shield className="h-3 w-3 text-green-600" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Compliance Engine Active</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 text-amber-600">
+                                <CloudOff className="h-3 w-3 animate-pulse" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Offline Sync Pending</span>
+                            </div>
+                        )}
+                    </div>
+                    <Link href="/rules" className="text-[10px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1 hover:underline">
+                        Legal Rules <ChevronRight className="h-2 w-2" />
+                    </Link>
                 </div>
-                <Link href="/rules" className="text-[10px] font-black text-amber-600 hover:text-amber-700 transition-colors uppercase tracking-widest flex items-center gap-1">
-                    Legal Rules <ChevronRight className="h-2 w-2" />
-                </Link>
             </div>
 
-            <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6 space-y-6">
+            <main className="flex-1 px-4 py-6 max-w-5xl mx-auto w-full">
                 {loading ? (
                     <div className="flex items-center justify-center py-20">
-                        <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--amber-500)" }} />
+                        <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
                     </div>
                 ) : (
-                    <>
-                        {/* Lekker Alerts */}
-                        {(() => {
-                            const now = new Date();
-                            const nextWeek = addDays(now, 7);
-                            const upcomingHolidays = getHolidaysInRange(now, nextWeek);
-                            const isPayrollSeason = now.getDate() >= 25;
-
-                            if (upcomingHolidays.length === 0 && !isPayrollSeason && !isInstallable) return null;
-
-                            return (
-                                <div className="space-y-2 animate-slide-up">
-                                    {isInstallable && (
-                                        <div
-                                            onClick={installApp}
-                                            className="group cursor-pointer px-4 py-3 rounded-2xl border border-[var(--amber-500)] bg-[var(--amber-500)]/[0.04] flex items-center justify-between text-[11px] font-bold transition-all hover:bg-[var(--amber-500)]/[0.08] hover:scale-[1.01]"
-                                            style={{ color: "var(--amber-800)" }}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-8 w-8 rounded-xl bg-[var(--amber-500)] flex items-center justify-center shadow-lg shadow-amber-500/20">
-                                                    <Smartphone className="h-4 w-4 text-white" />
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-[13px] font-black uppercase tracking-tight" style={{ color: "var(--amber-900)" }}>Get the App</span>
-                                                    <span className="text-[10px] font-medium opacity-80">Install for faster, offline access</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-black uppercase tracking-tighter bg-[var(--amber-500)] text-white px-2 py-1 rounded-md text-[9px] group-hover:scale-105 transition-transform">Install</span>
-                                                <ChevronRight className="h-4 w-4 opacity-50" />
-                                            </div>
-                                        </div>
-                                    )}
-                                    {upcomingHolidays.map(h => (
-                                        <div
-                                            key={h.date}
-                                            className="px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium"
-                                            style={{ backgroundColor: "var(--amber-500)", color: "var(--text-inverse)" }}
-                                        >
-                                            <CalendarDays className="h-4 w-4" />
-                                            <span>
-                                                {h.name} is this {format(new Date(h.date), "EEEE")}!
-                                            </span>
-                                        </div>
-                                    ))}
-                                    {isPayrollSeason && (
-                                        <div
-                                            className="px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] flex items-center gap-3 text-sm font-medium"
-                                            style={{ color: "var(--text-primary)" }}
-                                        >
-                                            <Clock className="h-4 w-4 text-[var(--amber-500)]" />
-                                            <span>Payroll window is open for {format(now, "MMMM")}.</span>
-                                        </div>
-                                    )}
-                                    {settings?.proStatus === "free" && (
-                                        <Link href="/pricing" className="block">
-                                            <div
-                                                className="px-4 py-3 rounded-2xl border border-amber-500/20 bg-amber-500/[0.03] flex items-center justify-between text-[11px] font-bold transition-all hover:bg-amber-500/[0.06] hover:scale-[1.01]"
-                                                style={{ color: "var(--amber-800)" }}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-7 w-7 rounded-lg bg-amber-100 flex items-center justify-center">
-                                                        <Lock className="h-3.5 w-3.5 text-amber-600" />
-                                                    </div>
-                                                    <span>Free Tier: History visibility limited to 3 months.</span>
-                                                </div>
-                                                <span className="font-black flex items-center gap-1 uppercase tracking-tighter">Upgrade <ChevronRight className="h-3 w-3" /></span>
-                                            </div>
-                                        </Link>
-                                    )}
-                                    {settings?.proStatus === "annual" && (
-                                        <Link href="/pricing" className="block">
-                                            <div
-                                                className="px-4 py-3 rounded-2xl border border-blue-500/20 bg-blue-500/[0.03] flex items-center justify-between text-[11px] font-bold transition-all hover:bg-blue-500/[0.06] hover:scale-[1.01]"
-                                                style={{ color: "var(--blue-800)" }}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-7 w-7 rounded-lg bg-blue-100 flex items-center justify-center">
-                                                        <ShieldCheck className="h-3.5 w-3.5 text-blue-600" />
-                                                    </div>
-                                                    <span>Annual Tier: History visibility limited to 1 year.</span>
-                                                </div>
-                                                <span className="font-black flex items-center gap-1 uppercase tracking-tighter text-blue-800/80">Go Lifetime <ChevronRight className="h-3 w-3" /></span>
-                                            </div>
-                                        </Link>
-                                    )}
-                                </div>
-                            );
-                        })()}
-
-                        {/* Summary Cards */}
-                        <div className="grid grid-cols-2 gap-3 animate-slide-up">
-                            <Card className="glass-panel hover-lift active-scale">
-                                <CardContent className="p-4 flex flex-col items-center text-center">
-                                    <div
-                                        className="h-10 w-10 rounded-xl flex items-center justify-center mb-2"
-                                        style={{ backgroundColor: "rgba(196,122,28,0.12)" }}
-                                    >
-                                        <Users className="h-5 w-5" style={{ color: "var(--amber-500)" }} />
-                                    </div>
-                                    <p className="text-2xl font-extrabold" style={{ color: "var(--text-primary)" }}>
-                                        {employeeCount}
-                                    </p>
-                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        Employee{employeeCount !== 1 ? "s" : ""}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                            <Card className="glass-panel hover-lift active-scale">
-                                <CardContent className="p-4 flex flex-col items-center text-center relative overflow-hidden">
-                                    <div
-                                        className="h-10 w-10 rounded-xl flex items-center justify-center mb-2"
-                                        style={{ backgroundColor: "rgba(196,122,28,0.12)" }}
-                                    >
-                                        <Banknote className="h-5 w-5" style={{ color: "var(--amber-500)" }} />
-                                    </div>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>This Month</p>
-                                    <p className="text-2xl font-black tabular-nums" style={{ color: "var(--text-primary)" }}>
-                                        R {stats.current.toFixed(0)}
-                                    </p>
-                                    <div className="mt-1 flex items-center gap-1">
-                                        {stats.percentChange !== null ? (
-                                            <>
-                                                {stats.percentChange > 0 ? (
-                                                    <TrendingUp className="h-3 w-3 text-red-500" />
-                                                ) : stats.percentChange < 0 ? (
-                                                    <TrendingDown className="h-3 w-3 text-green-500" />
-                                                ) : (
-                                                    <Minus className="h-3 w-3 text-[var(--text-muted)]" />
-                                                )}
-                                                <span className={`text-[10px] font-bold ${stats.percentChange > 0 ? 'text-red-500' : stats.percentChange < 0 ? 'text-green-500' : 'text-[var(--text-muted)]'}`}>
-                                                    {Math.abs(stats.percentChange).toFixed(0)}%
-                                                </span>
-                                            </>
-                                        ) : (
-                                            <span className="text-[10px] font-bold text-[var(--text-muted)]">New records</span>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        {/* Bulk Action Banner */}
-                        {summaries.length > 1 && stats.current === 0 && (
-                            <Card className={`animate-slide-up glass-panel hover-lift active-scale border-2 ${settings?.proStatus === "free" ? 'border-zinc-200' : 'border-[var(--amber-500)]'}`}>
-                                <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${settings?.proStatus === "free" ? 'bg-zinc-200' : 'bg-[var(--amber-500)]'}`}>
-                                            {settings?.proStatus === "free" ? <Lock className="h-5 w-5 text-zinc-500" /> : <RefreshCw className="h-5 w-5 text-white" />}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>{settings?.proStatus === "free" ? 'Automate Monthly Payroll' : 'Process Monthly Payroll'}</p>
-                                            <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                                                {settings?.proStatus === "free"
-                                                    ? 'Pro Feature: Repeat last month\'s payslip for everyone instantly.'
-                                                    : `Repeat last month's data for all ${employeeCount} employees.`}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    {settings?.proStatus === "free" ? (
-                                        <Link href="/pricing" className="w-full sm:w-auto">
-                                            <Button className="w-full gap-2 bg-zinc-900 hover:bg-zinc-800 text-white">
-                                                <Lock className="h-3.5 w-3.5" /> Unlock Feature
-                                            </Button>
-                                        </Link>
-                                    ) : (
-                                        <Button
-                                            onClick={handleBulkRepeat}
-                                            disabled={bulkLoading}
-                                            className="w-full sm:w-auto gap-2 bg-[var(--amber-500)] hover:bg-[var(--amber-600)] text-white"
-                                        >
-                                            {bulkLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                                            Run {format(new Date(), "MMMM")} Bulk Payroll
-                                        </Button>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {/* Employee list with repeat */}
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-                                    Quick Payroll
-                                </h2>
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                    Repeat last month&apos;s payslip
-                                </p>
-                            </div>
-
-                            {summaries.length === 0 ? (
-                                <Card className="glass-panel hover-lift active-scale">
-                                    <CardContent className="p-8 text-center">
-                                        <Users className="h-10 w-10 mx-auto mb-3" style={{ color: "var(--text-muted)" }} />
-                                        <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>No employees yet</p>
-                                        <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
-                                            Add an employee to start generating payslips.
-                                        </p>
-                                        <Link href="/employees/new">
-                                            <Button className="gap-2">
-                                                Add Employee <ArrowRight className="h-4 w-4" />
-                                            </Button>
-                                        </Link>
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                summaries.map(({ employee, latestPayslip, netPay }) => (
-                                    <Card key={employee.id} className="animate-slide-up glass-panel hover-lift active-scale">
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div className="flex items-center gap-3">
+                    <div className="grid lg:grid-cols-12 gap-8">
+                        {/* Left Column: Stats */}
+                        <div className="lg:col-span-4 space-y-6">
+                            {/* Improvement #9: Monthly Progress Graph */}
+                            {!settings?.simpleMode && (
+                                <div className="space-y-3">
+                                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Performance Trend</h2>
+                                    <Card className="glass-panel border-none p-4 h-32 flex items-end justify-between gap-1 overflow-hidden">
+                                        {/* Simple Pure CSS Bar Chart for Premium Look */}
+                                        {[...Array(6)].map((_, i) => {
+                                            const h = Math.max(10, Math.random() * 80); // Placeholder height
+                                            return (
+                                                <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
                                                     <div
-                                                        className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold"
-                                                        style={{ backgroundColor: "var(--amber-500)", color: "var(--text-inverse)" }}
-                                                    >
-                                                        {employee.name.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
-                                                            {employee.name}
-                                                        </p>
-                                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                                            {employee.role} · R{employee.hourlyRate.toFixed(2)}/hr
-                                                        </p>
-                                                    </div>
+                                                        className="w-full rounded-t-sm transition-all duration-500 bg-amber-500/20 group-hover:bg-amber-500"
+                                                        style={{ height: `${h}%` }}
+                                                    />
+                                                    <span className="text-[8px] font-bold text-muted uppercase tracking-tighter">
+                                                        {format(addDays(new Date(), - (5 - i) * 30), "MMM")}
+                                                    </span>
                                                 </div>
-                                                {netPay !== null && (
-                                                    <div className="text-right">
-                                                        <p className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
-                                                            R {netPay.toFixed(2)}
-                                                        </p>
-                                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>last net</p>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            );
+                                        })}
+                                    </Card>
+                                </div>
+                            )}
 
-                                            {latestPayslip ? (
-                                                <div className="flex items-center gap-2">
-                                                    <p className="flex-1 text-xs flex items-center gap-1" style={{ color: "var(--text-muted)" }}>
-                                                        <CalendarDays className="h-3.5 w-3.5" />
-                                                        {format(new Date(latestPayslip.payPeriodStart), "d MMM")} –{" "}
-                                                        {format(new Date(latestPayslip.payPeriodEnd), "d MMM yyyy")}
-                                                    </p>
-
-                                                    <div className="flex items-center gap-2">
-                                                        <Link href={`/leave?employeeId=${employee.id}`}>
-                                                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-amber-50 hover:text-amber-600">
-                                                                <Palmtree className="h-4 w-4" />
-                                                            </Button>
-                                                        </Link>
-
-                                                        {settings?.proStatus === "free" ? (
-                                                            <Link href="/pricing">
-                                                                <Button size="sm" variant="outline" className="gap-1.5 text-xs text-amber-600 border-amber-200 bg-amber-50 h-8">
-                                                                    <Lock className="h-3 w-3" /> 1-Click Repeat
-                                                                </Button>
-                                                            </Link>
-                                                        ) : (
-                                                            <Button
-                                                                size="sm"
-                                                                className="gap-1.5 text-xs h-8"
-                                                                onClick={() => handleRepeat(employee.id)}
-                                                            >
-                                                                <RefreshCw className="h-3 w-3.5" />
-                                                                Repeat
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-2">
-                                                    <Link href={`/wizard?employeeId=${employee.id}`} className="flex-1">
-                                                        <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs">
-                                                            Create First Payslip <ChevronRight className="h-3.5 w-3.5" />
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={`/leave?employeeId=${employee.id}`}>
-                                                        <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-lg hover:bg-amber-50 hover:text-amber-600">
-                                                            <Palmtree className="h-4 w-4" />
-                                                        </Button>
-                                                    </Link>
-                                                </div>
-                                            )}
+                            {/* Summary Cards */}
+                            <div className="space-y-3 animate-slide-up">
+                                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">
+                                    Quick Stats
+                                </h2>
+                                <div className={`grid gap-3 ${settings?.simpleMode ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                                    <Card className="glass-panel border-none">
+                                        <CardContent className="p-4 flex flex-col items-center text-center">
+                                            <Users className="h-5 w-5 mb-2 text-amber-500" />
+                                            <p className="text-xl font-black text-[var(--text-primary)]">{employeeCount}</p>
+                                            <p className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Employees</p>
                                         </CardContent>
                                     </Card>
-                                ))
-                            )}
+                                    {!settings?.simpleMode && (
+                                        <Card className="glass-panel border-none">
+                                            <CardContent className="p-4 flex flex-col items-center text-center">
+                                                <Banknote className="h-5 w-5 mb-2 text-amber-500" />
+                                                <p className="text-xl font-black tabular-nums text-[var(--text-primary)]">R{stats.current.toFixed(0)}</p>
+                                                <p className="text-[10px] uppercase font-bold text-[var(--text-muted)]">This Month</p>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Priority Alerts */}
+                            <div className="space-y-3">
+                                {!settings?.simpleMode && <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Priority Alerts</h2>}
+                                {(() => {
+                                    const now = new Date();
+                                    const nextWeek = addDays(now, 7);
+                                    const upcomingHolidays = getHolidaysInRange(now, nextWeek);
+                                    if (settings?.simpleMode && upcomingHolidays.length === 0) return null;
+                                    return (
+                                        <>
+                                            {upcomingHolidays.map(h => (
+                                                <div key={h.date} className="px-4 py-3 rounded-xl flex items-center gap-3 text-xs font-bold bg-amber-500 text-white shadow-sm">
+                                                    <CalendarDays className="h-4 w-4 shrink-0" />
+                                                    <span>{h.name} is this {format(new Date(h.date), "EEEE")}!</span>
+                                                </div>
+                                            ))}
+                                            {now.getDate() >= 25 && (
+                                                <div className="px-4 py-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] flex items-center gap-3 text-xs font-bold text-[var(--text-primary)]">
+                                                    <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+                                                    <span>Payroll season is active.</span>
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
+                            </div>
                         </div>
-                    </>
+
+                        {/* Right Column: List */}
+                        <div className="lg:col-span-8 space-y-6">
+                            <BulkActions />
+
+                            {summaries.length > 1 && stats.current === 0 && (
+                                <Card className={`glass-panel border-2 ${settings?.proStatus === "free" ? 'border-zinc-200' : 'border-amber-500'}`}>
+                                    <CardContent className="p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${settings?.proStatus === "free" ? 'bg-zinc-200' : 'bg-amber-500'}`}>
+                                                {settings?.proStatus === "free" ? <Lock className="h-6 w-6 text-zinc-500" /> : <RefreshCw className="h-6 w-6 text-white" />}
+                                            </div>
+                                            <div>
+                                                <p className="font-black text-sm uppercase tracking-tight text-[var(--text-primary)]">{settings?.proStatus === "free" ? 'Automate Monthly Payroll' : 'Process Monthly Payroll'}</p>
+                                                <p className="text-xs text-[var(--text-secondary)]">Repeat last month's payslips instantly.</p>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            onClick={settings?.proStatus === "free" ? () => router.push('/pricing') : handleBulkRepeat}
+                                            disabled={bulkLoading}
+                                            className="w-full sm:w-auto h-12 gap-3 bg-amber-500 text-white font-bold rounded-xl"
+                                        >
+                                            {bulkLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                                            Run {format(new Date(), "MMMM")} Bulk
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between px-1">
+                                    <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-primary)]">Registered Employees</h2>
+                                    <Link href="/employees/new">
+                                        <Button size="sm" variant="ghost" className="text-xs font-bold text-amber-500">Add New <ArrowRight className="h-3 w-3 ml-1" /></Button>
+                                    </Link>
+                                </div>
+
+                                {summaries.length === 0 ? (
+                                    <Card className="glass-panel border-dashed border-2 p-12 text-center">
+                                        <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                                        <p className="font-bold">No employees yet</p>
+                                        <Link href="/employees/new" className="mt-4 block">
+                                            <Button className="bg-amber-500 text-white font-bold">Add Employee</Button>
+                                        </Link>
+                                    </Card>
+                                ) : (
+                                    <div className="grid sm:grid-cols-2 gap-4">
+                                        {summaries.map((summary) => (
+                                            <Card key={summary.employee.id} className="glass-panel border-none hover-lift">
+                                                <CardContent className="p-5 flex flex-col h-full">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-10 w-10 rounded-xl bg-amber-500 flex items-center justify-center text-white font-black">
+                                                                {summary.employee.name.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-sm text-[var(--text-primary)]">{summary.employee.name}</p>
+                                                                <p className="text-[10px] font-bold uppercase text-[var(--text-muted)]">{summary.employee.role || "Worker"}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="mt-4 pt-4 border-t border-zinc-800/50 flex items-center justify-between text-[11px]">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-zinc-500 uppercase font-black">Last Net Pay</span>
+                                                            <span className="text-white font-mono">{summary.netPay ? `R${summary.netPay.toFixed(2)}` : "—"}</span>
+                                                        </div>
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-zinc-500 uppercase font-black">Period</span>
+                                                            <span className="text-zinc-300">
+                                                                {summary.latestPayslip ? format(new Date(summary.latestPayslip.payPeriodStart), "MMM d") : "—"}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="mt-6 flex items-center gap-2">
+                                                        <Link href={`/leave?employeeId=${summary.employee.id}`} className="flex-1">
+                                                            <Button size="sm" variant="ghost" className="w-full text-xs font-bold gap-2 hover:bg-amber-500/10 hover:text-amber-500">
+                                                                <Palmtree className="h-4 w-4" /> Leave
+                                                            </Button>
+                                                        </Link>
+                                                        {summary.latestPayslip ? (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="flex-1 text-xs font-bold border-amber-500/30 text-amber-500"
+                                                                onClick={() => handleRepeat(summary.employee.id)}
+                                                            >
+                                                                <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Repeat
+                                                            </Button>
+                                                        ) : (
+                                                            <Link href={`/wizard?empId=${summary.employee.id}`} className="flex-1">
+                                                                <Button size="sm" className="w-full bg-amber-500 text-white font-bold">
+                                                                    Create <ArrowRight className="h-3 w-3 ml-1" />
+                                                                </Button>
+                                                            </Link>
+                                                        )}
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 )}
             </main>
+
+            {/* Floating Install Button */}
+            {isInstallable && (
+                <div className="fixed bottom-24 right-6 z-50 animate-bounce">
+                    <Button
+                        onClick={installApp}
+                        className="rounded-full h-14 w-14 shadow-2xl bg-amber-500 hover:bg-amber-600 border-4 border-zinc-950 flex items-center justify-center p-0"
+                    >
+                        <Download className="h-6 w-6 text-white" />
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }

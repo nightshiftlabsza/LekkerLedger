@@ -11,30 +11,23 @@ export default function RulesPage() {
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
-            <header
-                className="sticky top-0 z-30 px-4 py-3"
-                style={{
-                    backgroundColor: "var(--bg-surface)",
-                    borderBottom: "1px solid var(--border-subtle)",
-                    boxShadow: "var(--shadow-sm)",
-                }}
-            >
-                <div className="max-w-xl mx-auto flex items-center gap-3">
-                    <button
-                        aria-label="Back"
-                        onClick={() => router.back()}
-                        className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--bg-subtle)]"
-                        style={{ color: "var(--text-secondary)" }}
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                    </button>
-                    <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
-                        SA Domestic Worker Rules (2026)
-                    </h1>
+            {/* Header */}
+            <header className="sticky top-0 z-30 px-4 py-4 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Link href="/">
+                            <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-xl hover:bg-[var(--bg-subtle)]">
+                                <ArrowLeft className="h-4 w-4" />
+                            </Button>
+                        </Link>
+                        <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
+                            Legal Guide
+                        </h1>
+                    </div>
                 </div>
             </header>
 
-            <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-6">
+            <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8 space-y-8">
                 <div className="text-center space-y-2 mb-6">
                     <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(196,122,28,0.1)", color: "var(--amber-500)" }}>
                         <BookOpen className="h-6 w-6" />

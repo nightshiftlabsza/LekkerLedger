@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Save, Sparkles, Check } from "lucide-react";
+import { useRouter, useParams } from "next/navigation";
+import { ArrowLeft, Loader2, Save, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,45 +11,52 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { EmployeeSchema, Employee } from "@/lib/schema";
-import { saveEmployee, getEmployees, getSettings } from "@/lib/storage";
+import { saveEmployee, getEmployee } from "@/lib/storage";
 import { NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
-import { EmployerSettings } from "@/lib/schema";
 
-export default function AddEmployeePage() {
+export default function EditEmployeePage() {
     const router = useRouter();
+    const params = useParams();
+    const id = params?.id as string;
     const { toast } = useToast();
-    const [loading, setLoading] = React.useState(false);
+
+    const [loading, setLoading] = React.useState(true);
+    const [saving, setSaving] = React.useState(false);
     const [formData, setFormData] = React.useState({
         name: "",
         idNumber: "",
         hourlyRate: NMW_RATE.toString(),
         role: "Domestic Worker",
         phone: "",
-        startDate: new Date().toISOString().slice(0, 10),
+        startDate: "",
         ordinarilyWorksSundays: false,
         ordinaryHoursPerDay: "8",
-        frequency: "Monthly",
     });
     const [errors, setErrors] = React.useState<Record<string, string>>({});
-    const [canAdd, setCanAdd] = React.useState(true);
-    const [tierLimitReached, setTierLimitReached] = React.useState<"free" | "annual" | null>(null);
 
     React.useEffect(() => {
-        async function checkLimit() {
-            const [emps, settings] = await Promise.all([getEmployees(), getSettings()]);
-            const tier = settings.proStatus || "free";
-
-            if (tier === "free" && emps.length >= 1) {
-                setCanAdd(false);
-                setTierLimitReached("free");
-            } else if (tier === "annual" && emps.length >= 3) {
-                setCanAdd(false);
-                setTierLimitReached("annual");
+        async function load() {
+            if (!id) return;
+            const emp = await getEmployee(id);
+            if (!emp) {
+                router.push("/employees");
+                return;
             }
+            setFormData({
+                name: emp.name,
+                idNumber: emp.idNumber || "",
+                hourlyRate: emp.hourlyRate.toString(),
+                role: emp.role || "Domestic Worker",
+                phone: emp.phone || "",
+                startDate: emp.startDate || "",
+                ordinarilyWorksSundays: emp.ordinarilyWorksSundays ?? false,
+                ordinaryHoursPerDay: (emp.ordinaryHoursPerDay ?? 8).toString(),
+            });
+            setLoading(false);
         }
-        checkLimit();
-    }, []);
+        load();
+    }, [id, router]);
 
     const hourlyRateNum = parseFloat(formData.hourlyRate) || 0;
     const belowNMW = hourlyRateNum > 0 && hourlyRateNum < NMW_RATE;
@@ -59,7 +66,7 @@ export default function AddEmployeePage() {
         setErrors({});
 
         const submissionData = {
-            id: crypto.randomUUID(),
+            id,
             ...formData,
             hourlyRate: parseFloat(formData.hourlyRate),
             ordinaryHoursPerDay: Number(formData.ordinaryHoursPerDay) || 8,
@@ -75,35 +82,39 @@ export default function AddEmployeePage() {
             return;
         }
 
-        setLoading(true);
+        setSaving(true);
         try {
             await saveEmployee(parsed.data as Employee);
-            toast(`${formData.name} saved successfully!`);
+            toast("Changes saved successfully!");
             router.push("/employees");
         } catch (err) {
             console.error(err);
             setErrors({ form: "Failed to save. Please try again." });
-            setLoading(false);
+            setSaving(false);
         }
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[var(--bg-base)]">
+                <Loader2 className="h-8 w-8 animate-spin text-[var(--amber-500)]" />
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
             {/* Header */}
             <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                 <div className="max-w-xl mx-auto flex items-center gap-3">
                     <SideDrawer />
                     <Link href="/employees">
-                        <button
-                            aria-label="Back"
-                            className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--bg-subtle)]"
-                            style={{ color: "var(--text-secondary)" }}
-                        >
+                        <button className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)]">
                             <ArrowLeft className="h-4 w-4" />
                         </button>
                     </Link>
                     <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
-                        Add Employee
+                        Edit Employee
                     </h1>
                 </div>
             </header>
@@ -112,17 +123,6 @@ export default function AddEmployeePage() {
                 <Card className="animate-slide-up">
                     <CardContent className="p-6">
                         <form onSubmit={handleSave} className="space-y-5">
-                            {!canAdd && (
-                                <Alert variant="default" className="border-amber-500 bg-amber-50">
-                                    <Sparkles className="h-4 w-4 text-amber-600" />
-                                    <AlertDescription className="text-amber-800">
-                                        <strong>{tierLimitReached === "annual" ? "Annual" : "Standard"} Tier Limit:</strong>
-                                        {tierLimitReached === "annual" ? " You can only have up to 3 active workers." : " You can only have 1 active worker."}
-                                        <Link href="/pricing" className="ml-1 underline font-bold">Upgrade to Pro</Link> for unlimited seats.
-                                    </AlertDescription>
-                                </Alert>
-                            )}
-
                             {errors.form && (
                                 <Alert variant="error">
                                     <AlertDescription>{errors.form}</AlertDescription>
@@ -133,12 +133,10 @@ export default function AddEmployeePage() {
                                 <Label htmlFor="name">Full Name *</Label>
                                 <Input
                                     id="name"
-                                    placeholder="e.g. Thandi Dlamini"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     error={errors.name}
-                                    disabled={loading}
-                                    autoFocus
+                                    disabled={saving}
                                 />
                             </div>
 
@@ -146,27 +144,22 @@ export default function AddEmployeePage() {
                                 <Label htmlFor="role">Role</Label>
                                 <Input
                                     id="role"
-                                    placeholder="e.g. Domestic Worker, Gardener"
                                     value={formData.role}
                                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                     error={errors.role}
-                                    disabled={loading}
+                                    disabled={saving}
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="idNumber">ID / Passport Number (Optional)</Label>
+                                <Label htmlFor="idNumber">ID / Passport Number</Label>
                                 <Input
                                     id="idNumber"
-                                    placeholder="e.g. 9001015009087"
                                     value={formData.idNumber}
                                     onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
                                     error={errors.idNumber}
-                                    disabled={loading}
+                                    disabled={saving}
                                 />
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                    Stored on-device only. Used on the payslip PDF.
-                                </p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
@@ -175,14 +168,10 @@ export default function AddEmployeePage() {
                                     <Input
                                         id="phone"
                                         type="tel"
-                                        placeholder="e.g. 071 234 5678"
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                        disabled={loading}
+                                        disabled={saving}
                                     />
-                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        For WhatsApp sharing of payslips.
-                                    </p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="startDate">Employment Start</Label>
@@ -191,47 +180,32 @@ export default function AddEmployeePage() {
                                         type="date"
                                         value={formData.startDate}
                                         onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                        disabled={loading}
+                                        disabled={saving}
                                     />
-                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        Used to calculate leave.
-                                    </p>
                                 </div>
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="hourlyRate">Default Hourly Rate (ZAR) *</Label>
                                 <div className="relative">
-                                    <span
-                                        className="absolute left-4 top-3 text-sm font-semibold pointer-events-none"
-                                        style={{ color: "var(--text-muted)" }}
-                                    >
-                                        R
-                                    </span>
+                                    <span className="absolute left-4 top-3 text-sm font-semibold pointer-events-none text-[var(--text-muted)]">R</span>
                                     <Input
                                         id="hourlyRate"
                                         className="pl-8"
                                         type="number"
                                         step="0.01"
-                                        placeholder={NMW_RATE.toString()}
                                         value={formData.hourlyRate}
                                         onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
                                         error={errors.hourlyRate}
-                                        disabled={loading}
+                                        disabled={saving}
                                     />
                                 </div>
                                 {belowNMW && (
                                     <Alert variant="error">
                                         <AlertDescription>
-                                            National Minimum Wage is <strong>R{NMW_RATE}/hr</strong> for Domestic
-                                            Workers (SD7). You cannot legally pay below this.
+                                            National Minimum Wage is <strong>R{NMW_RATE}/hr</strong>. You cannot legally pay below this.
                                         </AlertDescription>
                                     </Alert>
-                                )}
-                                {!belowNMW && hourlyRateNum >= NMW_RATE && (
-                                    <p className="text-xs" style={{ color: "var(--green-500)" }}>
-                                        ✓ Above National Minimum Wage
-                                    </p>
                                 )}
                             </div>
 
@@ -244,39 +218,21 @@ export default function AddEmployeePage() {
                                     max="24"
                                     value={formData.ordinaryHoursPerDay}
                                     onChange={(e) => setFormData({ ...formData, ordinaryHoursPerDay: e.target.value })}
-                                    disabled={loading}
+                                    disabled={saving}
                                 />
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                    Default 8 hrs. Used to calculate Minimum Sunday Shift Pay (BCEA).
-                                </p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="frequency">Pay Frequency</Label>
-                                <select
-                                    id="frequency"
-                                    className="w-full h-10 px-3 rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm"
-                                    value={formData.frequency}
-                                    onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                                    disabled={loading}
-                                >
-                                    <option value="Weekly">Weekly</option>
-                                    <option value="Fortnightly">Fortnightly</option>
-                                    <option value="Monthly">Monthly</option>
-                                </select>
                             </div>
 
                             <button
                                 type="button"
                                 onClick={() => setFormData({ ...formData, ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
-                                className="w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all duration-200 active:scale-[0.99] hover:bg-[var(--bg-subtle)]"
+                                className="w-full flex items-start gap-4 p-4 rounded-xl text-left transition-all hover:bg-[var(--bg-subtle)]"
                                 style={{
                                     border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--amber-500)" : "var(--border-default)"}`,
                                     backgroundColor: formData.ordinarilyWorksSundays ? "rgba(196,122,28,0.04)" : "transparent",
                                 }}
                             >
                                 <div
-                                    className="h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200"
+                                    className="h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
                                     style={{
                                         backgroundColor: formData.ordinarilyWorksSundays ? "var(--amber-500)" : "transparent",
                                         border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--amber-500)" : "var(--border-strong)"}`,
@@ -284,34 +240,20 @@ export default function AddEmployeePage() {
                                 >
                                     {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />}
                                 </div>
-                                <div>
-                                    <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
-                                        Ordinarily works on Sundays
-                                    </p>
-                                    <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                                        If toggled ON, Sunday pay is calculated at 1.5× normal rate. If OFF, Sunday pay is calculated at 2.0× normal rate (BCEA Sect. 16).
-                                    </p>
+                                <div className="flex-1">
+                                    <p className="font-semibold text-sm">Ordinarily works on Sundays</p>
+                                    <p className="text-xs mt-0.5 opacity-70">Toggled on = 1.5x Sunday rate. Off = 2.0x (BCEA Section 16).</p>
                                 </div>
                             </button>
 
-                            <div
-                                className="pt-4"
-                                style={{ borderTop: "1px solid var(--border-subtle)" }}
-                            >
+                            <div className="pt-4">
                                 <Button
                                     type="submit"
-                                    className="w-full gap-2 h-12 text-base"
-                                    disabled={loading || belowNMW || !canAdd}
+                                    className="w-full h-12 text-base font-bold"
+                                    disabled={saving || belowNMW}
                                 >
-                                    {loading ? (
-                                        <>
-                                            <Loader2 className="h-5 w-5 animate-spin" /> Saving…
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-4 w-4" /> Save Employee
-                                        </>
-                                    )}
+                                    {saving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                    {saving ? "Saving Changes..." : "Save Changes"}
                                 </Button>
                             </div>
                         </form>

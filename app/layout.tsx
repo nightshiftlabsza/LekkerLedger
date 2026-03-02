@@ -61,7 +61,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-amber-500/30 selection:text-amber-200`} style={{ overscrollBehaviorY: 'contain' }}>
         <GoogleWrapper>
           <ThemeProvider>
             <ToastProvider>

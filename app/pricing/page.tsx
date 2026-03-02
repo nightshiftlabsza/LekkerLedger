@@ -51,9 +51,10 @@ export default function PricingPage() {
     // Payment Config builder
     const getPaystackConfig = () => {
         const isAnnual = selectedPlan === "annual";
+        const email = typeof window !== "undefined" ? localStorage.getItem("google_email") || "user@lekkerledger.co.za" : "user@lekkerledger.co.za";
         return {
             reference: (new Date()).getTime().toString(),
-            email: "user@lekkerledger.co.za",
+            email,
             amount: isAnnual ? 9900 : 29900,
             publicKey: PAYSTACK_PUBLIC_KEY,
             currency: 'ZAR',
@@ -120,7 +121,7 @@ export default function PricingPage() {
                 </div>
             )}
 
-            <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-12 md:py-20 space-y-20">
+            <main className="flex-1 px-4 py-12 md:py-20 content-container">
                 {/* Hero section */}
                 <div className="text-center space-y-6 max-w-2xl mx-auto">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-widest animate-fade-in">
@@ -128,10 +129,10 @@ export default function PricingPage() {
                     </div>
                     <h2 className="text-4xl md:text-5xl font-black tracking-tighter leading-[0.9]" style={{ color: "var(--text-primary)" }}>
                         Professional compliance.<br />
-                        <span className="text-amber-500 underline decoration-amber-500/20 underline-offset-8">Zero complexity.</span>
+                        <span className="text-amber-500 underline decoration-amber-500/20 underline-offset-8">R3,000 cheaper than alternatives.</span>
                     </h2>
                     <p className="text-base md:text-lg leading-relaxed text-[var(--text-secondary)]">
-                        LekkerLedger is a localized legal engine that lives on your device. No cloud subscriptions, no data mining—just peace of mind.
+                        Why pay R2,900+ per year for domestic payroll? LekkerLedger is a localized legal engine with no recurring fees—just peace of mind.
                     </p>
                 </div>
 
@@ -226,30 +227,30 @@ export default function PricingPage() {
                         <div className="p-8 rounded-3xl bg-red-50/50 border border-red-100 space-y-4">
                             <div className="flex items-center gap-2 text-red-600">
                                 <AlertTriangle className="h-5 w-5" />
-                                <span className="font-black uppercase tracking-widest text-[10px]">The Risk</span>
+                                <span className="font-black uppercase tracking-widest text-[10px]">Commercial Subscription</span>
                             </div>
-                            <h4 className="text-xl font-bold leading-tight">A Single Labor Dispute (CCMA)</h4>
+                            <h4 className="text-xl font-bold leading-tight">The "Old Way" of Compliance</h4>
                             <div className="space-y-3 pt-2">
-                                <RiskItem text="Inaccurate records = Automatic fine" />
-                                <RiskItem text="Legal fees start at R5,000+" />
-                                <RiskItem text="Potential 12-month backpay award" />
+                                <RiskItem text="Registration Fee: ± R399" />
+                                <RiskItem text="Monthly Subscription: ± R249" />
+                                <RiskItem text="Year 1 Total: R3,387" />
                             </div>
                             <div className="pt-4">
-                                <p className="text-3xl font-black text-red-600">± R 45,000</p>
-                                <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider mt-1">Estimated Liability</p>
+                                <p className="text-3xl font-black text-red-600">± R 3,387 /yr</p>
+                                <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider mt-1">Drained Yearly Budget</p>
                             </div>
                         </div>
 
                         <div className="p-8 rounded-3xl bg-amber-50/50 border border-amber-100 space-y-4 shadow-sm">
                             <div className="flex items-center gap-2 text-amber-600">
                                 <ShieldCheck className="h-5 w-5" />
-                                <span className="font-black uppercase tracking-widest text-[10px]">The Lekker Solution</span>
+                                <span className="font-black uppercase tracking-widest text-[10px]">Lekker Advantage</span>
                             </div>
                             <h4 className="text-xl font-bold leading-tight">Pro Lifetime Protection</h4>
                             <div className="space-y-3 pt-2">
+                                <SolutionItem text="Zero Monthly Fees" />
                                 <SolutionItem text="Automated 5-Year Legal Archive" />
                                 <SolutionItem text="Valid BCEA-Compliant Contracts" />
-                                <SolutionItem text="Irrefutable record of payments" />
                             </div>
                             <div className="pt-4">
                                 <p className="text-3xl font-black text-amber-600">R 299</p>
