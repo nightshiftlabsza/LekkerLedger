@@ -27,7 +27,9 @@ export default function OnboardingPage() {
         defaultLanguage: "en",
         simpleMode: false,
         advancedMode: false,
-        googleSyncEnabled: false
+        googleSyncEnabled: false,
+        installationId: "",
+        usageHistory: []
     });
 
     React.useEffect(() => {
@@ -111,7 +113,7 @@ export default function OnboardingPage() {
                                             <div>
                                                 <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>100% Private & Open Source</h3>
                                                 <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                                                    Your privacy is our number one priority. <strong>Your data is saved strictly to this device only</strong> (and exclusively to your own Google Drive when you sign in).
+                                                    Your privacy is our number one priority. <strong>Your data is saved strictly to this device only</strong> (and can be backed up to your own private cloud via Google Sync).
                                                     We have zero servers, zero databases, and absolutely zero access to your or your employee's personal details.
                                                 </p>
                                                 <div className="flex items-center gap-1.5 mt-2">
@@ -147,7 +149,7 @@ export default function OnboardingPage() {
 
                             <div className="text-center pt-2">
                                 <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                                    Join thousands of households simplifying their compliance.
+                                    Join South African households simplifying their compliance.
                                 </p>
                             </div>
                         </div>

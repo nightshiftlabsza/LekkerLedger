@@ -18,6 +18,7 @@ export default function EmployeesPage() {
     const [loading, setLoading] = React.useState(true);
     const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
+    const [generatingPdf, setGeneratingPdf] = React.useState<string | null>(null);
 
     const load = React.useCallback(async () => {
         setLoading(true);
@@ -118,18 +119,26 @@ export default function EmployeesPage() {
                                                         className="h-8 w-8 p-0"
                                                         title="Certificate"
                                                         onClick={async () => {
-                                                            if (!settings) return;
-                                                            const bytes = await generateCertificateOfService(emp, settings);
-                                                            const blob = new Blob([bytes as any], { type: "application/pdf" });
-                                                            const url = URL.createObjectURL(blob);
-                                                            const a = document.createElement("a");
-                                                            a.href = url;
-                                                            a.download = `${emp.name.replace(/\s+/g, "_")}_Certificate_of_Service.pdf`;
-                                                            a.click();
-                                                            URL.revokeObjectURL(url);
+                                                            if (!settings || generatingPdf === emp.id) return;
+                                                            try {
+                                                                setGeneratingPdf(emp.id);
+                                                                const bytes = await generateCertificateOfService(emp, settings);
+                                                                const blob = new Blob([bytes as any], { type: "application/pdf" });
+                                                                const url = URL.createObjectURL(blob);
+                                                                const a = document.createElement("a");
+                                                                a.href = url;
+                                                                a.download = `${emp.name.replace(/\s+/g, "_")}_Certificate_of_Service.pdf`;
+                                                                a.click();
+                                                                URL.revokeObjectURL(url);
+                                                            } catch (err) {
+                                                                console.error("PDF generation failed", err);
+                                                                alert("Failed to generate PDF. Please try again.");
+                                                            } finally {
+                                                                setGeneratingPdf(null);
+                                                            }
                                                         }}
                                                     >
-                                                        <FileBadge className="h-4 w-4" />
+                                                        {generatingPdf === emp.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileBadge className="h-4 w-4" />}
                                                     </Button>
                                                     <Button
                                                         size="sm"

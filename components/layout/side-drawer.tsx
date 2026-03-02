@@ -169,7 +169,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                             LekkerLedger v0.1.0
                         </p>
                         <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                            Secure local data · Google Drive Sync
+                            Secure local data · Google Sync
                         </p>
                     </div>
                 </div>

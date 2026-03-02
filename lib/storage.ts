@@ -7,6 +7,20 @@ const leaveStore = localforage.createInstance({ name: "LekkerLedger", storeName:
 const settingsStore = localforage.createInstance({ name: "LekkerLedger", storeName: "settings" });
 const auditStore = localforage.createInstance({ name: "LekkerLedger", storeName: "audit_logs" });
 
+// ─── PII Obfuscation ──────────────────────────────────────────────────────────
+function encodeData(data: any): string {
+    return btoa(encodeURIComponent(JSON.stringify(data)));
+}
+
+function decodeData<T>(str: any): T {
+    if (typeof str !== "string") return str as T; // Fallback for legacy unencoded data
+    try {
+        return JSON.parse(decodeURIComponent(atob(str))) as T;
+    } catch {
+        return str as unknown as T; // Fallback if invalid
+    }
+}
+
 // ─── Data Change Listeners ──────────────────────────────────────────────────
 type DataChangeListener = () => void | Promise<void>;
 const listeners: DataChangeListener[] = [];
@@ -39,18 +53,19 @@ export function setImportingMode(val: boolean) {
 
 export async function getEmployees(): Promise<Employee[]> {
     const employees: Employee[] = [];
-    await employeeStore.iterate<Employee, void>((val: Awaited<Employee>) => {
-        employees.push(val);
+    await employeeStore.iterate<any, void>((val: any) => {
+        if (val) employees.push(decodeData<Employee>(val));
     });
     return employees.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getEmployee(id: string): Promise<Employee | null> {
-    return employeeStore.getItem<Employee>(id);
+    const val = await employeeStore.getItem<any>(id);
+    return val ? decodeData<Employee>(val) : null;
 }
 
 export async function saveEmployee(employee: Employee): Promise<void> {
-    await employeeStore.setItem(employee.id, employee);
+    await employeeStore.setItem(employee.id, encodeData(employee));
     await logAuditEvent("CREATE_EMPLOYEE", `Added/Updated employee: ${employee.name}`);
     await notifyListeners();
 }
@@ -76,15 +91,16 @@ export async function deleteEmployee(id: string): Promise<void> {
 // ─── Payslip CRUD ───────────────────────────────────────────────────────────
 
 export async function savePayslip(payslip: PayslipInput): Promise<void> {
-    await payslipStore.setItem(payslip.id, payslip);
+    await payslipStore.setItem(payslip.id, encodeData(payslip));
     await logAuditEvent("CREATE_PAYSLIP", `Generated payslip for ID: ${payslip.employeeId}`);
     await notifyListeners();
 }
 
 export async function getPayslipsForEmployee(employeeId: string): Promise<PayslipInput[]> {
     const payslips: PayslipInput[] = [];
-    await payslipStore.iterate<PayslipInput, void>((val: Awaited<PayslipInput>) => {
-        if (val.employeeId === employeeId) payslips.push(val);
+    await payslipStore.iterate<any, void>((val: any) => {
+        const decoded = decodeData<PayslipInput>(val);
+        if (decoded && decoded.employeeId === employeeId) payslips.push(decoded);
     });
     return payslips.sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -103,8 +119,8 @@ export async function getTotalDaysWorkedForEmployee(employeeId: string): Promise
 
 export async function getAllPayslips(): Promise<PayslipInput[]> {
     const payslips: PayslipInput[] = [];
-    await payslipStore.iterate<PayslipInput, void>((val: Awaited<PayslipInput>) => {
-        payslips.push(val);
+    await payslipStore.iterate<any, void>((val: any) => {
+        if (val) payslips.push(decodeData<PayslipInput>(val));
     });
     return payslips.sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -298,8 +314,8 @@ export async function exportData(): Promise<string> {
         settings: {},
     };
 
-    await employeeStore.iterate((val) => { data.employees.push(val); });
-    await payslipStore.iterate((val) => { data.payslips.push(val); });
+    await employeeStore.iterate((val) => { data.employees.push(decodeData(val)); });
+    await payslipStore.iterate((val) => { data.payslips.push(decodeData(val)); });
     await leaveStore.iterate((val) => { data.leave.push(val); });
     const settings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
     data.settings = settings || {};
@@ -315,8 +331,8 @@ export async function importData(json: string): Promise<void> {
         await resetAllData();
 
         // Import new
-        if (data.employees) await Promise.all(data.employees.map((e: any) => employeeStore.setItem(e.id, e)));
-        if (data.payslips) await Promise.all(data.payslips.map((p: any) => payslipStore.setItem(p.id, p)));
+        if (data.employees) await Promise.all(data.employees.map((e: any) => employeeStore.setItem(e.id, encodeData(e))));
+        if (data.payslips) await Promise.all(data.payslips.map((p: any) => payslipStore.setItem(p.id, encodeData(p))));
         if (data.leave) await Promise.all(data.leave.map((l: any) => leaveStore.setItem(l.id, l)));
         if (data.settings) await settingsStore.setItem(SETTINGS_KEY, data.settings);
     } finally {

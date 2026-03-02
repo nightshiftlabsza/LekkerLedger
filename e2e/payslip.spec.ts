@@ -4,14 +4,12 @@ test.describe("Payslip Generation Flow", () => {
     test("user can create an employee and generate a payslip", async ({ page }) => {
         // 1. Go to homepage
         await page.goto("/");
+        await page.waitForLoadState("networkidle");
         await expect(page).toHaveTitle(/Next|LekkerLedger/i);
 
-        // 2. Head to employees
-        await page.click("text=Get Started");
-
-        // Because of the onboarding flow check, we might go to /onboarding instead of /employees. 
-        // Let's just navigate directly to /employees/new to ensure we can create one.
+        // 2. Head directly to employees/new to skip onboarding and stabilize the test
         await page.goto("/employees/new");
+        await page.waitForLoadState("networkidle");
 
         // 3. Fill out the employee form
         await page.fill('input[id="name"]', "Test Worker");

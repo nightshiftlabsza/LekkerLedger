@@ -20,8 +20,8 @@ export function SplashPortal() {
             setTimeout(() => {
                 setVisible(false);
                 sessionStorage.setItem("ll-splash-shown", "true");
-            }, 200); // Faster fade-out
-        }, 300); // Faster time to show the logo
+            }, 600); // Smooth fade-out
+        }, 2200); // Professional duration
 
         return () => clearTimeout(timer);
     }, []);
@@ -30,15 +30,25 @@ export function SplashPortal() {
 
     return (
         <div
-            className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-500 ease-in-out ${fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-            style={{ background: "linear-gradient(135deg, #ffffff 0%, #fdfcfb 100%)" }}
+            className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-all duration-700 ease-in-out bg-zinc-950 ${fadeOut ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'}`}
         >
-            <div className={`relative w-48 h-48 transition-all duration-700 ${fadeOut ? 'scale-110 blur-sm' : 'scale-100'}`}>
-                <img
-                    src="/brand/icon-512.png"
+            <div className="relative animate-scale-in">
+                <Image
+                    src="/brand/logo-dark.png"
                     alt="LekkerLedger"
-                    className="w-full h-full object-contain animate-in fade-in zoom-in duration-1000"
+                    width={240}
+                    height={60}
+                    className="h-16 w-auto"
+                    priority
                 />
+            </div>
+            <div className="mt-8 flex flex-col items-center space-y-2 animate-slide-up" style={{ animationDelay: '0.4s' }}>
+                <div className="h-1.5 w-48 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-500 rounded-full animate-progress" />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 pt-3">
+                    South Africa's Domestic Standard
+                </p>
             </div>
         </div>
     );

@@ -89,7 +89,7 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
 
         if (!silent) {
             setStatus("loading");
-            setStatusMessage("Backing up to Google Drive...");
+            setStatusMessage("Backing up to Google Sync...");
         }
 
         const success = await syncDataToDrive(currentToken);
@@ -110,13 +110,13 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
         const currentToken = token || localStorage.getItem("google_access_token");
         if (!currentToken) return;
 
-        if (!silent && !confirm("This will overwrite your local data with the version from Google Drive. Are you sure?")) {
+        if (!silent && !confirm("This will overwrite your local data with the version from Google Sync. Are you sure?")) {
             return;
         }
 
         if (!silent) {
             setStatus("loading");
-            setStatusMessage("Restoring from Google Drive...");
+            setStatusMessage("Restoring from Google Sync...");
         }
 
         const success = await syncDataFromDrive(currentToken);
@@ -141,7 +141,7 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
                 <div className="flex items-center gap-2 mb-1">
                     <Cloud className="h-4 w-4" style={{ color: "var(--amber-500)" }} />
                     <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-                        Google Drive Sync
+                        Google Sync
                     </h2>
                     {proStatus !== "pro" && proStatus !== "annual" && (
                         <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1">

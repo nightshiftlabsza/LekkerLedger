@@ -57,7 +57,7 @@ function PreviewContent() {
     const [employee, setEmployee] = React.useState<Employee | null>(null);
     const [payslip, setPayslip] = React.useState<PayslipInput | null>(null);
     const [loading, setLoading] = React.useState(true);
-    const [downloading, setDownloading] = React.useState(false);
+    const [downloading, setDownloading] = React.useState<string | boolean>("");
     const [sharing, setSharing] = React.useState(false);
     const [settings, setSettings] = React.useState<any>(null);
     const [error, setError] = React.useState("");
@@ -172,7 +172,7 @@ function PreviewContent() {
                         </Link>
                         <h1 className="font-bold text-base text-[var(--text-primary)]">Preview</h1>
                     </div>
-                    <Button onClick={handleDownload} disabled={downloading} size="sm" className="gap-2 bg-amber-500 text-white">
+                    <Button onClick={handleDownload} disabled={!!downloading} size="sm" className="gap-2 bg-amber-500 text-white">
                         {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                         <span className="hidden sm:inline">Download</span>
                     </Button>
@@ -234,7 +234,7 @@ function PreviewContent() {
                 </Card>
 
                 <div className="flex flex-col gap-3">
-                    <Button onClick={handleDownload} disabled={downloading} className="w-full h-12 text-base font-bold bg-amber-500 text-white">
+                    <Button onClick={handleDownload} disabled={!!downloading} className="w-full h-12 text-base font-bold bg-amber-500 text-white">
                         {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5 mr-2" />}
                         Download PDF
                     </Button>
@@ -295,35 +295,43 @@ function PreviewContent() {
                                             variant="outline"
                                             size="sm"
                                             className="h-9 gap-2 text-[11px]"
+                                            disabled={downloading === "audit"}
                                             onClick={async () => {
-                                                const { generateBCEASummaryPdf } = await import('@/lib/compliance-pdf');
-                                                const bytes = await generateBCEASummaryPdf(employee, payslip, settings);
-                                                const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
-                                                const url = URL.createObjectURL(blob);
-                                                const link = document.createElement("a");
-                                                link.href = url;
-                                                link.download = `Audit_${employee.name.replace(/\s+/g, "_")}.pdf`;
-                                                link.click();
+                                                setDownloading("audit");
+                                                try {
+                                                    const { generateBCEASummaryPdf } = await import('@/lib/compliance-pdf');
+                                                    const bytes = await generateBCEASummaryPdf(employee, payslip, settings);
+                                                    const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
+                                                    const url = URL.createObjectURL(blob);
+                                                    const link = document.createElement("a");
+                                                    link.href = url;
+                                                    link.download = `Audit_${employee.name.replace(/\s+/g, "_")}.pdf`;
+                                                    link.click();
+                                                } catch (e) { console.error(e); } finally { setDownloading(""); }
                                             }}
                                         >
-                                            <FileText className="h-4 w-4" /> Audit PDF
+                                            {downloading === "audit" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Audit PDF
                                         </Button>
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             className="h-9 gap-2 text-[11px]"
+                                            disabled={downloading === "cert"}
                                             onClick={async () => {
-                                                const { generateCertificateOfServicePdf } = await import('@/lib/compliance-pdf');
-                                                const bytes = await generateCertificateOfServicePdf(employee, settings);
-                                                const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
-                                                const url = URL.createObjectURL(blob);
-                                                const link = document.createElement("a");
-                                                link.href = url;
-                                                link.download = `Certificate_${employee.name.replace(/\s+/g, "_")}.pdf`;
-                                                link.click();
+                                                setDownloading("cert");
+                                                try {
+                                                    const { generateCertificateOfServicePdf } = await import('@/lib/compliance-pdf');
+                                                    const bytes = await generateCertificateOfServicePdf(employee, settings);
+                                                    const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
+                                                    const url = URL.createObjectURL(blob);
+                                                    const link = document.createElement("a");
+                                                    link.href = url;
+                                                    link.download = `Certificate_${employee.name.replace(/\s+/g, "_")}.pdf`;
+                                                    link.click();
+                                                } catch (e) { console.error(e); } finally { setDownloading(""); }
                                             }}
                                         >
-                                            <ShieldCheck className="h-4 w-4" /> Certificate
+                                            {downloading === "cert" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Certificate
                                         </Button>
                                     </div>
                                     <Button
