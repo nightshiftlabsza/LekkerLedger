@@ -139,7 +139,7 @@ export default function PricingPage() {
                 </div>
 
                 {/* Pricing Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch mt-16 md:mt-24">
                     {/* Standard Card */}
                     <PricingCard
                         title="Standard"
@@ -150,8 +150,8 @@ export default function PricingPage() {
                             { text: "1 Active Employee Seat", included: true },
                             { text: "3 Months History Archive", included: true },
                             { text: "BCEA Aligned Calculations", included: true },
-                            { text: "1-Click Monthly Payroll", included: false },
-                            { text: "Google Drive Cloud Sync", included: false },
+                            { text: "Easy Monthly Payslips", included: true },
+                            { text: "Private Google Drive Sync", included: false },
                         ]}
                         buttonText={status === "free" ? "Current Plan" : "Downgrade"}
                         buttonDisabled={status === "free"}
@@ -168,14 +168,15 @@ export default function PricingPage() {
                         features={[
                             { text: "Up to 3 Employee Seats", included: true },
                             { text: "1 Year Compliance Archive", included: true },
-                            { text: "1-Click Monthly Payroll", included: true },
-                            { text: "Weekly G-Drive Sync", included: true },
-                            { text: "Contract Generator", included: true },
+                            { text: "Repeat Last Month Payroll", included: true },
+                            { text: "BCEA Contract Generator", included: true },
+                            { text: "Private Google Drive Sync", included: false },
                         ]}
                         buttonText={status === "annual" ? "Active" : "Subscribe Yearly"}
                         buttonVariant="outline"
                         onAction={() => handleAction("annual")}
                         highlight
+                        colorClass="text-[#2d5a27]"
                     />
 
                     {/* Pro Card */}
@@ -188,14 +189,15 @@ export default function PricingPage() {
                         features={[
                             { text: "Unlimited Employee Seats", included: true },
                             { text: "5 Year Legal Archive (BCEA Required)", included: true },
-                            { text: "Continuous Cloud Defences", included: true },
+                            { text: "Private Google Drive Sync", included: true },
                             { text: "1-Click Monthly Payroll", included: true },
-                            { text: "Automated Leave & Loan Tracker", included: true },
+                            { text: "Full Legal Vault (Disciplinary)", included: true },
                         ]}
                         buttonText={status === "pro" ? "Activated" : "Get Lifetime Access"}
                         buttonVariant="primary"
                         onAction={() => handleAction("pro")}
                         isPro
+                        colorClass="text-[#c47a1c]"
                     />
                 </div>
 
@@ -318,7 +320,7 @@ export default function PricingPage() {
 
 function PricingCard({
     title, price, period, description, features, badge,
-    buttonText, buttonDisabled, buttonVariant, onAction, highlight, isPro
+    buttonText, buttonDisabled, buttonVariant, onAction, highlight, isPro, colorClass
 }: {
     title: string;
     price: string;
@@ -332,6 +334,7 @@ function PricingCard({
     onAction: () => void;
     highlight?: boolean;
     isPro?: boolean;
+    colorClass?: string;
 }) {
     return (
         <Card className={`relative overflow-hidden transition-all duration-300 glass-panel hover-lift active-scale ${isPro ? 'border-2 border-amber-500 shadow-2xl scale-105 z-10' : ''}`}>
@@ -343,10 +346,11 @@ function PricingCard({
             <CardContent className="p-8 space-y-8 h-full flex flex-col bg-[var(--bg-surface)]">
                 <div className="space-y-4">
                     <div className="space-y-1">
-                        <h3 className={`text-base font-black tracking-tight ${isPro ? 'text-amber-600' : 'text-[var(--text-secondary)]'}`}>{title}</h3>
+                        <h3 className={`text-xl font-black tracking-tight ${colorClass || 'text-[var(--text-secondary)]'}`}>{title}</h3>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-4xl font-black">{price}</span>
-                            <span className="text-xs font-medium text-[var(--text-muted)]">{period}</span>
+                            <span className="text-5xl font-black tracking-tighter">{price}</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">{period}</span>
+                            {isPro && <span className="ml-2 text-[10px] font-black uppercase text-amber-600 animate-pulse">(Best Value)</span>}
                         </div>
                     </div>
                     <p className="text-xs text-[var(--text-secondary)] leading-relaxed h-8">
