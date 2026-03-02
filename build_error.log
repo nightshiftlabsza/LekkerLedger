@@ -1,0 +1,23 @@
+
+> lekkerledger@0.1.0 build
+> next build --webpack
+
+Γû▓ Next.js 16.1.6 (webpack)
+
+  Creating an optimized production build ...
+Γ£ô (serwist) Bundling the service worker script with the URL '/sw.js' and the scope '/'...
+Γ£ô Compiled successfully in 2.7s
+  Running TypeScript ...
+Failed to compile.
+
+./twa/settings/page.tsx:181:46
+Type error: Cannot find name 'Download'. Did you mean 'onload'?
+
+  179 |                                             }}
+  180 |                                         >
+> 181 |                                             <Download className="h-4 w-4" /> Export Backup
+      |                                              ^
+  182 |                                         </Button>
+  183 |                                         <Label
+  184 |                                             htmlFor="restore-file"
+Next.js build worker exited with code: 1 and signal: null
