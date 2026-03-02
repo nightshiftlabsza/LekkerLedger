@@ -69,10 +69,11 @@ CONTRACT & COMPLIANCE SUMMARY: ${employee.name.toUpperCase()} (${employee.role})
 ID Number: ${employee.idNumber || "NOT PROVIDED"}
 ======================================================================
 
-1. WAGE & DEDUCTION COMPLIANCE (SD7 & NMW Act)
+1. WAGE & DEDUCTION COMPLIANCE (BCEA, SD7 & COIDA)
 ----------------------------------------------------------------------
 * Minimum Wage Status      : ${audit.wageStatusText}
 * UIF Deduction (1%)       : R${breakdown.deductions.uifEmployee.toFixed(2)} (${audit.uifStatusText})
+* COIDA Coverage           : Mandatory for all domestic workers (2026 Ruling).
 * Accommodation Deduction  : R${(breakdown.deductions.accommodation ?? 0).toFixed(2)} - ${audit.accommodationStatusText}
 * Sunday Work Rate         : ${audit.sundayMultiplier} normal wage
 * Overtime Rate            : ${audit.overtimeRate} normal wage (for hours exceeding 45/week)
@@ -84,11 +85,12 @@ ID Number: ${employee.idNumber || "NOT PROVIDED"}
 * Family Responsibility    : 5 days per year (applicable if employed > 4 months and working >= 4 days/week).
 * Maternity Leave          : Up to 4 consecutive months unpaid (claimable via UIF).
 
-3. ADDITIONAL SD7 CLAUSES
+3. ADDITIONAL SD7 & COIDA CLAUSES
 ----------------------------------------------------------------------
 * Notice Period            : 1 week if employed for 6 months or less; 4 weeks if employed for more than 6 months.
+* COIDA Registration       : Employers must be registered with the Compensation Commissioner.
 * Record Keeping           : The employer must retain these written particulars of employment for 3 years after termination.
 
-> NOTE: This summary is generated for administrative reference. Any non-compliant items marked above must be rectified to align with the Department of Employment and Labour regulations.
+> NOTE: This summary is generated for administrative reference. Any non-compliant items marked above must be rectified to align with the Department of Employment and Labour regulations (BCEA, COIDA, and UIF).
 `.trim();
 }

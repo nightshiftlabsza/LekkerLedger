@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Shield, Clock, Github, AlertTriangle, ShieldCheck, Sparkles, ChevronRight, ShieldAlert, FileText, Lock } from "lucide-react";
+import { ArrowRight, Shield, Clock, Github, AlertTriangle, ShieldCheck, Sparkles, ChevronRight, ShieldAlert, FileText, Lock, History, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SideDrawer } from "@/components/layout/side-drawer";
@@ -142,7 +142,7 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] shadow-sm">
                 <FileText className="h-3.5 w-3.5 text-[var(--blue-500)]" />
-                BCEA Compliant
+                BCEA Aligned
               </div>
               <a
                 href="https://github.com/nightshiftlabsza/LekkerLedger"
@@ -193,7 +193,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] shadow-sm">
             <FileText className="h-3.5 w-3.5 text-[var(--blue-500)]" />
-            BCEA Compliant
+            BCEA Aligned
           </div>
         </div>
 
@@ -226,15 +226,15 @@ export default function Home() {
                 className: "md:col-span-1 lg:col-span-1"
               },
               {
-                title: "BCEA Compliance",
-                desc: "Sectoral Determination 7 sets strict rules for leave, NMW, and overtime.",
+                title: "BCEA & COIDA Aligned",
+                desc: "Compliant with Sectoral Determination 7 and the 2026 COIDA rulings for domestic worker coverage.",
                 icon: FileText,
                 color: "var(--green-500)",
                 className: "md:col-span-1 lg:col-span-1"
               },
               {
-                title: "Digital Safety Net",
-                desc: "Our labor engine ensures your calculations are always 100% legally accurate.",
+                title: "UIF & Registration Ready",
+                desc: "Guidance on mandatory UIF and COIDA registration to ensure you're 100% legal under the new 2026 laws.",
                 icon: Sparkles,
                 color: "var(--amber-500)",
                 className: "md:col-span-1 lg:col-span-2"
@@ -255,6 +255,67 @@ export default function Home() {
             ))}
           </div>
 
+          {/* Pricing/Risk Comparison Section */}
+          <div className="pt-12 space-y-8">
+            <div className="text-center space-y-2">
+              <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>The Costs of Compliance</h3>
+              <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>Why pay recurring fees for a localized legal requirement?</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              <div className="p-8 rounded-[2rem] bg-red-50/50 border border-red-100 space-y-4">
+                <div className="flex items-center gap-2 text-red-600">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span className="font-black uppercase tracking-widest text-[10px]">Traditional Agency</span>
+                </div>
+                <h4 className="text-lg font-bold leading-tight" style={{ color: "var(--text-primary)" }}>Recurring Payroll Services</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-xs font-medium text-red-700/70">
+                    <div className="h-1 w-1 rounded-full bg-red-400" />
+                    ± R4,500 Yearly (Avg)
+                  </li>
+                  <li className="flex items-center gap-2 text-xs font-medium text-red-700/70">
+                    <div className="h-1 w-1 rounded-full bg-red-400" />
+                    Monthly Subscription Lock-in
+                  </li>
+                  <li className="flex items-center gap-2 text-xs font-medium text-red-700/70">
+                    <div className="h-1 w-1 rounded-full bg-red-400" />
+                    Data stored on vendor servers
+                  </li>
+                </ul>
+              </div>
+
+              <div className="p-8 rounded-[2rem] bg-amber-50 border-2 border-amber-200 space-y-4 shadow-xl shadow-amber-500/10">
+                <div className="flex items-center gap-2 text-amber-600">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span className="font-black uppercase tracking-widest text-[10px]">Lekker Ledger</span>
+                </div>
+                <h4 className="text-lg font-bold leading-tight" style={{ color: "var(--text-primary)" }}>The Pro Lifetime Advantage</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-xs font-black text-amber-700">
+                    <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />
+                    R299 Once-Off (Forever)
+                  </li>
+                  <li className="flex items-center gap-2 text-xs font-black text-amber-700">
+                    <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />
+                    No Monthly Fees or Limits
+                  </li>
+                  <li className="flex items-center gap-2 text-xs font-black text-amber-700">
+                    <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />
+                    100% Local Device Storage
+                  </li>
+                </ul>
+                <div className="pt-2">
+                  <Link href="/pricing">
+                    <Button variant="outline" className="w-full h-10 rounded-xl border-amber-200 text-amber-700 font-bold text-xs hover:bg-amber-100 transition-colors">
+                      View Full Comparison <ChevronRight className="ml-2 h-3 w-3" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="rounded-[3rem] p-10 sm:p-20 space-y-10 text-center shadow-[var(--shadow-2xl)] relative overflow-hidden group border border-white/5" style={{ background: "linear-gradient(145deg, #09090b 0%, #18181b 100%)" }}>
             <div className="absolute inset-0 bg-gradient-to-t from-amber-500/10 to-transparent opacity-50" />
             <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-1000">
@@ -273,6 +334,13 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Trust Footer */}
+        <div className="max-w-5xl mx-auto px-4 py-16 flex flex-wrap justify-center gap-x-12 gap-y-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] grayscale opacity-50 border-t border-[var(--border-subtle)] mt-20">
+          <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><Award className="h-4 w-4" /> BCEA Aligned Calculations</div>
+          <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><Lock className="h-4 w-4" /> Local-Only Storage</div>
+          <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><History className="h-4 w-4" /> UIF & COIDA Ready</div>
         </div>
       </main>
 

@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import {
     ArrowLeft, Check, Sparkles, Coffee, ShieldCheck, Zap,
     Cloud, FileText, Smartphone, AlertTriangle, Shield,
-    ChevronRight, CalendarDays, Lock, Award, History
+    ChevronRight, CalendarDays, Lock, Award, History, ShieldAlert
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -149,7 +149,7 @@ export default function PricingPage() {
                         features={[
                             { text: "1 Active Employee Seat", included: true },
                             { text: "3 Months History Archive", included: true },
-                            { text: "BCEA Compliance Math", included: true },
+                            { text: "BCEA Aligned Calculations", included: true },
                             { text: "1-Click Monthly Payroll", included: false },
                             { text: "Google Drive Cloud Sync", included: false },
                         ]}
@@ -225,34 +225,57 @@ export default function PricingPage() {
                         <p className="text-sm text-[var(--text-secondary)]">One small oversight can cost more than a lifetime of Lekker Pro.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Option 1: Doing Nothing */}
+                        <div className="p-8 rounded-3xl bg-zinc-50 border border-zinc-200 space-y-4 opacity-80 hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-2 text-zinc-600">
+                                <ShieldAlert className="h-5 w-5" />
+                                <span className="font-black uppercase tracking-widest text-[10px]">Non-Compliance</span>
+                            </div>
+                            <h4 className="text-xl font-bold leading-tight">The "Risk It" Approach</h4>
+                            <div className="space-y-3 pt-2">
+                                <RiskItem text="UIF Penalties (10% + interest)" color="zinc" />
+                                <RiskItem text="CCMA Awards (Up to 12 months)" color="zinc" />
+                                <RiskItem text="Legal Defense Fees: R15k+" color="zinc" />
+                            </div>
+                            <div className="pt-4">
+                                <p className="text-3xl font-black text-zinc-900">R 50,000+</p>
+                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mt-1">Average CCMA Risk</p>
+                            </div>
+                        </div>
+
+                        {/* Option 2: Traditional Agency */}
                         <div className="p-8 rounded-3xl bg-red-50/50 border border-red-100 space-y-4">
                             <div className="flex items-center gap-2 text-red-600">
                                 <AlertTriangle className="h-5 w-5" />
-                                <span className="font-black uppercase tracking-widest text-[10px]">Commercial Subscription</span>
+                                <span className="font-black uppercase tracking-widest text-[10px]">Agency / Software</span>
                             </div>
-                            <h4 className="text-xl font-bold leading-tight">The "Old Way" of Compliance</h4>
+                            <h4 className="text-xl font-bold leading-tight">The "Old Way" of Payroll</h4>
                             <div className="space-y-3 pt-2">
-                                <RiskItem text="Registration Fee: ± R399" />
-                                <RiskItem text="Monthly Subscription: ± R249" />
-                                <RiskItem text="Year 1 Total: R3,387" />
+                                <RiskItem text="Registration: ± R450 - R650" />
+                                <RiskItem text="Monthly: ± R250 - R450" />
+                                <RiskItem text="Hidden 'Exit' or Support Fees" />
                             </div>
                             <div className="pt-4">
-                                <p className="text-3xl font-black text-red-600">± R 3,387 /yr</p>
+                                <p className="text-3xl font-black text-red-600">± R 4,500 /yr</p>
                                 <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider mt-1">Drained Yearly Budget</p>
                             </div>
                         </div>
 
-                        <div className="p-8 rounded-3xl bg-amber-50/50 border border-amber-100 space-y-4 shadow-sm">
+                        {/* Option 3: LekkerLedger */}
+                        <div className="p-8 rounded-3xl bg-amber-50 border-2 border-amber-200 space-y-4 shadow-xl shadow-amber-500/10 relative">
+                            <div className="absolute -top-3 -right-3 bg-amber-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md">
+                                Recommended
+                            </div>
                             <div className="flex items-center gap-2 text-amber-600">
                                 <ShieldCheck className="h-5 w-5" />
                                 <span className="font-black uppercase tracking-widest text-[10px]">Lekker Advantage</span>
                             </div>
-                            <h4 className="text-xl font-bold leading-tight">Pro Lifetime Protection</h4>
+                            <h4 className="text-xl font-bold leading-tight">Pro Lifetime Vault</h4>
                             <div className="space-y-3 pt-2">
                                 <SolutionItem text="Zero Monthly Fees" />
-                                <SolutionItem text="Automated 5-Year Legal Archive" />
-                                <SolutionItem text="Valid BCEA-Compliant Contracts" />
+                                <SolutionItem text="Automated 5-Year Archive" />
+                                <SolutionItem text="Legal Contract Builder" />
                             </div>
                             <div className="pt-4">
                                 <p className="text-3xl font-black text-amber-600">R 299</p>
@@ -284,9 +307,9 @@ export default function PricingPage() {
 
                 {/* Trust Footer */}
                 <div className="flex flex-wrap justify-center gap-x-12 gap-y-6 pt-10 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] grayscale opacity-50">
-                    <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><Award className="h-4 w-4" /> BCEA Certified Math</div>
+                    <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><Award className="h-4 w-4" /> BCEA Aligned Calculations</div>
                     <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><Lock className="h-4 w-4" /> Local-Only Storage</div>
-                    <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><History className="h-4 w-4" /> 5-Year Compliance Ready</div>
+                    <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><History className="h-4 w-4" /> UIF & COIDA Ready</div>
                 </div>
             </main>
         </div>
@@ -357,10 +380,10 @@ function PricingCard({
     );
 }
 
-function RiskItem({ text }: { text: string }) {
+function RiskItem({ text, color = "red" }: { text: string; color?: "red" | "zinc" }) {
     return (
-        <div className="flex items-center gap-3 text-xs font-medium text-red-700/80">
-            <div className="h-1.5 w-1.5 rounded-full bg-red-400 shrink-0" />
+        <div className={`flex items-center gap-3 text-xs font-medium ${color === "red" ? "text-red-700/80" : "text-zinc-600"}`}>
+            <div className={`h-1.5 w-1.5 rounded-full shrink-0 ${color === "red" ? "bg-red-400" : "bg-zinc-400"}`} />
             {text}
         </div>
     );
