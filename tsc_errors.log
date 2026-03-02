@@ -1,0 +1,33 @@
+.next/dev/types/app/layout.ts(2,24): error TS2307: Cannot find module '../../../../app/layout.js' or its corresponding type declarations.
+.next/dev/types/app/layout.ts(7,29): error TS2307: Cannot find module '../../../../app/layout.js' or its corresponding type declarations.
+.next/dev/types/app/onboarding/page.ts(2,24): error TS2307: Cannot find module '../../../../../app/onboarding/page.js' or its corresponding type declarations.
+.next/dev/types/app/onboarding/page.ts(7,29): error TS2307: Cannot find module '../../../../../app/onboarding/page.js' or its corresponding type declarations.
+.next/dev/types/app/page.ts(2,24): error TS2307: Cannot find module '../../../../app/page.js' or its corresponding type declarations.
+.next/dev/types/app/page.ts(7,29): error TS2307: Cannot find module '../../../../app/page.js' or its corresponding type declarations.
+.next/dev/types/app/settings/page.ts(2,24): error TS2307: Cannot find module '../../../../../app/settings/page.js' or its corresponding type declarations.
+.next/dev/types/app/settings/page.ts(7,29): error TS2307: Cannot find module '../../../../../app/settings/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(24,44): error TS2344: Type 'Route' does not satisfy the constraint 'never'.
+  Type '"/"' is not assignable to type 'never'.
+.next/dev/types/validator.ts(24,75): error TS2344: Type 'Route' does not satisfy the constraint 'never'.
+  Type '"/"' is not assignable to type 'never'.
+.next/dev/types/validator.ts(42,39): error TS2307: Cannot find module '../../../app/contracts/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(51,39): error TS2307: Cannot find module '../../../app/dashboard/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(60,39): error TS2307: Cannot find module '../../../app/employees/[id]/edit/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(69,39): error TS2307: Cannot find module '../../../app/employees/new/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(78,39): error TS2307: Cannot find module '../../../app/employees/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(87,39): error TS2307: Cannot find module '../../../app/leave/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(96,39): error TS2307: Cannot find module '../../../app/legal/privacy/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(105,39): error TS2307: Cannot find module '../../../app/legal/refunds/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(114,39): error TS2307: Cannot find module '../../../app/legal/terms/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(123,39): error TS2307: Cannot find module '../../../app/onboarding/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(132,39): error TS2307: Cannot find module '../../../app/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(141,39): error TS2307: Cannot find module '../../../app/preview/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(150,39): error TS2307: Cannot find module '../../../app/pricing/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(159,39): error TS2307: Cannot find module '../../../app/rules/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(168,39): error TS2307: Cannot find module '../../../app/settings/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(177,39): error TS2307: Cannot find module '../../../app/ufiling/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(186,39): error TS2307: Cannot find module '../../../app/wizard/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(201,39): error TS2307: Cannot find module '../../../app/layout.js' or its corresponding type declarations.
+__tests__/home.test.tsx(3,18): error TS2307: Cannot find module '@/app/page' or its corresponding type declarations.
+src/app/dashboard/page.tsx(19,31): error TS2307: Cannot find module '@/app/hooks/usePWAInstall' or its corresponding type declarations.
+src/app/dashboard/page.tsx(20,33): error TS2307: Cannot find module '@/app/hooks/useOnlineStatus' or its corresponding type declarations.

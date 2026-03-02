@@ -1,0 +1,23 @@
+
+> lekkerledger@0.1.0 build
+> next build --webpack
+
+Γû▓ Next.js 16.1.6 (webpack)
+
+  Creating an optimized production build ...
+Γ£ô (serwist) Bundling the service worker script with the URL '/sw.js' and the scope '/'...
+Γ£ô Compiled successfully in 646.5ms
+  Running TypeScript ...
+Failed to compile.
+
+./src/app/dashboard/page.tsx:19:31
+Type error: Cannot find module '@/app/hooks/usePWAInstall' or its corresponding type declarations.
+
+  17 | import { format, addDays } from "date-fns";
+  18 | import { getHolidaysInRange } from "@/lib/holidays";
+> 19 | import { usePWAInstall } from "@/app/hooks/usePWAInstall";
+     |                               ^
+  20 | import { useOnlineStatus } from "@/app/hooks/useOnlineStatus";
+  21 |
+  22 | // Thresholds that unlock advanced features
+Next.js build worker exited with code: 1 and signal: null

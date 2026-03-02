@@ -1,0 +1,57 @@
+> Task :app:generateShorcutsFile UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :app:mergeReleaseNativeLibs NO-SOURCE
+> Task :app:stripReleaseDebugSymbols NO-SOURCE
+> Task :app:extractReleaseNativeSymbolTables NO-SOURCE
+> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:checkReleaseDuplicateClasses UP-TO-DATE
+> Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:checkReleaseAarMetadata UP-TO-DATE
+> Task :app:generateReleaseResValues UP-TO-DATE
+> Task :app:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:mergeReleaseResources UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:createReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksRelease UP-TO-DATE
+
+> Task :app:processReleaseMainManifest FAILED
+package="com.lekkerledger.twa" found in source AndroidManifest.xml: D:\Apps\LekkerLedger\LekkerLedger-1\app\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.lekkerledger.twa" from the source AndroidManifest.xml: D:\Apps\LekkerLedger\LekkerLedger-1\app\src\main\AndroidManifest.xml.
+D:\Apps\LekkerLedger\LekkerLedger-1\app\src\main\AndroidManifest.xml Error:
+	uses-sdk:minSdkVersion 19 cannot be smaller than version 21 declared in library [com.google.androidbrowserhelper:androidbrowserhelper:2.6.2] C:\Users\mzaka.ZAK-PC\.gradle\caches\8.11.1\transforms\5053e02be90783e54992393be394bb70\transformed\androidbrowserhelper-2.6.2\AndroidManifest.xml as the library might be using APIs not available in 19
+	Suggestion: use a compatible library with a minSdk of at most 19,
+		or increase this project's minSdk version to at least 21,
+		or use tools:overrideLibrary="com.google.androidbrowserhelper" to force usage (may lead to runtime failures)
+
+See https://developer.android.com/r/studio-ui/build/manifest-merger for more information about the manifest merger.
+
+[Incubating] Problems report is available at: file:///D:/Apps/LekkerLedger/LekkerLedger-1/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:processReleaseMainManifest'.
+> Manifest merger failed : uses-sdk:minSdkVersion 19 cannot be smaller than version 21 declared in library [com.google.androidbrowserhelper:androidbrowserhelper:2.6.2] C:\Users\mzaka.ZAK-PC\.gradle\caches\8.11.1\transforms\5053e02be90783e54992393be394bb70\transformed\androidbrowserhelper-2.6.2\AndroidManifest.xml as the library might be using APIs not available in 19
+  	Suggestion: use a compatible library with a minSdk of at most 19,
+  		or increase this project's minSdk version to at least 21,
+  		or use tools:overrideLibrary="com.google.androidbrowserhelper" to force usage (may lead to runtime failures)
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.11.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1s
+13 actionable tasks: 1 executed, 12 up-to-date
