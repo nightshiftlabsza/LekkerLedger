@@ -85,6 +85,7 @@ function LeaveContent() {
     });
     const [editingNote, setEditingNote] = React.useState<string | null>(null);
     const [noteValue, setNoteValue] = React.useState("");
+    const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
 
     const load = React.useCallback(async () => {
         if (!employeeId) { setLoading(false); return; }
@@ -123,8 +124,8 @@ function LeaveContent() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Delete this leave record?")) return;
         await deleteLeaveRecord(id);
+        setDeleteConfirmId(null);
         load();
     };
 
@@ -318,9 +319,16 @@ function LeaveContent() {
                                                 <button onClick={() => { setEditingNote(r.id); setNoteValue(r.note || ""); }} className="p-1.5 hover:bg-[var(--bg-subtle)] rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                                                     <Pencil className="h-3.5 w-3.5" />
                                                 </button>
-                                                <button onClick={() => handleDelete(r.id)} className="p-1.5 hover:bg-[var(--bg-subtle)] rounded-md text-[var(--text-muted)] hover:text-red-500">
-                                                    <Trash2 className="h-3.5 w-3.5" />
-                                                </button>
+                                                {deleteConfirmId === r.id ? (
+                                                    <span className="flex items-center gap-1 animate-in fade-in">
+                                                        <button onClick={() => handleDelete(r.id)} className="px-2 py-1 text-[10px] font-bold bg-red-500 text-white rounded-md">Yes</button>
+                                                        <button onClick={() => setDeleteConfirmId(null)} className="px-2 py-1 text-[10px] font-bold bg-[var(--bg-subtle)] rounded-md">No</button>
+                                                    </span>
+                                                ) : (
+                                                    <button onClick={() => setDeleteConfirmId(r.id)} className="p-1.5 hover:bg-[var(--bg-subtle)] rounded-md text-[var(--text-muted)] hover:text-red-500">
+                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
