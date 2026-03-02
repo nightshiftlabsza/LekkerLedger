@@ -1,0 +1,103 @@
+import { z } from "zod";
+import { getNMW } from "./calculator";
+
+export const NMW_DOMESTIC = getNMW(); // SD7 NMW as of current date
+
+export const EmployeeSchema = z.object({
+    id: z.string().uuid(),
+    name: z.string().min(2, "Full name required (at least 2 characters)"),
+    idNumber: z.string().optional().default(""),
+    role: z.string().min(1, "Role is required").default("Domestic Worker"),
+    hourlyRate: z
+        .number()
+        .refine((val) => val >= getNMW(), {
+            message: `Hourly rate must be at least the National Minimum Wage`,
+        }),
+    phone: z.string().optional().default(""),
+    startDate: z.string().optional().default(""), // ISO date string — when employment began
+    ordinarilyWorksSundays: z.boolean().default(false),
+    ordinaryHoursPerDay: z.number().min(1).max(24).default(8),
+    frequency: z.enum(["Weekly", "Fortnightly", "Monthly"]).default("Monthly"),
+});
+
+export type Employee = z.infer<typeof EmployeeSchema>;
+
+export const PayslipInputSchema = z.object({
+    id: z.string(),
+    employeeId: z.string(),
+    payPeriodStart: z.coerce.date(),
+    payPeriodEnd: z.coerce.date(),
+    ordinaryHours: z.number().min(0),
+    overtimeHours: z.number().min(0).default(0),
+    sundayHours: z.number().min(0).default(0),
+    publicHolidayHours: z.number().min(0).default(0),
+    daysWorked: z.number().min(0).default(0),
+    shortFallHours: z.number().min(0).default(0),
+    hourlyRate: z
+        .number()
+        .refine((val) => val >= getNMW(), {
+            message: `Hourly rate must be at least the National Minimum Wage`,
+        }),
+    includeAccommodation: z.boolean().default(false),
+    accommodationCost: z.number().min(0).optional(),
+    otherDeductions: z.number().min(0).default(0),
+    createdAt: z.date(),
+    ordinarilyWorksSundays: z.boolean().default(false),
+    ordinaryHoursPerDay: z.number().min(1).max(24).default(8),
+    // Phase 1: Leave tracking per payslip
+    annualLeaveTaken: z.number().min(0).default(0),
+    sickLeaveTaken: z.number().min(0).default(0),
+    familyLeaveTaken: z.number().min(0).default(0),
+});
+
+// Legacy alias kept for backward compat
+export const PayslipSchema = PayslipInputSchema;
+
+export type PayslipInput = z.infer<typeof PayslipInputSchema>;
+
+// ─── Leave Record (Phase 1) ─────────────────────────────────────────────────
+export type LeaveType = "annual" | "sick" | "family";
+
+export const LeaveRecordSchema = z.object({
+    id: z.string(),
+    employeeId: z.string(),
+    type: z.enum(["annual", "sick", "family"]),
+    days: z.number().positive(),
+    date: z.string(), // ISO date of leave taken
+    payslipId: z.string().optional(), // link to payslip that logged it
+    note: z.string().optional().default(""),
+});
+
+export type LeaveRecord = z.infer<typeof LeaveRecordSchema>;
+
+// ─── Employer Settings (Phase 5) ─────────────────────────────────────────────
+export const EmployerSettingsSchema = z.object({
+    employerName: z.string().default(""),
+    employerAddress: z.string().default(""),
+    employerIdNumber: z.string().default(""),
+    uifRefNumber: z.string().default(""), // uFiling reference number
+    sdlNumber: z.string().default(""),
+    proStatus: z.enum(["free", "annual", "pro", "trial"]).optional().default("free"),
+    trialExpiry: z.string().optional(),
+    logoData: z.string().optional(),
+    defaultLanguage: z.enum(["en", "zu", "xh"]).optional().default("en"),
+    simpleMode: z.boolean().default(false),
+    advancedMode: z.boolean().default(false),
+    googleSyncEnabled: z.boolean().default(false),
+    googleAuthToken: z.string().optional(),
+    installationId: z.string().default(""),
+    usageHistory: z.array(z.string()).default([]),
+});
+
+export type EmployerSettings = z.infer<typeof EmployerSettingsSchema>;
+
+// ─── Audit Log (Phase 7) ───────────────────────────────────────────────────
+export const AuditLogSchema = z.object({
+    id: z.string().uuid(),
+    timestamp: z.date(),
+    action: z.enum(["CREATE_PAYSLIP", "DELETE_PAYSLIP", "CREATE_EMPLOYEE", "DELETE_EMPLOYEE", "UPDATE_SETTINGS", "SYNC_DRIVE"]),
+    details: z.string(),
+    metadata: z.record(z.string(), z.any()).optional(),
+});
+
+export type AuditLog = z.infer<typeof AuditLogSchema>;
