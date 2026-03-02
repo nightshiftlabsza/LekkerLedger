@@ -6,18 +6,4 @@
 
   Creating an optimized production build ...
 Γ£ô (serwist) Bundling the service worker script with the URL '/sw.js' and the scope '/'...
-Γ£ô Compiled successfully in 552.1ms
-  Running TypeScript ...
-Failed to compile.
-
-./src/app/dashboard/page.tsx:19:31
-Type error: Cannot find module '@/app/hooks/usePWAInstall' or its corresponding type declarations.
-
-  17 | import { format, addDays } from "date-fns";
-  18 | import { getHolidaysInRange } from "@/lib/holidays";
-> 19 | import { usePWAInstall } from "@/app/hooks/usePWAInstall";
-     |                               ^
-  20 | import { useOnlineStatus } from "@/app/hooks/useOnlineStatus";
-  21 |
-  22 | // Thresholds that unlock advanced features
-Next.js build worker exited with code: 1 and signal: null
+Γ¿» page.tsx doesn't have a root layout. To fix this error, make sure every page has a root layout.
