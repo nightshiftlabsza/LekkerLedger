@@ -206,7 +206,7 @@ export default function Home() {
               <span className="bg-gradient-to-br from-amber-400 to-amber-600 bg-clip-text text-transparent">The Stakes Are Real.</span>
             </h2>
             <p className="text-base sm:text-lg max-w-2xl mx-auto font-medium" style={{ color: "var(--text-secondary)" }}>
-              In South Africa, a single procedural error in a payslip or contract can lead to CCMA awards of up to 12 months' salary.
+              In South Africa, a single procedural error in a payslip or contract can lead to CCMA awards of up to 12 months&apos; salary.
             </p>
           </div>
 

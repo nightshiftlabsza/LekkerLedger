@@ -117,19 +117,6 @@ function SettingsContent() {
         </div>
     );
 
-    const TabButton = ({ id, icon: Icon, label }: { id: SettingsTab; icon: any; label: string }) => (
-        <button
-            onClick={() => setActiveTab(id)}
-            className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all duration-300 flex-1 ${activeTab === id
-                ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20 scale-105"
-                : "text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]"
-                }`}
-        >
-            <Icon className="h-5 w-5" />
-            <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
-        </button>
-    );
-
     return (
         <div className="min-h-screen flex flex-col bg-[var(--bg-base)]">
             <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border-subtle)]">
@@ -145,10 +132,10 @@ function SettingsContent() {
             <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 pb-32 overflow-x-hidden">
                 {/* Modern Tab Switcher */}
                 <div className="flex bg-[var(--bg-surface)] p-1.5 rounded-[2.5rem] mb-8 border border-[var(--border-subtle)]">
-                    <TabButton id="profile" icon={Building2} label="Profile" />
-                    <TabButton id="compliance" icon={ShieldCheck} label="BCEA" />
-                    <TabButton id="sync" icon={Cloud} label="Sync" />
-                    <TabButton id="guide" icon={HelpCircle} label="Guide" />
+                    <TabButton id="profile" icon={Building2} label="Profile" activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabButton id="compliance" icon={ShieldCheck} label="BCEA" activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabButton id="sync" icon={Cloud} label="Sync" activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabButton id="guide" icon={HelpCircle} label="Guide" activeTab={activeTab} setActiveTab={setActiveTab} />
                 </div>
 
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -470,6 +457,19 @@ export default function SettingsPage() {
         </React.Suspense>
     );
 }
+
+const TabButton = ({ id, icon: Icon, label, activeTab, setActiveTab }: { id: SettingsTab; icon: any; label: string; activeTab: SettingsTab; setActiveTab: (id: SettingsTab) => void }) => (
+    <button
+        onClick={() => setActiveTab(id)}
+        className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all duration-300 flex-1 ${activeTab === id
+            ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20 scale-105"
+            : "text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]"
+            }`}
+    >
+        <Icon className="h-5 w-5" />
+        <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+    </button>
+);
 
 function Step({ number, text }: { number: string; text: string }) {
     return (
