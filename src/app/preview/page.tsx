@@ -130,7 +130,9 @@ function PreviewContent() {
             URL.revokeObjectURL(url);
         } catch (e) {
             console.error("PDF generation failed:", e);
-            setError("Failed to generate PDF.");
+            const msg = e instanceof Error ? e.message : String(e);
+            setError(`Failed to generate PDF: ${msg}`);
+
         } finally {
             setDownloading(false);
         }
