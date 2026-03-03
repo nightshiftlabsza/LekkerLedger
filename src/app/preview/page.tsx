@@ -17,6 +17,7 @@ import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { shareViaWhatsApp } from "@/lib/share";
 import { getComplianceAudit, generateComplianceNoteText } from "@/lib/compliance";
+import { generatePayslipPdfBytes } from "@/lib/pdf";
 
 function Row({ label, value, bold, red }: { label: string; value: string; bold?: boolean; red?: boolean }) {
     return (
@@ -112,17 +113,7 @@ function PreviewContent() {
 
         setDownloading(true);
         try {
-            const bytes: Uint8Array = await new Promise((resolve, reject) => {
-                const worker = new Worker(new URL('../pdf.worker.ts', import.meta.url));
-                worker.onmessage = (e) => {
-                    const { bytes, error } = e.data;
-                    if (error) reject(new Error(error));
-                    else resolve(bytes);
-                    worker.terminate();
-                };
-                worker.onerror = (e) => { reject(new Error(e.message)); worker.terminate(); };
-                worker.postMessage({ employee, payslip, settings, msgId: 'dl', isLimited: usageStats.isLimited });
-            });
+            const bytes: Uint8Array = await generatePayslipPdfBytes(employee, payslip, settings, settings.defaultLanguage, usageStats.isLimited);
 
             await incrementUsageCount();
             const stats = await getUsageStats();
