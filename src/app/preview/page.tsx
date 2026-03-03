@@ -101,17 +101,6 @@ function PreviewContent() {
     const handleDownload = async () => {
         if (!employee || !payslip || !settings) return;
 
-        // GA4 conversion tracking
-        try {
-            if (typeof window !== 'undefined' && 'gtag' in window) {
-                (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.('event', 'payslip_export', {
-                    method: 'download_pdf',
-                });
-            }
-        } catch (e) {
-            console.error('GA4 tracking failed:', e);
-        }
-
         setDownloading(true);
         try {
             // Dates come from localStorage as ISO strings, not Date objects — coerce them
@@ -137,6 +126,9 @@ function PreviewContent() {
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
+
+            // GA4: fire only on confirmed download
+            try { (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.("event", "payslip_export", { method: "download_pdf" }); } catch { }
         } catch (e) {
             console.error("PDF generation failed:", e);
             const msg = e instanceof Error ? e.message : String(e);
