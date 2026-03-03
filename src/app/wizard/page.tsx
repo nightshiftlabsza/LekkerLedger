@@ -92,6 +92,7 @@ function WizardContent() {
         }
     }, [dates.start, dates.end]);
     const [periodError, setPeriodError] = React.useState("");
+    const [hoursError, setHoursError] = React.useState("");
     const [includeAccommodation, setIncludeAccommodation] = React.useState(false);
     const [accommodationCost, setAccommodationCost] = React.useState("");
     const [usageLimited, setUsageLimited] = React.useState(false);
@@ -145,10 +146,11 @@ function WizardContent() {
         if (currentStep === 0) {
             if (!dates.start || !dates.end) { setPeriodError("Please select the pay period."); return; }
             if (!hours.ordinary && !hours.overtime && !hours.sunday && !hours.holiday) {
-                setPeriodError("Please enter at least some hours worked.");
+                setHoursError("Please enter at least some hours worked.");
                 return;
             }
             setPeriodError("");
+            setHoursError("");
         }
 
         if (currentStep < STEPS.length - 1) {
@@ -410,6 +412,11 @@ function WizardContent() {
                                             />
                                         </div>
                                     </div>
+
+                                    {/* Hours error */}
+                                    {hoursError && (
+                                        <p className="text-xs text-red-500 font-medium">{hoursError}</p>
+                                    )}
 
                                     {/* 4-Hour Rule Assistant */}
                                     <div className="p-4 rounded-xl border border-amber-500/10 bg-amber-500/[0.02] space-y-3">
