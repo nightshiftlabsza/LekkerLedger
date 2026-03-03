@@ -127,11 +127,11 @@ function PreviewContent() {
             const stats = await getUsageStats();
             setUsageStats(stats);
 
-            const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
+            const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = `Payslip_${employee.name.replace(/\s+/g, "_")}_${format(payslip.payPeriodStart, "MMM_yyyy")}.pdf`;
+            link.download = `Payslip_${employee.name.replace(/\s+/g, "_")}_${format(payslipWithDates.payPeriodStart, "MMM_yyyy")}.pdf`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
