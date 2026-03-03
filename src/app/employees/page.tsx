@@ -55,11 +55,20 @@ export default function EmployeesPage() {
                             Employees
                         </h1>
                     </div>
-                    <Link href="/employees/new">
-                        <Button size="sm" className="gap-1.5 bg-[var(--amber-500)] hover:bg-[var(--amber-600)] text-white">
-                            <Plus className="h-4 w-4" /> Add New
-                        </Button>
-                    </Link>
+                    {(!loading && !isFullPro && employees.length >= limit) ? (
+                        <Link href="/pricing">
+                            <Button size="sm" className="gap-1.5 bg-[var(--amber-500)] hover:bg-[var(--amber-600)] text-white">
+                                <Sparkles className="h-4 w-4" /> Upgrade
+                            </Button>
+                        </Link>
+                    ) : (
+                        <Link href="/employees/new">
+                            <Button size="sm" className="gap-1.5 bg-[var(--amber-500)] hover:bg-[var(--amber-600)] text-white">
+                                <Plus className="h-4 w-4" /> Add New
+                            </Button>
+                        </Link>
+                    )}
+
                 </div>
             </header>
 
