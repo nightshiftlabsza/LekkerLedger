@@ -66,9 +66,12 @@ export default function HistoryPage() {
                 <div className="max-w-5xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SideDrawer />
-                        <h1 className="font-black text-xs uppercase tracking-widest pt-0.5 text-[var(--text-primary)] flex items-center gap-2">
-                            History
-                        </h1>
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                                <Link href="/dashboard" className="hover:underline">Dashboard</Link>
+                                {" › "}Payslip History
+                            </p>
+                        </div>
                     </div>
                     <Link href="/dashboard">
                         <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--text-secondary)]">

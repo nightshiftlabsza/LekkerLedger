@@ -5,7 +5,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, Loader2, Check, Clock, Sparkles, AlertCircle, Info } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Check, Clock, Sparkles, AlertCircle, Info, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Stepper } from "@/components/ui/stepper";
@@ -15,8 +15,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { StickyBottomBar } from "@/components/layout/sticky-bottom-bar";
-import { getEmployees, savePayslip, getSecureTime, getSettings, getUsageStats } from "@/lib/storage";
-import { Employee, PayslipInput } from "@/lib/schema";
+import { getEmployees, savePayslip, getSecureTime, getSettings, getUsageStats, getAllPayslips, deletePayslip } from "@/lib/storage";
+import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
+import { format } from "date-fns";
 import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import { getHolidaysInRange } from "@/lib/holidays";
@@ -42,9 +43,11 @@ function WizardContent() {
     const { toast } = useToast();
 
     const [employee, setEmployee] = React.useState<Employee | null>(null);
+    const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [loadingInitial, setLoadingInitial] = React.useState(true);
     const [currentStep, setCurrentStep] = React.useState<number>(0);
     const [loading, setLoading] = React.useState(false);
+    const [duplicateId, setDuplicateId] = React.useState<string | null>(null);
 
     const now = new Date();
     const defaultStart = formatDateSafe(new Date(now.getFullYear(), now.getMonth(), 1));
@@ -100,10 +103,10 @@ function WizardContent() {
 
     React.useEffect(() => {
         async function load() {
-            const employees = await getEmployees();
+            const [employees, s, stats] = await Promise.all([getEmployees(), getSettings(), getUsageStats()]);
             const emp = employees.find((e) => e.id === empId);
             if (emp) { setEmployee(emp); } else { router.push("/employees"); }
-            const stats = await getUsageStats();
+            setSettings(s);
             setUsageLimited(stats.isLimited);
             setLoadingInitial(false);
         }
@@ -143,31 +146,14 @@ function WizardContent() {
         })
         : null;
 
-    const handleNext = async () => {
-        if (currentStep === 0) {
-            if (!dates.start || !dates.end) { setPeriodError("Please select the pay period."); return; }
-            if (!hours.ordinary && !hours.overtime && !hours.sunday && !hours.holiday) {
-                setHoursError("Please enter at least some hours worked.");
-                return;
-            }
-            setPeriodError("");
-            setHoursError("");
-        }
-
-        if (currentStep < STEPS.length - 1) {
-            setCurrentStep((s) => s + 1);
-            return;
-        }
-
-        // Save & navigate to preview
+    const doSave = React.useCallback(async () => {
         if (!employee) return;
         setLoading(true);
-
         try {
             // Trial Expiry Check
-            const [_settings, nowSafe] = await Promise.all([getSettings(), getSecureTime()]);
-            void _settings;
-
+            const [_settingsCheck, nowSafe] = await Promise.all([getSettings(), getSecureTime()]);
+            void _settingsCheck;
+            void nowSafe;
 
             const payslipInput: PayslipInput = {
                 id: crypto.randomUUID(),
@@ -204,7 +190,6 @@ function WizardContent() {
             }
 
             toast("Payslip generated successfully!");
-            // Improvement #18: Trigger celebration
             if (typeof window !== 'undefined') {
                 import('canvas-confetti').then(confetti => {
                     confetti.default({
@@ -222,6 +207,45 @@ function WizardContent() {
         } finally {
             setLoading(false);
         }
+    }, [employee, dates, hours, daysWorked, shortFallHours, includeAccommodation, accommodationCost, leave, router, toast]);
+
+    const handleNext = async () => {
+        if (currentStep === 0) {
+            if (!dates.start || !dates.end) { setPeriodError("Please select the pay period."); return; }
+            if (!hours.ordinary && !hours.overtime && !hours.sunday && !hours.holiday) {
+                setHoursError("Please enter at least some hours worked.");
+                return;
+            }
+            setPeriodError("");
+            setHoursError("");
+        }
+
+        if (currentStep < STEPS.length - 1) {
+            setCurrentStep((s) => s + 1);
+            return;
+        }
+
+        // Save & navigate to preview — check for duplicates first
+        if (!employee) return;
+        setLoading(true);
+
+        try {
+            const allPayslips = await getAllPayslips();
+            const currentMonth = format(safeDate(dates.start), "yyyy-MM");
+            const dup = allPayslips.find(
+                p => p.employeeId === empId &&
+                     format(new Date(p.payPeriodStart), "yyyy-MM") === currentMonth
+            );
+            if (dup) {
+                setDuplicateId(dup.id);
+                setLoading(false);
+                return;
+            }
+        } catch (err) {
+            console.error("Duplicate check failed:", err);
+        }
+
+        await doSave();
     };
 
     if (loadingInitial) {
@@ -612,6 +636,57 @@ function WizardContent() {
                         {/* STEP 3 — Review */}
                         {currentStep === 3 && breakdown && (
                             <div className="space-y-4 animate-fade-in">
+                                {/* Duplicate payslip warning */}
+                                {duplicateId && (
+                                    <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-500/5 space-y-3">
+                                        <div className="flex items-center gap-2 text-sm font-bold" style={{ color: "var(--amber-500)" }}>
+                                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                                            <span>A payslip for {employee.name} already exists for {format(safeDate(dates.start), "MMMM yyyy")}.</span>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                className="bg-amber-500 text-white font-bold hover:bg-amber-600"
+                                                onClick={async () => {
+                                                    await deletePayslip(duplicateId);
+                                                    setDuplicateId(null);
+                                                    await doSave();
+                                                }}
+                                            >
+                                                Replace existing
+                                            </Button>
+                                            <Button size="sm" variant="outline" onClick={() => setDuplicateId(null)}>Cancel</Button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Compliance checklist */}
+                                <div className="p-4 rounded-xl space-y-2.5" style={{ border: "1px solid var(--border-subtle)", backgroundColor: "var(--bg-subtle)" }}>
+                                    <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Compliance Check</p>
+                                    <ComplianceRow
+                                        pass={!!settings?.employerName?.trim()}
+                                        passText="Employer name set"
+                                        failText="Employer name missing — payslip header will be blank"
+                                        failHref="/settings"
+                                    />
+                                    <ComplianceRow
+                                        pass={employee.hourlyRate >= NMW_RATE}
+                                        passText={`Rate meets NMW (R${NMW_RATE.toFixed(2)}/hr)`}
+                                        failText={`Rate below NMW — calculator auto-corrects to R${NMW_RATE.toFixed(2)}/hr`}
+                                    />
+                                    <ComplianceRow
+                                        pass={totalHours > 24}
+                                        passText="UIF deducted (1% employee + 1% employer)"
+                                        failText="UIF not applicable — worker has ≤24 hrs this period"
+                                        isInfo={totalHours <= 24}
+                                    />
+                                    <ComplianceRow
+                                        pass={Number(daysWorked) === 0 || (Number(hours.ordinary) / Math.max(Number(daysWorked), 1)) >= 4}
+                                        passText="Hours meet 4-hr minimum shift rule"
+                                        failText="Some shifts may be below 4 hrs — calculator tops up automatically"
+                                    />
+                                </div>
+
                                 {/* Earnings rows */}
                                 <div
                                     className="rounded-xl overflow-hidden"
@@ -696,6 +771,36 @@ function WizardContent() {
                     )}
                 </Button>
             </StickyBottomBar>
+        </div>
+    );
+}
+
+function ComplianceRow({
+    pass,
+    passText,
+    failText,
+    failHref,
+    isInfo,
+}: {
+    pass: boolean;
+    passText: string;
+    failText: string;
+    failHref?: string;
+    isInfo?: boolean;
+}) {
+    const color = pass ? "var(--color-success)" : isInfo ? "var(--blue-500)" : "var(--amber-500)";
+    return (
+        <div className="flex items-start gap-2.5 text-xs">
+            {pass
+                ? <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--color-success)" }} />
+                : <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color }} />
+            }
+            <span style={{ color: pass ? "var(--text-secondary)" : color }}>
+                {pass ? passText : failText}
+                {!pass && failHref && (
+                    <Link href={failHref} className="ml-1 underline font-bold" style={{ color }}>Fix →</Link>
+                )}
+            </span>
         </div>
     );
 }

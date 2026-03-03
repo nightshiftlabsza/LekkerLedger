@@ -86,7 +86,7 @@ export function CalculatorHero({ onStart }: { onStart: (e: React.MouseEvent<HTML
                             <span>UIF (1%) {!preview.uifActive && <span className="text-[10px] lowercase" style={{ color: "var(--amber-500)" }}>· ≤24hrs</span>}</span>
                             <span className="tabular-nums text-sm font-black" style={{ color: "var(--red-500)" }}>{preview.uifActive ? `-R ${preview.uif.toFixed(2)}` : "R 0.00"}</span>
                         </div>
-                        <div className="flex justify-between items-center px-6 py-6 shadow-inner" style={{ background: "linear-gradient(135deg, #27272a 0%, #18181b 100%)" }}>
+                        <div className="flex justify-between items-center px-6 py-6 shadow-inner" style={{ background: "var(--amber-500)" }}>
                             <span className="font-black text-white/90 uppercase tracking-widest text-[10px]">Net Pay (est.)</span>
                             <span className="font-black text-white text-3xl tabular-nums">R {preview.net.toFixed(2)}</span>
                         </div>

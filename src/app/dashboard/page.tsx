@@ -164,9 +164,9 @@ export default function DashboardPage() {
     const alerts = computeDashboardAlerts({ employees: summaries.map(s => s.employee), summaries, settings, now });
     const allPaid = alerts.every(a => a.id !== "payday-due" && !a.id.startsWith("missing-hours") && a.id !== "employer-missing");
 
-    // Upcoming holidays (always show — immediately useful)
-    const nextWeek = addDays(now, 7);
-    const upcomingHolidays = getHolidaysInRange(now, nextWeek);
+    // Upcoming holidays — show within 30 days
+    const nextMonth = addDays(now, 30);
+    const upcomingHolidays = getHolidaysInRange(now, nextMonth);
 
     return (
         <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
@@ -376,8 +376,8 @@ export default function DashboardPage() {
                             </Card>
                         )}
 
-                        {/* Advanced stats — only shown when 3+ employees */}
-                        {showAdvancedStats && (
+                        {/* Stats — always visible when there are employees */}
+                        {employeeCount > 0 && (
                             <div className="space-y-3">
                                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">
                                     This Month&apos;s Payroll
@@ -386,14 +386,14 @@ export default function DashboardPage() {
                                     <Card className="glass-panel border-none">
                                         <CardContent className="p-4 flex flex-col items-center text-center">
                                             <Users className="h-5 w-5 mb-2 text-amber-500" />
-                                            <p className="text-xl font-black text-[var(--text-primary)]">{employeeCount}</p>
+                                            <p className="text-2xl font-black text-[var(--text-primary)]">{employeeCount}</p>
                                             <p className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Employees</p>
                                         </CardContent>
                                     </Card>
                                     <Card className="glass-panel border-none">
                                         <CardContent className="p-4 flex flex-col items-center text-center">
                                             <Banknote className="h-5 w-5 mb-2 text-amber-500" />
-                                            <p className="text-xl font-black tabular-nums text-[var(--text-primary)]">R{thisMonthTotal.toFixed(0)}</p>
+                                            <p className="text-2xl font-black tabular-nums text-[var(--text-primary)]">R{thisMonthTotal.toFixed(0)}</p>
                                             <p className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Gross This Month</p>
                                         </CardContent>
                                     </Card>

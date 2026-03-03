@@ -120,15 +120,15 @@ export default function EmployeesPage() {
                             <Card key={emp.id} className="animate-slide-up" style={{ animationDelay: `${i * 60}ms` }}>
                                 <CardContent className="p-4">
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="h-11 w-11 rounded-xl flex items-center justify-center text-white font-bold text-base flex-shrink-0" style={{ backgroundColor: "var(--amber-500)" }}>
+                                        <Link href={`/employees/${emp.id}`} className="flex items-center gap-3 min-w-0 group">
+                                            <div className="h-11 w-11 rounded-xl flex items-center justify-center text-white font-bold text-base flex-shrink-0 transition-transform group-hover:scale-105" style={{ backgroundColor: "var(--amber-500)" }}>
                                                 {emp.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="font-semibold text-sm truncate" style={{ color: "var(--text-primary)" }}>{emp.name}</p>
+                                                <p className="font-semibold text-sm truncate group-hover:underline" style={{ color: "var(--text-primary)" }}>{emp.name}</p>
                                                 <p className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>{emp.role} · R{emp.hourlyRate.toFixed(2)}/hr</p>
                                             </div>
-                                        </div>
+                                        </Link>
                                         <div className="flex items-center gap-2">
                                             {/* Edit — always visible when not in simple mode */}
                                             {!settings?.simpleMode && (
