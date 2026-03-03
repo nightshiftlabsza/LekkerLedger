@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -199,7 +199,7 @@ function LeaveContent() {
         <div className="space-y-4">
             {/* Breadcrumb */}
             <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                <Link href="/employees" className="hover:underline">Employees</Link> › {employee.name} › Leave
+                <Link href="/employees" className="hover:underline">Employees</Link> â€º {employee.name} â€º Leave
             </p>
             {/* Employee header */}
             <div className="flex items-center gap-3 mb-2">
@@ -387,7 +387,7 @@ function LeaveContent() {
 
 export default function LeavePage() {
     return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
             <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                 <div className="max-w-xl mx-auto flex items-center gap-3">
                     <SideDrawer />
@@ -419,3 +419,4 @@ export default function LeavePage() {
         </div>
     );
 }
+

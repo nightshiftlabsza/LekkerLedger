@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -94,7 +94,7 @@ export default function ContractsPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
             <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                 <div className="max-w-xl mx-auto flex items-center gap-3">
                     <SideDrawer />
@@ -168,7 +168,7 @@ export default function ContractsPage() {
                                                 }}
                                             >
                                                 {employees.map((e) => (
-                                                    <option key={e.id} value={e.id}>{e.name} — {e.role}</option>
+                                                    <option key={e.id} value={e.id}>{e.name} â€” {e.role}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -242,7 +242,7 @@ export default function ContractsPage() {
                                         {settings && !settings.employerName && (
                                             <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
                                                 <p className="text-xs" style={{ color: "var(--amber-600)" }}>
-                                                    <span className="font-bold">⚠ Employer details not set.</span>{" "}
+                                                    <span className="font-bold">âš  Employer details not set.</span>{" "}
                                                     <Link href="/settings" className="underline font-bold">Add them in Settings</Link> for a complete contract.
                                                 </p>
                                             </div>
@@ -257,7 +257,7 @@ export default function ContractsPage() {
                                     disabled={generating || !selectedEmployee}
                                 >
                                     {generating ? (
-                                        <><Loader2 className="h-5 w-5 animate-spin" /> Generating PDF…</>
+                                        <><Loader2 className="h-5 w-5 animate-spin" /> Generating PDFâ€¦</>
                                     ) : (
                                         <><Download className="h-5 w-5" /> Download Contract PDF</>
                                     )}
@@ -321,4 +321,5 @@ export default function ContractsPage() {
         </div>
     );
 }
+
 

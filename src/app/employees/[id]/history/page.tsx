@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Download, Loader2, Clock, AlertCircle, FileText } from "lucide-react";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -82,7 +83,7 @@ export default function EmployeeHistoryPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
             <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border-subtle)]">
                 <div className="max-w-xl mx-auto flex items-center gap-3">
                     <SideDrawer />
@@ -197,6 +198,7 @@ export default function EmployeeHistoryPage() {
                     </>
                 )}
             </main>
+            <BottomNav />
         </div>
     );
 }

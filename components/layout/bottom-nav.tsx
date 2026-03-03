@@ -8,7 +8,7 @@ import { Home, Users, Calculator, Settings } from "lucide-react";
 const NAV_ITEMS = [
     { label: "Home", icon: Home, href: "/dashboard" },
     { label: "Employees", icon: Users, href: "/employees" },
-    { label: "Wizard", icon: Calculator, href: "/wizard" },
+    { label: "Payslip", icon: Calculator, href: "/employees" },
     { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
