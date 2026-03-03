@@ -35,6 +35,15 @@ export function BulkRunModal({ isOpen, onClose, summaries, onConfirm }: BulkRunM
         }
     }, [isOpen, validSummaries.length]);
 
+    React.useEffect(() => {
+        if (!isOpen) return;
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && !isProcessing) onClose();
+        };
+        document.addEventListener("keydown", handleKey);
+        return () => document.removeEventListener("keydown", handleKey);
+    }, [isOpen, isProcessing, onClose]);
+
     if (!isOpen) return null;
 
     const targetMonth = new Date();
@@ -76,14 +85,14 @@ export function BulkRunModal({ isOpen, onClose, summaries, onConfirm }: BulkRunM
     }, 0);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div role="dialog" aria-modal="true" aria-label="Bulk Payroll Run" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
             <Card className="w-full max-w-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-xl flex flex-col max-h-[90vh]">
                 <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
                     <div>
                         <h2 className="text-lg font-black text-[var(--text-primary)]">Bulk Payroll Run</h2>
                         <p className="text-sm text-[var(--text-secondary)]">Generating for {format(targetMonth, "MMMM yyyy")}</p>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 shrink-0 rounded-full" disabled={isProcessing}>
+                    <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close" className="h-8 w-8 p-0 shrink-0 rounded-full" disabled={isProcessing}>
                         <X className="h-5 w-5 text-[var(--text-muted)]" />
                     </Button>
                 </div>
@@ -110,7 +119,12 @@ export function BulkRunModal({ isOpen, onClose, summaries, onConfirm }: BulkRunM
                         validSummaries.map((s) => (
                             <div
                                 key={s.employee.id}
+                                role="button"
+                                tabIndex={0}
+                                aria-pressed={selectedIds.has(s.employee.id)}
+                                aria-label={`${s.employee.name}, last net pay ${s.netPay !== null ? `R${s.netPay.toFixed(2)}` : "unknown"}`}
                                 onClick={() => toggleEmployee(s.employee.id)}
+                                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleEmployee(s.employee.id); } }}
                                 className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors ${selectedIds.has(s.employee.id) ? 'border-amber-500 bg-amber-500/5' : 'border-[var(--border-subtle)] hover:border-[var(--border-strong)]'}`}
                             >
                                 <div className="flex items-center gap-3">

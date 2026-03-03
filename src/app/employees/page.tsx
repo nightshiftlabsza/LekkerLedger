@@ -126,7 +126,7 @@ export default function EmployeesPage() {
                                                         size="sm"
                                                         variant="outline"
                                                         className="h-8 w-8 p-0"
-                                                        title="Certificate"
+                                                        aria-label="Download certificate of service"
                                                         onClick={async () => {
                                                             if (!settings || generatingPdf === emp.id) return;
                                                             try {
@@ -153,7 +153,7 @@ export default function EmployeesPage() {
                                                         size="sm"
                                                         variant="outline"
                                                         className="h-8 w-8 p-0"
-                                                        title="Employment Contract"
+                                                        aria-label="Download employment contract"
                                                         onClick={async () => {
                                                             if (!settings || generatingContract === emp.id) return;
                                                             try {
@@ -181,7 +181,7 @@ export default function EmployeesPage() {
                                                         size="sm"
                                                         variant="outline"
                                                         className="h-8 w-8 p-0"
-                                                        title="Edit"
+                                                        aria-label="Edit employee"
                                                         onClick={() => router.push(`/employees/${emp.id}/edit`)}
                                                     >
                                                         <Pencil className="h-4 w-4" />
@@ -192,7 +192,7 @@ export default function EmployeesPage() {
                                                 Payslip <ChevronRight className="h-3.5 w-3.5" />
                                             </Button>
                                             {!settings?.simpleMode && (
-                                                <button onClick={() => setConfirmDelete(emp.id)} className="h-8 w-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-red-500">
+                                                <button aria-label="Delete employee" onClick={() => setConfirmDelete(emp.id)} className="h-8 w-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-red-500">
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
                                             )}

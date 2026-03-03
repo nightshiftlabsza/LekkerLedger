@@ -42,7 +42,7 @@ export function PageShell({ title, children, actions }: PageShellProps) {
                 </div>
             </header>
 
-            <main className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full flex flex-col gap-8">
+            <main id="main-content" className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full flex flex-col gap-8">
                 {children}
             </main>
         </div>

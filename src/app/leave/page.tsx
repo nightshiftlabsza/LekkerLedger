@@ -316,7 +316,7 @@ function LeaveContent() {
                                             <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{r.days}d</span>
                                             <span className="text-xs" style={{ color: "var(--text-muted)" }}>{new Date(r.date).toLocaleDateString("en-ZA")}</span>
                                             <div className="flex items-center gap-1 ml-2">
-                                                <button onClick={() => { setEditingNote(r.id); setNoteValue(r.note || ""); }} className="p-1.5 hover:bg-[var(--bg-subtle)] rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                                                <button aria-label="Edit note" onClick={() => { setEditingNote(r.id); setNoteValue(r.note || ""); }} className="p-1.5 hover:bg-[var(--bg-subtle)] rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                                                     <Pencil className="h-3.5 w-3.5" />
                                                 </button>
                                                 {deleteConfirmId === r.id ? (
@@ -325,7 +325,7 @@ function LeaveContent() {
                                                         <button onClick={() => setDeleteConfirmId(null)} className="px-2 py-1 text-[10px] font-bold bg-[var(--bg-subtle)] rounded-md">No</button>
                                                     </span>
                                                 ) : (
-                                                    <button onClick={() => setDeleteConfirmId(r.id)} className="p-1.5 hover:bg-[var(--bg-subtle)] rounded-md text-[var(--text-muted)] hover:text-red-500">
+                                                    <button aria-label="Delete record" onClick={() => setDeleteConfirmId(r.id)} className="p-1.5 hover:bg-[var(--bg-subtle)] rounded-md text-[var(--text-muted)] hover:text-red-500">
                                                         <Trash2 className="h-3.5 w-3.5" />
                                                     </button>
                                                 )}

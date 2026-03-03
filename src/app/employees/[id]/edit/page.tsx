@@ -109,7 +109,7 @@ export default function EditEmployeePage() {
                 <div className="max-w-xl mx-auto flex items-center gap-3">
                     <SideDrawer />
                     <Link href="/employees">
-                        <button className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)]">
+                        <button aria-label="Back" className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)]">
                             <ArrowLeft className="h-4 w-4" />
                         </button>
                     </Link>

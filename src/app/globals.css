@@ -12,6 +12,13 @@
   --green-500: #10b981;
   --red-500: #ef4444;
   --red-50: #fef2f2;
+  --blue-500: #3b82f6;
+
+  /* Semantic aliases */
+  --color-brand: var(--amber-500);
+  --color-success: var(--green-500);
+  --color-error: var(--red-500);
+  --color-info: var(--blue-500);
 
   /* Backgrounds */
   --bg-base: #fafafa;
@@ -51,6 +58,8 @@
   --red-500: #d95f5f;
   /* Muted red — visible without screaming             */
   --red-50: rgba(217, 95, 95, 0.12);
+  --blue-500: #60a5fa;
+  /* SA flag blue — muted for dark backgrounds         */
 
   /* ─── Backgrounds ───────────────────────────────────────────────────────────
      Warm almost-blacks — like dark Highveld soil at night, NOT cold zinc */

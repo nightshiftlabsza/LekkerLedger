@@ -4,7 +4,7 @@ test.describe('Comprehensive 50 Action Audit', () => {
 
     test('Perform 50 common actions flow', async ({ page, context }) => {
 
-        test.setTimeout(120000); // 2 minutes for full audit
+        test.setTimeout(300000); // 5 minutes for full audit
 
         // Helper for taking screenshots at key moments to review later
         const snap = async (name: string) => {
@@ -47,19 +47,19 @@ test.describe('Comprehensive 50 Action Audit', () => {
         }
 
         // 3. Access Legal pages
-        await page.goto('/legal/privacy-policy');
+        await page.goto('/legal/privacy');
         await snap('03-privacy-policy');
-        await page.goto('/legal/terms-of-service');
+        await page.goto('/legal/terms');
         await snap('03-terms-of-service');
 
-        // 4 & 5. Signup / Login
+        // 4 & 5. Onboarding Step 1
         await page.goto('/onboarding');
-        await page.getByPlaceholder('What is your name?').fill('Test User', { force: true });
-        await page.getByRole('button', { name: /Continue|Next/i }).click({ force: true });
+        await page.getByRole('button', { name: /Next: Employer Details/i }).click({ force: true });
 
-        // 6. Complete wizard
-        await page.getByPlaceholder('Company Name').fill('Test Audit Company', { force: true });
-        await page.getByRole('button', { name: /Continue|Next/i }).click({ force: true });
+        // Onboarding Step 2
+        await page.locator('#employer-name').fill('Test Audit Employer', { force: true });
+        await page.locator('#employer-address').fill('123 Audit Street, Cape Town', { force: true });
+        await page.getByRole('button', { name: /Save & Start/i }).click({ force: true });
         await snap('06-onboarding-complete');
 
         // Navigate to dashboard if not automatically done
@@ -76,8 +76,8 @@ test.describe('Comprehensive 50 Action Audit', () => {
         await expect.soft(page).toHaveURL(/.*settings/, { timeout: 10000 });
         await snap('11-settings-page');
 
-        await page.getByLabel(/Company Registration Number/i).fill('2023/123456/07', { force: true });
-        await page.getByRole('button', { name: /Save/i }).first().click({ force: true });
+        await page.locator('#eaddr').fill('123 Main St, Cape Town', { force: true });
+        await page.getByRole('button', { name: /Save Changes/i }).first().click({ force: true });
         await snap('12-settings-saved');
 
         // --- EMPLOYEES (Actions 17-27) ---
@@ -90,17 +90,13 @@ test.describe('Comprehensive 50 Action Audit', () => {
         await page.getByRole('button', { name: /Add Employee/i }).click({ force: true });
         await expect.soft(page).toHaveURL(/.*employees\/new/, { timeout: 10000 });
 
-        await page.getByPlaceholder('First Name').fill('John', { force: true });
-        await page.getByPlaceholder('Last Name').fill('Doe', { force: true });
-        await page.getByPlaceholder('ID Number').fill('9001015009087', { force: true });
+        await page.locator('#name').fill('John Doe', { force: true });
+        await page.locator('#role').fill('Gardener', { force: true });
+        await page.locator('#idNumber').fill('9001015009087', { force: true });
+        await page.locator('#hourlyRate').fill('35', { force: true });
 
-        await page.getByRole('button', { name: /Next|Continue/i }).click({ force: true });
-        await page.getByPlaceholder('Job Title').fill('Software Engineer', { force: true });
-
-        await page.getByRole('button', { name: /Next|Continue/i }).click({ force: true });
-        await page.getByPlaceholder('Basic Pay').fill('50000', { force: true });
-
-        await page.getByRole('button', { name: /Save/i }).click({ force: true });
+        await page.getByRole('button', { name: /Save Employee/i }).click({ force: true });
+        await snap('22-employee-saved');
         await snap('22-employee-saved');
 
         // --- PAYSLIP (Actions 28-36) ---

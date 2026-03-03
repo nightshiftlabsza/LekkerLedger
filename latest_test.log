@@ -1,0 +1,14 @@
+
+> lekkerledger@0.1.0 test:e2e
+> playwright test
+
+
+Running 4 tests using 4 workers
+
+[1A[2K[1/4] [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip
+[1A[2K[2/4] [chromium] ΓÇ║ e2e\home.spec.ts:8:5 ΓÇ║ home page contains a main element
+[1A[2K[3/4] [chromium] ΓÇ║ e2e\home.spec.ts:3:5 ΓÇ║ home page loads and has correct title
+[1A[2K[4/4] [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow
+[1A[2K[chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow
+Starting Landing & Onboarding...
+

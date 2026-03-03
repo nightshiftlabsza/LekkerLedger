@@ -79,6 +79,13 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-amber-500/30 selection:text-amber-200`} style={{ overscrollBehaviorY: 'contain' }}>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold focus:shadow-lg"
+          style={{ backgroundColor: "var(--bg-surface)", color: "var(--text-primary)", outline: "2px solid var(--amber-500)", outlineOffset: "2px" }}
+        >
+          Skip to content
+        </a>
         <GoogleWrapper>
           <ThemeProvider>
             <ToastProvider>

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"alt=\" /c/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/*.tsx /c/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/components/*.tsx)",
+      "Bash(grep -r \"onKeyDown\\\\|onKeyPress\" /c/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/*.tsx)",
+      "mcp__Desktop_Commander__read_file"
+    ]
+  }
+}
