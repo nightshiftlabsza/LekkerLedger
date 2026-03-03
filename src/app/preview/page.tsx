@@ -122,13 +122,20 @@ function PreviewContent() {
             const link = document.createElement("a");
             link.href = url;
             link.download = `Payslip_${employee.name.replace(/\s+/g, "_")}_${format(payslipWithDates.payPeriodStart, "MMM_yyyy")}.pdf`;
+            // GA4: fire before click so SW doesn't interrupt the call
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const dl = (window as any).dataLayer;
+                if (dl) dl.push({ event: "payslip_export", method: "download_pdf" });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (window as any).gtag?.("event", "payslip_export", { method: "download_pdf" });
+            } catch { }
+
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
 
-            // GA4: fire only on confirmed download
-            try { (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.("event", "payslip_export", { method: "download_pdf" }); } catch { }
         } catch (e) {
             console.error("PDF generation failed:", e);
             const msg = e instanceof Error ? e.message : String(e);
