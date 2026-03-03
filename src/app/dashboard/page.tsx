@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, getLatestPayslip, getPayslipsForEmployee, savePayslip, getSettings, saveSettings, getSecureTime } from "@/lib/storage";
+import { computeDashboardAlerts } from "@/lib/alerts";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { format, addDays } from "date-fns";
@@ -158,16 +159,12 @@ export default function DashboardPage() {
     const showBulkRun = employeeCount > 1 && summaries.some(s => s.latestPayslip);
     const showChart = showAdvancedStats && monthlyBuckets.some(b => b.total > 0);
 
-    // Compliance banner logic
-    const employerNameMissing = !settings?.employerName?.trim();
-    const complianceStatus: "good" | "warning" | null =
-        employeeCount === 0 ? null
-            : employerNameMissing ? "warning"
-                : thisMonthTotal === 0 ? "warning"
-                    : "good";
+    // Alert engine — replaces inline compliance logic
+    const now = new Date();
+    const alerts = computeDashboardAlerts({ employees: summaries.map(s => s.employee), summaries, settings, now });
+    const allPaid = alerts.every(a => a.id !== "payday-due" && !a.id.startsWith("missing-hours") && a.id !== "employer-missing");
 
     // Upcoming holidays (always show — immediately useful)
-    const now = new Date();
     const nextWeek = addDays(now, 7);
     const upcomingHolidays = getHolidaysInRange(now, nextWeek);
 
@@ -217,32 +214,39 @@ export default function DashboardPage() {
                             </div>
                         )}
 
-                        {/* Compliance status banner — shown once there are employees */}
-                        {complianceStatus === "good" && (
+                        {/* Alert Engine banners */}
+                        {alerts.map(alert => {
+                            const isUrgent = alert.severity === "urgent";
+                            const isInfo = alert.severity === "info";
+                            const bg = isUrgent ? "rgba(239,68,68,0.08)" : isInfo ? "rgba(59,130,246,0.08)" : "rgba(217,119,6,0.08)";
+                            const border = isUrgent ? "rgba(239,68,68,0.30)" : isInfo ? "rgba(59,130,246,0.30)" : "rgba(217,119,6,0.25)";
+                            const color = isUrgent ? "var(--red-500)" : isInfo ? "var(--blue-500)" : "var(--amber-500)";
+                            return (
+                                <div key={alert.id}
+                                    className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border text-sm font-semibold animate-slide-down"
+                                    style={{ backgroundColor: bg, borderColor: border, color }}>
+                                    <div className="flex items-center gap-3">
+                                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                                        <span>{alert.message}</span>
+                                    </div>
+                                    {alert.action && (
+                                        <Link
+                                            href={alert.action.href}
+                                            className="text-xs font-bold underline underline-offset-2 whitespace-nowrap"
+                                            style={{ color }}
+                                        >
+                                            {alert.action.label}
+                                        </Link>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        {/* All-clear banner — only shown when there are employees and no alerts */}
+                        {employeeCount > 0 && allPaid && alerts.length === 0 && (
                             <div className="flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-semibold"
                                 style={{ backgroundColor: "rgba(16,185,129,0.08)", borderColor: "rgba(16,185,129,0.25)", color: "var(--color-success)" }}>
                                 <ShieldCheck className="h-4 w-4 shrink-0" />
                                 <span>Payroll up to date — <strong>eFiling-compliant</strong></span>
-                            </div>
-                        )}
-                        {complianceStatus === "warning" && (
-                            <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border text-sm font-semibold"
-                                style={{ backgroundColor: "rgba(217,119,6,0.08)", borderColor: "rgba(217,119,6,0.25)", color: "var(--amber-500)" }}>
-                                <div className="flex items-center gap-3">
-                                    <AlertTriangle className="h-4 w-4 shrink-0" />
-                                    <span>
-                                        {employerNameMissing
-                                            ? "Employer details missing — payslips will have a blank header"
-                                            : "No payslips generated yet for this month"}
-                                    </span>
-                                </div>
-                                <Link
-                                    href={employerNameMissing ? "/settings" : "/wizard"}
-                                    className="text-xs font-bold underline underline-offset-2 whitespace-nowrap"
-                                    style={{ color: "var(--amber-500)" }}
-                                >
-                                    Fix it →
-                                </Link>
                             </div>
                         )}
 
