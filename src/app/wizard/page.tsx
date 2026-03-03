@@ -165,15 +165,6 @@ function WizardContent() {
             const [_settings, nowSafe] = await Promise.all([getSettings(), getSecureTime()]);
             void _settings;
 
-            // Note: In this MVP, we assume trial is 30 days from some epoch if not 'pro'.
-            // For now, we mainly check if the device clock has been moved back.
-            // If the pay period end is in the future relative to our secure 'now', that's a red flag.
-            const periodEnd = safeDate(dates.end);
-            if (periodEnd.getTime() > nowSafe.getTime() + (24 * 60 * 60 * 1000)) { // 1 day buffer
-                setPeriodError("Cannot generate payslips for future dates.");
-                setLoading(false);
-                return;
-            }
 
             const payslipInput: PayslipInput = {
                 id: crypto.randomUUID(),
