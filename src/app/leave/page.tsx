@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
-    ArrowLeft, Loader2, Palmtree, Thermometer, Heart, CalendarDays,
+    ArrowLeft, Loader2, Palmtree, Thermometer, Heart, CalendarDays, Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -157,33 +157,50 @@ function LeaveContent() {
 
     if (!employee) {
         return (
-            <div className="text-center py-20">
-                <p className="font-semibold mb-2" style={{ color: "var(--text-primary)" }}>Employee not found</p>
-                <Link href="/employees"><Button variant="outline">Back to Employees</Button></Link>
-            </div>
+            <Card className="glass-panel border-dashed border-2 p-12 text-center overflow-hidden relative mt-8 animate-fade-in">
+                <div className="absolute inset-0 bg-gradient-to-b from-[var(--amber-500)]/5 to-transparent pointer-events-none" />
+                <div className="h-20 w-20 mx-auto mb-6 rounded-3xl bg-[var(--amber-500)]/10 flex items-center justify-center relative">
+                    <div className="absolute inset-0 bg-[var(--amber-500)]/20 blur-xl rounded-full" />
+                    <Users className="h-10 w-10 text-[var(--amber-500)] relative z-10" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-xl font-black text-[var(--text-primary)] mb-2 tracking-tight">Employee not found</h3>
+                <p className="text-sm text-[var(--text-secondary)] mb-8 max-w-[250px] mx-auto leading-relaxed">This employee record doesn&apos;t exist or may have been removed.</p>
+                <Link href="/employees">
+                    <Button className="h-12 px-6 rounded-xl bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] transition-all">
+                        <ArrowLeft className="h-5 w-5 mr-2" /> Back to Employees
+                    </Button>
+                </Link>
+            </Card>
         );
     }
 
     if (!employee.startDate) {
         return (
-            <div className="text-center py-20 px-4 space-y-4">
-                <CalendarDays className="h-12 w-12 mx-auto" style={{ color: "var(--text-muted)" }} />
-                <p className="font-semibold" style={{ color: "var(--text-primary)" }}>No Start Date Set</p>
-                <p className="text-sm max-w-sm mx-auto" style={{ color: "var(--text-muted)" }}>
-                    To calculate leave balances, we need to know when {employee.name} started working.
-                    Edit their profile to add a start date.
+            <Card className="glass-panel border-dashed border-2 p-12 text-center overflow-hidden relative mt-8 animate-fade-in">
+                <div className="absolute inset-0 bg-gradient-to-b from-[var(--amber-500)]/5 to-transparent pointer-events-none" />
+                <div className="h-20 w-20 mx-auto mb-6 rounded-3xl bg-[var(--amber-500)]/10 flex items-center justify-center relative">
+                    <div className="absolute inset-0 bg-[var(--amber-500)]/20 blur-xl rounded-full" />
+                    <CalendarDays className="h-10 w-10 text-[var(--amber-500)] relative z-10" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-xl font-black text-[var(--text-primary)] mb-2 tracking-tight">No Start Date Set</h3>
+                <p className="text-sm text-[var(--text-secondary)] mb-8 max-w-[250px] mx-auto leading-relaxed">
+                    To calculate leave balances we need to know when {employee.name} started working. Add a start date to their profile.
                 </p>
-                <Link href="/employees">
-                    <Button variant="outline" className="gap-2">
-                        <ArrowLeft className="h-4 w-4" /> Back to Employees
+                <Link href={`/employees/${employee.id}/edit`}>
+                    <Button className="h-12 px-6 rounded-xl bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] transition-all">
+                        Edit Profile
                     </Button>
                 </Link>
-            </div>
+            </Card>
         );
     }
 
     return (
         <div className="space-y-4">
+            {/* Breadcrumb */}
+            <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                <Link href="/employees" className="hover:underline">Employees</Link> › {employee.name} › Leave
+            </p>
             {/* Employee header */}
             <div className="flex items-center gap-3 mb-2">
                 <div

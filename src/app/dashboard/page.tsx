@@ -20,6 +20,7 @@ import { getHolidaysInRange } from "@/lib/holidays";
 import { usePWAInstall } from "@/src/app/hooks/usePWAInstall";
 import { useOnlineStatus } from "@/src/app/hooks/useOnlineStatus";
 import { BulkRunModal } from "@/components/bulk-run-modal";
+import { BottomNav } from "@/components/layout/bottom-nav";
 
 // Thresholds that unlock advanced features
 const ADVANCED_EMPLOYEE_COUNT = 3;   // 3+ employees → show payroll trend chart
@@ -193,7 +194,7 @@ export default function DashboardPage() {
                 </div>
             </header>
 
-            <main className="flex-1 px-4 py-6 max-w-3xl mx-auto w-full space-y-6">
+            <main className="flex-1 px-4 py-6 max-w-3xl mx-auto w-full space-y-6 animate-fade-in">
                 {loading ? (
                     <div className="flex items-center justify-center py-20">
                         <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
@@ -221,7 +222,7 @@ export default function DashboardPage() {
                             <div className="flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-semibold"
                                 style={{ backgroundColor: "rgba(16,185,129,0.08)", borderColor: "rgba(16,185,129,0.25)", color: "var(--color-success)" }}>
                                 <ShieldCheck className="h-4 w-4 shrink-0" />
-                                <span>Payroll up to date — <strong>SARS-compliant</strong></span>
+                                <span>Payroll up to date — <strong>eFiling-compliant</strong></span>
                             </div>
                         )}
                         {complianceStatus === "warning" && (
@@ -277,8 +278,8 @@ export default function DashboardPage() {
                                 </Card>
                             ) : (
                                 <div className="grid sm:grid-cols-2 gap-4">
-                                    {summaries.map((summary) => (
-                                        <Card key={summary.employee.id} className="glass-panel border-none hover-lift">
+                                    {summaries.map((summary, i) => (
+                                        <Card key={summary.employee.id} className="glass-panel border-none hover-lift animate-slide-up" style={{ animationDelay: `${i * 80}ms` }}>
                                             <CardContent className="p-5 flex flex-col h-full">
                                                 <div className="flex items-center gap-3 mb-4">
                                                     <div className="h-10 w-10 rounded-xl bg-amber-500 flex items-center justify-center text-white font-black text-lg">
@@ -449,6 +450,7 @@ export default function DashboardPage() {
                 summaries={summaries}
                 onConfirm={handleConfirmBulk}
             />
+            <BottomNav />
         </div>
     );
 }

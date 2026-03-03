@@ -113,9 +113,14 @@ export default function EditEmployeePage() {
                             <ArrowLeft className="h-4 w-4" />
                         </button>
                     </Link>
-                    <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
-                        Edit Employee
-                    </h1>
+                    <div>
+                        <p className="text-[10px] leading-none mb-0.5" style={{ color: "var(--text-muted)" }}>
+                            <Link href="/employees" className="hover:underline">Employees</Link> › Edit
+                        </p>
+                        <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
+                            Edit Employee
+                        </h1>
+                    </div>
                 </div>
             </header>
 

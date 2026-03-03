@@ -212,16 +212,22 @@ p,
 }
 
 /* Stagger utilities */
-.delay-100 {
-  animation-delay: 100ms;
-}
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
 
-.delay-200 {
-  animation-delay: 200ms;
-}
-
-.delay-300 {
-  animation-delay: 300ms;
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-slide-down,
+  .animate-slide-right,
+  .animate-fade-in,
+  .animate-drawer-in {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
 }
 
 /* Hide scrollbar logically but allow scrolling */

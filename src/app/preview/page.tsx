@@ -146,6 +146,26 @@ function PreviewContent() {
         }
     };
 
+    const handleWhatsApp = async () => {
+        if (!employee || !payslip || !settings) return;
+        setDownloading("whatsapp");
+        try {
+            const payslipWithDates = {
+                ...payslip,
+                payPeriodStart: new Date(payslip.payPeriodStart),
+                payPeriodEnd: new Date(payslip.payPeriodEnd),
+                createdAt: new Date(payslip.createdAt),
+            };
+            const bytes = await generatePayslipPdfBytes(employee, payslipWithDates, settings, settings.defaultLanguage, usageStats.isLimited);
+            const periodLabel = format(payslipWithDates.payPeriodStart, "MMM yyyy");
+            await shareViaWhatsApp(bytes, employee.name, employee.phone ?? "", periodLabel);
+        } catch (e) {
+            console.error("WhatsApp share failed:", e);
+        } finally {
+            setDownloading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
@@ -181,12 +201,29 @@ function PreviewContent() {
                         <Link href="/employees">
                             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl"><ArrowLeft className="h-4 w-4" /></Button>
                         </Link>
-                        <h1 className="font-bold text-base text-[var(--text-primary)]">Preview</h1>
+                        <div>
+                            <p className="text-[10px] leading-none mb-0.5" style={{ color: "var(--text-muted)" }}>
+                                <Link href="/employees" className="hover:underline">Employees</Link> › {employee?.name ?? "Payslip"}
+                            </p>
+                            <h1 className="font-bold text-base text-[var(--text-primary)]">Payslip Preview</h1>
+                        </div>
                     </div>
-                    <Button onClick={handleDownload} disabled={!!downloading} size="sm" className="gap-2 bg-amber-500 text-white">
-                        {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                        <span className="hidden sm:inline">Download</span>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            onClick={handleWhatsApp}
+                            disabled={!!downloading}
+                            size="sm"
+                            variant="outline"
+                            className="gap-2 border-green-600/40 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+                        >
+                            <MessageCircle className="h-4 w-4" />
+                            <span className="hidden sm:inline">WhatsApp</span>
+                        </Button>
+                        <Button onClick={handleDownload} disabled={!!downloading} size="sm" className="gap-2 bg-amber-500 text-white">
+                            {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                            <span className="hidden sm:inline">Download</span>
+                        </Button>
+                    </div>
                 </div>
             </header>
 
