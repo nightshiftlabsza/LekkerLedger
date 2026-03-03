@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import {
     Plus, Clock, Users, ArrowRight, AlertTriangle, Lock,
     Palmtree, Download, ChevronRight, Loader2, CalendarDays,
-    Banknote, RefreshCw, CloudOff, CheckCircle2
+    Banknote, RefreshCw, CloudOff, CheckCircle2, ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -157,6 +157,14 @@ export default function DashboardPage() {
     const showBulkRun = employeeCount > 1 && summaries.some(s => s.latestPayslip);
     const showChart = showAdvancedStats && monthlyBuckets.some(b => b.total > 0);
 
+    // Compliance banner logic
+    const employerNameMissing = !settings?.employerName?.trim();
+    const complianceStatus: "good" | "warning" | null =
+        employeeCount === 0 ? null
+            : employerNameMissing ? "warning"
+                : thisMonthTotal === 0 ? "warning"
+                    : "good";
+
     // Upcoming holidays (always show — immediately useful)
     const now = new Date();
     const nextWeek = addDays(now, 7);
@@ -205,6 +213,35 @@ export default function DashboardPage() {
                             <div className="px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold border border-amber-400 bg-amber-50 text-amber-900 dark:bg-amber-900/20 dark:text-amber-300">
                                 <AlertTriangle className="h-4 w-4 shrink-0" />
                                 <span>Your estimated annual payroll exceeds R500 000 — Skills Development Levy (SDL) may apply. <Link href="/rules" className="underline font-bold">Learn more</Link></span>
+                            </div>
+                        )}
+
+                        {/* Compliance status banner — shown once there are employees */}
+                        {complianceStatus === "good" && (
+                            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-semibold"
+                                style={{ backgroundColor: "rgba(16,185,129,0.08)", borderColor: "rgba(16,185,129,0.25)", color: "var(--color-success)" }}>
+                                <ShieldCheck className="h-4 w-4 shrink-0" />
+                                <span>Payroll up to date — <strong>SARS-compliant</strong></span>
+                            </div>
+                        )}
+                        {complianceStatus === "warning" && (
+                            <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border text-sm font-semibold"
+                                style={{ backgroundColor: "rgba(217,119,6,0.08)", borderColor: "rgba(217,119,6,0.25)", color: "var(--amber-500)" }}>
+                                <div className="flex items-center gap-3">
+                                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                                    <span>
+                                        {employerNameMissing
+                                            ? "Employer details missing — payslips will have a blank header"
+                                            : "No payslips generated yet for this month"}
+                                    </span>
+                                </div>
+                                <Link
+                                    href={employerNameMissing ? "/settings" : "/wizard"}
+                                    className="text-xs font-bold underline underline-offset-2 whitespace-nowrap"
+                                    style={{ color: "var(--amber-500)" }}
+                                >
+                                    Fix it →
+                                </Link>
                             </div>
                         )}
 
@@ -385,14 +422,10 @@ export default function DashboardPage() {
                             </div>
                         )}
 
-                        {/* Compliance footer — subtle, not a banner */}
-                        <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] px-1 pt-2 border-t border-[var(--border-subtle)]">
-                            <div className="flex items-center gap-1.5">
-                                <CheckCircle2 className="h-3 w-3 text-green-500" />
-                                <span>SARS-compliant payslips</span>
-                            </div>
+                        {/* Footer — Tax Rules link */}
+                        <div className="flex items-center justify-end text-[10px] text-[var(--text-muted)] px-1 pt-2 border-t border-[var(--border-subtle)]">
                             <Link href="/rules" className="font-bold hover:text-amber-600 flex items-center gap-0.5">
-                                Tax Rules <ChevronRight className="h-3 w-3" />
+                                SA Tax Rules <ChevronRight className="h-3 w-3" />
                             </Link>
                         </div>
                     </>

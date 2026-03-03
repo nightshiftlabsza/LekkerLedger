@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { SideDrawer } from "@/components/layout/side-drawer";
+import { StickyBottomBar } from "@/components/layout/sticky-bottom-bar";
 import { getEmployees, savePayslip, getSecureTime, getSettings, getUsageStats } from "@/lib/storage";
 import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
@@ -280,7 +281,7 @@ function WizardContent() {
                 </div>
             </header>
 
-            <main className="flex-1 px-4 py-6 content-container">
+            <main className="flex-1 px-4 py-6 pb-24 content-container">
                 {/* Stepper */}
                 <div
                     className="p-5 rounded-2xl"
@@ -668,33 +669,34 @@ function WizardContent() {
                         )}
                     </CardContent>
 
-                    <CardFooter className="flex justify-between gap-3">
-                        <Button
-                            size="lg"
-                            variant="outline"
-                            onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
-                            disabled={currentStep === 0 || loading}
-                        >
-                            Back
-                        </Button>
-                        <Button
-                            size="lg"
-                            onClick={handleNext}
-                            disabled={loading}
-                            className="flex-1 sm:flex-none sm:min-w-[160px]"
-                        >
-                            {loading ? (
-                                <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
-                            ) : currentStep === STEPS.length - 1 ? (
-                                "Save & Preview"
-                            ) : (
-                                <>Next <ArrowRight className="h-4 w-4" /></>
-                            )}
-                        </Button>
-                    </CardFooter>
                 </Card>
-            </main >
-        </div >
+            </main>
+
+            <StickyBottomBar>
+                <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
+                    disabled={currentStep === 0 || loading}
+                >
+                    Back
+                </Button>
+                <Button
+                    size="lg"
+                    onClick={handleNext}
+                    disabled={loading}
+                    className="flex-1 sm:flex-none sm:min-w-[160px] bg-[var(--amber-500)] hover:bg-[var(--amber-600)] text-white font-bold"
+                >
+                    {loading ? (
+                        <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                    ) : currentStep === STEPS.length - 1 ? (
+                        "Save & Preview"
+                    ) : (
+                        <>Next <ArrowRight className="h-4 w-4" /></>
+                    )}
+                </Button>
+            </StickyBottomBar>
+        </div>
     );
 }
 

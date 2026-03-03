@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, Users, ChevronRight, Sparkles, FileBadge, Pencil, ScrollText } from "lucide-react";
+import { Plus, Trash2, Loader2, Users, ChevronRight, Sparkles, FileBadge, Pencil, ScrollText, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -20,6 +20,7 @@ export default function EmployeesPage() {
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [generatingPdf, setGeneratingPdf] = React.useState<string | null>(null);
     const [generatingContract, setGeneratingContract] = React.useState<string | null>(null);
+    const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
 
     const load = React.useCallback(async () => {
         setLoading(true);
@@ -33,6 +34,14 @@ export default function EmployeesPage() {
     }, []);
 
     React.useEffect(() => { load(); }, [load]);
+
+    // Close overflow menu on any outside click
+    React.useEffect(() => {
+        if (!openMenuId) return;
+        const close = () => setOpenMenuId(null);
+        document.addEventListener("click", close);
+        return () => document.removeEventListener("click", close);
+    }, [openMenuId]);
 
     const handleDelete = async (id: string) => {
         await deleteEmployee(id);
@@ -120,81 +129,118 @@ export default function EmployeesPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
+                                            {/* Edit — always visible when not in simple mode */}
                                             {!settings?.simpleMode && (
-                                                <>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="h-8 w-8 p-0"
-                                                        aria-label="Download certificate of service"
-                                                        onClick={async () => {
-                                                            if (!settings || generatingPdf === emp.id) return;
-                                                            try {
-                                                                setGeneratingPdf(emp.id);
-                                                                const bytes = await generateCertificateOfService(emp, settings);
-                                                                const blob = new Blob([bytes as unknown as ArrayBuffer], { type: "application/pdf" });
-                                                                const url = URL.createObjectURL(blob);
-                                                                const a = document.createElement("a");
-                                                                a.href = url;
-                                                                a.download = `${emp.name.replace(/\s+/g, "_")}_Certificate_of_Service.pdf`;
-                                                                a.click();
-                                                                URL.revokeObjectURL(url);
-                                                            } catch (err) {
-                                                                console.error("PDF generation failed", err);
-                                                                alert("Failed to generate PDF. Please try again.");
-                                                            } finally {
-                                                                setGeneratingPdf(null);
-                                                            }
-                                                        }}
-                                                    >
-                                                        {generatingPdf === emp.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileBadge className="h-4 w-4" />}
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="h-8 w-8 p-0"
-                                                        aria-label="Download employment contract"
-                                                        onClick={async () => {
-                                                            if (!settings || generatingContract === emp.id) return;
-                                                            try {
-                                                                setGeneratingContract(emp.id);
-                                                                const { generateEmploymentContract } = await import('@/lib/contract-pdf');
-                                                                const bytes = await generateEmploymentContract(emp, settings);
-                                                                const blob = new Blob([bytes as unknown as ArrayBuffer], { type: "application/pdf" });
-                                                                const url = URL.createObjectURL(blob);
-                                                                const a = document.createElement("a");
-                                                                a.href = url;
-                                                                a.download = `${emp.name.replace(/\s+/g, "_")}_Employment_Contract.pdf`;
-                                                                a.click();
-                                                                URL.revokeObjectURL(url);
-                                                            } catch (err) {
-                                                                console.error("Contract PDF generation failed", err);
-                                                                alert("Failed to generate contract. Please try again.");
-                                                            } finally {
-                                                                setGeneratingContract(null);
-                                                            }
-                                                        }}
-                                                    >
-                                                        {generatingContract === emp.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScrollText className="h-4 w-4" />}
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="h-8 w-8 p-0"
-                                                        aria-label="Edit employee"
-                                                        onClick={() => router.push(`/employees/${emp.id}/edit`)}
-                                                    >
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-                                                </>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="h-8 w-8 p-0"
+                                                    aria-label="Edit employee"
+                                                    onClick={() => router.push(`/employees/${emp.id}/edit`)}
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
                                             )}
+
+                                            {/* Primary action */}
                                             <Button size="sm" variant="default" className="gap-1.5 text-xs h-8 bg-amber-500 text-white font-bold" onClick={() => router.push(`/wizard?empId=${emp.id}`)}>
                                                 Payslip <ChevronRight className="h-3.5 w-3.5" />
                                             </Button>
+
+                                            {/* ⋮ Overflow menu — certificate, contract, delete */}
                                             {!settings?.simpleMode && (
-                                                <button aria-label="Delete employee" onClick={() => setConfirmDelete(emp.id)} className="h-8 w-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-red-500">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
+                                                <div className="relative">
+                                                    <button
+                                                        aria-label="More actions"
+                                                        aria-expanded={openMenuId === emp.id}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setOpenMenuId(openMenuId === emp.id ? null : emp.id);
+                                                        }}
+                                                        className="h-8 w-8 flex items-center justify-center rounded-lg transition-colors hover:bg-[var(--bg-subtle)]"
+                                                        style={{ color: "var(--text-muted)" }}
+                                                    >
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </button>
+
+                                                    {openMenuId === emp.id && (
+                                                        <div
+                                                            className="absolute right-0 top-10 z-20 w-52 rounded-xl border shadow-[var(--shadow-lg)] overflow-hidden"
+                                                            style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-default)" }}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            {/* Certificate of Service */}
+                                                            <button
+                                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-colors hover:bg-[var(--bg-subtle)] disabled:opacity-50"
+                                                                style={{ color: "var(--text-primary)" }}
+                                                                disabled={generatingPdf === emp.id}
+                                                                onClick={async () => {
+                                                                    setOpenMenuId(null);
+                                                                    if (!settings) return;
+                                                                    try {
+                                                                        setGeneratingPdf(emp.id);
+                                                                        const bytes = await generateCertificateOfService(emp, settings);
+                                                                        const blob = new Blob([bytes as unknown as ArrayBuffer], { type: "application/pdf" });
+                                                                        const url = URL.createObjectURL(blob);
+                                                                        const a = document.createElement("a");
+                                                                        a.href = url;
+                                                                        a.download = `${emp.name.replace(/\s+/g, "_")}_Certificate_of_Service.pdf`;
+                                                                        a.click();
+                                                                        URL.revokeObjectURL(url);
+                                                                    } catch { alert("Failed to generate PDF. Please try again."); }
+                                                                    finally { setGeneratingPdf(null); }
+                                                                }}
+                                                            >
+                                                                {generatingPdf === emp.id
+                                                                    ? <Loader2 className="h-4 w-4 animate-spin shrink-0" style={{ color: "var(--amber-500)" }} />
+                                                                    : <FileBadge className="h-4 w-4 shrink-0" style={{ color: "var(--amber-500)" }} />}
+                                                                Certificate of Service
+                                                            </button>
+
+                                                            <div style={{ borderTop: "1px solid var(--border-subtle)" }} />
+
+                                                            {/* Employment Contract */}
+                                                            <button
+                                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-colors hover:bg-[var(--bg-subtle)] disabled:opacity-50"
+                                                                style={{ color: "var(--text-primary)" }}
+                                                                disabled={generatingContract === emp.id}
+                                                                onClick={async () => {
+                                                                    setOpenMenuId(null);
+                                                                    if (!settings) return;
+                                                                    try {
+                                                                        setGeneratingContract(emp.id);
+                                                                        const { generateEmploymentContract } = await import('@/lib/contract-pdf');
+                                                                        const bytes = await generateEmploymentContract(emp, settings);
+                                                                        const blob = new Blob([bytes as unknown as ArrayBuffer], { type: "application/pdf" });
+                                                                        const url = URL.createObjectURL(blob);
+                                                                        const a = document.createElement("a");
+                                                                        a.href = url;
+                                                                        a.download = `${emp.name.replace(/\s+/g, "_")}_Employment_Contract.pdf`;
+                                                                        a.click();
+                                                                        URL.revokeObjectURL(url);
+                                                                    } catch { alert("Failed to generate contract. Please try again."); }
+                                                                    finally { setGeneratingContract(null); }
+                                                                }}
+                                                            >
+                                                                {generatingContract === emp.id
+                                                                    ? <Loader2 className="h-4 w-4 animate-spin shrink-0" style={{ color: "var(--amber-500)" }} />
+                                                                    : <ScrollText className="h-4 w-4 shrink-0" style={{ color: "var(--amber-500)" }} />}
+                                                                Employment Contract
+                                                            </button>
+
+                                                            <div style={{ borderTop: "1px solid var(--border-subtle)" }} />
+
+                                                            {/* Delete */}
+                                                            <button
+                                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-colors hover:bg-red-500/10 text-red-500"
+                                                                onClick={() => { setOpenMenuId(null); setConfirmDelete(emp.id); }}
+                                                            >
+                                                                <Trash2 className="h-4 w-4 shrink-0" />
+                                                                Delete Employee
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                     </div>
