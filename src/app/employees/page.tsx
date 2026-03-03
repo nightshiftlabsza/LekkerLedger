@@ -3,24 +3,23 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Trash2, Loader2, Users, ChevronRight, Palmtree, Sparkles, FileBadge, Pencil } from "lucide-react";
+import { Plus, Trash2, Loader2, Users, ChevronRight, Sparkles, FileBadge, Pencil, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, deleteEmployee, getSettings } from "@/lib/storage";
-import { useToast } from "@/components/ui/toast";
 import { Employee, EmployerSettings } from "@/lib/schema";
 import { generateCertificateOfService } from "@/lib/certificate-pdf";
 
 export default function EmployeesPage() {
     const router = useRouter();
-    const { toast } = useToast();
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [generatingPdf, setGeneratingPdf] = React.useState<string | null>(null);
+    const [generatingContract, setGeneratingContract] = React.useState<string | null>(null);
 
     const load = React.useCallback(async () => {
         setLoading(true);
@@ -44,7 +43,6 @@ export default function EmployeesPage() {
     const isFullPro = settings?.proStatus === "pro" || settings?.proStatus === "trial";
     const isAnnual = settings?.proStatus === "annual";
     const limit = isFullPro ? Infinity : (isAnnual ? 3 : 1);
-    const canAddMore = employees.length < limit;
 
     return (
         <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
@@ -125,7 +123,7 @@ export default function EmployeesPage() {
                                                             try {
                                                                 setGeneratingPdf(emp.id);
                                                                 const bytes = await generateCertificateOfService(emp, settings);
-                                                                const blob = new Blob([bytes as any], { type: "application/pdf" });
+                                                                const blob = new Blob([bytes as unknown as ArrayBuffer], { type: "application/pdf" });
                                                                 const url = URL.createObjectURL(blob);
                                                                 const a = document.createElement("a");
                                                                 a.href = url;
@@ -141,6 +139,34 @@ export default function EmployeesPage() {
                                                         }}
                                                     >
                                                         {generatingPdf === emp.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileBadge className="h-4 w-4" />}
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-8 w-8 p-0"
+                                                        title="Employment Contract"
+                                                        onClick={async () => {
+                                                            if (!settings || generatingContract === emp.id) return;
+                                                            try {
+                                                                setGeneratingContract(emp.id);
+                                                                const { generateEmploymentContract } = await import('@/lib/contract-pdf');
+                                                                const bytes = await generateEmploymentContract(emp, settings);
+                                                                const blob = new Blob([bytes as unknown as ArrayBuffer], { type: "application/pdf" });
+                                                                const url = URL.createObjectURL(blob);
+                                                                const a = document.createElement("a");
+                                                                a.href = url;
+                                                                a.download = `${emp.name.replace(/\s+/g, "_")}_Employment_Contract.pdf`;
+                                                                a.click();
+                                                                URL.revokeObjectURL(url);
+                                                            } catch (err) {
+                                                                console.error("Contract PDF generation failed", err);
+                                                                alert("Failed to generate contract. Please try again.");
+                                                            } finally {
+                                                                setGeneratingContract(null);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {generatingContract === emp.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScrollText className="h-4 w-4" />}
                                                     </Button>
                                                     <Button
                                                         size="sm"

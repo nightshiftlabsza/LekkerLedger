@@ -2,24 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
     ArrowLeft,
-    User,
     ShieldCheck,
     Cloud,
     HelpCircle,
-    Check,
     ChevronRight,
-    Info,
-    BookOpen,
     Scale,
-    Settings,
-    FileText,
     Building2,
     Save,
-    Trash2,
-    AlertTriangle,
     Smartphone,
     Database,
     Globe,
@@ -30,7 +22,7 @@ import {
     Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -46,7 +38,6 @@ import { Moon, Sun, Monitor } from "lucide-react";
 type SettingsTab = "profile" | "compliance" | "sync" | "guide";
 
 function SettingsContent() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const [activeTab, setActiveTab] = React.useState<SettingsTab>("profile");
@@ -308,9 +299,7 @@ function SettingsContent() {
                                                     a.click();
                                                     document.body.removeChild(a);
                                                     URL.revokeObjectURL(url);
-                                                } catch (e) {
-                                                    alert("Export failed.");
-                                                }
+                                                } catch { alert("Export failed."); }
                                             }}
                                         >
                                             <Download className="h-3.5 w-3.5" /> Download Backup
@@ -458,7 +447,7 @@ export default function SettingsPage() {
     );
 }
 
-const TabButton = ({ id, icon: Icon, label, activeTab, setActiveTab }: { id: SettingsTab; icon: any; label: string; activeTab: SettingsTab; setActiveTab: (id: SettingsTab) => void }) => (
+const TabButton = ({ id, icon: Icon, label, activeTab, setActiveTab }: { id: SettingsTab; icon: React.ElementType; label: string; activeTab: SettingsTab; setActiveTab: (id: SettingsTab) => void }) => (
     <button
         onClick={() => setActiveTab(id)}
         className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all duration-300 flex-1 ${activeTab === id

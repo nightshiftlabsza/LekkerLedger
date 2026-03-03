@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, ShieldCheck, ChevronRight, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, BookOpen, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function RulesPage() {

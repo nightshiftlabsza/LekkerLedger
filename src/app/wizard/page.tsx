@@ -13,9 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import { SideDrawer } from "@/components/layout/side-drawer";
-import { Skeleton } from "@/components/ui/skeleton";
 import { getEmployees, savePayslip, getSecureTime, getSettings, getUsageStats } from "@/lib/storage";
 import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
@@ -164,7 +162,8 @@ function WizardContent() {
 
         try {
             // Trial Expiry Check
-            const [settings, nowSafe] = await Promise.all([getSettings(), getSecureTime()]);
+            const [_settings, nowSafe] = await Promise.all([getSettings(), getSecureTime()]);
+            void _settings;
 
             // Note: In this MVP, we assume trial is 30 days from some epoch if not 'pro'.
             // For now, we mainly check if the device clock has been moved back.
@@ -203,8 +202,8 @@ function WizardContent() {
 
             // GA4 conversion tracking
             try {
-                if (typeof window !== 'undefined' && (window as any).gtag) {
-                    (window as any).gtag('event', 'onboarding_complete');
+                if (typeof window !== 'undefined' && 'gtag' in window) {
+                    (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.('event', 'onboarding_complete');
                 }
             } catch (e) {
                 console.error('GA4 tracking failed:', e);

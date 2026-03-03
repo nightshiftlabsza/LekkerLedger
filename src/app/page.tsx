@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Shield, Clock, Github, AlertTriangle, ShieldCheck, Sparkles, ChevronRight, ShieldAlert, FileText, Lock, History, Award, MessageCircle, UserPlus } from "lucide-react";
+import { ArrowRight, Clock, Github, AlertTriangle, ShieldCheck, Sparkles, ChevronRight, FileText, Lock, History, Award, MessageCircle, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SideDrawer } from "@/components/layout/side-drawer";
@@ -11,10 +11,11 @@ import { CalculatorHero } from "@/components/calculator-hero";
 import Image from "next/image";
 import { getSettings, saveSettings, getComplianceShownFlag, setComplianceShownFlag } from "@/lib/storage";
 import { ComplianceSplash } from "@/components/compliance-splash";
+import { EmployerSettings } from "@/lib/schema";
 
 export default function Home() {
   const router = useRouter();
-  const [settings, setSettings] = React.useState<any>(null);
+  const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
   const [showCompliance, setShowCompliance] = React.useState(false);
   const calculatorRef = React.useRef<HTMLDivElement>(null);
 
@@ -35,7 +36,7 @@ export default function Home() {
 
   const simpleMode = settings?.simpleMode ?? false;
 
-  const handleSaveSettings = async (updated: any) => {
+  const handleSaveSettings = async (updated: Partial<EmployerSettings>) => {
     const s = await getSettings();
     const newSettings = { ...s, ...updated };
     await saveSettings(newSettings);

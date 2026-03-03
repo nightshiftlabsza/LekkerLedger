@@ -67,7 +67,7 @@ export default function GlobalError({
                         className="text-red-500 bg-red-500/5 hover:bg-red-500/10 w-full text-xs font-bold gap-2"
                         onClick={() => setConfirmReset(true)}
                     >
-                        <ShieldAlert className="h-3 w-3" /> Fix "White Screen" Loop
+                        <ShieldAlert className="h-3 w-3" /> Fix &ldquo;White Screen&rdquo; Loop
                     </Button>
                 ) : (
                     <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2">

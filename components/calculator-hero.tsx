@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Calculator, ChevronRight, AlertTriangle } from "lucide-react";
+import { Calculator, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { getNMW, UIF_MONTHLY_CAP, UIF_RATE } from "@/lib/calculator";
 import { roundTo } from "@/lib/money";
 import { triggerBurst } from "./ui/confetti-trigger";
 
-export function CalculatorHero({ onStart }: { onStart: (e: any) => void }) {
+export function CalculatorHero({ onStart }: { onStart: (e: React.MouseEvent<HTMLButtonElement>) => void }) {
     const [hours, setHours] = React.useState("160");
     const [rate, setRate] = React.useState("30.23");
 

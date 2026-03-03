@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, getSettings } from "@/lib/storage";
 import { Employee, EmployerSettings } from "@/lib/schema";
-import { generateContractPdfBytes, ContractInput } from "@/lib/contract-pdf";
+import { generateEmploymentContract } from "@/lib/contract-pdf";
 import { generateDisciplinaryPdfBytes, DisciplinaryInput, DisciplinaryType } from "@/lib/disciplinary-pdf";
 
 export default function ContractsPage() {
@@ -47,16 +47,7 @@ export default function ContractsPage() {
         setGenerating(true);
         setTimeout(async () => {
             try {
-                const input: ContractInput = {
-                    employee: selectedEmployee,
-                    employer: settings,
-                    startDate: form.startDate,
-                    workDays: form.workDays,
-                    workHoursPerDay: parseInt(form.workHoursPerDay) || 8,
-                    duties: form.duties,
-                    probationMonths: parseInt(form.probationMonths) || 0,
-                };
-                const pdfBytes = await generateContractPdfBytes(input);
+                const pdfBytes = await generateEmploymentContract(selectedEmployee, settings);
                 const blob = new Blob([pdfBytes.slice(0)], { type: "application/pdf" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
@@ -285,7 +276,7 @@ export default function ContractsPage() {
                                             { id: "final-warning", title: "Final Written Warning", icon: FileText },
                                             { id: "disciplinary-notice", title: "Notice of Inquiry", icon: AlertTriangle },
                                         ].map((t) => (
-                                            <Card key={t.id} className="hover:border-amber-500/50 cursor-pointer transition-all group" onClick={() => handleGenerateDisciplinary(t.id as any)}>
+                                            <Card key={t.id} className="hover:border-amber-500/50 cursor-pointer transition-all group" onClick={() => handleGenerateDisciplinary(t.id as DisciplinaryType)}>
                                                 <CardContent className="p-4 flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
                                                         <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">

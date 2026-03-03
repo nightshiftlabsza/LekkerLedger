@@ -4,9 +4,6 @@ import * as React from "react";
 import Link from "next/link";
 import {
     X,
-    Sun,
-    Moon,
-    Monitor,
     FileText,
     Users,
     Home,
@@ -18,12 +15,8 @@ import {
     Settings,
     BookOpen,
     Sparkles,
-    HelpCircle,
-    CreditCard,
-    Share2,
-    MessageCircle,
-    Mail, // Ensure Mail is imported
-    Cloud, // Added Cloud import
+    Mail,
+    Cloud,
 } from "lucide-react";
 
 

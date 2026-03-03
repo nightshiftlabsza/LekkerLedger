@@ -33,7 +33,7 @@ export function SplashScreen() {
                     <div className="h-full bg-amber-500 rounded-full animate-progress" />
                 </div>
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 pt-2">
-                    South Africa's Domestic Standard
+                    South Africa&apos;s Domestic Standard
                 </p>
             </div>
         </div>

@@ -16,8 +16,9 @@ export interface ComplianceAudit {
 /**
  * Generates a compliance audit based on SD7 and NMW Act.
  */
-export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, date: Date = new Date()): ComplianceAudit {
-    const nmw = getNMWForDate(date);
+export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, date: Date | string = new Date()): ComplianceAudit {
+    const safeDate = new Date(date);
+    const nmw = getNMWForDate(safeDate);
 
     // 1. Wage Compliance
     const isWageCompliant = employee.hourlyRate >= nmw;
@@ -47,8 +48,8 @@ export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, 
     return {
         wageCompliant: isWageCompliant,
         wageStatusText,
-        uifCompliant: isUifCompliant,
         uifStatusText,
+        uifCompliant: isUifCompliant,
         accommodationCompliant: isAccommodationCompliant,
         accommodationStatusText,
         sundayMultiplier: sundayRateMultiplier,
@@ -59,9 +60,10 @@ export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, 
 /**
  * Generates the human-readable text block requested from Gemini 3.1.
  */
-export function generateComplianceNoteText(employee: Employee, breakdown: PayBreakdown, date: Date = new Date()): string {
-    const audit = getComplianceAudit(employee, breakdown, date);
-    const nmw = getNMWForDate(date);
+export function generateComplianceNoteText(employee: Employee, breakdown: PayBreakdown, date: Date | string = new Date()): string {
+    const safeDate = new Date(date);
+    const audit = getComplianceAudit(employee, breakdown, safeDate);
+    const nmw = getNMWForDate(safeDate);
 
     return `
 ======================================================================

@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
     Plus, Clock, Users, ArrowRight, AlertTriangle, Lock,
     Palmtree, Download, ChevronRight, Loader2, CalendarDays,
-    Banknote, RefreshCw, CloudOff, Shield, CheckCircle2
+    Banknote, RefreshCw, CloudOff, CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -71,7 +72,6 @@ export default function DashboardPage() {
             const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
             let currentMonthTotal = 0;
-            let allTimeTotal = 0;
 
             const bucketMap = new Map<string, number>();
             for (let i = 5; i >= 0; i--) {
@@ -90,7 +90,6 @@ export default function DashboardPage() {
 
                 const monthPayslips = allPayslips.filter(ps => new Date(ps.payPeriodStart) >= thisMonthStart);
                 currentMonthTotal += monthPayslips.reduce((acc, ps) => acc + calculatePayslip(ps).grossPay, 0);
-                allTimeTotal += allPayslips.reduce((acc, ps) => acc + calculatePayslip(ps).grossPay, 0);
 
                 for (const ps of allPayslips) {
                     const d = new Date(ps.payPeriodStart);
@@ -172,8 +171,8 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-3">
                         <SideDrawer />
                         <Link href="/" className="flex items-center gap-2">
-                            <img src="/brand/logo-light.png" alt="LekkerLedger" className="h-6 w-auto block dark:hidden" />
-                            <img src="/brand/logo-dark.png" alt="LekkerLedger" className="h-6 w-auto hidden dark:block" />
+                            <Image src="/brand/logo-light.png" alt="LekkerLedger" width={80} height={24} className="h-6 w-auto block dark:hidden" />
+                            <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={80} height={24} className="h-6 w-auto hidden dark:block" />
                             <span className="font-black text-xs uppercase tracking-widest pt-0.5 text-[var(--text-primary)]">Dashboard</span>
                         </Link>
                     </div>
@@ -323,7 +322,7 @@ export default function DashboardPage() {
                                         </div>
                                         <div>
                                             <p className="font-black text-sm text-[var(--text-primary)]">Run {format(new Date(), "MMMM")} Payroll</p>
-                                            <p className="text-xs text-[var(--text-secondary)]">Repeat last month's payslips for all {employeeCount} employees at once.</p>
+                                            <p className="text-xs text-[var(--text-secondary)]">Repeat last month&apos;s payslips for all {employeeCount} employees at once.</p>
                                         </div>
                                     </div>
                                     <Button
@@ -342,7 +341,7 @@ export default function DashboardPage() {
                         {showAdvancedStats && (
                             <div className="space-y-3">
                                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">
-                                    This Month's Payroll
+                                    This Month&apos;s Payroll
                                 </h2>
                                 <div className="grid grid-cols-2 gap-3">
                                     <Card className="glass-panel border-none">

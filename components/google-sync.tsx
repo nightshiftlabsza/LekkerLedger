@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useGoogleLogin, googleLogout } from "@react-oauth/google";
 import { Cloud, Download, Upload, LogOut, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,7 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
         setStatus("idle");
     };
 
-    const handleBackup = async (silent = false) => {
+    const handleBackup = useCallback(async (silent = false) => {
         const currentToken = token || localStorage.getItem("google_access_token");
         if (!currentToken) return;
 
@@ -79,7 +79,7 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
             }
             setTimeout(() => setStatus("idle"), 4000);
         }
-    };
+    }, [token]);
 
     const handleRestore = async (silent = false) => {
         const currentToken = token || localStorage.getItem("google_access_token");

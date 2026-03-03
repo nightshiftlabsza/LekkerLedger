@@ -5,18 +5,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Download, Loader2, CheckCircle2, RefreshCw, MessageCircle, Share, AlertCircle, CheckCircle, Info, ChevronDown, ChevronUp, FileText, ShieldCheck, Copy } from "lucide-react";
+import { ArrowLeft, Download, Loader2, CheckCircle2, MessageCircle, AlertCircle, CheckCircle, ChevronDown, ChevronUp, FileText, ShieldCheck, Copy } from "lucide-react";
 import { triggerCelebration } from "@/components/ui/confetti-trigger";
-import confetti from "canvas-confetti"; // Fixes UMD global lint
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideDrawer } from "@/components/layout/side-drawer";
-import { getEmployees, getPayslipsForEmployee, getSettings, getUsageStats, incrementUsageCount, getInstallationId } from "@/lib/storage";
-import { Employee, PayslipInput } from "@/lib/schema";
+import { getEmployees, getPayslipsForEmployee, getSettings, getUsageStats, incrementUsageCount } from "@/lib/storage";
+import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
-import { generatePayslipPdfBytes } from "@/lib/pdf";
 import { shareViaWhatsApp } from "@/lib/share";
 import { getComplianceAudit, generateComplianceNoteText } from "@/lib/compliance";
 
@@ -61,24 +59,21 @@ function PreviewContent() {
     const [payslip, setPayslip] = React.useState<PayslipInput | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [downloading, setDownloading] = React.useState<string | boolean>("");
-    const [sharing, setSharing] = React.useState(false);
-    const [settings, setSettings] = React.useState<any>(null);
+    const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [error, setError] = React.useState("");
     const [showFullAudit, setShowFullAudit] = React.useState(false);
     const [copied, setCopied] = React.useState(false);
     const [usageStats, setUsageStats] = React.useState({ count30Days: 0, isLimited: false });
-    const [instId, setInstId] = React.useState("");
 
     React.useEffect(() => {
         async function load() {
             if (!payslipId || !empId) { setError("Payslip not found."); setLoading(false); return; }
             try {
-                const [empList, payslips, s, stats, id] = await Promise.all([
+                const [empList, payslips, s, stats] = await Promise.all([
                     getEmployees(),
                     getPayslipsForEmployee(empId),
                     getSettings(),
                     getUsageStats(),
-                    getInstallationId(),
                 ]);
                 const emp = empList.find((e: Employee) => e.id === empId);
                 const ps = payslips.find((p: PayslipInput) => p.id === payslipId);
@@ -89,7 +84,6 @@ function PreviewContent() {
                     setPayslip(ps);
                     setSettings(s);
                     setUsageStats(stats);
-                    setInstId(id);
                     triggerCelebration();
                 }
             } catch (e) {
@@ -107,8 +101,8 @@ function PreviewContent() {
 
         // GA4 conversion tracking
         try {
-            if (typeof window !== 'undefined' && (window as any).gtag) {
-                (window as any).gtag('event', 'payslip_export', {
+            if (typeof window !== 'undefined' && 'gtag' in window) {
+                (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.('event', 'payslip_export', {
                     method: 'download_pdf',
                 });
             }
@@ -174,7 +168,8 @@ function PreviewContent() {
     }
 
     const breakdown = calculatePayslip(payslip);
-    const periodStr = `${format(new Date(payslip.payPeriodStart), "d MMM")} – ${format(new Date(payslip.payPeriodEnd), "d MMM yyyy")}`;
+    const _periodStr = `${format(new Date(payslip.payPeriodStart), "d MMM")} – ${format(new Date(payslip.payPeriodEnd), "d MMM yyyy")}`;
+    void _periodStr; // computed for potential future display
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
@@ -258,10 +253,10 @@ function PreviewContent() {
                         className="w-full h-12 text-[#25D366] border-[#25D366]/30"
                         onClick={async () => {
                             if (!employee || !payslip || !settings) return;
-                            setSharing(true);
+                            setDownloading('wa');
                             try {
                                 const bytes: Uint8Array = await new Promise((resolve, reject) => {
-                                    const worker = new Worker(new URL('../../lib/pdf.worker.ts', import.meta.url));
+                                    const worker = new Worker(new URL('../pdf.worker.ts', import.meta.url));
                                     worker.onmessage = (e) => {
                                         const { bytes, error } = e.data;
                                         if (error) reject(new Error(error));
@@ -276,7 +271,7 @@ function PreviewContent() {
                                 setUsageStats(stats);
                                 await shareViaWhatsApp(bytes, employee.name, employee.phone || "", format(payslip.payPeriodEnd, "MMM_yyyy"));
                             } catch (e) { console.error(e); }
-                            setSharing(false);
+                            setDownloading("");
                         }}
                     >
                         <MessageCircle className="h-5 w-5 mr-2" /> Share via WhatsApp
@@ -315,7 +310,7 @@ function PreviewContent() {
                                                 setDownloading("audit");
                                                 try {
                                                     const { generateBCEASummaryPdf } = await import('@/lib/compliance-pdf');
-                                                    const bytes = await generateBCEASummaryPdf(employee, payslip, settings);
+                                                    const bytes = await generateBCEASummaryPdf(employee, payslip, settings!);
                                                     const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
                                                     const url = URL.createObjectURL(blob);
                                                     const link = document.createElement("a");
@@ -336,7 +331,7 @@ function PreviewContent() {
                                                 setDownloading("cert");
                                                 try {
                                                     const { generateCertificateOfServicePdf } = await import('@/lib/compliance-pdf');
-                                                    const bytes = await generateCertificateOfServicePdf(employee, settings);
+                                                    const bytes = await generateCertificateOfServicePdf(employee, settings!);
                                                     const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
                                                     const url = URL.createObjectURL(blob);
                                                     const link = document.createElement("a");

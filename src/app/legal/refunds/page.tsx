@@ -27,7 +27,7 @@ export default function RefundPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">1. Pro Subscriptions</h2>
                         <p>
-                            LekkerLedger offers premium features under a subscription model. We offer a 7-day "No Questions Asked" refund policy for first-time subscribers as per the Consumer Protection Act (CPA) regarding digital services.
+                            LekkerLedger offers premium features under a subscription model. We offer a 7-day &ldquo;No Questions Asked&rdquo; refund policy for first-time subscribers as per the Consumer Protection Act (CPA) regarding digital services.
                         </p>
                     </section>
 
@@ -41,7 +41,7 @@ export default function RefundPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">3. Usage of Generated Documents</h2>
                         <p>
-                            Please note that generating a "Pro" document (e.g., an automated Employment Contract) consumes the value of the service for that month. Refunds may be denied if major Pro features have been utilized extensively within the refund window.
+                            Please note that generating a &ldquo;Pro&rdquo; document (e.g., an automated Employment Contract) consumes the value of the service for that month. Refunds may be denied if major Pro features have been utilized extensively within the refund window.
                         </p>
                     </section>
 

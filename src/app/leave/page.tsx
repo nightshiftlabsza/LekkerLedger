@@ -13,7 +13,7 @@ import { getEmployee, getLeaveForEmployee, saveLeaveRecord, deleteLeaveRecord, g
 import { Skeleton } from "@/components/ui/skeleton";
 import { Employee, LeaveRecord, LeaveType } from "@/lib/schema";
 import { calculateLeaveBalances, LeaveBalances } from "@/lib/leave";
-import { Plus, X, Tag, Trash2, Pencil, Save, MoreVertical } from "lucide-react";
+import { Plus, X, Trash2, Pencil, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDateSafe } from "@/lib/utils";
@@ -350,7 +350,7 @@ function LeaveContent() {
                                         </div>
                                     ) : r.note && (
                                         <p className="text-[11px] italic pl-4" style={{ color: "var(--text-secondary)" }}>
-                                            "{r.note}"
+                                            &ldquo;{r.note}&rdquo;
                                         </p>
                                     )}
                                 </div>

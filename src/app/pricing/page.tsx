@@ -5,9 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
-    ArrowLeft, Check, Sparkles, Coffee, ShieldCheck, Zap,
-    Cloud, FileText, Smartphone, AlertTriangle, Shield,
-    ChevronRight, CalendarDays, Lock, Award, History, ShieldAlert
+    ArrowLeft, Check, Coffee, ShieldCheck, Zap,
+    AlertTriangle, Shield, Lock, Award, History, ShieldAlert
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,27 +18,12 @@ const PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c";
 const PAYSTACK_PLAN_ANNUAL = "PLN_xdijjb5u3pqneld";
 
 // Load Paystack dynamically to prevent Next.js SSR window errors
-const PaystackHookWrapper = dynamic(
-    () => Promise.resolve(({ config, onSuccess, onClose }: any) => {
-        const { usePaystackPayment } = require('react-paystack');
-        const initializePayment = usePaystackPayment(config);
-
-        React.useEffect(() => {
-            if (config.amount > 0) {
-                initializePayment({ onSuccess, onClose });
-            }
-        }, [config.amount]);
-
-        return null;
-    }),
-    { ssr: false }
-);
+const PaystackHookWrapper = dynamic(() => import('@/components/paystack-wrapper'), { ssr: false });
 
 export default function PricingPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [status, setStatus] = React.useState<"free" | "annual" | "pro" | "trial">("free");
-    const [loading, setLoading] = React.useState(true);
     const [selectedPlan, setSelectedPlan] = React.useState<"annual" | "pro" | null>(null);
     const [makePayment, setMakePayment] = React.useState(false);
 
@@ -47,7 +31,6 @@ export default function PricingPage() {
         async function load() {
             const s = await getSettings();
             setStatus(s.proStatus || "free");
-            setLoading(false);
         }
         load();
     }, []);
@@ -182,9 +165,7 @@ export default function PricingPage() {
                             { text: "Private Google Drive Sync", included: false },
                         ]}
                         buttonText={status === "annual" ? "Active" : "Subscribe Yearly"}
-                        buttonVariant="outline"
                         onAction={() => handleAction("annual")}
-                        highlight
                         colorClass="text-[#2d5a27]"
                     />
 
@@ -203,7 +184,6 @@ export default function PricingPage() {
                             { text: "Full Legal Vault (Disciplinary)", included: true },
                         ]}
                         buttonText={status === "pro" ? "Activated" : "Get Lifetime Access"}
-                        buttonVariant="primary"
                         onAction={() => handleAction("pro")}
                         isPro
                         colorClass="text-[#c47a1c]"
@@ -232,7 +212,7 @@ export default function PricingPage() {
                 {/* Risk Section: Mistake vs Solution */}
                 <div className="space-y-8 py-10">
                     <div className="text-center space-y-2">
-                        <h3 className="text-2xl font-extrabold tracking-tight">The "Legal Insurance" Perspective</h3>
+                        <h3 className="text-2xl font-extrabold tracking-tight">The &ldquo;Legal Insurance&rdquo; Perspective</h3>
                         <p className="text-sm text-[var(--text-secondary)]">One small oversight can cost more than a lifetime of Lekker Pro.</p>
                     </div>
 
@@ -243,7 +223,7 @@ export default function PricingPage() {
                                 <ShieldAlert className="h-5 w-5" />
                                 <span className="font-black uppercase tracking-widest text-[10px]">Non-Compliance</span>
                             </div>
-                            <h4 className="text-xl font-bold leading-tight">The "Risk It" Approach</h4>
+                            <h4 className="text-xl font-bold leading-tight">The &ldquo;Risk It&rdquo; Approach</h4>
                             <div className="space-y-3 pt-2">
                                 <RiskItem text="UIF Penalties (10% + interest)" color="zinc" />
                                 <RiskItem text="CCMA Awards (Up to 12 months)" color="zinc" />
@@ -261,7 +241,7 @@ export default function PricingPage() {
                                 <AlertTriangle className="h-5 w-5" />
                                 <span className="font-black uppercase tracking-widest text-[10px]">Agency / Software</span>
                             </div>
-                            <h4 className="text-xl font-bold leading-tight">The "Old Way" of Payroll</h4>
+                            <h4 className="text-xl font-bold leading-tight">The &ldquo;Old Way&rdquo; of Payroll</h4>
                             <div className="space-y-3 pt-2">
                                 <RiskItem text="Registration: ± R450 - R650" />
                                 <RiskItem text="Monthly: ± R250 - R450" />
@@ -329,7 +309,7 @@ export default function PricingPage() {
 
 function PricingCard({
     title, price, period, description, features, badge,
-    buttonText, buttonDisabled, buttonVariant, onAction, highlight, isPro, colorClass
+    buttonText, buttonDisabled, onAction, isPro, colorClass
 }: {
     title: string;
     price: string;
@@ -339,9 +319,7 @@ function PricingCard({
     badge?: string;
     buttonText: string;
     buttonDisabled?: boolean;
-    buttonVariant?: "outline" | "primary";
     onAction: () => void;
-    highlight?: boolean;
     isPro?: boolean;
     colorClass?: string;
 }) {

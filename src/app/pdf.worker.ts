@@ -6,7 +6,8 @@ self.onmessage = async (evt: MessageEvent) => {
     try {
         const bytes = await generatePayslipPdfBytes(employee, payslip, settings, settings.defaultLanguage, isLimited);
         self.postMessage({ msgId, bytes, error: null });
-    } catch (err: any) {
-        self.postMessage({ msgId, bytes: null, error: err.message || "Unknown error generating PDF in worker" });
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Unknown error generating PDF in worker";
+        self.postMessage({ msgId, bytes: null, error: msg });
     }
 };

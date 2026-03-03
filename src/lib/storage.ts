@@ -11,11 +11,11 @@ const auditStore = localforage.createInstance({ name: "LekkerLedger", storeName:
 export const FREE_PAYSLIP_LIMIT = 2;
 
 // ─── PII Obfuscation ──────────────────────────────────────────────────────────
-function encodeData(data: any): string {
+function encodeData(data: unknown): string {
     return btoa(encodeURIComponent(JSON.stringify(data)));
 }
 
-function decodeData<T>(str: any): T {
+function decodeData<T>(str: unknown): T {
     if (typeof str !== "string" || !str) return str as T;
     try {
         const decoded = decodeURIComponent(atob(str));
@@ -59,14 +59,14 @@ export function setImportingMode(val: boolean) {
 
 export async function getEmployees(): Promise<Employee[]> {
     const employees: Employee[] = [];
-    await employeeStore.iterate<any, void>((val: any) => {
+    await employeeStore.iterate<unknown, void>((val: unknown) => {
         if (val) employees.push(decodeData<Employee>(val));
     });
     return employees.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getEmployee(id: string): Promise<Employee | null> {
-    const val = await employeeStore.getItem<any>(id);
+    const val = await employeeStore.getItem<unknown>(id);
     return val ? decodeData<Employee>(val) : null;
 }
 
@@ -83,7 +83,7 @@ export async function deleteEmployee(id: string): Promise<void> {
     await employeeStore.removeItem(id);
     // P0 FIX: Decode payslip values before checking employeeId
     const toDelete: string[] = [];
-    await payslipStore.iterate<any, void>((val: any, key: string) => {
+    await payslipStore.iterate<unknown, void>((val: unknown, key: string) => {
         const decoded = decodeData<PayslipInput>(val);
         if (decoded && decoded.employeeId === id) toDelete.push(key);
     });
@@ -107,7 +107,7 @@ export async function savePayslip(payslip: PayslipInput): Promise<void> {
 
 export async function getPayslipsForEmployee(employeeId: string): Promise<PayslipInput[]> {
     const payslips: PayslipInput[] = [];
-    await payslipStore.iterate<any, void>((val: any) => {
+    await payslipStore.iterate<unknown, void>((val: unknown) => {
         const decoded = decodeData<PayslipInput>(val);
         if (decoded && decoded.employeeId === employeeId) payslips.push(decoded);
     });
@@ -128,7 +128,7 @@ export async function getTotalDaysWorkedForEmployee(employeeId: string): Promise
 
 export async function getAllPayslips(): Promise<PayslipInput[]> {
     const payslips: PayslipInput[] = [];
-    await payslipStore.iterate<any, void>((val: any) => {
+    await payslipStore.iterate<unknown, void>((val: unknown) => {
         if (val) payslips.push(decodeData<PayslipInput>(val));
     });
     return payslips.sort(
@@ -321,7 +321,14 @@ export async function getUsageStats(): Promise<{ count30Days: number; isLimited:
 // ─── Export / Import ───────────────────────────────────────────────────────
 
 export async function exportData(): Promise<string> {
-    const data: any = {
+    const data: {
+        version: string;
+        timestamp: string;
+        employees: unknown[];
+        payslips: unknown[];
+        leave: unknown[];
+        settings: unknown;
+    } = {
         version: "1.0",
         timestamp: new Date().toISOString(),
         employees: [],
@@ -337,7 +344,7 @@ export async function exportData(): Promise<string> {
     const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
     // P1 FIX: Strip googleAuthToken from export (security)
     if (rawSettings) {
-        const { googleAuthToken: _token, ...safeSettings } = rawSettings as any;
+        const { googleAuthToken: _token, ...safeSettings } = rawSettings;
         data.settings = safeSettings;
     }
 
@@ -346,22 +353,22 @@ export async function exportData(): Promise<string> {
 
 export async function importData(json: string): Promise<{ success: boolean; error?: string }> {
     // P0 FIX: Parse FIRST, reset AFTER successful parse
-    let data: any;
+    let data: Record<string, unknown>;
     try {
-        data = JSON.parse(json);
-    } catch (e) {
+        data = JSON.parse(json) as Record<string, unknown>;
+    } catch {
         return { success: false, error: "Invalid backup file — could not parse JSON." };
     }
 
     setImportingMode(true);
     try {
         await resetAllData();
-        if (data.employees) await Promise.all(data.employees.map((e: any) => employeeStore.setItem(e.id, encodeData(e))));
-        if (data.payslips) await Promise.all(data.payslips.map((p: any) => payslipStore.setItem(p.id, encodeData(p))));
-        if (data.leave) await Promise.all(data.leave.map((l: any) => leaveStore.setItem(l.id, l)));
-        if (data.settings) await settingsStore.setItem(SETTINGS_KEY, data.settings);
+        if (data.employees) await Promise.all((data.employees as Employee[]).map((e) => employeeStore.setItem(e.id, encodeData(e))));
+        if (data.payslips) await Promise.all((data.payslips as PayslipInput[]).map((p) => payslipStore.setItem(p.id, encodeData(p))));
+        if (data.leave) await Promise.all((data.leave as LeaveRecord[]).map((l) => leaveStore.setItem(l.id, l)));
+        if (data.settings) await settingsStore.setItem(SETTINGS_KEY, data.settings as EmployerSettings);
         return { success: true };
-    } catch (e) {
+    } catch {
         return { success: false, error: "Restore failed — data may be partially imported." };
     } finally {
         setImportingMode(false);
@@ -382,7 +389,7 @@ export async function resetAllData(): Promise<void> {
 // ─── Audit Logging ──────────────────────────────────────────────────────────
 import { AuditLog } from "./schema";
 
-export async function logAuditEvent(action: AuditLog["action"], details: string, metadata?: any): Promise<void> {
+export async function logAuditEvent(action: AuditLog["action"], details: string, metadata?: Record<string, unknown>): Promise<void> {
     const id = crypto.randomUUID();
     const log: AuditLog = {
         id,
@@ -409,8 +416,8 @@ export function getCurrentTaxYearRange(now: Date = new Date()): { start: Date; e
     const year = now.getFullYear();
     const month = now.getMonth();
 
-    let startYear = (month < 2) ? year - 1 : year;
-    let endYear = startYear + 1;
+    const startYear = (month < 2) ? year - 1 : year;
+    const endYear = startYear + 1;
 
     const start = new Date(startYear, 2, 1);
     const end = new Date(endYear, 1, 28);

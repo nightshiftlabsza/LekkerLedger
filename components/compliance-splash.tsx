@@ -1,27 +1,39 @@
 "use client";
 
 import * as React from "react";
-import { ShieldAlert, X, ChevronRight, AlertTriangle, ShieldCheck } from "lucide-react";
+import { ShieldAlert, ChevronRight, AlertTriangle, ShieldCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
 export function ComplianceSplash({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="compliance-title"
+        >
             <div className="w-full max-w-lg bg-[var(--bg-surface)] rounded-[2.5rem] shadow-2xl border border-white/5 overflow-hidden animate-scale-in">
                 {/* Header Image/Background */}
                 <div className="h-48 bg-zinc-950 relative overflow-hidden flex items-center justify-center">
                     <div className="absolute inset-0 opacity-20">
                         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--amber-500)_0%,_transparent_70%)]" />
                     </div>
+                    {/* Explicit X close button for accessibility */}
+                    <button
+                        onClick={onClose}
+                        aria-label="Close"
+                        className="absolute top-4 right-4 z-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors p-2 text-white"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
                     <ShieldAlert className="h-20 w-20 text-amber-500 relative z-10 animate-pulse" />
                 </div>
 
                 <div className="p-8 sm:p-10 space-y-6">
                     <div className="text-center space-y-2">
-                        <h2 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
+                        <h2 id="compliance-title" className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
                             The 12-Month Rule.
                         </h2>
                         <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
@@ -51,7 +63,10 @@ export function ComplianceSplash({ isOpen, onClose }: { isOpen: boolean; onClose
                         <Button className="w-full h-14 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-lg gap-2 active-scale" onClick={onClose}>
                             Start My Free Audit <ChevronRight className="h-5 w-5" />
                         </Button>
-                        <button onClick={onClose} className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+                        <button
+                            onClick={onClose}
+                            className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors py-1"
+                        >
                             Dismiss and browse home
                         </button>
                     </div>

@@ -27,13 +27,13 @@ export default function PrivacyPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">1. Introduction</h2>
                         <p>
-                            LekkerLedger ("we", "us", or "our") is committed to protecting your privacy in accordance with the Protection of Personal Information Act (POPIA) of South Africa. This policy explains how we handle your information.
+                            LekkerLedger (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) is committed to protecting your privacy in accordance with the Protection of Personal Information Act (POPIA) of South Africa. This policy explains how we handle your information.
                         </p>
                     </section>
 
                     <section className="space-y-4 text-amber-500/90 italic p-6 rounded-2xl bg-amber-500/5 border border-amber-500/10">
                         <p>
-                            <strong>Important:</strong> LekkerLedger is a "privacy-first" tool. We have no central database for your employee data. All payroll data is stored locally on your device or in your personal private Google Drive/iCloud sync.
+                            <strong>Important:</strong> LekkerLedger is a &ldquo;privacy-first&rdquo; tool. We have no central database for your employee data. All payroll data is stored locally on your device or in your personal private Google Drive/iCloud sync.
                         </p>
                     </section>
 
