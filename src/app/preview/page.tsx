@@ -118,11 +118,9 @@ function PreviewContent() {
             setUsageStats(stats);
 
             const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `Payslip_${employee.name.replace(/\s+/g, "_")}_${format(payslipWithDates.payPeriodStart, "MMM_yyyy")}.pdf`;
-            // GA4: fire before click so SW doesn't interrupt the call
+            const filename = `Payslip_${employee.name.replace(/\s+/g, "_")}_${format(payslipWithDates.payPeriodStart, "MMM_yyyy")}.pdf`;
+
+            // GA4: fire before download so interruption can't prevent it
             try {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const dl = (window as any).dataLayer;
@@ -131,10 +129,35 @@ function PreviewContent() {
                 (window as any).gtag?.("event", "payslip_export", { method: "download_pdf" });
             } catch { }
 
+            // Use File System Access API in installed PWA/app context (supports Windows PWA shell)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (typeof (window as any).showSaveFilePicker === "function") {
+                try {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const handle = await (window as any).showSaveFilePicker({
+                        suggestedName: filename,
+                        types: [{ description: "PDF Document", accept: { "application/pdf": [".pdf"] } }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    return; // done
+                } catch (err) {
+                    // User cancelled the picker — don't treat as error
+                    if ((err as Error)?.name === "AbortError") return;
+                    // Otherwise fall through to anchor method
+                }
+            }
+
+            // Fallback: anchor click (works in browsers)
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
 
         } catch (e) {
             console.error("PDF generation failed:", e);
