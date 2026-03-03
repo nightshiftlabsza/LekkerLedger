@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { SideDrawer } from "@/components/layout/side-drawer";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { getSettings, saveSettings, resetAllData, getCurrentTaxYearRange, exportData, importData } from "@/lib/storage";
 import { EmployerSettings } from "@/lib/schema";
 import { useToast } from "@/components/ui/toast";
@@ -120,7 +121,7 @@ function SettingsContent() {
                 </div>
             </header>
 
-            <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 pb-32 overflow-x-hidden">
+            <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 pb-24 lg:pb-6 overflow-x-hidden">
                 {/* Modern Tab Switcher */}
                 <div className="flex bg-[var(--bg-surface)] p-1.5 rounded-[2.5rem] mb-8 border border-[var(--border-subtle)]">
                     <TabButton id="profile" icon={Building2} label="Profile" activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -419,6 +420,7 @@ function SettingsContent() {
                     )}
                 </div>
             </main>
+            <BottomNav />
         </div>
     );
 }

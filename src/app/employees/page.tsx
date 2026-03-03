@@ -11,6 +11,7 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, deleteEmployee, getSettings } from "@/lib/storage";
 import { Employee, EmployerSettings } from "@/lib/schema";
 import { generateCertificateOfService } from "@/lib/certificate-pdf";
+import { BottomNav } from "@/components/layout/bottom-nav";
 
 export default function EmployeesPage() {
     const router = useRouter();
@@ -288,6 +289,7 @@ export default function EmployeesPage() {
                     </AlertDescription>
                 </Alert>
             </main>
+            <BottomNav />
         </div>
     );
 }

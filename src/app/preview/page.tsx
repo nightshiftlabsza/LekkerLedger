@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideDrawer } from "@/components/layout/side-drawer";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { getEmployees, getPayslipsForEmployee, getSettings, getUsageStats, incrementUsageCount } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
@@ -227,7 +228,7 @@ function PreviewContent() {
                 </div>
             </header>
 
-            <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-6 pb-20">
+            <main className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full pb-24 lg:pb-8">
                 {/* Usage Warning */}
                 {usageStats.isLimited && (
                     <Alert variant="warning" className="animate-slide-down border-amber-500 bg-amber-50">
@@ -403,6 +404,7 @@ function PreviewContent() {
                     </Card>
                 )}
             </main>
+            <BottomNav />
         </div>
     );
 }

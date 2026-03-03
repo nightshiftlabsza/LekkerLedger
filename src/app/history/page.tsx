@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SideDrawer } from "@/components/layout/side-drawer";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { getEmployees, getAllPayslips, deleteEmployee } from "@/lib/storage"; // Assuming we might need delete or similar
 import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
@@ -75,7 +76,7 @@ export default function HistoryPage() {
                 </div>
             </header>
 
-            <main className="flex-1 px-4 py-8 max-w-5xl mx-auto w-full space-y-6">
+            <main className="flex-1 px-4 py-8 max-w-5xl mx-auto w-full space-y-6 pb-24 lg:pb-8">
                 {/* Search & Filters */}
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="relative flex-1">
@@ -194,6 +195,7 @@ export default function HistoryPage() {
                     </div>
                 )}
             </main>
+            <BottomNav />
         </div>
     );
 }
