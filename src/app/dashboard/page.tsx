@@ -19,6 +19,7 @@ import { format, addDays } from "date-fns";
 import { getHolidaysInRange } from "@/lib/holidays";
 import { usePWAInstall } from "@/src/app/hooks/usePWAInstall";
 import { useOnlineStatus } from "@/src/app/hooks/useOnlineStatus";
+import { BulkRunModal } from "@/components/bulk-run-modal";
 
 // Thresholds that unlock advanced features
 const ADVANCED_EMPLOYEE_COUNT = 3;   // 3+ employees → show payroll trend chart
@@ -42,8 +43,8 @@ export default function DashboardPage() {
     const [thisMonthTotal, setThisMonthTotal] = React.useState(0);
     const [annualEstimate, setAnnualEstimate] = React.useState(0);
     const [monthlyBuckets, setMonthlyBuckets] = React.useState<MonthlyBucket[]>([]);
-    const [bulkLoading, setBulkLoading] = React.useState(false);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
+    const [isBulkModalOpen, setIsBulkModalOpen] = React.useState(false);
     const { isInstallable, installApp } = usePWAInstall();
     const isOnline = useOnlineStatus();
 
@@ -126,14 +127,13 @@ export default function DashboardPage() {
         router.push(`/wizard?empId=${empId}&repeat=true`);
     };
 
-    const handleBulkRepeat = async () => {
-        setBulkLoading(true);
+    const handleConfirmBulk = async (selectedEmpIds: string[]) => {
         const now = new Date();
         const start = new Date(now.getFullYear(), now.getMonth(), 1);
         const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         try {
             for (const s of summaries) {
-                if (s.latestPayslip) {
+                if (selectedEmpIds.includes(s.employee.id) && s.latestPayslip) {
                     const newPayslip: PayslipInput = {
                         ...s.latestPayslip,
                         id: crypto.randomUUID(),
@@ -147,8 +147,6 @@ export default function DashboardPage() {
             window.location.reload();
         } catch (e) {
             console.error(e);
-        } finally {
-            setBulkLoading(false);
         }
     };
 
@@ -177,11 +175,7 @@ export default function DashboardPage() {
                         </Link>
                     </div>
                     <div className="flex items-center gap-2">
-                        {!isOnline && (
-                            <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600">
-                                <CloudOff className="h-3 w-3" /> Offline
-                            </span>
-                        )}
+
                         <Link href="/employees/new">
                             <Button size="sm" className="gap-1.5 h-8 bg-amber-500 text-white font-bold hover:bg-amber-600">
                                 <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Add Employee</span>
@@ -230,13 +224,17 @@ export default function DashboardPage() {
                             </div>
 
                             {employeeCount === 0 ? (
-                                <Card className="glass-panel border-dashed border-2 p-12 text-center">
-                                    <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                                    <p className="font-bold text-[var(--text-primary)] mb-1">No employees yet</p>
-                                    <p className="text-sm text-[var(--text-secondary)] mb-6">Add your first employee to start generating payslips.</p>
+                                <Card className="glass-panel border-dashed border-2 p-12 text-center overflow-hidden relative">
+                                    <div className="absolute inset-0 bg-gradient-to-b from-[var(--amber-500)]/5 to-transparent pointer-events-none" />
+                                    <div className="h-20 w-20 mx-auto mb-6 rounded-3xl bg-[var(--amber-500)]/10 flex items-center justify-center relative">
+                                        <div className="absolute inset-0 bg-[var(--amber-500)]/20 blur-xl rounded-full" />
+                                        <Users className="h-10 w-10 text-[var(--amber-500)] relative z-10" strokeWidth={1.5} />
+                                    </div>
+                                    <h3 className="text-xl font-black text-[var(--text-primary)] mb-2 tracking-tight">No employees yet</h3>
+                                    <p className="text-sm text-[var(--text-secondary)] mb-8 max-w-[250px] mx-auto leading-relaxed">Add your first employee to start generating legally compliant payslips in seconds.</p>
                                     <Link href="/employees/new">
-                                        <Button className="bg-amber-500 text-white font-bold hover:bg-amber-600">
-                                            <Plus className="h-4 w-4 mr-2" /> Add First Employee
+                                        <Button className="h-12 px-6 rounded-xl bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] transition-all">
+                                            <Plus className="h-5 w-5 mr-2" /> Add First Employee
                                         </Button>
                                     </Link>
                                 </Card>
@@ -326,11 +324,10 @@ export default function DashboardPage() {
                                         </div>
                                     </div>
                                     <Button
-                                        onClick={settings?.proStatus === "free" ? () => router.push('/pricing') : handleBulkRepeat}
-                                        disabled={bulkLoading}
+                                        onClick={settings?.proStatus === "free" ? () => router.push('/pricing') : () => setIsBulkModalOpen(true)}
                                         className="w-full sm:w-auto h-10 gap-2 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600"
                                     >
-                                        {bulkLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                        <RefreshCw className="h-4 w-4" />
                                         {settings?.proStatus === "free" ? "Upgrade to Automate" : "Run Bulk"}
                                     </Button>
                                 </CardContent>
@@ -404,15 +401,21 @@ export default function DashboardPage() {
 
             {/* PWA install prompt */}
             {isInstallable && (
-                <div className="fixed bottom-24 right-6 z-50 animate-slide-up">
+                <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
                     <Button
                         onClick={installApp}
-                        className="rounded-full h-14 w-14 shadow-2xl bg-amber-500 hover:bg-amber-600 border-4 border-zinc-950 flex items-center justify-center p-0"
+                        className="rounded-full h-14 w-14 shadow-[var(--shadow-xl)] bg-[var(--amber-500)] hover:bg-[var(--amber-600)] border-[3px] border-[var(--bg-base)] flex items-center justify-center p-0 transition-transform active:scale-95"
                     >
                         <Download className="h-6 w-6 text-white" />
                     </Button>
                 </div>
             )}
+            <BulkRunModal
+                isOpen={isBulkModalOpen}
+                onClose={() => setIsBulkModalOpen(false)}
+                summaries={summaries}
+                onConfirm={handleConfirmBulk}
+            />
         </div>
     );
 }

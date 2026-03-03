@@ -251,7 +251,7 @@ function PreviewContent() {
                     </Button>
                     <Button
                         variant="outline"
-                        className="w-full h-12 text-[#25D366] border-[#25D366]/30"
+                        className="w-full h-12 text-[#25D366] font-extrabold bg-[#25D366]/5 hover:bg-[#25D366]/10 border-[#25D366]/30 shadow-sm"
                         onClick={async () => {
                             if (!employee || !payslip || !settings) return;
                             setDownloading('wa');

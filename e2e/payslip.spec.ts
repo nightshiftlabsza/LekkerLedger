@@ -59,10 +59,10 @@ test.describe("Payslip Generation Flow", () => {
         await page.fill('input[id="ordinary"]', "176");
 
         // Next -> Sundays & Holidays
-        await page.click('button:has-text("Next")');
+        await page.locator('button:has-text("Next")').first().click();
 
         // Next -> Deductions
-        await page.click('button:has-text("Next")');
+        await page.locator('button:has-text("Next")').first().click();
 
         // Toggle Accommodation
         await page.click('text=Accommodation Deduction');

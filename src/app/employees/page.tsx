@@ -90,20 +90,20 @@ export default function EmployeesPage() {
                         ))}
                     </div>
                 ) : employees.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 animate-fade-in">
-                        <div className="h-16 w-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(196,122,28,0.10)" }}>
-                            <Users className="h-8 w-8" style={{ color: "var(--amber-500)" }} />
+                    <Card className="glass-panel border-dashed border-2 p-12 text-center overflow-hidden relative mt-8">
+                        <div className="absolute inset-0 bg-gradient-to-b from-[var(--amber-500)]/5 to-transparent pointer-events-none" />
+                        <div className="h-20 w-20 mx-auto mb-6 rounded-3xl bg-[var(--amber-500)]/10 flex items-center justify-center relative">
+                            <div className="absolute inset-0 bg-[var(--amber-500)]/20 blur-xl rounded-full" />
+                            <Users className="h-10 w-10 text-[var(--amber-500)] relative z-10" strokeWidth={1.5} />
                         </div>
-                        <div className="space-y-1">
-                            <p className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>No employees yet</p>
-                            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Add your first domestic worker to get started.</p>
-                        </div>
+                        <h3 className="text-xl font-black text-[var(--text-primary)] mb-2 tracking-tight">No employees yet</h3>
+                        <p className="text-sm text-[var(--text-secondary)] mb-8 max-w-[250px] mx-auto leading-relaxed">Add your first employee to build out your team and manage compliance.</p>
                         <Link href="/employees/new">
-                            <Button className="gap-2 mt-2">
-                                <Plus className="h-4 w-4" /> Add Employee
+                            <Button className="h-12 px-6 rounded-xl bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] transition-all">
+                                <Plus className="h-5 w-5 mr-2" /> Add Employee
                             </Button>
                         </Link>
-                    </div>
+                    </Card>
                 ) : (
                     <div className="space-y-3">
                         {employees.map((emp, i) => (

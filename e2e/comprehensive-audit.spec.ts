@@ -15,6 +15,21 @@ test.describe('Comprehensive 50 Action Audit', () => {
         // --- LANDING & ONBOARDING (Actions 1-6) ---
         console.log('Starting Landing & Onboarding...');
 
+        // Clear all IndexedDB data from browser context to prevent localforage bleed
+        await page.goto("/");
+        await page.evaluate(async () => {
+            const dbs = await indexedDB.databases();
+            await Promise.all(dbs.map(db => {
+                if (!db.name) return;
+                return new Promise<void>((resolve) => {
+                    const req = indexedDB.deleteDatabase(db.name!);
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => resolve();
+                    req.onblocked = () => resolve();
+                });
+            }));
+        });
+
         // 1. Navigate to landing page
         await page.goto('/');
         await snap('01-landing-page');
