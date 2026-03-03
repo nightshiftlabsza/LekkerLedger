@@ -113,7 +113,15 @@ function PreviewContent() {
 
         setDownloading(true);
         try {
-            const bytes: Uint8Array = await generatePayslipPdfBytes(employee, payslip, settings, settings.defaultLanguage, usageStats.isLimited);
+            // Dates come from localStorage as ISO strings, not Date objects — coerce them
+            const payslipWithDates = {
+                ...payslip,
+                payPeriodStart: new Date(payslip.payPeriodStart),
+                payPeriodEnd: new Date(payslip.payPeriodEnd),
+                createdAt: new Date(payslip.createdAt),
+            };
+            const bytes: Uint8Array = await generatePayslipPdfBytes(employee, payslipWithDates, settings, settings.defaultLanguage, usageStats.isLimited);
+
 
             await incrementUsageCount();
             const stats = await getUsageStats();
