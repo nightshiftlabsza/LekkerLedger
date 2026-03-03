@@ -14,10 +14,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
-import { getEmployees, getAllPayslips, deleteEmployee } from "@/lib/storage"; // Assuming we might need delete or similar
+import { getEmployees, getAllPayslips, deletePayslip } from "@/lib/storage";
 import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
-import { cn } from "@/lib/utils";
 
 export default function HistoryPage() {
     const [loading, setLoading] = React.useState(true);
@@ -26,25 +25,28 @@ export default function HistoryPage() {
     const [searchQuery, setSearchQuery] = React.useState("");
     const [selectedEmployeeId, setSelectedEmployeeId] = React.useState<string>("all");
     const [selectedYear, setSelectedYear] = React.useState<string>("all");
+    const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
 
-    React.useEffect(() => {
-        async function load() {
-            setLoading(true);
-            try {
-                const [allPs, allEmp] = await Promise.all([
-                    getAllPayslips(),
-                    getEmployees()
-                ]);
-                setPayslips(allPs);
-                setEmployees(allEmp);
-            } catch (e) {
-                console.error("Failed to load history", e);
-            } finally {
-                setLoading(false);
-            }
+    const loadData = React.useCallback(async () => {
+        setLoading(true);
+        try {
+            const [allPs, allEmp] = await Promise.all([getAllPayslips(), getEmployees()]);
+            setPayslips(allPs);
+            setEmployees(allEmp);
+        } catch (e) {
+            console.error("Failed to load history", e);
+        } finally {
+            setLoading(false);
         }
-        load();
     }, []);
+
+    React.useEffect(() => { loadData(); }, [loadData]);
+
+    const handleDelete = async (id: string) => {
+        await deletePayslip(id);
+        setDeleteConfirmId(null);
+        setPayslips(prev => prev.filter(p => p.id !== id));
+    };
 
     const years = Array.from(new Set(payslips.map(ps => new Date(ps.payPeriodStart).getFullYear()))).sort((a, b) => b - a);
 
@@ -178,14 +180,28 @@ export default function HistoryPage() {
                                             </div>
 
                                             <div className="flex items-center justify-end gap-2 w-full md:w-auto mt-2 md:mt-0">
-                                                <Link href={`/preview?id=${ps.id}`} className="flex-1 md:flex-none">
-                                                    <Button variant="ghost" size="sm" className="w-full font-bold gap-2 text-amber-600 hover:bg-amber-500/10">
-                                                        <Eye className="h-4 w-4" /> View
-                                                    </Button>
-                                                </Link>
-                                                <Button variant="ghost" size="sm" className="font-bold text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                {deleteConfirmId === ps.id ? (
+                                                    <>
+                                                        <span className="text-xs font-bold text-red-500">Delete?</span>
+                                                        <Button size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold text-red-500 hover:bg-red-50"
+                                                            onClick={() => handleDelete(ps.id)}>Yes</Button>
+                                                        <Button size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold text-[var(--text-muted)]"
+                                                            onClick={() => setDeleteConfirmId(null)}>No</Button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Link href={`/preview?payslipId=${ps.id}&empId=${ps.employeeId}`} className="flex-1 md:flex-none">
+                                                            <Button variant="ghost" size="sm" className="w-full font-bold gap-2 text-amber-600 hover:bg-amber-500/10">
+                                                                <Eye className="h-4 w-4" /> View
+                                                            </Button>
+                                                        </Link>
+                                                        <Button variant="ghost" size="sm"
+                                                            className="font-bold text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50"
+                                                            onClick={() => setDeleteConfirmId(ps.id)}>
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </CardContent>

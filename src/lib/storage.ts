@@ -136,6 +136,12 @@ export async function getAllPayslips(): Promise<PayslipInput[]> {
     );
 }
 
+export async function deletePayslip(id: string): Promise<void> {
+    await payslipStore.removeItem(id);
+    await logAuditEvent("DELETE_PAYSLIP", `Deleted payslip ID: ${id}`);
+    await notifyListeners();
+}
+
 // ─── Leave CRUD ─────────────────────────────────────────────────────────────
 
 export async function saveLeaveRecord(record: LeaveRecord): Promise<void> {
