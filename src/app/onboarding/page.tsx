@@ -80,7 +80,7 @@ export default function OnboardingPage() {
                                     Welcome to LekkerLedger
                                 </h1>
                                 <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                                    Before we generate your first legal payslip, let's get you set up.
+                                    Before we generate your first legal payslip, let&apos;s get you set up.
                                 </p>
                             </div>
 
@@ -94,7 +94,7 @@ export default function OnboardingPage() {
                                             <div>
                                                 <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>The Law Made Simple</h3>
                                                 <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
-                                                    LekkerLedger bakes in all the rules of the Basic Conditions of Employment Act. You don't have to calculate Min Wage, UIF or Leave days manually.
+                                                    LekkerLedger bakes in all the rules of the Basic Conditions of Employment Act. You don&apos;t have to calculate Min Wage, UIF or Leave days manually.
                                                 </p>
                                                 <Link href="/rules" className="text-xs font-semibold mt-2 inline-block" style={{ color: "var(--amber-500)" }}>
                                                     Read the 4 Golden Rules &rarr;
@@ -114,7 +114,7 @@ export default function OnboardingPage() {
                                                 <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>100% Private & Open Source</h3>
                                                 <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                                                     Your privacy is our number one priority. <strong>Your data is saved strictly to this device only</strong> (and can be backed up to your own private cloud via Google Sync).
-                                                    We have zero servers, zero databases, and absolutely zero access to your or your employee's personal details.
+                                                    We have zero servers, zero databases, and absolutely zero access to your or your employee&apos;s personal details.
                                                 </p>
                                                 <div className="flex items-center gap-1.5 mt-2">
                                                     <Github className="h-3 w-3" style={{ color: "var(--text-muted)" }} />
@@ -135,7 +135,7 @@ export default function OnboardingPage() {
                                             <div>
                                                 <h3 className="font-bold text-sm">Peace of Mind</h3>
                                                 <p className="text-[11px] mt-1 text-zinc-400 leading-relaxed">
-                                                    In SA, a single procedural error in a payslip can lead to CCMA awards of up to 12 months' salary. LekkerLedger is your digital safety net.
+                                                    In SA, a single procedural error in a payslip can lead to CCMA awards of up to 12 months&apos; salary. LekkerLedger is your digital safety net.
                                                 </p>
                                             </div>
                                         </div>
@@ -167,7 +167,7 @@ export default function OnboardingPage() {
                                     Employer Details
                                 </h1>
                                 <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                                    By law, your name and address must appear on your employee's payslip.
+                                    By law, your name and address must appear on your employee&apos;s payslip.
                                 </p>
                             </div>
 

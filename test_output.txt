@@ -1,8 +1,4 @@
 
-Running 1 test using 1 worker
-
-[1A[2K[1/1] [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip
-
 [1A[2K[WebServer] Γ¿» Failed to start server
 
 [1A[2K[WebServer] Error: listen EADDRINUSE: address already in use :::3002
@@ -14,25 +10,10 @@ Running 1 test using 1 worker
 [WebServer]   address: '::',
 [WebServer]   port: 3002
 [WebServer] }
-[1A[2K  1) [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+Error: Process from config.webServer was not able to start. Exit code: 1
 
-    [31mTest timeout of 30000ms exceeded.[39m
-
-    Error: page.waitForLoadState: Test timeout of 30000ms exceeded.
-
-       5 |         // 1. Go to homepage
-       6 |         await page.goto("/");
-    >  7 |         await page.waitForLoadState("networkidle");
-         |                    ^
-       8 |         await expect(page).toHaveTitle(/Next|LekkerLedger/i);
-       9 |
-      10 |         // 2. Head directly to employees/new to skip onboarding and stabilize the test
-        at D:\Apps\LekkerLedger\LekkerLedger-1\e2e\payslip.spec.ts:7:20
-
-    Error Context: test-results\payslip-Payslip-Generation-acac9-oyee-and-generate-a-payslip-chromium\error-context.md
-
-
-[1A[2K  1 failed
-    [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
-
-[36m  Serving HTML report at http://localhost:6851. Press Ctrl+C to quit.[39m
+[1A[2K
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report[39m
+[36m[39m

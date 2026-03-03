@@ -137,11 +137,11 @@ export default function Home() {
 
             {/* Trust signals (Desktop: Inline below CTA) */}
             <div className="hidden lg:flex flex-wrap items-center gap-x-4 gap-y-3 pt-6">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] shadow-sm">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-black uppercase tracking-widest text-[var(--text-secondary)] shadow-sm">
                 <ShieldCheck className="h-3.5 w-3.5 text-[var(--green-500)]" />
                 100% Private
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] shadow-sm">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-black uppercase tracking-widest text-[var(--text-secondary)] shadow-sm">
                 <FileText className="h-3.5 w-3.5 text-[var(--blue-500)]" />
                 BCEA Aligned
               </div>
@@ -149,7 +149,7 @@ export default function Home() {
                 href="https://github.com/nightshiftlabsza/LekkerLedger"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-zinc-400 transition-all shadow-sm"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-zinc-400 transition-all shadow-sm"
               >
                 <Github className="h-3.5 w-3.5" />
                 Open Source
@@ -177,8 +177,7 @@ export default function Home() {
               </Button>
               <button
                 onClick={() => handleSaveSettings({ simpleMode: false })}
-                className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-amber-500 transition-colors"
-                style={{ cursor: 'pointer' }}
+                className="text-xs font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-amber-500 transition-colors cursor-pointer"
               >
                 Switch to expert mode
               </button>
@@ -188,11 +187,11 @@ export default function Home() {
 
         {/* Trust signals (Mobile: Bottom center) */}
         <div className="lg:hidden flex flex-wrap justify-center items-center gap-x-3 gap-y-3 pt-12">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] shadow-sm">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-black uppercase tracking-widest text-[var(--text-secondary)] shadow-sm">
             <ShieldCheck className="h-3.5 w-3.5 text-[var(--green-500)]" />
             Private
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] shadow-sm">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-black uppercase tracking-widest text-[var(--text-secondary)] shadow-sm">
             <FileText className="h-3.5 w-3.5 text-[var(--blue-500)]" />
             BCEA Aligned
           </div>
@@ -274,7 +273,7 @@ export default function Home() {
               <div className="p-8 rounded-[2rem] bg-red-50/50 border border-red-100 space-y-4">
                 <div className="flex items-center gap-2 text-red-600">
                   <AlertTriangle className="h-4 w-4" />
-                  <span className="font-black uppercase tracking-widest text-[10px]">Traditional Agency</span>
+                  <span className="font-black uppercase tracking-widest text-xs">Traditional Agency</span>
                 </div>
                 <h4 className="text-lg font-bold leading-tight" style={{ color: "var(--text-primary)" }}>Recurring Payroll Services</h4>
                 <ul className="space-y-2">
@@ -296,7 +295,7 @@ export default function Home() {
               <div className="p-8 rounded-[2rem] bg-amber-50 border-2 border-amber-200 space-y-4 shadow-xl shadow-amber-500/10">
                 <div className="flex items-center gap-2 text-amber-600">
                   <ShieldCheck className="h-4 w-4" />
-                  <span className="font-black uppercase tracking-widest text-[10px]">Lekker Ledger</span>
+                  <span className="font-black uppercase tracking-widest text-xs">Lekker Ledger</span>
                 </div>
                 <h4 className="text-lg font-bold leading-tight" style={{ color: "var(--text-primary)" }}>The Pro Lifetime Advantage</h4>
                 <ul className="space-y-2">
@@ -314,10 +313,8 @@ export default function Home() {
                   </li>
                 </ul>
                 <div className="pt-2">
-                  <Link href="/pricing">
-                    <Button variant="outline" className="w-full h-10 rounded-xl border-amber-200 text-amber-700 font-bold text-xs hover:bg-amber-100 transition-colors">
-                      View Full Comparison <ChevronRight className="ml-2 h-3 w-3" />
-                    </Button>
+                  <Link href="/pricing" className="flex items-center justify-center w-full h-10 rounded-xl border-[1.5px] border-amber-200 text-amber-700 font-bold text-xs hover:bg-amber-100 transition-colors">
+                    View Full Comparison <ChevronRight className="ml-2 h-3 w-3" />
                   </Link>
                 </div>
               </div>
@@ -388,7 +385,7 @@ export default function Home() {
         </div>
 
         {/* Trust Footer */}
-        <div className="max-w-5xl mx-auto px-4 py-16 flex flex-wrap justify-center gap-x-12 gap-y-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] grayscale opacity-50 border-t border-[var(--border-subtle)] mt-20">
+        <div className="max-w-5xl mx-auto px-4 py-16 flex flex-wrap justify-center gap-x-12 gap-y-6 text-xs font-black uppercase tracking-[0.2em] text-[var(--text-muted)] grayscale opacity-50 border-t border-[var(--border-subtle)] mt-20">
           <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><Award className="h-4 w-4" /> BCEA Aligned Calculations</div>
           <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><Lock className="h-4 w-4" /> Local-Only Storage</div>
           <div className="flex items-center gap-2 italic hover:grayscale-0 transition-all cursor-default"><History className="h-4 w-4" /> UIF & COIDA Ready</div>

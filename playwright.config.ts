@@ -18,9 +18,9 @@ export default defineConfig({
         },
     ],
     webServer: {
-        command: "npm run dev",
+        command: "npx next start -p 3002",
         url: "http://localhost:3002",
         reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
+        timeout: 120000,
     },
 });

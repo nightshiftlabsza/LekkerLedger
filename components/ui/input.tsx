@@ -12,31 +12,21 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     type={type}
                     inputMode={type === "number" ? "decimal" : props.inputMode}
                     ref={ref}
-                    className={["w-full rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all duration-200 placeholder:font-normal", className].filter(Boolean).join(" ")}
-                    style={{
-                        height: "44px",
-                        backgroundColor: "var(--bg-surface)",
-                        color: "var(--text-primary)",
-                        border: `1.5px solid ${error ? "var(--red-500)" : "var(--border-default)"}`,
-                        boxShadow: error ? "0 0 0 3px rgba(192,57,43,0.12)" : "none",
-                        ...style,
-                    }}
-                    onFocus={(e) => {
-                        (e.target as HTMLInputElement).style.borderColor = error ? "var(--red-500)" : "var(--amber-500)";
-                        (e.target as HTMLInputElement).style.boxShadow = error
-                            ? "0 0 0 3px rgba(192,57,43,0.15)"
-                            : "0 0 0 3px rgba(196,122,28,0.15)";
-                    }}
-                    onBlur={(e) => {
-                        (e.target as HTMLInputElement).style.borderColor = error ? "var(--red-500)" : "var(--border-default)";
-                        (e.target as HTMLInputElement).style.boxShadow = error ? "0 0 0 3px rgba(192,57,43,0.12)" : "none";
-                    }}
+                    className={[
+                        "w-full rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all duration-200 placeholder:font-normal",
+                        "bg-[var(--bg-surface)] text-[var(--text-primary)]",
+                        error
+                            ? "border-[1.5px] border-[var(--red-500)] focus:ring-[3px] focus:ring-[rgba(192,57,43,0.15)] focus:border-[var(--red-500)] shadow-[0_0_0_3px_rgba(192,57,43,0.12)]"
+                            : "border-[1.5px] border-[var(--border-default)] focus:border-[var(--amber-500)] focus:ring-[3px] focus:ring-[rgba(196,122,28,0.15)]",
+                        "h-[44px]",
+                        className
+                    ].filter(Boolean).join(" ")}
+                    style={style}
                     {...props}
                 />
                 {error && (
                     <span
-                        className="text-xs font-medium animate-slide-down"
-                        style={{ color: "var(--red-500)" }}
+                        className="text-xs font-medium animate-slide-down text-[var(--red-500)]"
                     >
                         {error}
                     </span>

@@ -18,31 +18,6 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [statusMessage, setStatusMessage] = useState("");
 
-    // 1. Setup subscription and auto-restore
-    useEffect(() => {
-        const storedToken = localStorage.getItem("google_access_token");
-        const storedEmail = localStorage.getItem("google_email");
-
-        if (storedToken) {
-            setToken(storedToken);
-            if (storedEmail) setEmail(storedEmail);
-
-            // Auto-restore check on mount if sync is enabled
-            // (We could do this every time, but maybe once per session is safer)
-            // handleRestore(true); // silent restore
-        }
-
-        // Setup auto-sync listener
-        const unsubscribe = subscribeToDataChanges(() => {
-            const currentToken = localStorage.getItem("google_access_token");
-            if (currentToken && proStatus !== "free") {
-                handleBackup(true); // silent backup
-            }
-        });
-
-        return () => unsubscribe();
-    }, [proStatus]);
-
     const fetchUserInfo = async (accessToken: string) => {
         try {
             const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -133,6 +108,19 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
             setTimeout(() => setStatus("idle"), 4000);
         }
     };
+
+    // 1. Setup subscription and auto-restore
+    useEffect(() => {
+        // Setup auto-sync listener
+        const unsubscribe = subscribeToDataChanges(() => {
+            const currentToken = localStorage.getItem("google_access_token");
+            if (currentToken && proStatus !== "free") {
+                handleBackup(true); // silent backup
+            }
+        });
+
+        return () => unsubscribe();
+    }, [proStatus, handleBackup]);
 
 
     return (

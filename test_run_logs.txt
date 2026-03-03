@@ -1,0 +1,35 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip
+[1A[2K  1) [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('text=Test Worker')
+    Expected: visible
+    Error: strict mode violation: locator('text=Test Worker') resolved to 2 elements:
+        1) <p class="font-semibold text-sm truncate">Test Worker</p> aka getByText('Test Worker', { exact: true })
+        2) <p class="text-sm font-bold">Test Worker saved successfully!</p> aka getByText('Test Worker saved')
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('text=Test Worker')[22m
+
+
+      42 |         await expect(page).toHaveURL(/\/employees/, { timeout: 10000 });
+      43 |         const employeeCard = page.locator('text=Test Worker');
+    > 44 |         await expect(employeeCard).toBeVisible();
+         |                                    ^
+      45 |
+      46 |         // 5. Click Payslip button
+      47 |         await page.locator('button:has-text("Payslip")').first().click();
+        at D:\Apps\LekkerLedger\LekkerLedger-1\e2e\payslip.spec.ts:44:36
+
+    Error Context: test-results\payslip-Payslip-Generation-acac9-oyee-and-generate-a-payslip-chromium\error-context.md
+
+
+[1A[2K  1 failed
+    [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+
+[36m  Serving HTML report at http://localhost:6197. Press Ctrl+C to quit.[39m

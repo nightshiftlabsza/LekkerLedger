@@ -281,11 +281,7 @@ function WizardContent() {
                         </div>
                     </div>
                     <span
-                        className="text-xs font-semibold px-3 py-1 rounded-full"
-                        style={{
-                            backgroundColor: "rgba(196,122,28,0.10)",
-                            color: "var(--amber-500)",
-                        }}
+                        className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/10 text-amber-500"
                     >
                         Step {currentStep + 1}/{STEPS.length}
                     </span>
@@ -384,6 +380,7 @@ function WizardContent() {
                                             <Input
                                                 id="ordinary"
                                                 type="number"
+                                                min="0"
                                                 placeholder="160"
                                                 value={hours.ordinary}
                                                 onChange={(e) => setHours({ ...hours, ordinary: e.target.value })}
@@ -394,6 +391,7 @@ function WizardContent() {
                                             <Input
                                                 id="daysWorked"
                                                 type="number"
+                                                min="0"
                                                 placeholder="20"
                                                 value={daysWorked}
                                                 onChange={(e) => setDaysWorked(e.target.value)}
@@ -404,6 +402,7 @@ function WizardContent() {
                                             <Input
                                                 id="overtime"
                                                 type="number"
+                                                min="0"
                                                 placeholder="0"
                                                 value={hours.overtime}
                                                 onChange={(e) => setHours({ ...hours, overtime: e.target.value })}
@@ -414,6 +413,7 @@ function WizardContent() {
                                             <Input
                                                 id="shortFallHours"
                                                 type="number"
+                                                min="0"
                                                 placeholder="0"
                                                 value={shortFallHours}
                                                 onChange={(e) => setShortFallHours(e.target.value)}
@@ -426,9 +426,10 @@ function WizardContent() {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <Info className="w-3.5 h-3.5 text-amber-500" />
-                                                <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-tight">4-Hour Rule Assistant</span>
+                                                <Label htmlFor="assistant-switch" className="text-[11px] font-bold text-zinc-300 uppercase tracking-tight cursor-pointer">4-Hour Rule Assistant</Label>
                                             </div>
                                             <Switch
+                                                id="assistant-switch"
                                                 checked={showShortfallHelper}
                                                 onCheckedChange={setShowShortfallHelper}
                                             />
@@ -440,7 +441,8 @@ function WizardContent() {
                                                         <Label className="text-[10px] text-zinc-500 font-bold uppercase">Short Shifts</Label>
                                                         <Input
                                                             type="number"
-                                                            className="h-8 text-xs bg-zinc-900 border-zinc-800"
+                                                            className="h-11 text-xs"
+                                                            min="0"
                                                             placeholder="e.g. 2"
                                                             value={shortShiftCount || ""}
                                                             onChange={(e) => setShortShiftCount(parseInt(e.target.value) || 0)}
@@ -450,7 +452,8 @@ function WizardContent() {
                                                         <Label className="text-[10px] text-zinc-500 font-bold uppercase">Hrs Worked</Label>
                                                         <Input
                                                             type="number"
-                                                            className="h-8 text-xs bg-zinc-900 border-zinc-800"
+                                                            className="h-11 text-xs"
+                                                            min="0"
                                                             placeholder="e.g. 3"
                                                             value={totalWorkedInShortShifts || ""}
                                                             onChange={(e) => setTotalWorkedInShortShifts(parseFloat(e.target.value) || 0)}
@@ -460,7 +463,7 @@ function WizardContent() {
                                                 <Button
                                                     variant="secondary"
                                                     size="sm"
-                                                    className="w-full text-[10px] h-8 font-bold bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
+                                                    className="w-full text-xs h-11 font-bold bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
                                                     onClick={() => {
                                                         const shortfall = (shortShiftCount * 4) - totalWorkedInShortShifts;
                                                         if (shortfall > 0) {
@@ -540,7 +543,8 @@ function WizardContent() {
                                             <Label className="text-[10px] text-zinc-500 font-bold uppercase">Annual</Label>
                                             <Input
                                                 type="number"
-                                                className="h-9 bg-zinc-900 border-zinc-800"
+                                                className="h-11"
+                                                min="0"
                                                 placeholder="0"
                                                 value={leave.annual}
                                                 onChange={(e) => setLeave({ ...leave, annual: e.target.value })}
@@ -550,7 +554,8 @@ function WizardContent() {
                                             <Label className="text-[10px] text-zinc-500 font-bold uppercase">Sick</Label>
                                             <Input
                                                 type="number"
-                                                className="h-9 bg-zinc-900 border-zinc-800"
+                                                className="h-11"
+                                                min="0"
                                                 placeholder="0"
                                                 value={leave.sick}
                                                 onChange={(e) => setLeave({ ...leave, sick: e.target.value })}
@@ -560,7 +565,8 @@ function WizardContent() {
                                             <Label className="text-[10px] text-zinc-500 font-bold uppercase">Family</Label>
                                             <Input
                                                 type="number"
-                                                className="h-9 bg-zinc-900 border-zinc-800"
+                                                className="h-11"
+                                                min="0"
                                                 placeholder="0"
                                                 value={leave.family}
                                                 onChange={(e) => setLeave({ ...leave, family: e.target.value })}
@@ -572,18 +578,10 @@ function WizardContent() {
                                 <button
                                     type="button"
                                     onClick={() => setIncludeAccommodation((v) => !v)}
-                                    className="w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all duration-200 active:scale-[0.99] hover:bg-[var(--bg-subtle)]"
-                                    style={{
-                                        border: `1.5px solid ${includeAccommodation ? "var(--amber-500)" : "var(--border-default)"}`,
-                                        backgroundColor: includeAccommodation ? "rgba(196,122,28,0.04)" : "transparent",
-                                    }}
+                                    className={`w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all duration-200 active:scale-[0.99] border-[1.5px] hover:bg-[var(--bg-subtle)] ${includeAccommodation ? "border-[var(--amber-500)] bg-amber-500/5" : "border-[var(--border-default)] bg-transparent"}`}
                                 >
                                     <div
-                                        className="h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200"
-                                        style={{
-                                            backgroundColor: includeAccommodation ? "var(--amber-500)" : "transparent",
-                                            border: `1.5px solid ${includeAccommodation ? "var(--amber-500)" : "var(--border-strong)"}`,
-                                        }}
+                                        className={`h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200 border-[1.5px] ${includeAccommodation ? "bg-[var(--amber-500)] border-[var(--amber-500)]" : "bg-transparent border-[var(--border-strong)]"}`}
                                     >
                                         {includeAccommodation && <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />}
                                     </div>
@@ -716,15 +714,11 @@ function Row({
 }) {
     return (
         <div className="flex justify-between items-center text-sm">
-            <span style={{ color: bold ? "var(--text-primary)" : "var(--text-secondary)", fontWeight: bold ? 600 : 400 }}>
+            <span className={bold ? "font-semibold text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}>
                 {label}
             </span>
             <span
-                className="tabular-nums"
-                style={{
-                    color: red ? "var(--red-500)" : bold ? "var(--text-primary)" : "var(--text-secondary)",
-                    fontWeight: bold ? 700 : 400,
-                }}
+                className={`tabular-nums ${red ? "text-[var(--red-500)]" : bold ? "text-[var(--text-primary)] font-bold" : "text-[var(--text-secondary)]"}`}
             >
                 {value}
             </span>

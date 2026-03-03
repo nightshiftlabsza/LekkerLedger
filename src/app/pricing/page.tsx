@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
     ArrowLeft, Check, Sparkles, Coffee, ShieldCheck, Zap,
@@ -35,6 +36,7 @@ const PaystackHookWrapper = dynamic(
 );
 
 export default function PricingPage() {
+    const router = useRouter();
     const { toast } = useToast();
     const [status, setStatus] = React.useState<"free" | "annual" | "pro" | "trial">("free");
     const [loading, setLoading] = React.useState(true);
@@ -90,17 +92,24 @@ export default function PricingPage() {
         toast("Your 1-month Pro trial has started! Enjoy full access.");
     };
 
+    const handleBack = async () => {
+        const s = await getSettings();
+        if (s?.employerName) {
+            router.push("/dashboard");
+        } else {
+            router.push("/");
+        }
+    };
+
     return (
         <div className="min-h-screen flex flex-col selection:bg-amber-200 relative" style={{ backgroundColor: "var(--bg-base)" }}>
             <header className="sticky top-0 z-40 glass-panel border-b border-[var(--border-subtle)]">
                 <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SideDrawer />
-                        <Link href="/dashboard">
-                            <button className="h-10 w-10 flex items-center justify-center rounded-2xl bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-amber-600 transition-all active-scale">
-                                <ArrowLeft className="h-5 w-5" />
-                            </button>
-                        </Link>
+                        <button onClick={handleBack} className="h-10 w-10 flex items-center justify-center rounded-2xl bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-amber-600 transition-all active-scale">
+                            <ArrowLeft className="h-5 w-5" />
+                        </button>
                         <div>
                             <h1 className="font-black text-lg tracking-tight leading-none" style={{ color: "var(--text-primary)" }}>
                                 Compliance <span className="text-amber-500">Center</span>

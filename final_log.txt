@@ -1,0 +1,52 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow
+[1A[2K[chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow
+Starting Landing & Onboarding...
+
+[1A[2K  1) [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/.*pricing/[39m
+    Received string:  [31m"http://localhost:3002/"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "soft toHaveURL" with timeout 5000ms[22m
+    [2m    9 ├ù unexpected value "http://localhost:3002/"[22m
+
+
+      25 |             await pricingLink.click({ force: true });
+      26 |             try {
+    > 27 |                 await expect.soft(page).toHaveURL(/.*pricing/, { timeout: 5000 });
+         |                                         ^
+      28 |                 await snap('02-pricing-page');
+      29 |             } catch (e) {
+      30 |                 console.error('Bug found: Pricing link did not navigate to /pricing', (e as Error).message);
+        at D:\Apps\LekkerLedger\LekkerLedger-1\e2e\comprehensive-audit.spec.ts:27:41
+
+    [31mTest timeout of 120000ms exceeded.[39m
+
+    Error: locator.fill: Test ended.
+    Call log:
+    [2m  - waiting for getByPlaceholder('What is your name?')[22m
+
+
+      40 |         // 4 & 5. Signup / Login
+      41 |         await page.goto('/onboarding');
+    > 42 |         await page.getByPlaceholder('What is your name?').fill('Test User', { force: true });
+         |                                                           ^
+      43 |         await page.getByRole('button', { name: /Continue|Next/i }).click({ force: true });
+      44 |
+      45 |         // 6. Complete wizard
+        at D:\Apps\LekkerLedger\LekkerLedger-1\e2e\comprehensive-audit.spec.ts:42:59
+
+    Error Context: test-results\comprehensive-audit-Compre-fad86-form-50-common-actions-flow-chromium\error-context.md
+
+
+[1A[2K  1 failed
+    [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow 
+
+[36m  Serving HTML report at http://localhost:5785. Press Ctrl+C to quit.[39m

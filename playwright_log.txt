@@ -1,0 +1,26 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip
+[1A[2K  1) [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.waitForLoadState: Test timeout of 30000ms exceeded.
+
+      10 |         await page.goto("/");
+      11 |         // Wait for it to be somewhat ready
+    > 12 |         await page.waitForLoadState("networkidle");
+         |                    ^
+      13 |
+      14 |         await page.evaluate(async () => {
+      15 |             const dbs = await indexedDB.databases();
+        at D:\Apps\LekkerLedger\LekkerLedger-1\e2e\payslip.spec.ts:12:20
+
+    Error Context: test-results\payslip-Payslip-Generation-acac9-oyee-and-generate-a-payslip-chromium\error-context.md
+
+
+[1A[2K  1 failed
+    [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+
+[36m  Serving HTML report at http://localhost:9323. Press Ctrl+C to quit.[39m

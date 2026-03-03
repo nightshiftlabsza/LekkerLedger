@@ -25,7 +25,7 @@ export function ComplianceSplash({ isOpen, onClose }: { isOpen: boolean; onClose
                             The 12-Month Rule.
                         </h2>
                         <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
-                            In South Africa, a single procedural error in a payslip or contract can lead to CCMA awards of up to <span className="text-amber-500 font-bold">12 months' salary.</span>
+                            In South Africa, a single procedural error in a payslip or contract can lead to CCMA awards of up to <span className="text-amber-500 font-bold">12 months&apos; salary.</span>
                         </p>
                     </div>
 

@@ -36,6 +36,7 @@ const NAV_LINKS = [
     { href: "/ufiling", label: "uFiling Export", icon: FileSpreadsheet },
     { href: "/rules", label: "SA Rules Guide", icon: BookOpen },
     { href: "/pricing", label: "Support & Pro", icon: Sparkles },
+    { href: "/settings?tab=sync", label: "Cloud Sync / Login", icon: Cloud },
     { href: "/settings", label: "Settings & Backups", icon: Settings },
 ];
 
