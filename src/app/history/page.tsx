@@ -67,7 +67,7 @@ export default function HistoryPage() {
                     <div className="flex items-center gap-3">
                         <SideDrawer />
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                            <p className="type-overline text-[var(--text-muted)]">
                                 <Link href="/dashboard" className="hover:underline">Dashboard</Link>
                                 {" › "}Payslip History
                             </p>
@@ -145,7 +145,7 @@ export default function HistoryPage() {
                     </Card>
                 ) : (
                     <div className="grid gap-4">
-                        <div className="hidden md:grid grid-cols-5 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
+                        <div className="hidden md:grid grid-cols-5 px-6 py-2 type-overline text-[var(--text-muted)]">
                             <div className="col-span-2">Employee / Period</div>
                             <div>Net Pay</div>
                             <div>Reference</div>
@@ -163,16 +163,16 @@ export default function HistoryPage() {
                                                     {emp?.name.charAt(0).toUpperCase() || "E"}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="font-bold text-[var(--text-primary)] truncate">{emp?.name || "Unknown Employee"}</p>
-                                                    <p className="text-xs text-[var(--text-secondary)] font-medium capitalize">
+                                                    <p className="type-body-bold text-[var(--text-primary)] truncate">{emp?.name || "Unknown Employee"}</p>
+                                                    <p className="type-label text-[var(--text-secondary)]">
                                                         {format(new Date(ps.payPeriodStart), "MMM d")} – {format(new Date(ps.payPeriodEnd), "MMM d, yyyy")}
                                                     </p>
                                                 </div>
                                             </div>
 
                                             <div className="w-full md:w-auto">
-                                                <span className="md:hidden text-[10px] uppercase font-black text-[var(--text-muted)] block mb-1">Net Salary</span>
-                                                <p className="font-mono font-bold text-lg text-[var(--text-primary)]">R{calc.netPay.toFixed(2)}</p>
+                                                <span className="md:hidden type-overline text-[var(--text-muted)] block mb-1">Net Salary</span>
+                                                <p className="type-h3 type-mono text-[var(--text-primary)]">R{calc.netPay.toFixed(2)}</p>
                                             </div>
 
                                             <div className="w-full md:w-auto">

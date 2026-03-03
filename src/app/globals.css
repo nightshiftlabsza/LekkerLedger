@@ -5,107 +5,134 @@
    This prevents OS dark mode from triggering dark: utilities when the app is locked to light. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIGHT MODE TOKENS — Warm Precision (SA-inspired earthy warmth)
+   D8 fix: replaced cold zinc (#fafafa, #f4f4f5, #27272a) with warm cream tones
+   D4 fix: defined typography scale — one source of truth
+   ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  /* Core Colors */
+  /* ─── Utility Palette (raw scale) ───────────────────────────────────────── */
   --amber-500: #d97706;
   --amber-600: #b45309;
-  --green-500: #10b981;
-  --red-500: #ef4444;
+  --green-500: #16a34a;
+  --red-500: #dc2626;
   --red-50: #fef2f2;
-  --blue-500: #3b82f6;
+  --blue-500: #2563eb;
 
-  /* Semantic aliases */
-  --color-brand: var(--amber-500);
-  --color-success: var(--green-500);
-  --color-error: var(--red-500);
-  --color-info: var(--blue-500);
+  /* ─── Semantic Color Roles — SA-inspired ────────────────────────────────── */
+  /* D8 fix: --color-brand is now SA flag gold (#c47a1c), not generic amber */
+  --color-brand: #c47a1c;            /* SA flag gold — warm, authoritative */
+  --color-brand-hover: #a86c20;      /* Deeper SA amber for hover state */
+  --color-brand-subtle: #fef3c7;     /* Warm amber tint for backgrounds */
+  --color-success: #16a34a;          /* Kruger bushveld green */
+  --color-warning: #ea580c;          /* Highveld sunset warm orange */
+  --color-error: #dc2626;            /* Universal red — kept for clarity */
+  --color-info: #2563eb;             /* SA flag blue — trustworthy */
 
-  /* Backgrounds */
-  --bg-base: #fafafa;
-  --bg-surface: #ffffff;
-  --bg-subtle: #f4f4f5;
+  /* ─── Backgrounds — WARM, not cold zinc ────────────────────────────────── */
+  /* D8 fix: was #fafafa (cold zinc) → now #faf9f7 (warm off-white) */
+  --bg-base: #faf9f7;                /* Warm off-white — like SA paper/linen */
+  --bg-surface: #ffffff;             /* Pure white card surface */
+  --bg-subtle: #f5f4f2;              /* Warm light grey — was cold #f4f4f5 */
+  --bg-muted: #edecea;               /* Warm muted — for badges, tags */
 
-  /* Text & Borders */
-  --text-primary: #27272a;
-  --text-secondary: #52525b;
-  --text-muted: #71717a;
-  --text-inverse: #ffffff;
+  /* ─── Text ──────────────────────────────────────────────────────────────── */
+  /* D8 fix: was #27272a (cold zinc-900) → now #1a1a1a (near-black, neutral) */
+  --text-primary: #1a1a1a;           /* Near-black — readable, not clinical */
+  --text-secondary: #525252;         /* Mid-grey — secondary content */
+  --text-muted: #737373;             /* Muted — labels, placeholders */
+  --text-inverse: #ffffff;           /* For text on dark/amber backgrounds */
 
-  --border-default: #e4e4e7;
-  --border-strong: #d4d4d8;
-  --border-subtle: #f4f4f5;
+  /* ─── Borders ───────────────────────────────────────────────────────────── */
+  --border-default: #e5e5e5;         /* Standard divider */
+  --border-strong: #d4d4d4;          /* Emphasis border */
+  --border-subtle: #f0efed;          /* Barely-there warm separator */
 
-  /* Layout & Shadows */
+  /* ─── Shadows (Light) ───────────────────────────────────────────────────── */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.10), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.10), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.10);
 
-  /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.3);
+  /* ─── Glassmorphism ─────────────────────────────────────────────────────── */
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.35);
+
+  /* ─── Typography Scale — D4 fix: one defined scale, used everywhere ─────── */
+  --font-display: clamp(2.5rem, 5vw, 4.5rem);    /* Hero / Display */
+  --font-h1: clamp(1.75rem, 3.5vw, 2.25rem);     /* Page titles */
+  --font-h2: clamp(1.25rem, 2.5vw, 1.5rem);      /* Section headings */
+  --font-h3: 1.125rem;                             /* Card titles */
+  --font-body: 0.9375rem;                          /* Body text */
+  --font-label: 0.8125rem;                         /* Form labels */
+  --font-caption: 0.6875rem;                       /* Overlines / captions */
+
+  /* ─── Radii ─────────────────────────────────────────────────────────────── */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK MODE TOKENS — Warm SA Highveld Night
+   D8 fix: warm dark tones, not cold zinc inverts
+   ═══════════════════════════════════════════════════════════════════════════ */
 [data-theme="dark"] {
-  /* ─── Core Brand ────────────────────────────────────────────────────────────
-     SA-inspired warmth: burnished gold (flag's gold stripe), muted not electric */
-  --amber-500: #c8852e;
-  /* Burnished SA gold — warm, never garish           */
-  --amber-600: #a86c20;
-  /* Deep SA amber — mellow, authoritative             */
-  --green-500: #3baa7a;
-  /* Softer sage-green, easier on dark backgrounds     */
-  --red-500: #d95f5f;
-  /* Muted red — visible without screaming             */
+  /* ─── Utility Palette ───────────────────────────────────────────────────── */
+  --amber-500: #c8852e;              /* Burnished SA gold — warm, never garish */
+  --amber-600: #a86c20;              /* Deep SA amber — mellow, authoritative */
+  --green-500: #3baa7a;              /* Softer sage-green on dark backgrounds */
+  --red-500: #d95f5f;                /* Muted red — visible without screaming */
   --red-50: rgba(217, 95, 95, 0.12);
-  --blue-500: #60a5fa;
-  /* SA flag blue — muted for dark backgrounds         */
+  --blue-500: #60a5fa;               /* SA flag blue — muted for dark mode */
 
-  /* ─── Backgrounds ───────────────────────────────────────────────────────────
-     Warm almost-blacks — like dark Highveld soil at night, NOT cold zinc */
-  --bg-base: #131110;
-  /* Deep warm near-black (Highveld soil dark)         */
-  --bg-surface: #1c1916;
-  /* Warm dark charcoal-brown surface                  */
-  --bg-subtle: #252119;
-  /* Slightly lighter warm ochre-grey                  */
+  /* ─── Semantic Color Roles ──────────────────────────────────────────────── */
+  --color-brand: #c8852e;            /* Burnished SA gold in dark mode */
+  --color-brand-hover: #a86c20;
+  --color-brand-subtle: rgba(200, 133, 46, 0.12);
+  --color-success: #3baa7a;
+  --color-warning: #d97706;
+  --color-error: #d95f5f;
+  --color-info: #60a5fa;
 
-  /* ─── Text ──────────────────────────────────────────────────────────────────
-     Cream-white primary — warm, easy on the eye; NO cold near-whites */
-  --text-primary: #ede8e1;
-  /* Warm cream-white — always readable             */
-  --text-secondary: #a08e78;
-  /* Warm taupe — secondary content                 */
-  --text-muted: #6b5e4e;
-  /* Warm earth-brown — muted labels                */
+  /* ─── Backgrounds — Warm Highveld night ─────────────────────────────────── */
+  --bg-base: #131110;                /* Deep warm near-black (Highveld soil dark) */
+  --bg-surface: #1c1916;             /* Warm dark charcoal-brown surface */
+  --bg-subtle: #252119;              /* Slightly lighter warm ochre-grey */
+  --bg-muted: #2c2720;               /* Warm muted surface */
+
+  /* ─── Text — Warm cream, NOT cold near-whites ───────────────────────────── */
+  --text-primary: #ede8e1;           /* Warm cream-white — always readable */
+  --text-secondary: #a08e78;         /* Warm taupe — secondary content */
+  --text-muted: #6b5e4e;             /* Warm earth-brown — muted labels */
   --text-inverse: #131110;
-  /* For text on amber/light elements               */
 
-  /* ─── Borders ───────────────────────────────────────────────────────────────
-     Warm dark borders — discernible but never clinical */
-  --border-default: #2c2720;
-  /* Warm dark border                              */
-  --border-strong: #3d3328;
-  /* Warm mid-brown border                         */
-  --border-subtle: #201d18;
-  /* Barely-there warm separator                   */
+  /* ─── Borders ───────────────────────────────────────────────────────────── */
+  --border-default: #2c2720;         /* Warm dark border */
+  --border-strong: #3d3328;          /* Warm mid-brown border */
+  --border-subtle: #201d18;          /* Barely-there warm separator */
 
-  /* ─── Shadows ───────────────────────────────────────────────────────────────
-     Deeper shadows with slight amber warmth for depth */
+  /* ─── Shadows — Deeper with amber warmth ────────────────────────────────── */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.5), 0 4px 8px -2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -1px rgba(0, 0, 0, 0.30);
+  --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.50), 0 4px 8px -2px rgba(0, 0, 0, 0.30);
   --shadow-xl: 0 20px 30px -5px rgba(0, 0, 0, 0.55), 0 10px 12px -5px rgba(0, 0, 0, 0.35);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.60);
 
-  /* ─── Glassmorphism ─────────────────────────────────────────────────────────
-     Warm dark glass — amber-tinted borders for a premium feel */
+  /* ─── Glassmorphism — Warm dark glass with amber-tinted rim ─────────────── */
   --glass-bg: rgba(28, 25, 22, 0.80);
-  --glass-border: rgba(200, 133, 46, 0.18);
-  /* Subtle burnished-gold glass rim */
+  --glass-border: rgba(200, 133, 46, 0.18);   /* Subtle burnished-gold glass rim */
 
   --color-foreground: var(--text-primary);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
 body {
   background-color: var(--bg-base);
   color: var(--text-primary);
@@ -116,11 +143,9 @@ body {
   /* Mobile App Optimizations */
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  /* Prevent accidental text selection like a native app */
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   overscroll-behavior-y: none;
-  /* Disable pull-to-refresh & bounce */
   overflow-x: hidden;
 }
 
@@ -134,82 +159,101 @@ p,
   -webkit-user-select: text;
 }
 
-/* Base animations */
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY SCALE — D4 fix: one defined scale, applied via utility classes
+   Spec: Display 900, H1 800 ExtraBold, H2 700 Bold, H3 700, Body 400,
+         Body-Bold 600, Label 600, Overline 700 uppercase
+   ═══════════════════════════════════════════════════════════════════════════ */
+.type-display {
+  font-size: var(--font-display);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.type-h1 {
+  font-size: var(--font-h1);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.type-h2 {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.type-h3 {
+  font-size: var(--font-h3);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.type-body {
+  font-size: var(--font-body);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.type-body-bold {
+  font-size: var(--font-body);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.type-label {
+  font-size: var(--font-label);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.type-overline {
+  font-size: var(--font-caption);
+  font-weight: 700;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.type-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideRight {
-  from {
-    opacity: 0;
-    transform: translateX(-16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes drawerIn {
-  from {
-    transform: translateX(-100%);
-  }
-
-  to {
-    transform: translateX(0);
-  }
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
 }
 
-.animate-slide-up {
-  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-slide-down {
-  animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-slide-right {
-  animation: slideRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
-}
-
-.animate-drawer-in {
-  animation: drawerIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+.animate-slide-up    { animation: slideUp    0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-down  { animation: slideDown  0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-right { animation: slideRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-in     { animation: fadeIn     0.4s ease-out forwards; }
+.animate-drawer-in   { animation: drawerIn   0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
 /* Stagger utilities */
 .delay-100 { animation-delay: 100ms; }
@@ -230,31 +274,13 @@ p,
   }
 }
 
-/* Hide scrollbar logically but allow scrolling */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  /* IE and Edge */
-  scrollbar-width: none;
-  /* Firefox */
-}
-
-/* Layout Utilities */
-.sidebar-offset {
-  @media (min-width: 1024px) {
-    padding-left: 16rem;
-    /* 64 * 0.25rem = 16rem */
-  }
-}
-
+/* ═══════════════════════════════════════════════════════════════════════════
+   INTERACTION UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
 /* Active Tactility */
 .active-scale {
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 .active-scale:active {
   transform: scale(0.97);
 }
@@ -262,7 +288,6 @@ p,
 .hover-lift {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 .hover-lift:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
@@ -276,7 +301,22 @@ p,
   border: 1px solid var(--glass-border);
 }
 
-/* Layout Utilities */
+/* Scrollbar hide */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LAYOUT UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+.sidebar-offset {
+  @media (min-width: 1024px) {
+    padding-left: 16rem;
+  }
+}
+
 .content-container {
   max-width: 1100px;
   margin-left: auto;

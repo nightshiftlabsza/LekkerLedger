@@ -166,7 +166,7 @@ export default function PricingPage() {
                         ]}
                         buttonText={status === "annual" ? "Active" : "Subscribe Yearly"}
                         onAction={() => handleAction("annual")}
-                        colorClass="text-[#2d5a27]"
+                        colorClass="text-[var(--color-success)]"
                     />
 
                     {/* Pro Card */}
@@ -186,7 +186,7 @@ export default function PricingPage() {
                         buttonText={status === "pro" ? "Activated" : "Get Lifetime Access"}
                         onAction={() => handleAction("pro")}
                         isPro
-                        colorClass="text-[#c47a1c]"
+                        colorClass="text-[var(--color-brand)]"
                     />
                 </div>
 

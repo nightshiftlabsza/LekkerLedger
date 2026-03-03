@@ -27,7 +27,7 @@ export const Stepper = ({ steps, currentStep, className }: StepperProps) => {
                                         style={{
                                             width: "38px",
                                             height: "38px",
-                                            border: "4px solid #F1E5D1", // Pale golden/beige thick ring
+                                            border: "4px solid var(--color-brand-subtle)", // Warm brand tint ring
                                             backgroundColor: "transparent",
                                         }}
                                     />

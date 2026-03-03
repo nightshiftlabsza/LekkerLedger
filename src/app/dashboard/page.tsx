@@ -198,13 +198,27 @@ export default function DashboardPage() {
                     </div>
                 ) : (
                     <>
-                        {/* Holiday alerts — always visible, immediately useful */}
-                        {upcomingHolidays.map(h => (
-                            <div key={h.date} className="px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-bold bg-amber-500 text-white shadow-sm">
-                                <CalendarDays className="h-4 w-4 shrink-0" />
-                                <span>{h.name} is this {format(new Date(h.date), "EEEE")} — check leave records.</span>
-                            </div>
-                        ))}
+                        {/* Upcoming — public holidays in next 30 days (plan Template 1: Upcoming section) */}
+                        {upcomingHolidays.length > 0 && (
+                            <Card className="glass-panel border-none overflow-hidden">
+                                <CardContent className="p-5 space-y-3">
+                                    <h2 className="type-overline text-[var(--text-muted)]">Upcoming</h2>
+                                    <div className="space-y-2">
+                                        {upcomingHolidays.map(h => (
+                                            <div key={h.date} className="flex items-center gap-3 py-2 border-b border-[var(--border-subtle)] last:border-0">
+                                                <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0 bg-[var(--color-brand-subtle)]">
+                                                    <CalendarDays className="h-4 w-4" style={{ color: "var(--color-brand)" }} />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="type-body-bold text-[var(--text-primary)] truncate">{h.name}</p>
+                                                    <p className="type-label text-[var(--text-muted)]">{format(new Date(h.date), "EEEE, d MMM")} — check leave records</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {/* SDL warning — only shown when annual payroll estimate exceeds R500k */}
                         {showSDLWarning && (
@@ -253,7 +267,7 @@ export default function DashboardPage() {
                         {/* Employee list — this is THE primary action */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between px-1">
-                                <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-primary)]">
+                                <h2 className="type-overline text-[var(--text-muted)]">
                                     {employeeCount === 0 ? "Get Started" : `Your Employees (${employeeCount})`}
                                 </h2>
                                 {employeeCount > 0 && (
@@ -290,8 +304,8 @@ export default function DashboardPage() {
                                                         {summary.employee.name.charAt(0).toUpperCase()}
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-sm text-[var(--text-primary)]">{summary.employee.name}</p>
-                                                        <p className="text-[10px] font-bold uppercase text-[var(--text-muted)]">{summary.employee.role || "Worker"}</p>
+                                                        <p className="type-body-bold text-[var(--text-primary)]">{summary.employee.name}</p>
+                                                        <p className="type-overline text-[var(--text-muted)]">{summary.employee.role || "Worker"}</p>
                                                     </div>
                                                 </div>
 
@@ -379,22 +393,22 @@ export default function DashboardPage() {
                         {/* Stats — always visible when there are employees */}
                         {employeeCount > 0 && (
                             <div className="space-y-3">
-                                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">
+                                <h2 className="type-overline text-[var(--text-muted)] px-1">
                                     This Month&apos;s Payroll
                                 </h2>
                                 <div className="grid grid-cols-2 gap-3">
                                     <Card className="glass-panel border-none">
-                                        <CardContent className="p-4 flex flex-col items-center text-center">
-                                            <Users className="h-5 w-5 mb-2 text-amber-500" />
-                                            <p className="text-2xl font-black text-[var(--text-primary)]">{employeeCount}</p>
-                                            <p className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Employees</p>
+                                        <CardContent className="p-5 flex flex-col items-center text-center gap-1">
+                                            <Users className="h-5 w-5 mb-1 text-[var(--color-brand)]" />
+                                            <p className="type-h1 type-mono text-[var(--text-primary)]">{employeeCount}</p>
+                                            <p className="type-overline text-[var(--text-muted)]">Employees</p>
                                         </CardContent>
                                     </Card>
                                     <Card className="glass-panel border-none">
-                                        <CardContent className="p-4 flex flex-col items-center text-center">
-                                            <Banknote className="h-5 w-5 mb-2 text-amber-500" />
-                                            <p className="text-2xl font-black tabular-nums text-[var(--text-primary)]">R{thisMonthTotal.toFixed(0)}</p>
-                                            <p className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Gross This Month</p>
+                                        <CardContent className="p-5 flex flex-col items-center text-center gap-1">
+                                            <Banknote className="h-5 w-5 mb-1 text-[var(--color-brand)]" />
+                                            <p className="type-h1 type-mono text-[var(--text-primary)]">R{thisMonthTotal.toFixed(0)}</p>
+                                            <p className="type-overline text-[var(--text-muted)]">Gross This Month</p>
                                         </CardContent>
                                     </Card>
                                 </div>
@@ -404,7 +418,7 @@ export default function DashboardPage() {
                         {/* Trend chart — only shown when 3+ employees AND chart has data */}
                         {showChart && (
                             <div className="space-y-3">
-                                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">6-Month Trend</h2>
+                                <h2 className="type-overline text-[var(--text-muted)] px-1">6-Month Trend</h2>
                                 <Card className="glass-panel border-none p-4 h-36 flex items-end justify-between gap-1.5 overflow-hidden">
                                     {(() => {
                                         const maxVal = Math.max(...monthlyBuckets.map(b => b.total), 1);

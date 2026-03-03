@@ -61,9 +61,7 @@ export default function EmployeesPage() {
                 <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SideDrawer />
-                        <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
-                            Employees
-                        </h1>
+                        <h1 className="type-h3 text-[var(--text-primary)]">Employees</h1>
                     </div>
                     {(!loading && !isFullPro && employees.length >= limit) ? (
                         <Link href="/pricing">
@@ -125,8 +123,8 @@ export default function EmployeesPage() {
                                                 {emp.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="font-semibold text-sm truncate group-hover:underline" style={{ color: "var(--text-primary)" }}>{emp.name}</p>
-                                                <p className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>{emp.role} · R{emp.hourlyRate.toFixed(2)}/hr</p>
+                                                <p className="type-body-bold truncate group-hover:underline text-[var(--text-primary)]">{emp.name}</p>
+                                                <p className="type-label truncate text-[var(--text-secondary)]">{emp.role} · R{emp.hourlyRate.toFixed(2)}/hr</p>
                                             </div>
                                         </Link>
                                         <div className="flex items-center gap-2">

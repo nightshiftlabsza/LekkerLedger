@@ -62,7 +62,7 @@ export default function Home() {
       <ComplianceSplash isOpen={showCompliance} onClose={() => setShowCompliance(false)} />
 
       {/* Header */}
-      <header className="sticky top-0 z-30 px-4 py-6 xl:py-8 glass-panel shadow-[var(--shadow-sm)] backdrop-blur-md bg-opacity-80" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+      <header className="sticky top-0 z-30 px-4 py-6 xl:py-8 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <Link href="/" className="focus-ring rounded-lg">
             <Image src="/brand/logo-light.png" alt="LekkerLedger" width={224} height={56} className="h-12 sm:h-14 w-auto block dark:hidden" priority />
@@ -104,7 +104,7 @@ export default function Home() {
             <div className="space-y-6 relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/10 to-transparent blur-3xl -z-10 rounded-full" />
               <h1
-                className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-[1.05]"
+                className="type-display"
                 style={{ color: "var(--text-primary)" }}
               >
                 Compliant payslips in{" "}
@@ -128,12 +128,17 @@ export default function Home() {
               </Button>
             </div>
 
-            {/* Savings Indicator */}
+            {/* Savings Indicator — D8 fix: bg-opacity-10 replaced with rgba for Tailwind v4 compatibility */}
             <div
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[var(--green-500)] bg-opacity-10 border border-[var(--green-500)] border-opacity-20 text-[var(--green-500)] animate-fade-in font-black tracking-tight uppercase"
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-2xl animate-fade-in"
+              style={{
+                backgroundColor: "rgba(22, 163, 74, 0.10)",
+                border: "1px solid rgba(22, 163, 74, 0.20)",
+                color: "var(--color-success)",
+              }}
             >
               <Sparkles className="h-4 w-4" />
-              <span className="text-[10px] sm:text-xs">R3,000+ per year cheaper than traditional payroll services.</span>
+              <span className="type-overline">R3,000+ per year cheaper than traditional payroll services.</span>
             </div>
 
             {/* Trust signals (Desktop: Inline below CTA) */}
@@ -201,7 +206,7 @@ export default function Home() {
         {/* NEW: Compliance Risk Section */}
         <div className="mt-24 w-full max-w-5xl mx-auto space-y-12 animate-slide-up">
           <div className="text-center space-y-4">
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
+            <h2 className="type-h1" style={{ color: "var(--text-primary)" }}>
               Protect Your Household. <br className="hidden sm:block" />
               <span className="bg-gradient-to-br from-amber-400 to-amber-600 bg-clip-text text-transparent">The Stakes Are Real.</span>
             </h2>
@@ -255,7 +260,7 @@ export default function Home() {
                     <div className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-sm relative group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: `${item.color}15`, color: item.color, border: `1px solid ${item.color}30` }}>
                       <item.icon className="h-6 w-6" />
                     </div>
-                    <h3 className="font-black text-xl lg:text-2xl pt-2" style={{ color: "var(--text-primary)" }}>{item.title}</h3>
+                    <h3 className="type-h3 pt-2" style={{ color: "var(--text-primary)" }}>{item.title}</h3>
                   </div>
                   <p className="text-sm md:text-base leading-relaxed font-medium opacity-80 pt-4" style={{ color: "var(--text-secondary)" }}>{item.desc}</p>
                 </CardContent>
@@ -266,7 +271,7 @@ export default function Home() {
           {/* Pricing/Risk Comparison Section */}
           <div className="pt-12 space-y-8">
             <div className="text-center space-y-2">
-              <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>The Costs of Compliance</h3>
+              <h3 className="type-h2" style={{ color: "var(--text-primary)" }}>The Costs of Compliance</h3>
               <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>Why pay recurring fees for a localized legal requirement?</p>
             </div>
 
@@ -276,7 +281,7 @@ export default function Home() {
                   <AlertTriangle className="h-4 w-4" />
                   <span className="font-black uppercase tracking-widest text-xs">Traditional Agency</span>
                 </div>
-                <h4 className="text-lg font-bold leading-tight" style={{ color: "var(--text-primary)" }}>Recurring Payroll Services</h4>
+                <h4 className="type-h3 leading-tight" style={{ color: "var(--text-primary)" }}>Recurring Payroll Services</h4>
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2 text-xs font-medium text-red-700/70">
                     <div className="h-1 w-1 rounded-full bg-red-400" />
@@ -298,7 +303,7 @@ export default function Home() {
                   <ShieldCheck className="h-4 w-4" />
                   <span className="font-black uppercase tracking-widest text-xs">Lekker Ledger</span>
                 </div>
-                <h4 className="text-lg font-bold leading-tight" style={{ color: "var(--text-primary)" }}>The Pro Lifetime Advantage</h4>
+                <h4 className="type-h3 leading-tight" style={{ color: "var(--text-primary)" }}>The Pro Lifetime Advantage</h4>
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2 text-xs font-black text-amber-700">
                     <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />
@@ -325,8 +330,8 @@ export default function Home() {
           {/* How it Works Section */}
           <div className="mt-32 space-y-16">
             <div className="text-center space-y-4">
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
-                3 Simple Steps to <span className="text-[var(--amber-500)]">Compliance.</span>
+              <h2 className="type-h1" style={{ color: "var(--text-primary)" }}>
+                3 Simple Steps to <span style={{ color: "var(--color-brand)" }}>Compliance.</span>
               </h2>
               <p className="text-base sm:text-lg max-w-2xl mx-auto font-medium" style={{ color: "var(--text-secondary)" }}>
                 No complex training required. Just a few clicks to total legal peace of mind.
@@ -369,7 +374,7 @@ export default function Home() {
                       <span className="text-4xl font-black opacity-10" style={{ color: item.color }}>{item.step}</span>
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xl font-black" style={{ color: "var(--text-primary)" }}>{item.title}</h3>
+                      <h3 className="type-h3" style={{ color: "var(--text-primary)" }}>{item.title}</h3>
                       <p className="text-sm leading-relaxed font-medium" style={{ color: "var(--text-secondary)" }}>{item.desc}</p>
                     </div>
                   </div>
@@ -406,7 +411,7 @@ export default function Home() {
             </div>
 
             <div className="space-y-4 text-center md:text-left">
-              <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-primary)]">Product</h4>
+              <h4 className="type-overline text-[var(--text-primary)] normal-case text-sm">Product</h4>
               <nav className="flex flex-col gap-2 items-center md:items-start text-center md:text-left">
                 <Link href="/rules" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">The Rules</Link>
                 <Link href="/pricing" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">Pricing</Link>
@@ -415,7 +420,7 @@ export default function Home() {
             </div>
 
             <div className="space-y-4 text-center md:text-left">
-              <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-primary)]">Legal</h4>
+              <h4 className="type-overline text-[var(--text-primary)] normal-case text-sm">Legal</h4>
               <nav className="flex flex-col gap-2 items-center md:items-start text-center md:text-left">
                 <Link href="/legal/terms" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">Terms of Service</Link>
                 <Link href="/legal/privacy" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">Privacy Policy (POPIA)</Link>
@@ -424,7 +429,7 @@ export default function Home() {
             </div>
 
             <div className="space-y-4 text-center md:text-left">
-              <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-primary)]">Connect</h4>
+              <h4 className="type-overline text-[var(--text-primary)] normal-case text-sm">Connect</h4>
               <nav className="flex flex-col gap-2 items-center md:items-start text-center md:text-left">
                 <a href="mailto:nightshiftlabsza@gmail.com" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">Support Email</a>
                 <a href="https://github.com/nightshiftlabsza/LekkerLedger" target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors">GitHub Repository</a>
