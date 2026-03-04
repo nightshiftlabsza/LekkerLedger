@@ -1,97 +1,110 @@
-"use client";
+import type { Metadata, Viewport } from "next";
+import { Inter, IBM_Plex_Mono } from "next/font/google";
+import "../globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { GoogleWrapper } from "@/components/google-wrapper";
+import { PwaInstallListener } from "@/components/pwa-install-listener";
+import { AppShell } from "./app-shell";
+import Script from "next/script";
 
-import * as React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { SideDrawer } from "@/components/layout/side-drawer";
-import { BottomNav } from "@/components/layout/bottom-nav";
-import { HouseholdSwitcher } from "@/components/household-switcher";
-import { GlobalCreateDesktop, GlobalCreateFAB } from "@/components/global-create";
-import { CloudOff, X } from "lucide-react";
-import { useOnlineStatus } from "@/src/app/hooks/useOnlineStatus";
-import { ToastProvider } from "@/components/ui/toast";
+const inter = Inter({
+    variable: "--font-sans",
+    subsets: ["latin"],
+    display: "swap",
+});
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-    const isOnline = useOnlineStatus();
-    const [bannerDismissed, setBannerDismissed] = React.useState(false);
-    const [moreOpen, setMoreOpen] = React.useState(false);
+const ibmPlexMono = IBM_Plex_Mono({
+    variable: "--font-mono",
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700"],
+    display: "swap",
+});
 
-    React.useEffect(() => {
-        if (isOnline) setBannerDismissed(false);
-    }, [isOnline]);
+export const metadata: Metadata = {
+    title: "LekkerLedger | Dashboard",
+    description:
+        "Manage your domestic worker payroll, leave, and compliance — all in one place.",
+    manifest: "/manifest.webmanifest",
+};
 
-    const showBanner = !isOnline && !bannerDismissed;
+export const viewport: Viewport = {
+    themeColor: "#c47a1c",
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+};
+
+export default function AppRootLayout({
+    children,
+}: Readonly<{
+    children: React.ReactNode;
+}>) {
+    const gaId = "G-77MEDHHX58";
 
     return (
-        <ToastProvider>
-            <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
-                {/* Side drawer — always present on desktop, overlay on mobile */}
-                <SideDrawer showButton={false} />
-
-                {/* Top bar */}
-                <header className="sticky top-0 z-30 px-4 py-3 flex items-center justify-between glass-panel border-b border-[var(--border-subtle)]">
-                    <div className="content-container w-full flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            {/* Mobile menu trigger — opens side drawer */}
-                            <SideDrawer showButton={true} />
-                            <Link href="/dashboard" className="flex items-center gap-2">
-                                <Image src="/brand/logo-light.png" alt="LekkerLedger" width={80} height={24} className="h-6 w-auto block dark:hidden" />
-                                <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={80} height={24} className="h-6 w-auto hidden dark:block" />
-                            </Link>
-                            {/* Desktop only Household switcher */}
-                            <div className="hidden lg:block ml-4 pl-4 border-l border-[var(--border-subtle)]">
-                                {/* Static mock data for now, would be dynamically fed by auth/storage */}
-                                <HouseholdSwitcher
-                                    households={[{ id: "1", name: "My Home" }]}
-                                    activeId="1"
-                                    isPro={false}
-                                    onSwitch={() => { }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            {!isOnline && (
-                                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-[10px] font-bold text-amber-600 border border-amber-500/20">
-                                    <CloudOff className="h-3 w-3" /> Offline
-                                </span>
-                            )}
-                            <GlobalCreateDesktop />
-                        </div>
-                    </div>
-                </header>
-
-                {/* Offline banner */}
-                {showBanner && (
-                    <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold"
-                        style={{ backgroundColor: "rgba(217,119,6,0.10)", borderBottom: "1px solid rgba(217,119,6,0.25)", color: "var(--amber-500)" }}>
-                        <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
-                            <div className="flex items-center gap-2">
-                                <CloudOff className="h-4 w-4 shrink-0" />
-                                <span>You&apos;re offline — your changes are saved locally and will sync when reconnected.</span>
-                            </div>
-                            <button
-                                onClick={() => setBannerDismissed(true)}
-                                aria-label="Dismiss offline notice"
-                                className="shrink-0 rounded p-0.5 hover:bg-amber-500/20 transition-colors"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Main content */}
-                <main id="main-content" className="flex-1 px-4 py-8 content-container w-full flex flex-col gap-8 pb-24 lg:pb-8">
-                    {children}
-                </main>
-
-                {/* Global FAB (Mobile) */}
-                <GlobalCreateFAB />
-
-                {/* Bottom nav (mobile) */}
-                <BottomNav onMore={() => setMoreOpen(true)} />
-            </div>
-        </ToastProvider>
+        <html lang="en" suppressHydrationWarning>
+            <head>
+                <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              window.gtag = gtag;
+              gtag('js', new Date());
+              gtag('config', '${gaId}', { debug_mode: true });
+            `,
+                    }}
+                />
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                <link
+                    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900&display=swap"
+                    rel="stylesheet"
+                />
+                {/* Inline script — applies correct theme before first paint to avoid flash */}
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+              (function(){
+                try{
+                  var stored = localStorage.getItem('ll-theme');
+                  var theme = (stored === 'light' || stored === 'dark' || stored === 'system') ? stored : 'system';
+                  var resolved = theme === 'system'
+                    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                    : theme;
+                  document.documentElement.setAttribute('data-theme', resolved);
+                  
+                  var storedDensity = localStorage.getItem('ll-density');
+                  if (storedDensity === 'compact') {
+                     document.documentElement.classList.add('density-compact');
+                  } else {
+                     document.documentElement.classList.remove('density-compact');
+                  }
+                }catch(e){
+                  document.documentElement.setAttribute('data-theme', 'light');
+                  document.documentElement.classList.remove('density-compact');
+                }
+              })();
+            `,
+                    }}
+                />
+            </head>
+            <body className={`${inter.variable} ${ibmPlexMono.variable} antialiased selection:bg-amber-500/30 selection:text-amber-200`} style={{ overscrollBehaviorY: 'contain' }}>
+                <a
+                    href="#main-content"
+                    className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold focus:shadow-lg"
+                    style={{ backgroundColor: "var(--bg-surface)", color: "var(--text-primary)", outline: "2px solid var(--amber-500)", outlineOffset: "2px" }}
+                >
+                    Skip to content
+                </a>
+                <PwaInstallListener />
+                <GoogleWrapper>
+                    <ThemeProvider>
+                        <AppShell>{children}</AppShell>
+                    </ThemeProvider>
+                </GoogleWrapper>
+            </body>
+        </html>
     );
 }

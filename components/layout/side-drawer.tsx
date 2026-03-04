@@ -16,31 +16,31 @@ const NAV_GROUPS = [
     {
         label: "Work",
         links: [
-            { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
-            { href: "/app/payroll", label: "Monthly Payroll", icon: Banknote },
-            { href: "/app/employees", label: "Employees", icon: Users },
-            { href: "/app/leave", label: "Leave", icon: Palmtree },
-            { href: "/app/contracts", label: "Contracts", icon: FileText },
+            { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+            { href: "/payroll", label: "Monthly Payroll", icon: Banknote },
+            { href: "/employees", label: "Employees", icon: Users },
+            { href: "/leave", label: "Leave", icon: Palmtree },
+            { href: "/contracts", label: "Contracts", icon: FileText },
         ],
     },
     {
         label: "Documents",
         links: [
-            { href: "/app/documents", label: "Documents", icon: FolderOpen },
+            { href: "/documents", label: "Documents", icon: FolderOpen },
         ],
     },
     {
         label: "Tools",
         links: [
-            { href: "/app/ufiling", label: "uFiling Export", icon: FileSpreadsheet },
-            { href: "/app/tools/wage-calculator", label: "Wage Calculator", icon: Calculator },
-            { href: "/app/help/compliance", label: "Compliance Guide", icon: BookOpen },
+            { href: "/ufiling", label: "uFiling Export", icon: FileSpreadsheet },
+            { href: "/tools/wage-calculator", label: "Wage Calculator", icon: Calculator },
+            { href: "/help/compliance", label: "Compliance Guide", icon: BookOpen },
         ],
     },
     {
         label: "Account",
         links: [
-            { href: "/app/settings", label: "Settings", icon: Settings },
+            { href: "/settings", label: "Settings", icon: Settings },
             { href: "/pricing", label: "Support & Pro", icon: Sparkles },
         ],
     },
@@ -110,7 +110,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                     style={{ borderBottom: "1px solid var(--border-subtle)" }}
                 >
                     <div>
-                        <Link href="/app/dashboard" onClick={() => setOpen(false)} className="block rounded-lg" tabIndex={open ? 0 : -1}>
+                        <Link href="/dashboard" onClick={() => setOpen(false)} className="block rounded-lg" tabIndex={open ? 0 : -1}>
                             <Image
                                 src="/brand/logo-light.png"
                                 alt="LekkerLedger"

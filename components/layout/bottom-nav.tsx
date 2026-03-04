@@ -6,10 +6,10 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, Banknote, FolderOpen, MoreHorizontal } from "lucide-react";
 
 const NAV_ITEMS = [
-    { label: "Home", icon: LayoutDashboard, href: "/app/dashboard" },
-    { label: "Payroll", icon: Banknote, href: "/app/payroll" },
-    { label: "Employees", icon: Users, href: "/app/employees" },
-    { label: "Documents", icon: FolderOpen, href: "/app/documents" },
+    { label: "Home", icon: LayoutDashboard, href: "/dashboard" },
+    { label: "Payroll", icon: Banknote, href: "/payroll" },
+    { label: "Employees", icon: Users, href: "/employees" },
+    { label: "Documents", icon: FolderOpen, href: "/documents" },
 ];
 
 interface BottomNavProps {
@@ -23,7 +23,7 @@ export function BottomNav({ onMore }: BottomNavProps) {
         <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden glass-panel border-t border-[var(--border-subtle)] pb-safe">
             <div className="flex items-center justify-around h-16">
                 {NAV_ITEMS.map((item) => {
-                    const isActive = pathname === item.href || (item.href !== "/app/dashboard" && pathname?.startsWith(item.href));
+                    const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname?.startsWith(item.href));
                     const Icon = item.icon;
 
                     return (
