@@ -132,7 +132,7 @@ export async function generatePayslipPdfBytes(
 ): Promise<Uint8Array> {
     const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
     const breakdown = calculatePayslip(payslip);
-    const nmw = getNMW(payslip.payPeriodStart);
+    const nmw = getNMW(payslip.payPeriodEnd);
 
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 portrait
