@@ -82,7 +82,7 @@ export default function RulesPage() {
                             <div>
                                 <h3 className="font-bold text-base" style={{ color: "var(--text-primary)" }}>3. Unemployment Insurance Fund (UIF)</h3>
                                 <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                                    If your employee works <strong>more than 24 hours in a month</strong>, you must register them for UIF. You deduct 1% from their gross pay, and contribute another 1% yourself (total 2%). LekkerLedger handles this calculation automatically.
+                                    If your employee works <strong>more than 24 hours in a month</strong>, you must register them for UIF. You deduct 1% from their gross pay, and contribute another 1% yourself (total 2%). LekkerLedger includes UIF calculation tools to help with this.
                                     <br />
                                     <a href="https://www.gov.za/services/uif/register-uif" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: Register with the UIF</a>
                                 </p>
