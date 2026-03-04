@@ -1,16 +1,17 @@
 import withSerwistInit from "@serwist/next";
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const withSerwist = withSerwistInit({
   swSrc: "src/app/sw.ts",
   swDest: "public/sw.js",
+  disable: isDev, // Disable SW build in dev — prevents file-lock crashes on Windows
 });
 
 const nextConfig: NextConfig = {
-  // PWA setup conflicts with Turbopack sometimes, suppressing the hard fail
-  experimental: {
-    // Allows Serwist to run without completely crashing Next 15 webpack hooks
-  },
+  turbopack: {},
+  experimental: {},
 };
 
 export default withSerwist(nextConfig);
