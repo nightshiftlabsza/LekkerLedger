@@ -1,0 +1,180 @@
+
+> lekkerledger@0.1.0 lint
+> eslint
+
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\bulk-run-modal.tsx
+   7:10  warning  'Checkbox' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+  36:8   warning  React Hook React.useEffect has a missing dependency: 'validSummaries'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\global-create.tsx
+  19:17  error  Do not use an `<a>` element to navigate to `/app/payroll/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages        @next/next/no-html-link-for-pages
+  23:17  error  Do not use an `<a>` element to navigate to `/app/employees/new/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages  @next/next/no-html-link-for-pages
+  43:21  error  Do not use an `<a>` element to navigate to `/app/payroll/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages        @next/next/no-html-link-for-pages
+  46:21  error  Do not use an `<a>` element to navigate to `/app/employees/new/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages  @next/next/no-html-link-for-pages
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\google-sync.tsx
+   5:35  warning  'LogOut' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   5:97  warning  'FileText' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   7:52  warning  'CardDescription' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  35:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\google-sync.tsx:35:13
+  33 |         const storedLogs = localStorage.getItem("ll_sync_logs");
+  34 |         if (storedLogs) {
+> 35 |             setSyncLogs(JSON.parse(storedLogs));
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  36 |         }
+  37 |         setLastSyncTime(localStorage.getItem("ll_last_sync"));
+  38 |         const storedToken = localStorage.getItem("google_access_token");  react-hooks/set-state-in-effect
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\layout\side-drawer.tsx
+  11:5  warning  'ClipboardList' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\data-table.tsx
+  4:34  warning  'ChevronLeft' is defined but never used   @typescript-eslint/no-unused-vars
+  4:47  warning  'ChevronRight' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\privacy-shield.tsx
+  4:10  warning  'Shield' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\stepper.tsx
+  16:23  warning  'isLast' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\switch.tsx
+  10:48  warning  'props' is defined but never used  @typescript-eslint/no-unused-vars
+  10:57  warning  'ref' is defined but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\comprehensive-audit.spec.ts
+  5:59  warning  'context' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\payslip.spec.ts
+  4:79  warning  'context' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\contracts\new\page.tsx
+    5:8    warning  'Link' is defined but never used          @typescript-eslint/no-unused-vars
+  258:143  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\contracts\page.tsx
+  14:10  warning  'format' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\dashboard\page.tsx
+   7:38  warning  'Users' is defined but never used            @typescript-eslint/no-unused-vars
+   8:5   warning  'Palmtree' is defined but never used         @typescript-eslint/no-unused-vars
+   8:15  warning  'Calendar' is defined but never used         @typescript-eslint/no-unused-vars
+   8:35  warning  'Cloud' is defined but never used            @typescript-eslint/no-unused-vars
+   8:42  warning  'CloudOff' is defined but never used         @typescript-eslint/no-unused-vars
+   9:29  warning  'Loader2' is defined but never used          @typescript-eslint/no-unused-vars
+  10:5   warning  'ShieldCheck' is defined but never used      @typescript-eslint/no-unused-vars
+  10:18  warning  'FolderOpen' is defined but never used       @typescript-eslint/no-unused-vars
+  17:27  warning  'ChipVariant' is defined but never used      @typescript-eslint/no-unused-vars
+  32:11  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\documents\page.tsx
+   4:8   warning  'Link' is defined but never used          @typescript-eslint/no-unused-vars
+   5:20  warning  'Download' is defined but never used      @typescript-eslint/no-unused-vars
+   8:10  warning  'Card' is defined but never used          @typescript-eslint/no-unused-vars
+   8:16  warning  'CardContent' is defined but never used   @typescript-eslint/no-unused-vars
+  10:10  warning  'EmptyState' is defined but never used    @typescript-eslint/no-unused-vars
+  12:26  warning  'Column' is defined but never used        @typescript-eslint/no-unused-vars
+  16:34  warning  'PayslipInput' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\employees\page.tsx
+   7:10  warning  'format' is defined but never used       @typescript-eslint/no-unused-vars
+   9:16  warning  'CardContent' is defined but never used  @typescript-eslint/no-unused-vars
+  14:26  warning  'Column' is defined but never used       @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\layout.tsx
+  16:12  warning  'moreOpen' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\leave\new\page.tsx
+   5:10   warning  'Palmtree' is defined but never used      @typescript-eslint/no-unused-vars
+  97:103  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\leave\page.tsx
+    5:36  warning  'Users' is defined but never used   @typescript-eslint/no-unused-vars
+   12:26  warning  'Column' is defined but never used  @typescript-eslint/no-unused-vars
+  163:46  warning  'row' is defined but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\payroll\[periodId]\page.tsx
+  16:87  warning  'logAuditEvent' is defined but never used     @typescript-eslint/no-unused-vars
+  17:10  warning  'calculatePayslip' is defined but never used  @typescript-eslint/no-unused-vars
+  23:11  warning  'router' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\payroll\page.tsx
+  6:44  warning  'Loader2' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\settings\page.tsx
+    7:18  warning  'Cloud' is defined but never used             @typescript-eslint/no-unused-vars
+    7:25  warning  'HelpCircle' is defined but never used        @typescript-eslint/no-unused-vars
+    8:33  warning  'Globe' is defined but never used             @typescript-eslint/no-unused-vars
+    9:44  warning  'Clock' is defined but never used             @typescript-eslint/no-unused-vars
+    9:64  warning  'HardDrive' is defined but never used         @typescript-eslint/no-unused-vars
+   12:16  warning  'CardContent' is defined but never used       @typescript-eslint/no-unused-vars
+   29:13  warning  'toast' is assigned a value but never used    @typescript-eslint/no-unused-vars
+   36:30  warning  'density' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  409:10  warning  'Step' is defined but never used              @typescript-eslint/no-unused-vars
+  418:10  warning  'QandA' is defined but never used             @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\tools\wage-calculator\page.tsx
+  4:10  warning  'Calculator' is defined but never used  @typescript-eslint/no-unused-vars
+  5:10  warning  'Button' is defined but never used      @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\app\ufiling\page.tsx
+   6:38  warning  'FileSpreadsheet' is defined but never used  @typescript-eslint/no-unused-vars
+  16:10  warning  'format' is defined but never used           @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\employees\[id]\history\page.tsx
+  30:33  warning  'stats' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\employees\new\page.tsx
+  17:10  warning  'EmployerSettings' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\layout.tsx
+   9:8  warning  'Script' is defined but never used                                                                                                                               @typescript-eslint/no-unused-vars
+  62:9  warning  Custom fonts not added in `pages/_document.js` will only load for a single page. This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font  @next/next/no-page-custom-font
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\pricing\page.tsx
+  286:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\settings\page.tsx
+  43:13  warning  'toast' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\wizard\page.tsx
+  10:29  warning  'CardFooter' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\calculator.ts
+  101:11  warning  'sdlEmployee' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\compliance-pdf.ts
+  102:5  warning  'employer' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\compliance.ts
+  66:11  warning  'nmw' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\google-drive.ts
+  2:73   warning  'saveEmployee' is defined but never used     @typescript-eslint/no-unused-vars
+  2:87   warning  'savePayslip' is defined but never used      @typescript-eslint/no-unused-vars
+  2:100  warning  'saveLeaveRecord' is defined but never used  @typescript-eslint/no-unused-vars
+  2:117  warning  'saveSettings' is defined but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\leave.ts
+  60:11  warning  'years' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\pdf.ts
+   1:43  warning  'degrees' is defined but never used             @typescript-eslint/no-unused-vars
+  12:7   warning  'GREEN' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  13:7   warning  'LIGHT_BG' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  77:5   warning  'isLimited' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\storage.ts
+  364:34  warning  '_token' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 86 problems (7 errors, 79 warnings)
+

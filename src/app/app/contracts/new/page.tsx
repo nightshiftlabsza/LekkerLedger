@@ -132,8 +132,8 @@ export default function NewContractPage() {
                                         key={emp.id}
                                         onClick={() => setFormData({ ...formData, employeeId: emp.id })}
                                         className={`flex items-center justify-between p-4 rounded-xl border transition-all ${formData.employeeId === emp.id
-                                                ? "border-[var(--amber-500)] bg-[var(--amber-500)]/5 ring-1 ring-[var(--amber-500)]"
-                                                : "border-[var(--border-default)] hover:border-[var(--amber-300)]"
+                                            ? "border-[var(--amber-500)] bg-[var(--amber-500)]/5 ring-1 ring-[var(--amber-500)]"
+                                            : "border-[var(--border-default)] hover:border-[var(--amber-300)]"
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
@@ -255,7 +255,7 @@ export default function NewContractPage() {
                                     <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Pay Frequency</label>
                                     <select
                                         value={formData.salary?.frequency}
-                                        onChange={e => setFormData({ ...formData, salary: { ...formData.salary!, frequency: e.target.value as any } })}
+                                        onChange={e => setFormData({ ...formData, salary: { ...formData.salary!, frequency: e.target.value as Contract["salary"]["frequency"] } })}
                                         className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm outline-none focus:ring-2 focus:ring-[var(--amber-500)]/20"
                                     >
                                         <option value="Monthly">Monthly</option>

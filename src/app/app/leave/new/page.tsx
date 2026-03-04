@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { getEmployees, saveLeaveRecord } from "@/lib/storage";
-import { Employee, LeaveRecord } from "@/lib/schema";
+import { Employee, LeaveRecord, LeaveType } from "@/lib/schema";
 
 function NewLeaveContent() {
     const router = useRouter();
@@ -20,7 +20,7 @@ function NewLeaveContent() {
 
     const [formData, setFormData] = React.useState({
         employeeId: preselectedEmpId || "",
-        type: "annual" as const,
+        type: "annual" as LeaveType,
         days: 1,
         date: new Date().toISOString().split("T")[0],
         note: ""
@@ -94,7 +94,7 @@ function NewLeaveContent() {
                                 <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Leave Type</label>
                                 <select
                                     value={formData.type}
-                                    onChange={e => setFormData({ ...formData, type: e.target.value as any })}
+                                    onChange={e => setFormData({ ...formData, type: e.target.value as LeaveType })}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--amber-500)]/20 outline-none"
                                     required
                                 >

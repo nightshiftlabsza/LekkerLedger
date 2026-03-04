@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useGoogleLogin, googleLogout } from "@react-oauth/google";
-import { Cloud, Download, Upload, LogOut, CheckCircle2, AlertCircle, Loader2, Folder, FileJson, FileText, Database, Shield, History, RefreshCcw, ArrowRight, Smartphone } from "lucide-react";
+import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Folder, FileJson, Database, Shield, History, RefreshCcw, ArrowRight, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GOOGLE_SCOPES, syncDataToDrive, syncDataFromDrive } from "@/lib/google-drive";
 import { subscribeToDataChanges } from "@/lib/storage";
 
@@ -21,25 +21,32 @@ interface GoogleSyncProps {
 }
 
 export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
-    const [token, setToken] = useState<string | null>(null);
-    const [email, setEmail] = useState<string | null>(null);
+    const [token, setToken] = useState<string | null>(() => {
+        if (typeof window !== "undefined") return localStorage.getItem("google_access_token");
+        return null;
+    });
+    const [email, setEmail] = useState<string | null>(() => {
+        if (typeof window !== "undefined") return localStorage.getItem("google_email");
+        return null;
+    });
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "conflict">("idle");
     const [statusMessage, setStatusMessage] = useState("");
-    const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
-    const [syncLogs, setSyncLogs] = useState<SyncEvent[]>([]);
-
-    useEffect(() => {
-        // Load mock logs and last sync for now (will integrate with storage next)
-        const storedLogs = localStorage.getItem("ll_sync_logs");
-        if (storedLogs) {
-            setSyncLogs(JSON.parse(storedLogs));
+    const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => {
+        if (typeof window !== "undefined") return localStorage.getItem("ll_last_sync");
+        return null;
+    });
+    const [syncLogs, setSyncLogs] = useState<SyncEvent[]>(() => {
+        if (typeof window !== "undefined") {
+            try {
+                const storedLogs = localStorage.getItem("ll_sync_logs");
+                return storedLogs ? JSON.parse(storedLogs) : [];
+            } catch {
+                return [];
+            }
         }
-        setLastSyncTime(localStorage.getItem("ll_last_sync"));
-        const storedToken = localStorage.getItem("google_access_token");
-        if (storedToken) setToken(storedToken);
-        const storedEmail = localStorage.getItem("google_email");
-        if (storedEmail) setEmail(storedEmail);
-    }, []);
+        return [];
+    });
+
 
     const addLog = (event: Omit<SyncEvent, "id" | "timestamp">) => {
         const newLog: SyncEvent = {
