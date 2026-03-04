@@ -3,9 +3,10 @@ import { Inter, IBM_Plex_Mono } from "next/font/google";
 import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GoogleWrapper } from "@/components/google-wrapper";
-import { PwaInstallListener } from "@/components/pwa-install-listener";
+import { PwaInstallTracking } from "@/components/PwaInstallTracking";
 import { AppShell } from "./app-shell";
-import Script from "next/script";
+import { Suspense } from "react";
+import { AnalyticsPageView } from "@/components/AnalyticsPageView";
 
 const inter = Inter({
     variable: "--font-sans",
@@ -39,7 +40,8 @@ export default function AppRootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const gaId = "G-77MEDHHX58";
+    // TODO: remove debug_mode once events are confirmed in GA4 DebugView
+    const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
     return (
         <html lang="en" suppressHydrationWarning>
@@ -52,7 +54,7 @@ export default function AppRootLayout({
               function gtag(){dataLayer.push(arguments);}
               window.gtag = gtag;
               gtag('js', new Date());
-              gtag('config', '${gaId}', { debug_mode: true });
+              gtag('config', '${gaId}', { debug_mode: true, send_page_view: true });
             `,
                     }}
                 />
@@ -98,7 +100,12 @@ export default function AppRootLayout({
                 >
                     Skip to content
                 </a>
-                <PwaInstallListener />
+                {/* SPA page view tracking */}
+                <Suspense fallback={null}>
+                    <AnalyticsPageView />
+                </Suspense>
+                {/* PWA install tracking */}
+                <PwaInstallTracking />
                 <GoogleWrapper>
                     <ThemeProvider>
                         <AppShell>{children}</AppShell>
