@@ -96,20 +96,20 @@ export default function EditEmployeePage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[var(--bg-base)]">
-                <Loader2 className="h-8 w-8 animate-spin text-[var(--amber-500)]" />
+            <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+                <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
                 <div className="max-w-xl mx-auto flex items-center gap-3">
                     <SideDrawer />
                     <Link href="/employees">
-                        <button aria-label="Back" className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)]">
+                        <button aria-label="Back" className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-2)] text-[var(--text-muted)]">
                             <ArrowLeft className="h-4 w-4" />
                         </button>
                     </Link>
@@ -117,7 +117,7 @@ export default function EditEmployeePage() {
                         <p className="text-[10px] leading-none mb-0.5" style={{ color: "var(--text-muted)" }}>
                             <Link href="/employees" className="hover:underline">Employees</Link> › Edit
                         </p>
-                        <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
+                        <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text)" }}>
                             Edit Employee
                         </h1>
                     </div>
@@ -230,17 +230,17 @@ export default function EditEmployeePage() {
                             <button
                                 type="button"
                                 onClick={() => setFormData({ ...formData, ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
-                                className="w-full flex items-start gap-4 p-4 rounded-xl text-left transition-all hover:bg-[var(--bg-subtle)]"
+                                className="w-full flex items-start gap-4 p-4 rounded-xl text-left transition-all hover:bg-[var(--surface-2)]"
                                 style={{
-                                    border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--amber-500)" : "var(--border-default)"}`,
+                                    border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
                                     backgroundColor: formData.ordinarilyWorksSundays ? "rgba(196,122,28,0.04)" : "transparent",
                                 }}
                             >
                                 <div
                                     className="h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
                                     style={{
-                                        backgroundColor: formData.ordinarilyWorksSundays ? "var(--amber-500)" : "transparent",
-                                        border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--amber-500)" : "var(--border-strong)"}`,
+                                        backgroundColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "transparent",
+                                        border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
                                     }}
                                 >
                                     {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />}

@@ -44,7 +44,7 @@ export function ReviewSummary({ sections, totalCost, warnings = [], errors = [] 
             )}
 
             {warnings.length > 0 && (
-                <Alert variant="default" className="bg-amber-50 border-amber-500/30 text-amber-900 dark:bg-amber-900/10 dark:text-amber-400">
+                <Alert variant="default" className="bg-[var(--surface-2)] border-[var(--focus)]/30 text-[var(--text)] dark:bg-amber-900/10 dark:text-amber-400">
                     <Info className="h-4 w-4" />
                     <AlertDescription>
                         <ul className="list-disc pl-4 space-y-1">
@@ -76,33 +76,33 @@ export function ReviewSummary({ sections, totalCost, warnings = [], errors = [] 
             {/* Detailed Sections */}
             <div className="grid gap-6 sm:grid-cols-2">
                 {sections.map((section, idx) => (
-                    <Card key={idx} className="glass-panel overflow-hidden border-[var(--border-subtle)]">
-                        <div className="px-5 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/50 flex items-center justify-between">
-                            <h4 className="font-bold" style={{ color: "var(--text-primary)" }}>
+                    <Card key={idx} className="glass-panel overflow-hidden border-[var(--border)]">
+                        <div className="px-5 py-3 border-b border-[var(--border)] bg-[var(--surface-1)]/50 flex items-center justify-between">
+                            <h4 className="font-bold" style={{ color: "var(--text)" }}>
                                 {section.title}
                             </h4>
                             {section.editAction && (
                                 <button
                                     onClick={section.editAction}
-                                    className="text-xs font-semibold text-[var(--amber-500)] hover:underline outline-none focus-visible:ring-2 focus-visible:ring-[var(--amber-500)] rounded"
+                                    className="text-xs font-semibold text-[var(--primary)] hover:underline outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
                                 >
                                     Change
                                 </button>
                             )}
                         </div>
                         <CardContent className="p-0">
-                            <dl className="divide-y divide-[var(--border-subtle)]">
+                            <dl className="divide-y divide-[var(--border)]">
                                 {section.items.map((item, itemIdx) => (
                                     <div
                                         key={itemIdx}
-                                        className={`px-5 py-3 flex items-center justify-between gap-4 ${item.highlight ? 'bg-[var(--bg-subtle)]' : ''}`}
+                                        className={`px-5 py-3 flex items-center justify-between gap-4 ${item.highlight ? 'bg-[var(--surface-2)]' : ''}`}
                                     >
-                                        <dt className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
+                                        <dt className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
                                             {item.label}
                                         </dt>
                                         <dd
                                             className={`text-sm font-bold text-right ${item.isError ? 'text-rose-600 dark:text-rose-400' : ''}`}
-                                            style={{ color: item.isError ? undefined : "var(--text-primary)" }}
+                                            style={{ color: item.isError ? undefined : "var(--text)" }}
                                         >
                                             {typeof item.value === 'number' && item.label.toLowerCase().includes('rate') && item.value < NMW_RATE ? (
                                                 <span className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">

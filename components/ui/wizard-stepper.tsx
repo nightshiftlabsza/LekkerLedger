@@ -16,9 +16,9 @@ interface WizardStepperProps {
 }
 
 const STATUS_STYLES: Record<StepStatus, { bg: string; text: string; border: string }> = {
-    complete: { bg: "var(--color-success)", text: "#ffffff", border: "var(--color-success)" },
-    active: { bg: "var(--amber-500)", text: "#ffffff", border: "var(--amber-500)" },
-    upcoming: { bg: "var(--bg-subtle)", text: "var(--text-muted)", border: "var(--border-default)" },
+    complete: { bg: "var(--success)", text: "#ffffff", border: "var(--success)" },
+    active: { bg: "var(--primary)", text: "#ffffff", border: "var(--primary)" },
+    upcoming: { bg: "var(--surface-2)", text: "var(--text-muted)", border: "var(--border)" },
     error: { bg: "var(--red-500)", text: "#ffffff", border: "var(--red-500)" },
 };
 
@@ -47,9 +47,9 @@ export function WizardStepper({ steps, className = "" }: WizardStepperProps) {
                             <span
                                 className="text-[11px] font-bold uppercase tracking-wide whitespace-nowrap"
                                 style={{
-                                    color: step.status === "active" ? "var(--amber-500)"
+                                    color: step.status === "active" ? "var(--primary)"
                                         : step.status === "error" ? "var(--red-500)"
-                                            : step.status === "complete" ? "var(--color-success)"
+                                            : step.status === "complete" ? "var(--success)"
                                                 : "var(--text-muted)",
                                 }}
                             >
@@ -62,8 +62,8 @@ export function WizardStepper({ steps, className = "" }: WizardStepperProps) {
                                 className="flex-1 h-0.5 min-w-[16px] rounded-full transition-colors"
                                 style={{
                                     backgroundColor: step.status === "complete"
-                                        ? "var(--color-success)"
-                                        : "var(--border-default)",
+                                        ? "var(--success)"
+                                        : "var(--border)",
                                 }}
                             />
                         )}

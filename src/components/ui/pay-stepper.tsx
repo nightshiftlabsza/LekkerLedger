@@ -31,7 +31,7 @@ export function PayPeriodStepper({ steps, className = "" }: PayPeriodStepperProp
                                 <div
                                     className="absolute top-5 left-1/2 w-full h-0.5 transition-colors duration-500 origin-left"
                                     style={{
-                                        backgroundColor: step.isCompleted ? "var(--amber-500)" : "transparent",
+                                        backgroundColor: step.isCompleted ? "var(--primary)" : "transparent",
                                         transform: "scaleX(1)",
                                     }}
                                 />
@@ -41,8 +41,8 @@ export function PayPeriodStepper({ steps, className = "" }: PayPeriodStepperProp
                             <div
                                 className="h-10 w-10 rounded-full flex items-center justify-center border-2 transition-all duration-300"
                                 style={{
-                                    backgroundColor: step.isCompleted || step.isActive ? "var(--amber-500)" : "var(--bg-surface)",
-                                    borderColor: step.isCompleted || step.isActive ? "var(--amber-500)" : "var(--border-strong)",
+                                    backgroundColor: step.isCompleted || step.isActive ? "var(--primary)" : "var(--bg-surface)",
+                                    borderColor: step.isCompleted || step.isActive ? "var(--primary)" : "var(--border-strong)",
                                     color: step.isCompleted || step.isActive ? "white" : "var(--text-muted)",
                                     boxShadow: step.isActive ? "0 0 0 4px rgba(245, 158, 11, 0.2)" : "none",
                                 }}

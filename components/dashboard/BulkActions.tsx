@@ -62,7 +62,7 @@ export function BulkActions() {
         <Card className="glass-panel border-dashed border-2">
             <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
-                    <Database className="h-4 w-4 text-amber-600" />
+                    <Database className="h-4 w-4 text-[var(--focus)]" />
                     <CardTitle className="text-sm">Practitioner Data Tools</CardTitle>
                 </div>
                 <CardDescription className="text-xs">

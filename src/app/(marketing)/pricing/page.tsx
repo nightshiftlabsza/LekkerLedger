@@ -77,7 +77,7 @@ export default function PricingPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col selection:bg-amber-200" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="min-h-screen flex flex-col selection:bg-amber-200" style={{ backgroundColor: "var(--bg)" }}>
             {/* Marketing Header */}
             <PricingHeader />
 
@@ -95,10 +95,10 @@ export default function PricingPage() {
                 <div className="max-w-5xl mx-auto">
                     {/* Header */}
                     <div className="text-center space-y-4 max-w-2xl mx-auto mb-16">
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
+                        <h1 className="text-4xl md:text-5xl font-black tracking-tight" style={{ color: "var(--text)" }}>
                             Simple, transparent pricing.
                         </h1>
-                        <p className="text-base leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                        <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
                             Start free with one employee. Upgrade when your household needs more.
                         </p>
                     </div>
@@ -156,22 +156,22 @@ export default function PricingPage() {
                             buttonText={status === "pro" ? "Activated" : "Get Lifetime Access"}
                             onAction={() => handleAction("pro")}
                             isPro
-                            colorClass="text-[var(--color-brand)]"
+                            colorClass="text-[var(--primary)]"
                         />
                     </div>
 
                     {/* Free Trial Banner */}
                     {status === "free" && (
-                        <div className="mt-12 p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden group" style={{ backgroundColor: "var(--bg-muted)", border: "1px solid var(--border-strong)" }}>
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-amber-500/20 transition-all duration-700" />
+                        <div className="mt-12 p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden group" style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--primary)]/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-[var(--primary)]/20 transition-all duration-700" />
                             <div className="space-y-3 z-10 text-center md:text-left">
-                                <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>Experience Pro Risk-Free</h3>
-                                <p className="max-w-md text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                                <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--text)" }}>Experience Pro Risk-Free</h3>
+                                <p className="max-w-md text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     Unlock every feature, unlimited employees, and cloud backups for 30 days. No credit card required.
                                 </p>
                             </div>
                             <Button
-                                className="h-14 px-10 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-base shadow-xl z-10 whitespace-nowrap"
+                                className="h-14 px-10 rounded-2xl bg-[var(--primary)] hover:bg-brightness-95 text-black font-black text-base shadow-xl z-10 whitespace-nowrap"
                                 onClick={handleStartTrial}
                             >
                                 Start 30-Day Free Trial
@@ -180,24 +180,24 @@ export default function PricingPage() {
                     )}
 
                     {/* How Billing Works */}
-                    <div className="mt-16 p-8 rounded-2xl border border-[var(--border-subtle)]" style={{ backgroundColor: "var(--bg-surface)" }}>
-                        <h3 className="text-lg font-bold mb-4" style={{ color: "var(--text-primary)" }}>How billing works</h3>
+                    <div className="mt-16 p-8 rounded-2xl border border-[var(--border)]" style={{ backgroundColor: "var(--surface-1)" }}>
+                        <h3 className="text-lg font-bold mb-4" style={{ color: "var(--text)" }}>How billing works</h3>
                         <div className="grid md:grid-cols-3 gap-6">
                             <div>
-                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text-primary)" }}>Standard (Free)</p>
-                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Free forever. No payment needed. Supports 1 employee with 3 months of history.</p>
+                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Standard (Free)</p>
+                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Free forever. No payment needed. Supports 1 employee with 3 months of history.</p>
                             </div>
                             <div>
-                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text-primary)" }}>Annual Support (R99/yr)</p>
-                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Renews yearly. Cancel anytime — access continues until your current year ends, then stops renewing.</p>
+                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Annual Support (R99/yr)</p>
+                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Renews yearly. Cancel anytime — access continues until your current year ends, then stops renewing.</p>
                             </div>
                             <div>
-                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text-primary)" }}>Lekker Pro (R299 once-off)</p>
-                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Pay once, keep forever. No recurring fees. 14-day no-questions-asked refund guarantee.</p>
+                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Lekker Pro (R299 once-off)</p>
+                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Pay once, keep forever. No recurring fees. 14-day no-questions-asked refund guarantee.</p>
                             </div>
                         </div>
-                        <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
-                            <Link href="/legal/refunds" className="text-sm font-semibold text-amber-600 hover:text-amber-500">
+                        <div className="mt-4 pt-4 border-t border-[var(--border)]">
+                            <Link href="/legal/refunds" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]">
                                 View refund & cancellation policy →
                             </Link>
                         </div>
@@ -206,13 +206,13 @@ export default function PricingPage() {
             </main>
 
             {/* Footer */}
-            <footer className="border-t border-[var(--border-subtle)] py-8 px-4" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <footer className="border-t border-[var(--border)] py-8 px-4" style={{ backgroundColor: "var(--surface-2)" }}>
                 <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-xs" style={{ color: "var(--text-muted)" }}>© 2026 LekkerLedger. All rights reserved. Crafted by Nightshift Labs 🇿🇦</p>
                     <div className="flex items-center gap-4">
-                        <Link href="/legal/privacy" className="text-xs hover:text-amber-600" style={{ color: "var(--text-muted)" }}>Privacy</Link>
-                        <Link href="/legal/terms" className="text-xs hover:text-amber-600" style={{ color: "var(--text-muted)" }}>Terms</Link>
-                        <Link href="/legal/refunds" className="text-xs hover:text-amber-600" style={{ color: "var(--text-muted)" }}>Refunds</Link>
+                        <Link href="/legal/privacy" className="text-xs hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Privacy</Link>
+                        <Link href="/legal/terms" className="text-xs hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Terms</Link>
+                        <Link href="/legal/refunds" className="text-xs hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Refunds</Link>
                     </div>
                 </div>
             </footer>
@@ -223,10 +223,10 @@ export default function PricingPage() {
 /* ─── PRICING HEADER (marketing, no app nav) ─────────────────────────────── */
 function PricingHeader() {
     return (
-        <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border-subtle)]">
+        <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)]">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                 <div className="flex items-center gap-3">
-                    <Link href="/" className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-[var(--bg-subtle)] transition-colors" style={{ color: "var(--text-secondary)" }}>
+                    <Link href="/" className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-[var(--surface-2)] transition-colors" style={{ color: "var(--text-muted)" }}>
                         <ArrowLeft className="h-5 w-5" />
                     </Link>
                     <Link href="/" className="flex items-center gap-2">
@@ -235,11 +235,11 @@ function PricingHeader() {
                     </Link>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Link href="/dashboard" className="text-sm font-semibold transition-colors hover:text-amber-600" style={{ color: "var(--text-secondary)" }}>
+                    <Link href="/dashboard" className="text-sm font-semibold transition-colors hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>
                         Sign in
                     </Link>
                     <Link href="/dashboard" className="hidden sm:block">
-                        <Button className="h-10 px-5 rounded-xl bg-[var(--green-600,#16a34a)] hover:bg-[var(--green-700,#15803d)] text-white font-bold text-sm shadow-md">
+                        <Button className="h-10 px-5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-sm shadow-md">
                             Create your first payslip
                         </Button>
                     </Link>
@@ -267,32 +267,32 @@ function PricingCard({
     colorClass?: string;
 }) {
     return (
-        <Card className={`relative overflow-hidden transition-all duration-300 glass-panel hover-lift active-scale ${isPro ? 'border-2 border-amber-500 shadow-2xl scale-105 z-10' : ''}`}>
+        <Card className={`relative overflow-hidden transition-all duration-300 glass-panel hover-lift active-scale ${isPro ? 'border-2 border-[var(--primary)] shadow-2xl scale-105 z-10' : ''}`}>
             {badge && (
-                <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest shadow-sm z-10 ${isPro ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-600 border-l border-b border-amber-100'}`}>
+                <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest shadow-sm z-10 ${isPro ? 'bg-[var(--primary)] text-white' : 'bg-amber-50 text-[var(--primary)] border-l border-b border-amber-100'}`}>
                     {badge}
                 </div>
             )}
-            <CardContent className="p-8 space-y-8 h-full flex flex-col bg-[var(--bg-surface)]">
+            <CardContent className="p-8 space-y-8 h-full flex flex-col bg-[var(--surface-1)]">
                 <div className="space-y-4">
                     <div className="space-y-1">
-                        <h3 className={`text-xl font-black tracking-tight ${colorClass || 'text-[var(--text-secondary)]'}`}>{title}</h3>
+                        <h3 className={`text-xl font-black tracking-tight ${colorClass || 'text-[var(--text-muted)]'}`}>{title}</h3>
                         <div className="flex items-baseline gap-1">
                             <span className="text-5xl font-black tracking-tighter">{price}</span>
                             <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">{period}</span>
-                            {isPro && <span className="ml-2 text-[10px] font-black uppercase text-amber-600 animate-pulse">(Best Value)</span>}
+                            {isPro && <span className="ml-2 text-[10px] font-black uppercase text-[var(--primary)] animate-pulse">(Best Value)</span>}
                         </div>
                     </div>
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed h-8">
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed h-8">
                         {description}
                     </p>
                 </div>
 
-                <div className="flex-1 space-y-4 border-t border-[var(--border-subtle)] pt-6">
+                <div className="flex-1 space-y-4 border-t border-[var(--border)] pt-6">
                     <ul className="space-y-3">
                         {features.map((f, i) => (
-                            <li key={i} className={`flex items-start gap-3 text-xs leading-tight ${f.included ? 'text-[var(--text-primary)] font-medium' : 'text-[var(--text-muted)]'}`}>
-                                <div className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${f.included ? (isPro ? 'bg-amber-100 text-amber-600' : 'bg-zinc-100 text-zinc-500') : 'bg-zinc-50'}`}>
+                            <li key={i} className={`flex items-start gap-3 text-xs leading-tight ${f.included ? 'text-[var(--text)] font-medium' : 'text-[var(--text-muted)]'}`}>
+                                <div className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${f.included ? (isPro ? 'bg-amber-100 text-[var(--primary)]' : 'bg-zinc-100 text-zinc-500') : 'bg-zinc-50'}`}>
                                     {f.included ? <Check className="h-2.5 w-2.5 stroke-[4px]" /> : <div className="h-1 w-1 bg-zinc-300 rounded-full" />}
                                 </div>
                                 {f.text}
@@ -303,7 +303,7 @@ function PricingCard({
 
                 <Button
                     variant={isPro ? "default" : "outline"}
-                    className={`h-12 w-full rounded-2xl font-black text-sm tracking-tight shadow-sm transition-all ${isPro ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20' : ''}`}
+                    className={`h-12 w-full rounded-2xl font-black text-sm tracking-tight shadow-sm transition-all ${isPro ? 'bg-[var(--primary)] hover:bg-[var(--primary)] text-white shadow-[var(--primary)]/20' : ''}`}
                     disabled={buttonDisabled}
                     onClick={onAction}
                 >

@@ -45,19 +45,19 @@ export function HouseholdSwitcher({
         <div className={`relative ${className}`} ref={ref}>
             <button
                 onClick={() => setOpen(!open)}
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors hover:bg-[var(--bg-subtle)]"
-                style={{ color: "var(--text-secondary)" }}
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors hover:bg-[var(--surface-2)]"
+                style={{ color: "var(--text-muted)" }}
                 aria-expanded={open}
                 aria-haspopup="listbox"
             >
-                <Home className="h-3.5 w-3.5 text-[var(--amber-500)]" />
+                <Home className="h-3.5 w-3.5 text-[var(--primary)]" />
                 <span className="truncate max-w-[120px]">{active?.name ?? "Household"}</span>
                 <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
             </button>
 
             {open && (
                 <div
-                    className="absolute top-full left-0 mt-1 w-56 glass-panel rounded-xl shadow-[var(--shadow-lg)] border border-[var(--border-subtle)] py-1 z-50 animate-slide-down"
+                    className="absolute top-full left-0 mt-1 w-56 glass-panel rounded-xl shadow-[var(--shadow-lg)] border border-[var(--border)] py-1 z-50 animate-slide-down"
                     role="listbox"
                 >
                     {households.map(h => (
@@ -66,8 +66,8 @@ export function HouseholdSwitcher({
                             role="option"
                             aria-selected={h.id === activeId}
                             onClick={() => { onSwitch(h.id); setOpen(false); }}
-                            className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--bg-subtle)]"
-                            style={{ color: h.id === activeId ? "var(--amber-500)" : "var(--text-primary)" }}
+                            className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--surface-2)]"
+                            style={{ color: h.id === activeId ? "var(--primary)" : "var(--text)" }}
                         >
                             <div className="flex items-center gap-2 truncate">
                                 <Home className="h-3.5 w-3.5 shrink-0" />
@@ -78,11 +78,11 @@ export function HouseholdSwitcher({
                     ))}
 
                     {/* Add household */}
-                    <div className="border-t border-[var(--border-subtle)] mt-1 pt-1">
+                    <div className="border-t border-[var(--border)] mt-1 pt-1">
                         <button
                             onClick={() => { setOpen(false); onAddHousehold?.(); }}
-                            className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--bg-subtle)]"
-                            style={{ color: isPro ? "var(--amber-500)" : "var(--text-muted)" }}
+                            className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--surface-2)]"
+                            style={{ color: isPro ? "var(--primary)" : "var(--text-muted)" }}
                         >
                             {isPro ? (
                                 <Plus className="h-3.5 w-3.5" />

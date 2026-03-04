@@ -19,7 +19,7 @@ export function ActionBar({ primaryAction, secondaryAction, className = "" }: Ac
         <div
             className={`
                 fixed bottom-16 left-0 right-0 z-30 lg:static lg:bottom-auto
-                glass-panel border-t border-[var(--border-subtle)] lg:border-0 lg:bg-transparent lg:backdrop-blur-none
+                glass-panel border-t border-[var(--border)] lg:border-0 lg:bg-transparent lg:backdrop-blur-none
                 px-4 py-3 lg:px-0 lg:py-0
                 ${className}
             `}

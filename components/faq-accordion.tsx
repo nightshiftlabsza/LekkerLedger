@@ -53,14 +53,14 @@ export function FaqAccordion() {
                 return (
                     <div
                         key={i}
-                        className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden transition-shadow hover:shadow-[var(--shadow-sm)]"
+                        className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] overflow-hidden transition-shadow hover:shadow-[var(--shadow-sm)]"
                     >
                         <button
                             onClick={() => setOpenIndex(isOpen ? null : i)}
                             className="w-full flex items-center justify-between px-6 py-5 text-left cursor-pointer group"
                             aria-expanded={isOpen}
                         >
-                            <span className="text-sm sm:text-base font-bold pr-4" style={{ color: "var(--text-primary)" }}>
+                            <span className="text-sm sm:text-base font-bold pr-4" style={{ color: "var(--text)" }}>
                                 {item.question}
                             </span>
                             <ChevronDown
@@ -78,7 +78,7 @@ export function FaqAccordion() {
                                 opacity: isOpen ? 1 : 0,
                             }}
                         >
-                            <div className="px-6 pb-5 text-sm leading-relaxed font-medium" style={{ color: "var(--text-secondary)" }}>
+                            <div className="px-6 pb-5 text-sm leading-relaxed font-medium" style={{ color: "var(--text-muted)" }}>
                                 {item.answer}
                             </div>
                         </div>

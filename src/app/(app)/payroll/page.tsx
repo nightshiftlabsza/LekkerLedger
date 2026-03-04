@@ -121,7 +121,7 @@ function PayrollPageContent() {
                     !currentPeriod ? (
                         <Button
                             onClick={handleStartPeriod}
-                            className="gap-1.5 bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)]"
+                            className="gap-1.5 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]"
                         >
                             <Plus className="h-4 w-4" />
                             Start {format(new Date(), "MMMM yyyy")}
@@ -132,16 +132,16 @@ function PayrollPageContent() {
 
             {/* Current / active period */}
             {currentPeriod && (
-                <Card className="glass-panel border-2 border-[var(--amber-500)]/30 overflow-hidden">
+                <Card className="glass-panel border-2 border-[var(--primary)]/30 overflow-hidden">
                     <CardContent className="p-6 space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="h-12 w-12 rounded-2xl bg-[var(--amber-500)] flex items-center justify-center">
+                                <div className="h-12 w-12 rounded-2xl bg-[var(--primary)] flex items-center justify-center">
                                     <Calendar className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <h2 className="type-h3 text-[var(--text-primary)]">{currentPeriod.name}</h2>
-                                    <p className="type-label text-[var(--text-secondary)]">
+                                    <h2 className="type-h3 text-[var(--text)]">{currentPeriod.name}</h2>
+                                    <p className="type-label text-[var(--text-muted)]">
                                         {format(new Date(currentPeriod.startDate), "d MMM")} — {format(new Date(currentPeriod.endDate), "d MMM yyyy")}
                                     </p>
                                 </div>
@@ -153,13 +153,13 @@ function PayrollPageContent() {
                         <div className="space-y-2">
                             <div className="flex justify-between text-xs font-bold">
                                 <span className="text-[var(--text-muted)]">Employee progress</span>
-                                <span className="text-[var(--text-primary)]">
+                                <span className="text-[var(--text)]">
                                     {currentPeriod.entries.filter(e => e.status === "complete").length} of {currentPeriod.entries.length} complete
                                 </span>
                             </div>
-                            <div className="h-2 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
+                            <div className="h-2 rounded-full bg-[var(--surface-2)] overflow-hidden">
                                 <div
-                                    className="h-full rounded-full bg-[var(--amber-500)] transition-all duration-500"
+                                    className="h-full rounded-full bg-[var(--primary)] transition-all duration-500"
                                     style={{
                                         width: `${currentPeriod.entries.length > 0
                                             ? (currentPeriod.entries.filter(e => e.status === "complete").length / currentPeriod.entries.length) * 100
@@ -170,7 +170,7 @@ function PayrollPageContent() {
                         </div>
 
                         <Link href={`/payroll/${currentPeriod.id}`}>
-                            <Button className="w-full gap-2 bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)] h-12 rounded-xl">
+                            <Button className="w-full gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] h-12 rounded-xl">
                                 Continue {currentPeriod.name} Payroll
                                 <ArrowRight className="h-4 w-4" />
                             </Button>
@@ -214,8 +214,8 @@ function PayrollPageContent() {
 
                     {employeeIdFilter && (
                         <div className="px-1 mb-4">
-                            <p className="text-xs text-[var(--text-secondary)]">
-                                Showing history for <span className="font-bold text-[var(--amber-600)]">{filteredEmployee?.name || "Employee"}</span>
+                            <p className="text-xs text-[var(--text-muted)]">
+                                Showing history for <span className="font-bold text-[var(--primary-hover)]">{filteredEmployee?.name || "Employee"}</span>
                             </p>
                         </div>
                     )}
@@ -232,11 +232,11 @@ function PayrollPageContent() {
                                     <Card className="glass-panel border-none hover-lift">
                                         <CardContent className="p-4 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div className="h-9 w-9 rounded-lg bg-[var(--bg-subtle)] flex items-center justify-center">
+                                                <div className="h-9 w-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center">
                                                     <Lock className="h-4 w-4 text-[var(--text-muted)]" />
                                                 </div>
                                                 <div>
-                                                    <p className="type-body-bold text-[var(--text-primary)]">{period.name}</p>
+                                                    <p className="type-body-bold text-[var(--text)]">{period.name}</p>
                                                     <p className="type-overline text-[var(--text-muted)]">
                                                         Locked {period.lockedAt ? format(new Date(period.lockedAt), "d MMM yyyy") : ""}
                                                     </p>

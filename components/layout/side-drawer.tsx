@@ -78,7 +78,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                 <button
                     onClick={() => setOpen(true)}
                     aria-label="Open menu"
-                    className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-[var(--bg-subtle)] active-scale text-[var(--text-secondary)]"
+                    className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-[var(--surface-2)] active-scale text-[var(--text-muted)]"
                 >
                     <Menu className="h-5 w-5" />
                 </button>
@@ -99,7 +99,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                 aria-label="Navigation"
                 className={[
                     "fixed top-0 left-0 h-full w-72 lg:w-64 z-50 flex flex-col glass-panel",
-                    "lg:border-r lg:border-[var(--border-subtle)] lg:shadow-none",
+                    "lg:border-r lg:border-[var(--border)] lg:shadow-none",
                     "shadow-[var(--shadow-xl)] transition-transform duration-300",
                     open ? "translate-x-0 animate-drawer-in" : "-translate-x-full lg:translate-x-0",
                 ].join(" ")}
@@ -107,7 +107,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                 {/* ── Header ─────────────────────────────────────────────── */}
                 <div
                     className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0"
-                    style={{ borderBottom: "1px solid var(--border-subtle)" }}
+                    style={{ borderBottom: "1px solid var(--border)" }}
                 >
                     <div>
                         <Link href="/dashboard" onClick={() => setOpen(false)} className="block rounded-lg" tabIndex={open ? 0 : -1}>
@@ -136,7 +136,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                         onClick={() => setOpen(false)}
                         aria-label="Close menu"
                         tabIndex={open ? 0 : -1}
-                        className="lg:hidden h-8 w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--bg-subtle)] active-scale"
+                        className="lg:hidden h-8 w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--surface-2)] active-scale"
                         style={{ color: "var(--text-muted)" }}
                     >
                         <X className="h-4 w-4" />
@@ -166,7 +166,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                                             aria-hidden={!open}
                                             className="relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group"
                                             style={{
-                                                color: active ? "var(--amber-500)" : "var(--text-primary)",
+                                                color: active ? "var(--primary)" : "var(--text)",
                                                 backgroundColor: active ? "rgba(217,119,6,0.09)" : "transparent",
                                                 fontWeight: active ? 700 : 500,
                                             }}
@@ -175,7 +175,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                                             {active && (
                                                 <span
                                                     className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full"
-                                                    style={{ backgroundColor: "var(--amber-500)" }}
+                                                    style={{ backgroundColor: "var(--primary)" }}
                                                 />
                                             )}
 
@@ -183,8 +183,8 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                                             <span
                                                 className="h-7 w-7 flex items-center justify-center rounded-md transition-colors shrink-0"
                                                 style={{
-                                                    backgroundColor: active ? "var(--amber-500)" : "var(--bg-subtle)",
-                                                    color: active ? "#ffffff" : "var(--amber-500)",
+                                                    backgroundColor: active ? "var(--primary)" : "var(--surface-2)",
+                                                    color: active ? "#ffffff" : "var(--primary)",
                                                 }}
                                             >
                                                 <Icon className="h-3.5 w-3.5" />
@@ -200,15 +200,15 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                 </nav>
 
                 {/* ── Support ────────────────────────────────────────────── */}
-                <div className="px-4 py-4 shrink-0" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+                <div className="px-4 py-4 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
                     <a
                         href="mailto:nightshiftlabsza@gmail.com?subject=LekkerLedger%20Support%20Request"
                         tabIndex={open ? 0 : -1}
                         aria-hidden={!open}
-                        className="flex items-center gap-3 text-sm font-medium rounded-lg px-2 py-2 transition-colors hover:bg-[var(--bg-subtle)]"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="flex items-center gap-3 text-sm font-medium rounded-lg px-2 py-2 transition-colors hover:bg-[var(--surface-2)]"
+                        style={{ color: "var(--text-muted)" }}
                     >
-                        <div className="h-7 w-7 rounded-md bg-[var(--amber-500)] flex items-center justify-center text-white shrink-0">
+                        <div className="h-7 w-7 rounded-md bg-[var(--primary)] flex items-center justify-center text-white shrink-0">
                             <Mail className="h-3.5 w-3.5" />
                         </div>
                         Email Support
@@ -216,7 +216,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                 </div>
 
                 {/* ── Footer ─────────────────────────────────────────────── */}
-                <div className="px-5 pb-5 pt-3 shrink-0" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+                <div className="px-5 pb-5 pt-3 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
                     <p className="text-[10px] uppercase tracking-[0.15em] font-bold opacity-40" style={{ color: "var(--text-muted)" }}>
                         Crafted in South Africa 🇿🇦
                     </p>

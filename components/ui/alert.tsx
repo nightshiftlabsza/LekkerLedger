@@ -9,13 +9,13 @@ const VARIANTS = {
     default: {
         bg: "rgba(196,122,28,0.08)",
         border: "rgba(196,122,28,0.25)",
-        color: "var(--amber-500)",
+        color: "var(--primary)",
         Icon: Info,
     },
     success: {
         bg: "rgba(26,107,58,0.08)",
         border: "rgba(26,107,58,0.25)",
-        color: "var(--green-500)",
+        color: "var(--primary)",
         Icon: CheckCircle2,
     },
     warning: {
@@ -60,7 +60,7 @@ const AlertTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTM
         <h5
             ref={ref}
             className={["text-sm font-semibold leading-tight", className].filter(Boolean).join(" ")}
-            style={{ color: "var(--text-primary)", ...style }}
+            style={{ color: "var(--text)", ...style }}
             {...props}
         />
     )
@@ -72,7 +72,7 @@ const AlertDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttrib
         <p
             ref={ref}
             className={["text-sm leading-relaxed", className].filter(Boolean).join(" ")}
-            style={{ color: "var(--text-secondary)", ...style }}
+            style={{ color: "var(--text-muted)", ...style }}
             {...props}
         />
     )

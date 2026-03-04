@@ -133,7 +133,7 @@ export default function DashboardPage() {
                 title="Dashboard"
                 actions={
                     <Link href="/employees/new">
-                        <Button size="sm" className="gap-1.5 bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)]">
+                        <Button size="sm" className="gap-1.5 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]">
                             <Plus className="h-3.5 w-3.5" /> Add Employee
                         </Button>
                     </Link>
@@ -144,15 +144,15 @@ export default function DashboardPage() {
                 {/* Main Content Area */}
                 <div className="ultrawide-main col-span-8-desktop space-y-6">
                     {/* 1. Monthly Payroll Hero */}
-                    <Card className={`glass-panel overflow-hidden ${currentPeriod ? "border-2 border-[var(--amber-500)]/25" : "border-none"}`}>
+                    <Card className={`glass-panel overflow-hidden ${currentPeriod ? "border-2 border-[var(--primary)]/25" : "border-none"}`}>
                         <CardContent className="p-6 space-y-4">
                             <div className="flex items-center gap-3">
-                                <div className="h-12 w-12 rounded-2xl bg-[var(--amber-500)] flex items-center justify-center shrink-0">
+                                <div className="h-12 w-12 rounded-2xl bg-[var(--primary)] flex items-center justify-center shrink-0">
                                     <Banknote className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <h2 className="type-h3 text-[var(--text-primary)]">Monthly Payroll</h2>
-                                    <p className="type-label text-[var(--text-secondary)]">
+                                    <h2 className="type-h3 text-[var(--text)]">Monthly Payroll</h2>
+                                    <p className="type-label text-[var(--text-muted)]">
                                         {currentPeriod
                                             ? currentPeriod.status === "review"
                                                 ? `${currentPeriod.name} — Review & Generate`
@@ -165,16 +165,16 @@ export default function DashboardPage() {
                             </div>
 
                             {currentPeriod && (
-                                <div className="h-2 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
+                                <div className="h-2 rounded-full bg-[var(--surface-2)] overflow-hidden">
                                     <div
-                                        className="h-full rounded-full bg-[var(--amber-500)] transition-all duration-500"
+                                        className="h-full rounded-full bg-[var(--primary)] transition-all duration-500"
                                         style={{ width: `${totalEntries > 0 ? (completedEntries / totalEntries) * 100 : 0}%` }}
                                     />
                                 </div>
                             )}
 
                             <Link href={currentPeriod ? `/payroll/${currentPeriod.id}` : "/payroll"}>
-                                <Button className="w-full gap-2 bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)] h-11 rounded-xl">
+                                <Button className="w-full gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] h-11 rounded-xl">
                                     {currentPeriod ? `Continue ${currentPeriod.name}` : employeeCount > 0 ? `Start ${format(new Date(), "MMMM yyyy")}` : "Get Started"}
                                     <ArrowRight className="h-4 w-4" />
                                 </Button>
@@ -188,7 +188,7 @@ export default function DashboardPage() {
                         const isInfo = alert.severity === "info";
                         const bg = isUrgent ? "rgba(239,68,68,0.08)" : isInfo ? "rgba(59,130,246,0.08)" : "rgba(217,119,6,0.08)";
                         const border = isUrgent ? "rgba(239,68,68,0.30)" : isInfo ? "rgba(59,130,246,0.30)" : "rgba(217,119,6,0.25)";
-                        const color = isUrgent ? "var(--red-500)" : isInfo ? "var(--blue-500)" : "var(--amber-500)";
+                        const color = isUrgent ? "var(--danger)" : isInfo ? "var(--blue-500)" : "var(--primary)";
                         return (
                             <div key={alert.id}
                                 className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border text-sm font-semibold"
@@ -239,8 +239,8 @@ export default function DashboardPage() {
                     <StorageCard settings={settings} />
 
                     {/* Help & Compliance (small) */}
-                    <div className="flex items-center justify-between text-xs text-[var(--text-muted)] px-1 pt-2 border-t border-[var(--border-subtle)]">
-                        <Link href="/help/compliance" className="font-bold hover:text-[var(--amber-500)] flex items-center gap-1">
+                    <div className="flex items-center justify-between text-xs text-[var(--text-muted)] px-1 pt-2 border-t border-[var(--border)]">
+                        <Link href="/help/compliance" className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
                             <BookOpen className="h-3 w-3" /> Compliance Guide
                         </Link>
                         <span className="type-overline">Updated Mar 2026</span>
@@ -259,14 +259,14 @@ function EmployeeCard({ employeeCount, needsInfoCount }: { employeeCount: number
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="type-overline text-[var(--text-muted)]">Employees</h3>
                     <Link href="/employees">
-                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--amber-500)] gap-1">
+                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] gap-1">
                             View all <ChevronRight className="h-3 w-3" />
                         </Button>
                     </Link>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
-                    <span className="type-h3 text-[var(--text-primary)]">{employeeCount}</span>
-                    <span className="type-body text-[var(--text-secondary)]">active</span>
+                    <span className="type-h3 text-[var(--text)]">{employeeCount}</span>
+                    <span className="type-body text-[var(--text-muted)]">active</span>
                     {needsInfoCount > 0 && (
                         <StatusChip variant="needs-info" label={`${needsInfoCount} needs info`} />
                     )}
@@ -283,7 +283,7 @@ function DocumentCard({ recentDocs }: { recentDocs: DocumentMeta[] }) {
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="type-overline text-[var(--text-muted)]">Recent Documents</h3>
                     <Link href="/documents">
-                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--amber-500)] gap-1">
+                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] gap-1">
                             View all <ChevronRight className="h-3 w-3" />
                         </Button>
                     </Link>
@@ -293,9 +293,9 @@ function DocumentCard({ recentDocs }: { recentDocs: DocumentMeta[] }) {
                 ) : (
                     <div className="space-y-2">
                         {recentDocs.slice(0, 3).map(doc => (
-                            <div key={doc.id} className="flex items-center gap-3 py-2 border-b border-[var(--border-subtle)] last:border-0">
-                                <FileText className="h-4 w-4 text-[var(--amber-500)] shrink-0" />
-                                <span className="type-body text-[var(--text-primary)] truncate">{doc.fileName}</span>
+                            <div key={doc.id} className="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
+                                <FileText className="h-4 w-4 text-[var(--primary)] shrink-0" />
+                                <span className="type-body text-[var(--text)] truncate">{doc.fileName}</span>
                                 <span className="type-overline text-[var(--text-muted)] ml-auto shrink-0">
                                     {format(new Date(doc.createdAt), "d MMM")}
                                 </span>
@@ -315,7 +315,7 @@ function StorageCard({ settings }: { settings: EmployerSettings | null }) {
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="type-overline text-[var(--text-muted)]">Storage & Sync</h3>
                     <Link href="/settings?tab=sync">
-                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--amber-500)] gap-1">
+                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] gap-1">
                             Manage <ChevronRight className="h-3 w-3" />
                         </Button>
                     </Link>
@@ -323,7 +323,7 @@ function StorageCard({ settings }: { settings: EmployerSettings | null }) {
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-2 text-sm">
                         <span className="text-[var(--text-muted)] shrink-0">Storage:</span>
-                        <span className="font-bold text-[var(--text-primary)] truncate">This device</span>
+                        <span className="font-bold text-[var(--text)] truncate">This device</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                         <span className="text-[var(--text-muted)] shrink-0">Backup:</span>

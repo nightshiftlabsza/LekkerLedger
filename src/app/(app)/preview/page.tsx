@@ -23,13 +23,13 @@ import { track } from "@/lib/analytics";
 
 function Row({ label, value, bold, red }: { label: string; value: string; bold?: boolean; red?: boolean }) {
     return (
-        <div className="flex justify-between items-center py-2.5 text-sm" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-            <span style={{ color: bold ? "var(--text-primary)" : "var(--text-secondary)", fontWeight: bold ? 600 : 400 }}>
+        <div className="flex justify-between items-center py-2.5 text-sm" style={{ borderBottom: "1px solid var(--border)" }}>
+            <span style={{ color: bold ? "var(--text)" : "var(--text-muted)", fontWeight: bold ? 600 : 400 }}>
                 {label}
             </span>
             <span
                 className="tabular-nums font-medium"
-                style={{ color: red ? "var(--red-500)" : bold ? "var(--text-primary)" : "var(--text-secondary)", fontWeight: bold ? 700 : 500 }}
+                style={{ color: red ? "var(--danger)" : bold ? "var(--text)" : "var(--text-muted)", fontWeight: bold ? 700 : 500 }}
             >
                 {value}
             </span>
@@ -46,8 +46,8 @@ function ComplianceRow({ label, status, text }: { label: string; status: boolean
                 <AlertCircle className="h-4 w-4 text-rose-500 mt-0.5 flex-shrink-0" />
             )}
             <div>
-                <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{label}</p>
-                <p className="text-xs sm:text-[11px] leading-tight mt-0.5" style={{ color: status ? "var(--text-secondary)" : "var(--rose-500)" }}>{text}</p>
+                <p className="text-xs font-bold" style={{ color: "var(--text)" }}>{label}</p>
+                <p className="text-xs sm:text-[11px] leading-tight mt-0.5" style={{ color: status ? "var(--text-muted)" : "var(--rose-500)" }}>{text}</p>
             </div>
         </div>
     );
@@ -186,15 +186,15 @@ function PreviewContent() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
-                <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
+                <Loader2 className="h-8 w-8 animate-spin text-[var(--focus)]" />
             </div>
         );
     }
 
     if (error || !employee || !payslip) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "var(--bg-base)" }}>
+            <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "var(--bg)" }}>
                 <Alert variant="error" className="max-w-md">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{error || "Something went wrong."}</AlertDescription>
@@ -211,8 +211,8 @@ function PreviewContent() {
     void _periodStr; // computed for potential future display
 
     return (
-        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border-subtle)]">
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
+            <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border)]">
                 <div className="max-w-xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SideDrawer />
@@ -223,7 +223,7 @@ function PreviewContent() {
                             <p className="text-[10px] leading-none mb-0.5" style={{ color: "var(--text-muted)" }}>
                                 <Link href="/employees" className="hover:underline">Employees</Link> › {employee?.name ?? "Payslip"}
                             </p>
-                            <h1 className="font-bold text-base text-[var(--text-primary)]">Payslip Preview</h1>
+                            <h1 className="font-bold text-base text-[var(--text)]">Payslip Preview</h1>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -237,7 +237,7 @@ function PreviewContent() {
                             <MessageCircle className="h-4 w-4" />
                             <span className="hidden sm:inline">WhatsApp</span>
                         </Button>
-                        <Button onClick={handleDownload} disabled={!!downloading} size="sm" className="gap-2 bg-amber-500 text-white">
+                        <Button onClick={handleDownload} disabled={!!downloading} size="sm" className="gap-2 bg-[var(--primary)] text-white">
                             {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                             <span className="hidden sm:inline">Download</span>
                         </Button>
@@ -248,9 +248,9 @@ function PreviewContent() {
             <main className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full pb-24 lg:pb-8">
                 {/* Usage Warning */}
                 {usageStats.isLimited && (
-                    <Alert variant="warning" className="animate-slide-down border-amber-500 bg-amber-50">
-                        <AlertCircle className="h-4 w-4 text-amber-600" />
-                        <AlertDescription className="text-amber-900">
+                    <Alert variant="warning" className="animate-slide-down border-[var(--focus)] bg-[var(--surface-2)]">
+                        <AlertCircle className="h-4 w-4 text-[var(--focus)]" />
+                        <AlertDescription className="text-[var(--text)]">
                             <strong>Free limit reached (2/month).</strong> This copy will be watermarked.
                             <Link href="/pricing" className="ml-2 underline font-bold">Upgrade to Pro</Link> to remove limits.
                         </AlertDescription>
@@ -264,33 +264,33 @@ function PreviewContent() {
 
                 <Card className="border-none glass-panel shadow-sm">
                     <CardContent className="p-5 flex items-center gap-4">
-                        <div className="h-14 w-14 rounded-2xl bg-amber-500 flex items-center justify-center text-white font-black text-xl">
+                        <div className="h-14 w-14 rounded-2xl bg-[var(--primary)] flex items-center justify-center text-white font-black text-xl">
                             {employee.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="font-bold text-lg text-[var(--text-primary)] truncate">{employee.name}</p>
-                            <p className="text-sm text-[var(--text-secondary)]">{employee.role}</p>
+                            <p className="font-bold text-lg text-[var(--text)] truncate">{employee.name}</p>
+                            <p className="text-sm text-[var(--text-muted)]">{employee.role}</p>
                         </div>
                         <div className="text-right">
                             <p className="text-[10px] font-bold text-muted uppercase">Period</p>
-                            <p className="text-xs font-bold text-[var(--text-primary)]">{format(new Date(payslip.payPeriodEnd), "MMM yyyy")}</p>
+                            <p className="text-xs font-bold text-[var(--text)]">{format(new Date(payslip.payPeriodEnd), "MMM yyyy")}</p>
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card className="border-none glass-panel overflow-hidden">
                     <CardContent className="p-5">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-2">Earnings</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[var(--focus)] mb-2">Earnings</p>
                         <Row label={`Ordinary (${payslip.ordinaryHours}h)`} value={`R ${breakdown.ordinaryPay.toFixed(2)}`} />
                         {payslip.overtimeHours > 0 && <Row label={`Overtime (${payslip.overtimeHours}h)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}
                         <Row label="Gross Pay" value={`R ${breakdown.grossPay.toFixed(2)}`} bold />
 
-                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mt-5 mb-2">Deductions</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[var(--focus)] mt-5 mb-2">Deductions</p>
                         <Row label="UIF (1%)" value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`} red />
                         {breakdown.deductions.accommodation && <Row label="Accommodation" value={`-R ${breakdown.deductions.accommodation.toFixed(2)}`} red />}
                         <Row label="Total Deductions" value={`R ${breakdown.deductions.total.toFixed(2)}`} bold />
                     </CardContent>
-                    <div className="bg-amber-500 p-5 flex items-center justify-between text-white">
+                    <div className="bg-[var(--primary)] p-5 flex items-center justify-between text-white">
                         <div>
                             <p className="font-bold text-lg">Net Pay</p>
                             <p className="text-white/70 text-xs">Take home</p>
@@ -300,7 +300,7 @@ function PreviewContent() {
                 </Card>
 
                 <div className="flex flex-col gap-3">
-                    <Button onClick={handleDownload} disabled={!!downloading} className="w-full h-12 text-base font-bold bg-amber-500 text-white">
+                    <Button onClick={handleDownload} disabled={!!downloading} className="w-full h-12 text-base font-bold bg-[var(--primary)] text-white">
                         {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5 mr-2" />}
                         Download PDF
                     </Button>
@@ -338,7 +338,7 @@ function PreviewContent() {
                     <Card className="border-none glass-panel">
                         <div className="p-4 flex items-center justify-between cursor-pointer" onClick={() => setShowFullAudit(!showFullAudit)}>
                             <div className="flex items-center gap-2">
-                                <ShieldCheck className="h-5 w-5 text-amber-500" />
+                                <ShieldCheck className="h-5 w-5 text-[var(--focus)]" />
                                 <h3 className="font-bold text-sm uppercase">SD7 Compliance Audit</h3>
                             </div>
                             {showFullAudit ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -350,7 +350,7 @@ function PreviewContent() {
                                 text={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).wageStatusText}
                             />
                             {showFullAudit && (
-                                <div className="pt-3 border-t border-[var(--border-subtle)] space-y-4">
+                                <div className="pt-3 border-t border-[var(--border)] space-y-4">
                                     <ComplianceRow
                                         label="UIF Compliance"
                                         status={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).uifCompliant}
@@ -428,7 +428,7 @@ function PreviewContent() {
 
 export default function PreviewPage() {
     return (
-        <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-amber-500" /></div>}>
+        <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[var(--focus)]" /></div>}>
             <PreviewContent />
         </React.Suspense>
     );

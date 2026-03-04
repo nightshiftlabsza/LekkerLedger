@@ -51,22 +51,22 @@ export function DocumentList({
             {documents.map((doc) => (
                 <Card
                     key={doc.id}
-                    className="glass-panel group overflow-hidden border border-[var(--border-subtle)] hover:border-[var(--amber-500)]/50 transition-colors"
+                    className="glass-panel group overflow-hidden border border-[var(--border)] hover:border-[var(--primary)]/50 transition-colors"
                 >
                     <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex flex-row items-start sm:items-center gap-4">
-                            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0 border border-amber-500/20 text-amber-600">
+                            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0 border border-[var(--focus)]/20 text-[var(--focus)]">
                                 <FileText className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
                             </div>
 
                             <div className="flex flex-col gap-1">
-                                <h4 className="font-bold text-sm sm:text-base leading-tight group-hover:text-amber-600 transition-colors" style={{ color: "var(--text-primary)" }}>
+                                <h4 className="font-bold text-sm sm:text-base leading-tight group-hover:text-[var(--focus)] transition-colors" style={{ color: "var(--text)" }}>
                                     {doc.title}
                                 </h4>
 
-                                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs" style={{ color: "var(--text-secondary)" }}>
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
                                     {doc.employeeName && (
-                                        <span className="font-medium px-2 py-0.5 rounded-sm bg-[var(--bg-subtle)]">
+                                        <span className="font-medium px-2 py-0.5 rounded-sm bg-[var(--surface-2)]">
                                             {doc.employeeName}
                                         </span>
                                     )}
@@ -84,7 +84,7 @@ export function DocumentList({
                                 {/* Storage Badges */}
                                 <div className="flex gap-1.5 mt-1 sm:mt-0 sm:absolute sm:top-5 sm:left-[55%] lg:static lg:mt-1">
                                     {doc.storage.includes('local') && (
-                                        <Badge variant="outline" className="text-[9px] px-1.5 h-4 flex items-center gap-1 border-[var(--border-strong)] text-[var(--text-secondary)]">
+                                        <Badge variant="outline" className="text-[9px] px-1.5 h-4 flex items-center gap-1 border-[var(--border)] text-[var(--text-muted)]">
                                             <HardDrive className="h-2.5 w-2.5" /> Local
                                         </Badge>
                                     )}
@@ -97,7 +97,7 @@ export function DocumentList({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 self-end sm:self-auto border-t sm:border-t-0 pt-3 sm:pt-0 w-full sm:w-auto mt-2 sm:mt-0 border-[var(--border-subtle)]">
+                        <div className="flex items-center gap-2 self-end sm:self-auto border-t sm:border-t-0 pt-3 sm:pt-0 w-full sm:w-auto mt-2 sm:mt-0 border-[var(--border)]">
                             {onView && (
                                 <Button
                                     variant="ghost"
@@ -114,7 +114,7 @@ export function DocumentList({
                                     variant="outline"
                                     size="sm"
                                     onClick={() => onDownload(doc.id)}
-                                    className="h-8 flex-1 sm:flex-none border-[var(--border-strong)]"
+                                    className="h-8 flex-1 sm:flex-none border-[var(--border)]"
                                 >
                                     <Download className="h-4 w-4 sm:mr-2" />
                                     <span className="hidden sm:inline">Download</span>
@@ -125,7 +125,7 @@ export function DocumentList({
                                     variant="outline"
                                     size="sm"
                                     onClick={() => onShare(doc.id)}
-                                    className="h-8 flex-1 sm:flex-none border-[var(--border-strong)] bg-[var(--bg-subtle)]"
+                                    className="h-8 flex-1 sm:flex-none border-[var(--border)] bg-[var(--surface-2)]"
                                 >
                                     <ExternalLink className="h-4 w-4 sm:mr-2" />
                                     <span className="hidden sm:inline">Share</span>

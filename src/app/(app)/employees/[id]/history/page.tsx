@@ -86,8 +86,8 @@ export default function EmployeeHistoryPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border-subtle)]">
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
+            <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border)]">
                 <div className="max-w-xl mx-auto flex items-center gap-3">
                     <SideDrawer />
                     <Link href="/employees">
@@ -96,7 +96,7 @@ export default function EmployeeHistoryPage() {
                         </Button>
                     </Link>
                     <div className="min-w-0">
-                        <h1 className="font-bold text-base text-[var(--text-primary)] truncate">
+                        <h1 className="font-bold text-base text-[var(--text)] truncate">
                             {employee ? `${employee.name}'s History` : "Payslip History"}
                         </h1>
                         {employee && (
@@ -109,7 +109,7 @@ export default function EmployeeHistoryPage() {
             <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-3">
                 {loading ? (
                     <div className="flex items-center justify-center py-20">
-                        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+                        <Loader2 className="h-8 w-8 animate-spin text-[var(--focus)]" />
                     </div>
                 ) : error ? (
                     <Alert variant="error">
@@ -119,17 +119,17 @@ export default function EmployeeHistoryPage() {
                 ) : payslips.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 animate-fade-in">
                         <div className="h-16 w-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(196,122,28,0.10)" }}>
-                            <Clock className="h-8 w-8" style={{ color: "var(--amber-500)" }} />
+                            <Clock className="h-8 w-8" style={{ color: "var(--primary)" }} />
                         </div>
                         <div className="space-y-1">
-                            <p className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>No payslips yet</p>
-                            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                            <p className="font-bold text-lg" style={{ color: "var(--text)" }}>No payslips yet</p>
+                            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                                 Generate a payslip for {employee?.name} to start building a compliance archive.
                             </p>
                         </div>
                         {employee && (
                             <Link href={`/wizard?empId=${employee.id}`}>
-                                <Button className="gap-2 mt-2 bg-amber-500 text-white font-bold">
+                                <Button className="gap-2 mt-2 bg-[var(--primary)] text-white font-bold">
                                     <FileText className="h-4 w-4" /> Create Payslip
                                 </Button>
                             </Link>
@@ -151,16 +151,16 @@ export default function EmployeeHistoryPage() {
                                     <CardContent className="p-4">
                                         <div className="flex items-center justify-between gap-3">
                                             <div className="min-w-0">
-                                                <p className="font-bold text-sm text-[var(--text-primary)]">
+                                                <p className="font-bold text-sm text-[var(--text)]">
                                                     {format(new Date(ps.payPeriodStart), "d MMM")} – {format(new Date(ps.payPeriodEnd), "d MMM yyyy")}
                                                 </p>
                                                 <div className="flex items-center gap-3 mt-1">
                                                     <span className="text-xs text-[var(--text-muted)]">
-                                                        Gross: <span className="font-semibold text-[var(--text-secondary)]">R{breakdown.grossPay.toFixed(2)}</span>
+                                                        Gross: <span className="font-semibold text-[var(--text-muted)]">R{breakdown.grossPay.toFixed(2)}</span>
                                                     </span>
                                                     <span className="text-xs text-[var(--text-muted)]">·</span>
                                                     <span className="text-xs text-[var(--text-muted)]">
-                                                        Net: <span className="font-bold text-amber-500">R{breakdown.netPay.toFixed(2)}</span>
+                                                        Net: <span className="font-bold text-[var(--focus)]">R{breakdown.netPay.toFixed(2)}</span>
                                                     </span>
                                                 </div>
                                             </div>
@@ -169,7 +169,7 @@ export default function EmployeeHistoryPage() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="h-8 text-xs font-bold border-amber-500/30 text-amber-500"
+                                                        className="h-8 text-xs font-bold border-[var(--focus)]/30 text-[var(--focus)]"
                                                     >
                                                         View
                                                     </Button>
@@ -193,7 +193,7 @@ export default function EmployeeHistoryPage() {
                             );
                         })}
 
-                        <Alert className="mt-4 bg-[var(--bg-subtle)] border-[var(--border-subtle)]">
+                        <Alert className="mt-4 bg-[var(--surface-2)] border-[var(--border)]">
                             <AlertDescription className="text-[11px] text-center text-[var(--text-muted)]">
                                 BCEA requires employers to retain payslip records for 5 years. This archive is stored privately on your device.
                             </AlertDescription>

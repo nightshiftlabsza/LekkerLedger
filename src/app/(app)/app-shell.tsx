@@ -8,7 +8,7 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
 import { GlobalCreateDesktop, GlobalCreateFAB } from "@/components/global-create";
 import { CloudOff, X } from "lucide-react";
-import { useOnlineStatus } from "@/src/app/hooks/useOnlineStatus";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { ToastProvider } from "@/components/ui/toast";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -24,13 +24,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     return (
         <ToastProvider>
-            <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
+            <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
                 {/* Side drawer — always present on desktop, overlay on mobile */}
                 {/* Side drawer — always present on desktop, overlay on mobile */}
                 {/* Removed duplicate SideDrawer. Mobile one handles both. */}
 
                 {/* Top bar */}
-                <header className="sticky top-0 z-30 px-4 py-3 flex items-center justify-between glass-panel border-b border-[var(--border-subtle)]">
+                <header className="sticky top-0 z-30 px-4 py-3 flex items-center justify-between glass-panel border-b border-[var(--border)]">
                     <div className="content-container w-full flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             {/* Mobile menu trigger — opens side drawer */}
@@ -40,7 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={80} height={24} className="h-6 w-auto hidden dark:block" />
                             </Link>
                             {/* Desktop only Household switcher */}
-                            <div className="hidden lg:block ml-4 pl-4 border-l border-[var(--border-subtle)]">
+                            <div className="hidden lg:block ml-4 pl-4 border-l border-[var(--border)]">
                                 {/* Static mock data for now, would be dynamically fed by auth/storage */}
                                 <HouseholdSwitcher
                                     households={[{ id: "1", name: "My Home" }]}
@@ -53,7 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
                         <div className="flex items-center gap-3">
                             {!isOnline && (
-                                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-[10px] font-bold text-amber-600 border border-amber-500/20">
+                                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[10px] font-bold text-[var(--focus)] border border-[var(--focus)]/20">
                                     <CloudOff className="h-3 w-3" /> Offline
                                 </span>
                             )}
@@ -65,7 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {/* Offline banner */}
                 {showBanner && (
                     <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold"
-                        style={{ backgroundColor: "rgba(217,119,6,0.10)", borderBottom: "1px solid rgba(217,119,6,0.25)", color: "var(--amber-500)" }}>
+                        style={{ backgroundColor: "rgba(217,119,6,0.10)", borderBottom: "1px solid rgba(217,119,6,0.25)", color: "var(--primary)" }}>
                         <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
                             <div className="flex items-center gap-2">
                                 <CloudOff className="h-4 w-4 shrink-0" />
@@ -74,7 +74,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             <button
                                 onClick={() => setBannerDismissed(true)}
                                 aria-label="Dismiss offline notice"
-                                className="shrink-0 rounded p-0.5 hover:bg-amber-500/20 transition-colors"
+                                className="shrink-0 rounded p-0.5 hover:bg-[var(--primary)]/20 transition-colors"
                             >
                                 <X className="h-4 w-4" />
                             </button>

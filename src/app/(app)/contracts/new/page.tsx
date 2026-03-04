@@ -101,7 +101,7 @@ export default function NewContractPage() {
             <div className="flex items-center justify-between">
                 <button
                     onClick={() => currentStep === 0 ? router.back() : handleBack()}
-                    className="flex items-center gap-2 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                    className="flex items-center gap-2 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
                 >
                     <ArrowLeft className="h-4 w-4" /> {currentStep === 0 ? "Back to List" : "Previous Step"}
                 </button>
@@ -118,12 +118,12 @@ export default function NewContractPage() {
                     {currentStep === 0 && (
                         <div className="p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="flex items-center gap-4 mb-2">
-                                <div className="h-12 w-12 rounded-2xl bg-[var(--amber-500)] flex items-center justify-center">
+                                <div className="h-12 w-12 rounded-2xl bg-[var(--primary)] flex items-center justify-center">
                                     <FileText className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-black text-[var(--text-primary)]">Who is this for?</h3>
-                                    <p className="text-sm text-[var(--text-secondary)]">Select the employee for this contract.</p>
+                                    <h3 className="text-lg font-black text-[var(--text)]">Who is this for?</h3>
+                                    <p className="text-sm text-[var(--text-muted)]">Select the employee for this contract.</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 gap-3">
@@ -132,21 +132,21 @@ export default function NewContractPage() {
                                         key={emp.id}
                                         onClick={() => setFormData({ ...formData, employeeId: emp.id })}
                                         className={`flex items-center justify-between p-4 rounded-xl border transition-all ${formData.employeeId === emp.id
-                                            ? "border-[var(--amber-500)] bg-[var(--amber-500)]/5 ring-1 ring-[var(--amber-500)]"
-                                            : "border-[var(--border-default)] hover:border-[var(--amber-300)]"
+                                            ? "border-[var(--primary)] bg-[var(--primary)]/5 ring-1 ring-[var(--primary)]"
+                                            : "border-[var(--border)] hover:border-[var(--amber-300)]"
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-full bg-[var(--bg-subtle)] flex items-center justify-center font-black">
+                                            <div className="h-10 w-10 rounded-full bg-[var(--surface-2)] flex items-center justify-center font-black">
                                                 {emp.name.substring(0, 2).toUpperCase()}
                                             </div>
                                             <div className="text-left">
-                                                <p className="font-bold text-[var(--text-primary)]">{emp.name}</p>
+                                                <p className="font-bold text-[var(--text)]">{emp.name}</p>
                                                 <p className="text-xs text-[var(--text-muted)]">{emp.role}</p>
                                             </div>
                                         </div>
                                         {formData.employeeId === emp.id && (
-                                            <div className="h-5 w-5 rounded-full bg-[var(--amber-500)] flex items-center justify-center">
+                                            <div className="h-5 w-5 rounded-full bg-[var(--primary)] flex items-center justify-center">
                                                 <div className="h-2 w-2 rounded-full bg-white" />
                                             </div>
                                         )}
@@ -166,7 +166,7 @@ export default function NewContractPage() {
                                         type="text"
                                         value={formData.jobTitle}
                                         onChange={e => setFormData({ ...formData, jobTitle: e.target.value })}
-                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm outline-none focus:ring-2 focus:ring-[var(--amber-500)]/20 shadow-inner-sm"
+                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm outline-none focus:ring-2 focus:ring-[var(--focus)]/20 shadow-inner-sm"
                                         placeholder="e.g. Domestic Worker, Gardener"
                                     />
                                 </div>
@@ -176,7 +176,7 @@ export default function NewContractPage() {
                                         type="date"
                                         value={formData.effectiveDate}
                                         onChange={e => setFormData({ ...formData, effectiveDate: e.target.value })}
-                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm outline-none focus:ring-2 focus:ring-[var(--amber-500)]/20 shadow-inner-sm"
+                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm outline-none focus:ring-2 focus:ring-[var(--focus)]/20 shadow-inner-sm"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -184,7 +184,7 @@ export default function NewContractPage() {
                                     <textarea
                                         value={formData.duties?.join(", ")}
                                         onChange={e => setFormData({ ...formData, duties: e.target.value.split(",").map(d => d.trim()) })}
-                                        className="w-full p-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm outline-none focus:ring-2 focus:ring-[var(--amber-500)]/20 min-h-[100px] shadow-inner-sm"
+                                        className="w-full p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm outline-none focus:ring-2 focus:ring-[var(--focus)]/20 min-h-[100px] shadow-inner-sm"
                                         placeholder="Describe the main tasks..."
                                     />
                                 </div>
@@ -202,7 +202,7 @@ export default function NewContractPage() {
                                         type="number"
                                         value={formData.workingHours?.daysPerWeek}
                                         onChange={e => setFormData({ ...formData, workingHours: { ...formData.workingHours!, daysPerWeek: parseInt(e.target.value) } })}
-                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm"
+                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -211,7 +211,7 @@ export default function NewContractPage() {
                                         type="number"
                                         value={formData.workingHours?.breakDuration}
                                         onChange={e => setFormData({ ...formData, workingHours: { ...formData.workingHours!, breakDuration: parseInt(e.target.value) } })}
-                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm font-mono"
+                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-mono"
                                     />
                                 </div>
                             </div>
@@ -222,7 +222,7 @@ export default function NewContractPage() {
                                         type="time"
                                         value={formData.workingHours?.startAt}
                                         onChange={e => setFormData({ ...formData, workingHours: { ...formData.workingHours!, startAt: e.target.value } })}
-                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm font-mono"
+                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-mono"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -231,7 +231,7 @@ export default function NewContractPage() {
                                         type="time"
                                         value={formData.workingHours?.endAt}
                                         onChange={e => setFormData({ ...formData, workingHours: { ...formData.workingHours!, endAt: e.target.value } })}
-                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm font-mono"
+                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-mono"
                                     />
                                 </div>
                             </div>
@@ -248,7 +248,7 @@ export default function NewContractPage() {
                                         type="number"
                                         value={formData.salary?.amount}
                                         onChange={e => setFormData({ ...formData, salary: { ...formData.salary!, amount: parseFloat(e.target.value) } })}
-                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm font-mono font-bold"
+                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-mono font-bold"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -256,7 +256,7 @@ export default function NewContractPage() {
                                     <select
                                         value={formData.salary?.frequency}
                                         onChange={e => setFormData({ ...formData, salary: { ...formData.salary!, frequency: e.target.value as Contract["salary"]["frequency"] } })}
-                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm outline-none focus:ring-2 focus:ring-[var(--amber-500)]/20"
+                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm outline-none focus:ring-2 focus:ring-[var(--focus)]/20"
                                     >
                                         <option value="Monthly">Monthly</option>
                                         <option value="Fortnightly">Fortnightly</option>
@@ -271,7 +271,7 @@ export default function NewContractPage() {
                                         type="number"
                                         value={formData.leave?.annualDays}
                                         onChange={e => setFormData({ ...formData, leave: { ...formData.leave!, annualDays: parseInt(e.target.value) } })}
-                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm"
+                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -280,7 +280,7 @@ export default function NewContractPage() {
                                         type="number"
                                         value={formData.leave?.sickDays}
                                         onChange={e => setFormData({ ...formData, leave: { ...formData.leave!, sickDays: parseInt(e.target.value) } })}
-                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm"
+                                        className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm"
                                     />
                                 </div>
                             </div>
@@ -290,10 +290,10 @@ export default function NewContractPage() {
                     {/* Step 4: Review */}
                     {currentStep === 4 && (
                         <div className="p-8 space-y-6 animate-in zoom-in-95 duration-500">
-                            <div className="bg-[var(--bg-subtle)] p-6 rounded-2xl border border-[var(--border-subtle)] space-y-4">
-                                <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
-                                    <h4 className="font-black text-sm text-[var(--text-primary)] uppercase tracking-tight">Contract Preview</h4>
-                                    <span className="text-[10px] font-black px-2 py-1 bg-amber-100 text-amber-700 rounded-lg">BCEA v7</span>
+                            <div className="bg-[var(--surface-2)] p-6 rounded-2xl border border-[var(--border)] space-y-4">
+                                <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
+                                    <h4 className="font-black text-sm text-[var(--text)] uppercase tracking-tight">Contract Preview</h4>
+                                    <span className="text-[10px] font-black px-2 py-1 bg-[var(--surface-2)] text-[var(--focus)] rounded-lg">BCEA v7</span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-y-4">
                                     <div className="flex items-start gap-2">
@@ -325,14 +325,14 @@ export default function NewContractPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="pt-4 border-t border-[var(--border-subtle)]">
-                                    <p className="text-xs italic text-[var(--text-secondary)]">By saving, this contract will become the active reference for payroll calculations.</p>
+                                <div className="pt-4 border-t border-[var(--border)]">
+                                    <p className="text-xs italic text-[var(--text-muted)]">By saving, this contract will become the active reference for payroll calculations.</p>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    <div className="p-6 bg-[var(--bg-subtle)]/50 border-t border-[var(--border-subtle)] flex items-center justify-between">
+                    <div className="p-6 bg-[var(--surface-2)]/50 border-t border-[var(--border)] flex items-center justify-between">
                         <Button
                             variant="ghost"
                             disabled={currentStep === 0 || saving}
@@ -345,7 +345,7 @@ export default function NewContractPage() {
                             <Button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="bg-[var(--amber-500)] text-white hover:bg-[var(--amber-600)] px-10 h-12 font-black transition-all gap-2 shadow-lg shadow-amber-500/20"
+                                className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] px-10 h-12 font-black transition-all gap-2 shadow-lg shadow-amber-500/20"
                             >
                                 {saving ? <Loader2 className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />}
                                 {saving ? "Saving..." : "Create & Activate"}
@@ -353,7 +353,7 @@ export default function NewContractPage() {
                         ) : (
                             <Button
                                 onClick={handleNext}
-                                className="bg-[var(--amber-500)] text-white hover:bg-[var(--amber-600)] px-10 h-12 font-black transition-all gap-2 shadow-lg shadow-amber-500/20"
+                                className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] px-10 h-12 font-black transition-all gap-2 shadow-lg shadow-amber-500/20"
                             >
                                 Next Step <ArrowRight className="h-5 w-5" />
                             </Button>

@@ -177,18 +177,18 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
 
     if (proStatus === "free") {
         return (
-            <Card className="border-amber-200 bg-amber-50/50">
+            <Card className="border-[var(--border)] bg-[var(--surface-2)]/50">
                 <CardContent className="p-6 space-y-4">
                     <div className="flex items-start gap-4">
-                        <div className="p-3 bg-amber-500/10 rounded-xl text-amber-600">
+                        <div className="p-3 bg-[var(--primary)]/10 rounded-xl text-[var(--focus)]">
                             <Cloud className="h-6 w-6" />
                         </div>
                         <div className="space-y-1 flex-1">
                             <h3 className="font-bold text-lg text-amber-950">Unlock Cloud Sync</h3>
-                            <p className="text-sm text-amber-900/70 leading-relaxed">
+                            <p className="text-sm text-[var(--text)]/70 leading-relaxed">
                                 LekkerLedger is a local-only app. Upgrade to seamlessly back up your data to a private, encrypted folder in your own Google Drive.
                             </p>
-                            <Button className="mt-4 bg-amber-500 hover:bg-amber-600 text-white font-bold" onClick={() => window.location.href = '/pricing'}>
+                            <Button className="mt-4 bg-[var(--primary)] hover:brightness-95 text-white font-bold" onClick={() => window.location.href = '/pricing'}>
                                 View Pro Plans <ArrowRight className="h-4 w-4 ml-2" />
                             </Button>
                         </div>
@@ -201,17 +201,17 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
     return (
         <div className="space-y-6">
             {/* Status Header */}
-            <Card className={`border-2 transition-colors ${!token ? "border-[var(--border-subtle)]" : status === "error" ? "border-rose-500/50" : "border-emerald-500/50"}`}>
+            <Card className={`border-2 transition-colors ${!token ? "border-[var(--border)]" : status === "error" ? "border-rose-500/50" : "border-emerald-500/50"}`}>
                 <CardContent className="p-6 flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className={`p-4 rounded-full ${!token ? "bg-[var(--bg-subtle)] text-[var(--text-muted)]" : status === "error" ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-500"}`}>
+                        <div className={`p-4 rounded-full ${!token ? "bg-[var(--surface-2)] text-[var(--text-muted)]" : status === "error" ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-500"}`}>
                             {!token ? <Cloud className="h-8 w-8" /> : status === "loading" ? <Loader2 className="h-8 w-8 animate-spin" /> : status === "error" ? <AlertCircle className="h-8 w-8" /> : <CheckCircle2 className="h-8 w-8" />}
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-[var(--text-primary)]">
+                            <h2 className="text-xl font-black text-[var(--text)]">
                                 {!token ? "Drive Sync Paused" : status === "loading" ? "Syncing..." : status === "error" ? "Sync Issue Detected" : "Drive Sync Active"}
                             </h2>
-                            <p className="text-sm text-[var(--text-secondary)] mt-1">
+                            <p className="text-sm text-[var(--text-muted)] mt-1">
                                 {!token ? "Backup is OFF. Your data stays on this device." : `Connected as ${email}`}
                             </p>
                             {token && lastSyncTime && (
@@ -259,14 +259,14 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* What's stored where */}
                     <Card className="glass-panel border-none">
-                        <CardHeader className="pb-3 border-b border-[var(--border-subtle)]">
+                        <CardHeader className="pb-3 border-b border-[var(--border)]">
                             <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                <Database className="h-4 w-4 text-[var(--amber-500)]" /> Data Architecture
+                                <Database className="h-4 w-4 text-[var(--primary)]" /> Data Architecture
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-5 space-y-6">
                             <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-[var(--text-primary)] font-semibold text-sm">
+                                <div className="flex items-center gap-2 text-[var(--text)] font-semibold text-sm">
                                     <Cloud className="h-4 w-4 text-emerald-500" /> In Google Drive
                                 </div>
                                 <p className="text-xs text-[var(--text-muted)] pl-6">
@@ -274,17 +274,17 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-[var(--text-primary)] font-semibold text-sm">
+                                <div className="flex items-center gap-2 text-[var(--text)] font-semibold text-sm">
                                     <Smartphone className="h-4 w-4 text-blue-500" /> On this device
                                 </div>
                                 <p className="text-xs text-[var(--text-muted)] pl-6">
                                     Fast local cache of the database with immediate offline read/write access. Generates PDFs locally.
                                 </p>
                             </div>
-                            <div className="pt-4 border-t border-[var(--border-subtle)] space-y-2">
+                            <div className="pt-4 border-t border-[var(--border)] space-y-2">
                                 <div className="flex items-start gap-2 text-xs">
-                                    <Shield className="h-4 w-4 text-[var(--amber-500)] shrink-0 mt-0.5" />
-                                    <p className="text-[var(--text-secondary)]">
+                                    <Shield className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
+                                    <p className="text-[var(--text-muted)]">
                                         <strong>Least-Privilege Access:</strong> LekkerLedger can <span className="underline decoration-amber-500/50">only</span> read and write files it creates itself. We cannot see any of your other Google Drive files.
                                     </p>
                                 </div>
@@ -294,19 +294,19 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
 
                     {/* Folder Structure */}
                     <Card className="glass-panel border-none">
-                        <CardHeader className="pb-3 border-b border-[var(--border-subtle)]">
+                        <CardHeader className="pb-3 border-b border-[var(--border)]">
                             <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                <Folder className="h-4 w-4 text-[var(--amber-500)]" /> Drive Structure Preview
+                                <Folder className="h-4 w-4 text-[var(--primary)]" /> Drive Structure Preview
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-5">
-                            <div className="font-mono text-xs text-[var(--text-secondary)] space-y-2">
+                            <div className="font-mono text-xs text-[var(--text-muted)] space-y-2">
                                 <div className="flex items-center gap-2 opacity-60"><Folder className="h-4 w-4" fill="currentColor" /> Hidden AppData Root</div>
-                                <div className="flex items-center gap-2 ml-4"><Folder className="h-4 w-4 text-amber-500" fill="currentColor" /> LekkerLedger (App Folder)</div>
-                                <div className="flex items-center gap-2 ml-8 text-[var(--text-primary)]"><FileJson className="h-4 w-4 text-blue-400" /> <span className="font-semibold">lekkerledger_data.json</span></div>
+                                <div className="flex items-center gap-2 ml-4"><Folder className="h-4 w-4 text-[var(--focus)]" fill="currentColor" /> LekkerLedger (App Folder)</div>
+                                <div className="flex items-center gap-2 ml-8 text-[var(--text)]"><FileJson className="h-4 w-4 text-blue-400" /> <span className="font-semibold">lekkerledger_data.json</span></div>
                                 <div className="flex items-center gap-2 ml-12 opacity-50"><span className="text-[10px]">&uarr; Continuous background sync</span></div>
 
-                                <div className="flex items-center gap-2 ml-8 mt-4"><Folder className="h-4 w-4 text-amber-500" fill="currentColor" /> Households</div>
+                                <div className="flex items-center gap-2 ml-8 mt-4"><Folder className="h-4 w-4 text-[var(--focus)]" fill="currentColor" /> Households</div>
                                 <div className="flex items-center gap-2 ml-12"><Folder className="h-4 w-4" /> Default</div>
                                 <div className="flex items-center gap-2 ml-16"><Folder className="h-4 w-4 text-zinc-400" /> Payslips (PDFs - coming soon)</div>
                                 <div className="flex items-center gap-2 ml-16"><Folder className="h-4 w-4 text-zinc-400" /> Contracts (PDFs - coming soon)</div>
@@ -316,9 +316,9 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
 
                     {/* Sync Log */}
                     <Card className="glass-panel border-none md:col-span-2">
-                        <CardHeader className="pb-3 border-b border-[var(--border-subtle)] flex flex-row items-center justify-between">
+                        <CardHeader className="pb-3 border-b border-[var(--border)] flex flex-row items-center justify-between">
                             <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                <History className="h-4 w-4 text-[var(--amber-500)]" /> Recent Sync Events
+                                <History className="h-4 w-4 text-[var(--primary)]" /> Recent Sync Events
                             </CardTitle>
                             <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-black">Last 20</span>
                         </CardHeader>
@@ -326,15 +326,15 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
                             {syncLogs.length === 0 ? (
                                 <div className="p-8 text-center text-sm text-[var(--text-muted)]">No sync events recorded yet.</div>
                             ) : (
-                                <ul className="divide-y divide-[var(--border-subtle)]">
+                                <ul className="divide-y divide-[var(--border)]">
                                     {syncLogs.map(log => (
-                                        <li key={log.id} className="p-4 flex items-center justify-between hover:bg-[var(--bg-subtle)] transition-colors">
+                                        <li key={log.id} className="p-4 flex items-center justify-between hover:bg-[var(--surface-2)] transition-colors">
                                             <div className="flex items-center gap-4">
                                                 <div className={`p-2 rounded-full ${log.success ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
                                                     {log.action === "backup" ? <Upload className="h-3 w-3" /> : <Download className="h-3 w-3" />}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-[var(--text-primary)]">
+                                                    <p className="text-sm font-medium text-[var(--text)]">
                                                         {log.action === "backup" ? "Cloud Backup" : "Cloud Restore"} {log.success ? "Successful" : "Failed"}
                                                     </p>
                                                     <p className="text-xs text-[var(--text-muted)] truncate max-w-[200px] sm:max-w-md">{log.details}</p>

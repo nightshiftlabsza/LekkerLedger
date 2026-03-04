@@ -27,7 +27,7 @@ export default function GlobalError({
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 bg-[var(--bg-base)]">
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 bg-[var(--bg)]">
             <div className="relative">
                 <div className="absolute inset-0 bg-red-500/20 blur-3xl rounded-full" />
                 <div className="relative h-20 w-20 rounded-3xl bg-red-500 flex items-center justify-center text-white shadow-2xl">
@@ -36,8 +36,8 @@ export default function GlobalError({
             </div>
 
             <div className="space-y-3 max-w-sm">
-                <h1 className="text-2xl font-black text-[var(--text-primary)]">Something went wrong</h1>
-                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                <h1 className="text-2xl font-black text-[var(--text)]">Something went wrong</h1>
+                <p className="text-sm text-[var(--text-muted)] leading-relaxed">
                     The application encountered an unexpected error. This is usually caused by a corrupted local cache or a network glitch.
                 </p>
             </div>
@@ -58,7 +58,7 @@ export default function GlobalError({
                 </Button>
             </div>
 
-            <div className="pt-12 border-t border-[var(--border-subtle)] w-full max-w-xs">
+            <div className="pt-12 border-t border-[var(--border)] w-full max-w-xs">
                 <p className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)] mb-4">Master Emergency Tool</p>
                 {!confirmReset ? (
                     <Button

@@ -55,16 +55,16 @@ export function HistoryTimeline({ events, maxItems = 10, className = "" }: Histo
                         {i < shown.length - 1 && (
                             <div
                                 className="absolute left-[13px] top-8 bottom-0 w-px"
-                                style={{ backgroundColor: "var(--border-subtle)" }}
+                                style={{ backgroundColor: "var(--border)" }}
                             />
                         )}
                         {/* Icon */}
-                        <div className="h-7 w-7 rounded-full bg-[var(--bg-subtle)] flex items-center justify-center shrink-0 z-10">
+                        <div className="h-7 w-7 rounded-full bg-[var(--surface-2)] flex items-center justify-center shrink-0 z-10">
                             <Icon className="h-3.5 w-3.5 text-[var(--text-muted)]" />
                         </div>
                         {/* Content */}
                         <div className="flex-1 pb-4 min-w-0">
-                            <p className="type-body-bold text-[var(--text-primary)] truncate">{event.details}</p>
+                            <p className="type-body-bold text-[var(--text)] truncate">{event.details}</p>
                             <p className="type-overline text-[var(--text-muted)] mt-0.5">
                                 {format(ts, "d MMM yyyy, HH:mm")}
                             </p>

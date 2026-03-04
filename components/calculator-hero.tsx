@@ -33,8 +33,8 @@ export function CalculatorHero({ onStart }: { onStart: (e: React.MouseEvent<HTML
     return (
         <Card className="glass-panel shadow-[var(--shadow-2xl)] border-none">
             <CardContent className="p-6 sm:p-8 space-y-7">
-                <h2 className="text-lg font-extrabold flex items-center gap-2 mb-2" style={{ color: "var(--text-primary)" }}>
-                    <Calculator className="h-6 w-6" style={{ color: "var(--amber-500)" }} />
+                <h2 className="text-lg font-extrabold flex items-center gap-2 mb-2" style={{ color: "var(--text)" }}>
+                    <Calculator className="h-6 w-6" style={{ color: "var(--primary)" }} />
                     National Minimum Wage &amp; UIF Calculator
                 </h2>
 
@@ -77,16 +77,16 @@ export function CalculatorHero({ onStart }: { onStart: (e: React.MouseEvent<HTML
                 )}
 
                 {preview && (
-                    <div className="rounded-2xl overflow-hidden mt-2 border border-[var(--border-subtle)]">
-                        <div className="flex justify-between items-center px-5 py-4 text-xs font-bold uppercase tracking-wider" style={{ borderBottom: "1px solid var(--border-subtle)", color: "var(--text-muted)" }}>
+                    <div className="rounded-2xl overflow-hidden mt-2 border border-[var(--border)]">
+                        <div className="flex justify-between items-center px-5 py-4 text-xs font-bold uppercase tracking-wider" style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}>
                             <span>Gross ({hoursNum}h × R{preview.effectiveRate.toFixed(2)})</span>
-                            <span className="tabular-nums text-sm font-black" style={{ color: "var(--text-primary)" }}>R {preview.gross.toFixed(2)}</span>
+                            <span className="tabular-nums text-sm font-black" style={{ color: "var(--text)" }}>R {preview.gross.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between items-center px-5 py-3.5 text-xs font-bold uppercase tracking-wider" style={{ borderBottom: "1px solid var(--border-subtle)", color: "var(--text-muted)" }}>
-                            <span>UIF (1%) {!preview.uifActive && <span className="text-[10px] lowercase" style={{ color: "var(--amber-500)" }}>· ≤24hrs</span>}</span>
+                        <div className="flex justify-between items-center px-5 py-3.5 text-xs font-bold uppercase tracking-wider" style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}>
+                            <span>UIF (1%) {!preview.uifActive && <span className="text-[10px] lowercase" style={{ color: "var(--primary)" }}>· ≤24hrs</span>}</span>
                             <span className="tabular-nums text-sm font-black" style={{ color: "var(--red-500)" }}>{preview.uifActive ? `-R ${preview.uif.toFixed(2)}` : "R 0.00"}</span>
                         </div>
-                        <div className="flex justify-between items-center px-6 py-6 shadow-inner" style={{ background: "var(--amber-500)" }}>
+                        <div className="flex justify-between items-center px-6 py-6 shadow-inner" style={{ background: "var(--primary)" }}>
                             <span className="font-black text-white/90 uppercase tracking-widest text-[10px]">Net Pay (est.)</span>
                             <span className="font-black text-white text-3xl tabular-nums">R {preview.net.toFixed(2)}</span>
                         </div>

@@ -46,7 +46,7 @@ export default function ContractsPage() {
                 actions={
                     employees.length > 0 && (
                         <Link href="/contracts/new">
-                            <Button className="gap-2 bg-[var(--amber-500)] text-white hover:bg-[var(--amber-600)] font-bold">
+                            <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
                                 <Plus className="h-4 w-4" /> New Contract
                             </Button>
                         </Link>
@@ -75,14 +75,14 @@ export default function ContractsPage() {
                                     <div className="h-8 w-8 rounded-full bg-[var(--amber-100)] flex items-center justify-center text-[10px] font-black text-[var(--amber-700)]">
                                         {empName(c.employeeId).substring(0, 2).toUpperCase()}
                                     </div>
-                                    <span className="type-body-bold text-[var(--text-primary)]">{empName(c.employeeId)}</span>
+                                    <span className="type-body-bold text-[var(--text)]">{empName(c.employeeId)}</span>
                                 </div>
                             )
                         },
                         {
                             key: "role",
                             label: "Job Title",
-                            render: (c) => <span className="type-body text-[var(--text-secondary)]">{c.jobTitle}</span>
+                            render: (c) => <span className="type-body text-[var(--text-muted)]">{c.jobTitle}</span>
                         },
                         {
                             key: "version",
@@ -101,7 +101,7 @@ export default function ContractsPage() {
                             align: "right",
                             render: (c) => (
                                 <Link href={`/contracts/${c.id}`}>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[var(--text-muted)] hover:text-[var(--amber-600)]">
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[var(--text-muted)] hover:text-[var(--primary-hover)]">
                                         <ChevronRight className="h-4 w-4" />
                                     </Button>
                                 </Link>
@@ -118,7 +118,7 @@ export default function ContractsPage() {
                             <FileBadge className="h-4 w-4 text-emerald-600" />
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-[var(--text-primary)]">BCEA Compliant</p>
+                            <p className="text-xs font-bold text-[var(--text)]">BCEA Compliant</p>
                             <p className="text-[10px] text-[var(--text-muted)]">Templates follow Sectoral Determination 7 guidelines.</p>
                         </div>
                     </CardContent>
@@ -129,18 +129,18 @@ export default function ContractsPage() {
                             <Clock className="h-4 w-4 text-blue-600" />
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-[var(--text-primary)]">Version Control</p>
+                            <p className="text-xs font-bold text-[var(--text)]">Version Control</p>
                             <p className="text-[10px] text-[var(--text-muted)]">Keep track of changes and signed agreements over time.</p>
                         </div>
                     </CardContent>
                 </Card>
                 <Card className="glass-panel border-none">
                     <CardContent className="p-4 flex items-start gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                            <Palmtree className="h-4 w-4 text-amber-600" />
+                        <div className="h-8 w-8 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                            <Palmtree className="h-4 w-4 text-[var(--focus)]" />
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-[var(--text-primary)]">Auto-sync Leave</p>
+                            <p className="text-xs font-bold text-[var(--text)]">Auto-sync Leave</p>
                             <p className="text-[10px] text-[var(--text-muted)]">Contracts define entitlements that feed into payroll.</p>
                         </div>
                     </CardContent>

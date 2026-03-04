@@ -59,12 +59,12 @@ export function FiltersBar({
                         value={searchValue}
                         onChange={e => onSearchChange(e.target.value)}
                         placeholder={searchPlaceholder}
-                        className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--amber-500)]"
+                        className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                     />
                     {searchValue && (
                         <button
                             onClick={() => onSearchChange("")}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)]"
                         >
                             <X className="h-3.5 w-3.5" />
                         </button>
@@ -76,21 +76,21 @@ export function FiltersBar({
                     <div className="relative" ref={sortRef}>
                         <button
                             onClick={() => setSortOpen(!sortOpen)}
-                            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+                            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-xs font-bold text-[var(--text-muted)] hover:bg-[var(--surface-2)] transition-colors"
                         >
                             <SlidersHorizontal className="h-3.5 w-3.5" />
                             Sort
                             <ChevronDown className={`h-3 w-3 transition-transform ${sortOpen ? "rotate-180" : ""}`} />
                         </button>
                         {sortOpen && (
-                            <div className="absolute right-0 top-full mt-1 w-40 glass-panel rounded-xl shadow-[var(--shadow-lg)] border border-[var(--border-subtle)] py-1 z-40">
+                            <div className="absolute right-0 top-full mt-1 w-40 glass-panel rounded-xl shadow-[var(--shadow-lg)] border border-[var(--border)] py-1 z-40">
                                 {sortOptions.map(opt => (
                                     <button
                                         key={opt.key}
                                         onClick={() => { onSortChange?.(opt.key); setSortOpen(false); }}
-                                        className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors hover:bg-[var(--bg-subtle)] ${activeSort === opt.key
-                                                ? "text-[var(--amber-500)] font-bold"
-                                                : "text-[var(--text-primary)]"
+                                        className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors hover:bg-[var(--surface-2)] ${activeSort === opt.key
+                                                ? "text-[var(--primary)] font-bold"
+                                                : "text-[var(--text)]"
                                             }`}
                                     >
                                         {opt.label}
@@ -110,8 +110,8 @@ export function FiltersBar({
                             key={chip.key}
                             onClick={() => onFilterToggle?.(chip.key)}
                             className={`shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wide border transition-colors ${chip.active
-                                    ? "bg-[var(--amber-500)] text-white border-[var(--amber-500)]"
-                                    : "bg-transparent text-[var(--text-muted)] border-[var(--border-default)] hover:border-[var(--amber-500)] hover:text-[var(--amber-500)]"
+                                    ? "bg-[var(--primary)] text-white border-[var(--primary)]"
+                                    : "bg-transparent text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
                                 }`}
                         >
                             {chip.label}

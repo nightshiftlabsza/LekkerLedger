@@ -88,21 +88,21 @@ export default function AddEmployeePage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
                 <div className="max-w-xl mx-auto flex items-center gap-3">
                     <SideDrawer />
                     <Link href="/employees">
                         <button
                             aria-label="Back"
-                            className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--bg-subtle)]"
-                            style={{ color: "var(--text-secondary)" }}
+                            className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-2)]"
+                            style={{ color: "var(--text-muted)" }}
                         >
                             <ArrowLeft className="h-4 w-4" />
                         </button>
                     </Link>
-                    <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
+                    <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text)" }}>
                         Add Employee
                     </h1>
                 </div>
@@ -113,9 +113,9 @@ export default function AddEmployeePage() {
                     <CardContent className="p-6">
                         <form onSubmit={handleSave} className="space-y-5">
                             {!canAdd && (
-                                <Alert variant="default" className="border-amber-500 bg-amber-50">
-                                    <Sparkles className="h-4 w-4 text-amber-600" />
-                                    <AlertDescription className="text-amber-800">
+                                <Alert variant="default" className="border-[var(--focus)] bg-[var(--surface-2)]">
+                                    <Sparkles className="h-4 w-4 text-[var(--focus)]" />
+                                    <AlertDescription className="text-[var(--text-muted)]">
                                         <strong>{tierLimitReached === "annual" ? "Annual" : "Standard"} Tier Limit:</strong>
                                         {tierLimitReached === "annual" ? " You can only have up to 3 active workers." : " You can only have 1 active worker."}
                                         <Link href="/pricing" className="ml-1 underline font-bold">Upgrade to Pro</Link> for unlimited seats.
@@ -229,7 +229,7 @@ export default function AddEmployeePage() {
                                     </Alert>
                                 )}
                                 {!belowNMW && hourlyRateNum >= NMW_RATE && (
-                                    <p className="text-xs" style={{ color: "var(--green-500)" }}>
+                                    <p className="text-xs" style={{ color: "var(--primary)" }}>
                                         ✓ Above National Minimum Wage
                                     </p>
                                 )}
@@ -255,11 +255,11 @@ export default function AddEmployeePage() {
                                 <Label htmlFor="frequency">Pay Frequency</Label>
                                 <select
                                     id="frequency"
-                                    className="w-full h-10 px-3 rounded-md text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--amber-500)] focus:ring-offset-0 disabled:opacity-50"
+                                    className="w-full h-10 px-3 rounded-md text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-0 disabled:opacity-50"
                                     style={{
-                                        border: "1px solid var(--border-default)",
-                                        backgroundColor: "var(--bg-surface)",
-                                        color: "var(--text-primary)",
+                                        border: "1px solid var(--border)",
+                                        backgroundColor: "var(--surface-1)",
+                                        color: "var(--text)",
                                     }}
                                     value={formData.frequency}
                                     onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
@@ -274,26 +274,26 @@ export default function AddEmployeePage() {
                             <button
                                 type="button"
                                 onClick={() => setFormData({ ...formData, ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
-                                className="w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all duration-200 active:scale-[0.99] hover:bg-[var(--bg-subtle)]"
+                                className="w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all duration-200 active:scale-[0.99] hover:bg-[var(--surface-2)]"
                                 style={{
-                                    border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--amber-500)" : "var(--border-default)"}`,
+                                    border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
                                     backgroundColor: formData.ordinarilyWorksSundays ? "rgba(196,122,28,0.04)" : "transparent",
                                 }}
                             >
                                 <div
                                     className="h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200"
                                     style={{
-                                        backgroundColor: formData.ordinarilyWorksSundays ? "var(--amber-500)" : "transparent",
-                                        border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--amber-500)" : "var(--border-strong)"}`,
+                                        backgroundColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "transparent",
+                                        border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
                                     }}
                                 >
                                     {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />}
                                 </div>
                                 <div>
-                                    <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
+                                    <p className="font-semibold text-sm" style={{ color: "var(--text)" }}>
                                         Ordinarily works on Sundays
                                     </p>
-                                    <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                                    <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
                                         If toggled ON, Sunday pay is calculated at 1.5× normal rate. If OFF, Sunday pay is calculated at 2.0× normal rate (BCEA Sect. 16).
                                     </p>
                                 </div>
@@ -301,7 +301,7 @@ export default function AddEmployeePage() {
 
                             <div
                                 className="pt-4"
-                                style={{ borderTop: "1px solid var(--border-subtle)" }}
+                                style={{ borderTop: "1px solid var(--border)" }}
                             >
                                 <Button
                                     type="submit"

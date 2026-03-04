@@ -248,14 +248,14 @@ export default function PayPeriodWorkspacePage() {
             {/* Review mode */}
             {showReview && !isLocked && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                    <Card className="glass-panel border-2 border-[var(--amber-500)]/30 overflow-hidden">
+                    <Card className="glass-panel border-2 border-[var(--primary)]/30 overflow-hidden">
                         <CardContent className="p-6">
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="h-10 w-10 rounded-full bg-[var(--amber-500)]/10 flex items-center justify-center text-[var(--amber-500)]">
+                                <div className="h-10 w-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
                                     <FileText className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <h3 className="type-h3 text-[var(--text-primary)]">Review & Confirm</h3>
+                                    <h3 className="type-h3 text-[var(--text)]">Review & Confirm</h3>
                                     <p className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider">Step 2: Check for compliance errors</p>
                                 </div>
                             </div>
@@ -322,7 +322,7 @@ export default function PayPeriodWorkspacePage() {
                         primaryAction={
                             <Button
                                 onClick={() => setShowLockConfirm(true)}
-                                className="flex-1 sm:flex-none gap-2 bg-[var(--color-success)] text-white font-bold hover:opacity-90 shadow-lg shadow-emerald-500/20"
+                                className="flex-1 sm:flex-none gap-2 bg-[var(--success)] text-white font-bold hover:opacity-90 shadow-lg shadow-emerald-500/20"
                             >
                                 <Lock className="h-4 w-4" /> Lock & Generate
                             </Button>
@@ -337,10 +337,10 @@ export default function PayPeriodWorkspacePage() {
                     <Card className="glass-panel max-w-md w-full mx-4">
                         <CardContent className="p-6 space-y-4">
                             <div className="flex items-center gap-3">
-                                <AlertTriangle className="h-6 w-6 text-[var(--amber-500)]" />
-                                <h3 className="type-h3 text-[var(--text-primary)]">Lock this pay period?</h3>
+                                <AlertTriangle className="h-6 w-6 text-[var(--primary)]" />
+                                <h3 className="type-h3 text-[var(--text)]">Lock this pay period?</h3>
                             </div>
-                            <p className="type-body text-[var(--text-secondary)]">
+                            <p className="type-body text-[var(--text-muted)]">
                                 Locking prevents all edits. If you need to make changes later, create an adjustment in a new pay period.
                             </p>
                             <div className="flex gap-3">
@@ -350,7 +350,7 @@ export default function PayPeriodWorkspacePage() {
                                 <Button
                                     onClick={handleLock}
                                     disabled={saving}
-                                    className="flex-1 gap-2 bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)]"
+                                    className="flex-1 gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]"
                                 >
                                     <Lock className="h-4 w-4" /> {saving ? "Locking..." : "Confirm & Lock"}
                                 </Button>
@@ -380,11 +380,11 @@ export default function PayPeriodWorkspacePage() {
                                         {/* Employee header */}
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div className="h-10 w-10 rounded-xl bg-[var(--amber-500)] flex items-center justify-center text-white font-black text-lg">
+                                                <div className="h-10 w-10 rounded-xl bg-[var(--primary)] flex items-center justify-center text-white font-black text-lg">
                                                     {emp.name.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <p className="type-body-bold text-[var(--text-primary)]">{emp.name}</p>
+                                                    <p className="type-body-bold text-[var(--text)]">{emp.name}</p>
                                                     <p className="type-overline text-[var(--text-muted)]">R{emp.hourlyRate.toFixed(2)}/hr</p>
                                                 </div>
                                             </div>
@@ -401,7 +401,7 @@ export default function PayPeriodWorkspacePage() {
                                                         min={0}
                                                         value={entry.ordinaryHours || ""}
                                                         onChange={e => updateEntry(entry.employeeId, "ordinaryHours", parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-sm font-mono"
+                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                         placeholder="0"
                                                     />
                                                 </div>
@@ -412,7 +412,7 @@ export default function PayPeriodWorkspacePage() {
                                                         min={0}
                                                         value={entry.overtimeHours || ""}
                                                         onChange={e => updateEntry(entry.employeeId, "overtimeHours", parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-sm font-mono"
+                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                         placeholder="0"
                                                     />
                                                 </div>
@@ -423,7 +423,7 @@ export default function PayPeriodWorkspacePage() {
                                                         min={0}
                                                         value={entry.sundayHours || ""}
                                                         onChange={e => updateEntry(entry.employeeId, "sundayHours", parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-sm font-mono"
+                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                         placeholder="0"
                                                     />
                                                 </div>
@@ -434,7 +434,7 @@ export default function PayPeriodWorkspacePage() {
                                                         min={0}
                                                         value={entry.otherDeductions || ""}
                                                         onChange={e => updateEntry(entry.employeeId, "otherDeductions", parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-sm font-mono"
+                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                         placeholder="R0"
                                                     />
                                                 </div>
@@ -446,23 +446,23 @@ export default function PayPeriodWorkspacePage() {
                                             <div className="grid grid-cols-5 gap-3 text-center">
                                                 <div>
                                                     <p className="type-overline text-[var(--text-muted)]">Ordinary</p>
-                                                    <p className="font-mono text-sm text-[var(--text-primary)]">{entry.ordinaryHours}h</p>
+                                                    <p className="font-mono text-sm text-[var(--text)]">{entry.ordinaryHours}h</p>
                                                 </div>
                                                 <div>
                                                     <p className="type-overline text-[var(--text-muted)]">Overtime</p>
-                                                    <p className="font-mono text-sm text-[var(--text-primary)]">{entry.overtimeHours}h</p>
+                                                    <p className="font-mono text-sm text-[var(--text)]">{entry.overtimeHours}h</p>
                                                 </div>
                                                 <div>
                                                     <p className="type-overline text-[var(--text-muted)]">Sunday</p>
-                                                    <p className="font-mono text-sm text-[var(--text-primary)]">{entry.sundayHours}h</p>
+                                                    <p className="font-mono text-sm text-[var(--text)]">{entry.sundayHours}h</p>
                                                 </div>
                                                 <div>
                                                     <p className="type-overline text-[var(--text-muted)]">Deductions</p>
-                                                    <p className="font-mono text-sm text-[var(--text-primary)]">R{entry.otherDeductions}</p>
+                                                    <p className="font-mono text-sm text-[var(--text)]">R{entry.otherDeductions}</p>
                                                 </div>
                                                 <div>
                                                     <p className="type-overline text-[var(--text-muted)]">Leave</p>
-                                                    <p className="font-mono text-sm text-[var(--text-primary)]">{entry.leaveDays}d</p>
+                                                    <p className="font-mono text-sm text-[var(--text)]">{entry.leaveDays}d</p>
                                                 </div>
                                             </div>
                                         )}
@@ -494,7 +494,7 @@ export default function PayPeriodWorkspacePage() {
                         <Button
                             onClick={handleMoveToReview}
                             disabled={!allComplete}
-                            className="flex-1 sm:flex-none gap-2 bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)] disabled:opacity-50"
+                            className="flex-1 sm:flex-none gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] disabled:opacity-50"
                         >
                             <FileText className="h-4 w-4" /> Review & Generate
                         </Button>
@@ -504,12 +504,12 @@ export default function PayPeriodWorkspacePage() {
 
             {/* Locked — Download payslips */}
             {isLocked && (
-                <Card className="glass-panel border-2 border-[var(--amber-500)]/30">
+                <Card className="glass-panel border-2 border-[var(--primary)]/30">
                     <CardContent className="p-6 space-y-4">
                         <div className="flex items-center gap-3">
-                            <Lock className="h-5 w-5 text-[var(--amber-500)]" />
+                            <Lock className="h-5 w-5 text-[var(--primary)]" />
                             <div>
-                                <h3 className="type-body-bold text-[var(--text-primary)]">Period Locked</h3>
+                                <h3 className="type-body-bold text-[var(--text)]">Period Locked</h3>
                                 <p className="type-overline text-[var(--text-muted)]">
                                     Locked on {period.lockedAt ? format(new Date(period.lockedAt), "dd MMM yyyy, HH:mm") : "N/A"}
                                 </p>
@@ -518,7 +518,7 @@ export default function PayPeriodWorkspacePage() {
                         <Button
                             onClick={handleDownloadPayslips}
                             disabled={generatingPdfs}
-                            className="w-full gap-2 h-12 text-base bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)]"
+                            className="w-full gap-2 h-12 text-base bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]"
                         >
                             {generatingPdfs
                                 ? <><Loader2 className="h-5 w-5 animate-spin" /> Generating PDFs…</>

@@ -85,7 +85,7 @@ function SettingsContent() {
             <PageHeader title="Settings" />
 
             {/* Tab switcher */}
-            <div className="flex bg-[var(--bg-surface)] p-1.5 rounded-[2.5rem] mb-2 border border-[var(--border-subtle)] overflow-x-auto scrollbar-hide">
+            <div className="flex bg-[var(--surface-1)] p-1.5 rounded-[2.5rem] mb-2 border border-[var(--border)] overflow-x-auto scrollbar-hide">
                 <div className="flex min-w-max gap-1">
                     <TabButton id="general" icon={Building2} label="General" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="storage" icon={Database} label="Storage & Sync" activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -110,7 +110,7 @@ function SettingsContent() {
                                     <Label htmlFor="eaddr">Physical Address</Label>
                                     <Input id="eaddr" value={settings.employerAddress} onChange={(e) => setSettings({ ...settings, employerAddress: e.target.value })} placeholder="e.g. 123 Main St, Cape Town" />
                                 </div>
-                                <Button onClick={() => handleSave({})} disabled={saving} className="w-full bg-amber-500 text-white font-bold h-11">
+                                <Button onClick={() => handleSave({})} disabled={saving} className="w-full bg-[var(--primary)] text-white font-bold h-11">
                                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                                     {saved ? "Settings Saved" : "Save Changes"}
                                 </Button>
@@ -120,9 +120,9 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">App Experience</h2>
                             <Card className="glass-panel border-none p-1 overflow-hidden">
-                                <div className="flex items-center justify-between p-4 hover:bg-[var(--bg-subtle)] transition-colors border-b border-[var(--border-subtle)]">
+                                <div className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] transition-colors border-b border-[var(--border)]">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500"><Smartphone className="h-4 w-4" /></div>
+                                        <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--focus)]"><Smartphone className="h-4 w-4" /></div>
                                         <div>
                                             <p className="text-sm font-bold">Simple Mode</p>
                                             <p className="text-[10px] text-[var(--text-muted)]">Hide advanced compliance tools and graphs</p>
@@ -130,7 +130,7 @@ function SettingsContent() {
                                     </div>
                                     <Switch checked={settings.simpleMode} onCheckedChange={(val) => handleSave({ simpleMode: val })} />
                                 </div>
-                                <div className="flex items-center justify-between p-4 hover:bg-[var(--bg-subtle)] transition-colors">
+                                <div className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] transition-colors">
                                     <div className="flex items-center gap-3">
                                         <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500"><Zap className="h-4 w-4" /></div>
                                         <div>
@@ -140,7 +140,7 @@ function SettingsContent() {
                                     </div>
                                     <Switch checked={settings.advancedMode} onCheckedChange={(val) => handleSave({ advancedMode: val })} />
                                 </div>
-                                <div className="flex items-center justify-between p-4 hover:bg-[var(--bg-subtle)] transition-colors border-b border-[var(--border-subtle)]">
+                                <div className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] transition-colors border-b border-[var(--border)]">
                                     <div className="flex items-center gap-3">
                                         <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500"><AlignVerticalJustifyCenter className="h-4 w-4" /></div>
                                         <div>
@@ -151,18 +151,18 @@ function SettingsContent() {
                                     <Switch checked={settings.density === "compact"} onCheckedChange={(val) => handleSave({ density: val ? "compact" : "comfortable" })} />
                                 </div>
 
-                                <div className="flex flex-col p-4 border-t border-[var(--border-subtle)]">
+                                <div className="flex flex-col p-4 border-t border-[var(--border)]">
                                     <p className="text-sm font-bold mb-1">Appearance</p>
                                     <p className="text-[10px] text-[var(--text-muted)] mb-3">Choose how LekkerLedger looks</p>
-                                    <div className="flex items-center rounded-lg p-1 gap-1" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                                    <div className="flex items-center rounded-lg p-1 gap-1" style={{ backgroundColor: "var(--surface-2)" }}>
                                         {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
                                             const active = theme === value;
                                             return (
                                                 <button key={value} onClick={() => setTheme(value)} aria-pressed={active}
                                                     className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-md text-xs font-medium transition-all duration-200 active-scale"
                                                     style={{
-                                                        backgroundColor: active ? "var(--bg-surface)" : "transparent",
-                                                        color: active ? "var(--amber-500)" : "var(--text-muted)",
+                                                        backgroundColor: active ? "var(--surface-1)" : "transparent",
+                                                        color: active ? "var(--primary)" : "var(--text-muted)",
                                                         boxShadow: active ? "var(--shadow-sm)" : "none",
                                                     }}>
                                                     <Icon className="h-4 w-4" />{label}
@@ -187,7 +187,7 @@ function SettingsContent() {
                                         <Input id="sdlref" value={settings.sdlNumber} onChange={(e) => setSettings({ ...settings, sdlNumber: e.target.value })} placeholder="L123456..." />
                                     </div>
                                 </div>
-                                <Button onClick={() => handleSave({})} disabled={saving} className="w-full bg-amber-500 text-white font-bold h-11">
+                                <Button onClick={() => handleSave({})} disabled={saving} className="w-full bg-[var(--primary)] text-white font-bold h-11">
                                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                                     Save Registrations
                                 </Button>
@@ -198,8 +198,8 @@ function SettingsContent() {
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Privacy & Security</h2>
                             <Card className="glass-panel border-none p-4 flex items-center justify-between">
                                 <div className="space-y-1 pr-4">
-                                    <p className="text-sm font-bold text-[var(--text-primary)]">PII Obfuscation</p>
-                                    <p className="text-xs text-[var(--text-secondary)]">Mask sensitive text when saving to local storage.</p>
+                                    <p className="text-sm font-bold text-[var(--text)]">PII Obfuscation</p>
+                                    <p className="text-xs text-[var(--text-muted)]">Mask sensitive text when saving to local storage.</p>
                                 </div>
                                 <Switch checked={settings.piiObfuscationEnabled} onCheckedChange={(val) => handleSave({ piiObfuscationEnabled: val })} />
                             </Card>
@@ -213,7 +213,7 @@ function SettingsContent() {
 
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Storage Rules</h2>
-                            <Card className="glass-panel border-none p-5 space-y-4 text-sm text-[var(--text-secondary)] leading-relaxed">
+                            <Card className="glass-panel border-none p-5 space-y-4 text-sm text-[var(--text-muted)] leading-relaxed">
                                 <p><strong>1. Local First:</strong> All records are stored securely on this device&apos;s browser until you manually wipe them or your browser clears its cache.</p>
                                 <p><strong>2. Google Drive Sync:</strong> If connected, your data is continuously backed up to a dedicated, hidden folder in your Google Drive.</p>
                                 <p><strong>3. PDF Generation:</strong> PDF payslips and contracts never leave your device unless you share or export them explicitly.</p>
@@ -245,33 +245,33 @@ function SettingsContent() {
                     <div className="space-y-6">
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Subscription Plan</h2>
-                            <Card className="border-[var(--amber-500)] border-2 glass-panel p-6 shadow-[0_0_15px_rgba(245,158,11,0.1)] relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--amber-500)]/5 rounded-full blur-2xl pointer-events-none" />
+                            <Card className="border-[var(--primary)] border-2 glass-panel p-6 shadow-[0_0_15px_rgba(245,158,11,0.1)] relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 rounded-full blur-2xl pointer-events-none" />
 
                                 <div className="flex justify-between items-start mb-6">
                                     <div>
-                                        <h3 className="type-h3 text-[var(--text-primary)]">LekkerLedger Core</h3>
-                                        <p className="type-label text-[var(--amber-600)] uppercase font-black tracking-widest mt-1">Free Tier Active</p>
+                                        <h3 className="type-h3 text-[var(--text)]">LekkerLedger Core</h3>
+                                        <p className="type-label text-[var(--primary-hover)] uppercase font-black tracking-widest mt-1">Free Tier Active</p>
                                     </div>
                                     <div className="text-right">
-                                        <span className="text-2xl font-black text-[var(--text-primary)]">R0</span>
+                                        <span className="text-2xl font-black text-[var(--text)]">R0</span>
                                         <span className="text-[var(--text-muted)] text-sm font-bold">/m</span>
                                     </div>
                                 </div>
 
                                 <ul className="space-y-3 mb-6">
-                                    <li className="flex items-center gap-2 text-sm text-[var(--text-secondary)] font-medium">
-                                        <CheckCircle2 className="h-4 w-4 text-[var(--amber-500)]" /> Up to 5 Employees
+                                    <li className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
+                                        <CheckCircle2 className="h-4 w-4 text-[var(--primary)]" /> Up to 5 Employees
                                     </li>
-                                    <li className="flex items-center gap-2 text-sm text-[var(--text-secondary)] font-medium">
-                                        <CheckCircle2 className="h-4 w-4 text-[var(--amber-500)]" /> Unlimited local payslips
+                                    <li className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
+                                        <CheckCircle2 className="h-4 w-4 text-[var(--primary)]" /> Unlimited local payslips
                                     </li>
-                                    <li className="flex items-center gap-2 text-sm text-[var(--text-secondary)] font-medium">
-                                        <CheckCircle2 className="h-4 w-4 text-[var(--amber-500)]" /> Google Drive Sync
+                                    <li className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
+                                        <CheckCircle2 className="h-4 w-4 text-[var(--primary)]" /> Google Drive Sync
                                     </li>
                                 </ul>
 
-                                <Button className="w-full bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] cursor-not-allowed">
+                                <Button className="w-full bg-[var(--surface-2)] text-[var(--text-muted)] hover:bg-[var(--surface-2)] cursor-not-allowed">
                                     Premium Features Coming Soon
                                 </Button>
                             </Card>
@@ -285,7 +285,7 @@ function SettingsContent() {
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Raw Data Backup & Restore</h2>
                             <Card className="glass-panel border-none p-5 space-y-4">
                                 <div className="flex flex-col sm:flex-row gap-3">
-                                    <Button variant="outline" className="flex-1 gap-2 text-xs h-12 font-black rounded-xl border-[var(--border-default)]"
+                                    <Button variant="outline" className="flex-1 gap-2 text-xs h-12 font-black rounded-xl border-[var(--border)]"
                                         onClick={async () => {
                                             try {
                                                 const json = await exportData();
@@ -297,10 +297,10 @@ function SettingsContent() {
                                                 URL.revokeObjectURL(url);
                                             } catch { alert("Export failed."); }
                                         }}>
-                                        <Download className="h-4 w-4 text-[var(--amber-500)]" /> Download Full JSON
+                                        <Download className="h-4 w-4 text-[var(--primary)]" /> Download Full JSON
                                     </Button>
                                     <label className="flex-1">
-                                        <div className="flex items-center justify-center gap-2 text-xs h-12 font-black border border-[var(--border-default)] rounded-xl px-4 cursor-pointer hover:bg-[var(--bg-subtle)] transition-all">
+                                        <div className="flex items-center justify-center gap-2 text-xs h-12 font-black border border-[var(--border)] rounded-xl px-4 cursor-pointer hover:bg-[var(--surface-2)] transition-all">
                                             <Upload className="h-4 w-4 text-[var(--blue-500)]" /> Restore JSON Array
                                         </div>
                                         <input type="file" className="sr-only" accept=".json"
@@ -330,14 +330,14 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Payroll Exports</h2>
                             <Link href="/ufiling" className="block">
-                                <Card className="glass-panel border-none p-5 flex items-center justify-between hover:bg-[var(--bg-subtle)] transition-colors group">
+                                <Card className="glass-panel border-none p-5 flex items-center justify-between hover:bg-[var(--surface-2)] transition-colors group">
                                     <div className="flex items-center gap-4">
                                         <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
                                             <FileText className="h-5 w-5" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-[var(--text-primary)]">uFiling CSV Declarations</p>
-                                            <p className="text-xs text-[var(--text-secondary)]">Generate Department of Labour submissions</p>
+                                            <p className="text-sm font-bold text-[var(--text)]">uFiling CSV Declarations</p>
+                                            <p className="text-xs text-[var(--text-muted)]">Generate Department of Labour submissions</p>
                                         </div>
                                     </div>
                                     <ChevronRight className="h-4 w-4 text-[var(--text-muted)] group-hover:translate-x-1 transition-transform" />
@@ -352,22 +352,22 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Help & Resources</h2>
                             <Card className="glass-panel border-none overflow-hidden">
-                                <Link href="/help/compliance" className="flex items-center justify-between p-4 hover:bg-[var(--bg-subtle)] border-b border-[var(--border-subtle)] transition-colors">
+                                <Link href="/help/compliance" className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] border-b border-[var(--border)] transition-colors">
                                     <div className="flex items-center gap-3">
                                         <BookOpen className="h-5 w-5 text-[var(--blue-500)]" />
                                         <div>
                                             <p className="text-sm font-bold">BCEA Compliance Guide</p>
-                                            <p className="text-[10px] text-[var(--text-secondary)]">Read the minimum wages and rules</p>
+                                            <p className="text-[10px] text-[var(--text-muted)]">Read the minimum wages and rules</p>
                                         </div>
                                     </div>
                                     <ChevronRight className="h-4 w-4 text-[var(--text-muted)]" />
                                 </Link>
-                                <a href="mailto:support@lekkerledger.co.za" className="flex items-center justify-between p-4 hover:bg-[var(--bg-subtle)] transition-colors">
+                                <a href="mailto:support@lekkerledger.co.za" className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] transition-colors">
                                     <div className="flex items-center gap-3">
-                                        <HelpCircle className="h-5 w-5 text-[var(--amber-500)]" />
+                                        <HelpCircle className="h-5 w-5 text-[var(--primary)]" />
                                         <div>
                                             <p className="text-sm font-bold">Contact Support</p>
-                                            <p className="text-[10px] text-[var(--text-secondary)]">Email the LekkerLedger team</p>
+                                            <p className="text-[10px] text-[var(--text-muted)]">Email the LekkerLedger team</p>
                                         </div>
                                     </div>
                                     <ArrowRight className="h-4 w-4 text-[var(--text-muted)]" />
@@ -406,7 +406,7 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
         <button onClick={() => setActiveTab(id)} aria-pressed={active}
             className="flex-1 flex flex-col items-center gap-1 py-2.5 px-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-200 min-w-max"
             style={{
-                backgroundColor: active ? "var(--amber-500)" : "transparent",
+                backgroundColor: active ? "var(--primary)" : "transparent",
                 color: active ? "#ffffff" : "var(--text-muted)",
                 boxShadow: active ? "var(--shadow-sm)" : "none",
             }}>
@@ -418,7 +418,7 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
 function Step({ number, text }: { number: string; text: string }) {
     return (
         <div className="flex items-start gap-3">
-            <span className="h-6 w-6 rounded-full bg-amber-500 text-white text-xs font-black flex items-center justify-center shrink-0">{number}</span>
+            <span className="h-6 w-6 rounded-full bg-[var(--primary)] text-white text-xs font-black flex items-center justify-center shrink-0">{number}</span>
             <p className="text-sm text-zinc-300">{text}</p>
         </div>
     );
@@ -426,9 +426,9 @@ function Step({ number, text }: { number: string; text: string }) {
 
 function QandA({ q, a }: { q: string; a: string }) {
     return (
-        <div className="space-y-1 border-b border-[var(--border-subtle)] pb-4 last:border-0 last:pb-0">
-            <p className="text-sm font-bold text-[var(--text-primary)]">{q}</p>
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{a}</p>
+        <div className="space-y-1 border-b border-[var(--border)] pb-4 last:border-0 last:pb-0">
+            <p className="text-sm font-bold text-[var(--text)]">{q}</p>
+            <p className="text-xs text-[var(--text-muted)] leading-relaxed">{a}</p>
         </div>
     );
 }

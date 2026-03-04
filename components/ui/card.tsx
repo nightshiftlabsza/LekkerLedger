@@ -4,8 +4,8 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     ({ className, style, ...props }, ref) => (
         <div
             ref={ref}
-            className={["rounded-2xl transition-all duration-200 bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-[var(--shadow-md)]", className].filter(Boolean).join(" ")}
-            style={style}
+            className={["rounded-[16px] transition-all duration-200 bg-[var(--surface-1)] border border-[var(--border)] shadow-sm", className].filter(Boolean).join(" ")}
+            style={{ boxShadow: "var(--shadow-1)", ...style }}
             {...props}
         />
     )
@@ -27,8 +27,8 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTML
     ({ className, style, ...props }, ref) => (
         <h3
             ref={ref}
-            className={["text-xl font-bold tracking-tight leading-snug", className].filter(Boolean).join(" ")}
-            style={{ color: "var(--text-primary)", ...style }}
+            className={["type-h4 tracking-tight leading-snug", className].filter(Boolean).join(" ")}
+            style={{ color: "var(--text)", ...style }}
             {...props}
         />
     )
@@ -39,8 +39,8 @@ const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttribu
     ({ className, style, ...props }, ref) => (
         <p
             ref={ref}
-            className={["text-sm leading-relaxed", className].filter(Boolean).join(" ")}
-            style={{ color: "var(--text-secondary)", ...style }}
+            className={["type-body leading-relaxed", className].filter(Boolean).join(" ")}
+            style={{ color: "var(--text-muted)", ...style }}
             {...props}
         />
     )
@@ -60,8 +60,8 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
             ref={ref}
             className={["flex items-center p-4 rounded-b-2xl", className].filter(Boolean).join(" ")}
             style={{
-                borderTop: "1px solid var(--border-subtle)",
-                backgroundColor: "var(--bg-subtle)",
+                borderTop: "1px solid var(--border)",
+                backgroundColor: "var(--surface-2)",
                 ...style,
             }}
             {...props}

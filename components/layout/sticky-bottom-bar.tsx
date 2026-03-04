@@ -17,7 +17,7 @@ export function StickyBottomBar({ children, className = "" }: StickyBottomBarPro
         <div
             className={`fixed bottom-0 left-0 right-0 z-20 lg:left-64 glass-panel ${className}`}
             style={{
-                borderTop: "1px solid var(--border-subtle)",
+                borderTop: "1px solid var(--border)",
                 paddingBottom: "env(safe-area-inset-bottom, 0px)",
             }}
         >

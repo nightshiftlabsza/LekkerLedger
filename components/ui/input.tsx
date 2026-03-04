@@ -13,12 +13,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     inputMode={type === "number" ? "decimal" : props.inputMode}
                     ref={ref}
                     className={[
-                        "w-full rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all duration-200 placeholder:font-normal",
-                        "bg-[var(--bg-surface)] text-[var(--text-primary)]",
+                        "w-full rounded-[8px] px-4 py-[10px] type-body outline-none transition-all duration-200 placeholder:font-normal",
+                        "bg-[var(--surface-1)] text-[var(--text)] placeholder-[var(--text-muted)]",
                         error
-                            ? "border-[1.5px] border-[var(--red-500)] focus:ring-[3px] focus:ring-[rgba(192,57,43,0.15)] focus:border-[var(--red-500)] shadow-[0_0_0_3px_rgba(192,57,43,0.12)]"
-                            : "border-[1.5px] border-[var(--border-default)] focus:border-[var(--amber-500)] focus:ring-[3px] focus:ring-[rgba(196,122,28,0.15)] focus-visible:ring-[var(--amber-500)]",
-                        "h-[48px]",
+                            ? "border border-[var(--danger)]"
+                            : "border border-[var(--border)]",
+                        "min-h-[44px]",
                         className
                     ].filter(Boolean).join(" ")}
                     style={style}
@@ -26,7 +26,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 />
                 {error && (
                     <span
-                        className="text-xs font-medium animate-slide-down text-[var(--red-500)]"
+                        className="text-[13px] font-medium animate-slide-down text-[var(--danger)] mt-1"
                     >
                         {error}
                     </span>

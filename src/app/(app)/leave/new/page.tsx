@@ -55,14 +55,14 @@ function NewLeaveContent() {
     };
 
     if (loading) {
-        return <div className="p-8 flex justify-center"><Loader2 className="animate-spin h-8 w-8 text-[var(--amber-500)]" /></div>;
+        return <div className="p-8 flex justify-center"><Loader2 className="animate-spin h-8 w-8 text-[var(--primary)]" /></div>;
     }
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
             <button
                 onClick={() => router.back()}
-                className="flex items-center gap-2 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors mb-2"
+                className="flex items-center gap-2 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors mb-2"
             >
                 <ArrowLeft className="h-4 w-4" /> Back
             </button>
@@ -80,7 +80,7 @@ function NewLeaveContent() {
                             <select
                                 value={formData.employeeId}
                                 onChange={e => setFormData({ ...formData, employeeId: e.target.value })}
-                                className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--amber-500)]/20 outline-none appearance-none"
+                                className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none appearance-none"
                                 required
                             >
                                 {employees.map(emp => (
@@ -95,7 +95,7 @@ function NewLeaveContent() {
                                 <select
                                     value={formData.type}
                                     onChange={e => setFormData({ ...formData, type: e.target.value as LeaveType })}
-                                    className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--amber-500)]/20 outline-none"
+                                    className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
                                     required
                                 >
                                     <option value="annual">Annual Leave</option>
@@ -111,7 +111,7 @@ function NewLeaveContent() {
                                     step="0.5"
                                     value={formData.days}
                                     onChange={e => setFormData({ ...formData, days: parseFloat(e.target.value) })}
-                                    className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--amber-500)]/20 outline-none font-mono"
+                                    className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none font-mono"
                                     required
                                 />
                             </div>
@@ -123,7 +123,7 @@ function NewLeaveContent() {
                                 type="date"
                                 value={formData.date}
                                 onChange={e => setFormData({ ...formData, date: e.target.value })}
-                                className="w-full h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--amber-500)]/20 outline-none"
+                                className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
                                 required
                             />
                         </div>
@@ -133,7 +133,7 @@ function NewLeaveContent() {
                             <textarea
                                 value={formData.note}
                                 onChange={e => setFormData({ ...formData, note: e.target.value })}
-                                className="w-full p-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--amber-500)]/20 outline-none min-h-[100px]"
+                                className="w-full p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none min-h-[100px]"
                                 placeholder="e.g. Flu, Family wedding, etc."
                             />
                         </div>
@@ -141,7 +141,7 @@ function NewLeaveContent() {
                         <Button
                             type="submit"
                             disabled={saving}
-                            className="w-full h-12 bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)] transition-all gap-2"
+                            className="w-full h-12 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] transition-all gap-2"
                         >
                             {saving ? <Loader2 className="animate-spin h-4 w-4" /> : <Save className="h-4 w-4" />}
                             {saving ? "Saving..." : "Save Leave Record"}
@@ -155,7 +155,7 @@ function NewLeaveContent() {
 
 export default function NewLeavePage() {
     return (
-        <React.Suspense fallback={<div className="p-8 flex justify-center"><Loader2 className="animate-spin h-8 w-8 text-[var(--amber-500)]" /></div>}>
+        <React.Suspense fallback={<div className="p-8 flex justify-center"><Loader2 className="animate-spin h-8 w-8 text-[var(--primary)]" /></div>}>
             <NewLeaveContent />
         </React.Suspense>
     );

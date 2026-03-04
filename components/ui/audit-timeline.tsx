@@ -46,8 +46,8 @@ export function AuditTrailTimeline({
         switch (type) {
             case 'created': return "text-emerald-600 bg-emerald-500/10 border-emerald-500/20";
             case 'signed': return "text-blue-600 bg-blue-500/10 border-blue-500/20";
-            case 'sent': return "text-amber-600 bg-amber-500/10 border-amber-500/20";
-            default: return "text-[var(--text-secondary)] bg-[var(--bg-subtle)] border-[var(--border-subtle)]";
+            case 'sent': return "text-[var(--focus)] bg-[var(--primary)]/10 border-[var(--focus)]/20";
+            default: return "text-[var(--text-muted)] bg-[var(--surface-2)] border-[var(--border)]";
         }
     };
 
@@ -56,7 +56,7 @@ export function AuditTrailTimeline({
             <Card className="border-dashed glass-panel">
                 <CardContent className="p-8 text-center">
                     <Clock className="h-8 w-8 mx-auto mb-3 text-[var(--text-muted)]" />
-                    <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
+                    <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
                         No audit history available.
                     </p>
                 </CardContent>
@@ -65,14 +65,14 @@ export function AuditTrailTimeline({
     }
 
     return (
-        <Card className="glass-panel overflow-hidden border-[var(--border-subtle)]">
-            <div className="px-6 py-4 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/50">
+        <Card className="glass-panel overflow-hidden border-[var(--border)]">
+            <div className="px-6 py-4 flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface-1)]/50">
                 <div>
-                    <h3 className="font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
+                    <h3 className="font-bold tracking-tight" style={{ color: "var(--text)" }}>
                         Audit Trail
                     </h3>
                     {documentName && (
-                        <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
                             History for: <span className="font-semibold">{documentName}</span>
                         </p>
                     )}
@@ -80,8 +80,8 @@ export function AuditTrailTimeline({
                 {showDownload && onDownloadLog && (
                     <button
                         onClick={onDownloadLog}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md border border-[var(--border-strong)] hover:bg-[var(--bg-subtle)] transition-colors"
-                        style={{ color: "var(--text-primary)" }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md border border-[var(--border)] hover:bg-[var(--surface-2)] transition-colors"
+                        style={{ color: "var(--text)" }}
                     >
                         <Download className="h-3 w-3" />
                         Export Log
@@ -94,7 +94,7 @@ export function AuditTrailTimeline({
                     {/* Vertical Line */}
                     <div
                         className="absolute top-8 bottom-8 left-9 w-px"
-                        style={{ backgroundColor: "var(--border-subtle)" }}
+                        style={{ backgroundColor: "var(--border)" }}
                     />
 
                     <div className="space-y-8 relative">
@@ -109,7 +109,7 @@ export function AuditTrailTimeline({
                                 </div>
                                 <div className="pt-0.5 pb-2">
                                     <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 mb-1">
-                                        <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
+                                        <p className="font-semibold text-sm" style={{ color: "var(--text)" }}>
                                             {event.description}
                                         </p>
                                         <span className="text-[11px] font-medium uppercase tracking-wider tabular-nums" style={{ color: "var(--text-muted)" }}>
@@ -118,7 +118,7 @@ export function AuditTrailTimeline({
                                     </div>
 
                                     {event.user && (
-                                        <p className="text-xs flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
+                                        <p className="text-xs flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
                                             <User className="h-3 w-3" />
                                             {event.user}
                                         </p>
@@ -130,7 +130,7 @@ export function AuditTrailTimeline({
                                                 <Badge
                                                     key={key}
                                                     variant="secondary"
-                                                    className="text-[10px] bg-[var(--bg-subtle)] text-[var(--text-secondary)] border-none px-2 py-0.5"
+                                                    className="text-[10px] bg-[var(--surface-2)] text-[var(--text-muted)] border-none px-2 py-0.5"
                                                 >
                                                     <span className="opacity-70 mr-1">{key}:</span> {value}
                                                 </Badge>

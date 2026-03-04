@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export default function RefundPolicy() {
     return (
-        <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)]">
+        <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
             <div className="max-w-4xl mx-auto px-6 py-12 sm:py-20 space-y-12">
                 <Link href="/">
                     <Button variant="ghost" className="gap-2 mb-8 -ml-4">
@@ -16,7 +16,7 @@ export default function RefundPolicy() {
                 </Link>
 
                 <header className="space-y-4">
-                    <div className="h-12 w-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-500 mb-6 border border-green-500/20">
+                    <div className="h-12 w-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mb-6 border border-[var(--primary)]/20">
                         <CreditCard className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Refund & Cancellation</h1>

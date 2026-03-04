@@ -48,7 +48,7 @@ export function MarketingHeader() {
     }, [menuOpen]);
 
     return (
-        <header className="sticky top-0 z-30 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+        <header className="sticky top-0 z-30 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
             <div className="max-w-7xl mx-auto w-full flex items-center justify-between px-4 py-4 xl:py-5">
                 {/* Logo */}
                 <Link href="/" className="focus-ring rounded-lg shrink-0">
@@ -62,14 +62,14 @@ export function MarketingHeader() {
                         <Link
                             key={href}
                             href={href}
-                            className="text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--amber-500)] hover:underline underline-offset-4 transition-all"
+                            className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] hover:underline underline-offset-4 transition-all"
                         >
                             {label}
                         </Link>
                     ))}
                     <Button
                         className="font-black px-6 rounded-xl h-11 shadow-lg active-scale"
-                        style={{ backgroundColor: "var(--color-brand)", color: "white" }}
+                        style={{ backgroundColor: "var(--primary)", color: "white" }}
                         onClick={handleCta}
                     >
                         Create your first payslip <ArrowRight className="ml-2 h-4 w-4" />
@@ -80,7 +80,7 @@ export function MarketingHeader() {
                 <button
                     onClick={() => setMenuOpen(true)}
                     aria-label="Open menu"
-                    className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl transition-all hover:bg-[var(--bg-subtle)] active-scale text-[var(--text-secondary)]"
+                    className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl transition-all hover:bg-[var(--surface-2)] active-scale text-[var(--text-muted)]"
                 >
                     <Menu className="h-5 w-5" />
                 </button>
@@ -93,7 +93,7 @@ export function MarketingHeader() {
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setMenuOpen(false)} />
 
                     {/* Menu panel */}
-                    <div className="absolute top-0 left-0 right-0 glass-panel shadow-[var(--shadow-xl)] animate-slide-down border-b border-[var(--border-subtle)]">
+                    <div className="absolute top-0 left-0 right-0 glass-panel shadow-[var(--shadow-xl)] animate-slide-down border-b border-[var(--border)]">
                         <div className="flex items-center justify-between px-4 py-4">
                             <Link href="/" onClick={() => setMenuOpen(false)} className="rounded-lg">
                                 <Image src="/brand/logo-light.png" alt="LekkerLedger" width={160} height={40} className="h-9 w-auto block dark:hidden" priority />
@@ -102,7 +102,7 @@ export function MarketingHeader() {
                             <button
                                 onClick={() => setMenuOpen(false)}
                                 aria-label="Close menu"
-                                className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-[var(--bg-subtle)] active-scale"
+                                className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-[var(--surface-2)] active-scale"
                                 style={{ color: "var(--text-muted)" }}
                             >
                                 <X className="h-5 w-5" />
@@ -115,7 +115,7 @@ export function MarketingHeader() {
                                     key={href}
                                     href={href}
                                     onClick={() => setMenuOpen(false)}
-                                    className="block px-4 py-3 rounded-xl text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] transition-colors"
+                                    className="block px-4 py-3 rounded-xl text-sm font-semibold text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
                                 >
                                     {label}
                                 </Link>
@@ -123,7 +123,7 @@ export function MarketingHeader() {
                             <div className="pt-3">
                                 <Button
                                     className="w-full font-black h-12 rounded-xl shadow-lg active-scale"
-                                    style={{ backgroundColor: "var(--color-brand)", color: "white" }}
+                                    style={{ backgroundColor: "var(--primary)", color: "white" }}
                                     onClick={() => { setMenuOpen(false); handleCta(); }}
                                 >
                                     Create your first payslip <ArrowRight className="ml-2 h-4 w-4" />

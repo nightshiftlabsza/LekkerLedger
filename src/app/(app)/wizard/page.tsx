@@ -259,21 +259,21 @@ function WizardContent() {
 
     if (loadingInitial) {
         return (
-            <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
-                <header className="sticky top-0 z-30 px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)]">
+            <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
+                <header className="sticky top-0 z-30 px-4 py-3 bg-[var(--surface-1)] border-b border-[var(--border)]">
                     <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-xl bg-[var(--bg-subtle)] animate-pulse" />
+                            <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
                             <div className="space-y-2">
-                                <div className="h-4 w-28 bg-[var(--bg-subtle)] animate-pulse rounded" />
-                                <div className="h-3 w-20 bg-[var(--bg-subtle)] animate-pulse rounded" />
+                                <div className="h-4 w-28 bg-[var(--surface-2)] animate-pulse rounded" />
+                                <div className="h-3 w-20 bg-[var(--surface-2)] animate-pulse rounded" />
                             </div>
                         </div>
                     </div>
                 </header>
                 <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 space-y-5 flex flex-col">
-                    <div className="h-24 w-full rounded-2xl bg-[var(--bg-surface)] animate-pulse border border-[var(--border-subtle)]" />
-                    <div className="flex-1 w-full rounded-2xl bg-[var(--bg-surface)] animate-pulse border border-[var(--border-subtle)]" />
+                    <div className="h-24 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse border border-[var(--border)]" />
+                    <div className="flex-1 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse border border-[var(--border)]" />
                 </main>
             </div>
         );
@@ -282,23 +282,23 @@ function WizardContent() {
     if (!employee) return null;
 
     return (
-        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
                 <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SideDrawer />
                         <Link href="/employees">
                             <button
                                 aria-label="Back"
-                                className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--bg-subtle)]"
-                                style={{ color: "var(--text-secondary)" }}
+                                className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-2)]"
+                                style={{ color: "var(--text-muted)" }}
                             >
                                 <ArrowLeft className="h-4 w-4" />
                             </button>
                         </Link>
                         <div>
-                            <h1 className="font-bold text-sm tracking-tight leading-tight" style={{ color: "var(--text-primary)" }}>
+                            <h1 className="font-bold text-sm tracking-tight leading-tight" style={{ color: "var(--text)" }}>
                                 Payslip Wizard
                             </h1>
                             <p className="text-xs leading-tight" style={{ color: "var(--text-muted)" }}>
@@ -307,7 +307,7 @@ function WizardContent() {
                         </div>
                     </div>
                     <span
-                        className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/10 text-amber-500"
+                        className="text-xs font-semibold px-3 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--focus)]"
                     >
                         Step {currentStep + 1}/{STEPS.length}
                     </span>
@@ -319,8 +319,8 @@ function WizardContent() {
                 <div
                     className="p-5 rounded-2xl"
                     style={{
-                        backgroundColor: "var(--bg-surface)",
-                        border: "1px solid var(--border-subtle)",
+                        backgroundColor: "var(--surface-1)",
+                        border: "1px solid var(--border)",
                         boxShadow: "var(--shadow-sm)",
                     }}
                 >
@@ -328,9 +328,9 @@ function WizardContent() {
                 </div>
 
                 {usageLimited && (
-                    <Alert variant="warning" className="border-amber-500 bg-amber-50">
-                        <AlertCircle className="h-4 w-4 text-amber-600" />
-                        <AlertDescription className="text-amber-900">
+                    <Alert variant="warning" className="border-[var(--focus)] bg-[var(--surface-2)]">
+                        <AlertCircle className="h-4 w-4 text-[var(--focus)]" />
+                        <AlertDescription className="text-[var(--text)]">
                             <strong>Free limit reached (2/month).</strong> Next payslip will be watermarked.
                             <Link href="/pricing" className="ml-2 underline font-bold">Upgrade to Pro</Link>.
                         </AlertDescription>
@@ -379,10 +379,10 @@ function WizardContent() {
                                     </div>
                                 </div>
 
-                                <div className="pt-4 space-y-5" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+                                <div className="pt-4 space-y-5" style={{ borderTop: "1px solid var(--border)" }}>
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                                            <Clock className="w-4 h-4 text-amber-500" />
+                                            <Clock className="w-4 h-4 text-[var(--focus)]" />
                                             Work Schedule
                                         </h3>
                                         <div className="flex gap-2">
@@ -390,7 +390,7 @@ function WizardContent() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    className="h-8 border-amber-500/30 text-amber-500 bg-amber-500/5 hover:bg-amber-500/10 text-[10px] gap-1.5 px-2"
+                                                    className="h-8 border-[var(--focus)]/30 text-[var(--focus)] bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 text-[10px] gap-1.5 px-2"
                                                     onClick={applyHolidays}
                                                 >
                                                     <Sparkles className="w-3 h-3" />
@@ -453,10 +453,10 @@ function WizardContent() {
                                     )}
 
                                     {/* 4-Hour Rule Assistant */}
-                                    <div className="p-4 rounded-xl border border-amber-500/10 bg-amber-500/[0.02] space-y-3">
+                                    <div className="p-4 rounded-xl border border-[var(--focus)]/10 bg-[var(--primary)]/[0.02] space-y-3">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <Info className="w-3.5 h-3.5 text-amber-500" />
+                                                <Info className="w-3.5 h-3.5 text-[var(--focus)]" />
                                                 <Label htmlFor="assistant-switch" className="text-[11px] font-bold text-zinc-300 uppercase tracking-tight cursor-pointer">4-Hour Rule Assistant</Label>
                                             </div>
                                             <Switch
@@ -494,7 +494,7 @@ function WizardContent() {
                                                 <Button
                                                     variant="secondary"
                                                     size="sm"
-                                                    className="w-full text-xs h-11 font-bold bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
+                                                    className="w-full text-xs h-11 font-bold bg-[var(--primary)]/10 text-[var(--focus)] hover:bg-[var(--primary)]/20"
                                                     onClick={() => {
                                                         const shortfall = (shortShiftCount * 4) - totalWorkedInShortShifts;
                                                         if (shortfall > 0) {
@@ -545,7 +545,7 @@ function WizardContent() {
                                         onChange={(e) => setHours({ ...hours, holiday: e.target.value })}
                                     />
                                     {detectedHolidays.length > 0 && (
-                                        <p className="text-[10px] font-medium animate-fade-in" style={{ color: "var(--amber-500)" }}>
+                                        <p className="text-[10px] font-medium animate-fade-in" style={{ color: "var(--primary)" }}>
                                             Found {detectedHolidays.length} holiday{detectedHolidays.length > 1 ? 's' : ''}: {detectedHolidays.map(h => h.name).join(", ")}.
                                         </p>
                                     )}
@@ -564,9 +564,9 @@ function WizardContent() {
                                     </AlertDescription>
                                 </Alert>
 
-                                <div className="pt-4 space-y-4" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+                                <div className="pt-4 space-y-4" style={{ borderTop: "1px solid var(--border)" }}>
                                     <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                                        <AlertCircle className="w-4 h-4 text-amber-500" />
+                                        <AlertCircle className="w-4 h-4 text-[var(--focus)]" />
                                         Leave Taken (This Month)
                                     </h3>
                                     <div className="grid grid-cols-3 gap-3">
@@ -609,18 +609,18 @@ function WizardContent() {
                                 <button
                                     type="button"
                                     onClick={() => setIncludeAccommodation((v) => !v)}
-                                    className={`w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all duration-200 active:scale-[0.99] border-[1.5px] hover:bg-[var(--bg-subtle)] ${includeAccommodation ? "border-[var(--amber-500)] bg-amber-500/5" : "border-[var(--border-default)] bg-transparent"}`}
+                                    className={`w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all duration-200 active:scale-[0.99] border-[1.5px] hover:bg-[var(--surface-2)] ${includeAccommodation ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)] bg-transparent"}`}
                                 >
                                     <div
-                                        className={`h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200 border-[1.5px] ${includeAccommodation ? "bg-[var(--amber-500)] border-[var(--amber-500)]" : "bg-transparent border-[var(--border-strong)]"}`}
+                                        className={`h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200 border-[1.5px] ${includeAccommodation ? "bg-[var(--primary)] border-[var(--primary)]" : "bg-transparent border-[var(--border)]"}`}
                                     >
                                         {includeAccommodation && <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />}
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
+                                        <p className="font-semibold text-sm" style={{ color: "var(--text)" }}>
                                             Accommodation Deduction
                                         </p>
-                                        <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                                        <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
                                             Deduct up to 10% of gross wage for accommodation provided (SD7 — legal max).
                                         </p>
                                     </div>
@@ -647,15 +647,15 @@ function WizardContent() {
                             <div className="space-y-4 animate-fade-in">
                                 {/* Duplicate payslip warning */}
                                 {duplicateId && (
-                                    <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-500/5 space-y-3">
-                                        <div className="flex items-center gap-2 text-sm font-bold" style={{ color: "var(--amber-500)" }}>
+                                    <div className="p-4 rounded-xl border border-[var(--focus)]/40 bg-[var(--primary)]/5 space-y-3">
+                                        <div className="flex items-center gap-2 text-sm font-bold" style={{ color: "var(--primary)" }}>
                                             <AlertTriangle className="h-4 w-4 shrink-0" />
                                             <span>A payslip for {employee.name} already exists for {format(safeDate(dates.start), "MMMM yyyy")}.</span>
                                         </div>
                                         <div className="flex gap-2">
                                             <Button
                                                 size="sm"
-                                                className="bg-amber-500 text-white font-bold hover:bg-amber-600"
+                                                className="bg-[var(--primary)] text-white font-bold hover:brightness-95"
                                                 onClick={async () => {
                                                     await deletePayslip(duplicateId);
                                                     setDuplicateId(null);
@@ -670,7 +670,7 @@ function WizardContent() {
                                 )}
 
                                 {/* Compliance checklist */}
-                                <div className="p-4 rounded-xl space-y-2.5" style={{ border: "1px solid var(--border-subtle)", backgroundColor: "var(--bg-subtle)" }}>
+                                <div className="p-4 rounded-xl space-y-2.5" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface-2)" }}>
                                     <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Compliance Check</p>
                                     <ComplianceRow
                                         pass={!!settings?.employerName?.trim()}
@@ -699,13 +699,13 @@ function WizardContent() {
                                 {/* Earnings rows */}
                                 <div
                                     className="rounded-xl overflow-hidden"
-                                    style={{ border: "1px solid var(--border-subtle)" }}
+                                    style={{ border: "1px solid var(--border)" }}
                                 >
                                     <div
                                         className="px-4 py-2.5 flex justify-between items-center text-xs font-bold uppercase tracking-widest"
                                         style={{
-                                            backgroundColor: "var(--bg-subtle)",
-                                            borderBottom: "1px solid var(--border-subtle)",
+                                            backgroundColor: "var(--surface-2)",
+                                            borderBottom: "1px solid var(--border)",
                                             color: "var(--text-muted)",
                                         }}
                                     >
@@ -715,7 +715,7 @@ function WizardContent() {
 
                                     {/* Earnings */}
                                     <div className="px-4 pt-4 pb-2 space-y-2">
-                                        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--amber-500)" }}>Earnings</p>
+                                        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--primary)" }}>Earnings</p>
                                         <Row
                                             label={`Ordinary (${breakdown.effectiveOrdinaryHours}h${Number(shortFallHours) > 0 ? " inc. 4-hr minimum top-up" : ""})`}
                                             value={`R ${breakdown.ordinaryPay.toFixed(2)}`}
@@ -726,11 +726,11 @@ function WizardContent() {
                                         <Row label="Gross Pay" value={`R ${breakdown.grossPay.toFixed(2)}`} bold />
                                     </div>
 
-                                    <div style={{ borderTop: "1px solid var(--border-subtle)" }} />
+                                    <div style={{ borderTop: "1px solid var(--border)" }} />
 
                                     {/* Deductions */}
                                     <div className="px-4 pt-3 pb-2 space-y-2">
-                                        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--amber-500)" }}>Deductions</p>
+                                        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--primary)" }}>Deductions</p>
                                         <Row label={`UIF ${totalHours > 24 ? "(1%)" : "(n/a)"}`} value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`} red />
                                         {includeAccommodation && breakdown.deductions.accommodation && (
                                             <Row label="Accommodation (10%)" value={`-R ${breakdown.deductions.accommodation.toFixed(2)}`} red />
@@ -741,7 +741,7 @@ function WizardContent() {
                                     {/* Net Pay bar */}
                                     <div
                                         className="flex justify-between items-center px-5 py-5"
-                                        style={{ backgroundColor: "var(--amber-500)" }}
+                                        style={{ backgroundColor: "var(--primary)" }}
                                     >
                                         <span className="font-bold text-lg text-white">Net Pay</span>
                                         <span className="font-extrabold text-2xl text-white tabular-nums">
@@ -769,7 +769,7 @@ function WizardContent() {
                     size="lg"
                     onClick={handleNext}
                     disabled={loading}
-                    className="flex-1 sm:flex-none sm:min-w-[160px] bg-[var(--amber-500)] hover:bg-[var(--amber-600)] text-white font-bold"
+                    className="flex-1 sm:flex-none sm:min-w-[160px] bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-bold"
                 >
                     {loading ? (
                         <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
@@ -797,14 +797,14 @@ function ComplianceRow({
     failHref?: string;
     isInfo?: boolean;
 }) {
-    const color = pass ? "var(--color-success)" : isInfo ? "var(--blue-500)" : "var(--amber-500)";
+    const color = pass ? "var(--success)" : isInfo ? "var(--blue-500)" : "var(--primary)";
     return (
         <div className="flex items-start gap-2.5 text-xs">
             {pass
-                ? <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--color-success)" }} />
+                ? <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--success)" }} />
                 : <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color }} />
             }
-            <span style={{ color: pass ? "var(--text-secondary)" : color }}>
+            <span style={{ color: pass ? "var(--text-muted)" : color }}>
                 {pass ? passText : failText}
                 {!pass && failHref && (
                     <Link href={failHref} className="ml-1 underline font-bold" style={{ color }}>Fix →</Link>
@@ -827,11 +827,11 @@ function Row({
 }) {
     return (
         <div className="flex justify-between items-center text-sm">
-            <span className={bold ? "font-semibold text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}>
+            <span className={bold ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]"}>
                 {label}
             </span>
             <span
-                className={`tabular-nums ${red ? "text-[var(--red-500)]" : bold ? "text-[var(--text-primary)] font-bold" : "text-[var(--text-secondary)]"}`}
+                className={`tabular-nums ${red ? "text-[var(--danger)]" : bold ? "text-[var(--text)] font-bold" : "text-[var(--text-muted)]"}`}
             >
                 {value}
             </span>
@@ -843,8 +843,8 @@ export default function WizardPage() {
     return (
         <React.Suspense
             fallback={
-                <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
-                    <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--amber-500)" }} />
+                <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
+                    <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--primary)" }} />
                 </div>
             }
         >

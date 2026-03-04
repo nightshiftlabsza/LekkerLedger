@@ -42,7 +42,7 @@ export default function EmployeesPage() {
                 actions={
                     employees.length > 0 && (
                         <Link href="/employees/new">
-                            <Button className="gap-2 bg-[var(--amber-500)] text-white hover:bg-[var(--amber-600)] font-bold">
+                            <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
                                 <UserPlus className="h-4 w-4" /> Add Employee
                             </Button>
                         </Link>
@@ -75,7 +75,7 @@ export default function EmployeesPage() {
                                                 {emp.name.substring(0, 2).toUpperCase()}
                                             </div>
                                             <div>
-                                                <p className="type-body-bold text-[var(--text-primary)]">{emp.name}</p>
+                                                <p className="type-body-bold text-[var(--text)]">{emp.name}</p>
                                                 <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider">{emp.role || "Domestic Worker"}</p>
                                             </div>
                                         </div>
@@ -87,7 +87,7 @@ export default function EmployeesPage() {
                                     render: (emp) => (
                                         <div className="space-y-1">
                                             {emp.phone && (
-                                                <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                                                <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                                                     <Phone className="h-3 w-3" /> {emp.phone}
                                                 </div>
                                             )}
@@ -106,7 +106,7 @@ export default function EmployeesPage() {
                                     render: (emp) => (
                                         <div className="flex items-center justify-end gap-2">
                                             <Link href={`/employees/${emp.id}`}>
-                                                <Button variant="ghost" size="icon" className="h-9 w-9 text-[var(--text-muted)] hover:text-[var(--amber-600)]">
+                                                <Button variant="ghost" size="icon" className="h-9 w-9 text-[var(--text-muted)] hover:text-[var(--primary-hover)]">
                                                     <ChevronRight className="h-5 w-5" />
                                                 </Button>
                                             </Link>
@@ -135,13 +135,13 @@ export default function EmployeesPage() {
                                 </div>
                             </div>
 
-                            <div className="pt-4 border-t border-[var(--border-subtle)] space-y-4">
+                            <div className="pt-4 border-t border-[var(--border)] space-y-4">
                                 <div className="flex items-center justify-between text-xs">
-                                    <span className="text-[var(--text-secondary)] font-medium">Total Active</span>
-                                    <span className="font-bold text-[var(--text-primary)]">{employees.length}</span>
+                                    <span className="text-[var(--text-muted)] font-medium">Total Active</span>
+                                    <span className="font-bold text-[var(--text)]">{employees.length}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-xs">
-                                    <span className="text-[var(--text-secondary)] font-medium">Compliance Check</span>
+                                    <span className="text-[var(--text-muted)] font-medium">Compliance Check</span>
                                     <StatusChip variant="complete" label="ALL GOOD" />
                                 </div>
                             </div>
@@ -154,7 +154,7 @@ export default function EmployeesPage() {
                                 <Mail className="h-5 w-5 text-blue-600" />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-xs font-bold text-[var(--text-primary)]">Compliance Tip</p>
+                                <p className="text-xs font-bold text-[var(--text)]">Compliance Tip</p>
                                 <p className="text-[10px] leading-relaxed text-[var(--text-muted)]">Ensure all employees have a signed contract and valid ID on record for BCEA compliance.</p>
                             </div>
                         </CardContent>

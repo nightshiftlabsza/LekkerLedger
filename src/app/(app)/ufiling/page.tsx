@@ -85,7 +85,7 @@ export default function UFilingPage() {
     };
 
     if (loading) {
-        return <div className="p-20 flex justify-center"><Loader2 className="animate-spin h-8 w-8 text-[var(--amber-500)]" /></div>;
+        return <div className="p-20 flex justify-center"><Loader2 className="animate-spin h-8 w-8 text-[var(--primary)]" /></div>;
     }
 
     return (
@@ -109,7 +109,7 @@ export default function UFilingPage() {
                 <>
                     {/* Prerequisites Checklist */}
                     <Card className="glass-panel border-none shadow-sm overflow-hidden">
-                        <div className="bg-[var(--bg-subtle)] px-5 py-3 border-b border-[var(--border-subtle)] flex items-center justify-between">
+                        <div className="bg-[var(--surface-2)] px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
                             <h3 className="text-xs font-black uppercase tracking-widest text-[var(--text-muted)]">Setup Checklist</h3>
                             <ShieldCheck className="h-4 w-4 text-emerald-500" />
                         </div>
@@ -121,9 +121,9 @@ export default function UFilingPage() {
                                 <CheckItem label="Locked Pay Periods" completed={payPeriods.length > 0} />
                             </div>
                             {(!settings?.uifRefNumber || payPeriods.length === 0) && (
-                                <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 flex items-start gap-3">
-                                    <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
-                                    <p className="text-[10px] text-amber-800 leading-relaxed font-medium">
+                                <div className="p-3 bg-[var(--surface-2)] rounded-xl border border-amber-100 flex items-start gap-3">
+                                    <AlertCircle className="h-4 w-4 text-[var(--focus)] mt-0.5" />
+                                    <p className="text-[10px] text-[var(--text-muted)] leading-relaxed font-medium">
                                         Declarations must identify both your <strong>UIF Reference</strong> and data from <strong>Locked</strong> months to be accepted by the uFiling system.
                                     </p>
                                 </div>
@@ -134,17 +134,17 @@ export default function UFilingPage() {
                     {/* How-to guide (collapsible) */}
                     <div className="animate-slide-up delay-100">
                         <button type="button" onClick={() => setShowGuide(!showGuide)}
-                            className="w-full flex items-center justify-between p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)] transition-all shadow-sm group">
+                            className="w-full flex items-center justify-between p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-all shadow-sm group">
                             <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded-lg bg-[var(--amber-500)]/10 flex items-center justify-center text-[var(--amber-600)] group-hover:bg-[var(--amber-500)] group-hover:text-white transition-colors">
+                                <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary-hover)] group-hover:bg-[var(--primary)] group-hover:text-white transition-colors">
                                     <Info className="h-4 w-4" />
                                 </div>
-                                <span className="text-sm font-bold text-[var(--text-primary)]">Compliance Guide: Submission Steps</span>
+                                <span className="text-sm font-bold text-[var(--text)]">Compliance Guide: Submission Steps</span>
                             </div>
                             {showGuide ? <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />}
                         </button>
                         {showGuide && (
-                            <div className="mt-2 p-5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] space-y-5 animate-in fade-in zoom-in-95 duration-300 shadow-xl relative z-10">
+                            <div className="mt-2 p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] space-y-5 animate-in fade-in zoom-in-95 duration-300 shadow-xl relative z-10">
                                 <GuideStep step={1} title="Download CSV" desc="Select a locked month below and click Download." />
                                 <GuideStep step={2} title="Login to uFiling" desc="Access ufiling.co.za and enter your employer credentials." />
                                 <GuideStep step={3} title="Electronic Declarations" desc="Navigate to Declarations → Electronic Declarations → Upload CSV File." />
@@ -156,26 +156,26 @@ export default function UFilingPage() {
                     {/* View & Selection */}
                     <Card className="glass-panel border-none shadow-sm">
                         <CardContent className="p-5 flex flex-col gap-6">
-                            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4">
+                            <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-xl bg-[var(--bg-subtle)] flex items-center justify-center">
-                                        <History className="h-5 w-5 text-[var(--amber-600)]" />
+                                    <div className="h-10 w-10 rounded-xl bg-[var(--surface-2)] flex items-center justify-center">
+                                        <History className="h-5 w-5 text-[var(--primary-hover)]" />
                                     </div>
                                     <div>
-                                        <Label className="font-bold text-sm text-[var(--text-primary)]">Export Mode</Label>
+                                        <Label className="font-bold text-sm text-[var(--text)]">Export Mode</Label>
                                         <p className="text-[10px] text-[var(--text-muted)] uppercase font-black">Choose declaration scope</p>
                                     </div>
                                 </div>
-                                <div className="flex bg-[var(--bg-subtle)] p-1 rounded-xl border border-[var(--border-subtle)]">
+                                <div className="flex bg-[var(--surface-2)] p-1 rounded-xl border border-[var(--border)]">
                                     <button
                                         onClick={() => setView("monthly")}
-                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === "monthly" ? 'bg-[var(--bg-surface)] text-[var(--amber-600)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === "monthly" ? 'bg-[var(--surface-1)] text-[var(--primary-hover)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}
                                     >
                                         Monthly
                                     </button>
                                     <button
                                         onClick={() => setView("annual")}
-                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === "annual" ? 'bg-[var(--bg-surface)] text-[var(--amber-600)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === "annual" ? 'bg-[var(--surface-1)] text-[var(--primary-hover)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}
                                     >
                                         Annual (Tax Year)
                                     </button>
@@ -184,11 +184,11 @@ export default function UFilingPage() {
 
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-xl bg-[var(--bg-subtle)] flex items-center justify-center">
-                                        <CalendarDays className="h-5 w-5 text-[var(--amber-600)]" />
+                                    <div className="h-10 w-10 rounded-xl bg-[var(--surface-2)] flex items-center justify-center">
+                                        <CalendarDays className="h-5 w-5 text-[var(--primary-hover)]" />
                                     </div>
                                     <div>
-                                        <Label className="font-bold text-sm text-[var(--text-primary)]">
+                                        <Label className="font-bold text-sm text-[var(--text)]">
                                             {view === "monthly" ? "Select Locked Period" : "Select Tax Year End"}
                                         </Label>
                                         <p className="text-[10px] text-[var(--text-muted)] uppercase font-black">
@@ -203,7 +203,7 @@ export default function UFilingPage() {
                                             <select
                                                 value={selectedPeriodId}
                                                 onChange={e => setSelectedPeriodId(e.target.value)}
-                                                className="min-w-[200px] h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm font-bold text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--amber-500)]/20 outline-none"
+                                                className="min-w-[200px] h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
                                             >
                                                 {payPeriods.map(p => (
                                                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -212,14 +212,14 @@ export default function UFilingPage() {
                                         ) : (
                                             <div className="text-right">
                                                 <p className="text-xs font-bold text-red-500">No locked periods yet</p>
-                                                <Link href="/payroll" className="text-[10px] text-[var(--amber-600)] underline">Go to Payroll</Link>
+                                                <Link href="/payroll" className="text-[10px] text-[var(--primary-hover)] underline">Go to Payroll</Link>
                                             </div>
                                         )
                                     ) : (
                                         <select
                                             value={selectedTaxYear}
                                             onChange={e => setSelectedTaxYear(Number(e.target.value))}
-                                            className="min-w-[200px] h-11 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm font-bold text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--amber-500)]/20 outline-none"
+                                            className="min-w-[200px] h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
                                         >
                                             {[2024, 2025, 2026, 2027].map(y => (
                                                 <option key={y} value={y}>{y - 1}/{y} Tax Year</option>
@@ -234,7 +234,7 @@ export default function UFilingPage() {
                     {/* Preview table */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-black text-[var(--text-primary)]">Preview Records</h3>
+                            <h3 className="text-lg font-black text-[var(--text)]">Preview Records</h3>
                             <div className="flex items-center gap-2 text-xs font-bold text-[var(--text-muted)]">
                                 <History className="h-3 w-3" /> Showing data from locked pay periods only
                             </div>
@@ -248,23 +248,23 @@ export default function UFilingPage() {
                                 {
                                     key: "employee",
                                     label: "Employee",
-                                    render: (r) => <span className="font-bold text-[var(--text-primary)]">{r.employeeName}</span>
+                                    render: (r) => <span className="font-bold text-[var(--text)]">{r.employeeName}</span>
                                 },
                                 {
                                     key: "idNumber",
                                     label: "ID Number",
-                                    render: (r) => <span className="type-mono text-[var(--text-secondary)]">{r.idNumber || "MISSING"}</span>
+                                    render: (r) => <span className="type-mono text-[var(--text-muted)]">{r.idNumber || "MISSING"}</span>
                                 },
                                 {
                                     key: "gross",
                                     label: "Gross",
-                                    render: (r) => <span className="type-mono font-bold text-[var(--text-primary)]">R{r.grossRemuneration.toFixed(2)}</span>
+                                    render: (r) => <span className="type-mono font-bold text-[var(--text)]">R{r.grossRemuneration.toFixed(2)}</span>
                                 },
                                 {
                                     key: "totalUif",
                                     label: "Total UIF",
                                     align: "right",
-                                    render: (r) => <span className="font-black text-[var(--amber-600)]">R{r.totalUif.toFixed(2)}</span>
+                                    render: (r) => <span className="font-black text-[var(--primary-hover)]">R{r.totalUif.toFixed(2)}</span>
                                 }
                             ]}
                         />
@@ -273,7 +273,7 @@ export default function UFilingPage() {
                     {/* Download */}
                     <div className="pt-4">
                         <Button
-                            className="w-full gap-2 h-14 text-base font-black bg-[var(--amber-500)] text-white hover:bg-[var(--amber-600)] shadow-xl shadow-amber-500/20 transition-all rounded-2xl"
+                            className="w-full gap-2 h-14 text-base font-black bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] shadow-xl shadow-amber-500/20 transition-all rounded-2xl"
                             onClick={handleDownload}
                             disabled={rows.length === 0 || !settings?.uifRefNumber}
                         >
@@ -294,10 +294,10 @@ export default function UFilingPage() {
 function CheckItem({ label, completed }: { label: string; completed: boolean }) {
     return (
         <div className="flex items-center gap-2">
-            <div className={`h-4 w-4 rounded flex items-center justify-center ${completed ? 'bg-emerald-500 text-white' : 'bg-[var(--bg-subtle)] border border-[var(--border-subtle)]'}`}>
+            <div className={`h-4 w-4 rounded flex items-center justify-center ${completed ? 'bg-emerald-500 text-white' : 'bg-[var(--surface-2)] border border-[var(--border)]'}`}>
                 {completed && <CheckCircle2 className="h-3 w-3" strokeWidth={4} />}
             </div>
-            <span className={`text-[11px] font-bold ${completed ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>{label}</span>
+            <span className={`text-[11px] font-bold ${completed ? 'text-[var(--text)]' : 'text-[var(--text-muted)]'}`}>{label}</span>
         </div>
     );
 }
@@ -305,12 +305,12 @@ function CheckItem({ label, completed }: { label: string; completed: boolean }) 
 function GuideStep({ step, title, desc }: { step: number; title: string; desc: string }) {
     return (
         <div className="flex gap-4">
-            <div className="h-6 w-6 rounded-lg bg-[var(--bg-subtle)] text-[10px] font-black flex items-center justify-center shrink-0 border border-[var(--border-subtle)]">
+            <div className="h-6 w-6 rounded-lg bg-[var(--surface-2)] text-[10px] font-black flex items-center justify-center shrink-0 border border-[var(--border)]">
                 {step}
             </div>
             <div>
-                <p className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)] mb-0.5">{title}</p>
-                <p className="text-[11px] text-[var(--text-secondary)] leading-normal">{desc}</p>
+                <p className="text-xs font-black uppercase tracking-tight text-[var(--text)] mb-0.5">{title}</p>
+                <p className="text-[11px] text-[var(--text-muted)] leading-normal">{desc}</p>
             </div>
         </div>
     );

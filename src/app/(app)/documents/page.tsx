@@ -118,15 +118,15 @@ export default function DocumentsPage() {
             <div className="ultrawide-grid">
                 <div className="ultrawide-main space-y-6">
                     {/* Tab bar - Horizontal on Mobile/Standard, becomes less prominent in 2-pane if we want, but keeping it inside main for now */}
-                    <div className="flex items-center gap-1 border-b border-[var(--border-subtle)] -mx-4 px-4 overflow-x-auto no-scrollbar lg:mx-0 lg:px-0">
+                    <div className="flex items-center gap-1 border-b border-[var(--border)] -mx-4 px-4 overflow-x-auto no-scrollbar lg:mx-0 lg:px-0">
                         {TABS.map(tab => (
                             <button
                                 key={tab}
                                 type="button"
                                 onClick={() => setActiveTab(tab)}
                                 className={`px-4 py-3 text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === tab
-                                    ? "border-[var(--amber-500)] text-[var(--amber-500)]"
-                                    : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                                    ? "border-[var(--primary)] text-[var(--primary)]"
+                                    : "border-transparent text-[var(--text-muted)] hover:text-[var(--text)]"
                                     }`}
                             >
                                 {tab}
@@ -185,11 +185,11 @@ export default function DocumentsPage() {
                                             const Icon = TYPE_ICONS[doc.type] ?? FileText;
                                             return (
                                                 <div className="flex items-center gap-3">
-                                                    <div className="h-9 w-9 rounded-lg bg-[var(--bg-subtle)] flex items-center justify-center shrink-0">
-                                                        <Icon className="h-4 w-4 text-[var(--amber-500)]" />
+                                                    <div className="h-9 w-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                                                        <Icon className="h-4 w-4 text-[var(--primary)]" />
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="type-body-bold text-[var(--text-primary)] leading-none mb-1">{doc.fileName}</span>
+                                                        <span className="type-body-bold text-[var(--text)] leading-none mb-1">{doc.fileName}</span>
                                                         <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">{doc.type}</span>
                                                     </div>
                                                 </div>
@@ -202,14 +202,14 @@ export default function DocumentsPage() {
                                         render: (doc) => {
                                             if (!doc.employeeId) return <span className="text-[var(--text-muted)]">-</span>;
                                             const emp = employees.find(e => e.id === doc.employeeId);
-                                            return <span className="type-body text-[var(--text-primary)] font-medium">{emp?.name ?? "Unknown"}</span>;
+                                            return <span className="type-body text-[var(--text)] font-medium">{emp?.name ?? "Unknown"}</span>;
                                         },
                                     },
                                     {
                                         key: "storage",
                                         label: "Storage",
                                         render: (doc) => (
-                                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] w-fit">
+                                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] w-fit">
                                                 {doc.driveFileId ? (
                                                     <>
                                                         <Cloud className="h-3 w-3 text-blue-500" />
@@ -229,7 +229,7 @@ export default function DocumentsPage() {
                                         label: "Timestamp",
                                         render: (doc) => (
                                             <div className="flex flex-col">
-                                                <span className="type-body text-[var(--text-primary)] font-medium">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>
+                                                <span className="type-body text-[var(--text)] font-medium">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>
                                                 <span className="text-[10px] text-[var(--text-muted)] font-mono">{format(new Date(doc.createdAt), "HH:mm")}</span>
                                             </div>
                                         ),
@@ -243,11 +243,11 @@ export default function DocumentsPage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="h-9 w-9 p-0 hover:bg-[var(--amber-500)]/10 group"
+                                                    className="h-9 w-9 p-0 hover:bg-[var(--primary)]/10 group"
                                                     title="View Document"
                                                     onClick={() => handlePreview(doc)}
                                                 >
-                                                    <Eye className="h-4 w-4 text-[var(--amber-600)] group-hover:text-[var(--amber-500)]" />
+                                                    <Eye className="h-4 w-4 text-[var(--primary-hover)] group-hover:text-[var(--primary)]" />
                                                 </Button>
                                             </div>
                                         )
@@ -280,8 +280,8 @@ export default function DocumentsPage() {
                                             key={e.id}
                                             onClick={() => setEmpFilter(prev => prev === e.id ? "" : e.id)}
                                             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${empFilter === e.id
-                                                ? 'bg-[var(--amber-500)] border-[var(--amber-500)] text-white'
-                                                : 'bg-[var(--bg-subtle)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--amber-500)]'
+                                                ? 'bg-[var(--primary)] border-[var(--primary)] text-white'
+                                                : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)]'
                                                 }`}
                                         >
                                             {e.name}
@@ -291,7 +291,7 @@ export default function DocumentsPage() {
                                 </div>
                             </div>
 
-                            <div className="pt-4 border-t border-[var(--border-subtle)]">
+                            <div className="pt-4 border-t border-[var(--border)]">
                                 <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] font-medium">
                                     <History className="h-3.5 w-3.5" />
                                     <span>Total matching: {filtered.length}</span>
@@ -303,7 +303,7 @@ export default function DocumentsPage() {
             </div>
 
             {isGenerating && (
-                <div className="fixed flex items-center justify-center p-4 bg-[var(--amber-500)] text-white rounded-full bottom-6 right-6 shadow-2xl z-50 animate-pulse">
+                <div className="fixed flex items-center justify-center p-4 bg-[var(--primary)] text-white rounded-full bottom-6 right-6 shadow-2xl z-50 animate-pulse">
                     Generating preview...
                 </div>
             )}

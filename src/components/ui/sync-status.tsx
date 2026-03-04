@@ -31,7 +31,7 @@ export function SyncStatusModule({
     const stateConfig = {
         offline: {
             icon: CloudOff,
-            color: "var(--amber-500)",
+            color: "var(--primary)",
             bg: "rgba(217,119,6,0.1)",
             text: "Offline",
             desc: "Changes saved locally. Will sync when reconnected.",

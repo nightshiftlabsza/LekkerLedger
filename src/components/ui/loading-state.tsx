@@ -17,7 +17,7 @@ export function LoadingState({
         <Card className="border-none glass-panel overflow-hidden">
             <CardContent className="flex flex-col items-center justify-center p-8 sm:p-12 text-center">
                 <div className="h-16 w-16 rounded-3xl bg-[var(--bg-subtle)] flex items-center justify-center mb-6">
-                    <Loader2 className="h-8 w-8 text-[var(--amber-500)] animate-spin" strokeWidth={2} />
+                    <Loader2 className="h-8 w-8 text-[var(--primary)] animate-spin" strokeWidth={2} />
                 </div>
 
                 <h3 className="text-lg font-bold mb-2 text-balance animate-pulse" style={{ color: "var(--text-primary)" }}>

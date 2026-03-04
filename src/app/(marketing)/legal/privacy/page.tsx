@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export default function PrivacyPolicy() {
     return (
-        <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)]">
+        <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
             <div className="max-w-4xl mx-auto px-6 py-12 sm:py-20 space-y-12">
                 <Link href="/">
                     <Button variant="ghost" className="gap-2 mb-8 -ml-4">
@@ -31,7 +31,7 @@ export default function PrivacyPolicy() {
                         </p>
                     </section>
 
-                    <section className="space-y-4 text-amber-500/90 italic p-6 rounded-2xl bg-amber-500/5 border border-amber-500/10">
+                    <section className="space-y-4 text-[var(--primary)]/90 italic p-6 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10">
                         <p>
                             <strong>Important:</strong> LekkerLedger is a &ldquo;privacy-first&rdquo; tool. We have no central database for your employee data. If Drive sync is <strong>OFF</strong>: your data is stored on this device only. If Drive sync is <strong>ON</strong>: your data is stored in your personal private Google Drive folder — not our servers.
                         </p>

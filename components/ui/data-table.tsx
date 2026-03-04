@@ -69,13 +69,13 @@ export function DataTable<T>({
             <div className={`hidden lg:block overflow-x-auto ${className}`}>
                 <table className="w-full text-sm border-collapse">
                     <thead>
-                        <tr className="border-b border-[var(--border-subtle)]">
+                        <tr className="border-b border-[var(--border)]">
                             {columns.map(col => (
                                 <th
                                     key={col.key}
                                     className={`px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ${col.align === "right" ? "text-right"
                                             : col.align === "center" ? "text-center" : "text-left"
-                                        } ${col.sortable ? "cursor-pointer select-none hover:text-[var(--text-primary)]" : ""} ${col.className ?? ""}`}
+                                        } ${col.sortable ? "cursor-pointer select-none hover:text-[var(--text)]" : ""} ${col.className ?? ""}`}
                                     onClick={() => col.sortable && handleSort(col.key)}
                                 >
                                     <span className="inline-flex items-center gap-1">
@@ -90,17 +90,17 @@ export function DataTable<T>({
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-[var(--border-subtle)]">
+                    <tbody className="divide-y divide-[var(--border)]">
                         {sorted.map((item) => (
                             <tr
                                 key={keyField(item)}
                                 onClick={() => onRowClick?.(item)}
-                                className={`transition-colors ${onRowClick ? "cursor-pointer hover:bg-[var(--bg-subtle)]" : ""}`}
+                                className={`transition-colors ${onRowClick ? "cursor-pointer hover:bg-[var(--surface-2)]" : ""}`}
                             >
                                 {columns.map(col => (
                                     <td
                                         key={col.key}
-                                        className={`px-4 py-3.5 text-[var(--text-primary)] ${col.align === "right" ? "text-right"
+                                        className={`px-4 py-3.5 text-[var(--text)] ${col.align === "right" ? "text-right"
                                                 : col.align === "center" ? "text-center" : "text-left"
                                             } ${col.className ?? ""}`}
                                     >
@@ -125,7 +125,7 @@ export function DataTable<T>({
                                 {columns.map(col => (
                                     <div key={col.key} className="flex items-center justify-between gap-2">
                                         <span className="type-overline text-[var(--text-muted)]">{col.label}</span>
-                                        <span className="text-sm font-medium text-[var(--text-primary)]">{col.render(item)}</span>
+                                        <span className="text-sm font-medium text-[var(--text)]">{col.render(item)}</span>
                                     </div>
                                 ))}
                             </div>

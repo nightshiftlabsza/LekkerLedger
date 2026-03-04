@@ -30,7 +30,7 @@ export function SplashScreen() {
             </div>
             <div className="mt-8 flex flex-col items-center space-y-2 animate-slide-up" style={{ animationDelay: '0.4s' }}>
                 <div className="h-1 w-48 bg-zinc-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-500 rounded-full animate-progress" />
+                    <div className="h-full bg-[var(--primary)] rounded-full animate-progress" />
                 </div>
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 pt-2">
                     South Africa&apos;s Domestic Standard

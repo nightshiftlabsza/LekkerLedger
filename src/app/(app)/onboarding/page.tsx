@@ -53,14 +53,14 @@ export default function OnboardingPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
-                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--amber-500)" }} />
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
+                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--primary)" }} />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             <main className="flex-1 flex items-center justify-center p-4">
                 <div className="w-full max-w-md">
                     {/* Step indicators */}
@@ -70,7 +70,7 @@ export default function OnboardingPage() {
                                 key={i}
                                 className={`h-1.5 rounded-full transition-all duration-300 ${step === i ? "w-8" : "w-2 opacity-30"
                                     }`}
-                                style={{ backgroundColor: "var(--amber-500)" }}
+                                style={{ backgroundColor: "var(--primary)" }}
                             />
                         ))}
                     </div>
@@ -78,10 +78,10 @@ export default function OnboardingPage() {
                     {step === 1 && (
                         <div className="space-y-6 animate-slide-up">
                             <div className="text-center space-y-2">
-                                <h1 className="text-2xl font-extrabold" style={{ color: "var(--text-primary)" }}>
+                                <h1 className="text-2xl font-extrabold" style={{ color: "var(--text)" }}>
                                     Welcome to LekkerLedger
                                 </h1>
-                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                                     Before we generate your first legal payslip, let&apos;s get you set up.
                                 </p>
                             </div>
@@ -91,14 +91,14 @@ export default function OnboardingPage() {
                                     <CardContent className="p-5 space-y-4">
                                         <div className="flex gap-4">
                                             <div className="flex-shrink-0 mt-1">
-                                                <BookOpen className="h-5 w-5" style={{ color: "var(--amber-500)" }} />
+                                                <BookOpen className="h-5 w-5" style={{ color: "var(--primary)" }} />
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>The Law Made Simple</h3>
-                                                <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
+                                                <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>The Law Made Simple</h3>
+                                                <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
                                                     LekkerLedger bakes in all the rules of the Basic Conditions of Employment Act. You don&apos;t have to calculate Min Wage, UIF or Leave days manually.
                                                 </p>
-                                                <Link href="/rules" className="text-xs font-semibold mt-2 inline-block" style={{ color: "var(--amber-500)" }}>
+                                                <Link href="/rules" className="text-xs font-semibold mt-2 inline-block" style={{ color: "var(--primary)" }}>
                                                     Read the 4 Golden Rules &rarr;
                                                 </Link>
                                             </div>
@@ -110,11 +110,11 @@ export default function OnboardingPage() {
                                     <CardContent className="p-5 space-y-4">
                                         <div className="flex gap-4">
                                             <div className="flex-shrink-0 mt-1">
-                                                <ShieldCheck className="h-5 w-5" style={{ color: "var(--green-500)" }} />
+                                                <ShieldCheck className="h-5 w-5" style={{ color: "var(--primary)" }} />
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Private & Open Source</h3>
-                                                <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                                                <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>Private & Open Source</h3>
+                                                <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                                     Your payroll data stays on your device. If you enable Google Drive sync, a backup is stored in your own private Drive folder. LekkerLedger does not maintain a central employee database.
                                                 </p>
                                                 <div className="flex items-center gap-1.5 mt-2">
@@ -131,7 +131,7 @@ export default function OnboardingPage() {
                                     <CardContent className="p-4 bg-zinc-950 text-white rounded-xl border-none">
                                         <div className="flex gap-4">
                                             <div className="flex-shrink-0 mt-1">
-                                                <ShieldCheck className="h-5 w-5 text-amber-500" />
+                                                <ShieldCheck className="h-5 w-5 text-[var(--focus)]" />
                                             </div>
                                             <div>
                                                 <h3 className="font-bold text-sm">Clear Records, Less Admin</h3>
@@ -153,7 +153,7 @@ export default function OnboardingPage() {
                                     Join South African households simplifying their compliance.
                                 </p>
                                 <div className="pt-2">
-                                    <Link href="/settings?tab=sync" className="text-[10px] font-bold uppercase tracking-widest text-[var(--amber-500)] hover:underline">
+                                    <Link href="/settings?tab=sync" className="text-[10px] font-bold uppercase tracking-widest text-[var(--primary)] hover:underline">
                                         Returning user? Restore from Backup
                                     </Link>
                                 </div>
@@ -164,10 +164,10 @@ export default function OnboardingPage() {
                     {step === 2 && (
                         <form onSubmit={handleSave} className="space-y-6 animate-slide-up">
                             <div className="text-center space-y-2">
-                                <h1 className="text-2xl font-extrabold" style={{ color: "var(--text-primary)" }}>
+                                <h1 className="text-2xl font-extrabold" style={{ color: "var(--text)" }}>
                                     Employer Details
                                 </h1>
-                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                                     By law, your name and address must appear on your employee&apos;s payslip.
                                 </p>
                             </div>

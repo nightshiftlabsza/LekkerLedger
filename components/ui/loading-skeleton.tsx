@@ -9,7 +9,7 @@ interface SkeletonProps {
 export function Skeleton({ className = "" }: SkeletonProps) {
     return (
         <div
-            className={`animate-pulse rounded-lg bg-[var(--bg-subtle)] ${className}`}
+            className={`animate-pulse rounded-lg bg-[var(--surface-2)] ${className}`}
             aria-hidden="true"
         />
     );
@@ -39,7 +39,7 @@ export function CardSkeleton({ className = "" }: SkeletonProps) {
 /** Table row skeleton */
 export function RowSkeleton({ columns = 4, className = "" }: SkeletonProps & { columns?: number }) {
     return (
-        <div className={`flex items-center gap-4 py-3 px-4 border-b border-[var(--border-subtle)] ${className}`}>
+        <div className={`flex items-center gap-4 py-3 px-4 border-b border-[var(--border)] ${className}`}>
             {Array.from({ length: columns }).map((_, i) => (
                 <Skeleton key={i} className={`h-4 ${i === 0 ? "w-1/3" : "flex-1"}`} />
             ))}

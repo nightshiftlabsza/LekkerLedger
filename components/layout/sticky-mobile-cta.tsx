@@ -61,21 +61,21 @@ export function StickyMobileCta() {
                 backgroundColor: "var(--glass-bg)",
                 backdropFilter: "blur(16px)",
                 WebkitBackdropFilter: "blur(16px)",
-                borderTop: "1px solid var(--border-subtle)",
+                borderTop: "1px solid var(--border)",
                 boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
             }}
         >
             <div className="flex items-center gap-3 px-4 py-3 safe-area-pb">
                 <Button
                     className="flex-1 font-black h-12 rounded-xl shadow-lg active-scale text-sm"
-                    style={{ backgroundColor: "var(--color-brand)", color: "white" }}
+                    style={{ backgroundColor: "var(--primary)", color: "white" }}
                     onClick={handleCta}
                 >
                     Create your first payslip <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
                 <Link
                     href="/pricing"
-                    className="text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--amber-500)] transition-colors whitespace-nowrap px-2"
+                    className="text-xs font-bold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors whitespace-nowrap px-2"
                 >
                     Pricing
                 </Link>

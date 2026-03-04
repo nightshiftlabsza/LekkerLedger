@@ -78,17 +78,17 @@ function EmployeeDetailContent() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
-                <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border-subtle)]">
+            <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
+                <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border)]">
                     <div className="max-w-4xl mx-auto w-full flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-[var(--bg-subtle)] animate-pulse" />
-                        <div className="h-9 w-9 rounded-xl bg-[var(--bg-subtle)] animate-pulse" />
-                        <div className="h-4 w-32 bg-[var(--bg-subtle)] animate-pulse rounded" />
+                        <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
+                        <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
+                        <div className="h-4 w-32 bg-[var(--surface-2)] animate-pulse rounded" />
                     </div>
                 </header>
                 <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 space-y-4">
-                    <div className="h-16 w-full rounded-2xl bg-[var(--bg-surface)] animate-pulse" />
-                    <div className="h-48 w-full rounded-2xl bg-[var(--bg-surface)] animate-pulse" />
+                    <div className="h-16 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse" />
+                    <div className="h-48 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse" />
                 </main>
             </div>
         );
@@ -100,17 +100,17 @@ function EmployeeDetailContent() {
     const sickLeaveDays = leaveRecords.filter(r => r.type === "sick").reduce((s, r) => s + r.days, 0);
 
     return (
-        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
+        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border-subtle)]">
+            <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border)]">
                 <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SideDrawer />
                         <Link href="/employees">
                             <button
                                 aria-label="Back to employees"
-                                className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--bg-subtle)]"
-                                style={{ color: "var(--text-secondary)" }}
+                                className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-2)]"
+                                style={{ color: "var(--text-muted)" }}
                             >
                                 <ArrowLeft className="h-4 w-4" />
                             </button>
@@ -119,9 +119,9 @@ function EmployeeDetailContent() {
                             <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
                                 <Link href="/employees" className="hover:underline">Employees</Link>
                                 {" › "}
-                                <span style={{ color: "var(--text-secondary)" }}>{employee.name}</span>
+                                <span style={{ color: "var(--text-muted)" }}>{employee.name}</span>
                             </p>
-                            <h1 className="font-extrabold text-sm tracking-tight" style={{ color: "var(--text-primary)" }}>
+                            <h1 className="font-extrabold text-sm tracking-tight" style={{ color: "var(--text)" }}>
                                 {employee.name}
                             </h1>
                         </div>
@@ -138,20 +138,20 @@ function EmployeeDetailContent() {
                 {/* Hero */}
                 <div className="flex items-center gap-4 animate-fade-in">
                     <div className="h-16 w-16 rounded-2xl flex items-center justify-center text-white font-black text-2xl shrink-0"
-                        style={{ backgroundColor: "var(--amber-500)" }}>
+                        style={{ backgroundColor: "var(--primary)" }}>
                         {employee.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <h2 className="text-xl font-extrabold" style={{ color: "var(--text-primary)" }}>{employee.name}</h2>
-                        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                        <h2 className="text-xl font-extrabold" style={{ color: "var(--text)" }}>{employee.name}</h2>
+                        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                             {employee.role} · R{employee.hourlyRate.toFixed(2)}/hr
                         </p>
                     </div>
                 </div>
 
                 {/* Tab bar — pill style matching settings page */}
-                <div className="flex gap-1 p-1.5 rounded-2xl border border-[var(--border-subtle)]"
-                    style={{ backgroundColor: "var(--bg-surface)" }}>
+                <div className="flex gap-1 p-1.5 rounded-2xl border border-[var(--border)]"
+                    style={{ backgroundColor: "var(--surface-1)" }}>
                     {TABS.map(({ id: tabId, label, icon: Icon }) => {
                         const active = activeTab === tabId;
                         return (
@@ -161,7 +161,7 @@ function EmployeeDetailContent() {
                                 aria-pressed={active}
                                 className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200"
                                 style={{
-                                    backgroundColor: active ? "var(--amber-500)" : "transparent",
+                                    backgroundColor: active ? "var(--primary)" : "transparent",
                                     color: active ? "#ffffff" : "var(--text-muted)",
                                     boxShadow: active ? "var(--shadow-sm)" : "none",
                                 }}
@@ -196,9 +196,9 @@ function EmployeeDetailContent() {
                                         value={employee.ordinarilyWorksSundays ? "Yes (1.5× rate)" : "No (2× rate)"}
                                     />
                                 </div>
-                                <div className="pt-4 border-t border-[var(--border-subtle)]">
+                                <div className="pt-4 border-t border-[var(--border)]">
                                     <Link href={`/employees/${id}/edit`}>
-                                        <Button className="w-full bg-amber-500 text-white font-bold hover:bg-amber-600 h-11">
+                                        <Button className="w-full bg-[var(--primary)] text-white font-bold hover:brightness-95 h-11">
                                             <Pencil className="h-4 w-4 mr-2" /> Edit Employee
                                         </Button>
                                     </Link>
@@ -213,10 +213,10 @@ function EmployeeDetailContent() {
                             {payslips.length === 0 ? (
                                 <Card className="glass-panel border-dashed border-2 p-10 text-center">
                                     <Clock className="h-10 w-10 mx-auto mb-3 text-[var(--text-muted)]" strokeWidth={1.5} />
-                                    <p className="font-bold text-sm mb-1" style={{ color: "var(--text-primary)" }}>No payslips yet</p>
-                                    <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>Generate the first payslip for {employee.name}.</p>
+                                    <p className="font-bold text-sm mb-1" style={{ color: "var(--text)" }}>No payslips yet</p>
+                                    <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Generate the first payslip for {employee.name}.</p>
                                     <Link href={`/wizard?empId=${id}`}>
-                                        <Button className="bg-amber-500 text-white font-bold hover:bg-amber-600">Create Payslip</Button>
+                                        <Button className="bg-[var(--primary)] text-white font-bold hover:brightness-95">Create Payslip</Button>
                                     </Link>
                                 </Card>
                             ) : (
@@ -227,10 +227,10 @@ function EmployeeDetailContent() {
                                             <CardContent className="p-4">
                                                 <div className="flex items-center justify-between gap-3">
                                                     <div>
-                                                        <p className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>
+                                                        <p className="font-bold text-sm" style={{ color: "var(--text)" }}>
                                                             {format(new Date(ps.payPeriodStart), "MMM d")} – {format(new Date(ps.payPeriodEnd), "MMM d, yyyy")}
                                                         </p>
-                                                        <p className="text-xs tabular-nums" style={{ color: "var(--text-secondary)" }}>
+                                                        <p className="text-xs tabular-nums" style={{ color: "var(--text-muted)" }}>
                                                             Net: <strong>R{calc.netPay.toFixed(2)}</strong> · Gross: R{calc.grossPay.toFixed(2)}
                                                         </p>
                                                     </div>
@@ -246,7 +246,7 @@ function EmployeeDetailContent() {
                                                         ) : (
                                                             <>
                                                                 <Link href={`/preview?payslipId=${ps.id}&empId=${id}`}>
-                                                                    <Button variant="ghost" size="sm" className="gap-1.5 text-xs font-bold text-amber-600 hover:bg-amber-500/10 h-8">
+                                                                    <Button variant="ghost" size="sm" className="gap-1.5 text-xs font-bold text-[var(--focus)] hover:bg-[var(--primary)]/10 h-8">
                                                                         <Eye className="h-3.5 w-3.5" /> View
                                                                     </Button>
                                                                 </Link>
@@ -265,7 +265,7 @@ function EmployeeDetailContent() {
                             )}
                             {payslips.length > 0 && (
                                 <Link href={`/wizard?empId=${id}`}>
-                                    <Button className="w-full bg-amber-500 text-white font-bold hover:bg-amber-600 mt-2">
+                                    <Button className="w-full bg-[var(--primary)] text-white font-bold hover:brightness-95 mt-2">
                                         + New Payslip
                                     </Button>
                                 </Link>
@@ -279,13 +279,13 @@ function EmployeeDetailContent() {
                             <div className="grid grid-cols-2 gap-3">
                                 <Card className="glass-panel border-none">
                                     <CardContent className="p-4 text-center">
-                                        <p className="text-2xl font-black" style={{ color: "var(--text-primary)" }}>{annualLeaveDays}</p>
+                                        <p className="text-2xl font-black" style={{ color: "var(--text)" }}>{annualLeaveDays}</p>
                                         <p className="text-[10px] uppercase font-bold" style={{ color: "var(--text-muted)" }}>Annual Days Taken</p>
                                     </CardContent>
                                 </Card>
                                 <Card className="glass-panel border-none">
                                     <CardContent className="p-4 text-center">
-                                        <p className="text-2xl font-black" style={{ color: "var(--text-primary)" }}>{sickLeaveDays}</p>
+                                        <p className="text-2xl font-black" style={{ color: "var(--text)" }}>{sickLeaveDays}</p>
                                         <p className="text-[10px] uppercase font-bold" style={{ color: "var(--text-muted)" }}>Sick Days Taken</p>
                                     </CardContent>
                                 </Card>
@@ -296,7 +296,7 @@ function EmployeeDetailContent() {
                                         <Card key={lr.id} className="glass-panel border-none">
                                             <CardContent className="p-4 flex items-center justify-between">
                                                 <div>
-                                                    <p className="font-bold text-sm capitalize" style={{ color: "var(--text-primary)" }}>
+                                                    <p className="font-bold text-sm capitalize" style={{ color: "var(--text)" }}>
                                                         {lr.type} leave — {lr.days} day{lr.days !== 1 ? "s" : ""}
                                                     </p>
                                                     <p className="text-xs" style={{ color: "var(--text-muted)" }}>
@@ -311,8 +311,8 @@ function EmployeeDetailContent() {
                             ) : (
                                 <Card className="glass-panel border-dashed border-2 p-8 text-center">
                                     <Palmtree className="h-10 w-10 mx-auto mb-3 text-[var(--text-muted)]" strokeWidth={1.5} />
-                                    <p className="font-bold text-sm mb-1" style={{ color: "var(--text-primary)" }}>No leave records</p>
-                                    <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Track leave taken per pay period.</p>
+                                    <p className="font-bold text-sm mb-1" style={{ color: "var(--text)" }}>No leave records</p>
+                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>Track leave taken per pay period.</p>
                                 </Card>
                             )}
                             <Link href={`/leave?employeeId=${id}`}>
@@ -331,8 +331,8 @@ function EmployeeDetailContent() {
                                     Generate Documents
                                 </h3>
                                 <button
-                                    className="w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-colors hover:bg-[var(--bg-subtle)] disabled:opacity-50"
-                                    style={{ borderColor: "var(--border-subtle)" }}
+                                    className="w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50"
+                                    style={{ borderColor: "var(--border)" }}
                                     disabled={generatingPdf}
                                     onClick={async () => {
                                         if (!settings) return;
@@ -350,20 +350,20 @@ function EmployeeDetailContent() {
                                         finally { setGeneratingPdf(false); }
                                     }}
                                 >
-                                    <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                                    <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                         {generatingPdf
-                                            ? <Loader2 className="h-5 w-5 animate-spin text-amber-500" />
-                                            : <FileBadge className="h-5 w-5 text-amber-500" />}
+                                            ? <Loader2 className="h-5 w-5 animate-spin text-[var(--focus)]" />
+                                            : <FileBadge className="h-5 w-5 text-[var(--focus)]" />}
                                     </div>
                                     <div>
-                                        <p className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Certificate of Service</p>
-                                        <p className="text-xs" style={{ color: "var(--text-secondary)" }}>BCEA-compliant PDF for the employee</p>
+                                        <p className="font-bold text-sm" style={{ color: "var(--text)" }}>Certificate of Service</p>
+                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>BCEA-compliant PDF for the employee</p>
                                     </div>
                                 </button>
 
                                 <button
-                                    className="w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-colors hover:bg-[var(--bg-subtle)] disabled:opacity-50"
-                                    style={{ borderColor: "var(--border-subtle)" }}
+                                    className="w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50"
+                                    style={{ borderColor: "var(--border)" }}
                                     disabled={generatingContract}
                                     onClick={async () => {
                                         if (!settings) return;
@@ -382,14 +382,14 @@ function EmployeeDetailContent() {
                                         finally { setGeneratingContract(false); }
                                     }}
                                 >
-                                    <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                                    <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                         {generatingContract
-                                            ? <Loader2 className="h-5 w-5 animate-spin text-amber-500" />
-                                            : <ScrollText className="h-5 w-5 text-amber-500" />}
+                                            ? <Loader2 className="h-5 w-5 animate-spin text-[var(--focus)]" />
+                                            : <ScrollText className="h-5 w-5 text-[var(--focus)]" />}
                                     </div>
                                     <div>
-                                        <p className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Employment Contract</p>
-                                        <p className="text-xs" style={{ color: "var(--text-secondary)" }}>BCEA-compliant contract PDF</p>
+                                        <p className="font-bold text-sm" style={{ color: "var(--text)" }}>Employment Contract</p>
+                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>BCEA-compliant contract PDF</p>
                                     </div>
                                 </button>
                             </CardContent>
@@ -404,13 +404,13 @@ function EmployeeDetailContent() {
 
 function ProfileRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
     return (
-        <div className="flex items-center gap-3 py-2 border-b border-[var(--border-subtle)] last:border-0">
-            <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                <Icon className="h-4 w-4 text-amber-500" />
+        <div className="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
+            <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                <Icon className="h-4 w-4 text-[var(--focus)]" />
             </div>
             <div className="flex-1 flex items-center justify-between gap-2 min-w-0">
                 <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{label}</span>
-                <span className="text-sm font-semibold text-right" style={{ color: "var(--text-primary)" }}>{value}</span>
+                <span className="text-sm font-semibold text-right" style={{ color: "var(--text)" }}>{value}</span>
             </div>
         </div>
     );
@@ -420,8 +420,8 @@ export default function EmployeeDetailPage() {
     return (
         <React.Suspense
             fallback={
-                <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
-                    <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--amber-500)" }} />
+                <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
+                    <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--primary)" }} />
                 </div>
             }
         >

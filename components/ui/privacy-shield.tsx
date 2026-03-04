@@ -16,7 +16,7 @@ export function PrivacyShield({ className, isSensitiveFocused }: PrivacyShieldPr
                 "group relative overflow-hidden flex items-center gap-2.5 px-4 py-2 rounded-2xl text-[11px] font-bold transition-all duration-700",
                 "backdrop-blur-md border shadow-sm",
                 isSensitiveFocused
-                    ? "bg-amber-500/10 text-amber-600 border-amber-200/50 ring-4 ring-amber-500/5"
+                    ? "bg-[var(--primary)]/10 text-[var(--focus)] border-[var(--border)]/50 ring-4 ring-amber-500/5"
                     : "bg-emerald-500/5 text-emerald-600 border-emerald-100/50",
                 className
             )}
@@ -26,7 +26,7 @@ export function PrivacyShield({ className, isSensitiveFocused }: PrivacyShieldPr
 
             <div className={cn(
                 "h-5 w-5 rounded-full flex items-center justify-center transition-all duration-500",
-                isSensitiveFocused ? "bg-amber-500 text-white scale-110" : "bg-emerald-500 text-white shadow-emerald-200/20"
+                isSensitiveFocused ? "bg-[var(--primary)] text-white scale-110" : "bg-emerald-500 text-white shadow-emerald-200/20"
             )}>
                 {isSensitiveFocused ? (
                     <Lock className="h-3 w-3 animate-pulse" />

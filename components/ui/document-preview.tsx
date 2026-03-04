@@ -46,14 +46,14 @@ export function DocumentPreview({ url, fileName, onClose, onDownload }: Document
                     expanded
                         ? "lg:top-0 lg:right-0 lg:bottom-0 lg:left-1/4"
                         : "lg:top-0 lg:right-0 lg:bottom-0 lg:w-[40%] lg:min-w-[420px]",
-                    "lg:border-l lg:border-[var(--border-subtle)]",
+                    "lg:border-l lg:border-[var(--border)]",
                     "animate-slide-up lg:animate-none",
                 ].join(" ")}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] shrink-0">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] shrink-0">
                     <div className="min-w-0 flex-1">
-                        <p className="type-body-bold text-[var(--text-primary)] truncate">
+                        <p className="type-body-bold text-[var(--text)] truncate">
                             {fileName ?? "Document Preview"}
                         </p>
                     </div>
@@ -77,7 +77,7 @@ export function DocumentPreview({ url, fileName, onClose, onDownload }: Document
                 </div>
 
                 {/* Preview content */}
-                <div className="flex-1 overflow-hidden bg-[var(--bg-subtle)]">
+                <div className="flex-1 overflow-hidden bg-[var(--surface-2)]">
                     <iframe
                         src={url}
                         title={fileName ?? "Document preview"}
@@ -87,12 +87,12 @@ export function DocumentPreview({ url, fileName, onClose, onDownload }: Document
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between px-4 py-2 border-t border-[var(--border-subtle)] shrink-0">
+                <div className="flex items-center justify-between px-4 py-2 border-t border-[var(--border)] shrink-0">
                     <Button variant="ghost" size="sm" onClick={onClose} className="text-xs font-bold gap-1">
                         Close
                     </Button>
                     <a href={url} target="_blank" rel="noopener noreferrer">
-                        <Button variant="ghost" size="sm" className="text-xs font-bold gap-1 text-[var(--amber-500)]">
+                        <Button variant="ghost" size="sm" className="text-xs font-bold gap-1 text-[var(--primary)]">
                             <ExternalLink className="h-3 w-3" /> Open in new tab
                         </Button>
                     </a>

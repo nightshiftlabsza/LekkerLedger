@@ -11,165 +11,142 @@
    D4 fix: defined typography scale — one source of truth
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  /* ─── Utility Palette (raw scale) ───────────────────────────────────────── */
-  --amber-500: #d97706;
-  --amber-600: #b45309;
-  --green-500: #16a34a;
-  --red-500: #dc2626;
-  --red-50: #fef2f2;
-  --blue-500: #2563eb;
+  /* Core surfaces */
+  --bg: #FAF7F0;          /* paper */
+  --surface-1: #FFFFFF;   /* primary surfaces */
+  --surface-2: #FFFFFF;   /* secondary surfaces (use border/lines to differentiate in light) */
+  --border: #E6E0D6;
 
-  /* ─── Semantic Color Roles — SA-inspired ────────────────────────────────── */
-  /* D8 fix: --color-brand is now SA flag gold (#c47a1c), not generic amber */
-  --color-brand: #c47a1c;
-  /* SA flag gold — warm, authoritative */
-  --color-brand-hover: #a86c20;
-  /* Deeper SA amber for hover state */
-  --color-brand-subtle: #fef3c7;
-  /* Warm amber tint for backgrounds */
-  --color-success: #16a34a;
-  /* Kruger bushveld green */
-  --color-warning: #ea580c;
-  /* Highveld sunset warm orange */
-  --color-error: #dc2626;
-  /* Universal red — kept for clarity */
-  --color-info: #2563eb;
-  /* SA flag blue — trustworthy */
+  /* Text */
+  --text: #101828;
+  --text-muted: #475467;
 
-  /* ─── Backgrounds — WARM, not cold zinc ────────────────────────────────── */
-  /* D8 fix: was #fafafa (cold zinc) → now #faf9f7 (warm off-white) */
-  --bg-base: #faf9f7;
-  /* Warm off-white — like SA paper/linen */
-  --bg-surface: #ffffff;
-  /* Pure white card surface */
-  --bg-subtle: #f5f4f2;
-  /* Warm light grey — was cold #f4f4f5 */
-  --bg-muted: #edecea;
-  /* Warm muted — for badges, tags */
+  /* Accents */
+  --primary: #007A4D;
+  --primary-hover: #006E45;
+  --primary-pressed: #005C3A;
+  --on-primary: #FFFFFF;
 
-  /* ─── Text ──────────────────────────────────────────────────────────────── */
-  /* D8 fix: was #27272a (cold zinc-900) → now #1a1a1a (near-black, neutral) */
-  --text-primary: #1a1a1a;
-  /* Near-black — readable, not clinical */
-  --text-secondary: #525252;
-  /* Mid-grey — secondary content */
-  --text-muted: #737373;
-  /* Muted — labels, placeholders */
-  --text-inverse: #ffffff;
-  /* For text on dark/amber backgrounds */
+  --focus: #C47A1C;
+  --focus-offset: 3px;
 
-  /* ─── Borders ───────────────────────────────────────────────────────────── */
-  --border-default: #e5e5e5;
-  /* Standard divider */
-  --border-strong: #d4d4d4;
-  /* Emphasis border */
-  --border-subtle: #f0efed;
-  /* Barely-there warm separator */
+  /* Status */
+  --danger: #B42318;
+  --success: #067647;
+  --warning: #B54708;
 
-  /* ─── Shadows (Light) ───────────────────────────────────────────────────── */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.10), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.10), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.10);
+  /* Elevation */
+  --shadow-1: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 1px rgba(16, 24, 40, 0.04);
+  --shadow-2: 0 12px 28px rgba(16, 24, 40, 0.14);
 
-  /* ─── Glassmorphism ─────────────────────────────────────────────────────── */
-  --glass-bg: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.35);
+  /* Radii */
+  --radius-1: 8px;
+  --radius-2: 12px;
+  --radius-3: 16px;
 
-  /* ─── Typography Scale — D4 fix: one defined scale, used everywhere ─────── */
-  --font-display: clamp(2.5rem, 5vw, 4.5rem);
-  /* Hero / Display */
-  --font-h1: clamp(1.75rem, 3.5vw, 2.25rem);
-  /* Page titles */
-  --font-h2: clamp(1.25rem, 2.5vw, 1.5rem);
-  /* Section headings */
-  --font-h3: 1.125rem;
-  /* Card titles */
-  --font-body: 0.9375rem;
-  /* Body text */
-  --font-label: 0.8125rem;
-  /* Form labels */
-  --font-caption: 0.6875rem;
-  /* Overlines / captions */
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
 
-  /* ─── Radii ─────────────────────────────────────────────────────────────── */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-full: 9999px;
+  /* ─── Typography Scale Variables ────────────────────────────────────────── */
+  --font-serif: "IBM Plex Serif", ui-serif, Georgia, serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  /* Headings (Serif) */
+  --h1-size: clamp(2.0rem, 3.2vw, 2.75rem);
+  --h1-lh: 1.15;
+  --h1-w: 600;
+  --h1-ls: -0.02em;
+
+  --h2-size: clamp(1.625rem, 2.4vw, 2.125rem);
+  --h2-lh: 1.2;
+  --h2-w: 600;
+  --h2-ls: -0.015em;
+
+  --h3-size: 1.5rem;
+  --h3-lh: 1.25;
+  --h3-w: 600;
+  --h3-ls: -0.01em;
+
+  --h4-size: 1.25rem;
+  --h4-lh: 1.3;
+  --h4-w: 600;
+  --h4-ls: -0.005em;
+
+  --h5-size: 1.125rem;
+  --h5-lh: 1.35;
+  --h5-w: 600;
+  --h5-ls: 0;
+
+  --h6-size: 1rem;
+  --h6-lh: 1.4;
+  --h6-w: 600;
+  --h6-ls: 0;
+
+  /* Body/UI (Sans) */
+  --body-size: 1rem;
+  --body-lh: 1.6;
+  --body-w: 400;
+  --body-ls: 0;
+
+  --body-sm-size: 0.875rem;
+  --body-sm-lh: 1.55;
+  --body-sm-w: 400;
+
+  --label-size: 0.875rem;
+  --label-lh: 1.35;
+  --label-w: 500;
+  --label-ls: 0;
+
+  --button-size: 0.9375rem;
+  --button-lh: 1.2;
+  --button-w: 600;
+  --button-ls: 0.01em;
+
+  --caption-size: 0.75rem;
+  --caption-lh: 1.35;
+  --caption-w: 400;
+  --caption-ls: 0.02em;
+
+  color-scheme: light;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   DARK MODE TOKENS — Warm SA Highveld Night
-   D8 fix: warm dark tones, not cold zinc inverts
-   ═══════════════════════════════════════════════════════════════════════════ */
-[data-theme="dark"] {
-  /* ─── Utility Palette ───────────────────────────────────────────────────── */
-  --amber-500: #c8852e;
-  /* Burnished SA gold — warm, never garish */
-  --amber-600: #a86c20;
-  /* Deep SA amber — mellow, authoritative */
-  --green-500: #3baa7a;
-  /* Softer sage-green on dark backgrounds */
-  --red-500: #d95f5f;
-  /* Muted red — visible without screaming */
-  --red-50: rgba(217, 95, 95, 0.12);
-  --blue-500: #60a5fa;
-  /* SA flag blue — muted for dark mode */
+/* =========================================================
+   CIVIC LEDGER TOKENS (DARK) — canonical .theme-dark switch
+   ========================================================= */
+.theme-dark, [data-theme="dark"], .dark {
+  --bg: #0B0F14;
+  --surface-1: #111827;
+  --surface-2: #151F2E;
+  --border: #223045;
 
-  /* ─── Semantic Color Roles ──────────────────────────────────────────────── */
-  --color-brand: #c8852e;
-  /* Burnished SA gold in dark mode */
-  --color-brand-hover: #a86c20;
-  --color-brand-subtle: rgba(200, 133, 46, 0.12);
-  --color-success: #3baa7a;
-  --color-warning: #d97706;
-  --color-error: #d95f5f;
-  --color-info: #60a5fa;
+  --text: #E6EAF2;
+  --text-muted: #A7B0C0;
 
-  /* ─── Backgrounds — Warm Highveld night ─────────────────────────────────── */
-  --bg-base: #131110;
-  /* Deep warm near-black (Highveld soil dark) */
-  --bg-surface: #1c1916;
-  /* Warm dark charcoal-brown surface */
-  --bg-subtle: #252119;
-  /* Slightly lighter warm ochre-grey */
-  --bg-muted: #2c2720;
-  /* Warm muted surface */
+  /* Keep brand consistent (ONE green + ONE gold) */
+  --primary: #007A4D;
+  --primary-hover: #006E45;
+  --primary-pressed: #005C3A;
+  --on-primary: #FFFFFF;
 
-  /* ─── Text — Warm cream, NOT cold near-whites ───────────────────────────── */
-  --text-primary: #ede8e1;
-  /* Warm cream-white — always readable */
-  --text-secondary: #a08e78;
-  /* Warm taupe — secondary content */
-  --text-muted: #6b5e4e;
-  /* Warm earth-brown — muted labels */
-  --text-inverse: #131110;
+  --focus: #C47A1C;
+  --focus-offset: 3px;
 
-  /* ─── Borders ───────────────────────────────────────────────────────────── */
-  --border-default: #2c2720;
-  /* Warm dark border */
-  --border-strong: #3d3328;
-  /* Warm mid-brown border */
-  --border-subtle: #201d18;
-  /* Barely-there warm separator */
+  --danger: #F97066;
+  --success: #32D583;
+  --warning: #FDB022;
 
-  /* ─── Shadows — Deeper with amber warmth ────────────────────────────────── */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -1px rgba(0, 0, 0, 0.30);
-  --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.50), 0 4px 8px -2px rgba(0, 0, 0, 0.30);
-  --shadow-xl: 0 20px 30px -5px rgba(0, 0, 0, 0.55), 0 10px 12px -5px rgba(0, 0, 0, 0.35);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.60);
+  /* Dark elevation: softer, less “glow” */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-2: 0 12px 28px rgba(0, 0, 0, 0.60);
 
-  /* ─── Glassmorphism — Warm dark glass with amber-tinted rim ─────────────── */
-  --glass-bg: rgba(28, 25, 22, 0.80);
-  --glass-border: rgba(200, 133, 46, 0.18);
-  /* Subtle burnished-gold glass rim */
-
-  --color-foreground: var(--text-primary);
+  color-scheme: dark;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

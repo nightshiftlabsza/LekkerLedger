@@ -34,12 +34,12 @@ export const Stepper = ({ steps, currentStep, className }: StepperProps) => {
                                 ) : isCompleted ? (
                                     /* Completed Step: Check or number? The mock shows bare numbers.
                                        Let's use a bare checkmark just to show success. */
-                                    <Check className="h-5 w-5" style={{ color: "var(--amber-600)" }} strokeWidth={3} />
+                                    <Check className="h-5 w-5" style={{ color: "var(--primary-hover)" }} strokeWidth={3} />
                                 ) : (
                                     /* Inactive Step: Bare number */
                                     <span
                                         className="font-bold text-lg sm:text-xl transition-all duration-300"
-                                        style={{ color: "var(--text-primary)" }}
+                                        style={{ color: "var(--text)" }}
                                     >
                                         {index + 1}
                                     </span>
@@ -51,7 +51,7 @@ export const Stepper = ({ steps, currentStep, className }: StepperProps) => {
                                 <p
                                     className="font-bold text-xs sm:text-sm leading-tight transition-colors"
                                     style={{
-                                        color: isCurrent || isCompleted ? "var(--text-primary)" : "var(--text-primary)",
+                                        color: isCurrent || isCompleted ? "var(--text)" : "var(--text)",
                                     }}
                                 >
                                     {step.label}
@@ -59,7 +59,7 @@ export const Stepper = ({ steps, currentStep, className }: StepperProps) => {
                                 {step.description && (
                                     <p
                                         className="text-[10px] sm:text-xs leading-tight mt-1 opacity-90"
-                                        style={{ color: "var(--text-secondary)" }}
+                                        style={{ color: "var(--text-muted)" }}
                                     >
                                         {step.description}
                                     </p>
