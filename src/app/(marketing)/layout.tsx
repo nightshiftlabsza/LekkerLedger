@@ -3,10 +3,11 @@ import { Inter, IBM_Plex_Mono } from "next/font/google";
 import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GoogleWrapper } from "@/components/google-wrapper";
-import { PwaInstallListener } from "@/components/pwa-install-listener";
 import { SplashPortal } from "@/components/ui/splash-portal";
 import { ToastProvider } from "@/components/ui/toast";
-import Script from "next/script";
+import { Suspense } from "react";
+import { AnalyticsPageView } from "@/components/AnalyticsPageView";
+import { PwaInstallTracking } from "@/components/PwaInstallTracking";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -40,23 +41,31 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const gaId = "G-77MEDHHX58";
+  // TODO: remove debug_mode once events are confirmed in GA4 DebugView,
+  // or gate it behind: process.env.NEXT_PUBLIC_GA_DEBUG === "true"
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              window.gtag = gtag;
-              gtag('js', new Date());
-              gtag('config', '${gaId}', { debug_mode: true });
-            `,
-          }}
-        />
+        {gaId && (
+          <>
+            {/* GA4 loader */}
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+            {/* GA4 init: defines window.gtag and fires initial config + page_view */}
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  window.gtag = gtag;
+                  gtag('js', new Date());
+                  gtag('config', '${gaId}', { debug_mode: true, send_page_view: true });
+                `,
+              }}
+            />
+          </>
+        )}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -99,7 +108,15 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <PwaInstallListener />
+
+        {/* SPA page view tracking — must be wrapped in Suspense (useSearchParams requirement) */}
+        <Suspense fallback={null}>
+          <AnalyticsPageView />
+        </Suspense>
+
+        {/* PWA install tracking (beforeinstallprompt + appinstalled) */}
+        <PwaInstallTracking />
+
         <GoogleWrapper>
           <ThemeProvider>
             <ToastProvider>
