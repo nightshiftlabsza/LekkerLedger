@@ -6,8 +6,8 @@ import { GoogleWrapper } from "@/components/google-wrapper";
 import { SplashPortal } from "@/components/ui/splash-portal";
 import { ToastProvider } from "@/components/ui/toast";
 import { Suspense } from "react";
-import { AnalyticsPageView } from "@/components/AnalyticsPageView";
-import { PwaInstallTracking } from "@/components/PwaInstallTracking";
+import { AnalyticsPageView } from "@/src/components/AnalyticsPageView";
+import { PwaInstallTracking } from "@/src/components/PwaInstallTracking";
 
 const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-sans",
