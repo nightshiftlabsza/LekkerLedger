@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookOpen, MapPin, Building2, ChevronRight, CheckCircle2, ChevronLeft, Loader2, ShieldCheck, Github, AlertTriangle } from "lucide-react";
+import { BookOpen, MapPin, Building2, ChevronRight, CheckCircle2, ChevronLeft, Loader2, ShieldCheck, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -113,10 +113,9 @@ export default function OnboardingPage() {
                                                 <ShieldCheck className="h-5 w-5" style={{ color: "var(--green-500)" }} />
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>100% Private & Open Source</h3>
+                                                <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Private & Open Source</h3>
                                                 <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                                                    Your privacy is our number one priority. <strong>Your data is saved strictly to this device only</strong> (and can be backed up to your own private cloud via Google Sync).
-                                                    We have zero servers, zero databases, and absolutely zero access to your or your employee&apos;s personal details.
+                                                    Your payroll data stays on your device. If you enable Google Drive sync, a backup is stored in your own private Drive folder. LekkerLedger does not maintain a central employee database.
                                                 </p>
                                                 <div className="flex items-center gap-1.5 mt-2">
                                                     <Github className="h-3 w-3" style={{ color: "var(--text-muted)" }} />
@@ -132,12 +131,12 @@ export default function OnboardingPage() {
                                     <CardContent className="p-4 bg-zinc-950 text-white rounded-xl border-none">
                                         <div className="flex gap-4">
                                             <div className="flex-shrink-0 mt-1">
-                                                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                                                <ShieldCheck className="h-5 w-5 text-amber-500" />
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-sm">Peace of Mind</h3>
+                                                <h3 className="font-bold text-sm">Clear Records, Less Admin</h3>
                                                 <p className="text-[11px] mt-1 text-zinc-400 leading-relaxed">
-                                                    In SA, a single procedural error in a payslip can lead to CCMA awards of up to 12 months&apos; salary. LekkerLedger is your digital safety net.
+                                                    Consistent payslips protect both employer and employee. LekkerLedger helps you keep organised records with built-in compliance checks.
                                                 </p>
                                             </div>
                                         </div>
@@ -231,7 +230,7 @@ export default function OnboardingPage() {
                             </div>
 
                             <p className="text-center text-[10px] px-8 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Your data is protected by POPIA compliant local-only storage. We never see your details.
+                                Designed with POPIA principles in mind. Saved locally; backed up to your Drive if sync is enabled.
                             </p>
                         </form>
                     )}

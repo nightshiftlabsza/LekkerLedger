@@ -2,12 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, BookOpen, ShieldCheck, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function RulesPage() {
-    const router = useRouter();
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-base)" }}>
@@ -50,7 +48,7 @@ export default function RulesPage() {
                             <div>
                                 <h3 className="font-bold text-base" style={{ color: "var(--text-primary)" }}>1. Minimum Wage is R30.23/hr</h3>
                                 <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                                    As of 2026, the absolute legal minimum you can pay a domestic worker is R30.23 per hour worked.
+                                    As of 2026, the legal minimum you can pay a domestic worker is R30.23 per hour worked.
                                     <br />
                                     <a href="https://www.gov.za/documents/notices/national-minimum-wage-act-national-minimum-wage-9-jan-2025" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: Dept. of Employment & Labour (2026)</a>
                                 </p>
@@ -109,10 +107,15 @@ export default function RulesPage() {
                     </div>
                 </div>
 
-                <div className="pt-6 pb-8 animate-slide-up" style={{ animationDelay: "200ms" }}>
-                    <Button className="w-full gap-2 h-12 text-base font-bold" onClick={() => router.back()}>
-                        <CheckCircle2 className="h-5 w-5" /> I Understand
-                    </Button>
+                <div className="pt-6 pb-8 animate-slide-up space-y-4" style={{ animationDelay: "200ms" }}>
+                    <p className="text-xs text-center leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                        This guide is informational only and does not constitute legal advice. Always verify against <a href="https://www.gov.za" target="_blank" rel="noopener noreferrer" className="underline">official government sources</a>. Last updated: March 2026.
+                    </p>
+                    <Link href="/">
+                        <Button className="w-full gap-2 h-12 text-base font-bold">
+                            <ChevronLeft className="h-5 w-5" /> Back to Home
+                        </Button>
+                    </Link>
                 </div>
             </main>
         </div>

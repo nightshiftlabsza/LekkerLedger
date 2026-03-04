@@ -34,7 +34,7 @@ export default function TermsOfService() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">2. Nature of Service</h2>
                         <p>
-                            LekkerLedger is a payroll calculation and compliance tool. While we strive for absolute accuracy based on current South African labor laws (BCEA, Sectoral Determination 7), calculations should be verified. We are not a law firm or a substitute for legal advice.
+                            LekkerLedger is a payroll calculation and compliance tool. While we aim to keep rules updated based on current South African labor laws (BCEA, Sectoral Determination 7), calculations should always be verified against official sources. We are not a law firm or a substitute for legal advice.
                         </p>
                     </section>
 
@@ -58,7 +58,7 @@ export default function TermsOfService() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">5. Limitation of Liability</h2>
                         <p>
-                            To the maximum extent permitted by South African law, Nightshift Labs ZA shall not be liable for any CCMA awards, legal fees, or financial losses resulting from the use of this tool. Your use of LekkerLedger is at your own risk.
+                            To the maximum extent permitted by South African law, Nightshift Labs ZA shall not be liable for any labour dispute outcomes, legal fees, or financial losses resulting from the use of this tool. Your use of LekkerLedger is at your own risk.
                         </p>
                     </section>
 

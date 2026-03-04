@@ -165,7 +165,7 @@ export default function AddEmployeePage() {
                                     disabled={loading}
                                 />
                                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                    Stored on-device only. Used on the payslip PDF.
+                                    Saved locally. If Drive sync is on, included in your backup. Used on the payslip PDF.
                                 </p>
                             </div>
 
