@@ -8,6 +8,7 @@
 import { Employee, PayslipInput, EmployerSettings } from "./schema";
 import { calculatePayslip } from "./calculator";
 import { format } from "date-fns";
+import { getCurrentTaxYearRange } from "./storage";
 
 export interface UFilingRow {
     employeeName: string;
@@ -28,8 +29,8 @@ export function generateUFilingData(
 ): UFilingRow[] {
     const rows: UFilingRow[] = [];
 
+    // Filter locked payslips for this specific month/year
     for (const emp of employees) {
-        // Find payslips for this employee in the given month/year
         const empPayslips = payslips.filter((p) => {
             const start = new Date(p.payPeriodStart);
             return (
@@ -39,6 +40,44 @@ export function generateUFilingData(
             );
         });
 
+        for (const ps of empPayslips) {
+            const breakdown = calculatePayslip(ps);
+            rows.push({
+                employeeName: emp.name,
+                idNumber: emp.idNumber || "",
+                periodStart: format(new Date(ps.payPeriodStart), "yyyy-MM-dd"),
+                periodEnd: format(new Date(ps.payPeriodEnd), "yyyy-MM-dd"),
+                grossRemuneration: breakdown.grossPay,
+                uifEmployee: breakdown.deductions.uifEmployee,
+                uifEmployer: breakdown.employerContributions.uifEmployer,
+                totalUif: breakdown.deductions.uifEmployee + breakdown.employerContributions.uifEmployer,
+            });
+        }
+    }
+
+    return rows;
+}
+
+export function generateUFilingTaxYearData(
+    employees: Employee[],
+    payslips: PayslipInput[],
+    yearEnd: number // e.g. 2026 for the 2025/2026 tax year
+): UFilingRow[] {
+    const taxYear = getCurrentTaxYearRange(new Date(yearEnd, 1, 15)); // mid Feb of end year
+    const rows: UFilingRow[] = [];
+
+    for (const emp of employees) {
+        const empPayslips = payslips.filter((p) => {
+            const start = new Date(p.payPeriodStart);
+            return (
+                p.employeeId === emp.id &&
+                start >= taxYear.start &&
+                start <= taxYear.end
+            );
+        });
+
+        // Group by month to avoid duplicate records per period in aggregate view?
+        // Actually uFiling requires monthly breakdown.
         for (const ps of empPayslips) {
             const breakdown = calculatePayslip(ps);
             rows.push({

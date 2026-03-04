@@ -32,6 +32,24 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         uifEmployee: "UIF (Employee contribution 1%)",
         accommodation: "Accommodation Deduction (Capped at 10%)",
         employerContributions: "EMPLOYER CONTRIBUTIONS (For your records)",
+        ordinaryHours: "Ordinary Hours",
+        overtime: "Overtime",
+        sundayPay: "Sunday Pay",
+        publicHoliday: "Public Holiday",
+        daysWorked: "Days Worked",
+        uifEmployer: "UIF Employer (1%)",
+        sdlEmployer: "SDL Employer (0%)",
+        exempt: "Exempt",
+        leaveRecorded: "Leave Recorded",
+        annual: "Annual",
+        sick: "Sick",
+        family: "Family",
+        legalDisclaimer: "This payslip is generated in accordance with Sectoral Determination 7 and the BCEA.",
+        minWage: "Minimum wage",
+        proudlySA: "Proudly South African",
+        legal: "LEGAL",
+        compliant: "COMPLIANT",
+        bcea_sd7: "BCEA/SD7"
     },
     zu: {
         payslip: "ISILIPHU SEHOLO",
@@ -42,13 +60,31 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         description: "INCAZELO",
         hours: "AMAHORA",
         rate: "IZINGA",
-        total: "ISIKHATHI",
+        total: "INGQIKITHI",
         grossEarnings: "INANI LILONKE",
         deductions: "IZIMALI EZIDONSWAYO",
         totalDeductions: "IZIMALI EZIDONSIWE ZONKE",
         uifEmployee: "I-UIF (Umnikelo woMsebenzi 1%)",
         accommodation: "Indawo yokuhlala (Inqunywe ku-10%)",
         employerContributions: "IMINIKELO YOMQASHI (Amarekhodi akho)",
+        ordinaryHours: "Amahora Ajwayelekile",
+        overtime: "Isikhathi Esengeziwe",
+        sundayPay: "Inkokhelo YangeSonto",
+        publicHoliday: "Iholide Lomphakathi",
+        daysWorked: "Izinsuku Ezisetshenziwe",
+        uifEmployer: "I-UIF Yomqashi (1%)",
+        sdlEmployer: "I-SDL Yomqashi (0%)",
+        exempt: "Ikhululiwe",
+        leaveRecorded: "Ikhefu Elirekhodiwe",
+        annual: "Lonyaka",
+        sick: "Lokugula",
+        family: "Lomndeni",
+        legalDisclaimer: "Leli siliphu seholo senziwe ngokuhambisana ne-Sectoral Determination 7 kanye ne-BCEA.",
+        minWage: "Iholo elincane",
+        proudlySA: "Kwenziwe eNingizimu Afrika",
+        legal: "KUMTHETHO",
+        compliant: "KUYAHHAMBISANA",
+        bcea_sd7: "BCEA/SD7"
     },
     xh: {
         payslip: "ISILIPHU SOMVUZO",
@@ -59,13 +95,31 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         description: "INKCAZELO",
         hours: "IIYURE",
         rate: "IZINGA",
-        total: "ISISEKO",
+        total: "IMALI IONKE",
         grossEarnings: "IMALI IONKE",
         deductions: "IZITHABATHO",
         totalDeductions: "IZITHABATHO ZONKE",
         uifEmployee: "I-UIF (Igalelo lomsebenzi 1%)",
         accommodation: "Indawo yokuhlala (Ilinganiselwe kwi-10%)",
         employerContributions: "AMAGALELO OMQAHSIL (Iirekhodi zakho)",
+        ordinaryHours: "Iiyure Eziqhelekileyo",
+        overtime: "Ixesha Elingaphezulu",
+        sundayPay: "Intlawulo YeCawe",
+        publicHoliday: "Iholide Yoluntu",
+        daysWorked: "Iintsuku Ezisetyenzisiweyo",
+        uifEmployer: "I-UIF yoMqashi (1%)",
+        sdlEmployer: "I-SDL yoMqashi (0%)",
+        exempt: "Ikhululwe",
+        leaveRecorded: "Ikhefu Elibhalisiweyo",
+        annual: "Yonyaka",
+        sick: "Yokugula",
+        family: "Yosapho",
+        legalDisclaimer: "Esi siliphu somvuzo senziwe ngokungqinelana neSectoral Determination 7 kunye neBCEA.",
+        minWage: "Umvuzo ophantsi",
+        proudlySA: "Yenziwe eMzantsi Afrika",
+        legal: "KUSEMthethweni",
+        compliant: "IYAQHUBEKA",
+        bcea_sd7: "BCEA/SD7"
     }
 };
 
@@ -182,7 +236,7 @@ export async function generatePayslipPdfBytes(
     // Period Box
     t(dict.payPeriod, width - 180, infoY, { font: bold, size: 8, color: SLATE });
     t(`${format(payslip.payPeriodStart, "dd MMM")} – ${format(payslip.payPeriodEnd, "dd MMM yyyy")}`, width - 180, infoY - 18, { font: regular, size: 10 });
-    t(`Days Worked: ${payslip.daysWorked}`, width - 180, infoY - 32, { font: regular, size: 9, color: SLATE });
+    t(`${dict.daysWorked}: ${payslip.daysWorked}`, width - 180, infoY - 32, { font: regular, size: 9, color: SLATE });
 
     line(height - 200);
 
@@ -196,7 +250,7 @@ export async function generatePayslipPdfBytes(
     cy -= 20;
 
     // Ordinary
-    t("Ordinary Hours", 48, cy, { size: 10 });
+    t(dict.ordinaryHours, 48, cy, { size: 10 });
     t(breakdown.effectiveOrdinaryHours.toString(), width - 150, cy, { size: 10, align: "right" });
     t(`R ${payslip.hourlyRate.toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
     t(`R ${breakdown.ordinaryPay.toFixed(2)}`, width - 48, cy, { font: bold, size: 10, align: "right" });
@@ -204,7 +258,7 @@ export async function generatePayslipPdfBytes(
 
     // Overtime
     if (payslip.overtimeHours > 0) {
-        t("Overtime (1.5x)", 48, cy, { size: 10 });
+        t(`${dict.overtime} (1.5x)`, 48, cy, { size: 10 });
         t(payslip.overtimeHours.toString(), width - 150, cy, { size: 10, align: "right" });
         t(`R ${(payslip.hourlyRate * 1.5).toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
         t(`R ${breakdown.overtimePay.toFixed(2)}`, width - 48, cy, { size: 10, align: "right" });
@@ -214,7 +268,7 @@ export async function generatePayslipPdfBytes(
     // Sunday
     if (payslip.sundayHours > 0) {
         const mult = employee.ordinarilyWorksSundays ? 1.5 : 2.0;
-        t(`Sunday Pay (${mult}x)`, 48, cy, { size: 10 });
+        t(`${dict.sundayPay} (${mult}x)`, 48, cy, { size: 10 });
         t(payslip.sundayHours.toString(), width - 150, cy, { size: 10, align: "right" });
         t(`R ${(payslip.hourlyRate * mult).toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
         t(`R ${breakdown.sundayPay.toFixed(2)}`, width - 48, cy, { size: 10, align: "right" });
@@ -223,7 +277,7 @@ export async function generatePayslipPdfBytes(
 
     // Holiday
     if (payslip.publicHolidayHours > 0) {
-        t("Public Holiday (2x)", 48, cy, { size: 10 });
+        t(`${dict.publicHoliday} (2x)`, 48, cy, { size: 10 });
         t(payslip.publicHolidayHours.toString(), width - 150, cy, { size: 10, align: "right" });
         t(`R ${(payslip.hourlyRate * 2).toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
         t(`R ${breakdown.publicHolidayPay.toFixed(2)}`, width - 48, cy, { size: 10, align: "right" });
@@ -268,23 +322,23 @@ export async function generatePayslipPdfBytes(
     line(footerY + 20);
 
     t(dict.employerContributions, 48, footerY, { font: bold, size: 7, color: SLATE });
-    t(`UIF Employer (1%): R ${breakdown.employerContributions.uifEmployer.toFixed(2)}`, 48, footerY - 12, { size: 7, color: SLATE });
-    t(`SDL Employer (0%): R 0.00 (Exempt)`, 48, footerY - 20, { size: 7, color: SLATE });
+    t(`${dict.uifEmployer}: R ${breakdown.employerContributions.uifEmployer.toFixed(2)}`, 48, footerY - 12, { size: 7, color: SLATE });
+    t(`${dict.sdlEmployer}: R 0.00 (${dict.exempt})`, 48, footerY - 20, { size: 7, color: SLATE });
 
-    const leaveText = `Leave Recorded: Annual: ${breakdown.leaveTaken.annual}d | Sick: ${breakdown.leaveTaken.sick}d | Family: ${breakdown.leaveTaken.family}d`;
+    const leaveText = `${dict.leaveRecorded}: ${dict.annual}: ${breakdown.leaveTaken.annual}d | ${dict.sick}: ${breakdown.leaveTaken.sick}d | ${dict.family}: ${breakdown.leaveTaken.family}d`;
     t(leaveText, width - 48, footerY, { size: 7, color: SLATE, align: "right" });
 
-    const legalText = `This payslip is generated in accordance with Sectoral Determination 7 and the BCEA. Minimum wage: R${nmw.toFixed(2)}/hr.`;
+    const legalText = `${dict.legalDisclaimer} ${dict.minWage}: R${nmw.toFixed(2)}/hr.`;
     t(legalText, 48, 40, { size: 7, color: SLATE });
-    t("Proudly South African · LekkerLedger.app", width - 48, 40, { size: 7, color: SLATE, align: "right" });
+    t(`${dict.proudlySA} · LekkerLedger.app`, width - 48, 40, { size: 7, color: SLATE, align: "right" });
 
     // ── Compliance Seal ──
     const sealX = width - 100;
     const sealY = 100;
     page.drawCircle({ x: sealX, y: sealY, size: 30, color: rgb(0.95, 0.95, 0.95), borderColor: AMBER, borderWidth: 1 });
-    t("LEGAL", sealX, sealY + 8, { font: bold, size: 7, color: AMBER, align: "right" });
-    t("COMPLIANT", sealX, sealY - 2, { font: bold, size: 5, color: SLATE, align: "right" });
-    t("BCEA/SD7", sealX, sealY - 10, { font: bold, size: 5, color: SLATE, align: "right" });
+    t(dict.legal, sealX, sealY + 8, { font: bold, size: 7, color: AMBER, align: "right" });
+    t(dict.compliant, sealX, sealY - 2, { font: bold, size: 5, color: SLATE, align: "right" });
+    t(dict.bcea_sd7, sealX, sealY - 10, { font: bold, size: 5, color: SLATE, align: "right" });
 
     return pdfDoc.save();
 }

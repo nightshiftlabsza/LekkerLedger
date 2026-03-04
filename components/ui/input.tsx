@@ -17,8 +17,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         "bg-[var(--bg-surface)] text-[var(--text-primary)]",
                         error
                             ? "border-[1.5px] border-[var(--red-500)] focus:ring-[3px] focus:ring-[rgba(192,57,43,0.15)] focus:border-[var(--red-500)] shadow-[0_0_0_3px_rgba(192,57,43,0.12)]"
-                            : "border-[1.5px] border-[var(--border-default)] focus:border-[var(--amber-500)] focus:ring-[3px] focus:ring-[rgba(196,122,28,0.15)]",
-                        "h-[44px]",
+                            : "border-[1.5px] border-[var(--border-default)] focus:border-[var(--amber-500)] focus:ring-[3px] focus:ring-[rgba(196,122,28,0.15)] focus-visible:ring-[var(--amber-500)]",
+                        "h-[48px]",
                         className
                     ].filter(Boolean).join(" ")}
                     style={style}

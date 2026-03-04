@@ -152,11 +152,14 @@ export async function deletePayslip(id: string): Promise<void> {
 
 export async function saveLeaveRecord(record: LeaveRecord): Promise<void> {
     await leaveStore.setItem(record.id, record);
+    await logAuditEvent("UPDATE_SETTINGS", `Saved leave record: ${record.type} for employee ${record.employeeId}`);
     await notifyListeners();
 }
 
 export async function deleteLeaveRecord(id: string): Promise<void> {
     await leaveStore.removeItem(id);
+    await logAuditEvent("UPDATE_SETTINGS", `Deleted leave record ID: ${id}`);
+    await notifyListeners();
 }
 
 export async function getLeaveForEmployee(employeeId: string): Promise<LeaveRecord[]> {
@@ -206,7 +209,7 @@ export async function saveSettings(settings: EmployerSettings): Promise<void> {
     if (typeof window !== "undefined") {
         localStorage.setItem("ll-density", settings.density || "comfortable");
     }
-    await logAuditEvent("UPDATE_SETTINGS", "Employer settings updated");
+    await logAuditEvent("UPDATE_SETTINGS", `Employer settings updated (PII: ${settings.piiObfuscationEnabled}, Sync: ${settings.googleSyncEnabled})`);
     await notifyListeners();
 }
 
@@ -365,7 +368,9 @@ export async function exportData(): Promise<string> {
         data.settings = safeSettings;
     }
 
-    return JSON.stringify(data, null, 2);
+    const json = JSON.stringify(data, null, 2);
+    await logAuditEvent("EXPORT_DATA", "Manual data backup export triggered");
+    return json;
 }
 
 export async function importData(json: string): Promise<{ success: boolean; error?: string }> {
@@ -384,6 +389,7 @@ export async function importData(json: string): Promise<{ success: boolean; erro
         if (data.payslips) await Promise.all((data.payslips as PayslipInput[]).map(async (p) => payslipStore.setItem(p.id, await encodeData(p))));
         if (data.leave) await Promise.all((data.leave as LeaveRecord[]).map((l) => leaveStore.setItem(l.id, l)));
         if (data.settings) await settingsStore.setItem(SETTINGS_KEY, data.settings as EmployerSettings);
+        await logAuditEvent("IMPORT_DATA", "Manual data restore completed");
         return { success: true };
     } catch {
         return { success: false, error: "Restore failed — data may be partially imported." };
@@ -394,12 +400,16 @@ export async function importData(json: string): Promise<{ success: boolean; erro
 }
 
 export async function resetAllData(): Promise<void> {
+    await logAuditEvent("DELETE_ALL_DATA", "TOTAL WIPE: User requested manual reset of all application data");
     await Promise.all([
         employeeStore.clear(),
         payslipStore.clear(),
         leaveStore.clear(),
         settingsStore.clear(),
-        auditStore.clear(),
+        payPeriodStore.clear(),
+        documentStore.clear(),
+        contractStore.clear(),
+        // auditStore is NOT cleared to maintain history of the wipe
     ]);
 }
 
@@ -447,6 +457,7 @@ export async function getPayPeriod(id: string): Promise<PayPeriod | null> {
 export async function savePayPeriod(period: PayPeriod): Promise<void> {
     const updated = { ...period, updatedAt: new Date().toISOString() };
     await payPeriodStore.setItem(updated.id, await encodeData(updated));
+    await logAuditEvent("CREATE_PAY_PERIOD", `Updated draft pay period: ${period.name}`, { periodId: period.id });
     await notifyListeners();
 }
 
@@ -525,6 +536,7 @@ export async function saveContract(contract: Contract): Promise<void> {
 
 export async function deleteContract(id: string): Promise<void> {
     await contractStore.removeItem(id);
+    await logAuditEvent("UPDATE_CONTRACT", `Deleted contract ID: ${id}`);
     await notifyListeners();
 }
 

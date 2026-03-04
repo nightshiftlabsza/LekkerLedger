@@ -23,6 +23,7 @@ const SUNDAY_PH_MULTIPLIER = LEGAL_REGISTRY.SD7.SUNDAY_PH_MULTIPLIER;
 export interface PayBreakdown {
     ordinaryPay: number;
     effectiveOrdinaryHours: number;
+    hourlyRate: number;
     overtimePay: number;
     sundayPay: number;
     publicHolidayPay: number;
@@ -130,6 +131,7 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
         publicHolidayPay,
         grossPay,
         totalHours,
+        hourlyRate: rate,
         deductions: {
             uifEmployee,
             accommodation,

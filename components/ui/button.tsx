@@ -54,20 +54,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         let sizeClasses = "";
         switch (size) {
             case "default":
-                sizeClasses = "h-11 px-5 py-2 text-sm";
+                sizeClasses = "h-12 px-6 py-3 text-sm";
                 break;
             case "sm":
-                sizeClasses = "h-10 px-3 py-1.5 text-xs";
+                sizeClasses = "h-10 px-4 py-2 text-xs";
                 break;
             case "lg":
                 sizeClasses = "h-12 px-7 py-3 text-base";
                 break;
             case "icon":
-                sizeClasses = "h-10 w-10";
+                sizeClasses = "h-12 w-12";
                 break;
         }
 
-        const baseClasses = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold ring-offset-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 active-scale select-none";
+        const baseClasses = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold ring-offset-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--amber-500)] disabled:pointer-events-none disabled:opacity-50 active-scale select-none";
 
         const hoverMap: Record<string, string> = {
             default: "hover:opacity-90 hover:shadow-md",

@@ -453,7 +453,7 @@ p,
   select,
   [role="button"],
   .touch-target {
-    min-height: 44px;
+    min-height: 48px;
   }
 }
 
@@ -616,8 +616,8 @@ p,
   [role="button"],
   .input-field,
   .interactive-target {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 48px;
+    min-width: 48px;
     display: inline-flex;
     align-items: center;
     justify-content: center;

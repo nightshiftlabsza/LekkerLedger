@@ -18,6 +18,7 @@ describe("Compliance Logic (SD7 & NMW)", () => {
     };
 
     const mockBreakdown: PayBreakdown = {
+        hourlyRate: 30.23,
         ordinaryPay: 4836.80,
         effectiveOrdinaryHours: 160,
         overtimePay: 0,

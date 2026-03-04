@@ -110,7 +110,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                     style={{ borderBottom: "1px solid var(--border-subtle)" }}
                 >
                     <div>
-                        <Link href="/app/dashboard" onClick={() => setOpen(false)} className="block rounded-lg">
+                        <Link href="/app/dashboard" onClick={() => setOpen(false)} className="block rounded-lg" tabIndex={open ? 0 : -1}>
                             <Image
                                 src="/brand/logo-light.png"
                                 alt="LekkerLedger"
@@ -135,6 +135,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                     <button
                         onClick={() => setOpen(false)}
                         aria-label="Close menu"
+                        tabIndex={open ? 0 : -1}
                         className="lg:hidden h-8 w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--bg-subtle)] active-scale"
                         style={{ color: "var(--text-muted)" }}
                     >
@@ -161,6 +162,8 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                                             key={href}
                                             href={href}
                                             onClick={() => setOpen(false)}
+                                            tabIndex={open ? 0 : -1}
+                                            aria-hidden={!open}
                                             className="relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group"
                                             style={{
                                                 color: active ? "var(--amber-500)" : "var(--text-primary)",
@@ -200,6 +203,8 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                 <div className="px-4 py-4 shrink-0" style={{ borderTop: "1px solid var(--border-subtle)" }}>
                     <a
                         href="mailto:nightshiftlabsza@gmail.com?subject=LekkerLedger%20Support%20Request"
+                        tabIndex={open ? 0 : -1}
+                        aria-hidden={!open}
                         className="flex items-center gap-3 text-sm font-medium rounded-lg px-2 py-2 transition-colors hover:bg-[var(--bg-subtle)]"
                         style={{ color: "var(--text-secondary)" }}
                     >
