@@ -98,7 +98,7 @@ export default function UFilingPage() {
                     description="You can only generate a uFiling export for a payroll month that has been completed and locked."
                     icon={ShieldCheck}
                     actionLabel="Go to Payroll"
-                    actionHref="/app/payroll"
+                    actionHref="/payroll"
                     requirements={[
                         "Complete payslips for your employees",
                         "Review and generate the PDF documents",
@@ -212,7 +212,7 @@ export default function UFilingPage() {
                                         ) : (
                                             <div className="text-right">
                                                 <p className="text-xs font-bold text-red-500">No locked periods yet</p>
-                                                <Link href="/app/payroll" className="text-[10px] text-[var(--amber-600)] underline">Go to Payroll</Link>
+                                                <Link href="/payroll" className="text-[10px] text-[var(--amber-600)] underline">Go to Payroll</Link>
                                             </div>
                                         )
                                     ) : (

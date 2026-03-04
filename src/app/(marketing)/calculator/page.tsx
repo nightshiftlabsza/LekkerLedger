@@ -15,12 +15,12 @@ export default function CalculatorPage() {
         try {
             const s = await getSettings();
             if (!s.employerName) {
-                router.push("/app/settings");
+                router.push("/settings");
             } else {
-                router.push("/app/payroll/new");
+                router.push("/payroll/new");
             }
         } catch {
-            router.push("/app/payroll/new");
+            router.push("/payroll/new");
         }
     };
 
@@ -52,7 +52,7 @@ export default function CalculatorPage() {
 
                     <p className="text-xs font-medium text-center" style={{ color: "var(--text-muted)" }}>
                         This is an estimate only. For a full payslip with all deductions and allowances,{" "}
-                        <Link href="/app/payroll/new" className="underline hover:text-[var(--amber-500)] transition-colors">
+                        <Link href="/payroll/new" className="underline hover:text-[var(--amber-500)] transition-colors">
                             create your first payslip
                         </Link>.
                     </p>

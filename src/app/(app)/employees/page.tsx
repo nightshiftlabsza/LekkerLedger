@@ -41,7 +41,7 @@ export default function EmployeesPage() {
                 subtitle="Manage your household team and compliance records"
                 actions={
                     employees.length > 0 && (
-                        <Link href="/app/employees/new">
+                        <Link href="/employees/new">
                             <Button className="gap-2 bg-[var(--amber-500)] text-white hover:bg-[var(--amber-600)] font-bold">
                                 <UserPlus className="h-4 w-4" /> Add Employee
                             </Button>
@@ -59,7 +59,7 @@ export default function EmployeesPage() {
                             title="No employees found"
                             description="Add your first employee to start managing payroll and leave."
                             actionLabel="Add Employee"
-                            actionHref="/app/employees/new"
+                            actionHref="/employees/new"
                         />
                     ) : (
                         <DataTable<Employee>
@@ -105,7 +105,7 @@ export default function EmployeesPage() {
                                     align: "right",
                                     render: (emp) => (
                                         <div className="flex items-center justify-end gap-2">
-                                            <Link href={`/app/employees/${emp.id}`}>
+                                            <Link href={`/employees/${emp.id}`}>
                                                 <Button variant="ghost" size="icon" className="h-9 w-9 text-[var(--text-muted)] hover:text-[var(--amber-600)]">
                                                     <ChevronRight className="h-5 w-5" />
                                                 </Button>

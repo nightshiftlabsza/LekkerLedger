@@ -64,7 +64,7 @@ function PayrollPageContent() {
 
     const handleStartPeriod = async () => {
         if (employees.length === 0) {
-            router.push("/app/employees/new");
+            router.push("/employees/new");
             return;
         }
 
@@ -97,7 +97,7 @@ function PayrollPageContent() {
         };
 
         await savePayPeriod(newPeriod);
-        router.push(`/app/payroll/${newPeriod.id}`);
+        router.push(`/payroll/${newPeriod.id}`);
     };
 
     if (loading) {
@@ -169,7 +169,7 @@ function PayrollPageContent() {
                             </div>
                         </div>
 
-                        <Link href={`/app/payroll/${currentPeriod.id}`}>
+                        <Link href={`/payroll/${currentPeriod.id}`}>
                             <Button className="w-full gap-2 bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)] h-12 rounded-xl">
                                 Continue {currentPeriod.name} Payroll
                                 <ArrowRight className="h-4 w-4" />
@@ -191,7 +191,7 @@ function PayrollPageContent() {
                     }
                     actionLabel={employees.length === 0 ? "Add Employee" : `Start ${format(new Date(), "MMMM yyyy")}`}
                     actionOnClick={employees.length === 0 ? undefined : handleStartPeriod}
-                    actionHref={employees.length === 0 ? "/app/employees/new" : undefined}
+                    actionHref={employees.length === 0 ? "/employees/new" : undefined}
                 />
             )}
 
@@ -204,7 +204,7 @@ function PayrollPageContent() {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => router.push("/app/payroll")}
+                                onClick={() => router.push("/payroll")}
                                 className="h-6 gap-1 text-[10px] font-black uppercase text-rose-500 hover:text-rose-600 hover:bg-rose-50"
                             >
                                 <X className="h-3 w-3" /> Clear Filter
@@ -228,7 +228,7 @@ function PayrollPageContent() {
                     ) : (
                         <div className="space-y-2">
                             {lockedPeriods.map(period => (
-                                <Link key={period.id} href={`/app/payroll/${period.id}`}>
+                                <Link key={period.id} href={`/payroll/${period.id}`}>
                                     <Card className="glass-panel border-none hover-lift">
                                         <CardContent className="p-4 flex items-center justify-between">
                                             <div className="flex items-center gap-3">

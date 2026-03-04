@@ -93,7 +93,7 @@ export default function DashboardPage() {
                 id: `hours-${entry.employeeId}`,
                 label: `Add hours for ${emp?.name ?? "employee"}`,
                 status: "needs-info",
-                href: `/app/payroll/${currentPeriod.id}`,
+                href: `/payroll/${currentPeriod.id}`,
             });
         });
         if (completedEntries === totalEntries && totalEntries > 0) {
@@ -101,7 +101,7 @@ export default function DashboardPage() {
                 id: "review",
                 label: `Review & generate payslips (${totalEntries})`,
                 status: "in-progress",
-                href: `/app/payroll/${currentPeriod.id}`,
+                href: `/payroll/${currentPeriod.id}`,
             });
         }
     } else if (employeeCount > 0) {
@@ -109,7 +109,7 @@ export default function DashboardPage() {
             id: "start-period",
             label: `Start ${format(new Date(), "MMMM yyyy")} payroll`,
             status: "draft",
-            href: "/app/payroll",
+            href: "/payroll",
         });
     }
     if (needsInfoCount > 0) {
@@ -117,7 +117,7 @@ export default function DashboardPage() {
             id: "needs-info",
             label: `${needsInfoCount} employee${needsInfoCount > 1 ? "s" : ""} missing info`,
             status: "needs-info",
-            href: "/app/employees",
+            href: "/employees",
         });
     }
 
@@ -130,7 +130,7 @@ export default function DashboardPage() {
             <PageHeader
                 title="Dashboard"
                 actions={
-                    <Link href="/app/employees/new">
+                    <Link href="/employees/new">
                         <Button size="sm" className="gap-1.5 bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)]">
                             <Plus className="h-3.5 w-3.5" /> Add Employee
                         </Button>
@@ -171,7 +171,7 @@ export default function DashboardPage() {
                                 </div>
                             )}
 
-                            <Link href={currentPeriod ? `/app/payroll/${currentPeriod.id}` : "/app/payroll"}>
+                            <Link href={currentPeriod ? `/payroll/${currentPeriod.id}` : "/payroll"}>
                                 <Button className="w-full gap-2 bg-[var(--amber-500)] text-white font-bold hover:bg-[var(--amber-600)] h-11 rounded-xl">
                                     {currentPeriod ? `Continue ${currentPeriod.name}` : employeeCount > 0 ? `Start ${format(new Date(), "MMMM yyyy")}` : "Get Started"}
                                     <ArrowRight className="h-4 w-4" />
@@ -211,7 +211,7 @@ export default function DashboardPage() {
                             description="Add your first employee to start tracking leave, generating payslips, and managing compliance."
                             icon={Users}
                             actionLabel="Add Employee"
-                            actionHref="/app/employees/new"
+                            actionHref="/employees/new"
                             requirements={[
                                 "Employee's full name",
                                 "Their hourly rate (minimum R30.23/hr)",
@@ -238,7 +238,7 @@ export default function DashboardPage() {
 
                     {/* Help & Compliance (small) */}
                     <div className="flex items-center justify-between text-xs text-[var(--text-muted)] px-1 pt-2 border-t border-[var(--border-subtle)]">
-                        <Link href="/app/help/compliance" className="font-bold hover:text-[var(--amber-500)] flex items-center gap-1">
+                        <Link href="/help/compliance" className="font-bold hover:text-[var(--amber-500)] flex items-center gap-1">
                             <BookOpen className="h-3 w-3" /> Compliance Guide
                         </Link>
                         <span className="type-overline">Updated Mar 2026</span>
@@ -256,7 +256,7 @@ function EmployeeCard({ employeeCount, needsInfoCount }: { employeeCount: number
             <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="type-overline text-[var(--text-muted)]">Employees</h3>
-                    <Link href="/app/employees">
+                    <Link href="/employees">
                         <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--amber-500)] gap-1">
                             View all <ChevronRight className="h-3 w-3" />
                         </Button>
@@ -280,7 +280,7 @@ function DocumentCard({ recentDocs }: { recentDocs: DocumentMeta[] }) {
             <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="type-overline text-[var(--text-muted)]">Recent Documents</h3>
-                    <Link href="/app/documents">
+                    <Link href="/documents">
                         <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--amber-500)] gap-1">
                             View all <ChevronRight className="h-3 w-3" />
                         </Button>
@@ -312,7 +312,7 @@ function StorageCard({ settings }: { settings: EmployerSettings | null }) {
             <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="type-overline text-[var(--text-muted)]">Storage & Sync</h3>
-                    <Link href="/app/settings?tab=sync">
+                    <Link href="/settings?tab=sync">
                         <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--amber-500)] gap-1">
                             Manage <ChevronRight className="h-3 w-3" />
                         </Button>

@@ -47,7 +47,7 @@ function NewLeaveContent() {
                 ...formData
             };
             await saveLeaveRecord(record);
-            router.push("/app/leave");
+            router.push("/leave");
         } catch (error) {
             console.error("Failed to save leave record", error);
             setSaving(false);

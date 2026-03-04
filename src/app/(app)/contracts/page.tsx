@@ -45,7 +45,7 @@ export default function ContractsPage() {
                 subtitle="Manage employment agreements and BCEA compliance"
                 actions={
                     employees.length > 0 && (
-                        <Link href="/app/contracts/new">
+                        <Link href="/contracts/new">
                             <Button className="gap-2 bg-[var(--amber-500)] text-white hover:bg-[var(--amber-600)] font-bold">
                                 <Plus className="h-4 w-4" /> New Contract
                             </Button>
@@ -60,7 +60,7 @@ export default function ContractsPage() {
                     title="No contracts yet"
                     description="Generate your first BCEA-compliant employment contract for a domestic worker."
                     actionLabel={employees.length > 0 ? "Generate Contract" : "Add Employee First"}
-                    actionHref={employees.length > 0 ? "/app/contracts/new" : "/app/employees/new"}
+                    actionHref={employees.length > 0 ? "/contracts/new" : "/employees/new"}
                 />
             ) : (
                 <DataTable<Contract>
@@ -100,7 +100,7 @@ export default function ContractsPage() {
                             label: "",
                             align: "right",
                             render: (c) => (
-                                <Link href={`/app/contracts/${c.id}`}>
+                                <Link href={`/contracts/${c.id}`}>
                                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[var(--text-muted)] hover:text-[var(--amber-600)]">
                                         <ChevronRight className="h-4 w-4" />
                                     </Button>

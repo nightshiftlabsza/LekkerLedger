@@ -55,7 +55,7 @@ export default function LeavePage() {
                     title="No employees yet"
                     description="Add employees first, then track their leave."
                     actionLabel="Add Employee"
-                    actionHref="/app/employees/new"
+                    actionHref="/employees/new"
                 />
             ) : (
                 <div className="space-y-6">
@@ -101,7 +101,7 @@ export default function LeavePage() {
                                         </p>
                                     </div>
                                 </div>
-                                <Link href={`/app/payroll/${currentPeriod.id}`}>
+                                <Link href={`/payroll/${currentPeriod.id}`}>
                                     <Button size="sm" variant="outline" className="h-9 px-4 border-[var(--amber-500)] text-[var(--amber-600)] hover:bg-[var(--amber-500)] hover:text-white transition-all font-bold">
                                         View Payroll
                                     </Button>
@@ -113,7 +113,7 @@ export default function LeavePage() {
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h2 className="type-h3 text-[var(--text-primary)]">Recent Records</h2>
-                            <Link href="/app/leave/new">
+                            <Link href="/leave/new">
                                 <Button size="sm" className="gap-2 bg-[var(--amber-500)] text-white hover:bg-[var(--amber-600)] h-9">
                                     <Plus className="h-4 w-4" /> Add Leave
                                 </Button>

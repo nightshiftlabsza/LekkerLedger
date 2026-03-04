@@ -75,10 +75,10 @@ function MarketingHeader() {
 
                 {/* Desktop CTA */}
                 <div className="hidden lg:flex items-center gap-3">
-                    <Link href="/app/dashboard" className="text-sm font-semibold transition-colors hover:text-amber-600" style={{ color: "var(--text-secondary)" }}>
+                    <Link href="/dashboard" className="text-sm font-semibold transition-colors hover:text-amber-600" style={{ color: "var(--text-secondary)" }}>
                         Sign in
                     </Link>
-                    <Link href="/app/dashboard">
+                    <Link href="/dashboard">
                         <Button className="h-10 px-5 rounded-xl bg-[var(--green-600,#16a34a)] hover:bg-[var(--green-700,#15803d)] text-white font-bold text-sm shadow-md">
                             Create your first payslip
                         </Button>
@@ -100,10 +100,10 @@ function MarketingHeader() {
                         </Link>
                     ))}
                     <div className="pt-3 space-y-2 border-t border-[var(--border-subtle)]">
-                        <Link href="/app/dashboard" onClick={() => setMobileOpen(false)}>
+                        <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
                             <Button variant="outline" className="w-full h-11 rounded-xl font-bold text-sm">Sign in</Button>
                         </Link>
-                        <Link href="/app/dashboard" onClick={() => setMobileOpen(false)}>
+                        <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
                             <Button className="w-full h-11 rounded-xl bg-[var(--green-600,#16a34a)] hover:bg-[var(--green-700,#15803d)] text-white font-bold text-sm mt-2">
                                 Create your first payslip
                             </Button>
@@ -156,7 +156,7 @@ function Hero({ nmw }: { nmw: number }) {
 
                         {/* CTAs */}
                         <div className="flex flex-col sm:flex-row gap-3">
-                            <Link href="/app/dashboard">
+                            <Link href="/dashboard">
                                 <Button className="h-13 px-8 rounded-xl bg-[var(--green-600,#16a34a)] hover:bg-[var(--green-700,#15803d)] text-white font-bold text-base shadow-lg shadow-green-600/20 transition-all hover:shadow-xl">
                                     Create your first payslip <ArrowRight className="h-4 w-4 ml-2" />
                                 </Button>
@@ -303,7 +303,7 @@ function HowItWorks() {
                 </div>
 
                 <div className="text-center mt-10">
-                    <Link href="/app/dashboard">
+                    <Link href="/dashboard">
                         <Button className="h-11 px-6 rounded-xl bg-[var(--green-600,#16a34a)] hover:bg-[var(--green-700,#15803d)] text-white font-bold text-sm">
                             Create your first payslip
                         </Button>
@@ -553,7 +553,7 @@ function PricingSummary() {
                         See full pricing & comparison <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                     <div>
-                        <Link href="/app/dashboard">
+                        <Link href="/dashboard">
                             <Button className="h-11 px-6 rounded-xl bg-[var(--green-600,#16a34a)] hover:bg-[var(--green-700,#15803d)] text-white font-bold text-sm">
                                 Create your first payslip
                             </Button>
@@ -618,7 +618,7 @@ function FAQItem({ question, answer, showCTA }: { question: string; answer: stri
             </button>
             {showCTA && (
                 <div className="text-center py-2">
-                    <Link href="/app/dashboard">
+                    <Link href="/dashboard">
                         <Button className="h-10 px-5 rounded-xl bg-[var(--green-600,#16a34a)] hover:bg-[var(--green-700,#15803d)] text-white font-bold text-sm">
                             Create your first payslip
                         </Button>
@@ -641,7 +641,7 @@ function FinalCTA() {
                     Clear records. Fair pay. Less admin.
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <Link href="/app/dashboard">
+                    <Link href="/dashboard">
                         <Button className="h-13 px-8 rounded-xl bg-[var(--green-600,#16a34a)] hover:bg-[var(--green-700,#15803d)] text-white font-bold text-base shadow-lg shadow-green-600/20">
                             Create your first payslip <ArrowRight className="h-4 w-4 ml-2" />
                         </Button>
@@ -732,7 +732,7 @@ function StickyMobileCTA() {
             <Link href="/pricing" className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>
                 Pricing
             </Link>
-            <Link href="/app/dashboard" className="flex-1 max-w-xs">
+            <Link href="/dashboard" className="flex-1 max-w-xs">
                 <Button className="w-full h-11 rounded-xl bg-[var(--green-600,#16a34a)] hover:bg-[var(--green-700,#15803d)] text-white font-bold text-sm">
                     Create your first payslip
                 </Button>

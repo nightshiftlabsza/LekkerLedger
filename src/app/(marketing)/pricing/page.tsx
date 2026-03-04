@@ -235,10 +235,10 @@ function PricingHeader() {
                     </Link>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Link href="/app/dashboard" className="text-sm font-semibold transition-colors hover:text-amber-600" style={{ color: "var(--text-secondary)" }}>
+                    <Link href="/dashboard" className="text-sm font-semibold transition-colors hover:text-amber-600" style={{ color: "var(--text-secondary)" }}>
                         Sign in
                     </Link>
-                    <Link href="/app/dashboard" className="hidden sm:block">
+                    <Link href="/dashboard" className="hidden sm:block">
                         <Button className="h-10 px-5 rounded-xl bg-[var(--green-600,#16a34a)] hover:bg-[var(--green-700,#15803d)] text-white font-bold text-sm shadow-md">
                             Create your first payslip
                         </Button>

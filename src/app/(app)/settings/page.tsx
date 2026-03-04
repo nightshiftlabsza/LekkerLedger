@@ -329,7 +329,7 @@ function SettingsContent() {
 
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Payroll Exports</h2>
-                            <Link href="/app/ufiling" className="block">
+                            <Link href="/ufiling" className="block">
                                 <Card className="glass-panel border-none p-5 flex items-center justify-between hover:bg-[var(--bg-subtle)] transition-colors group">
                                     <div className="flex items-center gap-4">
                                         <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
@@ -352,7 +352,7 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Help & Resources</h2>
                             <Card className="glass-panel border-none overflow-hidden">
-                                <Link href="/app/help/compliance" className="flex items-center justify-between p-4 hover:bg-[var(--bg-subtle)] border-b border-[var(--border-subtle)] transition-colors">
+                                <Link href="/help/compliance" className="flex items-center justify-between p-4 hover:bg-[var(--bg-subtle)] border-b border-[var(--border-subtle)] transition-colors">
                                     <div className="flex items-center gap-3">
                                         <BookOpen className="h-5 w-5 text-[var(--blue-500)]" />
                                         <div>

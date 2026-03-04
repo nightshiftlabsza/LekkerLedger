@@ -87,7 +87,7 @@ export default function NewContractPage() {
                 updatedAt: new Date().toISOString(),
             };
             await saveContract(contract);
-            router.push("/app/contracts");
+            router.push("/contracts");
         } catch (error) {
             console.error(error);
             setSaving(false);

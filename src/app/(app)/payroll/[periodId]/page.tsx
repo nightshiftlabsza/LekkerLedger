@@ -188,7 +188,7 @@ export default function PayPeriodWorkspacePage() {
                 description="This pay period may have been deleted."
                 icon={AlertCircle}
                 actionLabel="Go to Payroll"
-                actionHref="/app/payroll"
+                actionHref="/payroll"
             />
         );
     }
@@ -213,7 +213,7 @@ export default function PayPeriodWorkspacePage() {
                 subtitle={`${format(new Date(period.startDate), "d MMM")} — ${format(new Date(period.endDate), "d MMM yyyy")}`}
                 actions={
                     <div className="flex items-center gap-2">
-                        <Link href="/app/payroll">
+                        <Link href="/payroll">
                             <Button variant="ghost" size="sm" className="gap-1.5 text-xs font-bold">
                                 <ArrowLeft className="h-3.5 w-3.5" /> Back
                             </Button>

@@ -164,7 +164,7 @@ export default function DocumentsPage() {
                                     description="Payslips, contracts, and exports will appear here automatically once generated."
                                     icon={FolderOpen}
                                     actionLabel="Go to Dashboard"
-                                    actionHref="/app/dashboard"
+                                    actionHref="/dashboard"
                                 />
                             </div>
                         ) : (
