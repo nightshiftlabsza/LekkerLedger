@@ -18,7 +18,7 @@ import { StatusChip, type ChipVariant } from "@/components/ui/status-chip";
 import { CardSkeleton, StatSkeleton } from "@/components/ui/loading-skeleton";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getEmployees, getSettings, getCurrentPayPeriod, getDocuments, getLatestPayslip } from "@/lib/storage";
+import { getEmployees, getSettings, getCurrentPayPeriod, getDocuments, getLatestPayslip, subscribeToDataChanges } from "@/lib/storage";
 import { computeDashboardAlerts } from "@/lib/alerts";
 import { Employee, PayPeriod, EmployerSettings, DocumentMeta, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
@@ -65,6 +65,8 @@ export default function DashboardPage() {
             setLoading(false);
         }
         load();
+
+        return subscribeToDataChanges(load);
     }, []);
 
     if (loading) {

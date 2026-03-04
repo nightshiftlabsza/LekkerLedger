@@ -16,7 +16,8 @@ import { ActionBar } from "@/components/ui/action-bar";
 import { ReviewSummary, type ReviewSection } from "@/components/ui/review-summary";
 import {
     getPayPeriod, savePayPeriod, lockPayPeriod as doLockPayPeriod,
-    getEmployees, logAuditEvent, getSettings, getLeaveForEmployee
+    getEmployees, logAuditEvent, getSettings, getLeaveForEmployee,
+    savePayslip, saveDocumentMeta
 } from "@/lib/storage";
 import { calculatePayslip } from "@/lib/calculator";
 import { PayPeriod, Employee, EmployeeEntry, PayslipInput, EmployerSettings, LeaveRecord } from "@/lib/schema";
@@ -101,6 +102,24 @@ export default function PayPeriodWorkspacePage() {
         if (!period) return;
         setSaving(true);
         try {
+            // Generate payslips and document metadata so they appear in /documents
+            for (const entry of period.entries) {
+                const emp = employees.find(e => e.id === entry.employeeId);
+                if (!emp) continue;
+                const payslipInput = entryToPayslipInput(entry, emp);
+                await savePayslip(payslipInput);
+
+                await saveDocumentMeta({
+                    id: payslipInput.id,
+                    householdId: "default",
+                    type: "payslip",
+                    employeeId: emp.id,
+                    periodId: period.id,
+                    fileName: `${emp.name.split(' ')[0]}_Payslip_${period.name.replace(/\s+/g, '_')}.pdf`,
+                    createdAt: new Date().toISOString(),
+                });
+            }
+
             await doLockPayPeriod(period.id);
             const locked = await getPayPeriod(period.id);
             setPeriod(locked);

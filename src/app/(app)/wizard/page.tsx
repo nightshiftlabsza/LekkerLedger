@@ -15,7 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { StickyBottomBar } from "@/components/layout/sticky-bottom-bar";
-import { getEmployees, savePayslip, getSecureTime, getSettings, getUsageStats, getAllPayslips, deletePayslip } from "@/lib/storage";
+import { getEmployees, savePayslip, getSecureTime, getSettings, getUsageStats, getAllPayslips, deletePayslip, saveDocumentMeta } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { format } from "date-fns";
 import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
@@ -180,6 +180,15 @@ function WizardContent() {
 
             await savePayslip(payslipInput);
 
+            await saveDocumentMeta({
+                id: payslipInput.id,
+                householdId: "default",
+                type: "payslip",
+                employeeId: employee.id,
+                fileName: `${employee.name.split(' ')[0]}_Payslip_${format(safeDate(dates.start), "MMM_yyyy")}.pdf`,
+                createdAt: new Date().toISOString(),
+            });
+
             // GA4 conversion tracking
             try {
                 if (typeof window !== 'undefined' && 'gtag' in window) {
@@ -234,7 +243,7 @@ function WizardContent() {
             const currentMonth = format(safeDate(dates.start), "yyyy-MM");
             const dup = allPayslips.find(
                 p => p.employeeId === empId &&
-                     format(new Date(p.payPeriodStart), "yyyy-MM") === currentMonth
+                    format(new Date(p.payPeriodStart), "yyyy-MM") === currentMonth
             );
             if (dup) {
                 setDuplicateId(dup.id);

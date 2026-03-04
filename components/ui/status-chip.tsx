@@ -23,8 +23,9 @@ interface StatusChipProps {
 }
 
 export function StatusChip({ variant, label, className = "" }: StatusChipProps) {
-    const v = VARIANTS[variant] ?? VARIANTS["draft"];
-    const Icon = v.icon;
+    const v = VARIANTS[variant] || VARIANTS["draft"];
+    if (!v) return null;
+    const Icon = v.icon || Circle;
     return (
         <span
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${className}`}

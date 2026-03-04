@@ -10,7 +10,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
 import { DataTable, type Column } from "@/components/ui/data-table";
-import { getAllLeaveRecords, getEmployees, getCurrentPayPeriod } from "@/lib/storage";
+import { getAllLeaveRecords, getEmployees, getCurrentPayPeriod, subscribeToDataChanges } from "@/lib/storage";
 import { LeaveRecord, Employee, PayPeriod } from "@/lib/schema";
 
 export default function LeavePage() {
@@ -33,6 +33,8 @@ export default function LeavePage() {
             setLoading(false);
         }
         load();
+
+        return subscribeToDataChanges(load);
     }, []);
 
     if (loading) {

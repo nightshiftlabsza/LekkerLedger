@@ -122,6 +122,7 @@ export default function DocumentsPage() {
                         {TABS.map(tab => (
                             <button
                                 key={tab}
+                                type="button"
                                 onClick={() => setActiveTab(tab)}
                                 className={`px-4 py-3 text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === tab
                                     ? "border-[var(--amber-500)] text-[var(--amber-500)]"

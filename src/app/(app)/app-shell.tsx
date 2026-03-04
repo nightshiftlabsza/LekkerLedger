@@ -26,7 +26,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <ToastProvider>
             <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg-base)" }}>
                 {/* Side drawer — always present on desktop, overlay on mobile */}
-                <SideDrawer showButton={false} />
+                {/* Side drawer — always present on desktop, overlay on mobile */}
+                {/* Removed duplicate SideDrawer. Mobile one handles both. */}
 
                 {/* Top bar */}
                 <header className="sticky top-0 z-30 px-4 py-3 flex items-center justify-between glass-panel border-b border-[var(--border-subtle)]">
