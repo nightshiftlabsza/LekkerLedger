@@ -1,17 +1,22 @@
 import localforage from "localforage";
-import { Employee, PayslipInput, LeaveRecord, EmployerSettings } from "./schema";
+import { Employee, PayslipInput, LeaveRecord, EmployerSettings, PayPeriod, DocumentMeta, Contract } from "./schema";
 
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
 const payslipStore = localforage.createInstance({ name: "LekkerLedger", storeName: "payslips" });
 const leaveStore = localforage.createInstance({ name: "LekkerLedger", storeName: "leave" });
 const settingsStore = localforage.createInstance({ name: "LekkerLedger", storeName: "settings" });
 const auditStore = localforage.createInstance({ name: "LekkerLedger", storeName: "audit_logs" });
+const payPeriodStore = localforage.createInstance({ name: "LekkerLedger", storeName: "pay_periods" });
+const documentStore = localforage.createInstance({ name: "LekkerLedger", storeName: "documents" });
+const contractStore = localforage.createInstance({ name: "LekkerLedger", storeName: "contracts" });
 
 // ─── Free Tier Limit ─────────────────────────────────────────────────────────
 export const FREE_PAYSLIP_LIMIT = 2;
 
 // ─── PII Obfuscation ──────────────────────────────────────────────────────────
-function encodeData(data: unknown): string {
+async function encodeData(data: unknown): Promise<string | unknown> {
+    const s = await getSettings();
+    if (s.piiObfuscationEnabled === false) return data;
     return btoa(encodeURIComponent(JSON.stringify(data)));
 }
 
@@ -55,6 +60,7 @@ export function setImportingMode(val: boolean) {
     isImporting = val;
 }
 
+
 // ─── Employee CRUD ──────────────────────────────────────────────────────────
 
 export async function getEmployees(): Promise<Employee[]> {
@@ -73,7 +79,7 @@ export async function getEmployee(id: string): Promise<Employee | null> {
 export async function saveEmployee(employee: Employee): Promise<void> {
     // P2: Trim employee name
     const trimmed = { ...employee, name: employee.name.trim() };
-    await employeeStore.setItem(trimmed.id, encodeData(trimmed));
+    await employeeStore.setItem(trimmed.id, await encodeData(trimmed));
     await logAuditEvent("CREATE_EMPLOYEE", `Added/Updated employee: ${trimmed.id}`);
     await notifyListeners();
 }
@@ -100,7 +106,7 @@ export async function deleteEmployee(id: string): Promise<void> {
 // ─── Payslip CRUD ───────────────────────────────────────────────────────────
 
 export async function savePayslip(payslip: PayslipInput): Promise<void> {
-    await payslipStore.setItem(payslip.id, encodeData(payslip));
+    await payslipStore.setItem(payslip.id, await encodeData(payslip));
     await logAuditEvent("CREATE_PAYSLIP", `Generated payslip for employee ID: ${payslip.employeeId}`);
     await notifyListeners();
 }
@@ -187,7 +193,9 @@ export async function getSettings(): Promise<EmployerSettings> {
         defaultLanguage: "en",
         simpleMode: false,
         advancedMode: false,
+        density: "comfortable",
         googleSyncEnabled: false,
+        piiObfuscationEnabled: true,
         installationId: "",
         usageHistory: []
     };
@@ -195,6 +203,9 @@ export async function getSettings(): Promise<EmployerSettings> {
 
 export async function saveSettings(settings: EmployerSettings): Promise<void> {
     await settingsStore.setItem(SETTINGS_KEY, settings);
+    if (typeof window !== "undefined") {
+        localStorage.setItem("ll-density", settings.density || "comfortable");
+    }
     await logAuditEvent("UPDATE_SETTINGS", "Employer settings updated");
     await notifyListeners();
 }
@@ -369,8 +380,8 @@ export async function importData(json: string): Promise<{ success: boolean; erro
     setImportingMode(true);
     try {
         await resetAllData();
-        if (data.employees) await Promise.all((data.employees as Employee[]).map((e) => employeeStore.setItem(e.id, encodeData(e))));
-        if (data.payslips) await Promise.all((data.payslips as PayslipInput[]).map((p) => payslipStore.setItem(p.id, encodeData(p))));
+        if (data.employees) await Promise.all((data.employees as Employee[]).map(async (e) => employeeStore.setItem(e.id, await encodeData(e))));
+        if (data.payslips) await Promise.all((data.payslips as PayslipInput[]).map(async (p) => payslipStore.setItem(p.id, await encodeData(p))));
         if (data.leave) await Promise.all((data.leave as LeaveRecord[]).map((l) => leaveStore.setItem(l.id, l)));
         if (data.settings) await settingsStore.setItem(SETTINGS_KEY, data.settings as EmployerSettings);
         return { success: true };
@@ -414,6 +425,107 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
     });
     // P1 FIX: coerce timestamp to Date before calling getTime()
     return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+}
+
+// ─── Pay Period CRUD ────────────────────────────────────────────────────────
+
+export async function getPayPeriods(): Promise<PayPeriod[]> {
+    const periods: PayPeriod[] = [];
+    await payPeriodStore.iterate<string, void>((val: string) => {
+        if (val) periods.push(decodeData<PayPeriod>(val));
+    });
+    return periods.sort(
+        (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    );
+}
+
+export async function getPayPeriod(id: string): Promise<PayPeriod | null> {
+    const val = await payPeriodStore.getItem<string>(id);
+    return val ? decodeData<PayPeriod>(val) : null;
+}
+
+export async function savePayPeriod(period: PayPeriod): Promise<void> {
+    const updated = { ...period, updatedAt: new Date().toISOString() };
+    await payPeriodStore.setItem(updated.id, await encodeData(updated));
+    await notifyListeners();
+}
+
+export async function lockPayPeriod(id: string): Promise<void> {
+    const period = await getPayPeriod(id);
+    if (!period) throw new Error("Pay period not found");
+    if (period.status === "locked") throw new Error("Pay period already locked");
+    const locked: PayPeriod = {
+        ...period,
+        status: "locked",
+        lockedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+    };
+    await payPeriodStore.setItem(id, await encodeData(locked));
+    await logAuditEvent("LOCK_PAY_PERIOD", `Locked pay period: ${period.name}`, { periodId: id });
+    await notifyListeners();
+}
+
+export async function deletePayPeriod(id: string): Promise<void> {
+    const period = await getPayPeriod(id);
+    if (period?.status === "locked") throw new Error("Cannot delete a locked pay period");
+    await payPeriodStore.removeItem(id);
+    await logAuditEvent("DELETE_PAY_PERIOD", `Deleted pay period ID: ${id}`);
+    await notifyListeners();
+}
+
+export async function getCurrentPayPeriod(): Promise<PayPeriod | null> {
+    const periods = await getPayPeriods();
+    return periods.find(p => p.status === "draft" || p.status === "review") ?? null;
+}
+
+// ─── Document Metadata CRUD ─────────────────────────────────────────────────
+
+export async function getDocuments(): Promise<DocumentMeta[]> {
+    const docs: DocumentMeta[] = [];
+    await documentStore.iterate<string, void>((val: string) => {
+        if (val) docs.push(decodeData<DocumentMeta>(val));
+    });
+    return docs.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+}
+
+export async function saveDocumentMeta(doc: DocumentMeta): Promise<void> {
+    await documentStore.setItem(doc.id, await encodeData(doc));
+    await notifyListeners();
+}
+
+export async function deleteDocumentMeta(id: string): Promise<void> {
+    await documentStore.removeItem(id);
+    await notifyListeners();
+}
+
+// ─── Contract CRUD ───────────────────────────────────────────────────────────
+
+export async function getContracts(): Promise<Contract[]> {
+    const contracts: Contract[] = [];
+    await contractStore.iterate<unknown, void>((val: unknown) => {
+        if (val) contracts.push(decodeData<Contract>(val));
+    });
+    return contracts.sort(
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+}
+
+export async function getContractsForEmployee(employeeId: string): Promise<Contract[]> {
+    const all = await getContracts();
+    return all.filter(c => c.employeeId === employeeId);
+}
+
+export async function saveContract(contract: Contract): Promise<void> {
+    await contractStore.setItem(contract.id, await encodeData(contract));
+    await logAuditEvent("UPDATE_CONTRACT", `Saved contract version ${contract.version} for employee ${contract.employeeId}`, { contractId: contract.id });
+    await notifyListeners();
+}
+
+export async function deleteContract(id: string): Promise<void> {
+    await contractStore.removeItem(id);
+    await notifyListeners();
 }
 
 // ─── SA Tax Year Helpers ─────────────────────────────────────────────────────

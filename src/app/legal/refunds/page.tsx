@@ -27,7 +27,7 @@ export default function RefundPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">1. Pro Subscriptions</h2>
                         <p>
-                            LekkerLedger offers premium features under a subscription model. We offer a 7-day &ldquo;No Questions Asked&rdquo; refund policy for first-time subscribers as per the Consumer Protection Act (CPA) regarding digital services.
+                            LekkerLedger offers premium features under a one-time purchase model. We offer a 14-day &ldquo;No Questions Asked&rdquo; refund guarantee. If you are unsatisfied with your purchase for any reason within 14 days of the transaction date, we will issue a full refund — no questions asked.
                         </p>
                     </section>
 
@@ -39,9 +39,9 @@ export default function RefundPolicy() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">3. Usage of Generated Documents</h2>
+                        <h2 className="text-2xl font-black text-white">3. No Exceptions</h2>
                         <p>
-                            Please note that generating a &ldquo;Pro&rdquo; document (e.g., an automated Employment Contract) consumes the value of the service for that month. Refunds may be denied if major Pro features have been utilized extensively within the refund window.
+                            Our 14-day refund guarantee is unconditional. It applies regardless of whether you have used the Pro features. Simply request a refund within 14 days of your purchase date and we will process it in full.
                         </p>
                     </section>
 
@@ -55,7 +55,7 @@ export default function RefundPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">5. Cooling-off Period</h2>
                         <p>
-                            In accordance with Section 44 of the Electronic Communications and Transactions Act, you are entitled to a 7-day cooling-off period if the transaction was a result of direct marketing.
+                            In accordance with Section 44 of the Electronic Communications and Transactions Act, you are entitled to a cooling-off period if the transaction was a result of direct marketing. Our 14-day refund guarantee exceeds this requirement and applies to all purchases.
                         </p>
                     </section>
                 </div>

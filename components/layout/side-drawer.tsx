@@ -6,35 +6,42 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
     X, FileText, Users, Menu, LayoutDashboard,
-    Palmtree, FileSpreadsheet, Settings, BookOpen,
-    Sparkles, Mail, Cloud, Calculator,
+    Palmtree, FileSpreadsheet, Settings,
+    BookOpen, Sparkles, Mail, Calculator,
+    ClipboardList, FolderOpen, Banknote,
 } from "lucide-react";
 
-// ─── Nav groups ───────────────────────────────────────────────────────────────
+// ─── Nav groups — matches IA Blueprint v1 ──────────────────────────────────
 const NAV_GROUPS = [
     {
         label: "Work",
         links: [
-            { href: "/dashboard",  label: "Dashboard",      icon: LayoutDashboard },
-            { href: "/employees",  label: "Employees",      icon: Users },
-            { href: "/leave",      label: "Leave Tracker",  icon: Palmtree },
-            { href: "/contracts",  label: "Contracts",      icon: FileText },
+            { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
+            { href: "/app/payroll", label: "Monthly Payroll", icon: Banknote },
+            { href: "/app/employees", label: "Employees", icon: Users },
+            { href: "/app/leave", label: "Leave", icon: Palmtree },
+            { href: "/app/contracts", label: "Contracts", icon: FileText },
+        ],
+    },
+    {
+        label: "Documents",
+        links: [
+            { href: "/app/documents", label: "Documents", icon: FolderOpen },
         ],
     },
     {
         label: "Tools",
         links: [
-            { href: "/ufiling",  label: "uFiling Export",  icon: FileSpreadsheet },
-            { href: "/rules",    label: "SA Rules Guide",  icon: BookOpen },
-            { href: "/",         label: "Wage Calculator", icon: Calculator },
+            { href: "/app/ufiling", label: "uFiling Export", icon: FileSpreadsheet },
+            { href: "/app/tools/wage-calculator", label: "Wage Calculator", icon: Calculator },
+            { href: "/app/help/compliance", label: "Compliance Guide", icon: BookOpen },
         ],
     },
     {
         label: "Account",
         links: [
-            { href: "/pricing",          label: "Support & Pro",      icon: Sparkles },
-            { href: "/settings?tab=sync", label: "Cloud Sync / Login", icon: Cloud },
-            { href: "/settings",         label: "Settings",           icon: Settings },
+            { href: "/app/settings", label: "Settings", icon: Settings },
+            { href: "/pricing", label: "Support & Pro", icon: Sparkles },
         ],
     },
 ] as const;
@@ -47,9 +54,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
     /** True when this nav link should appear active */
     const isActive = (href: string) => {
         const hrefPath = href.split("?")[0];
-        // Home / Wage Calculator — exact only (avoids "/" matching everything)
         if (hrefPath === "/") return pathname === "/";
-        // Settings exact — avoid /settings matching /settings?tab=sync AND /settings simultaneously
         return pathname === hrefPath || pathname.startsWith(hrefPath + "/");
     };
 
@@ -105,8 +110,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                     style={{ borderBottom: "1px solid var(--border-subtle)" }}
                 >
                     <div>
-                        <Link href="/" onClick={() => setOpen(false)} className="block rounded-lg">
-                            {/* Light logo — shown in light mode */}
+                        <Link href="/app/dashboard" onClick={() => setOpen(false)} className="block rounded-lg">
                             <Image
                                 src="/brand/logo-light.png"
                                 alt="LekkerLedger"
@@ -115,7 +119,6 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                                 className="h-10 w-auto transition-opacity hover:opacity-80 block dark:hidden"
                                 priority
                             />
-                            {/* Dark logo — shown in dark mode */}
                             <Image
                                 src="/brand/logo-dark.png"
                                 alt="LekkerLedger"
@@ -143,7 +146,6 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                 <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-5">
                     {NAV_GROUPS.map((group) => (
                         <div key={group.label}>
-                            {/* Section label */}
                             <p
                                 className="text-[10px] font-bold uppercase tracking-widest px-2 mb-1.5"
                                 style={{ color: "var(--text-muted)" }}
@@ -192,33 +194,6 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                             </div>
                         </div>
                     ))}
-
-                    {/* Legal (footer group, de-emphasised) */}
-                    <div>
-                        <p
-                                className="text-[10px] font-bold uppercase tracking-widest px-2 mb-1.5 opacity-50"
-                                style={{ color: "var(--text-muted)" }}
-                        >
-                            Legal
-                        </p>
-                        <div className="space-y-0.5">
-                            {[
-                                { href: "/legal/terms",   label: "Terms of Service" },
-                                { href: "/legal/privacy", label: "Privacy Policy (POPIA)" },
-                                { href: "/legal/refunds", label: "Refund & Cancellation" },
-                            ].map(({ href, label }) => (
-                                <Link
-                                    key={href}
-                                    href={href}
-                                    onClick={() => setOpen(false)}
-                                    className="block px-3 py-1.5 text-xs font-medium rounded-lg transition-colors hover:bg-[var(--bg-subtle)]"
-                                    style={{ color: "var(--text-secondary)" }}
-                                >
-                                    {label}
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
                 </nav>
 
                 {/* ── Support ────────────────────────────────────────────── */}

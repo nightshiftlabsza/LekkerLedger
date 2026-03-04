@@ -3,7 +3,23 @@
     "allow": [
       "Bash(grep -r \"alt=\" /c/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/*.tsx /c/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/components/*.tsx)",
       "Bash(grep -r \"onKeyDown\\\\|onKeyPress\" /c/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/*.tsx)",
-      "mcp__Desktop_Commander__read_file"
+      "mcp__Desktop_Commander__read_file",
+      "Bash(npx tsc --noEmit)",
+      "Bash(git push)",
+      "Bash(where npm)",
+      "Bash(where node)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git add src/lib/alerts.ts src/app/dashboard/page.tsx)",
+      "Bash(git commit:*)",
+      "Bash(git add src/lib/storage.ts src/app/history/page.tsx)",
+      "Bash(dir \"C:\\\\Users\\\\mzaka.ZAK-PC\\\\Documents\\\\Apps\\\\LekkerLedger-1\\\\src\\\\app\\\\employees\" /B /S)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\mzaka.ZAK-PC\\\\Documents\\\\Apps\\\\LekkerLedger-1\\\\src\\\\app\\\\employees\\\\[id]\" -Recurse)",
+      "Bash(git add components/calculator-hero.tsx src/app/dashboard/page.tsx src/app/employees/page.tsx src/app/history/page.tsx src/app/wizard/page.tsx \"src/app/employees/[id]/page.tsx\")",
+      "Bash(git push origin main)",
+      "Bash(echo \"EXIT_CODE: $?\")",
+      "Bash(grep -v \"//.*#\")",
+      "Bash(git add src/app/globals.css src/app/dashboard/page.tsx src/app/employees/page.tsx src/app/history/page.tsx src/app/page.tsx src/app/pricing/page.tsx components/ui/stepper.tsx)",
+      "Bash(start http://localhost:3002)"
     ]
   }
 }

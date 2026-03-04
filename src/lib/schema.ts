@@ -83,19 +83,120 @@ export const EmployerSettingsSchema = z.object({
     defaultLanguage: z.enum(["en", "zu", "xh"]).optional().default("en"),
     simpleMode: z.boolean().default(false),
     advancedMode: z.boolean().default(false),
+    density: z.enum(["comfortable", "compact"]).default("comfortable"),
     googleSyncEnabled: z.boolean().default(false),
     googleAuthToken: z.string().optional(),
+    piiObfuscationEnabled: z.boolean().default(true),
     installationId: z.string().default(""),
     usageHistory: z.array(z.string()).default([]),
 });
 
 export type EmployerSettings = z.infer<typeof EmployerSettingsSchema>;
 
-// ─── Audit Log (Phase 7) ───────────────────────────────────────────────────
+// ─── Household ──────────────────────────────────────────────────────────────
+export const HouseholdSchema = z.object({
+    id: z.string(),
+    name: z.string().min(1, "Household name required"),
+    createdAt: z.string(), // ISO date
+});
+
+export type Household = z.infer<typeof HouseholdSchema>;
+
+// ─── Employee Entry (per-employee within a pay period) ──────────────────────
+export type EmployeeEntryStatus = "empty" | "partial" | "complete" | "blocked";
+
+export const EmployeeEntrySchema = z.object({
+    employeeId: z.string(),
+    ordinaryHours: z.number().min(0).default(0),
+    overtimeHours: z.number().min(0).default(0),
+    sundayHours: z.number().min(0).default(0),
+    publicHolidayHours: z.number().min(0).default(0),
+    leaveDays: z.number().min(0).default(0),
+    advanceAmount: z.number().min(0).default(0),
+    otherDeductions: z.number().min(0).default(0),
+    rateOverride: z.number().optional(),
+    note: z.string().optional().default(""),
+    status: z.enum(["empty", "partial", "complete", "blocked"]).default("empty"),
+});
+
+export type EmployeeEntry = z.infer<typeof EmployeeEntrySchema>;
+
+// ─── Pay Period ─────────────────────────────────────────────────────────────
+export type PayPeriodStatus = "draft" | "review" | "locked";
+
+export const PayPeriodSchema = z.object({
+    id: z.string(),
+    householdId: z.string().default("default"),
+    name: z.string(),                              // e.g. "March 2026"
+    startDate: z.string(),                          // ISO date
+    endDate: z.string(),                            // ISO date
+    payDate: z.string().optional(),                 // ISO date
+    status: z.enum(["draft", "review", "locked"]).default("draft"),
+    entries: z.array(EmployeeEntrySchema).default([]),
+    lockedAt: z.string().optional(),                // ISO date
+    createdAt: z.string(),                          // ISO date
+    updatedAt: z.string(),                          // ISO date
+});
+
+export type PayPeriod = z.infer<typeof PayPeriodSchema>;
+
+// ─── Document Metadata ──────────────────────────────────────────────────────
+export const DocumentMetaSchema = z.object({
+    id: z.string(),
+    householdId: z.string().default("default"),
+    type: z.enum(["payslip", "contract", "export", "archive"]),
+    employeeId: z.string().optional(),
+    periodId: z.string().optional(),
+    fileName: z.string(),
+    sizeBytes: z.number().optional(),
+    createdAt: z.string(),                          // ISO date
+    driveFileId: z.string().optional(),
+});
+
+export type DocumentMeta = z.infer<typeof DocumentMetaSchema>;
+
+// ─── Contract (Phase 8) ──────────────────────────────────────────────────────
+export const ContractSchema = z.object({
+    id: z.string().uuid(),
+    employeeId: z.string().uuid(),
+    status: z.enum(["draft", "active", "replaced"]).default("draft"),
+    version: z.number().default(1),
+    signedAt: z.string().optional(),                 // ISO date
+    effectiveDate: z.string(),                       // ISO date
+    jobTitle: z.string(),
+    duties: z.array(z.string()).default([]),
+    workingHours: z.object({
+        daysPerWeek: z.number().default(5),
+        startAt: z.string().default("08:00"),
+        endAt: z.string().default("17:00"),
+        breakDuration: z.number().default(60),        // in minutes
+    }),
+    salary: z.object({
+        amount: z.number(),
+        frequency: z.enum(["Weekly", "Fortnightly", "Monthly"]),
+    }),
+    leave: z.object({
+        annualDays: z.number().default(21),
+        sickDays: z.number().default(30),             // per 3-year cycle usually, but simplified
+    }),
+    createdAt: z.string(),                          // ISO date
+    updatedAt: z.string(),                          // ISO date
+});
+
+export type Contract = z.infer<typeof ContractSchema>;
+
+// ─── Audit Log ──────────────────────────────────────────────────────────────
 export const AuditLogSchema = z.object({
     id: z.string().uuid(),
     timestamp: z.date(),
-    action: z.enum(["CREATE_PAYSLIP", "DELETE_PAYSLIP", "CREATE_EMPLOYEE", "DELETE_EMPLOYEE", "UPDATE_SETTINGS", "SYNC_DRIVE"]),
+    action: z.enum([
+        "CREATE_PAYSLIP", "DELETE_PAYSLIP",
+        "CREATE_EMPLOYEE", "DELETE_EMPLOYEE",
+        "UPDATE_SETTINGS", "SYNC_DRIVE",
+        "CREATE_PAY_PERIOD", "LOCK_PAY_PERIOD", "DELETE_PAY_PERIOD",
+        "EXPORT_UFILING", "SWITCH_HOUSEHOLD",
+        "CREATE_CONTRACT", "UPDATE_CONTRACT",
+    ]),
     details: z.string(),
     metadata: z.record(z.string(), z.any()).optional(),
 });

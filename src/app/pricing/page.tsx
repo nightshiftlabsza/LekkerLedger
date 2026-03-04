@@ -75,13 +75,8 @@ export default function PricingPage() {
         toast("Your 1-month Pro trial has started! Enjoy full access.");
     };
 
-    const handleBack = async () => {
-        const s = await getSettings();
-        if (s?.employerName) {
-            router.push("/dashboard");
-        } else {
-            router.push("/");
-        }
+    const handleBack = () => {
+        router.push("/");
     };
 
     return (
@@ -192,11 +187,11 @@ export default function PricingPage() {
 
                 {/* Free Trial Banner */}
                 {status === "free" && (
-                    <div className="p-8 rounded-[2rem] bg-zinc-900 text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden group">
+                    <div className="p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden group" style={{ backgroundColor: "var(--bg-muted)", border: "1px solid var(--border-strong)" }}>
                         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-amber-500/20 transition-all duration-700" />
                         <div className="space-y-3 z-10 text-center md:text-left">
-                            <h3 className="text-2xl font-black tracking-tight">Experience Pro Risk-Free</h3>
-                            <p className="text-zinc-400 max-w-md text-sm leading-relaxed">
+                            <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>Experience Pro Risk-Free</h3>
+                            <p className="max-w-md text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                                 Unlock every feature, unlimited employees, and cloud backups for 30 days. No credit card required.
                             </p>
                         </div>
@@ -218,7 +213,7 @@ export default function PricingPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Option 1: Doing Nothing */}
-                        <div className="p-8 rounded-3xl bg-zinc-50 border border-zinc-200 space-y-4 opacity-80 hover:opacity-100 transition-opacity">
+                        <div className="p-8 rounded-3xl space-y-4 opacity-80 hover:opacity-100 transition-opacity" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-default)" }}>
                             <div className="flex items-center gap-2 text-zinc-600">
                                 <ShieldAlert className="h-5 w-5" />
                                 <span className="font-black uppercase tracking-widest text-[10px]">Non-Compliance</span>
@@ -236,7 +231,7 @@ export default function PricingPage() {
                         </div>
 
                         {/* Option 2: Traditional Agency */}
-                        <div className="p-8 rounded-3xl bg-red-50/50 border border-red-100 space-y-4">
+                        <div className="p-8 rounded-3xl space-y-4" style={{ backgroundColor: "rgba(220,38,38,0.05)", border: "1px solid rgba(220,38,38,0.2)" }}>
                             <div className="flex items-center gap-2 text-red-600">
                                 <AlertTriangle className="h-5 w-5" />
                                 <span className="font-black uppercase tracking-widest text-[10px]">Agency / Software</span>

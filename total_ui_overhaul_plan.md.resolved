@@ -1,0 +1,870 @@
+# LekkerLedger — Total UI Overhaul Plan
+### AI Coder #1 (Lead UI Overhaul Planner)
+
+---
+
+## 0) Delivery Scope
+
+### ✅ Covered in THIS document (sections 1–10):
+- Systemic diagnosis (8 root causes)
+- North-star UI direction + design principles
+- Core user workflows + guardrails
+- Information architecture + navigation (web + Android)
+- Layout templates (5 page types)
+- Design system plan (tokens, components, accessibility)
+- Interaction patterns (validation, filtering, empty/error states)
+- Implementation roadmap (5 phases)
+- Task board (epics → stories)
+- File/artifact requests
+- Extra considerations (offline, WhatsApp, localisation, security, etc.)
+
+### 🔀 Offloaded to AI Coder #2 (too token-heavy):
+- **Full component inventory with states/variants** — 30+ components × 6+ states each = massive. Offloaded with paste-ready prompt at the end of Section 6C.
+- **Detailed wizard/guardrails interaction spec** — step-by-step validation rules per wizard screen. Offloaded at end of Section 7.
+
+### 📁 Files I need uploaded (for precision in later passes):
+Listed in full in Section 10.
+
+---
+
+## 1) Diagnosis — 8 Systemic UI Problems
+
+| # | Symptom | Impact | Root Cause |
+|---|---------|--------|------------|
+| **D1** | Homepage feels like a marketing site; dashboard feels like a grey admin form tool | Users experience "two different apps" — erodes trust at the exact moment they go from "interested" to "doing work" | No shared design system. Homepage was built as a landing page (heavy typography, full-bleed), app screens were built as utility (minimal, function-first). No bridge between them |
+| **D2** | Navigation has no active state, no breadcrumbs, no "you are here" | Users get lost after 2 clicks. On mobile it's worse: the side drawer shows 10 flat links with no grouping | Side drawer was built once and never iterated. No `usePathname()` comparison. No IA hierarchy reflected in the nav |
+| **D3** | Employee action buttons overflow on mobile (4–5 unlabelled icon buttons per row) | Mystery meat navigation. Users don't know what the icons mean. On 360px screens the buttons physically don't fit | Actions were added incrementally (certificate, contract, edit, delete) without reconsidering layout at each addition |
+| **D4** | Typography weight swings wildly: `font-black` (900) on homepage, `font-bold` (700) on dashboard, `font-semibold` (600) on forms, `font-medium` (500) in labels | No visual hierarchy rhythm. Everything competes for attention equally. Headings don't "feel" like headings | No typography scale was defined upfront. Each page was styled independently |
+| **D5** | Missing CSS variable `--blue-500` used in trust badges | Silent rendering failure. Icons fall back to inherit/black. Looks broken but no one catches it because it's subtle | CSS custom properties were added ad-hoc. No lint or build-time check for undefined vars |
+| **D6** | Dashboard compliance footer still says "SARS-compliant" (should be "eFiling-compliant" per legal review) | Legal risk. Contradicts the deliberate terminology change made in a previous conversation | String literals scattered in JSX. No central copy/i18n source of truth |
+| **D7** | Settings page uses pill-tab navigation (unique in entire app); wizard uses a Stepper component (also unique); dashboard has no tabs at all | Three different "multi-section" patterns. User has to re-learn interaction patterns on every screen | No component library decision for "tabbed content." Each screen invented its own |
+| **D8** | Dark mode partially works: side drawer always shows light logo; calculator hero has hardcoded `#27272a` gradient; green savings badge uses `bg-opacity-10` which doesn't compose with CSS vars in Tailwind v4 | Dark mode looks "half done." Undermines the premium feel and makes night-time use uncomfortable | Theme was bolted on after initial build. Not all components were audited for theme-awareness |
+
+### "If we change nothing" risks:
+- **Trust erosion**: A payroll app that looks inconsistent doesn't inspire confidence in its calculations
+- **Compliance mistakes**: No guardrails means users can generate payslips with missing fields, invalid date ranges, or below-minimum wages with only a small inline warning
+- **Support burden**: Users will email asking "where do I find X" because navigation doesn't guide them
+- **Churn**: First-time users going from the polished homepage to the bare dashboard will feel bait-and-switched
+- **Accessibility lawsuits/complaints**: Touch targets below 44px, no focus indicators on some interactive elements, colour contrast issues in dark mode
+
+---
+
+## 2) North-Star UI Direction
+
+### 10 Principles
+
+| # | Principle | Testable? |
+|---|-----------|-----------|
+| 1 | **One visual language, everywhere** — the dashboard must feel like it belongs to the same brand as the homepage | Hold any two screenshots side-by-side: same type scale, same colour tokens, same card radius, same button hierarchy |
+| 2 | **Scan-first payroll clarity** — the UI should be scannable in 3 seconds per screen. The primary number (net pay, total hours, employee count) must be the largest element | Eye-tracking test: user can state the "headline number" within 3 seconds |
+| 3 | **Guided compliance, not gatekeeping** — the app should guide users toward correct behaviour with helpers, defaults, and warnings, but never block them with legalese | Every warning includes a "fix it" action. Every required field has a "why this matters" tooltip |
+| 4 | **Audit-friendly by default** — every payslip, contract, and leave entry has a timestamp, creator, and "what changed" history | Any generated document can be traced back to its inputs and any edits logged |
+| 5 | **Mobile-first, desktop-enhanced** — design for 360px first, then expand for 1280px+. Never design desktop-only features | Every screen must pass a 360×800 visual check before merge |
+| 6 | **One primary action per screen** — the single most important thing the user can do on any screen must be visually dominant | Every screen has exactly one `Primary` button. All others are `Secondary` or `Ghost` |
+| 7 | **Progressive disclosure** — show the minimum viable info first, let the user drill down. Don't front-load complexity | Settings, advanced deductions, audit logs are one level deeper. The happy path is short |
+| 8 | **Warm precision** — the visual tone is warm (SA-inspired earthy tones) but precise (tabular numbers, aligned columns, clear labels). Never cold clinical, never playful | Colour palette uses warm neutrals (not cold grey). Numbers always use `tabular-nums` |
+| 9 | **Theme parity** — Light and Dark mode must be equally polished. Not "light mode + dark afterthought" | Screenshots of every screen in both modes must be reviewed before release |
+| 10 | **Offline-first resilience** — the app works without internet. Every action queues locally, syncs when online, and shows clear status | "Last synced" indicator visible. All data operations work offline |
+
+### Visual / Interaction Posture
+
+**Why "Warm Precision":**
+This app handles money, legal obligations, and people's livelihoods. It must feel **trustworthy** (precision, clear hierarchy, tabular numbers) and **approachable** (warm colours, friendly copy, guided flows). Think: *your best friend who also happens to be an accountant*.
+
+**What changes most:**
+1. **Navigation**: From flat side-drawer → structured nav with grouping, active states, and platform-appropriate patterns (sidebar on desktop, bottom tabs on Android)
+2. **Density**: From "big empty cards with lots of whitespace" → "information-rich dashboard with purposeful hierarchy"
+3. **Component consistency**: From "each page invents its own patterns" → "shared component library with consistent states"
+4. **Typography**: From "5 different weight scales" → "one defined scale used everywhere"
+5. **Colour**: From "amber + undefined blue + hardcoded greys" → "full semantic token set with SA-inspired accents"
+
+### Light / Dark Mode Posture
+
+| Property | Light Mode | Dark Mode |
+|----------|-----------|-----------|
+| Background base | Warm off-white `#faf9f7` | Warm near-black `#131110` |
+| Surface (cards) | Pure white `#ffffff` | Dark charcoal `#1c1916` |
+| Elevation | Shadows (subtle grey) | Lighter surface tint (subtle lift) |
+| Text primary | Near-black `#1a1a1a` | Warm cream `#ede8e1` |
+| Borders | Cool-grey `#e4e4e7` | Warm dark `#2c2720` |
+| Accent (amber) | Saturated `#d97706` | Slightly muted `#c8852e` |
+
+Key rule: **Dark mode is NOT "invert everything."** It uses warm dark tones (SA soil-inspired) with slightly desaturated accents for eye comfort.
+
+### South African Colour Integration
+
+| Role | Token Name | Light Value | Dark Value | SA Inspiration |
+|------|-----------|-------------|------------|----------------|
+| Brand accent | `--color-brand` | `#c47a1c` | `#c8852e` | SA flag gold — warm, authoritative |
+| Success | `--color-success` | `#16a34a` | `#3baa7a` | Natural green — Kruger bushveld |
+| Warning | `--color-warning` | `#ea580c` | `#d97706` | Warm amber — highveld sunset |
+| Error | `--color-error` | `#dc2626` | `#d95f5f` | Red — kept universal for clarity |
+| Info | `--color-info` | `#2563eb` | `#60a5fa` | Blue — SA flag blue, trustworthy |
+| Neutral | `--color-neutral-*` | Zinc scale | Warm brown scale | Earth tones — KZN clay |
+
+**Rules:**
+- SA colours are **accents**, not backgrounds. Cards stay neutral. Text stays grey-scale.
+- Gold accent is used for: primary actions, active states, brand elements, links
+- Green is used for: success states, compliance-met indicators, leave balance
+- Blue is used for: informational badges, trust signals, linked references
+- Never use more than 2 accent colours on one screen
+
+---
+
+## 3) Key User Workflows
+
+### Flow 1: Onboard Employer + First Employee
+| Aspect | Detail |
+|--------|--------|
+| **Screens** | `/onboarding` → `/employees/new` → `/dashboard` |
+| **Required data** | Employer name + address (for payslip header). Employee: name, role, hourly rate, start date, ID number (optional), hours/day |
+| **Common errors** | Skipping employer setup → payslip has blank header. Rate below minimum wage entered |
+| **Guardrails** | Onboarding is blocking: can't reach dashboard without employer name. Rate field auto-populates NMW, warns if user types below it. ID number format validated (SA 13-digit). "Why do we need this?" tooltips on each field |
+
+### Flow 2: Create / Maintain Employment Contract
+| Aspect | Detail |
+|--------|--------|
+| **Screens** | `/contracts` → `/contracts/{id}/edit` → PDF preview → share |
+| **Required data** | Employee ref, job title, start date, hours, rate, leave entitlements, notice period, special clauses |
+| **Common errors** | Missing signature / acceptance. Outdated rate (didn't update after wage review). Contract not generated at all |
+| **Guardrails** | Contract wizard with step-by-step flow. Red "unsigned" badge until employee acceptance recorded. Auto-warns if contract rate differs from latest payslip rate. Contract expiry / renewal reminders |
+
+### Flow 3: Capture Hours / Attendance
+| Aspect | Detail |
+|--------|--------|
+| **Screens** | `/wizard` step 1 + step 2 (hours + Sunday/holiday) |
+| **Required data** | Pay period dates, ordinary hours, overtime, Sunday hours, public holiday hours, days worked |
+| **Common errors** | Entering period that overlaps with an existing payslip. Ordinary hours that don't match days × hours/day. Forgetting public holidays that fall in the period |
+| **Guardrails** | Auto-detect public holidays in date range, prompt to apply. Warn if ordinary hours ÷ days worked ≠ expected hours/day. Block overlapping pay periods. 4-hour minimum rule assistant |
+
+### Flow 4: Calculate Pay + Deductions
+| Aspect | Detail |
+|--------|--------|
+| **Screens** | `/wizard` step 3 (deductions) + step 4 (review) |
+| **Required data** | UIF status (auto from total hours), accommodation deduction toggle, leave taken |
+| **Common errors** | Not understanding why UIF applies/doesn't apply. Accommodation deduction exceeding 10% cap. Total deductions leaving net pay below NMW |
+| **Guardrails** | UIF explained inline with clear "24-hour rule" callout. Accommodation auto-capped with explanation. Review screen shows full breakdown with highlighted warnings before save. "Net pay below minimum — check your inputs" warning |
+
+### Flow 5: Generate Payslip + Export / Share
+| Aspect | Detail |
+|--------|--------|
+| **Screens** | `/preview?payslipId=x` → PDF download / WhatsApp share |
+| **Required data** | All wizard data + employer settings |
+| **Common errors** | Employer details not set (blank header). PDF generated with wrong period dates. Sharing PII via insecure channel |
+| **Guardrails** | Preview screen shows A4 PDF rendering before download action. "Employer details missing" warning with "fix it" link to settings. Share sheet with privacy notice. Watermark on free-tier exports |
+
+### Flow 6: Track Leave + Public Holidays
+| Aspect | Detail |
+|--------|--------|
+| **Screens** | `/leave?employeeId=x` |
+| **Required data** | Leave type (annual/sick/family), dates, employee ref |
+| **Common errors** | Not tracking leave at all (common). Exceeding annual leave entitlement. Not accounting for public holidays |
+| **Guardrails** | Dashboard shows leave balance per employee. Warning when leave exceeds BCEA entitlement. Public holiday calendar built in with auto-detection |
+
+### Flow 7: Maintain Records / Audit Trail
+| Aspect | Detail |
+|--------|--------|
+| **Screens** | `/employees/{id}/history` → individual payslip detail |
+| **Required data** | Historical payslips, contracts, leave records |
+| **Common errors** | Deleting records accidentally. No export for dispute resolution |
+| **Guardrails** | Soft-delete with recovery period. Full history with timestamps. Export to PDF bundle for CCMA/DOL compliance. "Record retention" info panel (BCEA requires 3 years) |
+
+### Flow 8: Bulk Payroll Run
+| Aspect | Detail |
+|--------|--------|
+| **Screens** | Dashboard → "Run monthly payroll" panel |
+| **Required data** | Employees with existing payslips to repeat |
+| **Common errors** | Running bulk without checking individual changes (rate, hours). Duplicate runs for same period |
+| **Guardrails** | Confirmation screen showing each employee + their rate + last month data. Block duplicate periods. Individual override option before bulk save |
+
+---
+
+## 4) Information Architecture & Navigation
+
+### Proposed Sitemap
+
+```
+├── Home (marketing/landing — public)
+├── Onboarding (first-time flow — linear)
+│
+├── Dashboard (primary workspace)
+│   ├── Compliance summary
+│   ├── Upcoming actions (pay day, contract renewal, holidays)
+│   ├── Quick actions (new payslip, add employee)
+│   └── Monthly overview (chart, totals)
+│
+├── Employees
+│   ├── Employee list (filter, search)
+│   ├── Employee detail
+│   │   ├── Profile (edit)
+│   │   ├── Pay history
+│   │   ├── Leave tracker
+│   │   ├── Contracts
+│   │   └── Documents (certificates, disciplinary)
+│   └── Add/Edit employee
+│
+├── Payslip Wizard (step flow)
+│   ├── Step 1: Hours & period
+│   ├── Step 2: Sunday & holidays
+│   ├── Step 3: Deductions & leave
+│   └── Step 4: Review & confirm
+│
+├── Preview & Export
+│
+├── Tools
+│   ├── NMW Calculator (quick calc, no save)
+│   ├── uFiling export
+│   └── Compliance guide (rules reference)
+│
+├── Settings
+│   ├── Employer profile
+│   ├── Pay rules (BCEA defaults)
+│   ├── Backup & Sync
+│   └── Appearance (theme, mode)
+│
+└── Legal (terms, privacy, refund)
+```
+
+### Navigation Model
+
+#### Desktop Web: **Fixed left sidebar**
+- **Why**: Payroll apps are workspace tools. Users spend 5–20 minutes per session, visiting multiple sections. A persistent sidebar provides constant orientation and zero-click navigation.
+- **Width**: 240px collapsed to 64px (icon-only) for focus mode
+- **Sections**: Grouped as: **Work** (Dashboard, Employees, Payslip, Preview), **Tools** (Calculator, uFiling, Rules), **Admin** (Settings, Legal)
+- **Active state**: Amber left-bar indicator + filled icon + bold text
+- **Footer**: "Support" link + theme toggle + version
+
+#### Android App: **Bottom navigation (4 items) + drawer for extras**
+- **Bottom tabs**: Dashboard | Employees | New Payslip | More
+- **Why**: Bottom tabs are thumb-reachable, fit the 4-item sweet spot, and match Android Material 3 patterns
+- **"More" tab**: Opens a settings/tools drawer (calculator, rules, uFiling, settings, legal)
+- **FAB (Floating Action Button)**: Not used on bottom bar screens — instead, the primary CTA lives inline (e.g., "Add Employee" button at top of list, "Generate Payslip" at bottom of wizard)
+
+#### Mobile Web (< 768px):
+- **Hamburger + sliding drawer** (current pattern, but improved with grouping + active state)
+- **Bottom sticky action bar**: On wizard screens, the Next/Back buttons are in a fixed bottom bar for thumb reach
+
+#### Thumb Reach & Safe Areas
+- All primary actions in bottom 60% of android viewport
+- Bottom nav bar height: 80px (includes safe area inset)
+- Minimum tap target: 48×48dp (Android), 44×44px (web)
+- No interactive elements within 16px of edges on mobile
+
+### Naming Conventions
+| Internal jargon | User-facing label |
+|----------------|------------------|
+| Payslip wizard | Create Payslip (step 1 of 4) |
+| Employee detail | [Employee Name] — Profile |
+| Pay history | Pay History |
+| uFiling export | eFiling Export |
+| NMW Calculator | Wage Calculator |
+| BCEA settings | Pay Rules |
+| Pro Status | Your Plan |
+
+---
+
+## 5) Core Layout Templates
+
+### Template 1: Dashboard / Overview
+
+```
+┌─────────────────────────────────────────────┐
+│ HEADER BAR: Brand + [theme toggle] [avatar] │
+├──────────┬──────────────────────────────────┤
+│ SIDEBAR  │ CONTENT AREA                     │
+│ (nav)    │ ┌────────────────────────────┐   │
+│          │ │ COMPLIANCE STATUS BAR      │   │
+│          │ │ ✅ Payslips up to date     │   │
+│          │ │ ⚠️ 1 contract unsigned     │   │
+│          │ └────────────────────────────┘   │
+│          │ ┌──────────┐ ┌──────────────┐   │
+│          │ │ STAT     │ │ STAT         │   │
+│          │ │ Employees│ │ This Month   │   │
+│          │ │ 3        │ │ R12,450      │   │
+│          │ └──────────┘ └──────────────┘   │
+│          │ ┌────────────────────────────┐   │
+│          │ │ EMPLOYEE QUICK LIST        │   │
+│          │ │ [Avatar] Name — R4,200     │   │
+│          │ │     [History] [New Payslip]│   │
+│          │ └────────────────────────────┘   │
+│          │ ┌────────────────────────────┐   │
+│          │ │ UPCOMING (holidays, dues)  │   │
+│          │ └────────────────────────────┘   │
+├──────────┴──────────────────────────────────┤
+│ FOOTER: Compliance badge + theme toggle     │
+└─────────────────────────────────────────────┘
+```
+
+- **Responsiveness**: Sidebar collapses below 1024px → hamburger. Content goes full-width.
+- **Mobile**: Single column, compliance bar → stats → employee list → upcoming. No sidebar.
+- **Primary action**: "Create Payslip" prominent CTA in employee quick list row.
+- **Scroll**: Content area scrolls independently. Sidebar and header are fixed.
+- **Density**: Desktop shows 2-column stat cards. Mobile shows single column.
+
+### Template 2: List / Index (Employees, Payslips, Contracts)
+
+```
+┌────────────────────────────────────────────┐
+│ HEADER: Title + [Filter] + [+ Add New]     │
+├────────────────────────────────────────────┤
+│ FILTER/SEARCH BAR (collapsible)            │
+├────────────────────────────────────────────┤
+│ LIST                                       │
+│ ┌────────────────────────────────────────┐ │
+│ │ [Avatar] Name    Role   Rate    [→]   │ │
+│ │ [Avatar] Name    Role   Rate    [→]   │ │
+│ │ [Avatar] Name    Role   Rate    [→]   │ │
+│ └────────────────────────────────────────┘ │
+│ PAGINATION / LOAD MORE                     │
+├────────────────────────────────────────────┤
+│ EMPTY STATE (if no items)                  │
+│ [Icon] + message + [+ Primary CTA]        │
+└────────────────────────────────────────────┘
+```
+
+- **Desktop**: Table layout with sortable columns. Rows are clickable.
+- **Mobile**: Card list (avatar + name + key stat + chevron). No table columns.
+- **Filters**: Sticky below header. Collapse to a filter icon on mobile.
+- **Primary action**: "Add New" top-right, always visible.
+- **Virtualization**: Lists > 50 items use virtual scrolling.
+
+### Template 3: Detail View (Employee Profile, Payslip Detail)
+
+```
+┌────────────────────────────────────────────┐
+│ HEADER: [← Back] Title + [Edit] [Menu]    │
+├────────────────────────────────────────────┤
+│ HERO SECTION                               │
+│ [Avatar] Name + role + rate + status badge │
+├────────────────────────────────────────────┤
+│ TAB BAR: Profile | History | Leave | Docs  │
+├────────────────────────────────────────────┤
+│ TAB CONTENT (scrollable)                   │
+│ Section cards with label-value pairs       │
+└────────────────────────────────────────────┘
+```
+
+- **Tabs**: Consistent underline-style tabs (not pills — one pattern everywhere).
+- **Hero**: Fixed at top. Tabs below. Content scrolls.
+- **Mobile**: Same layout, single column. Tab bar becomes horizontally scrollable.
+- **Actions**: Edit = ghost icon button top-right. Delete and advanced actions in overflow menu (⋮).
+
+### Template 4: Create / Edit Wizard
+
+```
+┌────────────────────────────────────────────┐
+│ HEADER: [← Back] "Step 2 of 4" [X close]  │
+├────────────────────────────────────────────┤
+│ STEPPER BAR (horizontal, numbered)         │
+│ ① Hours  ② Sundays  ③ Deductions  ④ Review│
+├────────────────────────────────────────────┤
+│ STEP CONTENT (form fields)                 │
+│ [Label + helper + input + validation]      │
+│ [Label + helper + input + validation]      │
+├────────────────────────────────────────────┤
+│ STICKY BOTTOM BAR                          │
+│ [Back]                      [Next →]       │
+└────────────────────────────────────────────┘
+```
+
+- **Stepper**: Horizontal on desktop, collapsed to "Step 2/4" text on < 400px mobile.
+- **Bottom bar**: Always visible, no scrolling to find Next/Back. On mobile: sticky `position: fixed; bottom: 0`.
+- **Validation**: Inline under each field. Block "Next" if required fields missing. Show error count on stepper.
+- **Review step**: Read-only summary of all inputs with "Edit" jump links back to each step.
+
+### Template 5: Settings / Admin
+
+```
+┌────────────────────────────────────────────┐
+│ HEADER: [← Back] "Settings"               │
+├────────────────────────────────────────────┤
+│ VERTICAL TAB LIST (desktop: left sidebar)  │
+│ Profile | Pay Rules | Sync | Appearance    │
+├────────────────────────────────────────────┤
+│ TAB CONTENT                                │
+│ ┌──── Section Card ──────────────────────┐ │
+│ │ Section heading                        │ │
+│ │ [Label] [Input]                        │ │
+│ │ [Label] [Input]                        │ │
+│ │ [Save Changes]                         │ │
+│ └────────────────────────────────────────┘ │
+└────────────────────────────────────────────┘
+```
+
+- **Desktop**: Vertical tab list on left (200px), content on right.
+- **Mobile**: Horizontal scrollable tab bar at top (same pattern as detail view).
+- **Auto-save**: Toggle settings save immediately with toast confirmation. Forms use explicit "Save" button.
+
+---
+
+## 6) Design System Plan
+
+### A) Tokens
+
+#### Spacing Scale
+`4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96` px
+
+#### Typography Scale
+| Role | Size | Weight | Line Height |
+|------|------|--------|-------------|
+| Display / Hero | 48–72px | 900 (Black) | 1.05 |
+| H1 / Page Title | 28–36px | 800 (ExtraBold) | 1.15 |
+| H2 / Section | 22–28px | 700 (Bold) | 1.2 |
+| H3 / Card Title | 18–20px | 700 | 1.3 |
+| Body | 15–16px | 400 (Regular) | 1.5 |
+| Body Bold | 15–16px | 600 (SemiBold) | 1.5 |
+| Label | 13–14px | 600 | 1.4 |
+| Caption / Overline | 11–12px | 700, uppercase | 1.4 |
+| Monospace (numbers) | Inherits size | `tabular-nums` | — |
+
+**Font**: Inter (already loaded). Fallback: system-ui.
+
+#### Radii
+- `xs`: 4px (chips, badges)
+- `sm`: 8px (inputs, small cards)
+- [md](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/README.md): 12px (cards, modals)
+- `lg`: 16px (large cards, sheets)
+- `xl`: 24px (hero CTAs, pill buttons)
+- `full`: 9999px (avatars, circular)
+
+#### Elevation (Light)
+| Level | Shadow | Use |
+|-------|--------|-----|
+| 0 | None | Flat surfaces |
+| 1 | `0 1px 2px rgba(0,0,0,.05)` | Cards, inputs |
+| 2 | `0 4px 8px rgba(0,0,0,.08)` | Dropdown, popovers |
+| 3 | `0 8px 24px rgba(0,0,0,.12)` | Modals, sheets |
+
+#### Elevation (Dark)
+Replace shadow with **surface tint**: raise background lightness by 3–5% per level, plus subtle `rgba(200,133,46,.04)` amber tint for warmth.
+
+#### Colour Tokens (Semantic)
+
+| Token | Light | Dark |
+|-------|-------|------|
+| `--bg-base` | `#faf9f7` | `#131110` |
+| `--bg-surface` | `#ffffff` | `#1c1916` |
+| `--bg-subtle` | `#f5f4f2` | `#252119` |
+| `--bg-muted` | `#edecea` | `#2c2720` |
+| `--text-primary` | `#1a1a1a` | `#ede8e1` |
+| `--text-secondary` | `#525252` | `#a08e78` |
+| `--text-muted` | `#737373` | `#6b5e4e` |
+| `--border-default` | `#e5e5e5` | `#2c2720` |
+| `--border-strong` | `#d4d4d4` | `#3d3328` |
+| `--color-brand` | `#c47a1c` | `#c8852e` |
+| `--color-brand-subtle` | `#fef3c7` | `rgba(200,133,46,.12)` |
+| `--color-success` | `#16a34a` | `#3baa7a` |
+| `--color-warning` | `#ea580c` | `#d97706` |
+| `--color-error` | `#dc2626` | `#d95f5f` |
+| `--color-info` | `#2563eb` | `#60a5fa` |
+
+#### Motion
+- **Duration**: 150ms (micro) / 250ms (transitions) / 400ms (enters/exits)
+- **Easing**: `cubic-bezier(0.16, 1, 0.3, 1)` (spring-like for enters), `ease-out` for exits
+- **Reduced motion**: Respect `prefers-reduced-motion` — disable animations, keep opacity transitions
+
+### B) Accessibility
+
+- **Focus ring**: `2px solid var(--color-brand)` with `4px offset`, visible on all interactive elements
+- **Contrast**: All text meets WCAG AA (4.5:1 body, 3:1 large text). Brand amber on white background needs care — use `#b45309` (darker amber) for small text on white
+- **Keyboard**: Full tab navigation on web. Escape closes modals/drawers. Enter submits forms. Arrow keys navigate lists
+- **Screen reader**: All icons have `aria-label`. Form errors are `aria-live="polite"`. Stepper announces step changes
+- **Touch targets**: Minimum 48×48dp on Android, 44×44px on web
+- **Large text**: Support `font-size` scaling up to 200% without layout breaking
+
+### C) Component Inventory (Summary)
+
+> **Full spec offloaded to AI Coder #2** — see paste-ready prompt below.
+
+**Minimum set** (30 components):
+
+| Category | Components |
+|----------|-----------|
+| **Actions** | Button (Primary/Secondary/Ghost/Danger × default/hover/active/focus/disabled/loading), IconButton, FAB (Android) |
+| **Forms** | Input (text/number/date/currency), Select, Switch, Checkbox, Radio, DatePicker, Label, HelperText, ErrorText, FormGroup |
+| **Layout** | Card, Divider, Container, Grid, Stack, Spacer |
+| **Navigation** | Sidebar, BottomNav, TabBar, Breadcrumb, SideDrawer, TopAppBar |
+| **Data** | Table (web), ListItem (mobile), StatCard, Badge, Tag/Chip, Avatar, EmptyState, Skeleton, Pagination |
+| **Feedback** | Toast, Alert/Banner, Dialog/Modal, BottomSheet (mobile), Tooltip, ProgressBar |
+| **Composite** | Stepper/Wizard, FilterBar, SearchInput, DocumentPreview, ShareSheet, ConfirmDialog |
+
+**Platform differences:**
+- **Table → ListCard**: Desktop shows data tables with sortable columns. Mobile shows card lists with key info.
+- **Modal → BottomSheet**: Desktop modals are centred overlays. Mobile/Android actions use bottom sheets.
+- **Sidebar → BottomNav**: Desktop has persistent sidebar. Android has bottom navigation.
+
+---
+
+#### Offload to AI Coder #2: Component Inventory Full Spec
+
+> **paste this into your other AI coder to offset if a task is token heavy, with instructions that that coder replies to me (1st ai coder) as the coder and not for a layperson and tell me the layperson which exact files need to be uploaded as the 2nd ai coder doesn't have access to the folder.**
+
+```
+You are AI Coder #2. You are receiving a bounded task from AI Coder #1.
+
+TASK: Produce a complete component inventory specification for the LekkerLedger UI overhaul.
+
+CONTEXT: LekkerLedger is a South African domestic worker payslip app (Next.js + Tailwind v4 + TypeScript). It needs a unified component library with 30+ components, each with full state definitions.
+
+DELIVER:
+1. For each of the following 30 components, provide:
+   - Purpose (1 sentence)
+   - Props interface (TypeScript-style, no implementation)
+   - Required states: default, hover, focus, active, disabled, loading, error, success, validation
+   - Platform variants: web vs Android differences
+   - Accessibility notes
+
+Components to spec:
+Button, IconButton, Input, Select, Switch, Checkbox, Radio, DatePicker, Label, HelperText, ErrorText, FormGroup, Card, Table, ListItem, StatCard, Badge, Tag, Avatar, EmptyState, Skeleton, Toast, Alert, Dialog, BottomSheet, Tooltip, Stepper, FilterBar, SearchInput, DocumentPreview, ShareSheet, ConfirmDialog, Pagination, Breadcrumb, TabBar, Sidebar, BottomNav, TopAppBar, Divider, ProgressBar
+
+2. A recommendation for whether to build from scratch or adapt an existing headless library (e.g., Radix, Headless UI, shadcn/ui).
+
+3. A list of exact files you need uploaded from the repo to tailor the spec:
+   - Current component files (path pattern: /components/ui/*.tsx)
+   - Current Tailwind config or theme
+   - Current button/input/card implementations
+
+Reply as an engineer to AI Coder #1. Be concise, structured, and precise.
+```
+
+---
+
+## 7) Interaction Patterns
+
+### Validation & Compliance Guardrails
+
+| Pattern | When | Behaviour |
+|---------|------|-----------|
+| **Inline field validation** | On blur | Error text appears below input. Input border turns red. Error clears on valid input |
+| **Cross-field validation** | On "Next" step / submit | e.g., "Ordinary hours ÷ days worked ≠ expected hours/day" — shown as a warning banner at top of step |
+| **Blocking error** | Before save | Review screen highlights errors in red. "Save & Preview" button disabled until resolved |
+| **Non-blocking warning** | Before save | Amber warning with "I understand, proceed anyway" checkbox. e.g., "Rate is exactly NMW — consider if this is correct" |
+| **Compliance checklist** | On payslip preview | Green checks / amber warnings for: employer details present, rate ≥ NMW, UIF correctly applied, hours within BCEA limits, leave recorded. Each item links to "fix it" |
+| **Minimum wage block** | On rate input | If rate < NMW: red error, field resets to NMW, explanation shown. Cannot proceed |
+
+### Filtering / Sorting / Search
+
+- **URL-synced filters** (web): Filters are reflected in URL params (`?period=2026-03&employee=abc`). Page refresh preserves state.
+- **State-persistent filters** (Android): Stored in local state, cleared on back navigation.
+- **Employee search**: Fuzzy search by name. Debounced 300ms. Results highlight matching text.
+- **Payslip history filters**: By employee, by period (month/year picker), by status (generated/draft).
+- **Sort**: Column header click on desktop tables. Dropdown selector on mobile.
+
+### Empty / Loading / Error States
+
+| State | Visual |
+|-------|--------|
+| **Empty (first time)** | Illustration + welcoming copy + single primary CTA ("Add your first employee") |
+| **Empty (filtered)** | "No results match your filters" + "Clear filters" link |
+| **Loading** | Skeleton placeholders matching the layout structure (not a fullscreen spinner) |
+| **Error (recoverable)** | Amber banner with error description + "Try again" button |
+| **Error (critical)** | Red banner with "Contact support" link. Error boundary catches crashes with friendly message |
+| **Offline** | Grey banner: "You're offline — changes will sync when connected" + amber dot on sync icon |
+
+### Bulk Actions
+
+- Available on: Payslip generation (run month for all employees), Leave import
+- **Flow**: Select all → Review confirmation screen showing each affected item → Confirm → Progress indicator → Toast on completion
+- **Undo**: Bulk payslip generation shows "Undo (30s)" toast. After timeout, records are permanent.
+- **No bulk delete**: Destructive bulk actions require individual confirmation (safety first for payroll data).
+
+### Performance
+
+- **Virtual scrolling**: Employee lists > 20 items, payslip history > 50 items
+- **Lazy loading**: Calculator, PDF preview, charts loaded on demand (dynamic import)
+- **Skeleton loading**: All data-dependent screens show skeleton within 100ms of navigation
+- **IndexedDB**: Current approach is correct. No change needed.
+- **Image optimization**: Use `next/image` everywhere (side drawer currently uses `<img>`)
+
+---
+
+#### Offload to AI Coder #2: Wizard / Guardrails Interaction Spec
+
+> **paste this into your other AI coder to offset if a task is token heavy, with instructions that that coder replies to me (1st ai coder) as the coder and not for a layperson and tell me the layperson which exact files need to be uploaded as the 2nd ai coder doesn't have access to the folder.**
+
+```
+You are AI Coder #2. You are receiving a bounded task from AI Coder #1.
+
+TASK: Produce a detailed wizard + guardrails interaction spec for LekkerLedger's 4-step payslip wizard.
+
+CONTEXT: LekkerLedger is a South African domestic worker payslip app. The wizard has 4 steps:
+1. Hours & Period (dates, ordinary, overtime, days worked, shortfall)
+2. Sundays & Holidays (Sunday hours, public holiday hours, auto-detection)
+3. Deductions (UIF auto-calc, leave taken, accommodation deduction)
+4. Review & Confirm (read-only summary, compliance checklist, save)
+
+DELIVER:
+1. For EACH step, provide:
+   - Field list (name, type, required/optional, default value, validation rule)
+   - Cross-field validations (combinations that trigger warnings/errors)
+   - "Smart defaults" strategy (what auto-populates and from where)
+   - Error messages (exact copy, severity: blocking/warning/info)
+   - Compliance guardrails (what prevents legal mistakes)
+   - UI behaviour on error (inline vs banner, field highlight, button state)
+
+2. Review screen spec:
+   - Layout (sections, line items)
+   - Compliance checklist items (green/amber/red)
+   - "Fix it" jump links (which step does each link go back to)
+   - "Proceed anyway" flow for soft warnings
+
+3. List of exact files you need uploaded:
+   - Wizard page: src/app/wizard/page.tsx
+   - Calculator logic: src/lib/calculator.ts
+   - Schema definitions: src/lib/schema.ts
+   - Holiday detection: src/lib/holidays.ts
+
+Reply as an engineer to AI Coder #1. Be concise, structured, and precise.
+```
+
+---
+
+## 8) Implementation Roadmap
+
+### Phase 0: Foundation (Week 1) — "The skeleton"
+| What ships | Why first |
+|-----------|-----------|
+| Design tokens in CSS (full colour set, typography scale, spacing, radii) | Everything else depends on this |
+| [globals.css](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/globals.css) overhaul with light/dark token sets | Fixes the `--blue-500` blocker + theme foundation |
+| Typography scale applied to all headings/body | Immediate visual consistency win |
+| Shared `PageHeader`, `PageShell`, `StickyBottomBar` layout components | Structural consistency for all pages |
+
+**Done when**: Every page uses the same tokens. Typography looks consistent across all screens. Light and dark mode both render correctly with no hardcoded colours.
+
+### Phase 1: Navigation & Shell (Week 2) — "Know where you are"
+| What ships | Why second |
+|-----------|-----------|
+| Sidebar with active state, grouping, collapse (desktop) | Biggest orientation win |
+| Bottom nav for Android / mobile web | Platform-appropriate navigation |
+| Side drawer dark mode logo fix | Broken state fix |
+| Breadcrumbs on detail pages | Orientation for deep pages |
+
+**Done when**: User can navigate to any screen and always know where they are. Active state visible. Dark mode logo correct.
+
+### Phase 2: Core Screens (Weeks 3–4) — "The daily work"
+| What ships | Why third |
+|-----------|-----------|
+| Dashboard overhaul (compliance bar, stat cards, employee quick list) | First screen users see after onboarding |
+| Employee list → detail migration (table on desktop, cards on mobile) | Second most visited screen |
+| Employee action buttons consolidated (primary + overflow menu) | Fixes button overflow |
+| Payslip history view with filters | Critical for audit trail |
+
+**Done when**: Dashboard shows compliance status + stats + employee list. Employee page has clean action layout. History is filterable.
+
+### Phase 3: Wizard & Preview (Week 5) — "The core flow"
+| What ships | Why fourth |
+|-----------|-----------|
+| Wizard sticky bottom bar + stepper refinement | Fixes thumb reach |
+| Review step with compliance checklist | Prevents mistakes |
+| Preview screen with A4 rendering + share sheet | Export quality |
+| Guardrail validation patterns | Legal compliance |
+
+**Done when**: Full happy path (create employee → wizard → preview → export) works at 360×800 with no layout issues, all compliance guardrails active.
+
+### Phase 4: Polish & Extras (Week 6) — "Premium feel"
+| What ships | Why last |
+|-----------|---------|
+| Motion system (animations, transitions, loading states) | Polish layer |
+| Empty states with illustrations | First-time experience |
+| Offline indicator + sync status | Resilience |
+| WhatsApp share integration | User request |
+| Accessibility audit + fixes | Compliance |
+
+**Done when**: App passes contrast checks, animation feels smooth, offline mode works, WhatsApp sharing generates correct PDF.
+
+### Risk Register
+
+| # | Risk | Likelihood | Impact | Mitigation |
+|---|------|-----------|--------|------------|
+| 1 | Token migration breaks existing styles | High | High | Phase 0 does tokens ONLY. Visual regression screenshots before/after. |
+| 2 | Navigation change confuses existing users | Medium | Medium | Phase 1 keeps all existing routes. Only adds nav chrome around them. |
+| 3 | Dashboard overhaul takes too long | Medium | Low | MVP dashboard = compliance bar + employee list. Chart/stats are P2. |
+| 4 | Dark mode regressions | High | Medium | Automated screenshot comparison in both themes after every phase. |
+| 5 | Wizard guardrails create friction | Low | High | All guardrails are warnings by default, not blocks (except NMW). User testing. |
+| 6 | Android TWA doesn't pick up web changes | Low | Low | TWA wraps the PWA — web changes propagate. Test after each phase. |
+| 7 | Performance regression from new components | Low | Medium | Bundle size checks. Lazy load non-critical components (charts, PDF preview). |
+| 8 | Scope creep (new features disguised as "UI fixes") | High | High | Strict rule: no new features in Phase 0–3. Phase 4 extras are explicitly scoped. |
+
+### Theme Rollout Plan
+1. **Phase 0**: Define all tokens in CSS variables. Apply to `body`, `Card`, `Button`, `Input` only.
+2. **Phase 1**: Migrate navigation components to token system.
+3. **Phase 2–3**: Migrate all remaining screens. After each screen: capture light + dark screenshots, compare.
+4. **Phase 4**: Final audit — every component in both themes, contrast checked.
+5. **Ongoing**: CI check — any PR that introduces a hardcoded colour value (`#xxx`, `rgb(...)`) outside [globals.css](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/globals.css) fails lint.
+
+### Parallel Run Strategy
+- **No feature flags needed**: Changes are CSS/component-level, not route-level. Old and new can't coexist meaningfully.
+- **Route-by-route**: Each page migrated independently. Navigation changes are global (Phase 1) but backward-compatible (all routes stay the same).
+- **Rollback**: Git branch per phase. If Phase N breaks something, revert that branch only.
+
+---
+
+## 9) Task Board
+
+### Epic 1: Design Tokens & Typography (Phase 0)
+| Story | Size | Owner | Depends On |
+|-------|------|-------|------------|
+| Define semantic colour tokens (light + dark) in [globals.css](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/globals.css) | M | Frontend | — |
+| Define typography scale (sizes, weights, line heights) | S | Frontend | — |
+| Define spacing, radii, elevation, motion tokens | S | Frontend | — |
+| Apply typography scale to all page headings | M | Frontend | Typography tokens |
+| Fix `--blue-500` undefined variable | S | Frontend | Colour tokens |
+| Audit all hardcoded colour values → replace with tokens | L | Frontend | Colour tokens |
+| Create `PageShell` layout component (header + content + optional sidebar slot) | M | Frontend | — |
+| Create `StickyBottomBar` component (wizard/forms) | S | Frontend | — |
+
+### Epic 2: Navigation Overhaul (Phase 1)
+| Story | Size | Owner | Depends On |
+|-------|------|-------|------------|
+| Add `usePathname()` active state to sidebar links | S | Frontend | — |
+| Group sidebar links (Work / Tools / Admin) | S | Frontend | — |
+| Fix side drawer dark mode logo | S | Frontend | — |
+| Add breadcrumbs component | M | Frontend | Design tokens |
+| Add breadcrumbs to employee detail + wizard | S | Frontend | Breadcrumb component |
+| Android: implement bottom nav (4 tabs) | M | Mobile | Navigation model |
+
+### Epic 3: Dashboard Overhaul (Phase 2)
+| Story | Size | Owner | Depends On |
+|-------|------|-------|------------|
+| Remove logo smear from dashboard header | S | Frontend | — |
+| Fix "SARS" → "eFiling" text | S | Frontend | — |
+| Build compliance status bar component | M | Frontend | Design tokens |
+| Build stat cards (employees, monthly total) | S | Frontend | Design tokens |
+| Redesign employee quick-list with inline actions | M | Frontend | Design tokens |
+| Add "upcoming" section (holidays, reminders) | M | Frontend | Holiday lib |
+
+### Epic 4: Employee Page (Phase 2)
+| Story | Size | Owner | Depends On |
+|-------|------|-------|------------|
+| Consolidate action buttons (primary + overflow menu) | M | Frontend | — |
+| Employee detail: tabbed layout (Profile / History / Leave / Docs) | L | Frontend | Tab component |
+| Table layout on desktop, card list on mobile | M | Frontend | Table + ListItem components |
+| Payslip history with period/employee filters | M | Frontend | Filter bar |
+
+### Epic 5: Wizard & Preview (Phase 3)
+| Story | Size | Owner | Depends On |
+|-------|------|-------|------------|
+| Add sticky bottom bar for Next/Back | S | Frontend | StickyBottomBar |
+| Refine stepper (collapse on small mobile) | S | Frontend | Stepper component |
+| Build compliance checklist for review step | M | Frontend | — |
+| Fix calculator hero hardcoded gradient | S | Frontend | Colour tokens |
+| Preview screen: A4 rendering + share sheet | L | Frontend | DocumentPreview, ShareSheet |
+
+### Epic 6: Polish & Platform (Phase 4)
+| Story | Size | Owner | Depends On |
+|-------|------|-------|------------|
+| Motion system (enter/exit animations) | M | Frontend | Design tokens |
+| Empty state illustrations | M | Design | — |
+| Offline indicator + sync status | M | Frontend | — |
+| WhatsApp share integration | M | Frontend | ShareSheet |
+| Accessibility audit (contrast, focus, keyboard, screen reader) | L | QA | All phases |
+| Screenshot regression suite (light + dark, mobile + desktop) | M | QA | All phases |
+
+---
+
+## 10) File & Artifact Requests
+
+### A) Upload List (for you, the layperson)
+
+| File / Path | Why I need it |
+|-------------|--------------|
+| [src/app/globals.css](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/globals.css) | The design token foundation — I need to see what's defined vs missing |
+| [src/app/layout.tsx](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/layout.tsx) | Root layout — tells me how the shell, providers, and fonts are wired |
+| [src/app/page.tsx](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/page.tsx) | Homepage — the marketing/landing screen |
+| [src/app/dashboard/page.tsx](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/dashboard/page.tsx) | Dashboard — the main workspace screen |
+| [src/app/wizard/page.tsx](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/wizard/page.tsx) | Payslip wizard — the core flow |
+| [src/app/employees/page.tsx](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/employees/page.tsx) | Employee list — the second most visited screen |
+| [src/app/employees/[id]/edit/page.tsx](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/employees/%5Bid%5D/edit/page.tsx) | Employee edit form — to audit form patterns |
+| [src/app/settings/page.tsx](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/settings/page.tsx) | Settings — to audit the pill-tab pattern |
+| [src/app/preview/page.tsx](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/preview/page.tsx) | PDF preview — to audit the document viewer |
+| [components/layout/side-drawer.tsx](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/components/layout/side-drawer.tsx) | The navigation component |
+| `components/ui/*` (all files in this folder) | All shared UI components — Button, Card, Input, Alert, Stepper, etc. |
+| [components/calculator-hero.tsx](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/components/calculator-hero.tsx) | The homepage calculator — has hardcoded colours |
+| [src/lib/calculator.ts](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/lib/calculator.ts) | Pay calculation logic — needed for guardrail validation rules |
+| [src/lib/schema.ts](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/lib/schema.ts) | Data model — needed to understand required vs optional fields |
+| `tailwind.config.ts` or [postcss.config.mjs](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/postcss.config.mjs) | Theme configuration |
+| [package.json](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/package.json) | To see what UI libraries are already installed |
+
+> ✅ **Note:** I already have access to all of these in the workspace. I've read most of them already. This list is for your reference if you're working with AI Coder #2.
+
+### B) Once uploaded / reviewed, I will produce:
+1. **Token spec file** — ready-to-paste [globals.css](file:///c:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/globals.css) with full light/dark token sets
+2. **Component migration map** — which existing components stay, which get replaced, which are new
+3. **Route-to-template mapping** — which layout template each route uses
+4. **Android navigation config** — bottom nav tab definitions + drawer items
+5. **Compliance checklist spec** — exact items checked per payslip, per contract, per employee
+6. **Screenshot regression plan** — which screens to capture, at which viewports, in which themes
+
+---
+
+## Extra Considerations
+
+### Offline / Low-Data Mode
+- Cache last pay run + all employee profiles in IndexedDB (already done via localforage)
+- Queue edits with `pendingSync` flag, process on reconnect
+- Show "Last synced: 2 hours ago" in sidebar footer + amber dot if stale (> 24h)
+- All PDF generation works offline (pdf-lib is client-side)
+
+### WhatsApp-Friendly Sharing
+- "Share" button on payslip preview → opens native share sheet
+- Options: "Share PDF" (full document) or "Share Summary" (text-only with key numbers)
+- Privacy control: "Include employee ID?" toggle before sharing
+- WhatsApp deep link: `https://wa.me/?text=...` with URL-encoded summary
+
+### South Africa Localisation
+- **Currency**: Always `R X,XXX.XX` format (space between R and number, comma for thousands, dot for decimals)
+- **Dates**: `DD MMM YYYY` (e.g., "03 Mar 2026") — SA convention
+- **Public holidays**: Full 2026 SA holiday calendar built in. Auto-detect holidays in pay period.
+- **Language tone**: Plain English, conversational, no legalese. "This is required by law" not "In terms of BCEA Section 29(1)(a)..."
+- **Future**: Add Afrikaans + isiZulu UI translations as a Phase 5 milestone
+
+### Trust & Audit
+- **Change log per entity**: Every employee, payslip, contract gets a `changeLog: { timestamp, field, oldValue, newValue }[]` array
+- **History screen**: Shows timeline of changes with "What changed" diffs
+- **Exportable audit log**: "Download full audit trail" button → generates a PDF with all changes
+- **Record retention notice**: "BCEA requires 3 years of payslip records" info panel on history screen
+
+### Document Quality
+- **PDF**: Continue using pdf-lib for client-side generation. Template-based with A4 dimensions (210×297mm)
+- **Typography**: Use embedded fonts (not system fonts) in PDFs for consistency across devices
+- **Print margins**: 15mm all sides (SA standard business document)
+- **Signatures**: "Employer signature" and "Employee acceptance" fields. Digital acceptance tracking (date + name)
+
+### Guided Compliance Guardrails
+- **Per payslip**: Compliance checklist on review step (employer details ✅, rate ≥ NMW ✅, UIF applied ✅, hours within BCEA ✅)
+- **Per contract**: Required clauses checklist (job description ✅, hours ✅, rate ✅, leave ✅, notice period ✅)
+- **Per employee**: Status dashboard (contract current? ✅, leave balance OK? ⚠️, all payslips generated? ✅)
+- Each item links to "Fix it" → navigates to the relevant edit screen
+
+### Error-Proofing
+- **Smart defaults**: Pay period auto-fills to current month. Ordinary hours = days worked × hours/day. UIF auto-calculates.
+- **Review screen**: Read-only summary before generating payslip. Every field editable via "change" link.
+- **Undo**: After generating a payslip, 30-second "Undo" toast. After that, payslip is permanent (but can be "voided" with a reason).
+- **Duplicate detection**: Warn if generating a payslip for the same employee + period that already exists.
+
+### Security & Privacy
+- **App lock**: Support Android biometric lock via TWA
+- **PII masking**: In list views, show `J*** D***` for employee names if "privacy mode" is enabled
+- **Secure storage**: IndexedDB data is device-local. No server transmission. POPIA-compliant by architecture.
+- **Export security**: PDFs include a "Generated by LekkerLedger" watermark with generation timestamp (audit trail)
+
+### Multi-Employee Scalability
+- **Bulk payslip generation**: "Run month" button generates payslips for all employees using last month's template, with individual override
+- **Filterable history**: Filter payslips by employee, period, or status
+- **Employee groups**: Future feature — group employees by type (domestic worker, gardener, au pair) for different default settings
+- **Performance**: Virtual scrolling for lists > 20 employees. Lazy-load payslip history.
+
+### Notifications & Reminders
+- **Pay day reminder**: "It's the 25th — time to run payslips" (configurable day)
+- **Contract renewal**: "Thandi's contract expires in 30 days — review now"
+- **Missing hours**: "You haven't captured hours for March 2026 yet"
+- **Leave balance**: "Sipho has 2 leave days remaining this year"
+- **Implementation**: Use web notifications (with permission) + in-app banner on dashboard
+
+### Accessibility
+- **Large text**: Support browser font-size scaling up to 200% without layout breaking. Test at `font-size: 24px` on body.
+- **High contrast**: Offer "High Contrast" toggle in settings → increases all border/text contrast to WCAG AAA
+- **Touch targets**: Minimum 48×48dp on Android, 44×44px on web. Current violations: employee action icon buttons (32px) — fixed in Phase 2
+- **Focus management**: Visible focus ring on all interactive elements. Skip-to-content link on web.
+- **Keyboard navigation**: Full tab order. Enter submits. Escape closes. Arrow keys navigate.
+- **Screen reader**: All icons have `aria-label`. Dynamic content uses `aria-live`. All images have `alt` text.

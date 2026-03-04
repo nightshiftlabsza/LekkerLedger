@@ -5,8 +5,9 @@
  * Extensible: add new alert types by pushing to the `alerts` array.
  */
 
-import { format } from "date-fns";
-import type { Employee, PayslipInput, EmployerSettings } from "./schema";
+import { format, differenceInDays } from "date-fns";
+import type { Employee, PayslipInput, EmployerSettings, LeaveRecord } from "./schema";
+import { calculateLeaveBalances } from "./leave";
 
 export type AlertSeverity = "info" | "warning" | "urgent";
 
@@ -17,14 +18,21 @@ export interface DashboardAlert {
     action?: { label: string; href: string };
 }
 
+interface EmployeeLeaveContext {
+    employee: Employee;
+    leaveRecords: LeaveRecord[];
+    totalDaysWorked: number;
+}
+
 interface AlertParams {
     employees: Employee[];
     summaries: Array<{ employee: Employee; latestPayslip: PayslipInput | null }>;
     settings: EmployerSettings | null;
     now: Date;
+    leaveContexts?: EmployeeLeaveContext[];
 }
 
-export function computeDashboardAlerts({ employees, summaries, settings, now }: AlertParams): DashboardAlert[] {
+export function computeDashboardAlerts({ employees, summaries, settings, now, leaveContexts = [] }: AlertParams): DashboardAlert[] {
     const alerts: DashboardAlert[] = [];
 
     if (employees.length === 0) return alerts;
@@ -79,6 +87,38 @@ export function computeDashboardAlerts({ employees, summaries, settings, now }: 
                 severity: "warning",
                 message: `No payslip for ${s.employee.name} this month`,
                 action: { label: "Create →", href: `/wizard?empId=${s.employee.id}` },
+            });
+        }
+    }
+
+    // 4. Leave balance — annual leave over 15 days (BCEA carry-over risk)
+    for (const ctx of leaveContexts) {
+        if (!ctx.employee.startDate) continue;
+        const balances = calculateLeaveBalances(ctx.employee.startDate, ctx.totalDaysWorked, ctx.leaveRecords, now);
+        if (balances.annual.remaining > 15) {
+            alerts.push({
+                id: `leave-overaccrual-${ctx.employee.id}`,
+                severity: "warning",
+                message: `${ctx.employee.name} has ${balances.annual.remaining} leave days — encourage taking leave before year-end`,
+                action: { label: "View leave →", href: `/leave?employeeId=${ctx.employee.id}` },
+            });
+        }
+    }
+
+    // 5. Contract expiry — employees with an endDate (fixed-term) within 30 days
+    for (const emp of employees) {
+        // Fixed-term contracts store an optional endDate on the employee.
+        // Cast to any to access it gracefully if it exists.
+        const endDate = (emp as Record<string, unknown>).endDate as string | undefined;
+        if (!endDate) continue;
+        const end = new Date(endDate);
+        const daysToExpiry = differenceInDays(end, now);
+        if (daysToExpiry >= 0 && daysToExpiry <= 30) {
+            alerts.push({
+                id: `contract-expiry-${emp.id}`,
+                severity: daysToExpiry <= 7 ? "urgent" : "warning",
+                message: `${emp.name}'s contract expires in ${daysToExpiry} day${daysToExpiry === 1 ? "" : "s"} — renew or issue notice`,
+                action: { label: "View contracts →", href: "/contracts" },
             });
         }
     }

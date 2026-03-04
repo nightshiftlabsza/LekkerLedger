@@ -1,0 +1,138 @@
+"use client";
+
+import * as React from "react";
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DataTable — responsive: <table> on ≥960px, stacked ListCard on mobile
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export interface Column<T> {
+    key: string;
+    label: string;
+    render: (item: T) => React.ReactNode;
+    sortable?: boolean;
+    align?: "left" | "right" | "center";
+    className?: string;
+}
+
+interface DataTableProps<T> {
+    columns: Column<T>[];
+    data: T[];
+    keyField: (item: T) => string;
+    onRowClick?: (item: T) => void;
+    emptyMessage?: string;
+    className?: string;
+    /** Render function for mobile card layout (< 960px) */
+    renderCard?: (item: T, index: number) => React.ReactNode;
+}
+
+type SortDir = "asc" | "desc";
+
+export function DataTable<T>({
+    columns, data, keyField, onRowClick, emptyMessage = "No data", className = "", renderCard,
+}: DataTableProps<T>) {
+    const [sortKey, setSortKey] = React.useState<string | null>(null);
+    const [sortDir, setSortDir] = React.useState<SortDir>("asc");
+
+    const handleSort = (key: string) => {
+        if (sortKey === key) {
+            setSortDir(d => d === "asc" ? "desc" : "asc");
+        } else {
+            setSortKey(key);
+            setSortDir("asc");
+        }
+    };
+
+    // Sorted data (basic string compare — consumers can provide pre-sorted data)
+    const sorted = React.useMemo(() => {
+        if (!sortKey) return data;
+        return [...data].sort((a, b) => {
+            const col = columns.find(c => c.key === sortKey);
+            if (!col) return 0;
+            const aVal = String(col.render(a) ?? "");
+            const bVal = String(col.render(b) ?? "");
+            const cmp = aVal.localeCompare(bVal, undefined, { numeric: true });
+            return sortDir === "asc" ? cmp : -cmp;
+        });
+    }, [data, sortKey, sortDir, columns]);
+
+    if (data.length === 0) {
+        return (
+            <p className="text-center type-body text-[var(--text-muted)] py-12">{emptyMessage}</p>
+        );
+    }
+
+    return (
+        <>
+            {/* Desktop table (≥960px) */}
+            <div className={`hidden lg:block overflow-x-auto ${className}`}>
+                <table className="w-full text-sm border-collapse">
+                    <thead>
+                        <tr className="border-b border-[var(--border-subtle)]">
+                            {columns.map(col => (
+                                <th
+                                    key={col.key}
+                                    className={`px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ${col.align === "right" ? "text-right"
+                                            : col.align === "center" ? "text-center" : "text-left"
+                                        } ${col.sortable ? "cursor-pointer select-none hover:text-[var(--text-primary)]" : ""} ${col.className ?? ""}`}
+                                    onClick={() => col.sortable && handleSort(col.key)}
+                                >
+                                    <span className="inline-flex items-center gap-1">
+                                        {col.label}
+                                        {col.sortable && sortKey === col.key && (
+                                            sortDir === "asc"
+                                                ? <ChevronUp className="h-3 w-3" />
+                                                : <ChevronDown className="h-3 w-3" />
+                                        )}
+                                    </span>
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--border-subtle)]">
+                        {sorted.map((item) => (
+                            <tr
+                                key={keyField(item)}
+                                onClick={() => onRowClick?.(item)}
+                                className={`transition-colors ${onRowClick ? "cursor-pointer hover:bg-[var(--bg-subtle)]" : ""}`}
+                            >
+                                {columns.map(col => (
+                                    <td
+                                        key={col.key}
+                                        className={`px-4 py-3.5 text-[var(--text-primary)] ${col.align === "right" ? "text-right"
+                                                : col.align === "center" ? "text-center" : "text-left"
+                                            } ${col.className ?? ""}`}
+                                    >
+                                        {col.render(item)}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Mobile cards (<960px) */}
+            <div className={`lg:hidden space-y-2 ${className}`}>
+                {sorted.map((item, i) => (
+                    <React.Fragment key={keyField(item)}>
+                        {renderCard ? renderCard(item, i) : (
+                            <div
+                                className={`glass-panel rounded-xl p-4 space-y-2 ${onRowClick ? "cursor-pointer hover-lift" : ""}`}
+                                onClick={() => onRowClick?.(item)}
+                            >
+                                {columns.map(col => (
+                                    <div key={col.key} className="flex items-center justify-between gap-2">
+                                        <span className="type-overline text-[var(--text-muted)]">{col.label}</span>
+                                        <span className="text-sm font-medium text-[var(--text-primary)]">{col.render(item)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </React.Fragment>
+                ))}
+            </div>
+        </>
+    );
+}

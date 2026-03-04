@@ -27,7 +27,7 @@ export default function TermsOfService() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">1. Acceptance of Terms</h2>
                         <p>
-                            By using LekkerLedger, you agree to be bound by these Terms of Service. If you do not agree, please do not use the application. This service is provided by Nightshift Labs, operating in South Africa.
+                            By using LekkerLedger, you agree to be bound by these Terms of Service. If you do not agree, please do not use the application. This service is provided by Nightshift Labs ZA, operating in South Africa.
                         </p>
                     </section>
 
@@ -51,14 +51,14 @@ export default function TermsOfService() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">4. Intellectual Property</h2>
                         <p>
-                            The code and design of LekkerLedger are the property of Nightshift Labs. The open-source portions are governed by the MIT License, which handles code reuse but does not grant rights to the LekkerLedger brand or trademarks.
+                            The code and design of LekkerLedger are the property of Nightshift Labs ZA. The open-source portions are governed by the MIT License, which handles code reuse but does not grant rights to the LekkerLedger brand or trademarks.
                         </p>
                     </section>
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">5. Limitation of Liability</h2>
                         <p>
-                            To the maximum extent permitted by South African law, Nightshift Labs shall not be liable for any CCMA awards, legal fees, or financial losses resulting from the use of this tool. Your use of LekkerLedger is at your own risk.
+                            To the maximum extent permitted by South African law, Nightshift Labs ZA shall not be liable for any CCMA awards, legal fees, or financial losses resulting from the use of this tool. Your use of LekkerLedger is at your own risk.
                         </p>
                     </section>
 
@@ -69,7 +69,7 @@ export default function TermsOfService() {
                 </div>
 
                 <footer className="pt-20 border-t border-zinc-800/50">
-                    <p className="text-xs text-zinc-600">© 2026 LekkerLedger. All rights reserved. Crafted by Nightshift Labs in South Africa.</p>
+                    <p className="text-xs text-zinc-600">© 2026 LekkerLedger. All rights reserved. Crafted by Nightshift Labs ZA in South Africa.</p>
                 </footer>
             </div>
         </div>

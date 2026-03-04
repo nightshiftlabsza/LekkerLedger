@@ -3,26 +3,38 @@
 import * as React from "react";
 
 type Theme = "light" | "dark" | "system";
+type Density = "comfortable" | "compact";
 
-interface ThemeContextValue {
+interface UIContextValue {
     theme: Theme;
     resolvedTheme: "light" | "dark";
     setTheme: (t: Theme) => void;
+    density: Density;
+    setDensity: (d: Density) => void;
 }
 
-const ThemeContext = React.createContext<ThemeContextValue>({
+const UIContext = React.createContext<UIContextValue>({
     theme: "system",
     resolvedTheme: "light",
     setTheme: () => { },
+    density: "comfortable",
+    setDensity: () => { },
 });
 
+export function useUI() {
+    return React.useContext(UIContext);
+}
+
+/** Legacy hook for backward compatibility */
 export function useTheme() {
-    return React.useContext(ThemeContext);
+    const { theme, resolvedTheme, setTheme } = useUI();
+    return { theme, resolvedTheme, setTheme };
 }
 
 /** Resolve "system" to the actual OS preference */
 function resolveTheme(t: Theme): "light" | "dark" {
     if (t === "system") {
+        if (typeof window === "undefined") return "light";
         return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
     return t;
@@ -30,7 +42,20 @@ function resolveTheme(t: Theme): "light" | "dark" {
 
 /** Apply data-theme attribute to the <html> element */
 function applyTheme(resolved: "light" | "dark") {
-    document.documentElement.setAttribute("data-theme", resolved);
+    if (typeof document !== "undefined") {
+        document.documentElement.setAttribute("data-theme", resolved);
+    }
+}
+
+/** Apply density class to the <html> element */
+function applyDensity(d: Density) {
+    if (typeof document !== "undefined") {
+        if (d === "compact") {
+            document.documentElement.classList.add("density-compact");
+        } else {
+            document.documentElement.classList.remove("density-compact");
+        }
+    }
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -48,13 +73,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         );
     });
 
-    // On mount and whenever the theme changes, apply to DOM and persist
+    const [density, setDensityState] = React.useState<Density>(() => {
+        if (typeof window === "undefined") return "comfortable";
+        const stored = localStorage.getItem("ll-density") as Density | null;
+        return stored === "comfortable" || stored === "compact" ? stored : "comfortable";
+    });
+
+    // On mount and whenever the theme/density changes, apply to DOM and persist
     React.useEffect(() => {
         const resolved = resolveTheme(theme);
         setResolvedTheme(resolved);
         applyTheme(resolved);
         localStorage.setItem("ll-theme", theme);
     }, [theme]);
+
+    React.useEffect(() => {
+        applyDensity(density);
+        localStorage.setItem("ll-density", density);
+    }, [density]);
 
     // Watch OS preference changes when theme === "system"
     React.useEffect(() => {
@@ -69,13 +105,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         return () => mq.removeEventListener("change", handler);
     }, [theme]);
 
-    const setTheme = (t: Theme) => {
-        setThemeState(t);
-    };
+    const setTheme = (t: Theme) => setThemeState(t);
+    const setDensity = (d: Density) => setDensityState(d);
 
     return (
-        <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+        <UIContext.Provider value={{ theme, resolvedTheme, setTheme, density, setDensity }}>
             {children}
-        </ThemeContext.Provider>
+        </UIContext.Provider>
     );
 }

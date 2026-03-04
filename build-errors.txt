@@ -1,0 +1,27 @@
+
+> lekkerledger@0.1.0 build
+> next build --webpack
+
+Γû▓ Next.js 16.1.6 (webpack)
+
+  Creating an optimized production build ...
+Γ£ô (serwist) Bundling the service worker script with the URL '/sw.js' and the scope '/'...
+Γ£ô Compiled successfully in 5.0s
+  Running TypeScript ...
+  Collecting page data using 19 workers ...
+  Generating static pages using 19 workers (0/38) ...
+  Generating static pages using 19 workers (9/38) 
+Γ¿» useSearchParams() should be wrapped in a suspense boundary at page "/app/payroll". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at Q (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\.next\server\chunks\5078.js:2:2111)
+    at o (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\.next\server\chunks\5078.js:11:51782)
+    at w (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\.next\server\app\app\payroll\page.js:2:9461)
+    at an (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:84360)
+    at ai (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:86179)
+    at al (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:107953)
+    at as (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:105368)
+    at aa (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:84712)
+    at ai (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:86228)
+    at ai (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:104708)
+Error occurred prerendering page "/app/payroll". Read more: https://nextjs.org/docs/messages/prerender-error
+Export encountered an error on /app/payroll/page: /app/payroll, exiting the build.
+Γ¿» Next.js build worker exited with code: 1 and signal: null

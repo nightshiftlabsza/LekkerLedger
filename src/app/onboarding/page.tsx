@@ -27,7 +27,9 @@ export default function OnboardingPage() {
         defaultLanguage: "en",
         simpleMode: false,
         advancedMode: false,
+        density: "comfortable",
         googleSyncEnabled: false,
+        piiObfuscationEnabled: true,
         installationId: "",
         usageHistory: []
     });
