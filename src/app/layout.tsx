@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GoogleWrapper } from "@/components/google-wrapper";
+import { PwaInstallListener } from "@/components/pwa-install-listener";
 import { SplashPortal } from "@/components/ui/splash-portal";
 import { ToastProvider } from "@/components/ui/toast";
 import Script from "next/script";
@@ -47,8 +48,9 @@ export default function RootLayout({
             __html: `
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
+              window.gtag = gtag;
               gtag('js', new Date());
-              gtag('config', '${gaId}');
+              gtag('config', '${gaId}', { debug_mode: true });
             `,
           }}
         />
@@ -86,6 +88,7 @@ export default function RootLayout({
         >
           Skip to content
         </a>
+        <PwaInstallListener />
         <GoogleWrapper>
           <ThemeProvider>
             <ToastProvider>

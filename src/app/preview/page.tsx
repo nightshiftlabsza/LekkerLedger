@@ -19,6 +19,7 @@ import { calculatePayslip } from "@/lib/calculator";
 import { shareViaWhatsApp } from "@/lib/share";
 import { getComplianceAudit, generateComplianceNoteText } from "@/lib/compliance";
 import { generatePayslipPdfBytes } from "@/lib/pdf";
+import { track } from "@/lib/analytics";
 
 function Row({ label, value, bold, red }: { label: string; value: string; bold?: boolean; red?: boolean }) {
     return (
@@ -120,14 +121,8 @@ function PreviewContent() {
             const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
             const filename = `Payslip_${employee.name.replace(/\s+/g, "_")}_${format(payslipWithDates.payPeriodStart, "MMM_yyyy")}.pdf`;
 
-            // GA4: fire before download so interruption can't prevent it
-            try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const dl = (window as any).dataLayer;
-                if (dl) dl.push({ event: "payslip_export", method: "download_pdf" });
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (window as any).gtag?.("event", "payslip_export", { method: "download_pdf" });
-            } catch { }
+            // GA4: fire before download so an interruption can't prevent it
+            track("payslip_export", { method: "download_pdf" });
 
             // Use File System Access API in installed PWA/app context (supports Windows PWA shell)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

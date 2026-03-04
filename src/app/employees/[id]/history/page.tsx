@@ -13,6 +13,7 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, getPayslipsForEmployee, getSettings, getUsageStats } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
+import { track } from "@/lib/analytics";
 
 export default function EmployeeHistoryPage() {
     const { id } = useParams<{ id: string }>();
@@ -72,6 +73,8 @@ export default function EmployeeHistoryPage() {
             link.href = url;
             link.download = `Payslip_${employee.name.replace(/\s+/g, "_")}_${format(new Date(ps.payPeriodStart), "MMM_yyyy")}.pdf`;
             document.body.appendChild(link);
+            // GA4: fire before browser download
+            track("payslip_export", { method: "download_pdf" });
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
