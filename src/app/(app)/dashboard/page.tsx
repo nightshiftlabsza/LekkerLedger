@@ -230,11 +230,18 @@ export default function DashboardPage() {
                     <StorageCard settings={settings} />
 
                     {/* Help & Compliance (small) */}
-                    <div className="flex items-center justify-between text-xs text-[var(--text-muted)] px-1 pt-2 border-t border-[var(--border)]">
-                        <Link href="/help/compliance" className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
-                            <BookOpen className="h-3 w-3" /> Compliance Guide
-                        </Link>
-                        <span className="type-overline">Updated Mar 2026</span>
+                    <div className="flex flex-col gap-2 pt-2 border-t border-[var(--border)]">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-[var(--text-muted)] px-1 gap-2">
+                            <span className="type-overline">Updated Mar 2026</span>
+                            <div className="flex gap-4 flex-wrap">
+                                <Link href="/help/coida" className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
+                                    <ShieldCheck className="h-3 w-3" /> COIDA 2026
+                                </Link>
+                                <Link href="/help/compliance" className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
+                                    <BookOpen className="h-3 w-3" /> Compliance Guide
+                                </Link>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

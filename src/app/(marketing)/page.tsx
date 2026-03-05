@@ -35,7 +35,6 @@ export default function HomePage() {
                 <PrivacyExplainer />
                 <PricingSummary />
                 <FAQAccordion />
-                <FinalCTA />
             </main>
 
             <Footer />
@@ -226,7 +225,7 @@ function Hero({ nmw }: { nmw: number }) {
                         </div>
 
                         {/* Floating contract card */}
-                        <div className="absolute -bottom-4 -left-6 p-4 rounded-xl shadow-xl border border-[var(--border)] max-w-[200px]" style={{ backgroundColor: "var(--surface-1)" }}>
+                        <div className="absolute -bottom-4 -left-6 p-4 rounded-xl shadow-xl border border-[var(--border)] max-w-[200px] z-10" style={{ backgroundColor: "var(--surface-1)" }}>
                             <div className="flex items-center gap-2">
                                 <ClipboardCheck className="h-4 w-4 text-[var(--primary)]" />
                                 <span className="text-xs font-bold" style={{ color: "var(--text)" }}>Contract ready</span>
@@ -287,10 +286,10 @@ function HowItWorks() {
             <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
                 <div className="text-center max-w-2xl mx-auto mb-16">
                     <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: "var(--text)" }}>
-                        From hours worked to a ready-to-file PDF.
+                        Compliant paperwork shouldn&apos;t cost a fortune.
                     </h2>
                     <p className="text-base mt-4" style={{ color: "var(--text-muted)" }}>
-                        No setup headaches. Keep everything in one place.
+                        Generate the exact payslips and contracts the law requires for your household staff, without the consultation fees.
                     </p>
                 </div>
 
@@ -317,6 +316,7 @@ function HowItWorks() {
 function Guardrails({ nmw }: { nmw: number }) {
     const items = [
         `Minimum wage check — current rate R${nmw.toFixed(2)}/hr (as of 1 Mar 2026)`,
+        "COIDA registration reminder — mandatory for all domestic workers from 2026",
         "UIF threshold reminder — if your employee works more than 24 hours/month",
         "Payslip field checklist — what a compliant payslip should include",
         "Archive reminders — keep statements/records for at least 3 years",
@@ -568,6 +568,7 @@ function PricingSummary() {
 function FAQAccordion() {
     const faqs = [
         { q: "Is my employee data stored on LekkerLedger's servers?", a: "No. LekkerLedger doesn't keep a central database of your employee records. Payroll data is stored locally on your device, and you can optionally sync it to your personal private Google Drive. See our privacy policy for full details." },
+        { q: "Do I need to register for COIDA?", a: "Yes. Following 2026 rulings, it is mandatory for employers of domestic workers to register with the Compensation Fund (COIDA) to cover occupational injuries. LekkerLedger helps you maintain the accurate monthly records required for your declarations." },
         { q: "Do I need to register for UIF?", a: "It depends on hours worked. If your employee works more than 24 hours per month, UIF registration is generally expected. LekkerLedger includes UIF calculations — but always check official guidance for your situation." },
         { q: "Can I use LekkerLedger for one employee only?", a: "Yes! The free Standard plan supports one active employee — perfect for most households." },
         { q: "What does 'Annual Support' include?", a: "Annual Support (R99/year) gives you up to 3 employees, 1 year of archived history, contract generation, and repeat-payroll features. It renews yearly — cancel anytime to stop renewal." },
@@ -620,33 +621,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
     );
 }
 
-/* ─── 10. FINAL CTA ──────────────────────────────────────────────────────── */
-function FinalCTA() {
-    return (
-        <section className="relative overflow-hidden" style={{ backgroundColor: "var(--bg)" }}>
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--primary)]/5 rounded-full blur-3xl" />
-            </div>
-            <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 text-center space-y-8">
-                <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: "var(--text)" }}>
-                    Clear records. Fair pay. Less admin.
-                </h2>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <Link href="/dashboard">
-                        <Button className="h-13 px-8 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-base shadow-lg shadow-[var(--primary)]/20">
-                            Create your first payslip <ArrowRight className="h-4 w-4 ml-2" />
-                        </Button>
-                    </Link>
-                    <Link href="/pricing">
-                        <Button variant="outline" className="h-13 px-8 rounded-xl font-bold text-base">
-                            View pricing
-                        </Button>
-                    </Link>
-                </div>
-            </div>
-        </section>
-    );
-}
+
 
 /* ─── FOOTER ─────────────────────────────────────────────────────────────── */
 function Footer() {
