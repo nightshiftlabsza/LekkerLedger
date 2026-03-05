@@ -7,7 +7,6 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CardSkeleton } from "@/components/ui/loading-skeleton";
 import { DataTable } from "@/components/ui/data-table";
 import { getAllLeaveRecords, getEmployees, getCurrentPayPeriod, subscribeToDataChanges } from "@/lib/storage";
 import { LeaveRecord, Employee, PayPeriod } from "@/lib/schema";

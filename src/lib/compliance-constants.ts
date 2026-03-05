@@ -8,6 +8,13 @@ export const COMPLIANCE = {
         RATE_PER_HOUR: 30.23,
         EFFECTIVE_DATE: "1 March 2026",
         SOURCE_URL: "https://www.gov.za/sites/default/files/gcis_document/202602/54075rg11941gon7083.pdf",
+        HISTORICAL: [
+            { effectiveDate: "2022-03-01", rate: 23.19 },
+            { effectiveDate: "2023-03-01", rate: 25.42 },
+            { effectiveDate: "2024-03-01", rate: 27.58 },
+            { effectiveDate: "2025-03-01", rate: 28.79 },
+            { effectiveDate: "2026-03-01", rate: 30.23 },
+        ],
     },
     UIF: {
         THRESHOLD_HOURS_PER_MONTH: 24,

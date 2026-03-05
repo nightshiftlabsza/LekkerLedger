@@ -13,7 +13,6 @@ import { Employee, PayslipInput, EmployerSettings, PayPeriod } from "@/lib/schem
 import { generateUFilingData, generateUFilingTaxYearData, rowsToCsv, downloadCsv, UFilingRow } from "@/lib/ufiling";
 import { DataTable } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CardSkeleton } from "@/components/ui/loading-skeleton";
 
 export function UFilingClient() {
     const [isClient, setIsClient] = React.useState(false);

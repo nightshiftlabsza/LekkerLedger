@@ -1,0 +1,121 @@
+
+> lekkerledger@0.1.0 test:e2e
+> playwright test
+
+
+Running 20 tests using 10 workers
+
+[1A[2K[1/20] [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow
+[1A[2K[2/20] [chromium] ΓÇ║ e2e\home.spec.ts:3:5 ΓÇ║ home page loads and has correct title
+[1A[2K[3/20] [chromium] ΓÇ║ e2e\home.spec.ts:24:5 ΓÇ║ home page does not contain old fear messaging
+[1A[2K[4/20] [chromium] ΓÇ║ e2e\home.spec.ts:8:5 ΓÇ║ home page contains a main element
+[1A[2K[5/20] [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip
+[1A[2K[6/20] [chromium] ΓÇ║ e2e\home.spec.ts:43:5 ΓÇ║ home page has all major sections
+[1A[2K[7/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 375px ΓÇ║ snapshot home at 375px
+[1A[2K[8/20] [chromium] ΓÇ║ e2e\home.spec.ts:14:5 ΓÇ║ home page hero shows new headline and CTAs
+[1A[2K[9/20] [chromium] ΓÇ║ e2e\home.spec.ts:33:5 ΓÇ║ home page has marketing header (no app nav)
+[1A[2K[10/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 375px ΓÇ║ snapshot pricing at 375px
+[1A[2K[chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow
+Starting Landing & Onboarding...
+
+[1A[2K[11/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 375px ΓÇ║ snapshot app-dashboard at 375px
+[1A[2K[12/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 768px ΓÇ║ snapshot home at 768px
+[1A[2K[13/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 768px ΓÇ║ snapshot pricing at 768px
+[1A[2K[14/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 768px ΓÇ║ snapshot app-dashboard at 768px
+[1A[2K[15/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1280px ΓÇ║ snapshot home at 1280px
+[1A[2K[16/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1280px ΓÇ║ snapshot pricing at 1280px
+[1A[2K[17/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1280px ΓÇ║ snapshot app-dashboard at 1280px
+[1A[2K[18/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot home at 1600px
+[1A[2K[19/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot pricing at 1600px
+[1A[2K[20/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot app-dashboard at 1600px
+[1A[2K  1) [chromium] ΓÇ║ e2e\home.spec.ts:14:5 ΓÇ║ home page hero shows new headline and CTAs ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('link', { name: /View pricing/i }).first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('link', { name: /View pricing/i }).first()[22m
+
+
+      19 |     await expect(page.getByRole("button", { name: /Create your first payslip/i }).first()).toBeVisible();
+      20 |     // Secondary CTA
+    > 21 |     await expect(page.getByRole("link", { name: /View pricing/i }).first()).toBeVisible();
+         |                                                                             ^
+      22 | });
+      23 |
+      24 | test("home page does not contain old fear messaging", async ({ page }) => {
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\home.spec.ts:21:77
+
+    Error Context: test-results\home-home-page-hero-shows-new-headline-and-CTAs-chromium\error-context.md
+
+
+[1A[2KDashboard checks...
+
+[1A[2KSettings checks...
+
+[1A[2KEmployee checks...
+
+[1A[2KPayslip checks...
+
+[1A[2KLogout checks...
+
+[1A[2KAudit run complete!
+
+[1A[2K  2) [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/.*pricing/[39m
+    Received string:  [31m"http://localhost:3002/"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "soft toHaveURL" with timeout 5000ms[22m
+    [2m    9 ├ù unexpected value "http://localhost:3002/"[22m
+
+
+      40 |             await pricingLink.click({ force: true });
+      41 |             try {
+    > 42 |                 await expect.soft(page).toHaveURL(/.*pricing/, { timeout: 5000 });
+         |                                         ^
+      43 |                 await snap('02-pricing-page');
+      44 |             } catch (e) {
+      45 |                 console.error('Bug found: Pricing link did not navigate to /pricing', (e as Error).message);
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\comprehensive-audit.spec.ts:42:41
+
+    Error Context: test-results\comprehensive-audit-Compre-fad86-form-50-common-actions-flow-chromium\error-context.md
+
+
+[1A[2K  3) [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('button').filter({ hasText: 'Pay History' })[22m
+
+
+      48 |         await employeeLink.click({ force: true });
+      49 |         await page.waitForTimeout(1000);
+    > 50 |         await page.locator('button', { hasText: 'Pay History' }).click({ force: true });
+         |                                                                  ^
+      51 |         await page.waitForTimeout(500);
+      52 |         await page.locator('button', { hasText: 'Create Payslip' }).click({ force: true });
+      53 |
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\payslip.spec.ts:50:66
+
+    Error Context: test-results\payslip-Payslip-Generation-acac9-oyee-and-generate-a-payslip-chromium\error-context.md
+
+
+[1A[2K  3 failed
+    [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow 
+    [chromium] ΓÇ║ e2e\home.spec.ts:14:5 ΓÇ║ home page hero shows new headline and CTAs ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+  17 passed (36.0s)
+
+[36m  Serving HTML report at http://localhost:4048. Press Ctrl+C to quit.[39m

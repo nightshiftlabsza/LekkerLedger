@@ -35,7 +35,7 @@ test.describe('Comprehensive 50 Action Audit', () => {
         await snap('01-landing-page');
 
         // 2. View Pricing plans
-        const pricingLink = page.getByRole('link', { name: /pricing/i }).first();
+        const pricingLink = page.getByRole('link', { name: "Pricing" }).first();
         if (await pricingLink.isVisible()) {
             await pricingLink.click({ force: true });
             try {
@@ -97,16 +97,17 @@ test.describe('Comprehensive 50 Action Audit', () => {
 
         await page.getByRole('button', { name: /Save Employee/i }).click({ force: true });
         await snap('22-employee-saved');
-        await snap('22-employee-saved');
 
         // --- PAYSLIP (Actions 28-36) ---
         console.log('Payslip checks...');
-        await page.goto('/employees');
-        const firstEmployeeLink = page.getByRole('link', { name: /John Doe/i }).first();
-        if (await firstEmployeeLink.isVisible()) {
-            await firstEmployeeLink.click({ force: true });
+        const employeeRow = page.locator('tr').filter({ hasText: 'John Doe' }).first();
+        if (await employeeRow.isVisible()) {
+            await employeeRow.locator('a[href*="/employees/"]').first().click({ force: true });
             await page.waitForTimeout(1000);
-            await page.getByRole('button', { name: /Generate Payslip/i }).click({ force: true });
+            // Click Pay History tab using a more robust selector
+            await page.locator('button').filter({ hasText: /Pay History/i }).click({ force: true });
+            await page.waitForTimeout(500);
+            await page.getByRole('button', { name: /Create Payslip/i }).click({ force: true });
             await snap('28-payslip-wizard');
 
             // Toggle UIF

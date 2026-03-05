@@ -43,8 +43,13 @@ test.describe("Payslip Generation Flow", () => {
         const employeeCard = page.locator('text=Test Worker').first();
         await expect(employeeCard).toBeVisible();
 
-        // 5. Click Payslip button
-        await page.locator('button:has-text("Payslip")').first().click();
+        // 5. Navigate to Employee Details and then to Wizard
+        const employeeRow = page.locator('tr').filter({ hasText: 'Test Worker' }).first();
+        await employeeRow.locator('a[href*="/employees/"]').first().click({ force: true });
+        await page.waitForTimeout(1000);
+        await page.locator('button').filter({ hasText: /Pay History/i }).click({ force: true });
+        await page.waitForTimeout(500);
+        await page.getByRole('button', { name: /Create Payslip/i }).click({ force: true });
 
         // 6. We should be on the Wizard
         await expect(page).toHaveURL(/\/wizard/, { timeout: 10000 });

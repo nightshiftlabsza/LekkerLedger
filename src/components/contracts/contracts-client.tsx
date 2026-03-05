@@ -9,7 +9,6 @@ import { DataTable } from "@/components/ui/data-table";
 import { StatusChip, type ChipVariant } from "@/components/ui/status-chip";
 import { getContracts, getEmployees } from "@/lib/storage";
 import { Contract, Employee } from "@/lib/schema";
-import { CardSkeleton } from "@/components/ui/loading-skeleton";
 
 export function ContractsClient() {
     const [isClient, setIsClient] = React.useState(false);

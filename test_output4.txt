@@ -1,0 +1,158 @@
+
+> lekkerledger@0.1.0 test:e2e
+> playwright test
+
+
+Running 20 tests using 10 workers
+
+[1A[2K[1/20] [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow
+[1A[2K[2/20] [chromium] ΓÇ║ e2e\home.spec.ts:14:5 ΓÇ║ home page hero shows new headline and CTAs
+[1A[2K[3/20] [chromium] ΓÇ║ e2e\home.spec.ts:8:5 ΓÇ║ home page contains a main element
+[1A[2K[4/20] [chromium] ΓÇ║ e2e\home.spec.ts:3:5 ΓÇ║ home page loads and has correct title
+[1A[2K[5/20] [chromium] ΓÇ║ e2e\home.spec.ts:43:5 ΓÇ║ home page has all major sections
+[1A[2K[6/20] [chromium] ΓÇ║ e2e\home.spec.ts:33:5 ΓÇ║ home page has marketing header (no app nav)
+[1A[2K[7/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 375px ΓÇ║ snapshot pricing at 375px
+[1A[2K[8/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 375px ΓÇ║ snapshot home at 375px
+[1A[2K[9/20] [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip
+[1A[2K[10/20] [chromium] ΓÇ║ e2e\home.spec.ts:24:5 ΓÇ║ home page does not contain old fear messaging
+[1A[2K[chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow
+Starting Landing & Onboarding...
+
+[1A[2K[11/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 375px ΓÇ║ snapshot app-dashboard at 375px
+[1A[2K[12/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 768px ΓÇ║ snapshot home at 768px
+[1A[2K[13/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 768px ΓÇ║ snapshot pricing at 768px
+[1A[2K[14/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 768px ΓÇ║ snapshot app-dashboard at 768px
+[1A[2K[15/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1280px ΓÇ║ snapshot home at 1280px
+[1A[2K[16/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1280px ΓÇ║ snapshot pricing at 1280px
+[1A[2K[17/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1280px ΓÇ║ snapshot app-dashboard at 1280px
+[1A[2K[18/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot home at 1600px
+[1A[2K[19/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot pricing at 1600px
+[1A[2K[20/20] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot app-dashboard at 1600px
+[1A[2K  1) [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot home at 1600px ΓöÇΓöÇΓöÇ
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3002/
+    Call log:
+    [2m  - navigating to "http://localhost:3002/", waiting until "load"[22m
+
+
+      14 |     for (const route of routes) {
+      15 |       test(`snapshot ${route.name} at ${width}px`, async ({ page }) => {
+    > 16 |         await page.goto(route.path);
+         |                    ^
+      17 |         await page.waitForLoadState("networkidle");
+      18 |         await page.waitForTimeout(500);
+      19 |         await page.screenshot({
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\visual-smoke.spec.ts:16:20
+
+
+[1A[2K  2) [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/\/preview/[39m
+    Received string:  [31m"chrome-error://chromewebdata/"[39m
+    Timeout: 10000ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 10000ms[22m
+    [2m    4 ├ù unexpected value "http://localhost:3002/wizard?empId=e6960c22-a6ba-43c5-8a6a-70bdf0e41e01"[22m
+    [2m    - waiting for" http://localhost:3002/preview?payslipId=d9c07ef4-c7c2-4fa3-98f7-2afee8b0cca9&empId=e6960c22-a6ba-43c5-8a6a-70bdf0e41e01" navigation to finish...[22m
+    [2m    7 ├ù unexpected value "chrome-error://chromewebdata/"[22m
+
+
+      84 |
+      85 |         // 7. Verify we ended up on the Preview page
+    > 86 |         await expect(page).toHaveURL(/\/preview/, { timeout: 10000 });
+         |                            ^
+      87 |
+      88 |         // Verify PDF success message
+      89 |         const successMessage = page.locator('text=Payslip generated for');
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\payslip.spec.ts:86:28
+
+
+[1A[2K  3) [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1280px ΓÇ║ snapshot app-dashboard at 1280px 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.waitForLoadState: Test timeout of 30000ms exceeded.
+
+      15 |       test(`snapshot ${route.name} at ${width}px`, async ({ page }) => {
+      16 |         await page.goto(route.path);
+    > 17 |         await page.waitForLoadState("networkidle");
+         |                    ^
+      18 |         await page.waitForTimeout(500);
+      19 |         await page.screenshot({
+      20 |           path: `e2e-screenshots/visual-${route.name}-${width}.png`,
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\visual-smoke.spec.ts:17:20
+
+    Error Context: test-results\visual-smoke-visual-smoke--ae2f2-hot-app-dashboard-at-1280px-chromium\error-context.md
+
+
+[1A[2K  4) [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot app-dashboard at 1600px 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.waitForLoadState: Test timeout of 30000ms exceeded.
+
+      15 |       test(`snapshot ${route.name} at ${width}px`, async ({ page }) => {
+      16 |         await page.goto(route.path);
+    > 17 |         await page.waitForLoadState("networkidle");
+         |                    ^
+      18 |         await page.waitForTimeout(500);
+      19 |         await page.screenshot({
+      20 |           path: `e2e-screenshots/visual-${route.name}-${width}.png`,
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\visual-smoke.spec.ts:17:20
+
+    Error Context: test-results\visual-smoke-visual-smoke--fe4c9-hot-app-dashboard-at-1600px-chromium\error-context.md
+
+
+[1A[2K  5) [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/.*pricing/[39m
+    Received string:  [31m"http://localhost:3002/"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "soft toHaveURL" with timeout 5000ms[22m
+    [2m    9 ├ù unexpected value "http://localhost:3002/"[22m
+
+
+      40 |             await pricingLink.click({ force: true });
+      41 |             try {
+    > 42 |                 await expect.soft(page).toHaveURL(/.*pricing/, { timeout: 5000 });
+         |                                         ^
+      43 |                 await snap('02-pricing-page');
+      44 |             } catch (e) {
+      45 |                 console.error('Bug found: Pricing link did not navigate to /pricing', (e as Error).message);
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\comprehensive-audit.spec.ts:42:41
+
+    [31mTest timeout of 300000ms exceeded.[39m
+
+    Error: page.goto: Test ended.
+    Call log:
+    [2m  - navigating to "http://localhost:3002/legal/terms", waiting until "load"[22m
+
+
+      50 |         await page.goto('/legal/privacy');
+      51 |         await snap('03-privacy-policy');
+    > 52 |         await page.goto('/legal/terms');
+         |                    ^
+      53 |         await snap('03-terms-of-service');
+      54 |
+      55 |         // 4 & 5. Onboarding Step 1
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\comprehensive-audit.spec.ts:52:20
+
+
+[1A[2K  Slow test file: [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts (5.1m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  5 failed
+    [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow 
+    [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+    [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1280px ΓÇ║ snapshot app-dashboard at 1280px 
+    [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot home at 1600px ΓöÇΓöÇΓöÇΓöÇ
+    [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot app-dashboard at 1600px 
+  15 passed (5.2m)
+
+[36m  Serving HTML report at http://localhost:10928. Press Ctrl+C to quit.[39m
