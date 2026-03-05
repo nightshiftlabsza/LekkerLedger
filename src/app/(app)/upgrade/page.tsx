@@ -10,8 +10,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { getSettings, saveSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
-import { PRICING_PLANS, PlanKey } from "@/src/config/plans";
-
+import { PLANS, annualPriceLabel, getAnnualPrice, NEXT_PUBLIC_ANNUAL_PRICE_MODE } from "../../../config/plans";
+import { getUserPlan } from "../../../lib/entitlements";
+import { EmployerSettings } from "../../../lib/schema";
 const PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c";
 const PAYSTACK_PLAN_ANNUAL = "PLN_xdijjb5u3pqneld";
 
@@ -20,14 +21,14 @@ const PaystackHookWrapper = dynamic(() => import('@/components/paystack-wrapper'
 export default function UpgradePage() {
     const router = useRouter();
     const { toast } = useToast();
-    const [status, setStatus] = React.useState<PlanKey>("free");
-    const [selectedPlan, setSelectedPlan] = React.useState<"annual" | "pro" | null>(null);
+    const [status, setStatus] = React.useState<string>("free");
+    const [selectedPlan, setSelectedPlan] = React.useState<"annual" | "lifetime" | null>(null);
     const [makePayment, setMakePayment] = React.useState(false);
 
     React.useEffect(() => {
         async function load() {
-            const s = await getSettings();
-            setStatus((s.proStatus as PlanKey) || "free");
+            const s = (await getSettings()) as EmployerSettings;
+            setStatus(s.proStatus || "free");
         }
         load();
     }, []);
@@ -35,19 +36,34 @@ export default function UpgradePage() {
     const getPaystackConfig = () => {
         const isAnnual = selectedPlan === "annual";
         const email = typeof window !== "undefined" ? localStorage.getItem("google_email") || "user@lekkerledger.co.za" : "user@lekkerledger.co.za";
+        const amount = isAnnual ? getAnnualPrice() * 100 : (PLANS.lifetime.onceOffPrice ?? 299) * 100;
         return {
             reference: (new Date()).getTime().toString(),
             email,
-            amount: isAnnual ? 9900 : 29900,
+            amount: amount,
             publicKey: PAYSTACK_PUBLIC_KEY,
             currency: 'ZAR',
             plan: isAnnual ? PAYSTACK_PLAN_ANNUAL : undefined,
+            metadata: {
+                custom_fields: [
+                    { display_name: "Plan ID", variable_name: "planId", value: selectedPlan || "unknown" },
+                    { display_name: "Billing", variable_name: "billing", value: isAnnual ? "annual" : "once_off" },
+                    { display_name: "Price Mode", variable_name: "priceMode", value: isAnnual ? NEXT_PUBLIC_ANNUAL_PRICE_MODE : "regular" },
+                    { display_name: "Source", variable_name: "source", value: "upgrade_page" }
+                ]
+            }
         };
     };
 
-    const handleUpgradeSuccess = async (plan: "annual" | "pro") => {
+    const handleUpgradeSuccess = async (plan: "annual" | "lifetime") => {
         const s = await getSettings();
-        await saveSettings({ ...s, proStatus: plan });
+        const paidUntil = new Date();
+        if (plan === "annual") {
+            paidUntil.setFullYear(paidUntil.getFullYear() + 1);
+        } else {
+            paidUntil.setFullYear(paidUntil.getFullYear() + 100);
+        }
+        await saveSettings({ ...s, proStatus: plan, paidUntil: paidUntil.toISOString() });
         setStatus(plan);
         setMakePayment(false);
         // GA4 / Tracking
@@ -56,7 +72,7 @@ export default function UpgradePage() {
         }
     };
 
-    const handleAction = (plan: "annual" | "pro") => {
+    const handleAction = (plan: "annual" | "lifetime") => {
         setSelectedPlan(plan);
         setMakePayment(true);
     };
@@ -95,57 +111,28 @@ export default function UpgradePage() {
 
             <div className="max-w-5xl mx-auto space-y-8">
                 {/* Pricing Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch max-w-3xl mx-auto">
                     <PricingCard
-                        title={PRICING_PLANS.free.name}
-                        price={PRICING_PLANS.free.price}
-                        period="forever"
-                        description={PRICING_PLANS.free.description}
-                        features={[
-                            { text: "1 Active Employee Seat", included: true },
-                            { text: "3 Months History Archive", included: true },
-                            { text: "BCEA Aligned Calculations", included: true },
-                            { text: "Easy Monthly Payslips", included: true },
-                            { text: "Google Drive Sync", included: PRICING_PLANS.free.hasDriveSync },
-                        ]}
-                        buttonText={status === "free" ? "Current Plan" : "Downgrade"}
-                        buttonDisabled={status === "free"}
-                        onAction={() => { }}
-                    />
-
-                    <PricingCard
-                        title={PRICING_PLANS.annual.name}
-                        price={PRICING_PLANS.annual.price.split(' ')[0] + ' ' + PRICING_PLANS.annual.price.split(' ')[1]}
+                        title={PLANS.annual.label}
+                        price={annualPriceLabel().split(' ')[0]}
                         period="per year"
-                        description={PRICING_PLANS.annual.description}
+                        description="Cloud backup and priority legal compliance updates."
                         badge="Popular"
-                        features={[
-                            { text: "Up to 3 Employee Seats", included: true },
-                            { text: "1 Year Compliance Archive", included: true },
-                            { text: "Repeat Last Month Payroll", included: true },
-                            { text: "BCEA Contract Generator", included: true },
-                            { text: "Google Drive Sync", included: PRICING_PLANS.annual.hasDriveSync },
-                        ]}
+                        features={PLANS.annual.marketingBullets.map((b) => ({ text: b, included: true }))}
                         buttonText={status === "annual" ? "Active" : "Subscribe Yearly"}
                         onAction={() => handleAction("annual")}
                         colorClass="text-[var(--color-success)]"
                     />
 
                     <PricingCard
-                        title={PRICING_PLANS.pro.name}
-                        price={PRICING_PLANS.pro.price.split(' ')[0] + ' ' + PRICING_PLANS.pro.price.split(' ')[1]}
+                        title={PLANS.lifetime.label}
+                        price={`R${PLANS.lifetime.onceOffPrice}`}
                         period="once-off"
-                        description={PRICING_PLANS.pro.description}
+                        description="The complete payroll vault. Pay once, keep forever."
                         badge="Best Value"
-                        features={[
-                            { text: "Unlimited Employee Seats", included: true },
-                            { text: "5 Year Archive (recommended)", included: true },
-                            { text: "Private Google Drive Sync", included: PRICING_PLANS.pro.hasDriveSync },
-                            { text: "1-Click Monthly Payroll", included: true },
-                            { text: "Full Document Vault", included: true },
-                        ]}
-                        buttonText={status === "pro" || status === "trial" ? "Activated" : "Get Lifetime Access"}
-                        onAction={() => handleAction("pro")}
+                        features={PLANS.lifetime.marketingBullets.map((b) => ({ text: b, included: true }))}
+                        buttonText={status === "pro" || status === "lifetime" || status === "trial" ? "Activated" : "Get Lifetime Access"}
+                        onAction={() => handleAction("lifetime")}
                         isPro
                         colorClass="text-[var(--primary)]"
                     />
@@ -190,7 +177,7 @@ export default function UpgradePage() {
                     <div className="mt-6 pt-4 border-t border-[var(--border)] space-y-3">
                         <div>
                             <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Refunds</p>
-                            <p className="text-sm" style={{ color: "var(--text-muted)" }}>If you request a refund within {PRICING_PLANS.annual.refundWindowDays} days of purchase, we’ll refund you in full. How to request: Use the in-app Support link or email support@lekkerledger.co.za with your purchase email + date.</p>
+                            <p className="text-sm" style={{ color: "var(--text-muted)" }}>If you request a refund within 14 days of purchase, we’ll refund you in full. How to request: Use the in-app Support link or email support@lekkerledger.co.za with your purchase email + date.</p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-4 pt-2">
                             <Link href="/legal/refunds" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]">

@@ -21,7 +21,8 @@ import { EmployerSettings, Employee } from "@/lib/schema";
 import { useToast } from "@/components/ui/toast";
 import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
-
+import { PLANS, PlanId, annualPriceLabel } from "../../../config/plans";
+import { getUserPlan, canUseDriveSync } from "../../../lib/entitlements";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 
@@ -209,7 +210,7 @@ function SettingsContent() {
 
                 {activeTab === "storage" && (
                     <div className="space-y-6">
-                        <GoogleSync proStatus={settings.proStatus} />
+                        <GoogleSync driveSyncAllowed={canUseDriveSync(getUserPlan(settings))} />
 
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Storage Rules</h2>
@@ -241,43 +242,63 @@ function SettingsContent() {
                     </div>
                 )}
 
-                {activeTab === "plan" && (
-                    <div className="space-y-6">
-                        <section className="space-y-4">
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Subscription Plan</h2>
-                            <Card className="border-[var(--primary)] border-2 glass-panel p-6 shadow-[0_0_15px_rgba(245,158,11,0.1)] relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 rounded-full blur-2xl pointer-events-none" />
+                {activeTab === "plan" && (() => {
+                    const currentPlan = getUserPlan(settings);
+                    // For annual, show the runtime label (promo vs regular). For others, use what's in config or default to 0.
+                    const displayPrice = currentPlan.id === "annual"
+                        ? annualPriceLabel()
+                        : currentPlan.id === "lifetime"
+                            ? `R${currentPlan.onceOffPrice} once-off`
+                            : "R0";
 
-                                <div className="flex justify-between items-start mb-6">
-                                    <div>
-                                        <h3 className="type-h3 text-[var(--text)]">LekkerLedger Core</h3>
-                                        <p className="type-label text-[var(--primary-hover)] uppercase font-black tracking-widest mt-1">Free Tier Active</p>
+                    return (
+                        <div className="space-y-6">
+                            <section className="space-y-4">
+                                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Subscription Plan</h2>
+                                <Card className="border-[var(--primary)] border-2 glass-panel p-6 shadow-[0_0_15px_rgba(245,158,11,0.1)] relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 rounded-full blur-2xl pointer-events-none" />
+
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div>
+                                            <h3 className="type-h3 text-[var(--text)]">{currentPlan.label}</h3>
+                                            <p className="type-label text-[var(--primary-hover)] uppercase font-black tracking-widest mt-1">
+                                                {currentPlan.id === "lifetime" ? "Lifetime access"
+                                                    : currentPlan.id === "annual" && settings.paidUntil
+                                                        ? `Paid until ${new Date(settings.paidUntil).toLocaleDateString()}`
+                                                        : "Plan Active"}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-2xl font-black text-[var(--text)]">{displayPrice}</span>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <span className="text-2xl font-black text-[var(--text)]">R0</span>
-                                        <span className="text-[var(--text-muted)] text-sm font-bold">/m</span>
-                                    </div>
-                                </div>
 
-                                <ul className="space-y-3 mb-6">
-                                    <li className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
-                                        <CheckCircle2 className="h-4 w-4 text-[var(--primary)]" /> Up to 5 Employees
-                                    </li>
-                                    <li className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
-                                        <CheckCircle2 className="h-4 w-4 text-[var(--primary)]" /> Unlimited local payslips
-                                    </li>
-                                    <li className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
-                                        <CheckCircle2 className="h-4 w-4 text-[var(--primary)]" /> Google Drive Sync
-                                    </li>
-                                </ul>
+                                    <ul className="space-y-3 mb-6">
+                                        {currentPlan.marketingBullets.map((bullet, i) => (
+                                            <li key={i} className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
+                                                <CheckCircle2 className="h-4 w-4 text-[var(--primary)]" /> {bullet}
+                                            </li>
+                                        ))}
+                                    </ul>
 
-                                <Button className="w-full bg-[var(--surface-2)] text-[var(--text-muted)] hover:bg-[var(--surface-2)] cursor-not-allowed">
-                                    Premium Features Coming Soon
-                                </Button>
-                            </Card>
-                        </section>
-                    </div>
-                )}
+                                    {currentPlan.id === "free" ? (
+                                        <Link href="/upgrade" className="block">
+                                            <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
+                                                Upgrade
+                                            </Button>
+                                        </Link>
+                                    ) : currentPlan.id === "annual" ? (
+                                        <Link href="/upgrade" className="block">
+                                            <Button variant="outline" className="w-full font-bold">
+                                                Upgrade to Lifetime
+                                            </Button>
+                                        </Link>
+                                    ) : null}
+                                </Card>
+                            </section>
+                        </div>
+                    );
+                })()}
 
                 {activeTab === "exports" && (
                     <div className="space-y-6">

@@ -77,7 +77,8 @@ export const EmployerSettingsSchema = z.object({
     employerIdNumber: z.string().default(""),
     uifRefNumber: z.string().default(""), // uFiling reference number
     sdlNumber: z.string().default(""),
-    proStatus: z.enum(["free", "annual", "pro", "trial"]).optional().default("free"),
+    proStatus: z.enum(["free", "annual", "pro", "lifetime", "trial"]).optional().default("free"),
+    paidUntil: z.string().optional(),
     trialExpiry: z.string().optional(),
     logoData: z.string().optional(),
     defaultLanguage: z.enum(["en", "zu", "xh"]).optional().default("en"),

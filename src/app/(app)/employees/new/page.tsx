@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { EmployeeSchema, Employee } from "@/lib/schema";
 import { saveEmployee, getEmployees, getSettings } from "@/lib/storage";
+import { getUserPlan, canCreateEmployee } from "@/lib/entitlements";
 import { NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 
@@ -33,19 +34,16 @@ export default function AddEmployeePage() {
     });
     const [errors, setErrors] = React.useState<Record<string, string>>({});
     const [canAdd, setCanAdd] = React.useState(true);
-    const [tierLimitReached, setTierLimitReached] = React.useState<"free" | "annual" | null>(null);
+    const [tierLimitReached, setTierLimitReached] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         async function checkLimit() {
             const [emps, settings] = await Promise.all([getEmployees(), getSettings()]);
-            const tier = settings.proStatus || "free";
+            const plan = getUserPlan(settings);
 
-            if (tier === "free" && emps.length >= 1) {
+            if (!canCreateEmployee(plan, emps.length)) {
                 setCanAdd(false);
-                setTierLimitReached("free");
-            } else if (tier === "annual" && emps.length >= 3) {
-                setCanAdd(false);
-                setTierLimitReached("annual");
+                setTierLimitReached(plan.id);
             }
         }
         checkLimit();
@@ -117,7 +115,7 @@ export default function AddEmployeePage() {
                                     <Alert variant="default" className="border-[var(--focus)] bg-[var(--surface-2)]">
                                         <Sparkles className="h-4 w-4 text-[var(--focus)]" />
                                         <AlertDescription className="text-[var(--text-muted)]">
-                                            <strong>{tierLimitReached === "annual" ? "Annual" : "Standard"} Tier Limit:</strong>
+                                            <strong>Tier Limit Reached:</strong>
                                             {tierLimitReached === "annual" ? " You can only have up to 3 active workers." : " You can only have 1 active worker."}
                                             <Link href="/pricing" className="ml-1 underline font-bold">Upgrade to Pro</Link> for unlimited seats.
                                         </AlertDescription>

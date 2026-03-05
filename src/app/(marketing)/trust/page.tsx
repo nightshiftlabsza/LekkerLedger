@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Shield, Lock, HardDrive, DollarSign, Scale, ArrowRight, WalletCards, FolderSync } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getNMWForDate } from "@/lib/legal/registry";
-import { PRICING_PLANS } from "@/src/config/plans";
+import { PLANS } from "@/src/config/plans";
 
 export default function TrustCenterPage() {
     const nmw = getNMWForDate(new Date());
@@ -105,7 +105,7 @@ export default function TrustCenterPage() {
                             <div>
                                 <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text)" }}>Payment Processing via Paystack</h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    All payments are securely processed by Paystack (a Stripe company). We do not collect, process, or store your credit card information on our servers.
+                                    All payments are securely processed by Paystack. We do not collect, process, or store your credit card information on our servers.
                                 </p>
                             </div>
                             <div>
@@ -116,9 +116,9 @@ export default function TrustCenterPage() {
                             </div>
                         </div>
                         <div className="p-8 rounded-2xl border border-[var(--primary)] bg-[var(--primary)]/5">
-                            <h3 className="text-xl font-black mb-3" style={{ color: "var(--text)" }}>{PRICING_PLANS.annual.refundWindowDays}-Day Refund Guarantee</h3>
+                            <h3 className="text-xl font-black mb-3" style={{ color: "var(--text)" }}>14-Day Refund Guarantee</h3>
                             <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-muted)" }}>
-                                If you are unsatisfied with your upgrade for any reason within {PRICING_PLANS.annual.refundWindowDays} days, email us and we will issue a full refund — no questions asked.
+                                If you are unsatisfied with your upgrade for any reason within 14 days, email us and we will issue a full refund — no questions asked.
                             </p>
                             <Link href="/legal/refunds">
                                 <Button className="w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white">Full Refund Policy</Button>

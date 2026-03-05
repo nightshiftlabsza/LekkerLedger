@@ -1,74 +1,108 @@
+export type PlanId = "free" | "annual" | "lifetime";
+
 export interface PlanConfig {
-    id: string;
-    name: string;
-    description: string;
-    price: string;
-    isPaid: boolean;
-    features: string[];
-    hasDriveSync: boolean;
-    refundWindowDays: number;
+    id: PlanId;
+    label: string;
+    isDefault?: boolean;
+    currency: "ZAR";
+    billing: "free" | "annual" | "once_off";
+
+    // Annual pricing
+    annualPromoPrice?: number;
+    annualRegularPrice?: number;
+    promoRuleText?: string;
+
+    // Lifetime pricing
+    onceOffPrice?: number;
+
+    // Limits
+    maxActiveEmployees: number; // Infinity for unlimited
+    archiveMonths: number;
+
+    // Features
+    driveSync: boolean;
+    contractGenerator: boolean;
+    ufilingExport: boolean;
+    leaveLoanTracker: boolean;
+
+    // Marketing bullets
+    marketingBullets: string[];
 }
 
-export const PRICING_PLANS = {
+export const PLANS: Record<PlanId, PlanConfig> = {
     free: {
         id: "free",
-        name: "Standard",
-        description: "Local-first payroll and compliance for one household.",
-        price: "Free",
-        isPaid: false,
-        features: [
-            "1 Active Employee Seat",
-            "3 Months History Archive",
-            "BCEA Aligned Calculations",
-            "Easy Monthly Payslips",
-        ],
-        hasDriveSync: false,
-        refundWindowDays: 0,
+        label: "Free Starter",
+        currency: "ZAR",
+        billing: "free",
+        maxActiveEmployees: 1,
+        archiveMonths: 3,
+        driveSync: false,
+        contractGenerator: false,
+        ufilingExport: false,
+        leaveLoanTracker: false,
+        marketingBullets: [
+            "1 active employee seat",
+            "Basic payslip flow"
+        ]
     },
     annual: {
         id: "annual",
-        name: "Annual Support",
-        description: "Cloud backup and priority legal compliance updates.",
-        price: "R 99 / year",
-        isPaid: true,
-        features: [
-            "Up to 3 Employee Seats",
-            "1 Year Compliance Archive",
-            "Repeat Last Month Payroll",
-            "BCEA Contract Generator",
-        ],
-        hasDriveSync: true,
-        refundWindowDays: 14,
+        label: "Annual Support",
+        isDefault: true,
+        currency: "ZAR",
+        billing: "annual",
+        annualPromoPrice: 99,
+        annualRegularPrice: 149,
+        promoRuleText: "Launch promo: R99/year for first 200",
+        maxActiveEmployees: 3,
+        archiveMonths: 12,
+        driveSync: true,
+        contractGenerator: true,
+        ufilingExport: true,
+        leaveLoanTracker: false,
+        marketingBullets: [
+            "Up to 3 active employee seats",
+            "12-month archive window",
+            "Google Drive sync",
+            "Contract generator",
+            "uFiling-ready export"
+        ]
     },
-    pro: {
-        id: "pro",
-        name: "Lekker Pro",
-        description: "The complete payroll vault. Pay once, keep forever.",
-        price: "R 299 once-off",
-        isPaid: true,
-        features: [
-            "Unlimited Employee Seats",
-            "5 Year Archive",
-            "Private Google Drive Sync",
-            "1-Click Monthly Payroll",
-            "Full Document Vault",
-        ],
-        hasDriveSync: true,
-        refundWindowDays: 14,
-    },
-    trial: {
-        id: "trial",
-        name: "Lekker Pro (Trial)",
-        description: "Experience Pro Risk-Free for 30 days.",
-        price: "Free Trial",
-        isPaid: true, // Acts as paid
-        features: [
-            "Experience Pro Risk-Free"
-        ],
-        hasDriveSync: true,
-        refundWindowDays: 0,
+    lifetime: {
+        id: "lifetime",
+        label: "Pro Lifetime",
+        currency: "ZAR",
+        billing: "once_off",
+        onceOffPrice: 299,
+        maxActiveEmployees: Infinity,
+        archiveMonths: 60,
+        driveSync: true,
+        contractGenerator: true,
+        ufilingExport: true,
+        leaveLoanTracker: true,
+        marketingBullets: [
+            "Unlimited employees",
+            "5-year archive",
+            "Continuous sync",
+            "Leave + loan tracker"
+        ]
     }
 } as const;
 
-export type PlanKey = keyof typeof PRICING_PLANS;
+export const NEXT_PUBLIC_ANNUAL_PRICE_MODE = process.env.NEXT_PUBLIC_ANNUAL_PRICE_MODE === "regular" ? "regular" : "promo";
+
+export function getAnnualPrice(): number {
+    return NEXT_PUBLIC_ANNUAL_PRICE_MODE === "promo"
+        ? (PLANS.annual.annualPromoPrice ?? 149)
+        : (PLANS.annual.annualRegularPrice ?? 149);
+}
+
+export function annualPriceLabel(): string {
+    return NEXT_PUBLIC_ANNUAL_PRICE_MODE === "promo"
+        ? `R99/year (Launch promo for first 200)`
+        : `R149/year`;
+}
+
+// Keep the old refund policy summary here if it's used elsewhere, or just export it
 export const REFUND_POLICY_SUMMARY = `If you request a refund within 14 days of purchase, we’ll refund you in full. How to request: Use the in-app Support link or email support@lekkerledger.co.za with your purchase email + date.`;

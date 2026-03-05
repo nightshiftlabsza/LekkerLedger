@@ -1,0 +1,106 @@
+
+Running 22 tests using 2 workers
+
+[1A[2K[1/22] [chromium] ΓÇ║ e2e\home.spec.ts:3:5 ΓÇ║ home page loads and has correct title
+[1A[2K[2/22] [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow
+[1A[2K[chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow
+Starting Landing & Onboarding...
+
+[1A[2K[3/22] [chromium] ΓÇ║ e2e\home.spec.ts:8:5 ΓÇ║ home page contains a main element
+[1A[2K[4/22] [chromium] ΓÇ║ e2e\home.spec.ts:14:5 ΓÇ║ home page hero shows new headline and CTAs
+[1A[2K[5/22] [chromium] ΓÇ║ e2e\home.spec.ts:24:5 ΓÇ║ home page does not contain old fear messaging
+[1A[2K[6/22] [chromium] ΓÇ║ e2e\home.spec.ts:33:5 ΓÇ║ home page has marketing header (no app nav)
+[1A[2K[7/22] [chromium] ΓÇ║ e2e\home.spec.ts:43:5 ΓÇ║ home page has all major sections
+[1A[2K[8/22] [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip
+[1A[2KDashboard checks...
+
+[1A[2KSettings checks...
+
+[1A[2KEmployee checks...
+
+[1A[2KPayslip checks...
+
+[1A[2K  1) [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('text=Accommodation Deduction')[22m
+
+
+      71 |
+      72 |         // Toggle Accommodation
+    > 73 |         await page.click('text=Accommodation Deduction');
+         |                    ^
+      74 |         await page.fill('input[id="accommodationCost"]', "500");
+      75 |
+      76 |         // Next -> Review
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\payslip.spec.ts:73:20
+
+    Error Context: test-results\payslip-Payslip-Generation-acac9-oyee-and-generate-a-payslip-chromium\error-context.md
+
+
+[1A[2K[9/22] [chromium] ΓÇ║ e2e\smoke.spec.ts:3:5 ΓÇ║ sample payslip PDF is accessible
+[1A[2K[10/22] [chromium] ΓÇ║ e2e\smoke.spec.ts:9:5 ΓÇ║ pricing page loads
+[1A[2K[11/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 375px ΓÇ║ snapshot home at 375px
+[1A[2K[12/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 375px ΓÇ║ snapshot pricing at 375px
+[1A[2K[13/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 375px ΓÇ║ snapshot app-dashboard at 375px
+[1A[2K[14/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 768px ΓÇ║ snapshot home at 768px
+[1A[2K[15/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 768px ΓÇ║ snapshot pricing at 768px
+[1A[2K[16/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 768px ΓÇ║ snapshot app-dashboard at 768px
+[1A[2K[17/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1280px ΓÇ║ snapshot home at 1280px
+[1A[2K[18/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1280px ΓÇ║ snapshot pricing at 1280px
+[1A[2K[19/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1280px ΓÇ║ snapshot app-dashboard at 1280px
+[1A[2K[20/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot home at 1600px
+[1A[2K[21/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot pricing at 1600px
+[1A[2K[22/22] [chromium] ΓÇ║ e2e\visual-smoke.spec.ts:15:11 ΓÇ║ visual smoke 1600px ΓÇ║ snapshot app-dashboard at 1600px
+[1A[2K  2) [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/.*pricing/[39m
+    Received string:  [31m"http://localhost:3002/"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "soft toHaveURL" with timeout 5000ms[22m
+    [2m    9 ├ù unexpected value "http://localhost:3002/"[22m
+
+
+      40 |             await pricingLink.click({ force: true });
+      41 |             try {
+    > 42 |                 await expect.soft(page).toHaveURL(/.*pricing/, { timeout: 5000 });
+         |                                         ^
+      43 |                 await snap('02-pricing-page');
+      44 |             } catch (e) {
+      45 |                 console.error('Bug found: Pricing link did not navigate to /pricing', (e as Error).message);
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\comprehensive-audit.spec.ts:42:41
+
+    [31mTest timeout of 300000ms exceeded.[39m
+
+    Error: locator.click: Test ended.
+    Call log:
+    [2m  - waiting for locator('button').filter({ hasText: /Pay History/i })[22m
+
+
+      106 |             await page.waitForTimeout(1000);
+      107 |             // Click Pay History tab using a more robust selector
+    > 108 |             await page.locator('button').filter({ hasText: /Pay History/i }).click({ force: true });
+          |                                                                              ^
+      109 |             await page.waitForTimeout(500);
+      110 |             await page.getByRole('button', { name: /Create Payslip/i }).click({ force: true });
+      111 |             await snap('28-payslip-wizard');
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\comprehensive-audit.spec.ts:108:78
+
+    Error Context: test-results\comprehensive-audit-Compre-fad86-form-50-common-actions-flow-chromium\error-context.md
+
+
+[1A[2K  Slow test file: [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts (5.0m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  2 failed
+    [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:5:9 ΓÇ║ Comprehensive 50 Action Audit ΓÇ║ Perform 50 common actions flow 
+    [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+  20 passed (5.0m)
+
+[36m  Serving HTML report at http://localhost:5622. Press Ctrl+C to quit.[39m

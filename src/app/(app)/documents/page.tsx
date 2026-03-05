@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { FileText, Eye, FolderOpen, FileSpreadsheet, Cloud, HardDrive, History } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { FileText, Eye, FolderOpen, FileSpreadsheet, Cloud, HardDrive, History, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +15,8 @@ import { DocumentPreview } from "@/components/ui/document-preview";
 import { getDocuments, getEmployees, getPayslipsForEmployee, getSettings } from "@/lib/storage";
 import { DocumentMeta, Employee } from "@/lib/schema";
 import { generatePayslipPdfBytes } from "@/lib/pdf";
+import { getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
+import { PLANS, PlanConfig } from "../../../config/plans";
 
 const TABS = ["Payslips", "Contracts", "Exports", "Archive"] as const;
 type Tab = typeof TABS[number];
@@ -36,6 +39,8 @@ export default function DocumentsPage() {
     const [loading, setLoading] = React.useState(true);
     const [documents, setDocuments] = React.useState<DocumentMeta[]>([]);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
+    const [plan, setPlan] = React.useState<PlanConfig>(PLANS.free);
+    const router = useRouter();
 
     const [search, setSearch] = React.useState("");
     const [empFilter, setEmpFilter] = React.useState<string>("");
@@ -51,9 +56,10 @@ export default function DocumentsPage() {
         setIsClient(true);
         async function load() {
             setLoading(true);
-            const [docs, emps] = await Promise.all([getDocuments(), getEmployees()]);
+            const [docs, emps, userSettings] = await Promise.all([getDocuments(), getEmployees(), getSettings()]);
             setDocuments(docs);
             setEmployees(emps);
+            setPlan(getUserPlan(userSettings));
             setLoading(false);
         }
         load();
@@ -262,19 +268,34 @@ export default function DocumentsPage() {
                                         key: "actions",
                                         label: "",
                                         align: "right",
-                                        render: (doc) => (
-                                            <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-9 w-9 p-0 hover:bg-[var(--primary)]/10 group"
-                                                    title="View Document"
-                                                    onClick={() => handlePreview(doc)}
-                                                >
-                                                    <Eye className="h-4 w-4 text-[var(--primary-hover)] group-hover:text-[var(--primary)]" />
-                                                </Button>
-                                            </div>
-                                        )
+                                        render: (doc) => {
+                                            const isLocked = !isRecordWithinArchive(plan, doc.createdAt);
+                                            return (
+                                                <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                                                    {isLocked ? (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-9 w-9 p-0 text-[var(--accent)] hover:text-[var(--accent-hover)] hover:bg-[var(--accent)]/10 group"
+                                                            title="Upgrade to view older records"
+                                                            onClick={() => router.push("/upgrade")}
+                                                        >
+                                                            <Lock className="h-4 w-4" />
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-9 w-9 p-0 hover:bg-[var(--primary)]/10 group"
+                                                            title="View Document"
+                                                            onClick={() => handlePreview(doc)}
+                                                        >
+                                                            <Eye className="h-4 w-4 text-[var(--primary-hover)] group-hover:text-[var(--primary)]" />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            )
+                                        }
                                     }
                                 ]}
                             />

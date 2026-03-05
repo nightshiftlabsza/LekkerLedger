@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getSettings, saveSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
-import { PRICING_PLANS } from "@/src/config/plans";
+import { PLANS, annualPriceLabel } from "../../../config/plans";
 import { Logo } from "@/components/ui/logo";
 
 const PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c";
@@ -26,7 +26,7 @@ const PaystackHookWrapper = dynamic(() => import('@/components/paystack-wrapper'
 
 export default function PricingPage() {
     const { toast } = useToast();
-    const [status, setStatus] = React.useState<"free" | "annual" | "pro" | "trial">("free");
+    const [status, setStatus] = React.useState<"free" | "annual" | "lifetime" | "trial" | "pro">("free");
     const [selectedPlan, setSelectedPlan] = React.useState<"annual" | "pro" | null>(null);
     const [makePayment, setMakePayment] = React.useState(false);
 
@@ -107,58 +107,50 @@ export default function PricingPage() {
                     {/* Pricing Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                         <PricingCard
-                            title={PRICING_PLANS.free.name}
-                            price={PRICING_PLANS.free.price}
+                            title={PLANS.free.label}
+                            price="R0"
                             period="forever"
-                            description={PRICING_PLANS.free.description}
-                            features={[
-                                { text: "1 Active Employee Seat", included: true },
-                                { text: "3 Months History Archive", included: true },
-                                { text: "BCEA Aligned Calculations", included: true },
-                                { text: "Easy Monthly Payslips", included: true },
-                                { text: "Google Drive Sync", included: PRICING_PLANS.free.hasDriveSync },
-                            ]}
+                            description="Local-first payroll and compliance for one household."
+                            features={PLANS.free.marketingBullets.map(b => ({ text: b, included: true }))}
                             buttonText={status === "free" ? "Current Plan" : "Downgrade"}
                             buttonDisabled={status === "free"}
                             onAction={() => { }}
                         />
 
                         <PricingCard
-                            title={PRICING_PLANS.annual.name}
-                            price={PRICING_PLANS.annual.price.split(' ')[0] + ' ' + PRICING_PLANS.annual.price.split(' ')[1]}
+                            title={PLANS.annual.label}
+                            price={annualPriceLabel().split(' ')[0]} // Get "R99/year" out of "R99/year (promo...)"
                             period="per year"
-                            description={PRICING_PLANS.annual.description}
+                            description="Cloud backup and priority legal compliance updates."
                             badge="Popular"
-                            features={[
-                                { text: "Up to 3 Employee Seats", included: true },
-                                { text: "1 Year Compliance Archive", included: true },
-                                { text: "Repeat Last Month Payroll", included: true },
-                                { text: "BCEA Contract Generator", included: true },
-                                { text: "Google Drive Sync", included: PRICING_PLANS.annual.hasDriveSync },
-                            ]}
+                            features={PLANS.annual.marketingBullets.map(b => ({ text: b, included: true }))}
                             buttonText={status === "annual" ? "Active" : "Subscribe Yearly"}
                             onAction={() => handleAction("annual")}
                             colorClass="text-[var(--color-success)]"
                         />
 
                         <PricingCard
-                            title={PRICING_PLANS.pro.name}
-                            price={PRICING_PLANS.pro.price.split(' ')[0] + ' ' + PRICING_PLANS.pro.price.split(' ')[1]}
+                            title={PLANS.lifetime.label}
+                            price={`R${PLANS.lifetime.onceOffPrice}`}
                             period="once-off"
-                            description={PRICING_PLANS.pro.description}
+                            description="The complete payroll vault. Pay once, keep forever."
                             badge="Best Value"
-                            features={[
-                                { text: "Unlimited Employee Seats", included: true },
-                                { text: "5 Year Archive (recommended)", included: true },
-                                { text: "Private Google Drive Sync", included: PRICING_PLANS.pro.hasDriveSync },
-                                { text: "1-Click Monthly Payroll", included: true },
-                                { text: "Full Document Vault", included: true },
-                            ]}
-                            buttonText={status === "pro" ? "Activated" : "Get Lifetime Access"}
+                            features={PLANS.lifetime.marketingBullets.map(b => ({ text: b, included: true }))}
+                            buttonText={status === "pro" || status === "lifetime" ? "Activated" : "Get Lifetime Access"}
                             onAction={() => handleAction("pro")}
                             isPro
                             colorClass="text-[var(--primary)]"
                         />
+                    </div>
+
+                    {/* Disclaimer */}
+                    <div className="mt-8 text-center space-y-2">
+                        <p className="text-xs font-medium text-[var(--text-muted)]">
+                            Always up to date with the latest SA pay rules...
+                        </p>
+                        <p className="text-[10px] text-[var(--text-muted)] opacity-70">
+                            Disclaimer: LekkerLedger is a compliance tool, not legal advice.
+                        </p>
                     </div>
 
                     {/* Free Trial Banner */}
@@ -200,13 +192,13 @@ export default function PricingPage() {
                         <div className="mt-6 pt-4 border-t border-[var(--border)] space-y-3">
                             <div>
                                 <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Refunds</p>
-                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>If you request a refund within {PRICING_PLANS.annual.refundWindowDays} days of purchase, we’ll refund you in full. How to request: Use the in-app Support link or email support@lekkerledger.co.za with your purchase email + date.</p>
+                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>If you request a refund within 14 days of purchase, we’ll refund you in full. How to request: Use the in-app Support link or email support@lekkerledger.co.za with your purchase email + date.</p>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                                <Link href="/legal/refunds" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]">
+                                <Link href="/legal/refunds" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
                                     View full refund & cancellation policy →
                                 </Link>
-                                <Link href="/examples" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]">
+                                <Link href="/examples" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
                                     View sample payslip →
                                 </Link>
                             </div>

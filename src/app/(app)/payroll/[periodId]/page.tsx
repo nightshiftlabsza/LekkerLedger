@@ -22,6 +22,8 @@ import {
 import { calculatePayslip } from "@/lib/calculator";
 import { PayPeriod, Employee, EmployeeEntry, PayslipInput, EmployerSettings, LeaveRecord } from "@/lib/schema";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
+import { getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
+import { PLANS, PlanConfig } from "../../../../config/plans";
 
 export default function PayPeriodWorkspacePage() {
     const params = useParams();
@@ -32,6 +34,7 @@ export default function PayPeriodWorkspacePage() {
     const [period, setPeriod] = React.useState<PayPeriod | null>(null);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
+    const [plan, setPlan] = React.useState<PlanConfig>(PLANS.free);
     const [leaveMap, setLeaveMap] = React.useState<Record<string, LeaveRecord[]>>({});
     const [showReview, setShowReview] = React.useState(false);
     const [showLockConfirm, setShowLockConfirm] = React.useState(false);
@@ -44,6 +47,7 @@ export default function PayPeriodWorkspacePage() {
             setPeriod(p);
             setEmployees(emps);
             setSettings(s);
+            setPlan(getUserPlan(s));
 
             // Auto-populate leave days from leave records within this period
             if (p && p.status === "draft") {
@@ -162,7 +166,13 @@ export default function PayPeriodWorkspacePage() {
 
     /** Bulk download all payslip PDFs as individual files */
     const handleDownloadPayslips = async () => {
-        if (!period || !settings) return;
+        if (!period || !settings || !plan) return;
+
+        if (!isRecordWithinArchive(plan, period.endDate)) {
+            alert("This record is outside your plan's archive window. Please upgrade to Pro to access and export it.");
+            return;
+        }
+
         setGeneratingPdfs(true);
         try {
             for (const entry of period.entries) {
@@ -519,11 +529,15 @@ export default function PayPeriodWorkspacePage() {
                         <Button
                             onClick={handleDownloadPayslips}
                             disabled={generatingPdfs}
-                            className="w-full gap-2 h-12 text-base bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]"
+                            className={`w-full gap-2 h-12 text-base font-bold ${!isRecordWithinArchive(plan, period.endDate) ? 'bg-[var(--surface-2)] text-[var(--accent)] border border-[var(--border)] hover:bg-[var(--surface-2)] cursor-not-allowed' : 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]'}`}
                         >
-                            {generatingPdfs
-                                ? <><Loader2 className="h-5 w-5 animate-spin" /> Generating PDFs…</>
-                                : <><Download className="h-5 w-5" /> Download All Payslips ({totalCount})</>}
+                            {!isRecordWithinArchive(plan, period.endDate) ? (
+                                <><Lock className="h-5 w-5" /> Upgrade to Export Payslips ({totalCount})</>
+                            ) : generatingPdfs ? (
+                                <><Loader2 className="h-5 w-5 animate-spin" /> Generating PDFs…</>
+                            ) : (
+                                <><Download className="h-5 w-5" /> Download All Payslips ({totalCount})</>
+                            )}
                         </Button>
                     </CardContent>
                 </Card>

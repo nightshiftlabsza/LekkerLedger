@@ -17,10 +17,10 @@ interface SyncEvent {
 }
 
 interface GoogleSyncProps {
-    proStatus?: string;
+    driveSyncAllowed?: boolean;
 }
 
-export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
+export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
     const [token, setToken] = useState<string | null>(() => {
         if (typeof window !== "undefined") return localStorage.getItem("google_access_token");
         return null;
@@ -221,14 +221,14 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
     useEffect(() => {
         const unsubscribe = subscribeToDataChanges(() => {
             const currentToken = localStorage.getItem("google_access_token");
-            if (currentToken && proStatus !== "free" && hasDriveScope) {
+            if (currentToken && driveSyncAllowed && hasDriveScope) {
                 handleBackup(true);
             }
         });
         return () => unsubscribe();
-    }, [proStatus, handleBackup, hasDriveScope]);
+    }, [driveSyncAllowed, handleBackup, hasDriveScope]);
 
-    if (proStatus === "free") {
+    if (!driveSyncAllowed) {
         return (
             <Card className="border-[var(--border)] bg-[var(--surface-2)]/50">
                 <CardContent className="p-6 space-y-4">

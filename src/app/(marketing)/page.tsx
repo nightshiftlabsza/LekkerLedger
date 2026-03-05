@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getNMWForDate } from "@/lib/legal/registry";
 import { Logo } from "@/components/ui/logo";
-import { PRICING_PLANS } from "@/src/config/plans";
+import { PLANS, annualPriceLabel } from "@/src/config/plans";
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * MARKETING HOMEPAGE — follows Audit A §4 wireframe exactly:
@@ -548,7 +548,7 @@ function PricingSummary() {
     const plansToShow = [
         { key: 'free', title: "Standard" },
         { key: 'annual', title: "Annual Support", badge: "Popular" },
-        { key: 'pro', title: "Lekker Pro", badge: "Best Value" }
+        { key: 'lifetime', title: "Lekker Pro", badge: "Best Value" }
     ];
 
     return (
@@ -562,7 +562,7 @@ function PricingSummary() {
 
                 <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
                     {plansToShow.map((p, i) => {
-                        const plan = PRICING_PLANS[p.key as keyof typeof PRICING_PLANS];
+                        const plan = PLANS[p.key as keyof typeof PLANS];
                         return (
                             <div key={i} className={`relative p-6 rounded-2xl border transition-all ${i === 2 ? 'border-[var(--primary)] shadow-xl shadow-[var(--primary)]/10 scale-[1.02]' : 'border-[var(--border)]'}`} style={{ backgroundColor: "var(--surface-1)" }}>
                                 {p.badge && (
@@ -573,11 +573,13 @@ function PricingSummary() {
                                 <div className="text-center mb-4 pt-2">
                                     <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{p.title}</h3>
                                     <div className="mt-2">
-                                        <span className="text-4xl font-semibold type-mono" style={{ color: "var(--text)" }}>{plan.price}</span>
+                                        <span className="text-4xl font-semibold type-mono" style={{ color: "var(--text)" }}>
+                                            {p.key === 'free' ? "Free" : p.key === 'annual' ? annualPriceLabel().split(' ')[0] : `R${PLANS.lifetime.onceOffPrice}`}
+                                        </span>
                                     </div>
                                 </div>
                                 <ul className="space-y-2 mb-6">
-                                    {plan.features.slice(0, 4).map((b, j) => (
+                                    {plan.marketingBullets.slice(0, 4).map((b, j) => (
                                         <li key={j} className="flex items-center gap-2 text-sm" style={{ color: "var(--text-muted)" }}>
                                             <Check className="h-3.5 w-3.5 text-green-500 stroke-[3px] shrink-0" />
                                             {b}

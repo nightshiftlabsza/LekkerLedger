@@ -13,7 +13,7 @@ export default function ExamplesPage() {
     const handleDownload = async () => {
         const sampleEmployee: Employee = {
             id: "sample-id",
-            name: "Maria Kgosana",
+            name: "Nomsa Dlamini",
             idNumber: "800101 0234 081",
             role: "Domestic Helper",
             hourlyRate: 30.23,
@@ -47,7 +47,7 @@ export default function ExamplesPage() {
         };
 
         const sampleSettings: EmployerSettings = {
-            employerName: "Sarah Jenkins",
+            employerName: "Lerato Mokoena",
             employerAddress: "12 Protea Avenue, Cape Town",
             employerIdNumber: "700101 0000 000",
             uifRefNumber: "1234567/8",
@@ -156,12 +156,12 @@ export default function ExamplesPage() {
                             <div className="grid grid-cols-3 gap-6 mb-12 relative z-10">
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)]/30">
                                     <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider mb-2">Employer</p>
-                                    <p className="font-bold text-sm text-[var(--text)]">Sarah Jenkins</p>
+                                    <p className="font-bold text-sm text-[var(--text)]">Lerato Mokoena</p>
                                     <p className="text-[11px] text-[var(--text-muted)] leading-tight mt-1">12 Protea Avenue, Cape Town, 8001</p>
                                 </div>
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)]/30">
                                     <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider mb-2">Employee</p>
-                                    <p className="font-bold text-sm text-[var(--text)]">Maria Kgosana</p>
+                                    <p className="font-bold text-sm text-[var(--text)]">Nomsa Dlamini</p>
                                     <p className="text-[11px] text-[var(--text-muted)] leading-tight mt-1">ID: 800101 0234 081 • Helper</p>
                                 </div>
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)]/30 text-right">
@@ -216,13 +216,13 @@ export default function ExamplesPage() {
                             </div>
 
                             {/* Net Payable Block */}
-                            <div className="bg-[var(--primary)] p-8 rounded-xl flex justify-between items-center text-white shadow-xl relative z-10">
+                            <div className="bg-[var(--primary)] p-6 rounded-xl flex justify-between items-center text-white shadow-md relative z-10 opacity-90">
                                 <div>
                                     <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80 mb-1">Net Payable</p>
-                                    <p className="font-serif text-2xl font-black">Transfer Amount</p>
+                                    <p className="font-serif text-xl font-bold">Transfer Amount</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-serif text-4xl sm:text-5xl font-black tracking-tighter">R {netPay.toFixed(2)}</p>
+                                    <p className="font-serif text-3xl sm:text-4xl font-black tracking-tighter">R {netPay.toFixed(2)}</p>
                                 </div>
                             </div>
 

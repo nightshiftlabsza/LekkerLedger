@@ -3,13 +3,17 @@ import { PDFDocument, StandardFonts } from "pdf-lib";
 export async function loadPdfFonts(pdfDoc: PDFDocument) {
     let sansRegularBuf, sansBoldBuf, serifBoldBuf, serifRegularBuf;
     try {
-        // Run in browser/worker environment
         if (typeof fetch !== "undefined") {
+            const fetchFont = async (url: string) => {
+                const r = await fetch(url);
+                if (!r.ok) throw new Error(`Font not found: ${url}`);
+                return r.arrayBuffer();
+            };
             const [sansR, sansB, serifB, serifR] = await Promise.all([
-                fetch("/fonts/IBMPlexSans-Regular.ttf").then((r) => r.arrayBuffer()),
-                fetch("/fonts/IBMPlexSans-Bold.ttf").then((r) => r.arrayBuffer()),
-                fetch("/fonts/IBMPlexSerif-Bold.ttf").then((r) => r.arrayBuffer()),
-                fetch("/fonts/IBMPlexSerif-Regular.ttf").then((r) => r.arrayBuffer()),
+                fetchFont("/fonts/IBMPlexSans-Regular.ttf"),
+                fetchFont("/fonts/IBMPlexSans-Bold.ttf"),
+                fetchFont("/fonts/IBMPlexSerif-Bold.ttf"),
+                fetchFont("/fonts/IBMPlexSerif-Regular.ttf"),
             ]);
             sansRegularBuf = sansR;
             sansBoldBuf = sansB;

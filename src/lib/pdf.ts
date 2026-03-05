@@ -322,17 +322,17 @@ export async function generatePayslipPdfBytes(
 
     // ── Net Pay (Primary CTA Green Block) ────────────────────────────────────
     cy -= 50;
-    const netPayH = 50;
+    const netPayH = 40;
     page.drawRectangle({
         x: PDF_MARGIN,
-        y: cy,
+        y: cy + 5,
         width: width - (PDF_MARGIN * 2),
         height: netPayH,
         color: PDF_COLORS.PRIMARY_GREEN,
     });
 
-    t(dict.netPayable, PDF_MARGIN + 16, cy + 18, { font: serifBold, size: 12, color: rgb(1, 1, 1) });
-    t(`R ${breakdown.netPay.toFixed(2)}`, width - PDF_MARGIN - 16, cy + 15, { font: serifBold, size: 22, color: rgb(1, 1, 1), align: "right" });
+    t(dict.netPayable, PDF_MARGIN + 16, cy + 18, { font: serifBold, size: 10, color: rgb(1, 1, 1) });
+    t(`R ${breakdown.netPay.toFixed(2)}`, width - PDF_MARGIN - 16, cy + 16, { font: serifBold, size: 16, color: rgb(1, 1, 1), align: "right" });
 
     // ── Footer (Official Rules & Seal) ───────────────────────────────────────
     const footerY = 70;
