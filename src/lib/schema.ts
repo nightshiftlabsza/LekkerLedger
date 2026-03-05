@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getNMW } from "./calculator";
+import { getNMWForDate } from "./legal/registry";
 
 export const NMW_DOMESTIC = getNMW(); // SD7 NMW as of current date
 
@@ -8,16 +9,24 @@ export const EmployeeSchema = z.object({
     name: z.string().min(2, "Full name required (at least 2 characters)"),
     idNumber: z.string().optional().default(""),
     role: z.string().min(1, "Role is required").default("Domestic Worker"),
-    hourlyRate: z
-        .number()
-        .refine((val) => val >= getNMW(), {
-            message: `Hourly rate must be at least the National Minimum Wage`,
-        }),
+    hourlyRate: z.number().positive("Hourly rate must be greater than 0"),
     phone: z.string().optional().default(""),
-    startDate: z.string().optional().default(""), // ISO date string — when employment began
+    startDate: z.string().optional().default(""), // ISO date string - when employment began
     ordinarilyWorksSundays: z.boolean().default(false),
     ordinaryHoursPerDay: z.number().min(1).max(24).default(8),
     frequency: z.enum(["Weekly", "Fortnightly", "Monthly"]).default("Monthly"),
+}).superRefine((employee, ctx) => {
+    const referenceDate = employee.startDate ? new Date(employee.startDate) : new Date();
+    const nmwDate = Number.isNaN(referenceDate.getTime()) ? new Date() : referenceDate;
+    const minimumRate = getNMWForDate(nmwDate);
+
+    if (employee.hourlyRate < minimumRate) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["hourlyRate"],
+            message: "Hourly rate must be at least the National Minimum Wage for the employee start date.",
+        });
+    }
 });
 
 export type Employee = z.infer<typeof EmployeeSchema>;
@@ -33,11 +42,7 @@ export const PayslipInputSchema = z.object({
     publicHolidayHours: z.number().min(0).default(0),
     daysWorked: z.number().min(0).default(0),
     shortFallHours: z.number().min(0).default(0),
-    hourlyRate: z
-        .number()
-        .refine((val) => val >= getNMW(), {
-            message: `Hourly rate must be at least the National Minimum Wage`,
-        }),
+    hourlyRate: z.number().positive("Hourly rate must be greater than 0"),
     includeAccommodation: z.boolean().default(false),
     accommodationCost: z.number().min(0).optional(),
     otherDeductions: z.number().min(0).default(0),
@@ -48,6 +53,26 @@ export const PayslipInputSchema = z.object({
     annualLeaveTaken: z.number().min(0).default(0),
     sickLeaveTaken: z.number().min(0).default(0),
     familyLeaveTaken: z.number().min(0).default(0),
+}).superRefine((payslip, ctx) => {
+    const referenceDate = new Date(payslip.payPeriodEnd);
+    const nmwDate = Number.isNaN(referenceDate.getTime()) ? new Date() : referenceDate;
+    const minimumRate = getNMWForDate(nmwDate);
+
+    if (payslip.hourlyRate < minimumRate) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["hourlyRate"],
+            message: "Hourly rate must be at least the National Minimum Wage for this pay period.",
+        });
+    }
+
+    if (payslip.ordinaryHours > 0 && payslip.daysWorked === 0) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["daysWorked"],
+            message: "Days worked must be greater than 0 when ordinary hours are recorded.",
+        });
+    }
 });
 
 // Legacy alias kept for backward compat
@@ -55,7 +80,7 @@ export const PayslipSchema = PayslipInputSchema;
 
 export type PayslipInput = z.infer<typeof PayslipInputSchema>;
 
-// ─── Leave Record (Phase 1) ─────────────────────────────────────────────────
+// Leave Record (Phase 1)
 export type LeaveType = "annual" | "sick" | "family";
 
 export const LeaveRecordSchema = z.object({
@@ -70,7 +95,7 @@ export const LeaveRecordSchema = z.object({
 
 export type LeaveRecord = z.infer<typeof LeaveRecordSchema>;
 
-// ─── Employer Settings (Phase 5) ─────────────────────────────────────────────
+// Employer Settings (Phase 5)
 export const EmployerSettingsSchema = z.object({
     employerName: z.string().default(""),
     employerAddress: z.string().default(""),
@@ -96,7 +121,7 @@ export const EmployerSettingsSchema = z.object({
 
 export type EmployerSettings = z.infer<typeof EmployerSettingsSchema>;
 
-// ─── Household ──────────────────────────────────────────────────────────────
+// Household
 export const HouseholdSchema = z.object({
     id: z.string(),
     name: z.string().min(1, "Household name required"),
@@ -105,7 +130,7 @@ export const HouseholdSchema = z.object({
 
 export type Household = z.infer<typeof HouseholdSchema>;
 
-// ─── Employee Entry (per-employee within a pay period) ──────────────────────
+// Employee Entry (per-employee within a pay period)
 export type EmployeeEntryStatus = "empty" | "partial" | "complete" | "blocked";
 
 export const EmployeeEntrySchema = z.object({
@@ -124,26 +149,26 @@ export const EmployeeEntrySchema = z.object({
 
 export type EmployeeEntry = z.infer<typeof EmployeeEntrySchema>;
 
-// ─── Pay Period ─────────────────────────────────────────────────────────────
+// Pay Period
 export type PayPeriodStatus = "draft" | "review" | "locked";
 
 export const PayPeriodSchema = z.object({
     id: z.string(),
     householdId: z.string().default("default"),
-    name: z.string(),                              // e.g. "March 2026"
-    startDate: z.string(),                          // ISO date
-    endDate: z.string(),                            // ISO date
-    payDate: z.string().optional(),                 // ISO date
+    name: z.string(), // e.g. "March 2026"
+    startDate: z.string(), // ISO date
+    endDate: z.string(), // ISO date
+    payDate: z.string().optional(), // ISO date
     status: z.enum(["draft", "review", "locked"]).default("draft"),
     entries: z.array(EmployeeEntrySchema).default([]),
-    lockedAt: z.string().optional(),                // ISO date
-    createdAt: z.string(),                          // ISO date
-    updatedAt: z.string(),                          // ISO date
+    lockedAt: z.string().optional(), // ISO date
+    createdAt: z.string(), // ISO date
+    updatedAt: z.string(), // ISO date
 });
 
 export type PayPeriod = z.infer<typeof PayPeriodSchema>;
 
-// ─── Document Metadata ──────────────────────────────────────────────────────
+// Document Metadata
 export const DocumentMetaSchema = z.object({
     id: z.string(),
     householdId: z.string().default("default"),
@@ -152,27 +177,27 @@ export const DocumentMetaSchema = z.object({
     periodId: z.string().optional(),
     fileName: z.string(),
     sizeBytes: z.number().optional(),
-    createdAt: z.string(),                          // ISO date
+    createdAt: z.string(), // ISO date
     driveFileId: z.string().optional(),
 });
 
 export type DocumentMeta = z.infer<typeof DocumentMetaSchema>;
 
-// ─── Contract (Phase 8) ──────────────────────────────────────────────────────
+// Contract (Phase 8)
 export const ContractSchema = z.object({
     id: z.string().uuid(),
     employeeId: z.string().uuid(),
     status: z.enum(["draft", "active", "replaced"]).default("draft"),
     version: z.number().default(1),
-    signedAt: z.string().optional(),                 // ISO date
-    effectiveDate: z.string(),                       // ISO date
+    signedAt: z.string().optional(), // ISO date
+    effectiveDate: z.string(), // ISO date
     jobTitle: z.string(),
     duties: z.array(z.string()).default([]),
     workingHours: z.object({
         daysPerWeek: z.number().default(5),
         startAt: z.string().default("08:00"),
         endAt: z.string().default("17:00"),
-        breakDuration: z.number().default(60),        // in minutes
+        breakDuration: z.number().default(60), // in minutes
     }),
     salary: z.object({
         amount: z.number(),
@@ -180,21 +205,22 @@ export const ContractSchema = z.object({
     }),
     leave: z.object({
         annualDays: z.number().default(21),
-        sickDays: z.number().default(30),             // per 3-year cycle usually, but simplified
+        sickDays: z.number().default(30), // per 3-year cycle usually, but simplified
     }),
-    createdAt: z.string(),                          // ISO date
-    updatedAt: z.string(),                          // ISO date
+    createdAt: z.string(), // ISO date
+    updatedAt: z.string(), // ISO date
 });
 
 export type Contract = z.infer<typeof ContractSchema>;
 
-// ─── Audit Log ──────────────────────────────────────────────────────────────
+// Audit Log
 export const AuditLogSchema = z.object({
     id: z.string().uuid(),
     timestamp: z.date(),
     action: z.enum([
         "CREATE_PAYSLIP", "DELETE_PAYSLIP",
         "CREATE_EMPLOYEE", "DELETE_EMPLOYEE",
+        "CREATE_LEAVE_RECORD", "DELETE_LEAVE_RECORD",
         "UPDATE_SETTINGS", "SYNC_DRIVE",
         "CREATE_PAY_PERIOD", "LOCK_PAY_PERIOD", "DELETE_PAY_PERIOD",
         "EXPORT_UFILING", "EXPORT_ROE", "EXPORT_COIDA", "EXPORT_DATA", "IMPORT_DATA", "DELETE_ALL_DATA",
