@@ -8,7 +8,7 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
 import { GlobalCreateDesktop, GlobalCreateFAB } from "@/components/global-create";
 import { CloudOff, X, AlertOctagon, CreditCard } from "lucide-react";
-import { useAppConnectivity } from "@/hooks/use-app-connectivity";
+import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { ToastProvider } from "@/components/ui/toast";
 
 export function AppShell({ children }: { children: React.ReactNode }) {

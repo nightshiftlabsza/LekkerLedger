@@ -47,10 +47,13 @@ export function LeaveClient() {
 
     if (!isClient || loading) {
         return (
-            <div className="space-y-6">
-                <CardSkeleton />
-                <CardSkeleton />
-            </div>
+            <EmptyState
+                icon={Palmtree}
+                title="No employees yet"
+                description="Add employees first, then track their leave."
+                actionLabel="Add Employee"
+                actionHref="/employees/new"
+            />
         );
     }
 

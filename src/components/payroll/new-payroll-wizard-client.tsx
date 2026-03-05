@@ -134,20 +134,10 @@ export function NewPayrollWizardClient() {
         }
     };
 
-    // Before hydration or during data load, show a deterministic skeleton
-    if (!isClient || loadingData) {
-        return (
-            <Card className="glass-panel border-black/5 dark:border-white/5 shadow-xl animate-pulse">
-                <CardContent className="p-8 space-y-6">
-                    <div className="h-8 w-1/3 bg-black/10 dark:bg-white/10 rounded-md"></div>
-                    <div className="h-4 w-2/3 bg-black/5 dark:bg-white/5 rounded-md"></div>
-                    <div className="space-y-3 mt-6">
-                        <div className="h-12 w-full bg-black/5 dark:bg-white/5 rounded-xl"></div>
-                        <div className="h-12 w-full bg-black/5 dark:bg-white/5 rounded-xl"></div>
-                    </div>
-                </CardContent>
-            </Card>
-        );
+    // Instead of a skeleton, we can just render Step 0 immediately as the shell.
+    // We defer employee-heavy steps until client hydration.
+    if (!isClient && step > 0) {
+        setStep(0);
     }
 
     return (

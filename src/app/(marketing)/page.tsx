@@ -422,7 +422,7 @@ function FeatureGrid() {
                         </div>
                         <h3 className="type-h3" style={{ color: "var(--text)" }}>A document vault designed for inspections.</h3>
                         <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            If you ever need to prove compliance, LekkerLedger's built-in vault provides an undisputed chronological history of payslips, contracts, and UIF declarations. Keep up to 5 years of history instantly accessible.
+                            If you ever need to prove compliance, LekkerLedger&apos;s built-in vault provides an undisputed chronological history of payslips, contracts, and UIF declarations. Keep up to 5 years of history instantly accessible.
                         </p>
                         <Link href="/dashboard" className="inline-block">
                             <Button variant="outline" className="mt-2 h-11 px-6 rounded-xl border-[var(--border)] shadow-sm">Start your free vault today</Button>

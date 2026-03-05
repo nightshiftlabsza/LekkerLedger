@@ -45,8 +45,8 @@ export function ContractsClient() {
         return (
             <EmptyState
                 icon={FileText}
-                title="Loading contracts..."
-                description="Fetching your employment agreements."
+                title="No contracts yet"
+                description="Generate your first BCEA-compliant employment contract for a domestic worker."
                 actionLabel="Generate Contract"
                 actionHref="/contracts/new"
             />

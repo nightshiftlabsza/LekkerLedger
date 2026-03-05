@@ -36,7 +36,7 @@ export default function TrustCenterPage() {
                     <div className="grid md:grid-cols-2 gap-8">
                         <div className="space-y-4">
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                We take a strict "local-first" approach to your data. There is no central LekkerLedger database containing your employee's personal details, ID numbers, or salaries.
+                                We take a strict &quot;local-first&quot; approach to your data. There is no central LekkerLedger database containing your employee&apos;s personal details, ID numbers, or salaries.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 This model inherently minimizes risk and aligns closely with POPIA data minimization principles.
@@ -49,7 +49,7 @@ export default function TrustCenterPage() {
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                                 <HardDrive className="h-5 w-5 text-zinc-500 mb-3" />
                                 <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Local Storage</h4>
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Your data is securely stored in your browser's IndexedDB by default.</p>
+                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Your data is securely stored in your browser&apos;s IndexedDB by default.</p>
                             </div>
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                                 <FolderSync className="h-5 w-5 text-green-500 mb-3" />

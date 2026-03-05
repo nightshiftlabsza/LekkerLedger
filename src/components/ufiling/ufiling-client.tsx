@@ -92,11 +92,16 @@ export function UFilingClient() {
     if (!isClient || loading) {
         return (
             <EmptyState
-                title="Loading uFiling data..."
-                description="Fetching your payroll history and declarations."
+                title="No locked periods available"
+                description="You can only generate a uFiling export for a payroll month that has been completed and locked."
                 icon={ShieldCheck}
-                actionLabel="Loading..."
-                actionHref="#"
+                actionLabel="Go to Payroll"
+                actionHref="/payroll"
+                requirements={[
+                    "Complete payslips for your employees",
+                    "Review and generate the PDF documents",
+                    "Lock the pay period to seal the records"
+                ]}
             />
         );
     }

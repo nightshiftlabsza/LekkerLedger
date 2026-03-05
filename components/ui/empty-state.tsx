@@ -11,6 +11,8 @@ export interface EmptyStateProps {
     actionLabel?: string;
     actionHref?: string;
     actionOnClick?: () => void;
+    secondaryActionLabel?: string;
+    secondaryActionHref?: string;
     requirements?: string[];
 }
 
@@ -21,6 +23,8 @@ export function EmptyState({
     actionLabel,
     actionHref,
     actionOnClick,
+    secondaryActionLabel,
+    secondaryActionHref,
     requirements,
 }: EmptyStateProps) {
     return (
@@ -56,19 +60,31 @@ export function EmptyState({
                     </div>
                 )}
 
-                {actionLabel && actionHref && (
-                    <Link href={actionHref} className="w-full sm:w-auto">
-                        <Button className="w-full sm:w-auto h-12 px-8 text-base font-bold bg-[var(--primary)] text-white shadow-lg shadow-amber-500/20 active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
+                    {actionLabel && actionHref && (
+                        <Link href={actionHref} className="w-full sm:w-auto">
+                            <Button className="w-full sm:w-auto h-12 px-8 text-base font-bold bg-[var(--primary)] text-white shadow-lg shadow-amber-500/20 active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
+                                {actionLabel}
+                            </Button>
+                        </Link>
+                    )}
+
+                    {actionLabel && actionOnClick && !actionHref && (
+                        <Button onClick={actionOnClick} className="w-full sm:w-auto h-12 px-8 text-base font-bold bg-[var(--primary)] text-white shadow-lg shadow-amber-500/20 active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
                             {actionLabel}
                         </Button>
-                    </Link>
-                )}
+                    )}
 
-                {actionLabel && actionOnClick && !actionHref && (
-                    <Button onClick={actionOnClick} className="w-full sm:w-auto h-12 px-8 text-base font-bold bg-[var(--primary)] text-white shadow-lg shadow-amber-500/20 active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
-                        {actionLabel}
-                    </Button>
-                )}
+                    {secondaryActionLabel && secondaryActionHref && (
+                        <Link href={secondaryActionHref} className="w-full sm:w-auto mt-3 sm:mt-0">
+                            <Button variant="outline" className="w-full sm:w-auto h-12 px-8 text-base font-bold bg-transparent text-[var(--text)] border-[var(--border)] hover:bg-[var(--surface-2)] active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
+                                {secondaryActionLabel}
+                            </Button>
+                        </Link>
+                    )}
+                </div>
+
+
             </CardContent>
         </Card>
     );

@@ -33,6 +33,9 @@ export default function PrivacyPolicy() {
 
                     <section className="space-y-4 text-[var(--primary)]/90 italic p-6 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10">
                         <p>
+                            If you ever need to prove compliance, LekkerLedger&apos;s built-in vault provides an undisputed chronological history of payslips, contracts, and UIF declarations. Keep up to 5 years of history instantly accessible.
+                        </p>
+                        <p>
                             <strong>Important:</strong> LekkerLedger is a &ldquo;privacy-first&rdquo; tool. We have no central database for your employee data. If Drive sync is <strong>OFF</strong>: your data is stored on this device only. If Drive sync is <strong>ON</strong>: your data is stored in your personal private Google Drive folder — not our servers.
                         </p>
                     </section>
@@ -40,6 +43,9 @@ export default function PrivacyPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">2. Information We Collect</h2>
                         <p>We only collect the minimum amount of data necessary to provide our service:</p>
+                        <p>
+                            We take a strict &quot;local-first&quot; approach to your data. There is no central LekkerLedger database containing your employee&apos;s personal details, ID numbers, or salaries.
+                        </p>
                         <ul className="list-disc pl-6 space-y-2">
                             <li><strong>Local Data:</strong> Names, ID numbers, and salaries of employees you input are stored on your device. If Google Drive sync is enabled, this data is also stored in your own private Google Drive folder — never on LekkerLedger&apos;s servers.</li>
                             <li><strong>Sync Data:</strong> With Google Drive Sync ON, LekkerLedger requests minimal access strictly to create and read files within its own designated folder in your Google Drive.</li>
@@ -55,11 +61,12 @@ export default function PrivacyPolicy() {
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">4. POPIA Compliance & Your Rights</h2>
+                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>Your data is securely stored in your browser&apos;s IndexedDB by default.</p>
                         <p>As per POPIA, you have the following rights regarding the data you process using LekkerLedger:</p>
                         <ul className="list-disc pl-6 space-y-2">
                             <li>Right to access and correct information.</li>
                             <li>Right to object to processing.</li>
-                            <li>Right to request deletion: Local data can be deleted in-app ("Delete all local data") or by clearing browser storage. For synced data, you must manually delete the LekkerLedger backup folder from your Google Drive.</li>
+                            <li>Right to request deletion: Local data can be deleted in-app (&quot;Delete all local data&quot;) or by clearing browser storage. For synced data, you must manually delete the LekkerLedger backup folder from your Google Drive.</li>
                         </ul>
                     </section>
 

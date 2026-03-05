@@ -45,7 +45,10 @@ export default function DocumentsPage() {
     const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
     const [isGenerating, setIsGenerating] = React.useState(false);
 
+    const [isClient, setIsClient] = React.useState(false);
+
     React.useEffect(() => {
+        setIsClient(true);
         async function load() {
             setLoading(true);
             const [docs, emps] = await Promise.all([getDocuments(), getEmployees()]);
@@ -110,6 +113,31 @@ export default function DocumentsPage() {
         setPreviewUrl(null);
     };
 
+    if (!isClient || loading) {
+        return (
+            <>
+                <PageHeader title="Documents" subtitle="Payslips, contracts, exports, and archives" />
+                <div className="ultrawide-grid">
+                    <div className="ultrawide-main space-y-6">
+                        <div className="mt-8">
+                            <EmptyState
+                                title="No documents yet"
+                                description="Generate your first payslip to start building your compliance archive."
+                                icon={FolderOpen}
+                                actionLabel="Create first payslip"
+                                actionHref="/payroll/new"
+                                secondaryActionLabel="Add employee"
+                                secondaryActionHref="/employees/new"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    const isEmpty = documents.length === 0;
+
     return (
         <>
             <PageHeader title="Documents" subtitle="Payslips, contracts, exports, and archives" />
@@ -134,7 +162,7 @@ export default function DocumentsPage() {
                     </div>
 
                     {/* Mobile Filters (Hidden on Ultrawide) */}
-                    {!loading && documents.length > 0 && (
+                    {!isEmpty && (
                         <div className="mt-4 2xl:hidden">
                             {(filtered.length > 0 || search || empFilter) && (
                                 <div className="mb-4">
@@ -152,19 +180,16 @@ export default function DocumentsPage() {
 
                     {/* Main Table */}
                     <div className="mt-4">
-                        {loading ? (
-                            <div className="space-y-3 mt-6">
-                                <CardSkeleton />
-                                <CardSkeleton />
-                            </div>
-                        ) : documents.length === 0 && !search && !empFilter ? (
+                        {isEmpty && !search && !empFilter ? (
                             <div className="mt-8">
                                 <EmptyState
                                     title="No documents yet"
                                     description="Generate your first payslip to start building your compliance archive."
                                     icon={FolderOpen}
-                                    actionLabel="Start first pay period"
+                                    actionLabel="Create first payslip"
                                     actionHref="/payroll/new"
+                                    secondaryActionLabel="Add employee"
+                                    secondaryActionHref="/employees/new"
                                 />
                             </div>
                         ) : (
@@ -258,47 +283,48 @@ export default function DocumentsPage() {
                 </div>
 
                 {/* Ultrawide Sidebar (Search & Advanced Filters) */}
-                <aside className="ultrawide-panel hidden 2xl:block">
-                    <Card className="glass-panel border-none p-5 sticky top-0">
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <h3 className="type-label uppercase tracking-widest text-[var(--text-muted)]">Search Documents</h3>
-                                <FiltersBar
-                                    searchPlaceholder="Quick find..."
-                                    searchValue={search}
-                                    onSearchChange={setSearch}
-                                    filters={[]}
-                                />
-                            </div>
+                {!isEmpty && (
+                    <aside className="ultrawide-panel hidden 2xl:block">
+                        <Card className="glass-panel border-none p-5 sticky top-0">
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <h3 className="type-label uppercase tracking-widest text-[var(--text-muted)]">Search Documents</h3>
+                                    <FiltersBar
+                                        searchPlaceholder="Quick find..."
+                                        searchValue={search}
+                                        onSearchChange={setSearch}
+                                        filters={[]}
+                                    />
+                                </div>
 
-                            <div className="space-y-3">
-                                <h3 className="type-label uppercase tracking-widest text-[var(--text-muted)]">Filter by Employee</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {employees.map(e => (
-                                        <button
-                                            key={e.id}
-                                            onClick={() => setEmpFilter(prev => prev === e.id ? "" : e.id)}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${empFilter === e.id
-                                                ? 'bg-[var(--primary)] border-[var(--primary)] text-white'
-                                                : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)]'
-                                                }`}
-                                        >
-                                            {e.name}
-                                        </button>
-                                    ))}
-                                    {employees.length === 0 && <p className="text-[10px] text-[var(--text-muted)]">No employees found.</p>}
+                                <div className="space-y-3">
+                                    <h3 className="type-label uppercase tracking-widest text-[var(--text-muted)]">Filter by Employee</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {employees.map(e => (
+                                            <button
+                                                key={e.id}
+                                                onClick={() => setEmpFilter(prev => prev === e.id ? "" : e.id)}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${empFilter === e.id
+                                                    ? 'bg-[var(--primary)] border-[var(--primary)] text-white'
+                                                    : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)]'
+                                                    }`}
+                                            >
+                                                {e.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-[var(--border)]">
+                                    <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] font-medium">
+                                        <History className="h-3.5 w-3.5" />
+                                        <span>Total matching: {filtered.length}</span>
+                                    </div>
                                 </div>
                             </div>
-
-                            <div className="pt-4 border-t border-[var(--border)]">
-                                <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] font-medium">
-                                    <History className="h-3.5 w-3.5" />
-                                    <span>Total matching: {filtered.length}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
-                </aside>
+                        </Card>
+                    </aside>
+                )}
             </div>
 
             {isGenerating && (

@@ -63,8 +63,8 @@ export function PayrollClient() {
                 </div>
                 <EmptyState
                     icon={Calendar}
-                    title="Loading pay periods..."
-                    description="Fetching your payroll history."
+                    title="No pay runs yet"
+                    description="Create your first pay period to generate compliant payslips."
                     actionLabel="Create first pay period"
                     actionHref="/payroll/new"
                 />

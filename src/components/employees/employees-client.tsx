@@ -39,15 +39,15 @@ export function EmployeesClient() {
         emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Initial server render and pre-hydration: Show Empty State as the default shell design
+    // Initial server render and pre-hydration: Show real Empty State as the default shell design
     if (!isClient || loading) {
         return (
             <div className="ultrawide-grid grid-cols-12-desktop gap-6 space-y-6 lg:space-y-0">
                 <div className="ultrawide-main col-span-8-desktop">
                     <EmptyState
                         icon={Users}
-                        title="Loading employees..."
-                        description="Fetching your household team records."
+                        title="No employees yet"
+                        description="Add your first employee to start managing payroll and leave."
                         actionLabel="Add Employee"
                         actionHref="/employees/new"
                     />
