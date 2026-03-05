@@ -1,0 +1,189 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { Palmtree, Plus, Calendar, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { CardSkeleton } from "@/components/ui/loading-skeleton";
+import { DataTable } from "@/components/ui/data-table";
+import { getAllLeaveRecords, getEmployees, getCurrentPayPeriod, subscribeToDataChanges } from "@/lib/storage";
+import { LeaveRecord, Employee, PayPeriod } from "@/lib/schema";
+
+export function LeaveClient() {
+    const [isClient, setIsClient] = React.useState(false);
+    const [loading, setLoading] = React.useState(true);
+    const [records, setRecords] = React.useState<LeaveRecord[]>([]);
+    const [employees, setEmployees] = React.useState<Employee[]>([]);
+    const [currentPeriod, setCurrentPeriod] = React.useState<PayPeriod | null>(null);
+
+    React.useEffect(() => {
+        setIsClient(true);
+        async function load() {
+            try {
+                const [recs, emps, cp] = await Promise.all([
+                    getAllLeaveRecords(),
+                    getEmployees(),
+                    getCurrentPayPeriod()
+                ]);
+                setRecords(recs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+                setEmployees(emps);
+                setCurrentPeriod(cp);
+            } catch (err) {
+                console.error("Failed to load leave records:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        load();
+        return subscribeToDataChanges(load);
+    }, []);
+
+    const empName = (id: string) => employees.find(e => e.id === id)?.name ?? "Unknown";
+    const annualTotal = records.filter(r => r.type === "annual").reduce((s, r) => s + r.days, 0);
+    const sickTotal = records.filter(r => r.type === "sick").reduce((s, r) => s + r.days, 0);
+
+    if (!isClient || loading) {
+        return (
+            <div className="space-y-6">
+                <CardSkeleton />
+                <CardSkeleton />
+            </div>
+        );
+    }
+
+    if (employees.length === 0) {
+        return (
+            <EmptyState
+                icon={Palmtree}
+                title="No employees yet"
+                description="Add employees first, then track their leave."
+                actionLabel="Add Employee"
+                actionHref="/employees/new"
+            />
+        );
+    }
+
+    return (
+        <div className="space-y-6">
+            {/* Summary cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="glass-panel border-none overflow-hidden relative group">
+                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:scale-110 transition-transform">
+                        <Palmtree className="h-12 w-12 text-[var(--primary)]" />
+                    </div>
+                    <CardContent className="p-6">
+                        <p className="text-3xl font-black text-[var(--text)] mb-1">{annualTotal}</p>
+                        <p className="type-overline text-[var(--text-muted)] flex items-center gap-1.5">
+                            <Calendar className="h-3 w-3" /> Annual Days Taken
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card className="glass-panel border-none overflow-hidden relative group">
+                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:scale-110 transition-transform">
+                        <Palmtree className="h-12 w-12 text-[var(--primary)]" />
+                    </div>
+                    <CardContent className="p-6">
+                        <p className="text-3xl font-black text-[var(--text)] mb-1">{sickTotal}</p>
+                        <p className="type-overline text-[var(--text-muted)] flex items-center gap-1.5">
+                            <Calendar className="h-3 w-3" /> Sick Days Taken
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {currentPeriod && (
+                <Card className="bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-2xl">
+                    <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shrink-0">
+                                <Clock className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                                <p className="type-body-bold text-[var(--text)]">
+                                    Payroll for {currentPeriod.name} is {currentPeriod.status}
+                                </p>
+                                <p className="text-xs text-[var(--text-muted)]">
+                                    New leave records for this month will auto-populate into your payroll drafts.
+                                </p>
+                            </div>
+                        </div>
+                        <Link href={`/payroll/${currentPeriod.id}`}>
+                            <Button size="sm" variant="outline" className="h-9 px-4 border-[var(--primary)] text-[var(--primary-hover)] hover:bg-[var(--primary)] hover:text-white transition-all font-bold shrink-0">
+                                View Payroll
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+            )}
+
+            <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
+                    <h2 className="type-h3 text-[var(--text)]">Recent Records</h2>
+                    <Link href="/leave/new">
+                        <Button size="sm" className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] h-9">
+                            <Plus className="h-4 w-4" /> Add Leave
+                        </Button>
+                    </Link>
+                </div>
+
+                {records.length === 0 ? (
+                    <div className="py-12 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--surface-1)]">
+                        <p className="text-sm font-bold text-[var(--text-muted)]">No leave records entered yet.</p>
+                    </div>
+                ) : (
+                    <DataTable<LeaveRecord>
+                        data={records}
+                        keyField={(row) => row.id}
+                        columns={[
+                            {
+                                key: "employee",
+                                label: "Employee",
+                                render: (row) => (
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-8 w-8 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[10px] font-black text-[var(--text-muted)]">
+                                            {empName(row.employeeId).substring(0, 2).toUpperCase()}
+                                        </div>
+                                        <span className="type-body-bold text-[var(--text)]">{empName(row.employeeId)}</span>
+                                    </div>
+                                )
+                            },
+                            {
+                                key: "type",
+                                label: "Type",
+                                render: (row) => (
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${row.type === 'annual' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                                        }`}>
+                                        {row.type}
+                                    </span>
+                                )
+                            },
+                            {
+                                key: "days",
+                                label: "Days",
+                                render: (row) => <span className="type-mono font-bold text-[var(--text)]">{row.days}d</span>
+                            },
+                            {
+                                key: "date",
+                                label: "Date",
+                                render: (row) => <span className="type-body text-[var(--text-muted)]">{format(new Date(row.date), "dd MMM yyyy")}</span>
+                            },
+                            {
+                                key: "actions",
+                                label: "",
+                                align: "right",
+                                render: () => (
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[var(--text-muted)] hover:text-[var(--primary-hover)]">
+                                        <Calendar className="h-4 w-4" />
+                                    </Button>
+                                )
+                            }
+                        ]}
+                    />
+                )}
+            </div>
+        </div>
+    );
+}

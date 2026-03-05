@@ -1,0 +1,43 @@
+/**
+ * Single Source of Truth for Compliance Constants
+ * Reference: Civic Ledger Guidelines & Government Gazettes
+ */
+
+export const COMPLIANCE = {
+    NMW: {
+        RATE_PER_HOUR: 30.23,
+        EFFECTIVE_DATE: "1 March 2026",
+        SOURCE_URL: "https://www.gov.za/sites/default/files/gcis_document/202602/54075rg11941gon7083.pdf",
+    },
+    UIF: {
+        THRESHOLD_HOURS_PER_MONTH: 24,
+        DEDUCTION_PERCENTAGE: 0.01,
+        MONTHLY_CAP: 17712,
+        SOURCE_URL: "https://www.gov.za/faq/government-services/how-do-i-register-my-domestic-worker-uif",
+    },
+    RECORD_KEEPING: {
+        MINIMUM_YEARS: 3,
+        SOURCE_URL: "https://www.labour.gov.za/DocumentCenter/Acts/Basic%20Conditions%20of%20Employment/Act%20-%20Basic%20Conditions%20of%20Employment.pdf",
+    },
+    OVERTIME: {
+        MAX_HOURS_PER_WEEK: 10,
+        RATE_MULTIPLIER: 1.5,
+        SOURCE_URL: "https://www.labour.gov.za/DocumentCenter/Acts/Basic%20Conditions%20of%20Employment/Act%20-%20Basic%20Conditions%20of%20Employment.pdf",
+    },
+    SUNDAY_PAY: {
+        NORMAL_MULTIPLIER: 2.0,
+        ORDINARILY_WORKS_MULTIPLIER: 1.5,
+        SOURCE_URL: "https://www.labour.gov.za/DocumentCenter/Acts/Basic%20Conditions%20of%20Employment/Act%20-%20Basic%20Conditions%20of%20Employment.pdf",
+    },
+    PUBLIC_HOLIDAY_PAY: {
+        MULTIPLIER_IF_WORKED: 2.0,
+        SOURCE_URL: "https://www.labour.gov.za/DocumentCenter/Acts/Basic%20Conditions%20of%20Employment/Act%20-%20Basic%20Conditions%20of%20Employment.pdf",
+    },
+    MINIMUM_DAILY_PAY: {
+        MINIMUM_HOURS_PAID: 4,
+        SOURCE_URL: "https://www.labour.gov.za/DocumentCenter/Publications/Basic%20Conditions%20of%20Employment/National%20Minimum%20Wage%20flyer%202026.pdf",
+    },
+    SD7: {
+        ACCOMMODATION_MAX_PCT: 0.10, // Max deduction for accommodation
+    }
+};

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getSettings, saveSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
+import { PRICING_PLANS } from "@/src/config/plans";
 
 const PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c";
 const PAYSTACK_PLAN_ANNUAL = "PLN_xdijjb5u3pqneld";
@@ -183,22 +184,31 @@ export default function PricingPage() {
                         <h3 className="text-lg font-bold mb-4" style={{ color: "var(--text)" }}>How billing works</h3>
                         <div className="grid md:grid-cols-3 gap-6">
                             <div>
-                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Standard (Free)</p>
-                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Free forever. No payment needed. Supports 1 employee with 3 months of history.</p>
+                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Standard</p>
+                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Free forever for 1 employee and limited history.</p>
                             </div>
                             <div>
-                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Annual Support (R99/yr)</p>
-                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Renews yearly. Cancel anytime — access continues until your current year ends, then stops renewing.</p>
+                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Annual Support (R99/year)</p>
+                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Renews yearly. Cancel anytime—your access continues until the end of the paid year.</p>
                             </div>
                             <div>
                                 <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Lekker Pro (R299 once-off)</p>
-                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Pay once, keep forever. No recurring fees. 14-day no-questions-asked refund guarantee.</p>
+                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>One-time payment for long-term access on this device, plus features like extended archive and (if enabled) Drive backup.</p>
                             </div>
                         </div>
-                        <div className="mt-4 pt-4 border-t border-[var(--border)]">
-                            <Link href="/legal/refunds" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]">
-                                View refund & cancellation policy →
-                            </Link>
+                        <div className="mt-6 pt-4 border-t border-[var(--border)] space-y-3">
+                            <div>
+                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Refunds</p>
+                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>If you request a refund within {PRICING_PLANS.annual.refundWindowDays} days of purchase, we’ll refund you in full. How to request: Use the in-app Support link or email support@lekkerledger.co.za with your purchase email + date.</p>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                                <Link href="/legal/refunds" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]">
+                                    View full refund & cancellation policy →
+                                </Link>
+                                <a href="/sample-payslip.pdf" target="_blank" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]">
+                                    View sample payslip PDF →
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

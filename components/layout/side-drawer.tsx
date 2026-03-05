@@ -41,7 +41,7 @@ const NAV_GROUPS = [
         label: "Account",
         links: [
             { href: "/settings", label: "Settings", icon: Settings },
-            { href: "/pricing", label: "Support & Pro", icon: Sparkles },
+            { href: "/upgrade", label: "Support & Pro", icon: Sparkles },
         ],
     },
 ] as const;

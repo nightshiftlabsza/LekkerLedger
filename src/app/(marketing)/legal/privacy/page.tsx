@@ -59,13 +59,13 @@ export default function PrivacyPolicy() {
                         <ul className="list-disc pl-6 space-y-2">
                             <li>Right to access and correct information.</li>
                             <li>Right to object to processing.</li>
-                            <li>Right to request deletion (which you can do by clearing your browser storage).</li>
+                            <li>Right to request deletion: Local data can be deleted in-app ("Delete all local data") or by clearing browser storage. For synced data, you must manually delete the LekkerLedger backup folder from your Google Drive.</li>
                         </ul>
                     </section>
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">5. Contact Us</h2>
-                        <p>For any privacy-related queries, please contact nightshiftlabsza@gmail.com.</p>
+                        <p>For any privacy-related queries, please contact privacy@lekkerledger.co.za.</p>
                     </section>
                 </div>
 

@@ -18,7 +18,7 @@ import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { shareViaWhatsApp } from "@/lib/share";
 import { getComplianceAudit, generateComplianceNoteText } from "@/lib/compliance";
-import { generatePayslipPdfBytes } from "@/lib/pdf";
+import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
 import { track } from "@/lib/analytics";
 
 function Row({ label, value, bold, red }: { label: string; value: string; bold?: boolean; red?: boolean }) {
@@ -119,7 +119,7 @@ function PreviewContent() {
             setUsageStats(stats);
 
             const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
-            const filename = `Payslip_${employee.name.replace(/\s+/g, "_")}_${format(payslipWithDates.payPeriodStart, "MMM_yyyy")}.pdf`;
+            const filename = getPayslipFilename(employee, payslipWithDates);
 
             // GA4: fire before download so an interruption can't prevent it
             track("payslip_export", { method: "download_pdf" });
@@ -325,7 +325,7 @@ function PreviewContent() {
                                 await incrementUsageCount();
                                 const stats = await getUsageStats();
                                 setUsageStats(stats);
-                                await shareViaWhatsApp(bytes, employee.name, employee.phone || "", format(payslip.payPeriodEnd, "MMM_yyyy"));
+                                await shareViaWhatsApp(bytes, employee.name, employee.phone || "", format(payslip.payPeriodEnd, "MMM yyyy"));
                             } catch (e) { console.error(e); }
                             setDownloading("");
                         }}

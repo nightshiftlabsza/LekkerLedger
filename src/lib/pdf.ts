@@ -132,6 +132,18 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
     }
 };
 
+/**
+ * Consistent naming for compliance evidence
+ */
+export function getPayslipFilename(employee: Employee, payslip: PayslipInput): string {
+    const monthStr = format(new Date(payslip.payPeriodStart), "yyyy-MM");
+    // Remove non-alphanumeric chars for safe filenames
+    const safeName = employee.name.replace(/[^a-z0-9]/gi, '_');
+    // Use last 4 of ID for uniqueness in the filename
+    const runId = payslip.id.slice(-4);
+    return `LekkerLedger_Payslip_${safeName}_${monthStr}_${runId}.pdf`;
+}
+
 export async function generatePayslipPdfBytes(
     employee: Employee,
     payslip: PayslipInput,
@@ -330,6 +342,13 @@ export async function generatePayslipPdfBytes(
 
     const leaveText = `${dict.leaveRecorded}: ${dict.annual}: ${breakdown.leaveTaken.annual} d | ${dict.sick}: ${breakdown.leaveTaken.sick} d | ${dict.family}: ${breakdown.leaveTaken.family} d`;
     t(leaveText, width - PDF_MARGIN, footerY + 15, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+
+    // metadata line
+    const appVersion = "0.1.0"; // From package.json
+    const complianceDate = "1 March 2026"; // From compliance-constants.ts
+    const generatedTs = format(new Date(), "yyyy-MM-dd HH:mm");
+    const metaLine = `v${appVersion} · Generated ${generatedTs} · Compliance Ref: ${complianceDate}`;
+    t(metaLine, PDF_MARGIN, footerY - 5, { size: 6, color: PDF_COLORS.TEXT_MUTED });
 
     const legalText = `${dict.legalDisclaimer} ${dict.minWage}: R${nmw.toFixed(2)}/hr.`;
     t(legalText, PDF_MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED });

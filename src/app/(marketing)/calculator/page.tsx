@@ -11,17 +11,8 @@ import { getSettings } from "@/lib/storage";
 export default function CalculatorPage() {
     const router = useRouter();
 
-    const handleStart = async () => {
-        try {
-            const s = await getSettings();
-            if (!s.employerName) {
-                router.push("/settings");
-            } else {
-                router.push("/payroll/new");
-            }
-        } catch {
-            router.push("/payroll/new");
-        }
+    const handleStart = () => {
+        router.push("/payroll/new");
     };
 
     return (

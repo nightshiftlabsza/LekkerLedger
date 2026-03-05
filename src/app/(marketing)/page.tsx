@@ -7,7 +7,7 @@ import {
     Check, ChevronDown, ChevronRight, Shield, FileText, Users,
     Smartphone, CloudOff, HardDrive, ArrowRight, Menu, X,
     FolderSync, Fingerprint, Github, Mail, ClipboardCheck,
-    Calendar, Download, AlertCircle
+    Calendar, Download, AlertCircle, Database
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getNMWForDate } from "@/lib/legal/registry";
@@ -132,12 +132,11 @@ function Hero({ nmw }: { nmw: number }) {
                     {/* Left: Copy */}
                     <div className="space-y-8 max-w-xl">
                         <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                            Professional employment records for your{" "}
-                            <span className="text-[var(--primary)]">household staff.</span>
+                            Create a professional payslip for your domestic worker in <span className="text-[var(--primary)]">under 90 seconds.</span>
                         </h1>
 
                         <p className="type-body-large" style={{ color: "var(--text-muted)" }}>
-                            Built for South African homes: manage your domestic worker&apos;s payslips, leave, and contracts without grappling with enterprise HR tools.
+                            Your records stay on your device by default. Optional Google Drive backup if you choose. Works offline once loaded.
                         </p>
 
                         <div className="pt-2">
@@ -165,11 +164,14 @@ function Hero({ nmw }: { nmw: number }) {
                                     Create your first payslip <ArrowRight className="h-4 w-4 ml-2" />
                                 </Button>
                             </Link>
-                            <Link href="/pricing">
-                                <Button variant="outline" className="h-13 px-8 rounded-xl font-bold text-base">
-                                    View pricing
-                                </Button>
-                            </Link>
+                            <div className="flex flex-col justify-center gap-1.5 sm:ml-4 mt-3 sm:mt-0">
+                                <a href="/sample-payslip.pdf" target="_blank" className="text-sm font-semibold text-[var(--primary)] hover:underline flex items-center gap-1">
+                                    See sample payslip PDF →
+                                </a>
+                                <Link href="/legal/privacy" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text)] flex items-center gap-1 mt-0.5">
+                                    How your data is stored →
+                                </Link>
+                            </div>
                         </div>
 
                         <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
@@ -245,7 +247,7 @@ function TrustStrip() {
         { icon: HardDrive, text: "Stored locally / in your Drive" },
         { icon: Fingerprint, text: "Google sign-in" },
         { icon: Shield, text: "POPIA-aware approach" },
-        { icon: Github, text: "Open-source core" },
+        { icon: Github, text: "Open-source components" },
     ];
 
     return (
@@ -411,6 +413,52 @@ function FeatureGrid() {
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{f.desc}</p>
                         </div>
                     ))}
+                </div>
+
+                <div className="mt-16 bg-[var(--surface-1)] border border-[var(--border)] rounded-2xl p-8 max-w-5xl mx-auto shadow-xl flex flex-col md:flex-row gap-10 items-center">
+                    <div className="flex-1 space-y-5">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--accent-subtle)] text-[var(--primary)] text-xs font-bold uppercase tracking-wider">
+                            <FolderSync className="h-4 w-4" /> Built-in Compliance Archive
+                        </div>
+                        <h3 className="type-h3" style={{ color: "var(--text)" }}>A document vault designed for inspections.</h3>
+                        <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            If you ever need to prove compliance, LekkerLedger's built-in vault provides an undisputed chronological history of payslips, contracts, and UIF declarations. Keep up to 5 years of history instantly accessible.
+                        </p>
+                        <Link href="/dashboard" className="inline-block">
+                            <Button variant="outline" className="mt-2 h-11 px-6 rounded-xl border-[var(--border)] shadow-sm">Start your free vault today</Button>
+                        </Link>
+                    </div>
+                    {/* Visual html depiction of archive */}
+                    <div className="flex-1 w-full max-w-md bg-[var(--bg)] border border-[var(--border)] rounded-xl p-5 shadow-inner space-y-3 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 rounded-full blur-2xl -mr-16 -mt-16" />
+
+                        <div className="flex justify-between items-center mb-5 border-b border-[var(--border)] pb-3">
+                            <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
+                                <Database className="h-3.5 w-3.5" /> Vault History
+                            </span>
+                            <span className="text-xs text-[var(--primary)] font-bold bg-[var(--accent-subtle)] px-2 py-1 rounded">2026 Records</span>
+                        </div>
+                        {[
+                            { title: "Payslip - Feb 2026", type: "PDF copy", date: "28 Feb", icon: FileText },
+                            { title: "Payslip - Jan 2026", type: "PDF copy", date: "31 Jan", icon: FileText },
+                            { title: "BCEA Employment Contract", type: "Signed PDF", date: "15 Jan", icon: ClipboardCheck }
+                        ].map((doc, i) => (
+                            <div key={i} className="flex items-center justify-between p-3.5 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] hover:border-[var(--primary)]/30 transition-colors">
+                                <div className="flex items-center gap-3.5">
+                                    <div className="h-9 w-9 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                        <doc.icon className="h-4 w-4 text-[var(--primary)]" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold truncate" style={{ color: "var(--text)" }}>{doc.title}</p>
+                                        <p className="text-[10px] uppercase tracking-wider font-semibold mt-0.5" style={{ color: "var(--text-muted)" }}>{doc.date} • {doc.type}</p>
+                                    </div>
+                                </div>
+                                <div className="h-8 w-8 rounded-full bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                                    <Download className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </section>
@@ -644,12 +692,13 @@ function Footer() {
                             <Link href="/legal/privacy" className="block text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Privacy Policy</Link>
                             <Link href="/legal/terms" className="block text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Terms of Service</Link>
                             <Link href="/legal/refunds" className="block text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Refund Policy</Link>
+                            <Link href="/trust" className="block text-sm font-semibold mt-2 text-[var(--primary)] hover:underline">Trust Center</Link>
                         </div>
                     </div>
                     <div>
                         <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Connect</h4>
                         <div className="space-y-2">
-                            <a href="mailto:nightshiftlabsza@gmail.com" className="flex items-center gap-2 text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>
+                            <a href="mailto:support@lekkerledger.co.za" className="flex items-center gap-2 text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>
                                 <Mail className="h-3.5 w-3.5" /> Email Support
                             </a>
                             <a href="https://github.com/nightshiftlabsza" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>

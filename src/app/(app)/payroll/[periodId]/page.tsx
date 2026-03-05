@@ -21,7 +21,7 @@ import {
 } from "@/lib/storage";
 import { calculatePayslip } from "@/lib/calculator";
 import { PayPeriod, Employee, EmployeeEntry, PayslipInput, EmployerSettings, LeaveRecord } from "@/lib/schema";
-import { generatePayslipPdfBytes } from "@/lib/pdf";
+import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
 
 export default function PayPeriodWorkspacePage() {
     const params = useParams();
@@ -114,7 +114,7 @@ export default function PayPeriodWorkspacePage() {
                     type: "payslip",
                     employeeId: emp.id,
                     periodId: period.id,
-                    fileName: `${emp.name.split(' ')[0]}_Payslip_${period.name.replace(/\s+/g, '_')}.pdf`,
+                    fileName: getPayslipFilename(emp, payslipInput),
                     createdAt: new Date().toISOString(),
                 });
             }
@@ -174,7 +174,7 @@ export default function PayPeriodWorkspacePage() {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `${emp.name.replace(/\s+/g, "_")}_${period.name.replace(/\s+/g, "_")}_Payslip.pdf`;
+                a.download = getPayslipFilename(emp, payslipInput);
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);

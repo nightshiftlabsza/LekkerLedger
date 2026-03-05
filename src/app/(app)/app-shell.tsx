@@ -7,20 +7,24 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
 import { GlobalCreateDesktop, GlobalCreateFAB } from "@/components/global-create";
-import { CloudOff, X } from "lucide-react";
-import { useOnlineStatus } from "../hooks/useOnlineStatus";
+import { CloudOff, X, AlertOctagon, CreditCard } from "lucide-react";
+import { useAppConnectivity } from "@/hooks/use-app-connectivity";
 import { ToastProvider } from "@/components/ui/toast";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-    const isOnline = useOnlineStatus();
-    const [bannerDismissed, setBannerDismissed] = React.useState(false);
+    const { isOnline, syncError, paymentsError } = useAppConnectivity();
+    const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
+    const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
+    const [paymentsBannerDismissed, setPaymentsBannerDismissed] = React.useState(false);
     const [moreOpen, setMoreOpen] = React.useState(false);
 
     React.useEffect(() => {
-        if (isOnline) setBannerDismissed(false);
+        if (isOnline) setOfflineBannerDismissed(false);
     }, [isOnline]);
 
-    const showBanner = !isOnline && !bannerDismissed;
+    const showOfflineBanner = !isOnline && !offlineBannerDismissed;
+    const showSyncBanner = isOnline && syncError && !syncBannerDismissed;
+    const showPaymentsBanner = isOnline && paymentsError && !paymentsBannerDismissed;
 
     return (
         <ToastProvider>
@@ -63,7 +67,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </header>
 
                 {/* Offline banner */}
-                {showBanner && (
+                {showOfflineBanner && (
                     <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold"
                         style={{ backgroundColor: "rgba(217,119,6,0.10)", borderBottom: "1px solid rgba(217,119,6,0.25)", color: "var(--primary)" }}>
                         <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
@@ -72,9 +76,47 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 <span>You&apos;re offline — your changes are saved locally and will sync when reconnected.</span>
                             </div>
                             <button
-                                onClick={() => setBannerDismissed(true)}
+                                onClick={() => setOfflineBannerDismissed(true)}
                                 aria-label="Dismiss offline notice"
                                 className="shrink-0 rounded p-0.5 hover:bg-[var(--primary)]/20 transition-colors"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Sync Error banner */}
+                {showSyncBanner && (
+                    <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold bg-red-50 text-red-600 border-b border-red-200">
+                        <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
+                            <div className="flex items-center gap-2">
+                                <AlertOctagon className="h-4 w-4 shrink-0" />
+                                <span>Google Drive sync failed. Please check your connection or reconnect Drive in Settings.</span>
+                            </div>
+                            <button
+                                onClick={() => setSyncBannerDismissed(true)}
+                                aria-label="Dismiss sync notice"
+                                className="shrink-0 rounded p-0.5 hover:bg-red-100 transition-colors"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Payments Error banner */}
+                {showPaymentsBanner && (
+                    <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold bg-red-50 text-red-600 border-b border-red-200">
+                        <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
+                            <div className="flex items-center gap-2">
+                                <CreditCard className="h-4 w-4 shrink-0" />
+                                <span>Payments system currently unavailable. Check back later.</span>
+                            </div>
+                            <button
+                                onClick={() => setPaymentsBannerDismissed(true)}
+                                aria-label="Dismiss payments notice"
+                                className="shrink-0 rounded p-0.5 hover:bg-red-100 transition-colors"
                             >
                                 <X className="h-4 w-4" />
                             </button>

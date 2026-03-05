@@ -21,6 +21,7 @@ import { getEmployees, getSettings, getCurrentPayPeriod, getDocuments, getLatest
 import { computeDashboardAlerts } from "@/lib/alerts";
 import { Employee, PayPeriod, EmployerSettings, DocumentMeta, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
+import { COMPLIANCE } from "@/lib/compliance-constants";
 
 interface EmployeeSummary {
     employee: Employee;
@@ -205,7 +206,7 @@ export default function DashboardPage() {
                             actionHref="/employees/new"
                             requirements={[
                                 "Employee's full name",
-                                "Their hourly rate (minimum R30.23/hr)",
+                                `Their hourly rate (minimum R${COMPLIANCE.NMW.RATE_PER_HOUR.toFixed(2)}/hr)`,
                                 "Expected weekly/monthly hours"
                             ]}
                         />

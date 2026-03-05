@@ -160,11 +160,11 @@ export default function DocumentsPage() {
                         ) : documents.length === 0 && !search && !empFilter ? (
                             <div className="mt-8">
                                 <EmptyState
-                                    title="No documents found"
-                                    description="Payslips, contracts, and exports will appear here automatically once generated."
+                                    title="No documents yet"
+                                    description="Generate your first payslip to start building your compliance archive."
                                     icon={FolderOpen}
-                                    actionLabel="Go to Dashboard"
-                                    actionHref="/dashboard"
+                                    actionLabel="Start first pay period"
+                                    actionHref="/payroll/new"
                                 />
                             </div>
                         ) : (

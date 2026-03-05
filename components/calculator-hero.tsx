@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getNMW, UIF_MONTHLY_CAP, UIF_RATE } from "@/lib/calculator";
 import { roundTo } from "@/lib/money";
+import { COMPLIANCE } from "@/lib/compliance-constants";
 import { triggerBurst } from "./ui/confetti-trigger";
 
 export function CalculatorHero({ onStart }: { onStart: (e: React.MouseEvent<HTMLButtonElement>) => void }) {
     const [hours, setHours] = React.useState("160");
-    const [rate, setRate] = React.useState("30.23");
+    const [rate, setRate] = React.useState(COMPLIANCE.NMW.RATE_PER_HOUR.toString());
 
     const nmwRate = React.useMemo(() => getNMW(), []);
     const rateNum = parseFloat(rate) || 0;
@@ -59,7 +60,7 @@ export function CalculatorHero({ onStart }: { onStart: (e: React.MouseEvent<HTML
                                 type="number"
                                 inputMode="decimal"
                                 step="0.01"
-                                placeholder="30.23"
+                                placeholder={COMPLIANCE.NMW.RATE_PER_HOUR.toString()}
                                 className="pl-8"
                                 value={rate}
                                 onChange={(e) => setRate(e.target.value)}

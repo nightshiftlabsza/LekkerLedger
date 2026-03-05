@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { ChevronLeft, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PRICING_PLANS } from "@/src/config/plans";
 
 export default function RefundPolicy() {
     return (
@@ -31,10 +32,10 @@ export default function RefundPolicy() {
                         </p>
                         <ul className="list-disc pl-6 space-y-2">
                             <li><strong>Annual Support (R99/yr):</strong> A yearly renewal. You can cancel at any time to stop the next renewal. Access continues until the end of your current annual period.</li>
-                            <li><strong>Lekker Pro (R299):</strong> A once-off lifetime payment. No renewal, no recurring fees. Our 14-day &ldquo;No Questions Asked&rdquo; refund guarantee applies.</li>
+                            <li><strong>Lekker Pro (R299):</strong> A once-off lifetime payment. No renewal, no recurring fees. Our {PRICING_PLANS.pro.refundWindowDays}-day &ldquo;No Questions Asked&rdquo; refund guarantee applies.</li>
                         </ul>
                         <p>
-                            If you are unsatisfied with any purchase for any reason within 14 days of the transaction date, we will issue a full refund — no questions asked.
+                            If you are unsatisfied with any purchase for any reason within {PRICING_PLANS.annual.refundWindowDays} days of the transaction date, we will issue a full refund — no questions asked.
                         </p>
                     </section>
 
@@ -48,21 +49,21 @@ export default function RefundPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">3. No Exceptions</h2>
                         <p>
-                            Our 14-day refund guarantee is unconditional. It applies regardless of whether you have used the Pro features. Simply request a refund within 14 days of your purchase date and we will process it in full.
+                            Our {PRICING_PLANS.annual.refundWindowDays}-day refund guarantee is unconditional. It applies regardless of whether you have used the Pro features. Simply request a refund within {PRICING_PLANS.annual.refundWindowDays} days of your purchase date and we will process it in full.
                         </p>
                     </section>
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">4. How to Request a Refund</h2>
                         <p>
-                            To request a refund, please email nightshiftlabsza@gmail.com with your transaction details. We manually review all requests within 48 hours.
+                            To request a refund, please email support@lekkerledger.co.za with your transaction details. We manually review all requests within 48 hours.
                         </p>
                     </section>
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">5. Cooling-off Period</h2>
                         <p>
-                            In accordance with Section 44 of the Electronic Communications and Transactions Act, you are entitled to a cooling-off period if the transaction was a result of direct marketing. Our 14-day refund guarantee exceeds this requirement and applies to all purchases.
+                            In accordance with Section 44 of the Electronic Communications and Transactions Act, you are entitled to a cooling-off period if the transaction was a result of direct marketing. Our {PRICING_PLANS.annual.refundWindowDays}-day refund guarantee exceeds this requirement and applies to all purchases.
                         </p>
                     </section>
                 </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BookOpen, ShieldCheck, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { ComplianceInlineBadge } from "@/components/ui/compliance-badge";
 
 export default function CompliancePage() {
 
@@ -29,9 +30,9 @@ export default function CompliancePage() {
                     <div className="flex items-start gap-3">
                         <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--primary)" }} />
                         <div>
-                            <h3 className="font-bold text-base" style={{ color: "var(--text)" }}>1. Minimum Wage is R30.23/hr</h3>
+                            <h3 className="font-bold text-base flex w-full flex-wrap gap-2 items-center" style={{ color: "var(--text)" }}>1. Minimum Wage is <ComplianceInlineBadge type="nmw" /></h3>
                             <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                As of 2026, the legal minimum you can pay a domestic worker is R30.23 per hour worked.
+                                As of 2026, the legal minimum you can pay a domestic worker is <ComplianceInlineBadge type="nmw" /> per hour worked.
                                 <br />
                                 <a href="https://www.gov.za/documents/notices/national-minimum-wage-act-national-minimum-wage-9-jan-2025" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: Dept. of Employment & Labour (2026)</a>
                             </p>
