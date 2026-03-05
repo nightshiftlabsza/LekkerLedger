@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Palmtree, Plus, LayoutGrid, List, Calendar, Clock } from "lucide-react"; // Re-added Calendar and Clock to maintain functionality
+import { Palmtree, Plus, Calendar, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

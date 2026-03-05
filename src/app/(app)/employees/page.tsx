@@ -88,7 +88,7 @@ export default function EmployeesPage() {
                                 {
                                     key: "status",
                                     label: "Status",
-                                    render: (_emp) => <StatusChip variant="complete" label="ACTIVE" />
+                                    render: () => <StatusChip variant="complete" label="ACTIVE" />
                                 },
                                 {
                                     key: "actions",

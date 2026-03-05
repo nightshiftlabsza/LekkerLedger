@@ -2,7 +2,7 @@ import { PDFDocument } from "pdf-lib";
 import { Employee, EmployerSettings } from "./schema";
 import { format } from "date-fns";
 import { getNMWForDate } from "./legal/registry";
-import { PDF_COLORS, PDF_LAYOUT } from "./pdf-theme";
+import { PDF_MARGIN, PDF_COLORS } from "./pdf";
 import { loadPdfFonts } from "./pdf-fonts";
 
 export async function generateEmploymentContract(
@@ -65,7 +65,7 @@ export async function generateEmploymentContract(
     // Header Rule (Ledger style)
     p1.drawLine({ start: { x: MARGIN, y: PAGE_H - 90 }, end: { x: PAGE_W - MARGIN, y: PAGE_H - 90 }, thickness: 1.5, color: PDF_COLORS.PRIMARY_GREEN });
 
-    p1.drawText(`Effective Date: ${effectiveDate}   |   Generated: ${todayStr}`, {
+    p1.drawText(`Effective Date: ${effectiveDate}   | Generated: ${todayStr} `, {
         x: MARGIN,
         y: PAGE_H - 110,
         size: 8, font: sansRegular, color: PDF_COLORS.TEXT_MUTED,
@@ -124,7 +124,7 @@ export async function generateEmploymentContract(
     section(p1, "3. REMUNERATION", cy);
     cy -= 30;
     row(p1, "Hourly Rate", `R ${employee.hourlyRate.toFixed(2)} per hour`, cy); cy -= 18;
-    row(p1, "National Min. Wage (NMW)", `R ${nmw.toFixed(2)} per hour (SD7 current)`, cy); cy -= 18;
+    row(p1, "National Min. Wage (NMW)", `R ${nmw.toFixed(2)} per hour(SD7 current)`, cy); cy -= 18;
     row(p1, "Pay Frequency", employee.frequency || "Monthly", cy); cy -= 18;
     const uifNote = "1% employee contribution deducted from gross earnings where applicable (BCEA S.86).";
     p1.drawText(uifNote, { x: MARGIN + 8, y: cy, size: 8, font: sansRegular, color: PDF_COLORS.TEXT_MUTED, maxWidth: BODY_W - 10 });
@@ -137,7 +137,7 @@ export async function generateEmploymentContract(
     cy -= 30;
     const hoursPerDay = employee.ordinaryHoursPerDay || 8;
     row(p1, "Ordinary Hours/Day", `${hoursPerDay} hours`, cy); cy -= 18;
-    row(p1, "Ordinary Hours/Week", `${hoursPerDay * 5} hours (Mon–Sat, max 45/week per BCEA S.9)`, cy); cy -= 18;
+    row(p1, "Ordinary Hours/Week", `${hoursPerDay * 5} hours(Mon–Sat, max 45 / week per BCEA S.9)`, cy); cy -= 18;
     row(p1, "Works Sundays", employee.ordinarilyWorksSundays ? "Yes (1.5x rate applies)" : "No (2x rate applies if required)", cy); cy -= 18;
     row(p1, "Overtime Rate", "1.5x ordinary for hours > 45/week (BCEA S.10)", cy); cy -= 18;
     row(p1, "Sunday / PH Rate", "2.0x ordinary (SD7 S.6–7)", cy); cy -= 18;
@@ -157,7 +157,7 @@ export async function generateEmploymentContract(
         ["Public Holidays", "All workers entitled to public holidays on full pay (BCEA S.18)."],
     ];
     for (const [label, value] of leaveRows) {
-        p2.drawText(`${label}:`, { x: MARGIN + 8, y: cy, size: 9, font: sansBold, color: PDF_COLORS.TEXT_MUTED });
+        p2.drawText(`${label}: `, { x: MARGIN + 8, y: cy, size: 9, font: sansBold, color: PDF_COLORS.TEXT_MUTED });
         p2.drawText(value, { x: MARGIN + 170, y: cy, size: 9, font: sansRegular, color: PDF_COLORS.TEXT, maxWidth: BODY_W - 170 });
         p2.drawLine({ start: { x: MARGIN, y: cy - 5 }, end: { x: PAGE_W - MARGIN, y: cy - 5 }, thickness: 0.2, color: PDF_COLORS.RULING_LINE });
         cy -= 22;
@@ -174,7 +174,7 @@ export async function generateEmploymentContract(
         ["Other", "No deduction may be made without written consent of the employee."],
     ];
     for (const [label, value] of dedRows) {
-        p2.drawText(`${label}:`, { x: MARGIN + 8, y: cy, size: 9, font: sansBold, color: PDF_COLORS.TEXT_MUTED });
+        p2.drawText(`${label}: `, { x: MARGIN + 8, y: cy, size: 9, font: sansBold, color: PDF_COLORS.TEXT_MUTED });
         p2.drawText(value, { x: MARGIN + 170, y: cy, size: 9, font: sansRegular, color: PDF_COLORS.TEXT, maxWidth: BODY_W - 170 });
         p2.drawLine({ start: { x: MARGIN, y: cy - 5 }, end: { x: PAGE_W - MARGIN, y: cy - 5 }, thickness: 0.2, color: PDF_COLORS.RULING_LINE });
         cy -= 22;
@@ -213,7 +213,7 @@ export async function generateEmploymentContract(
         "No variation/amendment of this contract is valid unless agreed to in writing.",
     ];
     for (const clause of general) {
-        p2.drawText(`• ${clause}`, { x: MARGIN + 8, y: cy, size: 9, font: sansRegular, color: PDF_COLORS.TEXT, maxWidth: BODY_W - 10 });
+        p2.drawText(`• ${clause} `, { x: MARGIN + 8, y: cy, size: 9, font: sansRegular, color: PDF_COLORS.TEXT, maxWidth: BODY_W - 10 });
         cy -= 18;
     }
 
