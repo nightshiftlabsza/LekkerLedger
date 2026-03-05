@@ -136,7 +136,8 @@ export async function generatePayslipPdfBytes(
     employee: Employee,
     payslip: PayslipInput,
     settings: EmployerSettings,
-    lang: SupportLang = "en"
+    lang: SupportLang = "en",
+    isLimited: boolean = false
 ): Promise<Uint8Array> {
     const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
     const breakdown = calculatePayslip(payslip);
