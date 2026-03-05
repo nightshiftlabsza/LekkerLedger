@@ -1,15 +1,28 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, type PDFPage } from "pdf-lib";
 import { format } from "date-fns";
 import { Employee, EmployerSettings, PayslipInput } from "../schema";
 import { PDF_COLORS, PDF_MARGIN } from "../pdf";
 import { RoeData } from "./roe";
 import { calculatePayslip } from "../calculator";
 
-/**
- * Generates the "Detailed Payroll Report" PDF for COIDA ROE submission.
- * This is a mandatory upload document for the Compensation Fund.
- */
+const PAGE_SIZE: [number, number] = [595.28, 841.89];
+const BOTTOM_MARGIN = 60;
+
+function formatCurrency(value: number): string {
+    const rounded = value.toFixed(2);
+    const [whole, cents] = rounded.split(".");
+    return `R ${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${cents}`;
+}
+
+function clipText(text: string, font: { widthOfTextAtSize: (value: string, size: number) => number }, size: number, maxWidth?: number): string {
+    if (!maxWidth || font.widthOfTextAtSize(text, size) <= maxWidth) return text;
+    let output = text;
+    while (output.length > 0 && font.widthOfTextAtSize(`${output}...`, size) > maxWidth) {
+        output = output.slice(0, -1);
+    }
+    return `${output}...`;
+}
+
 export async function generateRoePayrollPdfBytes(
     roeData: RoeData,
     employees: Employee[],
@@ -17,143 +30,131 @@ export async function generateRoePayrollPdfBytes(
     settings: EmployerSettings
 ): Promise<Uint8Array> {
     const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([595.28, 841.89]); // A4 portrait
-    const { width, height } = page.getSize();
-
     const { loadPdfFonts } = await import("../pdf-fonts");
     const { sansRegular, sansBold, serifBold } = await loadPdfFonts(pdfDoc);
 
-    const t = (text: string, x: number, y: number, opts: any = {}) => {
+    const pageState = { page: pdfDoc.addPage(PAGE_SIZE), y: PAGE_SIZE[1] - 60 };
+
+    const t = (page: PDFPage, text: string, x: number, y: number, opts: { align?: "left" | "right" | "center"; size?: number; font?: typeof sansRegular; color?: typeof PDF_COLORS.TEXT; maxWidth?: number } = {}) => {
         const font = opts.font ?? sansRegular;
         const size = opts.size ?? 9;
         const color = opts.color ?? PDF_COLORS.TEXT;
+        const safeText = clipText(String(text ?? ""), font, size, opts.maxWidth);
         let tx = x;
-        if (opts.align === "right") {
-            const w = font.widthOfTextAtSize(text, size);
-            tx = x - w;
-        }
-        page.drawText(text, { x: tx, y, size, font, color });
+        const width = font.widthOfTextAtSize(safeText, size);
+        if (opts.align === "right") tx = x - width;
+        if (opts.align === "center") tx = x - (width / 2);
+        page.drawText(safeText, { x: tx, y, size, font, color });
     };
 
-    const drawLine = (y: number) => {
+    const drawLine = (page: PDFPage, y: number) => {
+        const { width } = page.getSize();
         page.drawLine({
             start: { x: PDF_MARGIN, y },
             end: { x: width - PDF_MARGIN, y },
             thickness: 0.5,
-            color: PDF_COLORS.BORDER
+            color: PDF_COLORS.BORDER,
         });
     };
 
-    // Background
-    page.drawRectangle({ x: 0, y: 0, width, height, color: PDF_COLORS.PAPER });
+    const drawHeader = (page: PDFPage) => {
+        const { width, height } = page.getSize();
+        pageState.y = height - 60;
+        t(page, "LekkerLedger ROE Pack", PDF_MARGIN, pageState.y, { font: serifBold, size: 18, maxWidth: width / 2 });
+        t(page, "ANNUAL DETAILED PAYROLL REPORT", PDF_MARGIN, pageState.y - 18, { font: sansBold, size: 10, color: PDF_COLORS.PRIMARY_GREEN });
+        t(page, `Assessment Year: ${roeData.startDate.getFullYear()}/${roeData.endDate.getFullYear()}`, width - PDF_MARGIN, pageState.y, { align: "right", font: sansBold });
 
-    let cy = height - 60;
+        pageState.y -= 50;
+        drawLine(page, pageState.y);
+        pageState.y -= 20;
 
-    // Header
-    t("LekkerLedger ROE Pack", PDF_MARGIN, cy, { font: serifBold, size: 18 });
-    t("ANNUAL DETAILED PAYROLL REPORT", PDF_MARGIN, cy - 18, { font: sansBold, size: 10, color: PDF_COLORS.PRIMARY_GREEN });
-    t(`Assessment Year: ${roeData.startDate.getFullYear()}/${roeData.endDate.getFullYear()}`, width - PDF_MARGIN, cy, { align: "right", font: sansBold });
+        t(page, "EMPLOYER DETAILS", PDF_MARGIN, pageState.y, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
+        t(page, settings.employerName || "Not set", PDF_MARGIN, pageState.y - 15, { font: sansBold, size: 10, maxWidth: width - (PDF_MARGIN * 2) - 120 });
+        t(page, `CF Number: ${settings.cfNumber || "Not provided"}`, PDF_MARGIN, pageState.y - 28, { size: 8 });
 
-    cy -= 50;
-    drawLine(cy);
-    cy -= 20;
+        pageState.y -= 50;
+        t(page, "Employee Name", PDF_MARGIN, pageState.y, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
+        t(page, "ID Number", width / 2 - 50, pageState.y, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
+        t(page, "Gross Wages", width - PDF_MARGIN - 90, pageState.y, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+        t(page, "Capped Earnings", width - PDF_MARGIN, pageState.y, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+        pageState.y -= 6;
+        drawLine(page, pageState.y);
+        pageState.y -= 18;
+    };
 
-    // Employer Info
-    t("EMPLOYER DETAILS", PDF_MARGIN, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
-    t(settings.employerName || "Not set", PDF_MARGIN, cy - 15, { font: sansBold, size: 10 });
-    t(`CF Number: ${settings.cfNumber || "Not provided"}`, PDF_MARGIN, cy - 28, { size: 8 });
+    const ensureSpace = () => {
+        if (pageState.y >= BOTTOM_MARGIN + 40) return;
+        pageState.page = pdfDoc.addPage(PAGE_SIZE);
+        drawHeader(pageState.page);
+    };
 
-    cy -= 50;
+    drawHeader(pageState.page);
 
-    // Summary Table Header
-    t("Employee Name", PDF_MARGIN, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
-    t("ID Number", width / 2 - 50, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
-    t("Gross Wages", width - PDF_MARGIN - 80, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
-    t("Capped Earnings", width - PDF_MARGIN, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
-
-    cy -= 6;
-    drawLine(cy);
-    cy -= 18;
-
-    // Group payslips by employee
-    const periodPayslips = allPayslips.filter(ps => {
-        const end = new Date(ps.payPeriodEnd);
+    const periodPayslips = allPayslips.filter((payslip) => {
+        const end = new Date(payslip.payPeriodEnd);
         return end >= roeData.startDate && end <= roeData.endDate;
     });
 
-    employees.forEach(emp => {
-        const empPayslips = periodPayslips.filter(ps => ps.employeeId === emp.id);
-        if (empPayslips.length === 0) return;
-
+    for (const employee of employees) {
+        const employeePayslips = periodPayslips.filter((payslip) => payslip.employeeId === employee.id);
         let totalGross = 0;
-        empPayslips.forEach(ps => {
-            const res = calculatePayslip(ps);
-            totalGross += res.grossPay;
-        });
-
+        for (const payslip of employeePayslips) {
+            totalGross += calculatePayslip(payslip).grossPay;
+        }
         const capped = Math.min(totalGross, roeData.maxCapPerEmployee);
 
-        t(emp.name, PDF_MARGIN, cy, { size: 9 });
-        t(emp.idNumber || "N/A", width / 2 - 50, cy, { size: 9 });
-        t(`R ${totalGross.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, width - PDF_MARGIN - 80, cy, { size: 9, align: "right" });
-        t(`R ${capped.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, width - PDF_MARGIN, cy, { size: 9, align: "right", font: sansBold });
+        ensureSpace();
+        const { width } = pageState.page.getSize();
+        t(pageState.page, employee.name, PDF_MARGIN, pageState.y, { size: 9, maxWidth: width / 2 - 80 });
+        t(pageState.page, employee.idNumber || "N/A", width / 2 - 50, pageState.y, { size: 9, maxWidth: 120 });
+        t(pageState.page, formatCurrency(totalGross), width - PDF_MARGIN - 90, pageState.y, { size: 9, align: "right" });
+        t(pageState.page, formatCurrency(capped), width - PDF_MARGIN, pageState.y, { size: 9, align: "right", font: sansBold });
+        pageState.y -= 15;
+    }
 
-        cy -= 15;
-        if (cy < 80) {
-            // Add new page if needed (simplified for now)
-        }
-    });
+    pageState.y -= 10;
+    drawLine(pageState.page, pageState.y);
+    pageState.y -= 20;
+    const totalPageWidth = pageState.page.getSize().width;
+    t(pageState.page, "REPORT TOTALS", PDF_MARGIN, pageState.y, { font: sansBold, size: 10 });
+    t(pageState.page, formatCurrency(roeData.actualEarnings), totalPageWidth - PDF_MARGIN, pageState.y, { font: serifBold, size: 14, align: "right", color: PDF_COLORS.PRIMARY_GREEN });
+    t(pageState.page, "Total declared earnings (capped)", totalPageWidth - PDF_MARGIN, pageState.y - 12, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
-    cy -= 10;
-    drawLine(cy);
-    cy -= 20;
-
-    // Totals
-    t("REPORT TOTALS", PDF_MARGIN, cy, { font: sansBold, size: 10 });
-    t(`R ${roeData.actualEarnings.toLocaleString()}`, width - PDF_MARGIN, cy, { font: serifBold, size: 14, align: "right", color: PDF_COLORS.PRIMARY_GREEN });
-    t("Total Declared Earnings (Capped)", width - PDF_MARGIN, cy - 12, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
-
-    // Footer
-    t(`Generated: ${format(new Date(), "yyyy-MM-dd HH:mm")}`, PDF_MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED });
-    t("LekkerLedger.app · COIDA Peace of Mind", width - PDF_MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    t(pageState.page, `Generated: ${format(new Date(), "yyyy-MM-dd HH:mm XXX")}`, PDF_MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED });
+    t(pageState.page, "LekkerLedger.app - COIDA records support", totalPageWidth - PDF_MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
     return pdfDoc.save();
 }
 
-/**
- * Generates a "Confirmation of Employer Details" PDF.
- */
 export async function generateEmployerConfirmationPdfBytes(
     settings: EmployerSettings
 ): Promise<Uint8Array> {
     const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([595.28, 841.89]);
+    const page = pdfDoc.addPage(PAGE_SIZE);
     const { width, height } = page.getSize();
     const { loadPdfFonts } = await import("../pdf-fonts");
     const { sansRegular, sansBold, serifBold } = await loadPdfFonts(pdfDoc);
 
-    const t = (text: string, x: number, y: number, opts: any = {}) => {
+    const t = (text: string, x: number, y: number, opts: { align?: "left" | "right" | "center"; size?: number; font?: typeof sansRegular; color?: typeof PDF_COLORS.TEXT; maxWidth?: number } = {}) => {
         const font = opts.font ?? sansRegular;
         const size = opts.size ?? 9;
         const color = opts.color ?? PDF_COLORS.TEXT;
+        const safeText = clipText(String(text ?? ""), font, size, opts.maxWidth);
         let tx = x;
-        if (opts.align === "right") {
-            const w = font.widthOfTextAtSize(text, size);
-            tx = x - w;
-        }
-        page.drawText(text, { x: tx, y, size, font, color });
+        const textWidth = font.widthOfTextAtSize(safeText, size);
+        if (opts.align === "right") tx = x - textWidth;
+        if (opts.align === "center") tx = x - (textWidth / 2);
+        page.drawText(safeText, { x: tx, y, size, font, color });
     };
 
-    page.drawRectangle({ x: 0, y: 0, width, height, color: PDF_COLORS.PAPER });
+    let currentY = height - 100;
+    t("CONFIRMATION OF EMPLOYER DETAILS", width / 2, currentY, { font: serifBold, size: 16, align: "center", color: PDF_COLORS.PRIMARY_GREEN, maxWidth: width - (PDF_MARGIN * 2) });
 
-    let cy = height - 100;
-    t("CONFIRMATION OF EMPLOYER DETAILS", width / 2, cy, { font: serifBold, size: 16, align: "center", color: PDF_COLORS.PRIMARY_GREEN });
-
-    cy -= 60;
+    currentY -= 60;
     const drawField = (label: string, value: string) => {
-        t(label, PDF_MARGIN, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
-        t(value || "Not provided", PDF_MARGIN, cy - 15, { size: 11 });
-        cy -= 40;
+        t(label, PDF_MARGIN, currentY, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
+        t(value || "Not provided", PDF_MARGIN, currentY - 15, { size: 11, maxWidth: width - (PDF_MARGIN * 2) });
+        currentY -= 40;
     };
 
     drawField("Employer Name / Household Name", settings.employerName);
@@ -163,14 +164,14 @@ export async function generateEmployerConfirmationPdfBytes(
     drawField("Physical Address", settings.employerAddress);
     drawField("Contact Number", settings.phone);
 
-    t("DECLARATION", PDF_MARGIN, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
-    cy -= 15;
-    t("I hereby confirm that the details above are correct for the purposes of my Return of Earnings submission.", PDF_MARGIN, cy, { size: 9 });
+    t("DECLARATION", PDF_MARGIN, currentY, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
+    currentY -= 15;
+    t("I confirm that the details above reflect the information I intend to use for my Return of Earnings submission.", PDF_MARGIN, currentY, { size: 9, maxWidth: width - (PDF_MARGIN * 2) });
 
-    cy -= 60;
-    page.drawLine({ start: { x: PDF_MARGIN, y: cy }, end: { x: PDF_MARGIN + 200, y: cy }, thickness: 1, color: PDF_COLORS.TEXT });
-    t("Signature", PDF_MARGIN, cy - 10, { size: 7 });
-    t(`Date: ${format(new Date(), "yyyy-MM-dd")}`, width - PDF_MARGIN, cy, { align: "right" });
+    currentY -= 60;
+    page.drawLine({ start: { x: PDF_MARGIN, y: currentY }, end: { x: PDF_MARGIN + 200, y: currentY }, thickness: 1, color: PDF_COLORS.TEXT });
+    t("Signature", PDF_MARGIN, currentY - 10, { size: 7 });
+    t(`Date: ${format(new Date(), "yyyy-MM-dd XXX")}`, width - PDF_MARGIN, currentY, { align: "right" });
 
     return pdfDoc.save();
 }

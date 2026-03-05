@@ -63,7 +63,7 @@ export function PayrollClient() {
                 <EmptyState
                     icon={Calendar}
                     title="No pay runs yet"
-                    description="Create your first pay period to generate compliant payslips."
+                    description="Create your first pay period to generate domestic-worker payslips."
                     actionLabel="Create first pay period"
                     actionHref="/payroll/new"
                 />
@@ -143,7 +143,7 @@ export function PayrollClient() {
                     description={
                         employees.length === 0
                             ? "Add your first employee to start running payroll."
-                            : "Create your first pay period to generate compliant payslips."
+                            : "Create your first pay period to generate domestic-worker payslips."
                     }
                     actionLabel={employees.length === 0 ? "Add Employee" : "Create first pay period"}
                     actionHref={employees.length === 0 ? "/employees/new" : "/payroll/new"}

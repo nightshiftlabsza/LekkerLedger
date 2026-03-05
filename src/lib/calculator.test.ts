@@ -32,12 +32,10 @@ describe("calculatePayslip() - Complex SD7 Edge Cases", () => {
     });
 
     it("2. should strictly cap the accommodation deduction at 10% of gross pay", () => {
-        // Gross for 160h @ 30.23 = 4836.80
-        // 10% cap = 483.68
         const result = calculatePayslip({
             ...mockInput,
             includeAccommodation: true,
-            accommodationCost: 1000 // Way over 10%
+            accommodationCost: 1000,
         });
         expect(result.deductions.accommodation).toBeCloseTo(483.68, 2);
     });
@@ -46,7 +44,7 @@ describe("calculatePayslip() - Complex SD7 Edge Cases", () => {
         const result = calculatePayslip({
             ...mockInput,
             ordinaryHours: 0,
-            daysWorked: 0
+            daysWorked: 0,
         });
         expect(result.grossPay).toBe(0);
         expect(result.netPay).toBe(0);
@@ -54,11 +52,10 @@ describe("calculatePayslip() - Complex SD7 Edge Cases", () => {
     });
 
     it("4. should apply correct multiplier for Sunday/Holiday hours", () => {
-        // 5 hours holiday @ 2x rate
         const result = calculatePayslip({
             ...mockInput,
             ordinaryHours: 0,
-            publicHolidayHours: 5
+            publicHolidayHours: 5,
         });
         const expected = 5 * NMW_RATE * 2;
         expect(result.publicHolidayPay).toBeCloseTo(expected, 2);
@@ -67,5 +64,18 @@ describe("calculatePayslip() - Complex SD7 Edge Cases", () => {
     it("5. should calculate pro-rata annual leave accurately (1 day per 17 days)", () => {
         const result = calculatePayslip({ ...mockInput, daysWorked: 34 });
         expect(result.leaveAccruedDays).toBe(2);
+    });
+
+    it("6. applies the 4-hour minimum even when the shift only contains overtime hours", () => {
+        const result = calculatePayslip({
+            ...mockInput,
+            ordinaryHours: 0,
+            overtimeHours: 2,
+            daysWorked: 1,
+            hourlyRate: 100,
+        });
+
+        expect(result.effectiveOrdinaryHours).toBe(2);
+        expect(result.grossPay).toBe(500);
     });
 });

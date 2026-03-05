@@ -25,7 +25,7 @@ import { calculateRoeData, type RoeData } from "@/lib/coida/roe";
 import { generateRoePayrollPdfBytes, generateEmployerConfirmationPdfBytes } from "@/lib/coida/coida-pdf";
 import { generateRoeCsv } from "@/lib/coida/coida-csv";
 import { getSettings, getEmployees, getAllPayslips, logAuditEvent } from "@/lib/storage";
-import { getUserPlan } from "@/lib/entitlements";
+import { canDownloadRoePack, getUserPlan } from "@/lib/entitlements";
 import { useToast } from "@/components/ui/toast";
 import { Employee, EmployerSettings, PayslipInput } from "@/lib/schema";
 
@@ -33,8 +33,8 @@ import { Employee, EmployerSettings, PayslipInput } from "@/lib/schema";
  * Simple browser side bytes download
  */
 function downloadBlob(bytes: Uint8Array | string, filename: string, type: string) {
-    // @ts-expect-error - Uint8Array/string is a valid BlobPart in the browser
-    const blob = new Blob([bytes], { type });
+    const part = typeof bytes === "string" ? bytes : bytes.slice(0);
+    const blob = new Blob([part], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -66,13 +66,17 @@ export default function RoePackPage() {
             setPayslips(pss);
             setSettings(s);
             const plan = getUserPlan(s);
-            setIsPaid(plan.id !== "free");
+            setIsPaid(canDownloadRoePack(plan));
         }
         load();
     }, []);
 
     const handleDownloadReport = async (type: "pdf" | "csv") => {
         if (!roeData || !settings) return;
+        if (!isPaid) {
+            toast("Upgrade required to download ROE documents.");
+            return;
+        }
         try {
             if (type === "pdf") {
                 const bytes = await generateRoePayrollPdfBytes(roeData, employees, payslips, settings);
@@ -91,6 +95,10 @@ export default function RoePackPage() {
 
     const handleDownloadConfirmation = async () => {
         if (!settings) return;
+        if (!isPaid) {
+            toast("Upgrade required to download ROE documents.");
+            return;
+        }
         try {
             const bytes = await generateEmployerConfirmationPdfBytes(settings);
             downloadBlob(bytes, `LekkerLedger_ROE_Employer_Confirmation.pdf`, "application/pdf");
@@ -288,7 +296,7 @@ export default function RoePackPage() {
                                             <div>
                                                 <p className="font-bold text-sm text-[var(--text)]">Required Archive Documents</p>
                                                 <p className="text-xs text-[var(--text-muted)] mt-1">
-                                                    Download these files to your PC or Cloud storage for your records.
+                                                    Download these files to your records archive for future reference.
                                                 </p>
                                             </div>
                                         </div>
@@ -423,3 +431,5 @@ function DocDownloadRow({ label, description, isPaid, onClick }: {
         </div>
     );
 }
+
+

@@ -8,15 +8,16 @@ export function getPlanById(planId: string | undefined | null): PlanConfig {
 
 export function getUserPlan(userProfile: EmployerSettings | null | undefined): PlanConfig {
     if (!userProfile) return PLANS.free;
-
-    // Need to safely check the data structure of userProfile
-    // If it has proStatus, use it
-    const planId = userProfile.proStatus || 'free';
+    const planId = userProfile.proStatus || "free";
     return getPlanById(planId);
 }
 
 export function canUseDriveSync(plan: PlanConfig): boolean {
     return plan.driveSync;
+}
+
+export function canDownloadRoePack(plan: PlanConfig): boolean {
+    return plan.id !== "free" && plan.roePack;
 }
 
 export function canCreateEmployee(plan: PlanConfig, currentActiveEmployeesCount: number): boolean {
@@ -26,10 +27,7 @@ export function canCreateEmployee(plan: PlanConfig, currentActiveEmployeesCount:
 export function isRecordWithinArchive(plan: PlanConfig, recordDate: Date | string | number): boolean {
     const date = new Date(recordDate);
     const now = new Date();
-
-    // Calculate months difference
     const monthsDiff = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
-
     return monthsDiff <= plan.archiveMonths;
 }
 

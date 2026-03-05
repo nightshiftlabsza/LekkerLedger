@@ -7,6 +7,11 @@ export type NetworkState = "online" | "offline" | "flaky";
 export type SyncState = "disabled" | "enabled" | "error" | "reconnecting";
 export type PaymentsState = "available" | "unavailable";
 
+function hasSessionGoogleToken(): boolean {
+    if (typeof window === "undefined") return false;
+    return !!sessionStorage.getItem("google_access_token");
+}
+
 export function useAppConnectivity() {
     const [network, setNetwork] = React.useState<NetworkState>("online");
     const [sync, setSync] = React.useState<SyncState>("disabled");
@@ -23,19 +28,19 @@ export function useAppConnectivity() {
 
         async function checkSync() {
             try {
-                const s = await getSettings();
-                if (s?.googleSyncEnabled && s?.googleAuthToken) {
+                const settings = await getSettings();
+                if (settings?.googleSyncEnabled && hasSessionGoogleToken()) {
                     setSync("enabled");
                 } else {
                     setSync("disabled");
                 }
-            } catch (err) {
-                console.error("Failed to check sync status:", err);
+            } catch (error) {
+                console.error("Failed to check sync status:", error);
                 setSync("error");
             }
         }
 
-        checkSync();
+        void checkSync();
 
         return () => {
             window.removeEventListener("online", handleOnline);
@@ -49,6 +54,6 @@ export function useAppConnectivity() {
         payments,
         setNetwork,
         setSync,
-        setPayments
+        setPayments,
     };
 }

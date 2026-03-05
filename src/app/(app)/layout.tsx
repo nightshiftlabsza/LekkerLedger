@@ -43,6 +43,7 @@ export default function AppRootLayout({
 }>) {
     // TODO: remove debug_mode once events are confirmed in GA4 DebugView
     const gaId = process.env.NEXT_PUBLIC_GA_ID;
+    const gaDebug = process.env.NEXT_PUBLIC_GA_DEBUG === "true";
 
     return (
         <html lang="en" suppressHydrationWarning>
@@ -55,7 +56,7 @@ export default function AppRootLayout({
               function gtag(){dataLayer.push(arguments);}
               window.gtag = gtag;
               gtag('js', new Date());
-              gtag('config', '${gaId}', { debug_mode: true, send_page_view: true });
+              gtag('config', '${gaId}', { debug_mode: ${gaDebug}, send_page_view: true });
             `,
                     }}
                 />
@@ -112,3 +113,4 @@ export default function AppRootLayout({
         </html>
     );
 }
+

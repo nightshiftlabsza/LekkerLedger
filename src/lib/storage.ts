@@ -1,5 +1,19 @@
 import localforage from "localforage";
-import { Employee, PayslipInput, LeaveRecord, EmployerSettings, PayPeriod, DocumentMeta, Contract, AuditLog } from "./schema";
+import { z } from "zod";
+import {
+    Employee,
+    EmployeeSchema,
+    PayslipInput,
+    PayslipInputSchema,
+    LeaveRecord,
+    LeaveRecordSchema,
+    EmployerSettings,
+    EmployerSettingsSchema,
+    PayPeriod,
+    DocumentMeta,
+    Contract,
+    AuditLog,
+} from "./schema";
 
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
 const payslipStore = localforage.createInstance({ name: "LekkerLedger", storeName: "payslips" });
@@ -10,37 +24,46 @@ const payPeriodStore = localforage.createInstance({ name: "LekkerLedger", storeN
 const documentStore = localforage.createInstance({ name: "LekkerLedger", storeName: "documents" });
 const contractStore = localforage.createInstance({ name: "LekkerLedger", storeName: "contracts" });
 
-// ─── Free Tier Limit ─────────────────────────────────────────────────────────
 export const FREE_PAYSLIP_LIMIT = 2;
+const BACKUP_SCHEMA_VERSION = "2.0";
+const SUPPORTED_BACKUP_VERSIONS = new Set(["1.0", "2.0", 1, 2]);
+const SECURE_TIME_CACHE_MS = 5 * 60 * 1000;
 
-// ─── PII Obfuscation ──────────────────────────────────────────────────────────
+const BackupPayloadSchema = z.object({
+    version: z.union([z.string(), z.number()]).optional(),
+    timestamp: z.string().optional(),
+    employees: z.array(EmployeeSchema).default([]),
+    payslips: z.array(PayslipInputSchema).default([]),
+    leave: z.array(LeaveRecordSchema).default([]),
+    settings: EmployerSettingsSchema.partial().default({}),
+});
+
 async function encodeData(data: unknown): Promise<string | unknown> {
-    const s = await getSettings();
-    if (s.piiObfuscationEnabled === false) return data;
+    const settings = await getSettings();
+    if (settings.piiObfuscationEnabled === false) return data;
     return btoa(encodeURIComponent(JSON.stringify(data)));
 }
 
-function decodeData<T>(str: unknown): T {
-    if (typeof str !== "string" || !str) return str as T;
+function decodeData<T>(value: unknown): T {
+    if (typeof value !== "string" || !value) return value as T;
     try {
-        const decoded = decodeURIComponent(atob(str));
-        if (!decoded) return str as T;
+        const decoded = decodeURIComponent(atob(value));
         return JSON.parse(decoded) as T;
-    } catch (e) {
-        console.warn("D-Data Failed", e);
-        return str as unknown as T; // Fallback if invalid
+    } catch (error) {
+        console.warn("Failed to decode stored data", error);
+        return value as T;
     }
 }
 
-// ─── Data Change Listeners ──────────────────────────────────────────────────
 type DataChangeListener = () => void | Promise<void>;
 const listeners: DataChangeListener[] = [];
+let isImporting = false;
 
 export function subscribeToDataChanges(callback: DataChangeListener) {
     listeners.push(callback);
     return () => {
-        const idx = listeners.indexOf(callback);
-        if (idx > -1) listeners.splice(idx, 1);
+        const index = listeners.indexOf(callback);
+        if (index > -1) listeners.splice(index, 1);
     };
 }
 
@@ -49,77 +72,107 @@ async function notifyListeners() {
     for (const listener of listeners) {
         try {
             await listener();
-        } catch (e) {
-            console.error("Data change listener failed", e);
+        } catch (error) {
+            console.error("Data change listener failed", error);
         }
     }
 }
 
-let isImporting = false;
-export function setImportingMode(val: boolean) {
-    isImporting = val;
+export function setImportingMode(value: boolean) {
+    isImporting = value;
 }
-
-
-// ─── Employee CRUD ──────────────────────────────────────────────────────────
 
 export async function getEmployees(): Promise<Employee[]> {
     const employees: Employee[] = [];
-    await employeeStore.iterate<unknown, void>((val: unknown) => {
-        if (val) employees.push(decodeData<Employee>(val));
+    await employeeStore.iterate<unknown, void>((value: unknown) => {
+        if (value) employees.push(decodeData<Employee>(value));
     });
     return employees.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getEmployee(id: string): Promise<Employee | null> {
-    const val = await employeeStore.getItem<unknown>(id);
-    return val ? decodeData<Employee>(val) : null;
+    const value = await employeeStore.getItem<unknown>(id);
+    return value ? decodeData<Employee>(value) : null;
 }
 
 export async function saveEmployee(employee: Employee): Promise<void> {
-    // P2: Trim employee name
-    const trimmed = { ...employee, name: employee.name.trim() };
-    await employeeStore.setItem(trimmed.id, await encodeData(trimmed));
-    await logAuditEvent("CREATE_EMPLOYEE", `Added/Updated employee: ${trimmed.id}`);
+    const normalized: Employee = {
+        ...employee,
+        name: employee.name.trim(),
+        idNumber: employee.idNumber?.trim() ?? "",
+        phone: employee.phone?.trim() ?? "",
+    };
+
+    if (normalized.idNumber) {
+        const employees = await getEmployees();
+        const duplicate = employees.find((existing) => existing.id !== normalized.id && existing.idNumber?.trim() === normalized.idNumber);
+        if (duplicate) {
+            throw new Error(`An employee with ID number ${normalized.idNumber} already exists.`);
+        }
+    }
+
+    await employeeStore.setItem(normalized.id, await encodeData(normalized));
+    await logAuditEvent("CREATE_EMPLOYEE", `Saved employee: ${normalized.name}`, {
+        employeeId: normalized.id,
+        idNumber: normalized.idNumber || undefined,
+    });
     await notifyListeners();
 }
 
 export async function deleteEmployee(id: string): Promise<void> {
-    const emp = await getEmployee(id);
+    const employee = await getEmployee(id);
     await employeeStore.removeItem(id);
-    // P0 FIX: Decode payslip values before checking employeeId
-    const toDelete: string[] = [];
-    await payslipStore.iterate<unknown, void>((val: unknown, key: string) => {
-        const decoded = decodeData<PayslipInput>(val);
-        if (decoded && decoded.employeeId === id) toDelete.push(key);
+
+    const payslipsToDelete: string[] = [];
+    await payslipStore.iterate<unknown, void>((value: unknown, key: string) => {
+        const decoded = decodeData<PayslipInput>(value);
+        if (decoded.employeeId === id) payslipsToDelete.push(key);
     });
-    await Promise.allSettled(toDelete.map((k) => payslipStore.removeItem(k)));
-    // Also delete associated leave records (stored raw — no decode needed)
+    await Promise.allSettled(payslipsToDelete.map((key) => payslipStore.removeItem(key)));
+
     const leaveToDelete: string[] = [];
-    await leaveStore.iterate<LeaveRecord, void>((val: Awaited<LeaveRecord>, key: string) => {
-        if (val.employeeId === id) leaveToDelete.push(key);
+    await leaveStore.iterate<unknown, void>((value: unknown, key: string) => {
+        const decoded = decodeData<LeaveRecord>(value);
+        if (decoded.employeeId === id) leaveToDelete.push(key);
     });
-    await Promise.allSettled(leaveToDelete.map((k) => leaveStore.removeItem(k)));
-    await logAuditEvent("DELETE_EMPLOYEE", `Deleted employee ID: ${emp?.id || id}`);
+    await Promise.allSettled(leaveToDelete.map((key) => leaveStore.removeItem(key)));
+
+    await logAuditEvent("DELETE_EMPLOYEE", `Deleted employee: ${employee?.name || id}`, {
+        employeeId: employee?.id || id,
+        employeeName: employee?.name,
+    });
+    await notifyListeners();
 }
 
-// ─── Payslip CRUD ───────────────────────────────────────────────────────────
-
 export async function savePayslip(payslip: PayslipInput): Promise<void> {
+    const duplicate = (await getAllPayslips()).find((existing) =>
+        existing.id !== payslip.id &&
+        existing.employeeId === payslip.employeeId &&
+        new Date(existing.payPeriodStart).getTime() === new Date(payslip.payPeriodStart).getTime() &&
+        new Date(existing.payPeriodEnd).getTime() === new Date(payslip.payPeriodEnd).getTime()
+    );
+
+    if (duplicate) {
+        throw new Error("A payslip for this employee and pay period already exists.");
+    }
+
     await payslipStore.setItem(payslip.id, await encodeData(payslip));
-    await logAuditEvent("CREATE_PAYSLIP", `Generated payslip for employee ID: ${payslip.employeeId}`);
+    await logAuditEvent("CREATE_PAYSLIP", `Generated payslip for employee ID: ${payslip.employeeId}`, {
+        payslipId: payslip.id,
+        employeeId: payslip.employeeId,
+        payPeriodStart: new Date(payslip.payPeriodStart).toISOString(),
+        payPeriodEnd: new Date(payslip.payPeriodEnd).toISOString(),
+    });
     await notifyListeners();
 }
 
 export async function getPayslipsForEmployee(employeeId: string): Promise<PayslipInput[]> {
     const payslips: PayslipInput[] = [];
-    await payslipStore.iterate<unknown, void>((val: unknown) => {
-        const decoded = decodeData<PayslipInput>(val);
-        if (decoded && decoded.employeeId === employeeId) payslips.push(decoded);
+    await payslipStore.iterate<unknown, void>((value: unknown) => {
+        const decoded = decodeData<PayslipInput>(value);
+        if (decoded.employeeId === employeeId) payslips.push(decoded);
     });
-    return payslips.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return payslips.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getLatestPayslip(employeeId: string): Promise<PayslipInput | null> {
@@ -129,64 +182,68 @@ export async function getLatestPayslip(employeeId: string): Promise<PayslipInput
 
 export async function getTotalDaysWorkedForEmployee(employeeId: string): Promise<number> {
     const payslips = await getPayslipsForEmployee(employeeId);
-    return payslips.reduce((sum, ps) => sum + (ps.daysWorked || 0), 0);
+    return payslips.reduce((sum, payslip) => sum + (payslip.daysWorked || 0), 0);
 }
 
 export async function getAllPayslips(): Promise<PayslipInput[]> {
     const payslips: PayslipInput[] = [];
-    await payslipStore.iterate<unknown, void>((val: unknown) => {
-        if (val) payslips.push(decodeData<PayslipInput>(val));
+    await payslipStore.iterate<unknown, void>((value: unknown) => {
+        if (value) payslips.push(decodeData<PayslipInput>(value));
     });
-    return payslips.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return payslips.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function deletePayslip(id: string): Promise<void> {
     await payslipStore.removeItem(id);
-    await logAuditEvent("DELETE_PAYSLIP", `Deleted payslip ID: ${id}`);
+    await logAuditEvent("DELETE_PAYSLIP", `Deleted payslip ID: ${id}`, { payslipId: id });
     await notifyListeners();
 }
 
-// ─── Leave CRUD ─────────────────────────────────────────────────────────────
-
 export async function saveLeaveRecord(record: LeaveRecord): Promise<void> {
-    await leaveStore.setItem(record.id, record);
-    await logAuditEvent("UPDATE_SETTINGS", `Saved leave record: ${record.type} for employee ${record.employeeId}`);
+    await leaveStore.setItem(record.id, await encodeData(record));
+    await logAuditEvent("CREATE_LEAVE_RECORD", `Saved leave record: ${record.type} for employee ${record.employeeId}`, {
+        leaveId: record.id,
+        employeeId: record.employeeId,
+        leaveType: record.type,
+        date: record.date,
+    });
     await notifyListeners();
 }
 
 export async function deleteLeaveRecord(id: string): Promise<void> {
+    const existing = await leaveStore.getItem<unknown>(id);
+    const record = existing ? decodeData<LeaveRecord>(existing) : null;
     await leaveStore.removeItem(id);
-    await logAuditEvent("UPDATE_SETTINGS", `Deleted leave record ID: ${id}`);
+    await logAuditEvent("DELETE_LEAVE_RECORD", `Deleted leave record ID: ${id}`, {
+        leaveId: id,
+        employeeId: record?.employeeId,
+        leaveType: record?.type,
+    });
     await notifyListeners();
 }
 
 export async function getLeaveForEmployee(employeeId: string): Promise<LeaveRecord[]> {
     const records: LeaveRecord[] = [];
-    await leaveStore.iterate<LeaveRecord, void>((val: Awaited<LeaveRecord>) => {
-        if (val.employeeId === employeeId) records.push(val);
+    await leaveStore.iterate<unknown, void>((value: unknown) => {
+        const decoded = decodeData<LeaveRecord>(value);
+        if (decoded.employeeId === employeeId) records.push(decoded);
     });
-    return records.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    return records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 export async function getAllLeaveRecords(): Promise<LeaveRecord[]> {
     const records: LeaveRecord[] = [];
-    await leaveStore.iterate<LeaveRecord, void>((val: LeaveRecord) => {
-        records.push(val);
+    await leaveStore.iterate<unknown, void>((value: unknown) => {
+        records.push(decodeData<LeaveRecord>(value));
     });
     return records;
 }
 
-// ─── Settings ─────────────────────────────────────────────────────────────
-
 const SETTINGS_KEY = "employer-settings";
 
 export async function getSettings(): Promise<EmployerSettings> {
-    const s = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
-    return s ?? {
+    const settings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
+    return settings ?? {
         employerName: "",
         employerAddress: "",
         employerIdNumber: "",
@@ -206,7 +263,7 @@ export async function getSettings(): Promise<EmployerSettings> {
         googleAuthToken: undefined,
         piiObfuscationEnabled: true,
         installationId: "",
-        usageHistory: []
+        usageHistory: [],
     };
 }
 
@@ -219,69 +276,67 @@ export async function saveSettings(settings: EmployerSettings): Promise<void> {
     await notifyListeners();
 }
 
-// ─── Compliance shown flag (UP-15: use localforage instead of localStorage) ──
 const COMPLIANCE_SHOWN_KEY = "ll-compliance-shown";
 
 export async function getComplianceShownFlag(): Promise<boolean> {
-    const val = await settingsStore.getItem<boolean>(COMPLIANCE_SHOWN_KEY);
-    return val === true;
+    const value = await settingsStore.getItem<boolean>(COMPLIANCE_SHOWN_KEY);
+    return value === true;
 }
 
 export async function setComplianceShownFlag(): Promise<void> {
     await settingsStore.setItem(COMPLIANCE_SHOWN_KEY, true);
 }
 
-// ─── Time Verification (P0: parallel race, non-blocking) ─────────────────────
-
 export async function getSecureTime(): Promise<Date> {
+    const cachedAt = await settingsStore.getItem<number>("lastKnownTimeFetchedAt");
+    const cachedTime = await settingsStore.getItem<number>("lastKnownTime");
+    if (cachedAt && cachedTime && (Date.now() - cachedAt) < SECURE_TIME_CACHE_MS) {
+        return new Date(cachedTime);
+    }
+
     const mirrors = [
         "https://worldtimeapi.org/api/timezone/Etc/UTC",
         "https://timeapi.io/api/Time/current/zone?timeZone=UTC",
-        "https://1.1.1.1/cdn-cgi/trace", // Cloudflare Trace
+        "https://1.1.1.1/cdn-cgi/trace",
     ];
 
-    // P0 FIX: Race all mirrors in parallel — takes whichever resolves first
     const raceResult = await Promise.race([
         ...mirrors.map((url) =>
             fetch(url, { cache: "no-store", signal: AbortSignal.timeout(5000) })
-                .then(async (res) => {
-                    if (!res.ok) return null;
+                .then(async (response) => {
+                    if (!response.ok) return null;
                     if (url.includes("cdn-cgi/trace")) {
-                        const text = await res.text();
-                        const tsLine = text.split("\n").find((l) => l.startsWith("ts="));
-                        if (tsLine) {
-                            return new Date(parseFloat(tsLine.split("=")[1]) * 1000);
-                        }
-                        return null;
+                        const text = await response.text();
+                        const tsLine = text.split("\n").find((line) => line.startsWith("ts="));
+                        return tsLine ? new Date(parseFloat(tsLine.split("=")[1]) * 1000) : null;
                     }
-                    const text = await res.text();
-                    if (!text?.trim()) return null;
+                    const text = await response.text();
+                    if (!text.trim()) return null;
                     const data = JSON.parse(text);
-                    const dateStr = data.datetime || data.dateTime;
-                    return dateStr ? new Date(dateStr) : null;
+                    const dateString = data.datetime || data.dateTime;
+                    return dateString ? new Date(dateString) : null;
                 })
                 .catch(() => null)
         ),
-        // Overall timeout — never block more than 5s total
         new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
     ]);
 
-    if (raceResult instanceof Date && !isNaN(raceResult.getTime())) {
+    if (raceResult instanceof Date && !Number.isNaN(raceResult.getTime())) {
         await settingsStore.setItem("lastKnownTime", raceResult.getTime());
+        await settingsStore.setItem("lastKnownTimeFetchedAt", Date.now());
         return raceResult;
     }
 
-    // Fallback: monotonic protection
     const localTime = new Date();
-    const lastKnown = await settingsStore.getItem<number>("lastKnownTime") || 0;
+    const lastKnown = (await settingsStore.getItem<number>("lastKnownTime")) || 0;
     if (localTime.getTime() < lastKnown) {
         return new Date(lastKnown);
     }
+
     await settingsStore.setItem("lastKnownTime", localTime.getTime());
+    await settingsStore.setItem("lastKnownTimeFetchedAt", Date.now());
     return localTime;
 }
-
-// ─── Trial & Usage Safeguards ──────────────────────────────────────────────
 
 export function getCookie(name: string): string | null {
     if (typeof document === "undefined") return null;
@@ -300,30 +355,28 @@ export function setCookie(name: string, value: string, days: number) {
 }
 
 export async function getInstallationId(): Promise<string> {
-    let instId = getCookie("ll_inst_id");
+    let installationId = getCookie("ll_inst_id");
     const settings = await getSettings();
 
-    if (!instId && settings.installationId) {
-        instId = settings.installationId;
-        setCookie("ll_inst_id", instId, 3650);
-    } else if (instId && !settings.installationId) {
-        await saveSettings({ ...settings, installationId: instId });
-    } else if (!instId && !settings.installationId) {
-        instId = crypto.randomUUID();
-        setCookie("ll_inst_id", instId, 3650);
-        await saveSettings({ ...settings, installationId: instId });
+    if (!installationId && settings.installationId) {
+        installationId = settings.installationId;
+        setCookie("ll_inst_id", installationId, 3650);
+    } else if (installationId && !settings.installationId) {
+        await saveSettings({ ...settings, installationId });
+    } else if (!installationId && !settings.installationId) {
+        installationId = crypto.randomUUID();
+        setCookie("ll_inst_id", installationId, 3650);
+        await saveSettings({ ...settings, installationId });
     }
 
-    return instId || "unknown";
+    return installationId || "unknown";
 }
 
 export async function incrementUsageCount(): Promise<void> {
     const settings = await getSettings();
     const now = await getSecureTime();
-    const history = settings.usageHistory || [];
-    history.push(now.toISOString());
-    const trimmedHistory = history.slice(-100);
-    await saveSettings({ ...settings, usageHistory: trimmedHistory });
+    const history = [...(settings.usageHistory || []), now.toISOString()].slice(-100);
+    await saveSettings({ ...settings, usageHistory: history });
     await logAuditEvent("UPDATE_SETTINGS", "Usage limit incremented");
 }
 
@@ -331,20 +384,16 @@ export async function getUsageStats(): Promise<{ count30Days: number; isLimited:
     const settings = await getSettings();
     const now = await getSecureTime();
     const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
-
-    const history = settings.usageHistory || [];
-    const recent = history.filter(dateStr => new Date(dateStr) > thirtyDaysAgo);
+    const recent = (settings.usageHistory || []).filter((dateString) => new Date(dateString) > thirtyDaysAgo);
 
     const isPro = settings.proStatus === "pro" ||
-        (settings.proStatus === "trial" && settings.trialExpiry && new Date(settings.trialExpiry) > now);
+        (settings.proStatus === "trial" && !!settings.trialExpiry && new Date(settings.trialExpiry) > now);
 
     return {
         count30Days: recent.length,
-        isLimited: !isPro && recent.length >= FREE_PAYSLIP_LIMIT
+        isLimited: !isPro && recent.length >= FREE_PAYSLIP_LIMIT,
     };
 }
-
-// ─── Export / Import ───────────────────────────────────────────────────────
 
 export async function exportData(): Promise<string> {
     const data: {
@@ -355,7 +404,7 @@ export async function exportData(): Promise<string> {
         leave: unknown[];
         settings: unknown;
     } = {
-        version: "1.0",
+        version: BACKUP_SCHEMA_VERSION,
         timestamp: new Date().toISOString(),
         employees: [],
         payslips: [],
@@ -363,43 +412,55 @@ export async function exportData(): Promise<string> {
         settings: {},
     };
 
-    await employeeStore.iterate((val) => { data.employees.push(decodeData(val)); });
-    await payslipStore.iterate((val) => { data.payslips.push(decodeData(val)); });
-    // P1 FIX: decode leave records (previously exported raw)
-    await leaveStore.iterate((val) => { data.leave.push(val); });
+    await employeeStore.iterate((value) => { data.employees.push(decodeData(value)); });
+    await payslipStore.iterate((value) => { data.payslips.push(decodeData(value)); });
+    await leaveStore.iterate((value) => { data.leave.push(decodeData(value)); });
+
     const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
-    // P1 FIX: Strip googleAuthToken from export (security)
     if (rawSettings) {
         const { googleAuthToken, ...safeSettings } = rawSettings;
-        void googleAuthToken; // Explicitly mark as intentionally unused for security stripping
+        void googleAuthToken;
         data.settings = safeSettings;
     }
 
     const json = JSON.stringify(data, null, 2);
-    await logAuditEvent("EXPORT_DATA", "Manual data backup export triggered");
+    await logAuditEvent("EXPORT_DATA", "Manual data backup export triggered", { version: BACKUP_SCHEMA_VERSION });
     return json;
 }
 
 export async function importData(json: string): Promise<{ success: boolean; error?: string }> {
-    // P0 FIX: Parse FIRST, reset AFTER successful parse
-    let data: Record<string, unknown>;
+    let parsedJson: unknown;
     try {
-        data = JSON.parse(json) as Record<string, unknown>;
+        parsedJson = JSON.parse(json);
     } catch {
-        return { success: false, error: "Invalid backup file — could not parse JSON." };
+        return { success: false, error: "Invalid backup file - could not parse JSON." };
+    }
+
+    const parsed = BackupPayloadSchema.safeParse(parsedJson);
+    if (!parsed.success) {
+        return { success: false, error: "Backup file is not in a supported LekkerLedger format." };
+    }
+
+    if (parsed.data.version !== undefined && !SUPPORTED_BACKUP_VERSIONS.has(parsed.data.version)) {
+        return { success: false, error: `Backup version ${parsed.data.version} is not supported by this app.` };
     }
 
     setImportingMode(true);
     try {
         await resetAllData();
-        if (data.employees) await Promise.all((data.employees as Employee[]).map(async (e) => employeeStore.setItem(e.id, await encodeData(e))));
-        if (data.payslips) await Promise.all((data.payslips as PayslipInput[]).map(async (p) => payslipStore.setItem(p.id, await encodeData(p))));
-        if (data.leave) await Promise.all((data.leave as LeaveRecord[]).map((l) => leaveStore.setItem(l.id, l)));
-        if (data.settings) await settingsStore.setItem(SETTINGS_KEY, data.settings as EmployerSettings);
-        await logAuditEvent("IMPORT_DATA", "Manual data restore completed");
+        await Promise.all(parsed.data.employees.map(async (employee) => employeeStore.setItem(employee.id, await encodeData(employee))));
+        await Promise.all(parsed.data.payslips.map(async (payslip) => payslipStore.setItem(payslip.id, await encodeData(payslip))));
+        await Promise.all(parsed.data.leave.map(async (record) => leaveStore.setItem(record.id, await encodeData(record))));
+        await settingsStore.setItem(SETTINGS_KEY, { ...(parsed.data.settings as EmployerSettings) });
+        await logAuditEvent("IMPORT_DATA", "Manual data restore completed", {
+            version: String(parsed.data.version ?? "legacy"),
+            employees: parsed.data.employees.length,
+            payslips: parsed.data.payslips.length,
+            leaveRecords: parsed.data.leave.length,
+        });
         return { success: true };
     } catch {
-        return { success: false, error: "Restore failed — data may be partially imported." };
+        return { success: false, error: "Restore failed - data may be partially imported." };
     } finally {
         setImportingMode(false);
         await notifyListeners();
@@ -416,11 +477,8 @@ export async function resetAllData(): Promise<void> {
         payPeriodStore.clear(),
         documentStore.clear(),
         contractStore.clear(),
-        // auditStore is NOT cleared to maintain history of the wipe
     ]);
 }
-
-// ─── Audit Logging ──────────────────────────────────────────────────────────
 
 export async function logAuditEvent(action: AuditLog["action"], details: string, metadata?: Record<string, unknown>): Promise<void> {
     const id = crypto.randomUUID();
@@ -429,35 +487,30 @@ export async function logAuditEvent(action: AuditLog["action"], details: string,
         timestamp: new Date(),
         action,
         details,
-        metadata
+        metadata,
     };
     await auditStore.setItem(id, log);
 }
 
 export async function getAuditLogs(): Promise<AuditLog[]> {
     const logs: AuditLog[] = [];
-    await auditStore.iterate<AuditLog, void>((val: AuditLog) => {
-        logs.push(val);
+    await auditStore.iterate<AuditLog, void>((value: AuditLog) => {
+        logs.push(value);
     });
-    // P1 FIX: coerce timestamp to Date before calling getTime()
     return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
-// ─── Pay Period CRUD ────────────────────────────────────────────────────────
-
 export async function getPayPeriods(): Promise<PayPeriod[]> {
     const periods: PayPeriod[] = [];
-    await payPeriodStore.iterate<string, void>((val: string) => {
-        if (val) periods.push(decodeData<PayPeriod>(val));
+    await payPeriodStore.iterate<unknown, void>((value: unknown) => {
+        if (value) periods.push(decodeData<PayPeriod>(value));
     });
-    return periods.sort(
-        (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-    );
+    return periods.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 }
 
 export async function getPayPeriod(id: string): Promise<PayPeriod | null> {
-    const val = await payPeriodStore.getItem<string>(id);
-    return val ? decodeData<PayPeriod>(val) : null;
+    const value = await payPeriodStore.getItem<unknown>(id);
+    return value ? decodeData<PayPeriod>(value) : null;
 }
 
 export async function savePayPeriod(period: PayPeriod): Promise<void> {
@@ -471,12 +524,14 @@ export async function lockPayPeriod(id: string): Promise<void> {
     const period = await getPayPeriod(id);
     if (!period) throw new Error("Pay period not found");
     if (period.status === "locked") throw new Error("Pay period already locked");
+
     const locked: PayPeriod = {
         ...period,
         status: "locked",
         lockedAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };
+
     await payPeriodStore.setItem(id, await encodeData(locked));
     await logAuditEvent("LOCK_PAY_PERIOD", `Locked pay period: ${period.name}`, { periodId: id });
     await notifyListeners();
@@ -486,25 +541,21 @@ export async function deletePayPeriod(id: string): Promise<void> {
     const period = await getPayPeriod(id);
     if (period?.status === "locked") throw new Error("Cannot delete a locked pay period");
     await payPeriodStore.removeItem(id);
-    await logAuditEvent("DELETE_PAY_PERIOD", `Deleted pay period ID: ${id}`);
+    await logAuditEvent("DELETE_PAY_PERIOD", `Deleted pay period ID: ${id}`, { periodId: id });
     await notifyListeners();
 }
 
 export async function getCurrentPayPeriod(): Promise<PayPeriod | null> {
     const periods = await getPayPeriods();
-    return periods.find(p => p.status === "draft" || p.status === "review") ?? null;
+    return periods.find((period) => period.status === "draft" || period.status === "review") ?? null;
 }
 
-// ─── Document Metadata CRUD ─────────────────────────────────────────────────
-
 export async function getDocuments(): Promise<DocumentMeta[]> {
-    const docs: DocumentMeta[] = [];
-    await documentStore.iterate<string, void>((val: string) => {
-        if (val) docs.push(decodeData<DocumentMeta>(val));
+    const documents: DocumentMeta[] = [];
+    await documentStore.iterate<unknown, void>((value: unknown) => {
+        if (value) documents.push(decodeData<DocumentMeta>(value));
     });
-    return docs.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return documents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function saveDocumentMeta(doc: DocumentMeta): Promise<void> {
@@ -517,21 +568,17 @@ export async function deleteDocumentMeta(id: string): Promise<void> {
     await notifyListeners();
 }
 
-// ─── Contract CRUD ───────────────────────────────────────────────────────────
-
 export async function getContracts(): Promise<Contract[]> {
     const contracts: Contract[] = [];
-    await contractStore.iterate<unknown, void>((val: unknown) => {
-        if (val) contracts.push(decodeData<Contract>(val));
+    await contractStore.iterate<unknown, void>((value: unknown) => {
+        if (value) contracts.push(decodeData<Contract>(value));
     });
-    return contracts.sort(
-        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    );
+    return contracts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 }
 
 export async function getContractsForEmployee(employeeId: string): Promise<Contract[]> {
-    const all = await getContracts();
-    return all.filter(c => c.employeeId === employeeId);
+    const allContracts = await getContracts();
+    return allContracts.filter((contract) => contract.employeeId === employeeId);
 }
 
 export async function saveContract(contract: Contract): Promise<void> {
@@ -542,17 +589,15 @@ export async function saveContract(contract: Contract): Promise<void> {
 
 export async function deleteContract(id: string): Promise<void> {
     await contractStore.removeItem(id);
-    await logAuditEvent("UPDATE_CONTRACT", `Deleted contract ID: ${id}`);
+    await logAuditEvent("UPDATE_CONTRACT", `Deleted contract ID: ${id}`, { contractId: id });
     await notifyListeners();
 }
-
-// ─── SA Tax Year Helpers ─────────────────────────────────────────────────────
 
 export function getCurrentTaxYearRange(now: Date = new Date()): { start: Date; end: Date; label: string } {
     const year = now.getFullYear();
     const month = now.getMonth();
 
-    const startYear = (month < 2) ? year - 1 : year;
+    const startYear = month < 2 ? year - 1 : year;
     const endYear = startYear + 1;
 
     const start = new Date(startYear, 2, 1);
@@ -565,6 +610,6 @@ export function getCurrentTaxYearRange(now: Date = new Date()): { start: Date; e
     return {
         start,
         end,
-        label: `${startYear}/${endYear}`
+        label: `${startYear}/${endYear}`,
     };
 }

@@ -132,7 +132,7 @@ function Hero({ nmw }: { nmw: number }) {
                     {/* Left: Copy */}
                     <div className="space-y-8 max-w-xl">
                         <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                            Create a professional payslip for your domestic worker in <span className="text-[var(--primary)]">under 90 seconds.</span>
+                            Create a professional payslip for your domestic worker with <span className="text-[var(--primary)]">the key details in one flow.</span>
                         </h1>
 
                         <p className="type-body-large" style={{ color: "var(--text-muted)" }}>

@@ -26,7 +26,7 @@ const ibmPlexSerif = IBM_Plex_Serif({
 export const metadata: Metadata = {
   title: "LekkerLedger | SA Domestic Worker Payslips",
   description:
-    "Create a compliant payslip in under 90 seconds. Fast, reliable, and proudly South African.",
+    "Create a domestic-worker payslip with clear BCEA and UIF fields. Fast, reliable, and proudly South African.",
   manifest: "/manifest.webmanifest",
 };
 
@@ -45,6 +45,7 @@ export default function RootLayout({
   // TODO: remove debug_mode once events are confirmed in GA4 DebugView,
   // or gate it behind: process.env.NEXT_PUBLIC_GA_DEBUG === "true"
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
+    const gaDebug = process.env.NEXT_PUBLIC_GA_DEBUG === "true";
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -61,7 +62,7 @@ export default function RootLayout({
                   function gtag(){dataLayer.push(arguments);}
                   window.gtag = gtag;
                   gtag('js', new Date());
-                  gtag('config', '${gaId}', { debug_mode: true, send_page_view: true });
+                  gtag('config', '${gaId}', { debug_mode: ${gaDebug}, send_page_view: true });
                 `,
               }}
             />
@@ -126,3 +127,4 @@ export default function RootLayout({
     </html>
   );
 }
+

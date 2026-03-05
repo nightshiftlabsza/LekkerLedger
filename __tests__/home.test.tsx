@@ -1,6 +1,6 @@
 import { render, act } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import Page from "@/app/page";
+import Page from "@/app/(marketing)/page";
 
 vi.mock("next/navigation", () => ({
     useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
@@ -14,3 +14,4 @@ describe("Home page", () => {
         expect(document.body).toBeTruthy();
     });
 });
+
