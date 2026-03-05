@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import { Save, Lock, FileText, AlertTriangle, ArrowLeft, Download, Loader2, Palmtree, AlertCircle } from "lucide-react";
 import Link from "next/link";

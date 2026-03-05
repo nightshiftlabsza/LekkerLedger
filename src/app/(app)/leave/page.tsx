@@ -162,7 +162,7 @@ export default function LeavePage() {
                                     key: "actions",
                                     label: "",
                                     align: "right",
-                                    render: (row) => (
+                                    render: () => (
                                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[var(--text-muted)] hover:text-[var(--primary-hover)]">
                                             <Calendar className="h-4 w-4" />
                                         </Button>

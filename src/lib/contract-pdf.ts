@@ -2,7 +2,7 @@ import { PDFDocument } from "pdf-lib";
 import { Employee, EmployerSettings } from "./schema";
 import { format } from "date-fns";
 import { getNMWForDate } from "./legal/registry";
-import { PDF_MARGIN, PDF_COLORS } from "./pdf";
+import { PDF_COLORS } from "./pdf";
 import { loadPdfFonts } from "./pdf-fonts";
 
 export async function generateEmploymentContract(

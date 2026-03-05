@@ -106,6 +106,7 @@ export async function generateBCEASummaryPdf(
     payslip: PayslipInput,
     employer: EmployerSettings
 ): Promise<Uint8Array> {
+    void employer;
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595.28, 841.89]);
     const { width, height } = page.getSize();
