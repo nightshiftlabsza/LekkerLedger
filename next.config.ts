@@ -24,6 +24,21 @@ const nextConfig: NextConfig = {
         destination: '/legal/terms',
         permanent: true,
       },
+      {
+        source: '/sign-in',
+        destination: '/dashboard',
+        permanent: false, // Temporary until real auth happens if ever
+      },
+      {
+        source: '/login',
+        destination: '/dashboard',
+        permanent: false,
+      },
+      {
+        source: '/auth/login',
+        destination: '/dashboard',
+        permanent: false,
+      },
     ];
   },
 };

@@ -45,6 +45,21 @@ function EmployeeDetailContent() {
     const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
     const [generatingPdf, setGeneratingPdf] = React.useState(false);
     const [generatingContract, setGeneratingContract] = React.useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+
+    const handleDeleteEmployee = async () => {
+        if (!id) return;
+        setLoading(true);
+        try {
+            const { deleteEmployee } = await import('@/lib/storage');
+            await deleteEmployee(id);
+            router.push("/employees");
+        } catch (e) {
+            console.error(e);
+            setLoading(false);
+            alert("Failed to delete employee.");
+        }
+    };
 
     React.useEffect(() => {
         async function load() {
@@ -196,12 +211,41 @@ function EmployeeDetailContent() {
                                         value={employee.ordinarilyWorksSundays ? "Yes (1.5× rate)" : "No (2× rate)"}
                                     />
                                 </div>
-                                <div className="pt-4 border-t border-[var(--border)]">
+                                <div className="pt-4 border-t border-[var(--border)] space-y-2">
                                     <Link href={`/employees/${id}/edit`}>
                                         <Button className="w-full bg-[var(--primary)] text-white font-bold hover:brightness-95 h-11">
                                             <Pencil className="h-4 w-4 mr-2" /> Edit Employee
                                         </Button>
                                     </Link>
+
+                                    {!showDeleteConfirm ? (
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => setShowDeleteConfirm(true)}
+                                            className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 font-bold h-11"
+                                        >
+                                            <Trash2 className="h-4 w-4 mr-2" /> Delete Employee
+                                        </Button>
+                                    ) : (
+                                        <div className="p-4 rounded-xl border border-red-200 bg-red-50 space-y-3 mt-4">
+                                            <p className="text-sm font-bold text-red-800 text-center">Are you sure? This will delete all payslips and leave records for this employee.</p>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setShowDeleteConfirm(false)}
+                                                    className="flex-1 font-bold"
+                                                >
+                                                    Cancel
+                                                </Button>
+                                                <Button
+                                                    onClick={handleDeleteEmployee}
+                                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold"
+                                                >
+                                                    Yes, Delete
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
