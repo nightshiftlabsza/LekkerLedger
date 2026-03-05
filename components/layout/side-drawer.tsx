@@ -8,7 +8,7 @@ import {
     X, FileText, Users, Menu, LayoutDashboard,
     Palmtree, FileSpreadsheet, Settings,
     BookOpen, Sparkles, Mail, Calculator,
-    ClipboardList, FolderOpen, Banknote,
+    FolderOpen, Banknote,
 } from "lucide-react";
 
 // ─── Nav groups — matches IA Blueprint v1 ──────────────────────────────────
@@ -100,7 +100,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                 className={[
                     "fixed top-0 left-0 h-full w-72 lg:w-64 z-50 flex flex-col glass-panel",
                     "lg:border-r lg:border-[var(--border)] lg:shadow-none",
-                    "shadow-[var(--shadow-xl)] transition-transform duration-300",
+                    "shadow-[var(--shadow-2)] transition-transform duration-300",
                     open ? "translate-x-0 animate-drawer-in" : "-translate-x-full lg:translate-x-0",
                 ].join(" ")}
             >
@@ -110,7 +110,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                     style={{ borderBottom: "1px solid var(--border)" }}
                 >
                     <div>
-                        <Link href="/dashboard" onClick={() => setOpen(false)} className="block rounded-lg" tabIndex={open ? 0 : -1}>
+                        <Link href="/dashboard" onClick={() => setOpen(false)} className="block rounded-lg">
                             <Image
                                 src="/brand/logo-light.png"
                                 alt="LekkerLedger"
@@ -135,7 +135,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                     <button
                         onClick={() => setOpen(false)}
                         aria-label="Close menu"
-                        tabIndex={open ? 0 : -1}
+                       
                         className="lg:hidden h-8 w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--surface-2)] active-scale"
                         style={{ color: "var(--text-muted)" }}
                     >
@@ -162,12 +162,12 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                                             key={href}
                                             href={href}
                                             onClick={() => setOpen(false)}
-                                            tabIndex={open ? 0 : -1}
-                                            aria-hidden={!open}
+                                           
+                                           
                                             className="relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group"
                                             style={{
                                                 color: active ? "var(--primary)" : "var(--text)",
-                                                backgroundColor: active ? "rgba(217,119,6,0.09)" : "transparent",
+                                                backgroundColor: active ? "var(--accent-subtle)" : "transparent",
                                                 fontWeight: active ? 700 : 500,
                                             }}
                                         >
@@ -203,8 +203,8 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                 <div className="px-4 py-4 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
                     <a
                         href="mailto:nightshiftlabsza@gmail.com?subject=LekkerLedger%20Support%20Request"
-                        tabIndex={open ? 0 : -1}
-                        aria-hidden={!open}
+                       
+                       
                         className="flex items-center gap-3 text-sm font-medium rounded-lg px-2 py-2 transition-colors hover:bg-[var(--surface-2)]"
                         style={{ color: "var(--text-muted)" }}
                     >

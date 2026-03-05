@@ -31,7 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
                 {/* Top bar */}
                 <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)]">
-                    <div className="content-container w-full flex items-center justify-between py-3">
+                    <div className="content-container w-full flex items-center justify-between py-3 px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-3">
                             {/* Mobile menu trigger — opens side drawer */}
                             <SideDrawer showButton={true} />
@@ -83,7 +83,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 )}
 
                 {/* Main content */}
-                <main id="main-content" className="flex-1 px-4 py-8 content-container w-full flex flex-col gap-8 pb-24 lg:pb-8">
+                <main id="main-content" className="flex-1 py-8 content-container w-full flex flex-col gap-8 pb-24 lg:pb-8 px-4 sm:px-6 lg:px-8">
                     {children}
                 </main>
 

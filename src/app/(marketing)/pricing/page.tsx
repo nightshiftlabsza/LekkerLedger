@@ -95,7 +95,7 @@ export default function PricingPage() {
                 <div className="max-w-5xl mx-auto">
                     {/* Header */}
                     <div className="text-center space-y-4 max-w-2xl mx-auto mb-16">
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tight" style={{ color: "var(--text)" }}>
+                        <h1 className="type-h1" style={{ color: "var(--text)" }}>
                             Simple, transparent pricing.
                         </h1>
                         <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -165,13 +165,13 @@ export default function PricingPage() {
                         <div className="mt-12 p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden group" style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border)" }}>
                             <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--primary)]/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-[var(--primary)]/20 transition-all duration-700" />
                             <div className="space-y-3 z-10 text-center md:text-left">
-                                <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--text)" }}>Experience Pro Risk-Free</h3>
+                                <h3 className="type-h3" style={{ color: "var(--text)" }}>Experience Pro Risk-Free</h3>
                                 <p className="max-w-md text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     Unlock every feature, unlimited employees, and cloud backups for 30 days. No credit card required.
                                 </p>
                             </div>
                             <Button
-                                className="h-14 px-10 rounded-2xl bg-[var(--primary)] hover:bg-brightness-95 text-black font-black text-base shadow-xl z-10 whitespace-nowrap"
+                                className="h-14 px-10 rounded-2xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-semibold text-base shadow-xl z-10 whitespace-nowrap"
                                 onClick={handleStartTrial}
                             >
                                 Start 30-Day Free Trial
@@ -233,7 +233,7 @@ function PricingHeader() {
 
     return (
         <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-sm">
-            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+            <div className="content-container-wide px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 shrink-0">
                     <Image src="/brand/logo-light.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto block dark:hidden" priority />
@@ -255,7 +255,7 @@ function PricingHeader() {
                         Sign in
                     </Link>
                     <Link href="/dashboard">
-                        <Button className="h-10 px-5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-sm shadow-md">
+                        <Button className="h-10 px-5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-sm shadow-[var(--shadow-1)]">
                             Create your first payslip
                         </Button>
                     </Link>
@@ -290,7 +290,7 @@ function PricingHeader() {
                             <Button variant="outline" className="w-full justify-center rounded-xl h-11 border-[var(--border)] shadow-sm">Sign in</Button>
                         </Link>
                         <Link href="/dashboard" className="w-full">
-                            <Button className="w-full justify-center rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold h-11 shadow-md">
+                            <Button className="w-full justify-center rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold h-11 shadow-[var(--shadow-1)]">
                                 Create your first payslip
                             </Button>
                         </Link>
@@ -321,7 +321,7 @@ function PricingCard({
     return (
         <Card className={`relative overflow-hidden transition-all duration-300 glass-panel hover-lift active-scale ${isPro ? 'border-2 border-[var(--primary)] shadow-2xl md:scale-105 z-10' : ''}`}>
             {badge && (
-                <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest shadow-sm z-10 ${isPro ? 'bg-[var(--primary)] text-white' : 'bg-amber-50 text-[var(--primary)] border-l border-b border-amber-100'}`}>
+                <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest shadow-sm z-10 ${isPro ? 'bg-[var(--primary)] text-white' : 'bg-[var(--accent-subtle)] text-[var(--primary)] border-l border-b border-[var(--border)]'}`}>
                     {badge}
                 </div>
             )}
@@ -330,7 +330,7 @@ function PricingCard({
                     <div className="space-y-1">
                         <h3 className={`text-xl font-black tracking-tight ${colorClass || 'text-[var(--text-muted)]'}`}>{title}</h3>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-5xl font-black tracking-tighter">{price}</span>
+                            <span className="text-5xl font-semibold tracking-tight type-mono">{price}</span>
                             <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">{period}</span>
                         </div>
                     </div>
@@ -354,7 +354,7 @@ function PricingCard({
 
                 <Button
                     variant={isPro ? "default" : "outline"}
-                    className={`h-12 w-full rounded-2xl font-black text-sm tracking-tight shadow-sm transition-all ${isPro ? 'bg-[var(--primary)] hover:bg-[var(--primary)] text-white shadow-[var(--primary)]/20' : ''}`}
+                    className={`h-12 w-full rounded-2xl font-black text-sm tracking-tight shadow-sm transition-all ${isPro ? 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white shadow-[var(--primary)]/20' : ''}`}
                     disabled={buttonDisabled}
                     onClick={onAction}
                 >

@@ -55,7 +55,7 @@ function MarketingHeader() {
 
     return (
         <header className="sticky top-0 z-50 bg-[var(--surface-1)] shadow-sm border-b border-[var(--border)]">
-            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+            <div className="content-container-wide px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 shrink-0">
                     <Image src="/brand/logo-light.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto block dark:hidden" priority />
@@ -77,7 +77,7 @@ function MarketingHeader() {
                         Sign in
                     </Link>
                     <Link href="/dashboard">
-                        <Button className="h-10 px-5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-sm shadow-md">
+                        <Button className="h-10 px-5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-sm shadow-[var(--shadow-1)]">
                             Create your first payslip
                         </Button>
                     </Link>
@@ -106,7 +106,7 @@ function MarketingHeader() {
                             <Button variant="outline" className="w-full h-11 rounded-xl font-bold text-sm">Sign in</Button>
                         </Link>
                         <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
-                            <Button className="w-full h-11 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-sm mt-2">
+                            <Button className="w-full h-11 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-sm mt-2">
                                 Create your first payslip
                             </Button>
                         </Link>
@@ -124,14 +124,14 @@ function Hero({ nmw }: { nmw: number }) {
             {/* Background decoration */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-24 -right-24 w-96 h-96 bg-[var(--primary)]/5 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 -left-24 w-72 h-72 bg-green-500/5 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 -left-24 w-72 h-72 bg-[var(--accent-subtle)] rounded-full blur-3xl" />
             </div>
 
-            <div className="relative max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32 pb-24 md:pb-32">
+            <div className="relative content-container-wide px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32 pb-24 md:pb-32">
                 <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                     {/* Left: Copy */}
                     <div className="space-y-8 max-w-xl">
-                        <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black tracking-tight leading-[1.1]" style={{ color: "var(--text)" }}>
+                        <h1 className="type-h1" style={{ color: "var(--text)" }}>
                             Professional employment records for your{" "}
                             <span className="text-[var(--primary)]">household staff.</span>
                         </h1>
@@ -161,7 +161,7 @@ function Hero({ nmw }: { nmw: number }) {
                         {/* CTAs */}
                         <div className="flex flex-col sm:flex-row gap-3">
                             <Link href="/dashboard">
-                                <Button className="h-13 px-8 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-base shadow-lg shadow-[var(--primary)]/20 transition-all hover:shadow-xl">
+                                <Button className="h-13 px-8 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-base shadow-[var(--shadow-2)] transition-all">
                                     Create your first payslip <ArrowRight className="h-4 w-4 ml-2" />
                                 </Button>
                             </Link>
@@ -218,8 +218,8 @@ function Hero({ nmw }: { nmw: number }) {
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-green-500/10 text-[var(--primary)]">BCEA Compliant</span>
-                                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-600">UIF Included</span>
+                                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[var(--accent-subtle)] text-[var(--primary)]">BCEA Compliant</span>
+                                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[var(--accent-subtle)] text-[var(--primary)]">UIF Included</span>
                                 </div>
                             </div>
                         </div>
@@ -250,7 +250,7 @@ function TrustStrip() {
 
     return (
         <section className="border-y border-transparent bg-[var(--surface-2)] text-[var(--text)]" data-theme="dark">
-            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-6">
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 lg:gap-12">
                     <p className="text-xs font-bold uppercase tracking-widest shrink-0" style={{ color: "var(--text-muted)" }}>
                         Private by design
@@ -283,9 +283,9 @@ function HowItWorks() {
 
     return (
         <section id="how-it-works" className="relative" style={{ backgroundColor: "var(--bg)" }}>
-            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+            <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-20 md:py-28">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: "var(--text)" }}>
+                    <h2 className="type-h2" style={{ color: "var(--text)" }}>
                         Compliant paperwork shouldn&apos;t cost a fortune.
                     </h2>
                     <p className="text-base mt-4" style={{ color: "var(--text-muted)" }}>
@@ -325,10 +325,10 @@ function Guardrails({ nmw }: { nmw: number }) {
 
     return (
         <section style={{ backgroundColor: "var(--surface-2)" }}>
-            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+            <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-20 md:py-28">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                     <div className="space-y-6 max-w-lg">
-                        <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: "var(--text)" }}>
+                        <h2 className="type-h2" style={{ color: "var(--text)" }}>
                             Guardrails that help you stay consistent.
                         </h2>
                         <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -366,7 +366,7 @@ function Guardrails({ nmw }: { nmw: number }) {
                             <div className="space-y-3">
                                 {["Hourly rate ≥ NMW ✓", "UIF deduction calculated ✓", "Pay period dates set ✓", "Employee details complete ✓", "Leave balance tracked ✓"].map((c, i) => (
                                     <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg" style={{ backgroundColor: "var(--surface-2)" }}>
-                                        <div className="h-5 w-5 rounded-full bg-green-500/10 flex items-center justify-center">
+                                        <div className="h-5 w-5 rounded-full bg-[var(--accent-subtle)] flex items-center justify-center">
                                             <Check className="h-3 w-3 text-[var(--primary)] stroke-[3px]" />
                                         </div>
                                         <span className="text-sm font-medium" style={{ color: "var(--text)" }}>{c}</span>
@@ -394,9 +394,9 @@ function FeatureGrid() {
 
     return (
         <section style={{ backgroundColor: "var(--bg)" }}>
-            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+            <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-20 md:py-28">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: "var(--text)" }}>
+                    <h2 className="type-h2" style={{ color: "var(--text)" }}>
                         Everything you need for household payroll records.
                     </h2>
                 </div>
@@ -421,10 +421,10 @@ function FeatureGrid() {
 function PrivacyExplainer() {
     return (
         <section style={{ backgroundColor: "var(--surface-2)" }}>
-            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+            <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-20 md:py-28">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                     <div className="space-y-6 max-w-lg">
-                        <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: "var(--text)" }}>
+                        <h2 className="type-h2" style={{ color: "var(--text)" }}>
                             Your employee data isn&apos;t stored in a vendor database.
                         </h2>
                         <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -467,7 +467,7 @@ function PrivacyExplainer() {
                                 </div>
                                 <div className="ml-6 border-l-2 border-dashed border-[var(--border)] h-6" />
                                 <div className="flex items-center gap-4">
-                                    <div className="h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                                    <div className="h-12 w-12 rounded-xl bg-[var(--accent-subtle)] flex items-center justify-center">
                                         <FolderSync className="h-6 w-6 text-green-500" />
                                     </div>
                                     <div>
@@ -513,9 +513,9 @@ function PricingSummary() {
 
     return (
         <section style={{ backgroundColor: "var(--bg)" }}>
-            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+            <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-20 md:py-28">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: "var(--text)" }}>
+                    <h2 className="type-h2" style={{ color: "var(--text)" }}>
                         Start free. Upgrade when your household needs more.
                     </h2>
                 </div>
@@ -524,14 +524,14 @@ function PricingSummary() {
                     {plans.map((p, i) => (
                         <div key={i} className={`relative p-6 rounded-2xl border transition-all ${i === 2 ? 'border-[var(--primary)] shadow-xl shadow-[var(--primary)]/10 scale-[1.02]' : 'border-[var(--border)]'}`} style={{ backgroundColor: "var(--surface-1)" }}>
                             {p.badge && (
-                                <span className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${i === 2 ? 'bg-[var(--primary)] text-white' : 'bg-amber-50 text-[var(--primary)] border border-amber-200'}`}>
+                                <span className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${i === 2 ? 'bg-[var(--primary)] text-white' : 'bg-[var(--accent-subtle)] text-[var(--primary)] border border-[var(--border)]'}`}>
                                     {p.badge}
                                 </span>
                             )}
                             <div className="text-center mb-4 pt-2">
                                 <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{p.title}</h3>
                                 <div className="mt-2">
-                                    <span className="text-4xl font-black" style={{ color: "var(--text)" }}>{p.price}</span>
+                                    <span className="text-4xl font-semibold type-mono" style={{ color: "var(--text)" }}>{p.price}</span>
                                     <span className="text-xs font-bold ml-1" style={{ color: "var(--text-muted)" }}>{p.period}</span>
                                 </div>
                             </div>
@@ -553,7 +553,7 @@ function PricingSummary() {
                     </Link>
                     <div>
                         <Link href="/dashboard">
-                            <Button className="h-11 px-6 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-sm">
+                            <Button className="h-11 px-6 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-sm">
                                 Create your first payslip
                             </Button>
                         </Link>
@@ -582,7 +582,7 @@ function FAQAccordion() {
         <section id="faq" style={{ backgroundColor: "var(--surface-2)" }}>
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: "var(--text)" }}>
+                    <h2 className="type-h2" style={{ color: "var(--text)" }}>
                         Frequently asked questions
                     </h2>
                 </div>
@@ -627,7 +627,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 function Footer() {
     return (
         <footer className="border-t border-[var(--border)]" style={{ backgroundColor: "var(--surface-2)" }}>
-            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     <div>
                         <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Product</h4>

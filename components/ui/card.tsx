@@ -4,7 +4,7 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     ({ className, style, ...props }, ref) => (
         <div
             ref={ref}
-            className={["rounded-[16px] transition-all duration-200 bg-[var(--surface-1)] border border-[var(--border)] shadow-sm", className].filter(Boolean).join(" ")}
+            className={["rounded-[16px] transition-all duration-200 bg-[var(--surface-1)] border border-[var(--border)] shadow-[var(--shadow-1)]", className].filter(Boolean).join(" ")}
             style={style}
             {...props}
         />
@@ -16,7 +16,7 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
     ({ className, ...props }, ref) => (
         <div
             ref={ref}
-            className={["flex flex-col space-y-1 p-6", className].filter(Boolean).join(" ")}
+            className={["flex flex-col gap-2 p-6", className].filter(Boolean).join(" ")}
             {...props}
         />
     )
@@ -27,7 +27,7 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTML
     ({ className, style, ...props }, ref) => (
         <h3
             ref={ref}
-            className={["type-h4 tracking-tight leading-snug", className].filter(Boolean).join(" ")}
+            className={["type-h3 tracking-tight", className].filter(Boolean).join(" ")}
             style={{ color: "var(--text)", ...style }}
             {...props}
         />
@@ -39,7 +39,7 @@ const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttribu
     ({ className, style, ...props }, ref) => (
         <p
             ref={ref}
-            className={["type-body leading-relaxed", className].filter(Boolean).join(" ")}
+            className={["type-body", className].filter(Boolean).join(" ")}
             style={{ color: "var(--text-muted)", ...style }}
             {...props}
         />
@@ -61,7 +61,7 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
             className={["flex items-center p-4 rounded-b-2xl", className].filter(Boolean).join(" ")}
             style={{
                 borderTop: "1px solid var(--border)",
-                backgroundColor: "var(--surface-2)",
+                backgroundColor: "var(--surface-raised)",
                 ...style,
             }}
             {...props}
