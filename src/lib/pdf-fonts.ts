@@ -1,6 +1,8 @@
 import { PDFDocument, StandardFonts } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 
 export async function loadPdfFonts(pdfDoc: PDFDocument) {
+    pdfDoc.registerFontkit(fontkit);
     let sansRegularBuf: ArrayBuffer | undefined;
     let sansBoldBuf: ArrayBuffer | undefined;
     let serifBoldBuf: ArrayBuffer | undefined;
