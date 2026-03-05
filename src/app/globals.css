@@ -12,9 +12,12 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
   /* Core surfaces */
-  --bg: #FAF7F0;          /* paper */
-  --surface-1: #FFFFFF;   /* primary surfaces */
-  --surface-2: #FFFFFF;   /* secondary surfaces (use border/lines to differentiate in light) */
+  --bg: #FAF7F0;
+  /* paper */
+  --surface-1: #FFFFFF;
+  /* primary surfaces */
+  --surface-2: #FFFFFF;
+  /* secondary surfaces (use border/lines to differentiate in light) */
   --border: #E6E0D6;
 
   /* Text */
@@ -29,6 +32,13 @@
 
   --focus: #C47A1C;
   --focus-offset: 3px;
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  /* Higher opacity for readability */
+  --glass-border: rgba(230, 224, 214, 0.5);
+  --glass-bg-dark: rgba(17, 24, 39, 0.85);
+  --glass-border-dark: rgba(34, 48, 69, 0.5);
 
   /* Status */
   --danger: #B42318;
@@ -120,7 +130,9 @@
 /* =========================================================
    CIVIC LEDGER TOKENS (DARK) — canonical .theme-dark switch
    ========================================================= */
-.theme-dark, [data-theme="dark"], .dark {
+.theme-dark,
+[data-theme="dark"],
+.dark {
   --bg: #0B0F14;
   --surface-1: #111827;
   --surface-2: #151F2E;
@@ -142,6 +154,9 @@
   --success: #32D583;
   --warning: #FDB022;
 
+  --glass-bg: var(--glass-bg-dark);
+  --glass-border: var(--glass-border-dark);
+
   /* Dark elevation: softer, less “glow” */
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.45);
   --shadow-2: 0 12px 28px rgba(0, 0, 0, 0.60);
@@ -153,8 +168,8 @@
    BASE STYLES
    ═══════════════════════════════════════════════════════════════════════════ */
 body {
-  background-color: var(--bg-base);
-  color: var(--text-primary);
+  background-color: var(--bg);
+  color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -605,7 +620,7 @@ p,
    FOCUS RING VISIBILITY (2px+ outline, both themes)
    ═══════════════════════════════════════════════════════════════════════════ */
 :focus-visible {
-  outline: 2px solid var(--color-brand);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-1);
 }

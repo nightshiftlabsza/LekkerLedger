@@ -3,10 +3,10 @@ import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GoogleWrapper } from "@/components/google-wrapper";
-import { PwaInstallTracking } from "@/src/components/PwaInstallTracking";
+import { PwaInstallTracking } from "@/components/PwaInstallTracking";
 import { AppShell } from "./app-shell";
 import { Suspense } from "react";
-import { AnalyticsPageView } from "@/src/components/AnalyticsPageView";
+import { AnalyticsPageView } from "@/components/AnalyticsPageView";
 
 const ibmPlexSans = IBM_Plex_Sans({
     variable: "--font-sans",

@@ -216,6 +216,7 @@ export default function AddEmployeePage() {
                                         placeholder={NMW_RATE.toString()}
                                         value={formData.hourlyRate}
                                         onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
+                                        onFocus={(e) => e.target.select()}
                                         error={errors.hourlyRate}
                                         disabled={loading}
                                     />
@@ -244,6 +245,7 @@ export default function AddEmployeePage() {
                                     max="24"
                                     value={formData.ordinaryHoursPerDay}
                                     onChange={(e) => setFormData({ ...formData, ordinaryHoursPerDay: e.target.value })}
+                                    onFocus={(e) => e.target.select()}
                                     disabled={loading}
                                 />
                                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>

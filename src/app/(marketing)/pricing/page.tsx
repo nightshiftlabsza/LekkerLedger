@@ -222,29 +222,81 @@ export default function PricingPage() {
 
 /* ─── PRICING HEADER (marketing, no app nav) ─────────────────────────────── */
 function PricingHeader() {
+    const [mobileOpen, setMobileOpen] = React.useState(false);
+    const links = [
+        { href: "/#how-it-works", label: "How it works" },
+        { href: "/pricing", label: "Pricing" },
+        { href: "/legal/privacy", label: "Privacy" },
+        { href: "/rules", label: "Compliance guide" },
+        { href: "/#faq", label: "FAQ" },
+    ];
+
     return (
-        <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)]">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-                <div className="flex items-center gap-3">
-                    <Link href="/" className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-[var(--surface-2)] transition-colors" style={{ color: "var(--text-muted)" }}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Link>
-                    <Link href="/" className="flex items-center gap-2">
-                        <Image src="/brand/logo-light.png" alt="LekkerLedger" width={120} height={30} className="h-7 w-auto block dark:hidden" priority />
-                        <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={120} height={30} className="h-7 w-auto hidden dark:block" priority />
-                    </Link>
-                </div>
-                <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-sm">
+            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+                {/* Logo */}
+                <Link href="/" className="flex items-center gap-2 shrink-0">
+                    <Image src="/brand/logo-light.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto block dark:hidden" priority />
+                    <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto hidden dark:block" priority />
+                </Link>
+
+                {/* Desktop nav */}
+                <nav className="hidden lg:flex items-center gap-8 flex-1 justify-center">
+                    {links.map(l => (
+                        <Link key={l.href} href={l.href} className="text-sm font-semibold transition-colors hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>
+                            {l.label}
+                        </Link>
+                    ))}
+                </nav>
+
+                {/* Desktop CTA */}
+                <div className="hidden lg:flex items-center gap-3">
                     <Link href="/dashboard" className="text-sm font-semibold transition-colors hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>
                         Sign in
                     </Link>
-                    <Link href="/dashboard" className="hidden sm:block">
+                    <Link href="/dashboard">
                         <Button className="h-10 px-5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-sm shadow-md">
                             Create your first payslip
                         </Button>
                     </Link>
                 </div>
+
+                {/* Mobile hamburger */}
+                <button
+                    onClick={() => setMobileOpen(!mobileOpen)}
+                    className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-[var(--bg)] border border-[var(--border)] shadow-sm active:scale-95 transition-all text-[var(--text)] hover:text-[var(--primary)]"
+                    aria-label="Toggle menu"
+                >
+                    {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
             </div>
+
+            {/* Mobile menu */}
+            {mobileOpen && (
+                <div className="lg:hidden border-t border-[var(--border)] px-4 py-4 space-y-2" style={{ backgroundColor: "var(--surface-1)" }}>
+                    {links.map(l => (
+                        <Link
+                            key={l.href}
+                            href={l.href}
+                            className="block px-3 py-2 text-sm font-bold rounded-lg transition-colors hover:bg-[var(--surface-2)]"
+                            style={{ color: "var(--text-muted)" }}
+                            onClick={() => setMobileOpen(false)}
+                        >
+                            {l.label}
+                        </Link>
+                    ))}
+                    <div className="pt-4 mt-2 border-t border-[var(--border)] flex flex-col gap-2">
+                        <Link href="/dashboard" className="w-full">
+                            <Button variant="outline" className="w-full justify-center rounded-xl h-11 border-[var(--border)] shadow-sm">Sign in</Button>
+                        </Link>
+                        <Link href="/dashboard" className="w-full">
+                            <Button className="w-full justify-center rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold h-11 shadow-md">
+                                Create your first payslip
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+            )}
         </header>
     );
 }
@@ -267,7 +319,7 @@ function PricingCard({
     colorClass?: string;
 }) {
     return (
-        <Card className={`relative overflow-hidden transition-all duration-300 glass-panel hover-lift active-scale ${isPro ? 'border-2 border-[var(--primary)] shadow-2xl scale-105 z-10' : ''}`}>
+        <Card className={`relative overflow-hidden transition-all duration-300 glass-panel hover-lift active-scale ${isPro ? 'border-2 border-[var(--primary)] shadow-2xl md:scale-105 z-10' : ''}`}>
             {badge && (
                 <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest shadow-sm z-10 ${isPro ? 'bg-[var(--primary)] text-white' : 'bg-amber-50 text-[var(--primary)] border-l border-b border-amber-100'}`}>
                     {badge}
@@ -280,7 +332,6 @@ function PricingCard({
                         <div className="flex items-baseline gap-1">
                             <span className="text-5xl font-black tracking-tighter">{price}</span>
                             <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">{period}</span>
-                            {isPro && <span className="ml-2 text-[10px] font-black uppercase text-[var(--primary)] animate-pulse">(Best Value)</span>}
                         </div>
                     </div>
                     <p className="text-xs text-[var(--text-muted)] leading-relaxed h-8">

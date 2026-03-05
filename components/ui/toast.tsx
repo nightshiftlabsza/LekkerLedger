@@ -44,7 +44,7 @@ export function useToast() {
 
 function Toaster({ toasts }: { toasts: Toast[] }) {
     return (
-        <div role="status" aria-live="polite" aria-atomic="true" className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-[90vw] sm:max-w-md pointer-events-none">
+        <div role="status" aria-live="polite" aria-atomic="true" className="fixed bottom-40 lg:bottom-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-[90vw] sm:max-w-md pointer-events-none">
             {toasts.map((t) => (
                 <div
                     key={t.id}

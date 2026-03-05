@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
                 </Link>
 
                 <header className="space-y-4">
-                    <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-6 border border-blue-500/20">
+                    <div className="h-12 w-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mb-6 border border-[var(--primary)]/20">
                         <ShieldCheck className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Privacy Policy</h1>

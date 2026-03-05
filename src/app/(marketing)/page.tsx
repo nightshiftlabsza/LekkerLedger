@@ -39,7 +39,6 @@ export default function HomePage() {
             </main>
 
             <Footer />
-            <StickyMobileCTA />
         </div>
     );
 }
@@ -56,18 +55,18 @@ function MarketingHeader() {
     ];
 
     return (
-        <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)]">
+        <header className="sticky top-0 z-50 bg-[var(--surface-1)] shadow-sm border-b border-[var(--border)]">
             <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 shrink-0">
-                    <Image src="/brand/logo-light.png" alt="LekkerLedger" width={140} height={36} className="h-8 w-auto block dark:hidden" priority />
-                    <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={140} height={36} className="h-8 w-auto hidden dark:block" priority />
+                    <Image src="/brand/logo-light.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto block dark:hidden" priority />
+                    <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto hidden dark:block" priority />
                 </Link>
 
                 {/* Desktop nav */}
-                <nav className="hidden lg:flex items-center gap-6">
+                <nav className="hidden lg:flex items-center gap-8 flex-1 justify-center">
                     {links.map(l => (
-                        <Link key={l.href} href={l.href} className="text-sm font-medium transition-colors hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>
+                        <Link key={l.href} href={l.href} className="text-sm font-semibold transition-colors hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>
                             {l.label}
                         </Link>
                     ))}
@@ -79,14 +78,18 @@ function MarketingHeader() {
                         Sign in
                     </Link>
                     <Link href="/dashboard">
-                        <Button className="h-10 px-5 rounded-xl bg-[var(--[var(--primary)],#16a34a)] hover:bg-[var(--primary)] text-white font-bold text-sm shadow-md">
+                        <Button className="h-10 px-5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-sm shadow-md">
                             Create your first payslip
                         </Button>
                     </Link>
                 </div>
 
                 {/* Mobile hamburger */}
-                <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl" style={{ color: "var(--text)" }}>
+                <button
+                    onClick={() => setMobileOpen(!mobileOpen)}
+                    className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-[var(--bg)] border border-[var(--border)] shadow-sm active:scale-95 transition-all text-[var(--text)] hover:text-[var(--primary)]"
+                    aria-label="Toggle menu"
+                >
                     {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </button>
             </div>
@@ -104,7 +107,7 @@ function MarketingHeader() {
                             <Button variant="outline" className="w-full h-11 rounded-xl font-bold text-sm">Sign in</Button>
                         </Link>
                         <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
-                            <Button className="w-full h-11 rounded-xl bg-[var(--[var(--primary)],#16a34a)] hover:bg-[var(--primary)] text-white font-bold text-sm mt-2">
+                            <Button className="w-full h-11 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-sm mt-2">
                                 Create your first payslip
                             </Button>
                         </Link>
@@ -125,17 +128,17 @@ function Hero({ nmw }: { nmw: number }) {
                 <div className="absolute bottom-0 -left-24 w-72 h-72 bg-green-500/5 rounded-full blur-3xl" />
             </div>
 
-            <div className="relative max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
+            <div className="relative max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32 pb-24 md:pb-32">
                 <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                     {/* Left: Copy */}
                     <div className="space-y-8 max-w-xl">
                         <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black tracking-tight leading-[1.1]" style={{ color: "var(--text)" }}>
-                            Domestic-worker payslips, contracts & records —{" "}
-                            <span className="text-[var(--primary)]">made for South Africa.</span>
+                            Professional employment records for your{" "}
+                            <span className="text-[var(--primary)]">household staff.</span>
                         </h1>
 
                         <p className="type-body-large" style={{ color: "var(--text-muted)" }}>
-                            Generate professional PDFs in minutes, with built-in wage and UIF checks and an audit-friendly archive. Your employee data stays on your device and/or your own Google Drive.
+                            Built for South African homes: manage your domestic worker&apos;s payslips, leave, and contracts without grappling with enterprise HR tools.
                         </p>
 
                         <div className="pt-2">
@@ -159,7 +162,7 @@ function Hero({ nmw }: { nmw: number }) {
                         {/* CTAs */}
                         <div className="flex flex-col sm:flex-row gap-3">
                             <Link href="/dashboard">
-                                <Button className="h-13 px-8 rounded-xl bg-[var(--[var(--primary)],#16a34a)] hover:bg-[var(--primary)] text-white font-bold text-base shadow-lg shadow-[var(--primary)]/20 transition-all hover:shadow-xl">
+                                <Button className="h-13 px-8 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-base shadow-lg shadow-[var(--primary)]/20 transition-all hover:shadow-xl">
                                     Create your first payslip <ArrowRight className="h-4 w-4 ml-2" />
                                 </Button>
                             </Link>
@@ -304,13 +307,7 @@ function HowItWorks() {
                     ))}
                 </div>
 
-                <div className="text-center mt-10">
-                    <Link href="/dashboard">
-                        <Button className="h-11 px-6 rounded-xl bg-[var(--[var(--primary)],#16a34a)] hover:bg-[var(--primary)] text-white font-bold text-sm">
-                            Create your first payslip
-                        </Button>
-                    </Link>
-                </div>
+
             </div>
         </section>
     );
@@ -556,7 +553,7 @@ function PricingSummary() {
                     </Link>
                     <div>
                         <Link href="/dashboard">
-                            <Button className="h-11 px-6 rounded-xl bg-[var(--[var(--primary)],#16a34a)] hover:bg-[var(--primary)] text-white font-bold text-sm">
+                            <Button className="h-11 px-6 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-sm">
                                 Create your first payslip
                             </Button>
                         </Link>
@@ -591,7 +588,7 @@ function FAQAccordion() {
 
                 <div className="space-y-3">
                     {faqs.map((f, i) => (
-                        <FAQItem key={i} question={f.q} answer={f.a} showCTA={i === 3 || i === 7} />
+                        <FAQItem key={i} question={f.q} answer={f.a} />
                     ))}
                 </div>
             </div>
@@ -599,7 +596,7 @@ function FAQAccordion() {
     );
 }
 
-function FAQItem({ question, answer, showCTA }: { question: string; answer: string; showCTA?: boolean }) {
+function FAQItem({ question, answer }: { question: string; answer: string }) {
     const [open, setOpen] = React.useState(false);
     return (
         <>
@@ -618,15 +615,7 @@ function FAQItem({ question, answer, showCTA }: { question: string; answer: stri
                     </p>
                 )}
             </button>
-            {showCTA && (
-                <div className="text-center py-2">
-                    <Link href="/dashboard">
-                        <Button className="h-10 px-5 rounded-xl bg-[var(--[var(--primary)],#16a34a)] hover:bg-[var(--primary)] text-white font-bold text-sm">
-                            Create your first payslip
-                        </Button>
-                    </Link>
-                </div>
-            )}
+
         </>
     );
 }
@@ -644,7 +633,7 @@ function FinalCTA() {
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Link href="/dashboard">
-                        <Button className="h-13 px-8 rounded-xl bg-[var(--[var(--primary)],#16a34a)] hover:bg-[var(--primary)] text-white font-bold text-base shadow-lg shadow-[var(--primary)]/20">
+                        <Button className="h-13 px-8 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)] text-white font-bold text-base shadow-lg shadow-[var(--primary)]/20">
                             Create your first payslip <ArrowRight className="h-4 w-4 ml-2" />
                         </Button>
                     </Link>
@@ -695,8 +684,8 @@ function Footer() {
                     </div>
                     <div>
                         <Link href="/" className="block mb-4">
-                            <Image src="/brand/logo-light.png" alt="LekkerLedger" width={120} height={30} className="h-8 w-auto block dark:hidden" />
-                            <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={120} height={30} className="h-8 w-auto hidden dark:block" />
+                            <Image src="/brand/logo-light.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto block dark:hidden" />
+                            <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto hidden dark:block" />
                         </Link>
                         <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
                             Crafted by Nightshift Labs 🇿🇦<br />
@@ -714,31 +703,4 @@ function Footer() {
     );
 }
 
-/* ─── STICKY MOBILE CTA ──────────────────────────────────────────────────── */
-function StickyMobileCTA() {
-    const [visible, setVisible] = React.useState(false);
 
-    React.useEffect(() => {
-        const handleScroll = () => {
-            // Show after scrolling past 600px (past hero)
-            setVisible(window.scrollY > 600);
-        };
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
-
-    if (!visible) return null;
-
-    return (
-        <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden glass-panel border-t border-[var(--border)] px-4 py-3 flex items-center justify-between gap-3 safe-area-bottom">
-            <Link href="/pricing" className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-                Pricing
-            </Link>
-            <Link href="/dashboard" className="flex-1 max-w-xs">
-                <Button className="w-full h-11 rounded-xl bg-[var(--[var(--primary)],#16a34a)] hover:bg-[var(--primary)] text-white font-bold text-sm">
-                    Create your first payslip
-                </Button>
-            </Link>
-        </div>
-    );
-}

@@ -1,17 +1,8 @@
-import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, PDFFont, Color } from "pdf-lib";
 import { Employee, PayslipInput, EmployerSettings } from "./schema";
 import { calculatePayslip, getNMW } from "./calculator";
 import { format } from "date-fns";
-
-// SA amber gold in PDF colour
-const AMBER = rgb(0.77, 0.48, 0.11);
-const DARK = rgb(0.11, 0.09, 0.08);
-const SLATE = rgb(0.45, 0.40, 0.35);
-const WHITE = rgb(1, 1, 1);
-const RED = rgb(0.75, 0.22, 0.17);
-const GREEN = rgb(0.10, 0.42, 0.23);
-const LIGHT_BG = rgb(0.98, 0.97, 0.97);
-const LINE = rgb(0.88, 0.86, 0.83);
+import { PDF_COLORS, PDF_LAYOUT } from "./pdf-theme";
 
 type SupportLang = "en" | "zu" | "xh";
 
@@ -29,13 +20,13 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         grossEarnings: "GROSS EARNINGS",
         deductions: "DEDUCTIONS",
         totalDeductions: "TOTAL DEDUCTIONS",
-        uifEmployee: "UIF (Employee contribution 1%)",
-        accommodation: "Accommodation Deduction (Capped at 10%)",
-        employerContributions: "EMPLOYER CONTRIBUTIONS (For your records)",
+        uifEmployee: "UIF (Employee 1%)",
+        accommodation: "Accommodation (Capped 10%)",
+        employerContributions: "EMPLOYER CONTRIBUTIONS (Tax Records)",
         ordinaryHours: "Ordinary Hours",
-        overtime: "Overtime",
+        overtime: "Overtime (1.5x)",
         sundayPay: "Sunday Pay",
-        publicHoliday: "Public Holiday",
+        publicHoliday: "Public Holiday (2x)",
         daysWorked: "Days Worked",
         uifEmployer: "UIF Employer (1%)",
         sdlEmployer: "SDL Employer (0%)",
@@ -44,9 +35,9 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         annual: "Annual",
         sick: "Sick",
         family: "Family",
-        legalDisclaimer: "This payslip is generated in accordance with Sectoral Determination 7 and the BCEA.",
-        minWage: "Minimum wage",
-        proudlySA: "Proudly South African",
+        legalDisclaimer: "Generated per Sectoral Determination 7 and the BCEA.",
+        minWage: "Min Wage",
+        proudlySA: "South African Domestic Standard",
         legal: "LEGAL",
         compliant: "COMPLIANT",
         bcea_sd7: "BCEA/SD7"
@@ -79,7 +70,7 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         annual: "Lonyaka",
         sick: "Lokugula",
         family: "Lomndeni",
-        legalDisclaimer: "Leli siliphu seholo senziwe ngokuhambisana ne-Sectoral Determination 7 kanye ne-BCEA.",
+        legalDisclaimer: "SENZIWE ngokuhambisana ne-Sectoral Determination 7 kanye ne-BCEA.",
         minWage: "Iholo elincane",
         proudlySA: "Kwenziwe eNingizimu Afrika",
         legal: "KUMTHETHO",
@@ -114,7 +105,7 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         annual: "Yonyaka",
         sick: "Yokugula",
         family: "Yosapho",
-        legalDisclaimer: "Esi siliphu somvuzo senziwe ngokungqinelana neSectoral Determination 7 kunye neBCEA.",
+        legalDisclaimer: "SENZIWE ngokungqinelana neSectoral Determination 7 kunye neBCEA.",
         minWage: "Umvuzo ophantsi",
         proudlySA: "Yenziwe eMzantsi Afrika",
         legal: "KUSEMthethweni",
@@ -138,24 +129,27 @@ export async function generatePayslipPdfBytes(
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 portrait
     const { width, height } = page.getSize();
 
-    const regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    // Fonts: EXACT IBM Plex requirement as instructed
+    const { loadPdfFonts } = await import("./pdf-fonts");
+    const { sansRegular, sansBold, serifBold, serifRegular } = await loadPdfFonts(pdfDoc);
 
+    // Helpers
     const t = (
         text: string,
         x: number,
         y: number,
+
         opts?: {
-            font?: typeof regular;
+            font?: PDFFont;
             size?: number;
-            color?: typeof DARK;
+            color?: Color;
             align?: "left" | "right";
             maxWidth?: number;
         }
     ) => {
-        const font = opts?.font ?? regular;
-        const size = opts?.size ?? 10;
-        const color = opts?.color ?? DARK;
+        const font = opts?.font ?? sansRegular;
+        const size = opts?.size ?? 9;
+        const color = opts?.color ?? PDF_COLORS.TEXT;
 
         let displayTxt = text;
         if (opts?.maxWidth) {
@@ -176,169 +170,168 @@ export async function generatePayslipPdfBytes(
         page.drawText(displayTxt, { x: tx, y, size, font, color });
     };
 
-    const line = (y: number, x1 = 48, x2 = width - 48, thickness = 0.5) => {
-        page.drawLine({ start: { x: x1, y }, end: { x: x2, y }, thickness, color: LINE });
+    const drawLine = (y: number, x1 = PDF_LAYOUT.MARGIN, x2 = width - PDF_LAYOUT.MARGIN, thickness = 0.5, color = PDF_COLORS.BORDER) => {
+        page.drawLine({ start: { x: x1, y }, end: { x: x2, y }, thickness, color });
     };
 
-    const rect = (x: number, y: number, w: number, h: number, color: typeof DARK) => {
-        page.drawRectangle({ x, y, width: w, height: h, color });
-    };
+    // ── Civic Ledger Background (Paper) ──────────────────────────────────────
+    page.drawRectangle({ x: 0, y: 0, width, height, color: PDF_COLORS.PAPER });
 
-    // ── Header band ──────────────────────────────────────────────────────────
-    rect(0, height - 100, width, 100, DARK);
+    // ── Header (Official Stationery Look) ────────────────────────────────────
+    const headerY = height - 60;
 
-    // Logo Handling
-    let logoDrawn = false;
-    if (settings.proStatus === "pro" && settings.logoData) {
-        try {
-            const base64Data = settings.logoData.split(",")[1];
-            if (base64Data) {
-                const logoBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-                const logoImg = await pdfDoc.embedPng(logoBytes);
-                const logoDims = logoImg.scaleToFit(120, 40);
-                page.drawImage(logoImg, {
-                    x: 48,
-                    y: height - 65,
-                    width: logoDims.width,
-                    height: logoDims.height,
-                });
-                logoDrawn = true;
-            }
-        } catch (e) {
-            console.error("Failed to embed custom logo", e);
-        }
+    // Brand Mark
+    t("LekkerLedger", PDF_LAYOUT.MARGIN, headerY, { font: serifBold, size: 22 });
+    t(dict.proudlySA.toUpperCase(), PDF_LAYOUT.MARGIN, headerY - 14, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
+
+    // Document Title
+    t(dict.payslip, width - PDF_LAYOUT.MARGIN, headerY, { font: serifBold, size: 18, color: PDF_COLORS.PRIMARY_GREEN, align: "right" });
+    t(format(payslip.payPeriodEnd, "MMMM yyyy").toUpperCase(), width - PDF_LAYOUT.MARGIN, headerY - 14, { font: sansBold, size: 9, color: PDF_COLORS.TEXT, align: "right" });
+
+    // Header Rules (Official look)
+    drawLine(headerY - 30, PDF_LAYOUT.MARGIN, width - PDF_LAYOUT.MARGIN, 1.5, PDF_COLORS.PRIMARY_GREEN);
+
+    // ── Parties Section (Ledger Card Motif) ──────────────────────────────────
+    let cy = headerY - 60;
+
+    // Card Surface
+    const cardH = 80;
+    page.drawRectangle({
+        x: PDF_LAYOUT.MARGIN,
+        y: cy - cardH,
+        width: width - (PDF_LAYOUT.MARGIN * 2),
+        height: cardH,
+        color: PDF_COLORS.SURFACE,
+        borderColor: PDF_COLORS.BORDER,
+        borderWidth: 0.5
+    });
+
+    // Ledger Motif: Subtle ruling lines inside the card
+    for (let ly = cy - 20; ly > cy - cardH; ly -= 20) {
+        page.drawLine({
+            start: { x: PDF_LAYOUT.MARGIN + 5, y: ly },
+            end: { x: width - PDF_LAYOUT.MARGIN - 5, y: ly },
+            thickness: 0.2,
+            color: PDF_COLORS.RULING_LINE
+        });
     }
 
-    if (!logoDrawn) {
-        t("LekkerLedger", 48, height - 46, { font: bold, size: 24, color: WHITE });
-    }
+    // Employer Details
+    t(dict.employer, PDF_LAYOUT.MARGIN + 10, cy - 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
+    t(settings.employerName || "Employer Name Not Set", PDF_LAYOUT.MARGIN + 10, cy - 30, { font: sansBold, size: 10, maxWidth: 220 });
+    t(settings.employerAddress || "Address Not Set", PDF_LAYOUT.MARGIN + 10, cy - 42, { font: sansRegular, size: 7.5, color: PDF_COLORS.TEXT_MUTED, maxWidth: 220 });
 
-    t(settings.employerName || "Employer Name Not Set", 48, height - 74, { font: bold, size: 10, color: rgb(0.8, 0.75, 0.7), maxWidth: 280 });
-    t(settings.employerAddress || "Address Not Set", 48, height - 86, { font: regular, size: 7.5, color: rgb(0.6, 0.55, 0.5), maxWidth: 280 });
+    // Employee Details
+    t(dict.employee, width / 2, cy - 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
+    t(employee.name, width / 2, cy - 30, { font: sansBold, size: 10 });
+    t(employee.role, width / 2, cy - 42, { font: sansRegular, size: 8, color: PDF_COLORS.TEXT_MUTED });
 
-    t(dict.payslip, width - 48, height - 46, { font: bold, size: 20, color: AMBER, align: "right" });
-    t(format(payslip.payPeriodEnd, "MMMM yyyy").toUpperCase(), width - 48, height - 70, { font: bold, size: 10, color: WHITE, align: "right" });
+    // Period Details
+    t(dict.payPeriod, width - PDF_LAYOUT.MARGIN - 10, cy - 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    const periodStr = `${format(new Date(payslip.payPeriodStart), "dd MMM")} – ${format(new Date(payslip.payPeriodEnd), "dd MMM yyyy")}`;
+    t(periodStr, width - PDF_LAYOUT.MARGIN - 10, cy - 30, { font: sansRegular, size: 9, align: "right" });
+    t(`${dict.daysWorked}: ${payslip.daysWorked}`, width - PDF_LAYOUT.MARGIN - 10, cy - 42, { font: sansRegular, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
-    // ── Amber accent bar ─────────────────────────────────────────────────────
-    rect(0, height - 104, width, 4, AMBER);
-
-    // ── User Information ─────────────────────────────────────────────────────
-    const infoY = height - 140;
-
-    // Employee Box
-    t(dict.employee, 48, infoY, { font: bold, size: 8, color: SLATE });
-    t(employee.name, 48, infoY - 18, { font: bold, size: 14 });
-    t(employee.role, 48, infoY - 32, { font: regular, size: 9, color: SLATE });
-    if (employee.idNumber) {
-        t(`ID: ${employee.idNumber}`, 48, infoY - 44, { font: regular, size: 8, color: SLATE });
-    }
-
-    // Period Box
-    t(dict.payPeriod, width - 180, infoY, { font: bold, size: 8, color: SLATE });
-    t(`${format(payslip.payPeriodStart, "dd MMM")} – ${format(payslip.payPeriodEnd, "dd MMM yyyy")}`, width - 180, infoY - 18, { font: regular, size: 10 });
-    t(`${dict.daysWorked}: ${payslip.daysWorked}`, width - 180, infoY - 32, { font: regular, size: 9, color: SLATE });
-
-    line(height - 200);
+    cy -= (cardH + 30);
 
     // ── Earnings Table ───────────────────────────────────────────────────────
-    let cy = height - 220;
-    t(dict.description, 48, cy, { font: bold, size: 8, color: SLATE });
-    t(dict.hours, width - 150, cy, { font: bold, size: 8, color: SLATE, align: "right" });
-    t(dict.rate, width - 100, cy, { font: bold, size: 8, color: SLATE, align: "right" });
-    t(dict.total, width - 48, cy, { font: bold, size: 8, color: SLATE, align: "right" });
+    t(dict.description, PDF_LAYOUT.MARGIN, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
+    t(dict.hours, width - 150, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    t(dict.rate, width - 100, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    t(dict.total, width - PDF_LAYOUT.MARGIN, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
+    drawLine(cy - 6);
     cy -= 20;
 
-    // Ordinary
-    t(dict.ordinaryHours, 48, cy, { size: 10 });
-    t(breakdown.effectiveOrdinaryHours.toString(), width - 150, cy, { size: 10, align: "right" });
-    t(`R ${payslip.hourlyRate.toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
-    t(`R ${breakdown.ordinaryPay.toFixed(2)}`, width - 48, cy, { font: bold, size: 10, align: "right" });
-    cy -= 18;
-
-    // Overtime
-    if (payslip.overtimeHours > 0) {
-        t(`${dict.overtime} (1.5x)`, 48, cy, { size: 10 });
-        t(payslip.overtimeHours.toString(), width - 150, cy, { size: 10, align: "right" });
-        t(`R ${(payslip.hourlyRate * 1.5).toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
-        t(`R ${breakdown.overtimePay.toFixed(2)}`, width - 48, cy, { size: 10, align: "right" });
+    const renderRow = (label: string, hours: string, rate: string, total: string, isBold = false) => {
+        t(label, PDF_LAYOUT.MARGIN, cy, { font: isBold ? sansBold : sansRegular, size: 9 });
+        t(hours, width - 150, cy, { font: sansRegular, size: 9, align: "right" });
+        t(rate, width - 100, cy, { font: sansRegular, size: 9, align: "right" });
+        t(total, width - PDF_LAYOUT.MARGIN, cy, { font: sansBold, size: 9, align: "right" });
         cy -= 18;
-    }
+    };
 
-    // Sunday
+    renderRow(dict.ordinaryHours, breakdown.effectiveOrdinaryHours.toString(), `R ${payslip.hourlyRate.toFixed(2)}`, `R ${breakdown.ordinaryPay.toFixed(2)}`);
+
+    if (payslip.overtimeHours > 0) {
+        renderRow(`${dict.overtime}`, payslip.overtimeHours.toString(), `R ${(payslip.hourlyRate * 1.5).toFixed(2)}`, `R ${breakdown.overtimePay.toFixed(2)}`);
+    }
     if (payslip.sundayHours > 0) {
         const mult = employee.ordinarilyWorksSundays ? 1.5 : 2.0;
-        t(`${dict.sundayPay} (${mult}x)`, 48, cy, { size: 10 });
-        t(payslip.sundayHours.toString(), width - 150, cy, { size: 10, align: "right" });
-        t(`R ${(payslip.hourlyRate * mult).toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
-        t(`R ${breakdown.sundayPay.toFixed(2)}`, width - 48, cy, { size: 10, align: "right" });
-        cy -= 18;
+        renderRow(`${dict.sundayPay} (${mult}x)`, payslip.sundayHours.toString(), `R ${(payslip.hourlyRate * mult).toFixed(2)}`, `R ${breakdown.sundayPay.toFixed(2)}`);
     }
-
-    // Holiday
     if (payslip.publicHolidayHours > 0) {
-        t(`${dict.publicHoliday} (2x)`, 48, cy, { size: 10 });
-        t(payslip.publicHolidayHours.toString(), width - 150, cy, { size: 10, align: "right" });
-        t(`R ${(payslip.hourlyRate * 2).toFixed(2)}`, width - 100, cy, { size: 10, align: "right" });
-        t(`R ${breakdown.publicHolidayPay.toFixed(2)}`, width - 48, cy, { size: 10, align: "right" });
-        cy -= 18;
+        renderRow(`${dict.publicHoliday}`, payslip.publicHolidayHours.toString(), `R ${(payslip.hourlyRate * 2).toFixed(2)}`, `R ${breakdown.publicHolidayPay.toFixed(2)}`);
     }
 
-    line(cy + 5);
+    drawLine(cy + 5);
     cy -= 15;
-    t(dict.grossEarnings, 48, cy, { font: bold, size: 10 });
-    t(`R ${breakdown.grossPay.toFixed(2)}`, width - 48, cy, { font: bold, size: 12, align: "right" });
+    t(dict.grossEarnings, PDF_LAYOUT.MARGIN, cy, { font: serifBold, size: 10 });
+    t(`R ${breakdown.grossPay.toFixed(2)}`, width - PDF_LAYOUT.MARGIN, cy, { font: serifBold, size: 11, align: "right" });
 
-    // ── Deductions Table ─────────────────────────────────────────────────────
-    cy -= 40;
-    t(dict.deductions, 48, cy, { font: bold, size: 8, color: SLATE });
+    // ── Deductions ───────────────────────────────────────────────────────────
+    cy -= 35;
+    t(dict.deductions, PDF_LAYOUT.MARGIN, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
+    drawLine(cy - 6);
     cy -= 20;
 
-    // UIF
-    t(dict.uifEmployee, 48, cy, { size: 9, color: SLATE });
-    t(`- R ${breakdown.deductions.uifEmployee.toFixed(2)}`, width - 48, cy, { size: 9, align: "right", color: RED });
+    t(dict.uifEmployee, PDF_LAYOUT.MARGIN, cy, { size: 9, color: PDF_COLORS.TEXT_MUTED });
+    t(`- R ${breakdown.deductions.uifEmployee.toFixed(2)}`, width - PDF_LAYOUT.MARGIN, cy, { size: 9, align: "right", color: PDF_COLORS.DANGER });
     cy -= 18;
 
-    // Accommodation
     if (payslip.includeAccommodation && breakdown.deductions.accommodation) {
-        t(dict.accommodation, 48, cy, { size: 9, color: SLATE });
-        t(`- R ${breakdown.deductions.accommodation.toFixed(2)}`, width - 48, cy, { size: 9, align: "right", color: RED });
+        t(dict.accommodation, PDF_LAYOUT.MARGIN, cy, { size: 9, color: PDF_COLORS.TEXT_MUTED });
+        t(`- R ${breakdown.deductions.accommodation.toFixed(2)}`, width - PDF_LAYOUT.MARGIN, cy, { size: 9, align: "right", color: PDF_COLORS.DANGER });
         cy -= 18;
     }
 
-    line(cy + 5);
+    drawLine(cy + 5);
     cy -= 15;
-    t(dict.totalDeductions, 48, cy, { font: bold, size: 9, color: SLATE });
-    t(`R ${breakdown.deductions.total.toFixed(2)}`, width - 48, cy, { font: bold, size: 9, align: "right" });
+    t(dict.totalDeductions, PDF_LAYOUT.MARGIN, cy, { font: sansBold, size: 9, color: PDF_COLORS.TEXT_MUTED });
+    t(`R ${breakdown.deductions.total.toFixed(2)}`, width - PDF_LAYOUT.MARGIN, cy, { font: sansBold, size: 9, align: "right" });
 
-    // ── Net Pay Block ────────────────────────────────────────────────────────
+    // ── Net Pay (Primary CTA Green Block) ────────────────────────────────────
     cy -= 50;
-    rect(48, cy, width - 96, 50, AMBER);
-    t(dict.netPayable, 64, cy + 18, { font: bold, size: 12, color: WHITE });
-    t(`R ${breakdown.netPay.toFixed(2)}`, width - 64, cy + 15, { font: bold, size: 22, color: WHITE, align: "right" });
+    const netPayH = 50;
+    page.drawRectangle({
+        x: PDF_LAYOUT.MARGIN,
+        y: cy,
+        width: width - (PDF_LAYOUT.MARGIN * 2),
+        height: netPayH,
+        color: PDF_COLORS.PRIMARY_GREEN,
+    });
 
-    // ── Compliance Footer ────────────────────────────────────────────────────
-    const footerY = 80;
-    line(footerY + 20);
+    t(dict.netPayable, PDF_LAYOUT.MARGIN + 16, cy + 18, { font: serifBold, size: 12, color: rgb(1, 1, 1) });
+    t(`R ${breakdown.netPay.toFixed(2)}`, width - PDF_LAYOUT.MARGIN - 16, cy + 15, { font: serifBold, size: 22, color: rgb(1, 1, 1), align: "right" });
 
-    t(dict.employerContributions, 48, footerY, { font: bold, size: 7, color: SLATE });
-    t(`${dict.uifEmployer}: R ${breakdown.employerContributions.uifEmployer.toFixed(2)}`, 48, footerY - 12, { size: 7, color: SLATE });
-    t(`${dict.sdlEmployer}: R 0.00 (${dict.exempt})`, 48, footerY - 20, { size: 7, color: SLATE });
+    // ── Footer (Official Rules & Seal) ───────────────────────────────────────
+    const footerY = 70;
+    drawLine(footerY + 30);
+
+    t(dict.employerContributions, PDF_LAYOUT.MARGIN, footerY + 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
+    t(`${dict.uifEmployer}: R ${breakdown.employerContributions.uifEmployer.toFixed(2)} · ${dict.sdlEmployer}: R 0.00`, PDF_LAYOUT.MARGIN, footerY + 5, { size: 7, color: PDF_COLORS.TEXT_MUTED });
 
     const leaveText = `${dict.leaveRecorded}: ${dict.annual}: ${breakdown.leaveTaken.annual}d | ${dict.sick}: ${breakdown.leaveTaken.sick}d | ${dict.family}: ${breakdown.leaveTaken.family}d`;
-    t(leaveText, width - 48, footerY, { size: 7, color: SLATE, align: "right" });
+    t(leaveText, width - PDF_LAYOUT.MARGIN, footerY + 15, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
     const legalText = `${dict.legalDisclaimer} ${dict.minWage}: R${nmw.toFixed(2)}/hr.`;
-    t(legalText, 48, 40, { size: 7, color: SLATE });
-    t(`${dict.proudlySA} · LekkerLedger.app`, width - 48, 40, { size: 7, color: SLATE, align: "right" });
+    t(legalText, PDF_LAYOUT.MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED });
+    t("LekkerLedger.app · Civic Ledger Design", width - PDF_LAYOUT.MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
-    // ── Compliance Seal ──
-    const sealX = width - 100;
-    const sealY = 100;
-    page.drawCircle({ x: sealX, y: sealY, size: 30, color: rgb(0.95, 0.95, 0.95), borderColor: AMBER, borderWidth: 1 });
-    t(dict.legal, sealX, sealY + 8, { font: bold, size: 7, color: AMBER, align: "right" });
-    t(dict.compliant, sealX, sealY - 2, { font: bold, size: 5, color: SLATE, align: "right" });
-    t(dict.bcea_sd7, sealX, sealY - 10, { font: bold, size: 5, color: SLATE, align: "right" });
+    // ── Compliance Seal (Stamp Motif) ────────────────────────────────────────
+    const sealX = width - 85;
+    const sealY = 95;
+    page.drawCircle({
+        x: sealX,
+        y: sealY,
+        size: 30,
+        color: PDF_COLORS.SURFACE,
+        borderColor: PDF_COLORS.FOCUS_GOLD,
+        borderWidth: 1.5
+    });
+    t(dict.legal, sealX, sealY + 8, { font: sansBold, size: 7, color: PDF_COLORS.FOCUS_GOLD, align: "right" });
+    t(dict.compliant, sealX, sealY - 2, { font: sansBold, size: 5, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    t(dict.bcea_sd7, sealX, sealY - 10, { font: sansBold, size: 5, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
     return pdfDoc.save();
 }

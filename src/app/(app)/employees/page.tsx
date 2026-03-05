@@ -39,15 +39,6 @@ export default function EmployeesPage() {
             <PageHeader
                 title="Employees"
                 subtitle="Manage your household team and compliance records"
-                actions={
-                    employees.length > 0 && (
-                        <Link href="/employees/new">
-                            <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
-                                <UserPlus className="h-4 w-4" /> Add Employee
-                            </Button>
-                        </Link>
-                    )
-                }
             />
 
             <div className="ultrawide-grid grid-cols-12-desktop gap-6 space-y-6 lg:space-y-0">
@@ -74,9 +65,9 @@ export default function EmployeesPage() {
                                             <div className="h-10 w-10 rounded-full bg-[var(--amber-100)] flex items-center justify-center text-xs font-black text-[var(--amber-700)]">
                                                 {emp.name.substring(0, 2).toUpperCase()}
                                             </div>
-                                            <div>
-                                                <p className="type-body-bold text-[var(--text)]">{emp.name}</p>
-                                                <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider">{emp.role || "Domestic Worker"}</p>
+                                            <div className="flex flex-col text-left">
+                                                <div className="type-body-bold text-[var(--text)] leading-tight block">{emp.name}</div>
+                                                <div className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider mt-0.5 block">{emp.role || "Domestic Worker"}</div>
                                             </div>
                                         </div>
                                     )

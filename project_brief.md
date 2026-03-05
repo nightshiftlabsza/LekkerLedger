@@ -16,13 +16,16 @@ They want: speed, confidence, and a document that looks official (not an ugly sp
 “Create a compliant payslip in under 90 seconds on a phone.”
 
 ## 4) Design philosophy (do not improvise)
+**CRITICAL AGENT INSTRUCTION:** You MUST read and strictly follow `civicledger.md` located in the root directory for ALL UI, architecture, and feature changes. It contains the exact "Civic Ledger" color tokens, typography rules, and mandatory UI constraints from the audits. DO NOT IMPROVISE YOUR OWN COLORS OR DESIGN PATTERNS.
+
 The UI must feel like a modern consumer product — “Uber/Airbnb-level” simplicity applied to household admin. :contentReference[oaicite:9]{index=9}
 
 Rules:
+- Strictly adhere to `civicledger.md` for all visual and structural decisions
 - Mobile-first
 - Big tap targets
 - Clear hierarchy
-- Calm, trustworthy look
+- Calm, trustworthy look ("official document" aesthetic)
 - Friendly but firm error messages (especially minimum wage)
 
 ## 5) Architecture philosophy (privacy + simplicity)

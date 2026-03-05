@@ -192,23 +192,25 @@ export default function PayPeriodWorkspacePage() {
 
     if (loading) {
         return (
-            <>
+            <div className="w-full max-w-5xl mx-auto space-y-6 pb-20">
                 <PageHeader title="Loading..." />
                 <CardSkeleton />
                 <CardSkeleton />
-            </>
+            </div>
         );
     }
 
     if (!period) {
         return (
-            <EmptyState
-                title="Pay period not found"
-                description="This pay period may have been deleted."
-                icon={AlertCircle}
-                actionLabel="Go to Payroll"
-                actionHref="/payroll"
-            />
+            <div className="w-full max-w-5xl mx-auto">
+                <EmptyState
+                    title="Pay period not found"
+                    description="This pay period may have been deleted."
+                    icon={AlertCircle}
+                    actionLabel="Go to Payroll"
+                    actionHref="/payroll"
+                />
+            </div>
         );
     }
 
@@ -226,7 +228,7 @@ export default function PayPeriodWorkspacePage() {
     ];
 
     return (
-        <>
+        <div className="w-full max-w-5xl mx-auto space-y-6 pb-20">
             <PageHeader
                 title={period.name}
                 subtitle={`${format(new Date(period.startDate), "d MMM")} — ${format(new Date(period.endDate), "d MMM yyyy")}`}
@@ -527,6 +529,6 @@ export default function PayPeriodWorkspacePage() {
                     </CardContent>
                 </Card>
             )}
-        </>
+        </div>
     );
 }

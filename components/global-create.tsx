@@ -2,28 +2,51 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, UserPlus, Banknote } from "lucide-react";
 import { Button } from "./ui/button";
 
 export function GlobalCreateFAB() {
+    const [open, setOpen] = React.useState(false);
+
     return (
-        <div className="relative group/fab lg:hidden">
+        <div className="relative lg:hidden">
+            {/* Overlay for closing when open */}
+            {open && (
+                <div
+                    className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-30 animate-in fade-in transition-all"
+                    onClick={() => setOpen(false)}
+                />
+            )}
+
             <Button
-                className="fixed bottom-20 right-4 h-[56px] w-[56px] justify-center rounded-2xl bg-[var(--primary)] text-white shadow-lg hover:bg-[var(--primary-hover)] hover:scale-105 transition-all z-40 p-0 flex flex-col items-center font-bold"
+                onClick={() => setOpen(!open)}
+                className={`fixed bottom-20 right-4 h-[56px] w-[56px] justify-center rounded-2xl bg-[var(--primary)] text-white shadow-lg hover:bg-[var(--primary-hover)] transition-all z-40 p-0 flex flex-col items-center font-bold ${open ? 'rotate-45 bg-[var(--text)]' : ''}`}
                 aria-label="Create new"
             >
                 <Plus className="h-6 w-6" />
             </Button>
-            !
-            {/* Expanded actions on hover/focus */}
-            <div className="fixed bottom-36 right-4 flex flex-col items-end gap-3 opacity-0 invisible group-hover/fab:opacity-100 group-hover/fab:visible group-focus-within/fab:opacity-100 group-focus-within/fab:visible transition-all translate-y-2 group-hover/fab:translate-y-0 z-40">
-                <Link href="/payroll" className="flex items-center gap-3 active:scale-95 transition-transform">
-                    <span className="bg-black/70 text-white text-xs font-bold px-2 py-1 rounded shadow backdrop-blur-sm">Start Pay Period</span>
-                    <div className="h-10 w-10 bg-white dark:bg-zinc-800 rounded-full shadow-lg flex items-center justify-center text-[var(--primary)] border border-[var(--border)]"><Plus className="h-5 w-5" /></div>
+
+            {/* Expanded actions */}
+            <div className={`fixed bottom-[136px] right-4 flex flex-col items-end gap-3 transition-all z-40 ${open ? 'opacity-100 translate-y-0 visible' : 'opacity-0 translate-y-4 invisible'}`}>
+                <Link
+                    href="/payroll"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 active:scale-95 transition-transform"
+                >
+                    <span className="bg-[var(--bg-elevated)] text-[var(--text)] text-[11px] font-bold tracking-wide px-3 py-2 rounded-xl shadow-xl border border-[var(--border)]">Start Pay Period</span>
+                    <div className="h-12 w-12 bg-[var(--surface-1)] rounded-2xl shadow-xl flex items-center justify-center text-[var(--primary)] border border-[var(--border)]">
+                        <Banknote className="h-5 w-5" />
+                    </div>
                 </Link>
-                <Link href="/employees/new" className="flex items-center gap-3 active:scale-95 transition-transform">
-                    <span className="bg-black/70 text-white text-xs font-bold px-2 py-1 rounded shadow backdrop-blur-sm">Add Employee</span>
-                    <div className="h-10 w-10 bg-white dark:bg-zinc-800 rounded-full shadow-lg flex items-center justify-center text-[var(--primary)] border border-[var(--border)]"><Plus className="h-5 w-5" /></div>
+                <Link
+                    href="/employees/new"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 active:scale-95 transition-transform"
+                >
+                    <span className="bg-[var(--bg-elevated)] text-[var(--text)] text-[11px] font-bold tracking-wide px-3 py-2 rounded-xl shadow-xl border border-[var(--border)]">Add Employee</span>
+                    <div className="h-12 w-12 bg-[var(--surface-1)] rounded-2xl shadow-xl flex items-center justify-center text-[var(--primary)] border border-[var(--border)]">
+                        <UserPlus className="h-5 w-5" />
+                    </div>
                 </Link>
             </div>
         </div>
@@ -39,7 +62,7 @@ export function GlobalCreateDesktop() {
             </Button>
 
             {/* Dropdown Menu */}
-            <div className="absolute top-full right-0 mt-1 w-48 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl shadow-xl opacity-0 invisible group-focus-within/create:opacity-100 group-focus-within/create:visible group-hover/create:opacity-100 group-hover/create:visible transition-all z-50 overflow-hidden flex flex-col">
+            <div className="absolute top-full right-0 mt-1 w-48 bg-[var(--surface-1)] border border-[var(--border)] rounded-xl shadow-xl opacity-0 invisible group-focus-within/create:opacity-100 group-focus-within/create:visible group-hover/create:opacity-100 group-hover/create:visible transition-all z-50 overflow-hidden flex flex-col">
                 <div className="p-1 flex flex-col text-sm font-medium">
                     <Link href="/payroll" className="px-3 py-2 rounded-lg hover:bg-[var(--surface-2)] transition-colors flex items-center gap-2">
                         Start Pay Period

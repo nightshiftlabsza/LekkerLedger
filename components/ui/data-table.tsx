@@ -74,7 +74,7 @@ export function DataTable<T>({
                                 <th
                                     key={col.key}
                                     className={`px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ${col.align === "right" ? "text-right"
-                                            : col.align === "center" ? "text-center" : "text-left"
+                                        : col.align === "center" ? "text-center" : "text-left"
                                         } ${col.sortable ? "cursor-pointer select-none hover:text-[var(--text)]" : ""} ${col.className ?? ""}`}
                                     onClick={() => col.sortable && handleSort(col.key)}
                                 >
@@ -101,7 +101,7 @@ export function DataTable<T>({
                                     <td
                                         key={col.key}
                                         className={`px-4 py-3.5 text-[var(--text)] ${col.align === "right" ? "text-right"
-                                                : col.align === "center" ? "text-center" : "text-left"
+                                            : col.align === "center" ? "text-center" : "text-left"
                                             } ${col.className ?? ""}`}
                                     >
                                         {col.render(item)}
@@ -123,9 +123,11 @@ export function DataTable<T>({
                                 onClick={() => onRowClick?.(item)}
                             >
                                 {columns.map(col => (
-                                    <div key={col.key} className="flex items-center justify-between gap-2">
-                                        <span className="type-overline text-[var(--text-muted)]">{col.label}</span>
-                                        <span className="text-sm font-medium text-[var(--text)]">{col.render(item)}</span>
+                                    <div key={col.key} className="flex items-start justify-between gap-4 py-1 border-b border-[var(--border)]/30 last:border-0">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] pt-1 shrink-0">{col.label}</span>
+                                        <div className="text-sm font-semibold text-[var(--text)] text-right flex flex-col items-end max-w-[65%]">
+                                            {col.render(item)}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

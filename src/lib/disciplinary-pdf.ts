@@ -1,17 +1,8 @@
-/**
- * BCEA-Compliant Disciplinary Templates PDF Generator
- */
-
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
 import { Employee, EmployerSettings } from "./schema";
 import { format } from "date-fns";
-
-const AMBER = rgb(0.77, 0.48, 0.11);
-const DARK = rgb(0.11, 0.09, 0.08);
-const SLATE = rgb(0.45, 0.40, 0.35);
-const WHITE = rgb(1, 1, 1);
-const LINE = rgb(0.88, 0.86, 0.83);
-const RED = rgb(0.8, 0.2, 0.2);
+import { PDF_COLORS, PDF_LAYOUT } from "./pdf-theme";
+import { loadPdfFonts } from "./pdf-fonts";
 
 export type DisciplinaryType = "verbal-warning" | "written-warning" | "final-warning" | "disciplinary-notice";
 
@@ -29,8 +20,7 @@ export interface DisciplinaryInput {
 
 export async function generateDisciplinaryPdfBytes(input: DisciplinaryInput): Promise<Uint8Array> {
     const pdfDoc = await PDFDocument.create();
-    const regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const { sansRegular, sansBold, serifBold } = await loadPdfFonts(pdfDoc);
 
     const MARGIN = 56;
     const PAGE_W = 595.28;
@@ -38,22 +28,26 @@ export async function generateDisciplinaryPdfBytes(input: DisciplinaryInput): Pr
     const LINE_H = 16;
 
     let page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+    // Civic Ledger Background
+    page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: PDF_COLORS.PAPER });
+
     let cy = PAGE_H - MARGIN;
 
     function checkPage(needed: number) {
         if (cy - needed < MARGIN + 40) {
             page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+            page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: PDF_COLORS.PAPER });
             cy = PAGE_H - MARGIN;
         }
     }
 
-    function heading(text: string, color = AMBER) {
+    function heading(text: string) {
         checkPage(40);
         cy -= 10;
-        page.drawText(text.toUpperCase(), { x: MARGIN, y: cy, size: 9, font: bold, color });
-        cy -= 4;
-        page.drawLine({ start: { x: MARGIN, y: cy }, end: { x: PAGE_W - MARGIN, y: cy }, thickness: 0.5, color: LINE });
-        cy -= LINE_H;
+        page.drawRectangle({ x: MARGIN, y: cy - 6, width: PAGE_W - MARGIN * 2, height: 20, color: PDF_COLORS.SURFACE, borderColor: PDF_COLORS.BORDER, borderWidth: 0.5 });
+        page.drawLine({ start: { x: MARGIN, y: cy + 14 }, end: { x: MARGIN, y: cy - 6 }, thickness: 3, color: PDF_COLORS.PRIMARY_GREEN });
+        page.drawText(text.toUpperCase(), { x: MARGIN + 10, y: cy + 4, size: 9, font: sansBold, color: PDF_COLORS.TEXT });
+        cy -= 10;
     }
 
     function para(text: string, isBold = false) {
@@ -63,7 +57,7 @@ export async function generateDisciplinaryPdfBytes(input: DisciplinaryInput): Pr
         for (const word of words) {
             if ((line + " " + word).length > maxChars && line.length > 0) {
                 checkPage(LINE_H);
-                page.drawText(line, { x: MARGIN, y: cy, size: 9.5, font: isBold ? bold : regular, color: DARK });
+                page.drawText(line, { x: MARGIN, y: cy, size: 9, font: isBold ? sansBold : sansRegular, color: PDF_COLORS.TEXT });
                 cy -= LINE_H;
                 line = word;
             } else {
@@ -72,7 +66,7 @@ export async function generateDisciplinaryPdfBytes(input: DisciplinaryInput): Pr
         }
         if (line) {
             checkPage(LINE_H);
-            page.drawText(line, { x: MARGIN, y: cy, size: 9.5, font: isBold ? bold : regular, color: DARK });
+            page.drawText(line, { x: MARGIN, y: cy, size: 9, font: isBold ? sansBold : sansRegular, color: PDF_COLORS.TEXT });
             cy -= LINE_H;
         }
         cy -= 4;
@@ -80,8 +74,9 @@ export async function generateDisciplinaryPdfBytes(input: DisciplinaryInput): Pr
 
     function field(label: string, value: string) {
         checkPage(LINE_H);
-        page.drawText(label + ":", { x: MARGIN, y: cy, size: 9, font: bold, color: SLATE });
-        page.drawText(value || "(Not set)", { x: MARGIN + 160, y: cy, size: 9.5, font: regular, color: DARK });
+        page.drawText(label + ":", { x: MARGIN, y: cy, size: 9, font: sansBold, color: PDF_COLORS.TEXT_MUTED });
+        page.drawText(value || "(Not set)", { x: MARGIN + 160, y: cy, size: 9, font: sansRegular, color: PDF_COLORS.TEXT });
+        page.drawLine({ start: { x: MARGIN, y: cy - 5 }, end: { x: PAGE_W - MARGIN, y: cy - 5 }, thickness: 0.2, color: PDF_COLORS.RULING_LINE });
         cy -= LINE_H + 2;
     }
 
@@ -93,49 +88,69 @@ export async function generateDisciplinaryPdfBytes(input: DisciplinaryInput): Pr
     };
 
     // Header
-    const headerColor = input.type === "final-warning" ? RED : DARK;
-    page.drawRectangle({ x: 0, y: PAGE_H - 80, width: PAGE_W, height: 80, color: headerColor });
-    page.drawRectangle({ x: 0, y: PAGE_H - 84, width: PAGE_W, height: 4, color: AMBER });
-    page.drawText(titles[input.type], { x: MARGIN, y: PAGE_H - 38, size: 18, font: bold, color: WHITE });
+    page.drawText("LekkerLedger", { x: MARGIN, y: PAGE_H - 60, size: 22, font: serifBold, color: PDF_COLORS.TEXT });
+
+    const titleColor = input.type === "final-warning" ? PDF_COLORS.DANGER : PDF_COLORS.PRIMARY_GREEN;
+    page.drawText(titles[input.type], {
+        x: PAGE_W - MARGIN - serifBold.widthOfTextAtSize(titles[input.type], 16),
+        y: PAGE_H - 60,
+        size: 16, font: serifBold, color: titleColor
+    });
+
+    page.drawLine({ start: { x: MARGIN, y: PAGE_H - 80 }, end: { x: PAGE_W - MARGIN, y: PAGE_H - 80 }, thickness: 1.5, color: titleColor });
 
     cy = PAGE_H - 110;
 
-    heading("1. Employee & Employer Details");
-    field("Employer", input.employer.employerName);
+    heading("1. EMPLOYEE & EMPLOYER DETAILS");
+    cy -= 10;
+    field("Employer", input.employer.employerName || "N/A");
     field("Employee", input.employee.name);
     field("Date Issued", format(new Date(input.date), "d MMMM yyyy"));
+    cy -= 10;
 
     if (input.type === "disciplinary-notice") {
-        heading("2. Notice of Inquiry");
+        heading("2. NOTICE OF INQUIRY");
+        cy -= 10;
         para("You are hereby notified to attend a disciplinary inquiry to be held as follows:");
         field("Date", input.hearingDate || "TBA");
         field("Time", input.hearingTime || "TBA");
         field("Venue", "Place of Employment");
+        cy -= 10;
 
-        heading("3. Nature of Allegations");
+        heading("3. NATURE OF ALLEGATIONS");
+        cy -= 10;
         para(input.offence, true);
         para(input.details);
+        cy -= 10;
 
-        heading("4. Your Rights");
+        heading("4. YOUR RIGHTS");
+        cy -= 10;
         para("- The right to be represented by a fellow employee.");
         para("- The right to an interpreter (if required).");
         para("- The right to call witnesses and to cross-examine employer witnesses.");
         para("- The right to an impartial chairperson.");
     } else {
-        heading("2. Nature of Warning");
+        heading("2. NATURE OF WARNING");
+        cy -= 10;
         para(`Type: ${titles[input.type]}`, true);
+        cy -= 10;
 
-        heading("3. Incident Details");
+        heading("3. INCIDENT DETAILS");
+        cy -= 10;
         field("Subject / Offence", input.offence);
         para("Details of incident/conduct:", true);
         para(input.details);
+        cy -= 10;
 
         if (input.actionRequired) {
-            heading("4. Required Corrective Action");
+            heading("4. REQUIRED CORRECTIVE ACTION");
+            cy -= 10;
             para(input.actionRequired);
+            cy -= 10;
         }
 
-        heading("5. Validity Period");
+        heading("5. VALIDITY PERIOD");
+        cy -= 10;
         para(`This warning will remain valid for a period of ${input.type === "final-warning" ? "6" : "3"} months from the date of issue.`);
     }
 
@@ -144,19 +159,25 @@ export async function generateDisciplinaryPdfBytes(input: DisciplinaryInput): Pr
     checkPage(100);
     const sigW = 180;
 
-    page.drawLine({ start: { x: MARGIN, y: cy }, end: { x: MARGIN + sigW, y: cy }, thickness: 0.5, color: SLATE });
-    page.drawText("Employer Signature", { x: MARGIN, y: cy - 12, size: 7, font: regular, color: SLATE });
+    page.drawLine({ start: { x: MARGIN, y: cy }, end: { x: MARGIN + sigW, y: cy }, thickness: 0.5, color: PDF_COLORS.TEXT });
+    page.drawText("Employer Signature", { x: MARGIN, y: cy - 14, size: 8, font: sansBold, color: PDF_COLORS.TEXT_MUTED });
+    page.drawText(input.employer.employerName || "Employer", { x: MARGIN, y: cy - 26, size: 8, font: sansRegular, color: PDF_COLORS.TEXT });
 
-    page.drawLine({ start: { x: PAGE_W - MARGIN - sigW, y: cy }, end: { x: PAGE_W - MARGIN, y: cy }, thickness: 0.5, color: SLATE });
-    page.drawText("Employee Signature", { x: PAGE_W - MARGIN - sigW, y: cy - 12, size: 7, font: regular, color: SLATE });
-    page.drawText("(Acknowledgement of receipt only)", { x: PAGE_W - MARGIN - sigW, y: cy - 20, size: 6, font: regular, color: SLATE });
+    page.drawLine({ start: { x: PAGE_W - MARGIN - sigW, y: cy }, end: { x: PAGE_W - MARGIN, y: cy }, thickness: 0.5, color: PDF_COLORS.TEXT });
+    page.drawText("Employee Signature", { x: PAGE_W - MARGIN - sigW, y: cy - 14, size: 8, font: sansBold, color: PDF_COLORS.TEXT_MUTED });
+    page.drawText(input.employee.name, { x: PAGE_W - MARGIN - sigW, y: cy - 26, size: 8, font: sansRegular, color: PDF_COLORS.TEXT });
+    page.drawText("(Acknowledgement of receipt only)", { x: PAGE_W - MARGIN - sigW, y: cy - 36, size: 7, font: sansRegular, color: PDF_COLORS.TEXT_MUTED });
 
     // Footer & Seal
-    const sealX = PAGE_W - 80;
-    const sealY = 60;
-    page.drawCircle({ x: sealX, y: sealY, size: 30, color: rgb(0.95, 0.95, 0.95), borderColor: AMBER, borderWidth: 1 });
-    page.drawText("LEGAL", { x: sealX - 10, y: sealY + 6, size: 7, font: bold, color: AMBER });
-    page.drawText("COMPLIANCE", { x: sealX - 16, y: sealY - 6, size: 5, font: bold, color: SLATE });
+    const sealX = PAGE_W / 2;
+    const sealY = 95;
+    page.drawCircle({ x: sealX, y: sealY, size: 28, color: PDF_COLORS.SURFACE, borderColor: PDF_COLORS.FOCUS_GOLD, borderWidth: 1.5 });
+    page.drawText("LEGAL", { x: sealX - sansBold.widthOfTextAtSize("LEGAL", 7) / 2, y: sealY + 5, size: 7, font: sansBold, color: PDF_COLORS.FOCUS_GOLD });
+    page.drawText("COMPLIANCE", { x: sealX - sansRegular.widthOfTextAtSize("COMPLIANCE", 6) / 2, y: sealY - 5, size: 6, font: sansRegular, color: PDF_COLORS.TEXT_MUTED });
+
+    page.drawLine({ start: { x: MARGIN, y: 38 }, end: { x: PAGE_W - MARGIN, y: 38 }, thickness: 0.5, color: PDF_COLORS.BORDER });
+    const footerText = "LekkerLedger.app · Civic Ledger Design · Labor Relations";
+    page.drawText(footerText, { x: PAGE_W / 2 - sansRegular.widthOfTextAtSize(footerText, 7) / 2, y: 25, size: 7, font: sansRegular, color: PDF_COLORS.TEXT_MUTED });
 
     return pdfDoc.save();
 }

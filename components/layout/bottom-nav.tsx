@@ -33,8 +33,8 @@ export function BottomNav({ onMore }: BottomNavProps) {
                             className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors ${isActive ? "text-[var(--focus)]" : "text-[var(--text-muted)]"
                                 }`}
                         >
-                            <Icon className={`h-5 w-5 ${isActive ? "fill-amber-500/10" : ""}`} />
-                            <span className="text-[10px] font-bold uppercase tracking-tight">
+                            <Icon className={`h-5 w-5 ${isActive ? "fill-[var(--focus)]/20" : ""}`} />
+                            <span className="text-[11px] font-bold uppercase tracking-tight">
                                 {item.label}
                             </span>
                         </Link>
@@ -46,7 +46,7 @@ export function BottomNav({ onMore }: BottomNavProps) {
                     className="flex flex-col items-center justify-center flex-1 h-full gap-1 text-[var(--text-muted)] transition-colors"
                 >
                     <MoreHorizontal className="h-5 w-5" />
-                    <span className="text-[10px] font-bold uppercase tracking-tight">More</span>
+                    <span className="text-[11px] font-bold uppercase tracking-tight">More</span>
                 </button>
             </div>
         </nav>

@@ -67,9 +67,9 @@ const AlertTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTM
 );
 AlertTitle.displayName = "AlertTitle";
 
-const AlertDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+const AlertDescription = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, style, ...props }, ref) => (
-        <p
+        <div
             ref={ref}
             className={["text-sm leading-relaxed", className].filter(Boolean).join(" ")}
             style={{ color: "var(--text-muted)", ...style }}

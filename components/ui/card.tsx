@@ -5,7 +5,7 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
         <div
             ref={ref}
             className={["rounded-[16px] transition-all duration-200 bg-[var(--surface-1)] border border-[var(--border)] shadow-sm", className].filter(Boolean).join(" ")}
-            style={{ boxShadow: "var(--shadow-1)", ...style }}
+            style={style}
             {...props}
         />
     )

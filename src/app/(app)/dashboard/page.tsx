@@ -129,16 +129,7 @@ export default function DashboardPage() {
 
     return (
         <>
-            <PageHeader
-                title="Dashboard"
-                actions={
-                    <Link href="/employees/new">
-                        <Button size="sm" className="gap-1.5 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]">
-                            <Plus className="h-3.5 w-3.5" /> Add Employee
-                        </Button>
-                    </Link>
-                }
-            />
+            <PageHeader title="Dashboard" />
 
             <div className="ultrawide-grid grid-cols-12-desktop gap-6 space-y-6 lg:space-y-0">
                 {/* Main Content Area */}

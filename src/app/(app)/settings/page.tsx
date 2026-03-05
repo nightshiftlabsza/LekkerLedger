@@ -94,7 +94,7 @@ function SettingsContent() {
                     <TabButton id="support" icon={HelpCircle} label="Support" activeTab={activeTab} setActiveTab={setActiveTab} />
                 </div>
             </div>
-            <p className="text-[9px] text-center text-[var(--text-muted)] font-black uppercase tracking-widest mb-6">Swipe for more tabs</p>
+            <p className="lg:hidden text-[9px] text-center text-[var(--text-muted)] font-black uppercase tracking-widest mb-6">Swipe for more tabs</p>
 
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeTab === "general" && (
@@ -404,7 +404,7 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
     const active = activeTab === id;
     return (
         <button onClick={() => setActiveTab(id)} aria-pressed={active}
-            className="flex-1 flex flex-col items-center gap-1 py-2.5 px-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-200 min-w-max"
+            className="flex flex-col items-center justify-center gap-1 py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 min-w-[80px]"
             style={{
                 backgroundColor: active ? "var(--primary)" : "transparent",
                 color: active ? "#ffffff" : "var(--text-muted)",

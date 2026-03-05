@@ -10,7 +10,7 @@ export default function RulesPage() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <header className="sticky top-0 z-30 px-4 py-4 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
+            <header className="sticky top-0 z-50 px-4 py-4 bg-[var(--surface-1)] shadow-sm border-b border-[var(--border)]">
                 <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Link href="/">
@@ -50,7 +50,7 @@ export default function RulesPage() {
                                 <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     As of 2026, the legal minimum you can pay a domestic worker is R30.23 per hour worked.
                                     <br />
-                                    <a href="https://www.gov.za/documents/notices/national-minimum-wage-act-national-minimum-wage-9-jan-2025" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: Dept. of Employment & Labour (2026)</a>
+                                    <a href="https://www.gov.za/documents/notices/national-minimum-wage-act-national-minimum-wage-9-jan-2025" target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:opacity-80 underline text-xs mt-2 block">Source: Dept. of Employment & Labour (2026)</a>
                                 </p>
                             </div>
                         </div>
@@ -82,7 +82,7 @@ export default function RulesPage() {
                                 <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     If your employee works <strong>more than 24 hours in a month</strong>, you must register them for UIF. You deduct 1% from their gross pay, and contribute another 1% yourself (total 2%). LekkerLedger includes UIF calculation tools to help with this.
                                     <br />
-                                    <a href="https://www.gov.za/services/uif/register-uif" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: Register with the UIF</a>
+                                    <a href="https://www.gov.za/services/uif/register-uif" target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:opacity-80 underline text-xs mt-2 block">Source: Register with the UIF</a>
                                 </p>
                             </div>
                         </div>

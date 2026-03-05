@@ -12,6 +12,20 @@ const withSerwist = withSerwistInit({
 const nextConfig: NextConfig = {
   turbopack: {},
   experimental: {},
+  async redirects() {
+    return [
+      {
+        source: '/privacy',
+        destination: '/legal/privacy',
+        permanent: true,
+      },
+      {
+        source: '/terms',
+        destination: '/legal/terms',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default withSerwist(nextConfig);

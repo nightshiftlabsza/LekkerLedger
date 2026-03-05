@@ -1,0 +1,195 @@
+
+> lekkerledger@0.1.0 lint
+> eslint
+
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\bulk-run-modal.tsx
+   7:10  warning  'Checkbox' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+  36:8   warning  React Hook React.useEffect has a missing dependency: 'validSummaries'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\layout\side-drawer.tsx
+  11:5  warning  'ClipboardList' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\audit-timeline.tsx
+  101:51  warning  'index' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\data-table.tsx
+  4:34  warning  'ChevronLeft' is defined but never used   @typescript-eslint/no-unused-vars
+  4:47  warning  'ChevronRight' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\document-list.tsx
+  3:20  warning  'MoreVertical' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\privacy-shield.tsx
+  4:10  warning  'Shield' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\stepper.tsx
+  16:23  warning  'isLast' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\switch.tsx
+  10:48  warning  'props' is defined but never used  @typescript-eslint/no-unused-vars
+  10:57  warning  'ref' is defined but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\comprehensive-audit.spec.ts
+  5:59  warning  'context' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\payslip.spec.ts
+  4:79  warning  'context' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\app-shell.tsx
+  17:12  warning  'moreOpen' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\contracts\new\page.tsx
+  5:8  warning  'Link' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\contracts\page.tsx
+  14:10  warning  'format' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\dashboard\page.tsx
+   7:5   warning  'Plus' is defined but never used             @typescript-eslint/no-unused-vars
+   8:5   warning  'Palmtree' is defined but never used         @typescript-eslint/no-unused-vars
+   8:15  warning  'Calendar' is defined but never used         @typescript-eslint/no-unused-vars
+   8:35  warning  'Cloud' is defined but never used            @typescript-eslint/no-unused-vars
+   8:42  warning  'CloudOff' is defined but never used         @typescript-eslint/no-unused-vars
+   9:29  warning  'Loader2' is defined but never used          @typescript-eslint/no-unused-vars
+  10:5   warning  'ShieldCheck' is defined but never used      @typescript-eslint/no-unused-vars
+  10:18  warning  'FolderOpen' is defined but never used       @typescript-eslint/no-unused-vars
+  17:27  warning  'ChipVariant' is defined but never used      @typescript-eslint/no-unused-vars
+  33:11  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\documents\page.tsx
+   4:8   warning  'Link' is defined but never used          @typescript-eslint/no-unused-vars
+   5:20  warning  'Download' is defined but never used      @typescript-eslint/no-unused-vars
+   5:82  warning  'Database' is defined but never used      @typescript-eslint/no-unused-vars
+   5:92  warning  'Search' is defined but never used        @typescript-eslint/no-unused-vars
+   8:16  warning  'CardContent' is defined but never used   @typescript-eslint/no-unused-vars
+  12:26  warning  'Column' is defined but never used        @typescript-eslint/no-unused-vars
+  16:34  warning  'PayslipInput' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\employees\[id]\history\page.tsx
+  30:33  warning  'stats' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\employees\new\page.tsx
+  17:10  warning  'EmployerSettings' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\employees\page.tsx
+   5:10  warning  'Plus' is defined but never used            @typescript-eslint/no-unused-vars
+   5:31  warning  'Filter' is defined but never used          @typescript-eslint/no-unused-vars
+   5:66  warning  'MoreHorizontal' is defined but never used  @typescript-eslint/no-unused-vars
+   5:82  warning  'UserPlus' is defined but never used        @typescript-eslint/no-unused-vars
+  91:46  warning  'emp' is defined but never used             @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\leave\new\page.tsx
+  5:10  warning  'Palmtree' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\leave\page.tsx
+    5:36  warning  'Users' is defined but never used   @typescript-eslint/no-unused-vars
+   12:26  warning  'Column' is defined but never used  @typescript-eslint/no-unused-vars
+  165:46  warning  'row' is defined but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\payroll\[periodId]\page.tsx
+   6:47  warning  'CheckCircle2' is defined but never used     @typescript-eslint/no-unused-vars
+  19:19  warning  'logAuditEvent' is defined but never used    @typescript-eslint/no-unused-vars
+  28:11  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\payroll\page.tsx
+  6:44  warning  'Loader2' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\settings\page.tsx
+    7:18  warning  'Cloud' is defined but never used                   @typescript-eslint/no-unused-vars
+    7:51  warning  'Scale' is defined but never used                   @typescript-eslint/no-unused-vars
+    8:33  warning  'Globe' is defined but never used                   @typescript-eslint/no-unused-vars
+    9:23  warning  'Shield' is defined but never used                  @typescript-eslint/no-unused-vars
+    9:31  warning  'Users' is defined but never used                   @typescript-eslint/no-unused-vars
+    9:38  warning  'Info' is defined but never used                    @typescript-eslint/no-unused-vars
+    9:44  warning  'Clock' is defined but never used                   @typescript-eslint/no-unused-vars
+    9:51  warning  'AlertCircle' is defined but never used             @typescript-eslint/no-unused-vars
+    9:64  warning  'HardDrive' is defined but never used               @typescript-eslint/no-unused-vars
+   13:16  warning  'CardContent' is defined but never used             @typescript-eslint/no-unused-vars
+   19:51  warning  'getCurrentTaxYearRange' is defined but never used  @typescript-eslint/no-unused-vars
+   30:13  warning  'toast' is assigned a value but never used          @typescript-eslint/no-unused-vars
+   33:12  warning  'employees' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   37:30  warning  'density' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  418:10  warning  'Step' is defined but never used                    @typescript-eslint/no-unused-vars
+  427:10  warning  'QandA' is defined but never used                   @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\ufiling\page.tsx
+   6:38  warning  'FileSpreadsheet' is defined but never used  @typescript-eslint/no-unused-vars
+  17:10  warning  'format' is defined but never used           @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\wizard\page.tsx
+  10:29  warning  'CardFooter' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\examples\page.tsx
+  23:92  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\page.tsx
+   10:25  warning  'BookOpen' is defined but never used                             @typescript-eslint/no-unused-vars
+  141:87  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\pricing\page.tsx
+  8:17  warning  'ArrowRight' is defined but never used  @typescript-eslint/no-unused-vars
+  8:38  warning  'Shield' is defined but never used      @typescript-eslint/no-unused-vars
+  9:5   warning  'Mail' is defined but never used        @typescript-eslint/no-unused-vars
+  9:11  warning  'Github' is defined but never used      @typescript-eslint/no-unused-vars
+  9:19  warning  'ArrowLeft' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\storage\page.tsx
+  28:84   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  28:104  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  30:177  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  48:108  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  92:197  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  92:217  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\support\page.tsx
+   5:74   warning  'FileText' is defined but never used                             @typescript-eslint/no-unused-vars
+  65:165  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  65:216  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  72:165  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  72:198  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  79:175  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  79:220  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\calculator.ts
+  102:11  warning  'sdlEmployee' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\certificate-pdf.ts
+   5:22  warning  'PDF_LAYOUT' is defined but never used             @typescript-eslint/no-unused-vars
+  13:47  warning  'serifRegular' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\compliance-pdf.ts
+   19:47  warning  'serifRegular' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  107:5   warning  'employer' is defined but never used               @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\compliance.ts
+  66:11  warning  'nmw' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\contract-pdf.ts
+   5:22  warning  'PDF_LAYOUT' is defined but never used             @typescript-eslint/no-unused-vars
+  15:47  warning  'serifRegular' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\disciplinary-pdf.ts
+  4:22  warning  'PDF_LAYOUT' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\google-drive.ts
+  2:73   warning  'saveEmployee' is defined but never used     @typescript-eslint/no-unused-vars
+  2:87   warning  'savePayslip' is defined but never used      @typescript-eslint/no-unused-vars
+  2:100  warning  'saveLeaveRecord' is defined but never used  @typescript-eslint/no-unused-vars
+  2:117  warning  'saveSettings' is defined but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\leave.ts
+  60:11  warning  'years' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\pdf.ts
+    1:23  warning  'StandardFonts' is defined but never used          @typescript-eslint/no-unused-vars
+  122:5   warning  'isLimited' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  134:47  warning  'serifRegular' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  143:20  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  145:21  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\storage.ts
+  367:34  warning  '_token' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 108 problems (16 errors, 92 warnings)
+

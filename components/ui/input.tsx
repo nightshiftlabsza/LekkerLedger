@@ -13,7 +13,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     inputMode={type === "number" ? "decimal" : props.inputMode}
                     ref={ref}
                     className={[
-                        "w-full rounded-[8px] px-4 py-[10px] type-body outline-none transition-all duration-200 placeholder:font-normal",
+                        "w-full rounded-[8px] px-4 py-[10px] type-body outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 transition-all duration-200 placeholder:font-normal",
                         "bg-[var(--surface-1)] text-[var(--text)] placeholder-[var(--text-muted)]",
                         error
                             ? "border border-[var(--danger)]"

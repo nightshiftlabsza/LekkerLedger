@@ -30,14 +30,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {/* Removed duplicate SideDrawer. Mobile one handles both. */}
 
                 {/* Top bar */}
-                <header className="sticky top-0 z-30 px-4 py-3 flex items-center justify-between glass-panel border-b border-[var(--border)]">
-                    <div className="content-container w-full flex items-center justify-between">
+                <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)]">
+                    <div className="content-container w-full flex items-center justify-between py-3">
                         <div className="flex items-center gap-3">
                             {/* Mobile menu trigger — opens side drawer */}
                             <SideDrawer showButton={true} />
                             <Link href="/dashboard" className="flex items-center gap-2">
-                                <Image src="/brand/logo-light.png" alt="LekkerLedger" width={80} height={24} className="h-6 w-auto block dark:hidden" />
-                                <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={80} height={24} className="h-6 w-auto hidden dark:block" />
+                                <Image src="/brand/logo-light.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto block dark:hidden" />
+                                <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto hidden dark:block" />
                             </Link>
                             {/* Desktop only Household switcher */}
                             <div className="hidden lg:block ml-4 pl-4 border-l border-[var(--border)]">
