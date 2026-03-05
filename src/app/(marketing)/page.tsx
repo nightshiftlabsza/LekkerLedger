@@ -7,7 +7,7 @@ import {
     Check, ChevronDown, ChevronRight, Shield, FileText, Users,
     Smartphone, CloudOff, HardDrive, ArrowRight, Menu, X,
     FolderSync, Fingerprint, Github, Mail, ClipboardCheck,
-    Calendar, Download, BookOpen, AlertCircle
+    Calendar, Download, AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getNMWForDate } from "@/lib/legal/registry";
@@ -225,7 +225,7 @@ function Hero({ nmw }: { nmw: number }) {
                         </div>
 
                         {/* Floating contract card */}
-                        <div className="absolute -bottom-4 -left-6 p-4 rounded-xl shadow-xl border border-[var(--border)] max-w-[200px] z-10" style={{ backgroundColor: "var(--surface-1)" }}>
+                        <div className="absolute -bottom-10 -left-10 p-4 rounded-xl shadow-xl border border-[var(--border)] max-w-[200px] z-10" style={{ backgroundColor: "var(--surface-1)" }}>
                             <div className="flex items-center gap-2">
                                 <ClipboardCheck className="h-4 w-4 text-[var(--primary)]" />
                                 <span className="text-xs font-bold" style={{ color: "var(--text)" }}>Contract ready</span>

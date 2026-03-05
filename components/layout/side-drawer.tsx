@@ -47,8 +47,17 @@ const NAV_GROUPS = [
 ] as const;
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
-    const [open, setOpen] = React.useState(false);
+interface SideDrawerProps {
+    showButton?: boolean;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+}
+
+export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChange }: SideDrawerProps) {
+    const [internalOpen, setInternalOpen] = React.useState(false);
+    const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+    const setOpen = onOpenChange || setInternalOpen;
+
     const pathname = usePathname();
 
     /** True when this nav link should appear active */
@@ -63,7 +72,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
         const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
         document.addEventListener("keydown", handler);
         return () => document.removeEventListener("keydown", handler);
-    }, []);
+    }, [setOpen]);
 
     // Prevent body scroll when open on mobile
     React.useEffect(() => {

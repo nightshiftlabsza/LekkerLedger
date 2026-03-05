@@ -11,7 +11,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { StatusChip, type ChipVariant } from "@/components/ui/status-chip";
 import { getContracts, getEmployees } from "@/lib/storage";
 import { Contract, Employee } from "@/lib/schema";
-import { format } from "date-fns";
+
 
 export default function ContractsPage() {
     const [loading, setLoading] = React.useState(true);

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Save, Lock, FileText, AlertTriangle, CheckCircle2, ArrowLeft, Download, Loader2, Palmtree, AlertCircle } from "lucide-react";
+import { Save, Lock, FileText, AlertTriangle, ArrowLeft, Download, Loader2, Palmtree, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +16,7 @@ import { ActionBar } from "@/components/ui/action-bar";
 import { ReviewSummary, type ReviewSection } from "@/components/ui/review-summary";
 import {
     getPayPeriod, savePayPeriod, lockPayPeriod as doLockPayPeriod,
-    getEmployees, logAuditEvent, getSettings, getLeaveForEmployee,
+    getEmployees, getSettings, getLeaveForEmployee,
     savePayslip, saveDocumentMeta
 } from "@/lib/storage";
 import { calculatePayslip } from "@/lib/calculator";
@@ -25,7 +25,6 @@ import { generatePayslipPdfBytes } from "@/lib/pdf";
 
 export default function PayPeriodWorkspacePage() {
     const params = useParams();
-    const router = useRouter();
     const periodId = params.periodId as string;
 
     const [loading, setLoading] = React.useState(true);

@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Payslip Generation Flow", () => {
-    test("user can create an employee and generate a payslip", async ({ page, context }) => {
+    test("user can create an employee and generate a payslip", async ({ page }) => {
         // Force desktop viewport so the side drawer stays collapsed
         await page.setViewportSize({ width: 1280, height: 800 });
 

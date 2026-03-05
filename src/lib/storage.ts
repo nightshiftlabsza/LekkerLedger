@@ -364,7 +364,8 @@ export async function exportData(): Promise<string> {
     const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
     // P1 FIX: Strip googleAuthToken from export (security)
     if (rawSettings) {
-        const { googleAuthToken: _token, ...safeSettings } = rawSettings;
+        const { googleAuthToken, ...safeSettings } = rawSettings;
+        void googleAuthToken; // Explicitly mark as intentionally unused for security stripping
         data.settings = safeSettings;
     }
 

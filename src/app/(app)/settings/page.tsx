@@ -4,10 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
-    ShieldCheck, Cloud, HelpCircle, ChevronRight, Scale, Building2,
-    Save, Smartphone, Database, Globe, Loader2, Zap, ArrowRight,
-    Download, Upload, Shield, Users, Info, Clock, AlertCircle, HardDrive,
-    CheckCircle2, FileText, BookOpen
+    CheckCircle2, FileText, BookOpen, ArrowRight, Upload,
+    ChevronRight, Building2, Save, Smartphone, Database, Loader2, Zap,
+    AlignVerticalJustifyCenter, Moon, Sun, Monitor,
+    ShieldCheck, Download, HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,25 +16,25 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/components/ui/page-header";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
-import { getSettings, saveSettings, resetAllData, getCurrentTaxYearRange, exportData, importData, getEmployees } from "@/lib/storage";
+import { getSettings, saveSettings, resetAllData, exportData, importData, getEmployees } from "@/lib/storage";
 import { EmployerSettings, Employee } from "@/lib/schema";
 import { useToast } from "@/components/ui/toast";
 import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
-import { Moon, Sun, Monitor, AlignVerticalJustifyCenter } from "lucide-react";
+
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 
 function SettingsContent() {
     const searchParams = useSearchParams();
-    const { toast } = useToast();
+    const { } = useToast();
     const [activeTab, setActiveTab] = React.useState<SettingsTab>("general");
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
-    const [employees, setEmployees] = React.useState<Employee[]>([]);
+    const [, setEmployees] = React.useState<Employee[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [saving, setSaving] = React.useState(false);
     const [saved, setSaved] = React.useState(false);
-    const { theme, setTheme, density, setDensity } = useUI();
+    const { theme, setTheme, setDensity } = useUI();
 
     const THEME_OPTIONS = [
         { value: "system" as const, label: "Auto", icon: Monitor },
@@ -382,7 +382,7 @@ function SettingsContent() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
 
@@ -415,20 +415,4 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
     );
 }
 
-function Step({ number, text }: { number: string; text: string }) {
-    return (
-        <div className="flex items-start gap-3">
-            <span className="h-6 w-6 rounded-full bg-[var(--primary)] text-white text-xs font-black flex items-center justify-center shrink-0">{number}</span>
-            <p className="text-sm text-zinc-300">{text}</p>
-        </div>
-    );
-}
 
-function QandA({ q, a }: { q: string; a: string }) {
-    return (
-        <div className="space-y-1 border-b border-[var(--border)] pb-4 last:border-0 last:pb-0">
-            <p className="text-sm font-bold text-[var(--text)]">{q}</p>
-            <p className="text-xs text-[var(--text-muted)] leading-relaxed">{a}</p>
-        </div>
-    );
-}

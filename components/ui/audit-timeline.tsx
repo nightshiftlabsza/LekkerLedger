@@ -98,7 +98,7 @@ export function AuditTrailTimeline({
                     />
 
                     <div className="space-y-8 relative">
-                        {sortedEvents.map((event, index) => (
+                        {sortedEvents.map((event) => (
                             <div key={event.id} className="flex gap-4 group">
                                 <div
                                     className={`relative z-10 w-6 h-6 rounded-full border flex items-center justify-center shrink-0 shadow-sm ${getEventColor(event.type)}`}

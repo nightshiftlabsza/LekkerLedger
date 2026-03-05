@@ -12,7 +12,7 @@ export async function generateEmploymentContract(
     const pdfDoc = await PDFDocument.create();
 
     // Exact IBM Plex Fonts loaded from local TTF files as per guidelines
-    const { sansRegular, sansBold, serifBold, serifRegular } = await loadPdfFonts(pdfDoc);
+    const { sansRegular, sansBold, serifBold } = await loadPdfFonts(pdfDoc);
 
     const PAGE_W = 595.28;
     const PAGE_H = 841.89;

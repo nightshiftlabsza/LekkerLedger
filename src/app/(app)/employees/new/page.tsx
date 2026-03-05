@@ -14,7 +14,7 @@ import { EmployeeSchema, Employee } from "@/lib/schema";
 import { saveEmployee, getEmployees, getSettings } from "@/lib/storage";
 import { NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
-import { EmployerSettings } from "@/lib/schema";
+
 
 export default function AddEmployeePage() {
     const router = useRouter();
@@ -91,7 +91,7 @@ export default function AddEmployeePage() {
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
             <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
-                <div className="max-w-xl mx-auto lg:pl-64 flex items-center gap-3">
+                <div className="max-w-xl mx-auto flex items-center gap-3">
                     <SideDrawer />
                     <Link href="/employees">
                         <button
@@ -109,7 +109,7 @@ export default function AddEmployeePage() {
             </header>
 
             <main className="flex-1 w-full px-4 py-6">
-                <div className="max-w-xl mx-auto lg:pl-64">
+                <div className="max-w-xl mx-auto">
                     <Card className="animate-slide-up">
                         <CardContent className="p-6">
                             <form onSubmit={handleSave} className="space-y-5">

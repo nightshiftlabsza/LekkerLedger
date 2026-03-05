@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Plus, Users, Search, Filter, Mail, Phone, ChevronRight, MoreHorizontal, UserPlus } from "lucide-react";
+import { Users, Search, Mail, Phone, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,7 +88,7 @@ export default function EmployeesPage() {
                                 {
                                     key: "status",
                                     label: "Status",
-                                    render: (emp) => <StatusChip variant="complete" label="ACTIVE" />
+                                    render: (_emp) => <StatusChip variant="complete" label="ACTIVE" />
                                 },
                                 {
                                     key: "actions",

@@ -4,7 +4,6 @@ import * as React from "react";
 import { X, CheckCircle2, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { Employee, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
@@ -23,7 +22,9 @@ interface BulkRunModalProps {
 }
 
 export function BulkRunModal({ isOpen, onClose, summaries, onConfirm }: BulkRunModalProps) {
-    const validSummaries = summaries.filter(s => s.latestPayslip !== null);
+    const validSummaries = React.useMemo(() =>
+        summaries.filter(s => s.latestPayslip !== null),
+        [summaries]);
 
     // Default all valid employees to checked
     const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
@@ -33,7 +34,7 @@ export function BulkRunModal({ isOpen, onClose, summaries, onConfirm }: BulkRunM
         if (isOpen) {
             setSelectedIds(new Set(validSummaries.map(s => s.employee.id)));
         }
-    }, [isOpen, validSummaries.length]);
+    }, [isOpen, validSummaries]);
 
     React.useEffect(() => {
         if (!isOpen) return;

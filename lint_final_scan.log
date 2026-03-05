@@ -1,0 +1,66 @@
+
+> lekkerledger@0.1.0 lint
+> eslint
+
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\switch.tsx
+  10:48  warning  '_' is defined but never used     @typescript-eslint/no-unused-vars
+  10:53  warning  'ref_' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\comprehensive-audit.spec.ts
+  5:59  warning  'context' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\payslip.spec.ts
+  4:79  warning  'context' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\employees\[id]\history\page.tsx
+  13:61  warning  'getUsageStats' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\employees\page.tsx
+  91:46  warning  '_emp' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\leave\new\page.tsx
+  5:10  warning  'Calendar' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\leave\page.tsx
+    5:26  warning  'LayoutGrid' is defined but never used  @typescript-eslint/no-unused-vars
+    5:38  warning  'List' is defined but never used        @typescript-eslint/no-unused-vars
+  165:46  warning  'row' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\payroll\[periodId]\page.tsx
+  20:0  error  Parsing error: Declaration or statement expected
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\settings\page.tsx
+  30:20  warning  '_toast' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  33:12  warning  '_employees' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  37:39  warning  '_density' is assigned a value but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\ufiling\page.tsx
+  9:29  warning  'CardHeader' is defined but never used       @typescript-eslint/no-unused-vars
+  9:41  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+  9:52  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\calculator.ts
+  102:11  warning  '_sdlEmployee' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\compliance-pdf.ts
+  107:5  warning  'employer' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\compliance.ts
+  66:11  warning  '_nmw' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\contract-pdf.ts
+  5:22  warning  'PDF_LAYOUT' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\leave.ts
+  60:11  warning  '_years' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\pdf.ts
+  122:5   warning  '_isLimited' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  134:61  warning  '_serifRegular' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\storage.ts
+  367:34  warning  '_' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 25 problems (1 error, 24 warnings)
+

@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb, PDFFont, Color } from "pdf-lib";
+import { PDFDocument, rgb, PDFFont, Color } from "pdf-lib";
 import { Employee, PayslipInput, EmployerSettings } from "./schema";
 import { calculatePayslip, getNMW } from "./calculator";
 import { format } from "date-fns";
@@ -119,7 +119,7 @@ export async function generatePayslipPdfBytes(
     payslip: PayslipInput,
     settings: EmployerSettings,
     lang: SupportLang = "en",
-    isLimited: boolean = false
+    _isLimited: boolean = false
 ): Promise<Uint8Array> {
     const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
     const breakdown = calculatePayslip(payslip);
@@ -131,14 +131,13 @@ export async function generatePayslipPdfBytes(
 
     // Fonts: EXACT IBM Plex requirement as instructed
     const { loadPdfFonts } = await import("./pdf-fonts");
-    const { sansRegular, sansBold, serifBold, serifRegular } = await loadPdfFonts(pdfDoc);
+    const { sansRegular, sansBold, serifBold, serifRegular: _serifRegular } = await loadPdfFonts(pdfDoc);
 
     // Helpers
     const t = (
         text: string,
         x: number,
         y: number,
-
         opts?: {
             font?: PDFFont;
             size?: number;
@@ -311,7 +310,7 @@ export async function generatePayslipPdfBytes(
     t(dict.employerContributions, PDF_LAYOUT.MARGIN, footerY + 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
     t(`${dict.uifEmployer}: R ${breakdown.employerContributions.uifEmployer.toFixed(2)} · ${dict.sdlEmployer}: R 0.00`, PDF_LAYOUT.MARGIN, footerY + 5, { size: 7, color: PDF_COLORS.TEXT_MUTED });
 
-    const leaveText = `${dict.leaveRecorded}: ${dict.annual}: ${breakdown.leaveTaken.annual}d | ${dict.sick}: ${breakdown.leaveTaken.sick}d | ${dict.family}: ${breakdown.leaveTaken.family}d`;
+    const leaveText = `${dict.leaveRecorded}: ${dict.annual}: ${breakdown.leaveTaken.annual} d | ${dict.sick}: ${breakdown.leaveTaken.sick} d | ${dict.family}: ${breakdown.leaveTaken.family} d`;
     t(leaveText, width - PDF_LAYOUT.MARGIN, footerY + 15, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
     const legalText = `${dict.legalDisclaimer} ${dict.minWage}: R${nmw.toFixed(2)}/hr.`;

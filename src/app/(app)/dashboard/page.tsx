@@ -2,19 +2,18 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
-    Plus, ArrowRight, AlertTriangle, Users,
-    Palmtree, Calendar, FileText, Cloud, CloudOff,
-    BookOpen, ChevronRight, Loader2, Banknote,
-    ShieldCheck, FolderOpen,
+    ArrowRight, AlertTriangle, Users,
+    FileText,
+    BookOpen, ChevronRight, Banknote,
+    ShieldCheck,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { TaskList, type TaskItem } from "@/components/ui/task-list";
-import { StatusChip, type ChipVariant } from "@/components/ui/status-chip";
+import { StatusChip } from "@/components/ui/status-chip";
 import { CardSkeleton, StatSkeleton } from "@/components/ui/loading-skeleton";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -30,7 +29,6 @@ interface EmployeeSummary {
 }
 
 export default function DashboardPage() {
-    const router = useRouter();
     const [loading, setLoading] = React.useState(true);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);

@@ -63,7 +63,7 @@ export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, 
 export function generateComplianceNoteText(employee: Employee, breakdown: PayBreakdown, date: Date | string = new Date()): string {
     const safeDate = new Date(date);
     const audit = getComplianceAudit(employee, breakdown, safeDate);
-    const nmw = getNMWForDate(safeDate);
+
 
     return `
 ======================================================================

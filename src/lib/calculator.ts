@@ -99,7 +99,7 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
 
     // SDL: Sectoral Determination 7 (Domestic Workers) technically exempts 
     // most employers. Skill Development Levy is required only for payrolls > R500k/year.
-    const sdlEmployee = 0;
+
     const sdlEmployer = 0;
 
     // Accommodation: provided cost, strictly capped at 10% of gross (SD7)

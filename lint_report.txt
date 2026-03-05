@@ -1,0 +1,38 @@
+
+> lekkerledger@0.1.0 lint
+> eslint
+
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\switch.tsx
+  10:48  warning  'props' is defined but never used  @typescript-eslint/no-unused-vars
+  10:57  warning  '_ref' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\employees\page.tsx
+  91:46  warning  '_emp' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\leave\new\page.tsx
+  5:10  warning  'Calendar' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\leave\page.tsx
+    5:26  warning  'LayoutGrid' is defined but never used  @typescript-eslint/no-unused-vars
+    5:38  warning  'List' is defined but never used        @typescript-eslint/no-unused-vars
+  165:46  warning  'row' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\payroll\[periodId]\page.tsx
+  4:21  warning  'useRouter' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\settings\page.tsx
+  13:16  warning  'CardContent' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\compliance-pdf.ts
+  107:5  warning  'employer' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\contract-pdf.ts
+  5:22  warning  'PDF_LAYOUT' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\pdf.ts
+  122:5   warning  '_isLimited' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  134:61  warning  '_serifRegular' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 13 problems (0 errors, 13 warnings)
+

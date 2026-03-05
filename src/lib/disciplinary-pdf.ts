@@ -1,7 +1,7 @@
 import { PDFDocument } from "pdf-lib";
 import { Employee, EmployerSettings } from "./schema";
 import { format } from "date-fns";
-import { PDF_COLORS, PDF_LAYOUT } from "./pdf-theme";
+import { PDF_COLORS } from "./pdf-theme";
 import { loadPdfFonts } from "./pdf-fonts";
 
 export type DisciplinaryType = "verbal-warning" | "written-warning" | "final-warning" | "disciplinary-notice";

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ChevronLeft, LifeBuoy, Mail, HelpCircle, BookOpen, AlertCircle, FileText } from "lucide-react";
+import { ChevronLeft, LifeBuoy, Mail, HelpCircle, BookOpen, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function SupportPage() {

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { format } from "date-fns";
-import { FileText, MoreVertical, Download, Eye, ExternalLink, Cloud, HardDrive } from "lucide-react";
+import { FileText, Download, Eye, ExternalLink, Cloud, HardDrive } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

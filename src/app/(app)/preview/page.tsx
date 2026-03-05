@@ -211,7 +211,7 @@ function PreviewContent() {
     void _periodStr; // computed for potential future display
 
     return (
-        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border)]">
                 <div className="max-w-xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-3">

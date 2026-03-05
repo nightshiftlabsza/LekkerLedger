@@ -1,19 +1,18 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { FileText, Download, Eye, FolderOpen, FileSpreadsheet, Cloud, HardDrive, Database, Search, History } from "lucide-react";
+import { FileText, Eye, FolderOpen, FileSpreadsheet, Cloud, HardDrive, History } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
-import { DataTable, type Column } from "@/components/ui/data-table";
+import { DataTable } from "@/components/ui/data-table";
 import { FiltersBar, type FilterChip } from "@/components/ui/filters-bar";
 import { DocumentPreview } from "@/components/ui/document-preview";
 import { getDocuments, getEmployees, getPayslipsForEmployee, getSettings } from "@/lib/storage";
-import { DocumentMeta, Employee, PayslipInput } from "@/lib/schema";
+import { DocumentMeta, Employee } from "@/lib/schema";
 import { generatePayslipPdfBytes } from "@/lib/pdf";
 
 const TABS = ["Payslips", "Contracts", "Exports", "Archive"] as const;

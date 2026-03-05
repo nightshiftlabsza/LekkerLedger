@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Comprehensive 50 Action Audit', () => {
 
-    test('Perform 50 common actions flow', async ({ page, context }) => {
+    test('Perform 50 common actions flow', async ({ page }) => {
 
         test.setTimeout(300000); // 5 minutes for full audit
 

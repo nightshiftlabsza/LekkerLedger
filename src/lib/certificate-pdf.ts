@@ -2,7 +2,7 @@ import { PDFDocument } from "pdf-lib";
 import { Employee, EmployerSettings } from "./schema";
 import { format } from "date-fns";
 import { getNMWForDate } from "./legal/registry";
-import { PDF_COLORS, PDF_LAYOUT } from "./pdf-theme";
+import { PDF_COLORS } from "./pdf-theme";
 import { loadPdfFonts } from "./pdf-fonts";
 
 export async function generateCertificateOfService(
@@ -10,7 +10,7 @@ export async function generateCertificateOfService(
     settings: EmployerSettings
 ): Promise<Uint8Array> {
     const pdfDoc = await PDFDocument.create();
-    const { sansRegular, sansBold, serifBold, serifRegular } = await loadPdfFonts(pdfDoc);
+    const { sansRegular, sansBold, serifBold } = await loadPdfFonts(pdfDoc);
 
     const PAGE_W = 595.28;
     const PAGE_H = 841.89;

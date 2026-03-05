@@ -5,8 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import {
-    Check, Zap, ArrowRight, Menu, X, Shield,
-    Mail, Github, ArrowLeft
+    Check, Zap, Menu, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

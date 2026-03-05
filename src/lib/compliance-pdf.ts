@@ -16,7 +16,7 @@ export async function generateCertificateOfServicePdf(
     const page = pdfDoc.addPage([595.28, 841.89]);
     const { width, height } = page.getSize();
 
-    const { sansRegular, sansBold, serifBold, serifRegular } = await loadPdfFonts(pdfDoc);
+    const { sansRegular, sansBold, serifBold } = await loadPdfFonts(pdfDoc);
 
     const t = (text: string, x: number, y: number, size = 10, font = sansRegular, color = PDF_COLORS.TEXT) => {
         page.drawText(text, { x, y, size, font, color });

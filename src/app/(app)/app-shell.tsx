@@ -34,7 +34,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <div className="content-container w-full flex items-center justify-between py-3 px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-3">
                             {/* Mobile menu trigger — opens side drawer */}
-                            <SideDrawer showButton={true} />
+                            <SideDrawer open={moreOpen} onOpenChange={setMoreOpen} showButton={true} />
                             <Link href="/dashboard" className="flex items-center gap-2">
                                 <Image src="/brand/logo-light.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto block dark:hidden" />
                                 <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto hidden dark:block" />

@@ -57,7 +57,7 @@ export function calculateLeaveBalances(
     }
 
     const months = monthsBetween(start, asOfDate);
-    const years = months / 12;
+
     const daysEmployed = daysBetween(start, asOfDate);
 
     // Current Cycle Calculation

@@ -1,5 +1,5 @@
 // lib/google-drive.ts
-import { getEmployees, getAllPayslips, getAllLeaveRecords, getSettings, saveEmployee, savePayslip, saveLeaveRecord, saveSettings } from "./storage";
+import { getEmployees, getAllPayslips, getAllLeaveRecords, getSettings } from "./storage";
 
 export const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.appdata";
 const FILE_NAME = "lekkerledger_data.json";

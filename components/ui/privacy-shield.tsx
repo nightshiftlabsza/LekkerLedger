@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Shield, Lock, CheckCircle2 } from "lucide-react";
+import { Lock, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PrivacyShieldProps {

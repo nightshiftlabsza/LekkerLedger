@@ -13,7 +13,6 @@ export const Stepper = ({ steps, currentStep, className }: StepperProps) => {
             {steps.map((step, index) => {
                 const isCompleted = index < currentStep;
                 const isCurrent = index === currentStep;
-                const isLast = index === steps.length - 1;
 
                 return (
                     <React.Fragment key={step.label}>

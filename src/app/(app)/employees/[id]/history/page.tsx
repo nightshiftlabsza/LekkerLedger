@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideDrawer } from "@/components/layout/side-drawer";
-import { getEmployees, getPayslipsForEmployee, getSettings, getUsageStats } from "@/lib/storage";
+import { getEmployees, getPayslipsForEmployee, getSettings } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { track } from "@/lib/analytics";
@@ -27,10 +27,9 @@ export default function EmployeeHistoryPage() {
     React.useEffect(() => {
         async function load() {
             try {
-                const [emps, s, stats] = await Promise.all([
+                const [emps, s] = await Promise.all([
                     getEmployees(),
                     getSettings(),
-                    getUsageStats(),
                 ]);
                 const emp = emps.find((e: Employee) => e.id === id);
                 if (!emp) { setError("Employee not found."); setLoading(false); return; }

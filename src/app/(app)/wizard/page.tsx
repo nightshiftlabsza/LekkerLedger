@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, Loader2, Check, Clock, Sparkles, AlertCircle, Info, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Stepper } from "@/components/ui/stepper";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -259,7 +259,7 @@ function WizardContent() {
 
     if (loadingInitial) {
         return (
-            <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
+            <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
                 <header className="sticky top-0 z-30 px-4 py-3 bg-[var(--surface-1)] border-b border-[var(--border)]">
                     <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -282,7 +282,7 @@ function WizardContent() {
     if (!employee) return null;
 
     return (
-        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
             <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
                 <div className="max-w-4xl mx-auto w-full flex items-center justify-between">

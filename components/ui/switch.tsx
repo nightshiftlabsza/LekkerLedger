@@ -7,7 +7,7 @@ interface SwitchProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
-    ({ className, checked, onCheckedChange, ...props }, ref) => (
+    ({ className, checked, onCheckedChange, ...props }, _ref) => (
         <div
             className={cn(
                 "peer inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50",

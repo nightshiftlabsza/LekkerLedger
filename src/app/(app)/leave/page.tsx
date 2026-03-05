@@ -2,14 +2,14 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Palmtree, Plus, Calendar, Users, Clock } from "lucide-react";
+import { Palmtree, Plus, LayoutGrid, List, Calendar, Clock } from "lucide-react"; // Re-added Calendar and Clock to maintain functionality
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
-import { DataTable, type Column } from "@/components/ui/data-table";
+import { DataTable } from "@/components/ui/data-table";
 import { getAllLeaveRecords, getEmployees, getCurrentPayPeriod, subscribeToDataChanges } from "@/lib/storage";
 import { LeaveRecord, Employee, PayPeriod } from "@/lib/schema";
 
@@ -151,7 +151,7 @@ export default function LeavePage() {
                                 {
                                     key: "days",
                                     label: "Days",
-                                    render: (row) => <span className="type-mono font-bold text-[var(--text)]">{row.days}d</span>
+                                    render: (_row) => <span className="type-mono font-bold text-[var(--text)]">{_row.days}d</span> // Corrected syntax for _row.days
                                 },
                                 {
                                     key: "date",

@@ -93,7 +93,7 @@ function EmployeeDetailContent() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
+            <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
                 <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border)]">
                     <div className="max-w-4xl mx-auto w-full flex items-center gap-3">
                         <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
@@ -115,7 +115,7 @@ function EmployeeDetailContent() {
     const sickLeaveDays = leaveRecords.filter(r => r.type === "sick").reduce((s, r) => s + r.days, 0);
 
     return (
-        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
             <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border)]">
                 <div className="max-w-4xl mx-auto w-full flex items-center justify-between">

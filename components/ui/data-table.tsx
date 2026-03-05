@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DataTable — responsive: <table> on ≥960px, stacked ListCard on mobile
