@@ -191,7 +191,7 @@ export default function PayPeriodWorkspacePage() {
                 const pdfBytes = await generatePayslipPdfBytes(emp, payslipInput, settings);
 
                 // Correctly handle the Uint8Array for Blob
-                // @ts-ignore - Uint8Array is a valid BlobPart in the browser environment
+                // @ts-expect-error - Uint8Array is a valid BlobPart in the browser environment
                 const blob = new Blob([pdfBytes], { type: "application/pdf" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");

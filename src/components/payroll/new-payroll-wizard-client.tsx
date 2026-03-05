@@ -20,7 +20,6 @@ export function NewPayrollWizardClient() {
 
     const [isClient, setIsClient] = React.useState(false);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
-    const [loadingData, setLoadingData] = React.useState(true);
     const [step, setStep] = React.useState(0);
     const [saving, setSaving] = React.useState(false);
 
@@ -52,7 +51,6 @@ export function NewPayrollWizardClient() {
                 console.error(err);
                 toast("Failed to load employees");
             }
-            setLoadingData(false);
         }
         load();
     }, [toast]);

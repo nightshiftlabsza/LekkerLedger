@@ -1,9 +1,8 @@
 import * as React from "react";
 import Link from "next/link";
-import { Shield, Lock, HardDrive, DollarSign, Scale, ArrowRight, WalletCards, FolderSync } from "lucide-react";
+import { Shield, Lock, HardDrive, Scale, ArrowRight, WalletCards, FolderSync } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getNMWForDate } from "@/lib/legal/registry";
-import { PLANS } from "@/src/config/plans";
 
 export default function TrustCenterPage() {
     const nmw = getNMWForDate(new Date());

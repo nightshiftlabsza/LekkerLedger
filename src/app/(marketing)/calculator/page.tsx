@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { CalculatorHero } from "@/components/calculator-hero";
 import { useRouter } from "next/navigation";
-import { getSettings } from "@/lib/storage";
+
 
 export default function CalculatorPage() {
     const router = useRouter();

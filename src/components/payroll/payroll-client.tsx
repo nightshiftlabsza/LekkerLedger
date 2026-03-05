@@ -4,13 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, ArrowRight, Calendar, Lock, X } from "lucide-react";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CardSkeleton } from "@/components/ui/loading-skeleton";
-import { getPayPeriods, savePayPeriod, getEmployees } from "@/lib/storage";
+import { getPayPeriods, getEmployees } from "@/lib/storage";
 import { PayPeriod, Employee } from "@/lib/schema";
 
 export function PayrollClient() {

@@ -1,4 +1,4 @@
-import { getAllPayslips, getEmployees } from "../storage";
+import { getAllPayslips } from "../storage";
 import { getCoidaParameters } from "../legal/coida";
 
 export interface RoeData {

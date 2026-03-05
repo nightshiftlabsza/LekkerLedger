@@ -33,7 +33,7 @@ import { Employee, EmployerSettings, PayslipInput } from "@/lib/schema";
  * Simple browser side bytes download
  */
 function downloadBlob(bytes: Uint8Array | string, filename: string, type: string) {
-    // @ts-ignore - Uint8Array/string is a valid BlobPart in the browser
+    // @ts-expect-error - Uint8Array/string is a valid BlobPart in the browser
     const blob = new Blob([bytes], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

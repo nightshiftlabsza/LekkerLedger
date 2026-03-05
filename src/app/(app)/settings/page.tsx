@@ -21,7 +21,7 @@ import { EmployerSettings, Employee } from "@/lib/schema";
 import { useToast } from "@/components/ui/toast";
 import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
-import { PLANS, PlanId, annualPriceLabel } from "../../../config/plans";
+import { annualPriceLabel } from "../../../config/plans";
 import { getUserPlan, canUseDriveSync } from "../../../lib/entitlements";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
