@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-test('sample payslip PDF is accessible', async ({ request }) => {
-    const response = await request.get('/sample-payslip.pdf');
+test('sample payslip preview is accessible', async ({ request }) => {
+    const response = await request.get('/examples');
     expect(response.status()).toBe(200);
-    expect(response.headers()['content-type']).toBe('application/pdf');
+    const text = await response.text();
+    expect(text).toContain('Your employee documentation');
 });
 
 test('pricing page loads', async ({ page }) => {

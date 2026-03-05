@@ -166,9 +166,9 @@ function Hero({ nmw }: { nmw: number }) {
                                 </Button>
                             </Link>
                             <div className="flex flex-col justify-center gap-1.5 sm:ml-4 mt-3 sm:mt-0">
-                                <a href="/sample-payslip.pdf" target="_blank" className="text-sm font-semibold text-[var(--primary)] hover:underline flex items-center gap-1">
-                                    See sample payslip PDF →
-                                </a>
+                                <Link href="/examples" className="text-sm font-semibold text-[var(--primary)] hover:underline flex items-center gap-1">
+                                    See sample payslip →
+                                </Link>
                                 <Link href="/legal/privacy" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text)] flex items-center gap-1 mt-0.5">
                                     How your data is stored →
                                 </Link>

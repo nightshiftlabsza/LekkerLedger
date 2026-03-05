@@ -46,10 +46,17 @@ test.describe("Payslip Generation Flow", () => {
         // 5. Navigate to Employee Details and then to Wizard
         const employeeRow = page.locator('tr').filter({ hasText: 'Test Worker' }).first();
         await employeeRow.locator('a[href*="/employees/"]').first().click({ force: true });
-        await page.waitForTimeout(1000);
-        await page.locator('button').filter({ hasText: /Pay History/i }).click({ force: true });
-        await page.waitForTimeout(500);
-        await page.getByRole('button', { name: /Create Payslip/i }).click({ force: true });
+        await page.waitForLoadState('networkidle');
+
+        // Ensure the Pay History tab is visible and clickable
+        const payHistoryTab = page.locator('button').filter({ hasText: /Pay History/i });
+        await payHistoryTab.waitFor({ state: 'visible' });
+        await payHistoryTab.click({ force: true });
+
+        // Wait for tab content
+        const createPayslipBtn = page.getByRole('button', { name: /Create Payslip|Add Payslip/i });
+        await createPayslipBtn.waitFor({ state: 'visible', timeout: 10000 });
+        await createPayslipBtn.click({ force: true });
 
         // 6. We should be on the Wizard
         await expect(page).toHaveURL(/\/wizard/, { timeout: 10000 });
@@ -64,23 +71,26 @@ test.describe("Payslip Generation Flow", () => {
         await page.fill('input[id="ordinary"]', "176");
 
         // Next -> Sundays & Holidays
-        await page.locator('button:has-text("Next")').first().click();
+        await page.getByRole('button', { name: /Next/i }).first().click({ force: true });
+        await page.waitForTimeout(500);
 
         // Next -> Deductions
-        await page.locator('button:has-text("Next")').first().click();
+        await page.getByRole('button', { name: /Next/i }).first().click({ force: true });
+        await page.waitForTimeout(500);
 
         // Toggle Accommodation
-        await page.click('text=Accommodation Deduction');
+        await page.getByText('Accommodation Deduction').click({ force: true });
         await page.fill('input[id="accommodationCost"]', "500");
 
         // Next -> Review
-        await page.click('button:has-text("Next")');
+        await page.getByRole('button', { name: /Next/i }).first().click({ force: true });
+        await page.waitForTimeout(500);
 
         // Check review page contains net pay
         await expect(page.locator('text=Net Pay')).toBeVisible();
 
         // Save & Preview
-        await page.click('button:has-text("Save & Preview")');
+        await page.getByRole('button', { name: /Save & Preview/i }).first().click({ force: true });
 
         // 7. Verify we ended up on the Preview page
         await expect(page).toHaveURL(/\/preview/, { timeout: 10000 });

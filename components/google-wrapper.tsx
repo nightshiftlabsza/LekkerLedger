@@ -13,7 +13,7 @@ export function GoogleWrapper({ children }: { children: React.ReactNode }) {
         <GoogleOAuthProvider clientId={clientId}>
             {children}
             {!clientId && process.env.NODE_ENV !== "production" && (
-                <div className="fixed bottom-4 right-4 z-[100] bg-amber-500 text-white p-3 rounded-xl shadow-2xl text-[10px] font-bold max-w-xs animate-bounce">
+                <div className="fixed bottom-4 right-4 z-[100] bg-amber-500 text-white p-3 rounded-xl shadow-2xl text-[10px] font-bold max-w-xs animate-bounce pointer-events-none">
                     ⚠️ NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing in .env
                 </div>
             )}

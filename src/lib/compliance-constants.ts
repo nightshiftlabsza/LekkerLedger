@@ -46,5 +46,10 @@ export const COMPLIANCE = {
     },
     SD7: {
         ACCOMMODATION_MAX_PCT: 0.10, // Max deduction for accommodation
+    },
+    LEAVE: {
+        DAYS_WORKED_PER_LEAVE_DAY: 17, // BCEA: 1 day for every 17 days worked
+        RATE: 1 / 17,
+        SOURCE_URL: "https://www.labour.gov.za/DocumentCenter/Acts/Basic%20Conditions%20of%20Employment/Act%20-%20Basic%20Conditions%20of%20Employment.pdf",
     }
 };

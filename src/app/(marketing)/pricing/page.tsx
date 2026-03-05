@@ -206,9 +206,9 @@ export default function PricingPage() {
                                 <Link href="/legal/refunds" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]">
                                     View full refund & cancellation policy →
                                 </Link>
-                                <a href="/sample-payslip.pdf" target="_blank" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]">
-                                    View sample payslip PDF →
-                                </a>
+                                <Link href="/examples" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]">
+                                    View sample payslip →
+                                </Link>
                             </div>
                         </div>
                     </div>

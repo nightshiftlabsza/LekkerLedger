@@ -19,7 +19,7 @@ export const LEGAL_REGISTRY = {
         SUNDAY_ORDINARY_MULTIPLIER: COMPLIANCE.SUNDAY_PAY.ORDINARILY_WORKS_MULTIPLIER, // If employee ordinarily works on Sundays
     },
     LEAVE: {
-        ANNUAL_RATE: 1 / 17, // 1 day for every 17 days worked
+        ANNUAL_RATE: COMPLIANCE.LEAVE.RATE, // 1 day for every 17 days worked
     }
 };
 
