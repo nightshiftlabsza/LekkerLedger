@@ -5,14 +5,14 @@ import { useGoogleLogin, googleLogout } from "@react-oauth/google";
 import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Folder, FileJson, Database, Shield, History, RefreshCcw, ArrowRight, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GOOGLE_SCOPES, syncDataToDrive, syncDataFromDrive } from "@/lib/google-drive";
+import { MINIMAL_SCOPES, DRIVE_SCOPE, GOOGLE_SCOPES, syncDataToDrive, syncDataFromDrive, deleteDataFromDrive } from "@/lib/google-drive";
 import { subscribeToDataChanges } from "@/lib/storage";
 
 interface SyncEvent {
     id: string;
     timestamp: string;
     success: boolean;
-    action: "backup" | "restore";
+    action: "backup" | "restore" | "delete";
     details: string;
 }
 
@@ -29,6 +29,11 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
         if (typeof window !== "undefined") return localStorage.getItem("google_email");
         return null;
     });
+    const [hasDriveScope, setHasDriveScope] = useState<boolean>(() => {
+        if (typeof window !== "undefined") return localStorage.getItem("google_has_drive_scope") === "true";
+        return false;
+    });
+
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "conflict">("idle");
     const [statusMessage, setStatusMessage] = useState("");
     const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => {
@@ -47,7 +52,6 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
         return [];
     });
 
-
     const addLog = (event: Omit<SyncEvent, "id" | "timestamp">) => {
         const newLog: SyncEvent = {
             id: Math.random().toString(36).substring(7),
@@ -59,7 +63,7 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
             localStorage.setItem("ll_sync_logs", JSON.stringify(up));
             return up;
         });
-        if (event.success) {
+        if (event.success && event.action !== "delete") {
             setLastSyncTime(newLog.timestamp);
             localStorage.setItem("ll_last_sync", newLog.timestamp);
         }
@@ -80,19 +84,39 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
         }
     };
 
+    // Initial Login (Basic Profile)
     const login = useGoogleLogin({
-        scope: GOOGLE_SCOPES,
+        scope: MINIMAL_SCOPES,
         onSuccess: async (tokenResponse) => {
             const accessToken = tokenResponse.access_token;
             setToken(accessToken);
             localStorage.setItem("google_access_token", accessToken);
             await fetchUserInfo(accessToken);
+            setStatus("success");
+            setStatusMessage("Signed in successfully!");
+            setTimeout(() => setStatus("idle"), 2000);
+        },
+        onError: () => {
+            setStatus("error");
+            setStatusMessage("Sign-in failed.");
+        }
+    });
+
+    // Request Drive Scope (Incremental)
+    const enableDrive = useGoogleLogin({
+        scope: DRIVE_SCOPE,
+        onSuccess: async (tokenResponse) => {
+            const accessToken = tokenResponse.access_token;
+            setToken(accessToken);
+            localStorage.setItem("google_access_token", accessToken);
+            setHasDriveScope(true);
+            localStorage.setItem("google_has_drive_scope", "true");
             await handleRestore(false);
         },
         onError: () => {
             setStatus("error");
-            setStatusMessage("Login failed.");
-            addLog({ success: false, action: "backup", details: "Login authentication failed" });
+            setStatusMessage("Failed to enable Drive. Please try again.");
+            addLog({ success: false, action: "backup", details: "Drive scope permission denied" });
         }
     });
 
@@ -100,14 +124,16 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
         googleLogout();
         setToken(null);
         setEmail(null);
+        setHasDriveScope(false);
         localStorage.removeItem("google_access_token");
         localStorage.removeItem("google_email");
+        localStorage.removeItem("google_has_drive_scope");
         setStatus("idle");
     };
 
     const handleBackup = useCallback(async (silent = false) => {
         const currentToken = token || localStorage.getItem("google_access_token");
-        if (!currentToken) return;
+        if (!currentToken || !hasDriveScope) return;
 
         if (!silent) {
             setStatus("loading");
@@ -131,14 +157,13 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
                 setTimeout(() => setStatus("idle"), 5000);
             }
         }
-    }, [token]);
+    }, [token, hasDriveScope]);
 
     const handleRestore = async (silent = false) => {
         const currentToken = token || localStorage.getItem("google_access_token");
         if (!currentToken) return;
 
         if (!silent) {
-            // Placeholder for conflict resolution modal logic
             if (!confirm("Conflict Warning: Your local data and drive data differ. Download latest from Drive & overwrite local?")) {
                 return;
             }
@@ -165,15 +190,43 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
         }
     };
 
+    const handleDeleteBackup = async () => {
+        const currentToken = token || localStorage.getItem("google_access_token");
+        if (!currentToken) return;
+
+        if (!confirm("Wait! This will permanently delete your backup file from your Google Drive. This cannot be undone. Continue?")) {
+            return;
+        }
+
+        setStatus("loading");
+        setStatusMessage("Deleting Drive backup...");
+
+        const success = await deleteDataFromDrive(currentToken);
+
+        if (success) {
+            addLog({ success: true, action: "delete", details: "Deleted lekkerledger_data.json from AppData folder" });
+            setStatus("success");
+            setStatusMessage("Backup deleted successfully.");
+            setLastSyncTime(null);
+            localStorage.removeItem("ll_last_sync");
+            setTimeout(() => setStatus("idle"), 4000);
+        } else {
+            addLog({ success: false, action: "delete", details: "Failed to delete backup from Drive" });
+            setStatus("error");
+            setStatusMessage("Failed to delete backup. Please try again.");
+            setTimeout(() => setStatus("idle"), 5000);
+        }
+    };
+
     useEffect(() => {
         const unsubscribe = subscribeToDataChanges(() => {
             const currentToken = localStorage.getItem("google_access_token");
-            if (currentToken && proStatus !== "free") {
+            if (currentToken && proStatus !== "free" && hasDriveScope) {
                 handleBackup(true);
             }
         });
         return () => unsubscribe();
-    }, [proStatus, handleBackup]);
+    }, [proStatus, handleBackup, hasDriveScope]);
 
     if (proStatus === "free") {
         return (
@@ -186,10 +239,10 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
                         <div className="space-y-1 flex-1">
                             <h3 className="font-bold text-lg text-amber-950">Unlock Cloud Sync</h3>
                             <p className="text-sm text-[var(--text)]/70 leading-relaxed">
-                                LekkerLedger is a local-only app. Upgrade to seamlessly back up your data to a private, encrypted folder in your own Google Drive.
+                                LekkerLedger is a local-first app. Upgrade to enable Drive backup and keep your data safe across devices.
                             </p>
-                            <Button className="mt-4 bg-[var(--primary)] hover:brightness-95 text-white font-bold" onClick={() => window.location.href = '/pricing'}>
-                                View Pro Plans <ArrowRight className="h-4 w-4 ml-2" />
+                            <Button className="mt-4 bg-[var(--primary)] hover:brightness-95 text-white font-bold" onClick={() => window.location.href = '/upgrade'}>
+                                Upgrade to enable Drive backup <ArrowRight className="h-4 w-4 ml-2" />
                             </Button>
                         </div>
                     </div>
@@ -201,22 +254,22 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
     return (
         <div className="space-y-6">
             {/* Status Header */}
-            <Card className={`border-2 transition-colors ${!token ? "border-[var(--border)]" : status === "error" ? "border-rose-500/50" : "border-emerald-500/50"}`}>
+            <Card className={`border-2 transition-colors ${!token ? "border-[var(--border)]" : !hasDriveScope ? "border-amber-500/50" : status === "error" ? "border-rose-500/50" : "border-emerald-500/50"}`}>
                 <CardContent className="p-6 flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className={`p-4 rounded-full ${!token ? "bg-[var(--surface-2)] text-[var(--text-muted)]" : status === "error" ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-500"}`}>
-                            {!token ? <Cloud className="h-8 w-8" /> : status === "loading" ? <Loader2 className="h-8 w-8 animate-spin" /> : status === "error" ? <AlertCircle className="h-8 w-8" /> : <CheckCircle2 className="h-8 w-8" />}
+                        <div className={`p-4 rounded-full ${!token ? "bg-[var(--surface-2)] text-[var(--text-muted)]" : !hasDriveScope ? "bg-amber-500/10 text-amber-500" : status === "error" ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-500"}`}>
+                            {!token ? <Cloud className="h-8 w-8" /> : !hasDriveScope ? <Shield className="h-8 w-8" /> : status === "loading" ? <Loader2 className="h-8 w-8 animate-spin" /> : status === "error" ? <AlertCircle className="h-8 w-8" /> : <CheckCircle2 className="h-8 w-8" />}
                         </div>
                         <div>
                             <h2 className="text-xl font-black text-[var(--text)]">
-                                {!token ? "Drive Sync Paused" : status === "loading" ? "Syncing..." : status === "error" ? "Sync Issue Detected" : "Drive Sync Active"}
+                                {!token ? "Sign in for Sync" : !hasDriveScope ? "Enable Drive Permission" : status === "loading" ? "Syncing..." : status === "error" ? "Sync Issue" : "Cloud Backup Active"}
                             </h2>
                             <p className="text-sm text-[var(--text-muted)] mt-1">
-                                {!token ? "Backup is OFF. Your data stays on this device." : `Connected as ${email}`}
+                                {!token ? "Connect your Google account to get started." : !hasDriveScope ? `Signed in as ${email}. Awaiting Drive permission.` : `Syncing with ${email}`}
                             </p>
-                            {token && lastSyncTime && (
+                            {token && hasDriveScope && lastSyncTime && (
                                 <p className="text-xs text-[var(--text-muted)] mt-1 font-mono">
-                                    Last synced: {new Date(lastSyncTime).toLocaleString()}
+                                    Last backup: {new Date(lastSyncTime).toLocaleString()}
                                 </p>
                             )}
                         </div>
@@ -224,18 +277,22 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
 
                     {!token ? (
                         <Button onClick={() => login()} className="bg-[#4285F4] hover:bg-[#3367d6] text-white font-bold whitespace-nowrap">
-                            <svg className="h-4 w-4 mr-2 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
-                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                            </svg>
-                            Connect Google Drive
+                            Sign in with Google
                         </Button>
+                    ) : !hasDriveScope ? (
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <Button onClick={() => enableDrive()} className="bg-amber-500 hover:bg-amber-600 text-white font-bold whitespace-nowrap h-12 rounded-xl shadow-lg shadow-amber-500/20">
+                                <Cloud className="h-4 w-4 mr-2" /> Enable Drive Backup
+                            </Button>
+                            <Button variant="ghost" className="text-[var(--text-muted)]" onClick={logout}>Sign out</Button>
+                        </div>
                     ) : (
                         <div className="flex flex-col sm:flex-row gap-2">
                             <Button variant="outline" onClick={() => handleBackup(false)} disabled={status === "loading"}>
-                                <RefreshCcw className={`h-4 w-4 mr-2 ${status === 'loading' ? 'animate-spin' : ''}`} /> Run sync now
+                                <RefreshCcw className={`h-4 w-4 mr-2 ${status === 'loading' ? 'animate-spin' : ''}`} /> Backup Now
+                            </Button>
+                            <Button variant="ghost" onClick={() => handleRestore(false)} disabled={status === "loading"}>
+                                <Download className="h-4 w-4 mr-2" /> Restore
                             </Button>
                             <Button variant="ghost" className="text-rose-500 hover:text-rose-600 hover:bg-rose-50" onClick={logout}>
                                 Disconnect
@@ -257,59 +314,61 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
 
             {token && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* What's stored where */}
+                    {/* Privacy Info */}
                     <Card className="glass-panel border-none">
                         <CardHeader className="pb-3 border-b border-[var(--border)]">
                             <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                <Database className="h-4 w-4 text-[var(--primary)]" /> Data Architecture
+                                <Shield className="h-4 w-4 text-[var(--primary)]" /> Privacy & Privacy
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-5 space-y-6">
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-[var(--text)] font-semibold text-sm">
-                                    <Cloud className="h-4 w-4 text-emerald-500" /> In Google Drive
-                                </div>
-                                <p className="text-xs text-[var(--text-muted)] pl-6">
-                                    Encrypted backup file containing your complete employee roster, leave records, and payroll history. Stored in a hidden app-data folder.
+                        <CardContent className="p-5 space-y-4">
+                            <div className="space-y-4">
+                                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                                    LekkerLedger uses **Google Drive AppData**. This is a private, hidden folder dedicated only to this app.
                                 </p>
+                                <ul className="space-y-2">
+                                    <li className="flex items-start gap-2 text-[10px] text-[var(--text-muted)] italic">
+                                        <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                                        We cannot see or access your personal files or photos.
+                                    </li>
+                                    <li className="flex items-start gap-2 text-[10px] text-[var(--text-muted)] italic">
+                                        <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                                        The backup folder is invisible to you in your normal Drive view.
+                                    </li>
+                                </ul>
                             </div>
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-[var(--text)] font-semibold text-sm">
-                                    <Smartphone className="h-4 w-4 text-blue-500" /> On this device
-                                </div>
-                                <p className="text-xs text-[var(--text-muted)] pl-6">
-                                    Fast local cache of the database with immediate offline read/write access. Generates PDFs locally.
+
+                            <div className="pt-4 border-t border-[var(--border)]">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-2">How to delete backup</h4>
+                                <p className="text-[10px] text-[var(--text-muted)] mb-4">
+                                    Option A: Click &quot;Delete Backup&quot; below to clear the AppData file programmatically.
+                                    <br />
+                                    Option B: Go to Google Drive &rarr; Settings &rarr; Manage apps &rarr; LekkerLedger &rarr; Delete hidden app data.
                                 </p>
-                            </div>
-                            <div className="pt-4 border-t border-[var(--border)] space-y-2">
-                                <div className="flex items-start gap-2 text-xs">
-                                    <Shield className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
-                                    <p className="text-[var(--text-muted)]">
-                                        <strong>Least-Privilege Access:</strong> LekkerLedger can <span className="underline decoration-amber-500/50">only</span> read and write files it creates itself. We cannot see any of your other Google Drive files.
-                                    </p>
-                                </div>
+                                <Button variant="outline" size="sm" onClick={handleDeleteBackup} className="h-8 text-[10px] border-rose-200 text-rose-500 hover:bg-rose-50 font-bold">
+                                    Delete Backup from Drive
+                                </Button>
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* Folder Structure */}
+                    {/* Technical Preview */}
                     <Card className="glass-panel border-none">
                         <CardHeader className="pb-3 border-b border-[var(--border)]">
                             <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                <Folder className="h-4 w-4 text-[var(--primary)]" /> Drive Structure Preview
+                                <Database className="h-4 w-4 text-[var(--primary)]" /> Storage Details
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-5">
-                            <div className="font-mono text-xs text-[var(--text-muted)] space-y-2">
-                                <div className="flex items-center gap-2 opacity-60"><Folder className="h-4 w-4" fill="currentColor" /> Hidden AppData Root</div>
-                                <div className="flex items-center gap-2 ml-4"><Folder className="h-4 w-4 text-[var(--focus)]" fill="currentColor" /> LekkerLedger (App Folder)</div>
-                                <div className="flex items-center gap-2 ml-8 text-[var(--text)]"><FileJson className="h-4 w-4 text-blue-400" /> <span className="font-semibold">lekkerledger_data.json</span></div>
-                                <div className="flex items-center gap-2 ml-12 opacity-50"><span className="text-[10px]">&uarr; Continuous background sync</span></div>
-
-                                <div className="flex items-center gap-2 ml-8 mt-4"><Folder className="h-4 w-4 text-[var(--focus)]" fill="currentColor" /> Households</div>
-                                <div className="flex items-center gap-2 ml-12"><Folder className="h-4 w-4" /> Default</div>
-                                <div className="flex items-center gap-2 ml-16"><Folder className="h-4 w-4 text-zinc-400" /> Payslips (PDFs - coming soon)</div>
-                                <div className="flex items-center gap-2 ml-16"><Folder className="h-4 w-4 text-zinc-400" /> Contracts (PDFs - coming soon)</div>
+                            <div className="font-mono text-[10px] text-[var(--text-muted)] space-y-2">
+                                <div className="flex items-center gap-2"><Folder className="h-3 w-3" fill="currentColor" /> appDataFolder/</div>
+                                <div className="flex items-center gap-2 ml-4"><Folder className="h-3 w-3 text-[var(--focus)]" fill="currentColor" /> LekkerLedger/</div>
+                                <div className="flex items-center gap-2 ml-8 text-[var(--text)]"><FileJson className="h-3 w-3 text-blue-400" /> <span className="font-semibold">lekkerledger_data.json</span></div>
+                                <div className="mt-4 pt-4 border-t border-[var(--border)] text-[9px] opacity-70">
+                                    Total Employees: (fetched from local)
+                                    <br />
+                                    Encryption: Google Drive at rest
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
@@ -318,30 +377,29 @@ export function GoogleSync({ proStatus = "free" }: GoogleSyncProps) {
                     <Card className="glass-panel border-none md:col-span-2">
                         <CardHeader className="pb-3 border-b border-[var(--border)] flex flex-row items-center justify-between">
                             <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                <History className="h-4 w-4 text-[var(--primary)]" /> Recent Sync Events
+                                <History className="h-4 w-4 text-[var(--primary)]" /> Recent Activity
                             </CardTitle>
-                            <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-black">Last 20</span>
                         </CardHeader>
                         <CardContent className="p-0">
                             {syncLogs.length === 0 ? (
-                                <div className="p-8 text-center text-sm text-[var(--text-muted)]">No sync events recorded yet.</div>
+                                <div className="p-8 text-center text-sm text-[var(--text-muted)]">No recent activity.</div>
                             ) : (
                                 <ul className="divide-y divide-[var(--border)]">
-                                    {syncLogs.map(log => (
-                                        <li key={log.id} className="p-4 flex items-center justify-between hover:bg-[var(--surface-2)] transition-colors">
-                                            <div className="flex items-center gap-4">
-                                                <div className={`p-2 rounded-full ${log.success ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
-                                                    {log.action === "backup" ? <Upload className="h-3 w-3" /> : <Download className="h-3 w-3" />}
+                                    {syncLogs.slice(0, 5).map(log => (
+                                        <li key={log.id} className="p-3 flex items-center justify-between hover:bg-[var(--surface-2)] transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-1.5 rounded-full ${log.success ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                                                    {log.action === "backup" ? <Upload className="h-3 w-3" /> : log.action === "restore" ? <Download className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-[var(--text)]">
-                                                        {log.action === "backup" ? "Cloud Backup" : "Cloud Restore"} {log.success ? "Successful" : "Failed"}
+                                                <div className="text-[10px]">
+                                                    <p className="font-bold text-[var(--text)]">
+                                                        {log.action.toUpperCase()} {log.success ? "SUCCESS" : "FAILED"}
                                                     </p>
-                                                    <p className="text-xs text-[var(--text-muted)] truncate max-w-[200px] sm:max-w-md">{log.details}</p>
+                                                    <p className="text-[var(--text-muted)] truncate max-w-[200px]">{log.details}</p>
                                                 </div>
                                             </div>
-                                            <span className="text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
-                                                {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            <span className="text-[9px] font-mono text-[var(--text-muted)]">
+                                                {new Date(log.timestamp).toLocaleTimeString()}
                                             </span>
                                         </li>
                                     ))}

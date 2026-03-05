@@ -1,7 +1,9 @@
 // lib/google-drive.ts
 import { getEmployees, getAllPayslips, getAllLeaveRecords, getSettings } from "./storage";
 
-export const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.appdata";
+export const MINIMAL_SCOPES = "openid email profile";
+export const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.appdata";
+export const GOOGLE_SCOPES = `${MINIMAL_SCOPES} ${DRIVE_SCOPE}`;
 const FILE_NAME = "lekkerledger_data.json";
 
 export async function syncDataToDrive(accessToken: string) {
@@ -82,6 +84,27 @@ export async function syncDataFromDrive(accessToken: string) {
         return false;
     } catch (e) {
         console.error("Failed to sync from Drive", e);
+        return false;
+    }
+}
+export async function deleteDataFromDrive(accessToken: string) {
+    try {
+        const mRes = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${FILE_NAME}'`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const mData = await mRes.json();
+        const fileId = mData.files?.[0]?.id;
+
+        if (!fileId) return true; // Already deleted or doesn't exist
+
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+
+        return res.ok;
+    } catch (e) {
+        console.error("Failed to delete from Drive", e);
         return false;
     }
 }

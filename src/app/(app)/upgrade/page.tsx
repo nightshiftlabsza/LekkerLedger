@@ -98,15 +98,15 @@ export default function UpgradePage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                     <PricingCard
                         title={PRICING_PLANS.free.name}
-                        price="Free"
+                        price={PRICING_PLANS.free.price}
                         period="forever"
-                        description="Essential tools for the single-worker household."
+                        description={PRICING_PLANS.free.description}
                         features={[
                             { text: "1 Active Employee Seat", included: true },
                             { text: "3 Months History Archive", included: true },
                             { text: "BCEA Aligned Calculations", included: true },
                             { text: "Easy Monthly Payslips", included: true },
-                            { text: "Google Drive Sync", included: false },
+                            { text: "Google Drive Sync", included: PRICING_PLANS.free.hasDriveSync },
                         ]}
                         buttonText={status === "free" ? "Current Plan" : "Downgrade"}
                         buttonDisabled={status === "free"}
@@ -115,16 +115,16 @@ export default function UpgradePage() {
 
                     <PricingCard
                         title={PRICING_PLANS.annual.name}
-                        price="R 99"
+                        price={PRICING_PLANS.annual.price.split(' ')[0] + ' ' + PRICING_PLANS.annual.price.split(' ')[1]}
                         period="per year"
-                        description="Perfect for families with dynamic needs. Renews yearly — cancel anytime."
+                        description={PRICING_PLANS.annual.description}
                         badge="Popular"
                         features={[
                             { text: "Up to 3 Employee Seats", included: true },
                             { text: "1 Year Compliance Archive", included: true },
                             { text: "Repeat Last Month Payroll", included: true },
                             { text: "BCEA Contract Generator", included: true },
-                            { text: "Google Drive Sync", included: false },
+                            { text: "Google Drive Sync", included: PRICING_PLANS.annual.hasDriveSync },
                         ]}
                         buttonText={status === "annual" ? "Active" : "Subscribe Yearly"}
                         onAction={() => handleAction("annual")}
@@ -133,14 +133,14 @@ export default function UpgradePage() {
 
                     <PricingCard
                         title={PRICING_PLANS.pro.name}
-                        price="R 299"
+                        price={PRICING_PLANS.pro.price.split(' ')[0] + ' ' + PRICING_PLANS.pro.price.split(' ')[1]}
                         period="once-off"
-                        description="The complete payroll vault. Pay once, keep forever."
+                        description={PRICING_PLANS.pro.description}
                         badge="Best Value"
                         features={[
                             { text: "Unlimited Employee Seats", included: true },
-                            { text: "5 Year Archive (recommended best practice)", included: true },
-                            { text: "Private Google Drive Sync", included: true },
+                            { text: "5 Year Archive (recommended)", included: true },
+                            { text: "Private Google Drive Sync", included: PRICING_PLANS.pro.hasDriveSync },
                             { text: "1-Click Monthly Payroll", included: true },
                             { text: "Full Document Vault", included: true },
                         ]}

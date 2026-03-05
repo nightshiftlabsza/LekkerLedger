@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getNMWForDate } from "@/lib/legal/registry";
 import { Logo } from "@/components/ui/logo";
+import { PRICING_PLANS } from "@/src/config/plans";
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * MARKETING HOMEPAGE — follows Audit A §4 wireframe exactly:
@@ -544,19 +545,10 @@ function PrivacyExplainer() {
 
 /* ─── 8. PRICING SUMMARY ─────────────────────────────────────────────────── */
 function PricingSummary() {
-    const plans = [
-        {
-            title: "Standard", price: "Free", period: "forever",
-            bullets: ["1 employee", "3 months history", "BCEA-aligned calculations"],
-        },
-        {
-            title: "Annual Support", price: "R99", period: "per year", badge: "Popular",
-            bullets: ["Up to 3 employees", "1 year archive", "Contract generator"],
-        },
-        {
-            title: "Lekker Pro", price: "R299", period: "once-off", badge: "Best Value",
-            bullets: ["Unlimited employees", "5 year archive", "Google Drive sync"],
-        },
+    const plansToShow = [
+        { key: 'free', title: "Standard" },
+        { key: 'annual', title: "Annual Support", badge: "Popular" },
+        { key: 'pro', title: "Lekker Pro", badge: "Best Value" }
     ];
 
     return (
@@ -569,30 +561,32 @@ function PricingSummary() {
                 </div>
 
                 <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                    {plans.map((p, i) => (
-                        <div key={i} className={`relative p-6 rounded-2xl border transition-all ${i === 2 ? 'border-[var(--primary)] shadow-xl shadow-[var(--primary)]/10 scale-[1.02]' : 'border-[var(--border)]'}`} style={{ backgroundColor: "var(--surface-1)" }}>
-                            {p.badge && (
-                                <span className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${i === 2 ? 'bg-[var(--primary)] text-white' : 'bg-[var(--accent-subtle)] text-[var(--primary)] border border-[var(--border)]'}`}>
-                                    {p.badge}
-                                </span>
-                            )}
-                            <div className="text-center mb-4 pt-2">
-                                <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{p.title}</h3>
-                                <div className="mt-2">
-                                    <span className="text-4xl font-semibold type-mono" style={{ color: "var(--text)" }}>{p.price}</span>
-                                    <span className="text-xs font-bold ml-1" style={{ color: "var(--text-muted)" }}>{p.period}</span>
+                    {plansToShow.map((p, i) => {
+                        const plan = PRICING_PLANS[p.key as keyof typeof PRICING_PLANS];
+                        return (
+                            <div key={i} className={`relative p-6 rounded-2xl border transition-all ${i === 2 ? 'border-[var(--primary)] shadow-xl shadow-[var(--primary)]/10 scale-[1.02]' : 'border-[var(--border)]'}`} style={{ backgroundColor: "var(--surface-1)" }}>
+                                {p.badge && (
+                                    <span className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${i === 2 ? 'bg-[var(--primary)] text-white' : 'bg-[var(--accent-subtle)] text-[var(--primary)] border border-[var(--border)]'}`}>
+                                        {p.badge}
+                                    </span>
+                                )}
+                                <div className="text-center mb-4 pt-2">
+                                    <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{p.title}</h3>
+                                    <div className="mt-2">
+                                        <span className="text-4xl font-semibold type-mono" style={{ color: "var(--text)" }}>{plan.price}</span>
+                                    </div>
                                 </div>
+                                <ul className="space-y-2 mb-6">
+                                    {plan.features.slice(0, 4).map((b, j) => (
+                                        <li key={j} className="flex items-center gap-2 text-sm" style={{ color: "var(--text-muted)" }}>
+                                            <Check className="h-3.5 w-3.5 text-green-500 stroke-[3px] shrink-0" />
+                                            {b}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                            <ul className="space-y-2 mb-6">
-                                {p.bullets.map((b, j) => (
-                                    <li key={j} className="flex items-center gap-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                                        <Check className="h-3.5 w-3.5 text-green-500 stroke-[3px] shrink-0" />
-                                        {b}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 <div className="text-center mt-8 space-y-3">
