@@ -10,21 +10,22 @@ import { GlobalCreateDesktop, GlobalCreateFAB } from "@/components/global-create
 import { CloudOff, X, AlertOctagon, CreditCard } from "lucide-react";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { ToastProvider } from "@/components/ui/toast";
+import { Logo } from "@/components/ui/logo";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-    const { isOnline, syncError, paymentsError } = useAppConnectivity();
+    const { network, sync, payments } = useAppConnectivity();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
     const [paymentsBannerDismissed, setPaymentsBannerDismissed] = React.useState(false);
     const [moreOpen, setMoreOpen] = React.useState(false);
 
     React.useEffect(() => {
-        if (isOnline) setOfflineBannerDismissed(false);
-    }, [isOnline]);
+        if (network === "online") setOfflineBannerDismissed(false);
+    }, [network]);
 
-    const showOfflineBanner = !isOnline && !offlineBannerDismissed;
-    const showSyncBanner = isOnline && syncError && !syncBannerDismissed;
-    const showPaymentsBanner = isOnline && paymentsError && !paymentsBannerDismissed;
+    const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
+    const showSyncBanner = network === "online" && sync === "error" && !syncBannerDismissed;
+    const showPaymentsBanner = network === "online" && payments === "unavailable" && !paymentsBannerDismissed;
 
     return (
         <ToastProvider>
@@ -39,9 +40,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <div className="flex items-center gap-3">
                             {/* Mobile menu trigger — opens side drawer */}
                             <SideDrawer open={moreOpen} onOpenChange={setMoreOpen} showButton={true} />
-                            <Link href="/dashboard" className="flex items-center gap-2">
-                                <Image src="/brand/logo-light.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto block dark:hidden" />
-                                <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto hidden dark:block" />
+                            <Link href="/dashboard" className="flex items-center gap-2 outline-none hover:opacity-90 transition-opacity">
+                                <Logo />
                             </Link>
                             {/* Desktop only Household switcher */}
                             <div className="hidden lg:block ml-4 pl-4 border-l border-[var(--border)]">
@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            {!isOnline && (
+                            {network === "offline" && (
                                 <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[10px] font-bold text-[var(--focus)] border border-[var(--focus)]/20">
                                     <CloudOff className="h-3 w-3" /> Offline
                                 </span>

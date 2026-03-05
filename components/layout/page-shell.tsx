@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { SideDrawer } from "@/components/layout/side-drawer";
+import { Logo } from "@/components/ui/logo";
 import { CloudOff, X } from "lucide-react";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { useOnlineStatus } from "@/src/app/hooks/useOnlineStatus";
@@ -31,9 +32,8 @@ export function PageShell({ title, children, actions }: PageShellProps) {
                 <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <SideDrawer />
-                        <Link href="/" className="flex items-center gap-2">
-                            <Image src="/brand/logo-light.png" alt="LekkerLedger" width={80} height={24} className="h-6 w-auto block dark:hidden" />
-                            <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={80} height={24} className="h-6 w-auto hidden dark:block" />
+                        <Link href="/" className="flex items-center gap-2 py-1">
+                            <Logo showText={false} iconClassName="h-6 w-auto" />
                             <span className="font-extrabold text-sm uppercase tracking-widest pt-0.5 text-[var(--text)]">{title}</span>
                         </Link>
                     </div>

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getNMWForDate } from "@/lib/legal/registry";
+import { Logo } from "@/components/ui/logo";
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * MARKETING HOMEPAGE — follows Audit A §4 wireframe exactly:
@@ -57,9 +58,8 @@ function MarketingHeader() {
         <header className="sticky top-0 z-50 bg-[var(--surface-1)] shadow-sm border-b border-[var(--border)]">
             <div className="content-container-wide px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 shrink-0">
-                    <Image src="/brand/logo-light.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto block dark:hidden" priority />
-                    <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto hidden dark:block" priority />
+                <Link href="/" className="inline-block outline-none hover:opacity-90 transition-opacity">
+                    <Logo />
                 </Link>
 
                 {/* Desktop nav */}
@@ -707,9 +707,8 @@ function Footer() {
                         </div>
                     </div>
                     <div>
-                        <Link href="/" className="block mb-4">
-                            <Image src="/brand/logo-light.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto block dark:hidden" />
-                            <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto hidden dark:block" />
+                        <Link href="/" className="inline-block mb-4 outline-none hover:opacity-90 transition-opacity">
+                            <Logo />
                         </Link>
                         <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
                             Crafted by Nightshift Labs 🇿🇦<br />

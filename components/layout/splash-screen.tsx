@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import Image from "next/image";
+import { Logo } from "@/components/ui/logo";
+
 
 export function SplashScreen() {
     const [isVisible, setIsVisible] = React.useState(true);
@@ -19,14 +21,8 @@ export function SplashScreen() {
     return (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-zinc-950 animate-fade-out" style={{ animationDelay: '0.8s' }}>
             <div className="relative animate-scale-in">
-                <Image
-                    src="/brand/logo-dark.png"
-                    alt="LekkerLedger"
-                    width={240}
-                    height={60}
-                    className="h-16 w-auto"
-                    priority
-                />
+                <Logo showIcon={false} textClassName="text-white text-3xl" />
+
             </div>
             <div className="mt-8 flex flex-col items-center space-y-2 animate-slide-up" style={{ animationDelay: '0.4s' }}>
                 <div className="h-1 w-48 bg-zinc-800 rounded-full overflow-hidden">

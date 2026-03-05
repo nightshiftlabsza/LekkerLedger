@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import Image from "next/image";
+import { Logo } from "@/components/ui/logo";
+
 
 export function SplashPortal() {
     const [visible, setVisible] = React.useState(true);
@@ -33,14 +35,8 @@ export function SplashPortal() {
             className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-all duration-700 ease-in-out bg-zinc-950 ${fadeOut ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'}`}
         >
             <div className="relative animate-scale-in">
-                <Image
-                    src="/brand/logo-dark.png"
-                    alt="LekkerLedger"
-                    width={240}
-                    height={60}
-                    className="h-16 w-auto"
-                    priority
-                />
+                <Logo textClassName="text-white text-3xl" iconClassName="h-16 w-16" />
+
             </div>
             <div className="mt-8 flex flex-col items-center space-y-2 animate-slide-up" style={{ animationDelay: '0.4s' }}>
                 <div className="h-1.5 w-48 bg-zinc-800 rounded-full overflow-hidden">

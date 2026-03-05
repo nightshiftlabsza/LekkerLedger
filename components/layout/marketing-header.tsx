@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getSettings } from "@/lib/storage";
+import { Logo } from "@/components/ui/logo";
+
 
 const NAV_LINKS = [
     { href: "#how-it-works", label: "How it works" },
@@ -51,9 +53,8 @@ export function MarketingHeader() {
         <header className="sticky top-0 z-30 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
             <div className="max-w-7xl mx-auto w-full flex items-center justify-between px-4 py-4 xl:py-5">
                 {/* Logo */}
-                <Link href="/" className="focus-ring rounded-lg shrink-0">
-                    <Image src="/brand/logo-light.png" alt="LekkerLedger" width={200} height={50} className="h-10 sm:h-12 w-auto block dark:hidden" priority />
-                    <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={200} height={50} className="h-10 sm:h-12 w-auto hidden dark:block" priority />
+                <Link href="/" className="focus-ring rounded-lg shrink-0 py-1">
+                    <Logo />
                 </Link>
 
                 {/* Desktop nav */}
@@ -95,9 +96,8 @@ export function MarketingHeader() {
                     {/* Menu panel */}
                     <div className="absolute top-0 left-0 right-0 glass-panel shadow-[var(--shadow-xl)] animate-slide-down border-b border-[var(--border)]">
                         <div className="flex items-center justify-between px-4 py-4">
-                            <Link href="/" onClick={() => setMenuOpen(false)} className="rounded-lg">
-                                <Image src="/brand/logo-light.png" alt="LekkerLedger" width={160} height={40} className="h-9 w-auto block dark:hidden" priority />
-                                <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={160} height={40} className="h-9 w-auto hidden dark:block" priority />
+                            <Link href="/" onClick={() => setMenuOpen(false)} className="rounded-lg py-1">
+                                <Logo />
                             </Link>
                             <button
                                 onClick={() => setMenuOpen(false)}

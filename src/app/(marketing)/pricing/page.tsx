@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getSettings, saveSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
 import { PRICING_PLANS } from "@/src/config/plans";
+import { Logo } from "@/components/ui/logo";
 
 const PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c";
 const PAYSTACK_PLAN_ANNUAL = "PLN_xdijjb5u3pqneld";
@@ -244,9 +245,8 @@ function PricingHeader() {
         <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-sm">
             <div className="content-container-wide px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 shrink-0">
-                    <Image src="/brand/logo-light.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto block dark:hidden" priority />
-                    <Image src="/brand/logo-dark.png" alt="LekkerLedger" width={167} height={44} className="h-11 w-auto hidden dark:block" priority />
+                <Link href="/" className="inline-block outline-none hover:opacity-90 transition-opacity">
+                    <Logo />
                 </Link>
 
                 {/* Desktop nav */}

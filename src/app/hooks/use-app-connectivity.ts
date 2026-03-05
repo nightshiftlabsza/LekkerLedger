@@ -3,50 +3,52 @@
 import * as React from "react";
 import { getSettings } from "@/lib/storage";
 
-export function useAppConnectivity() {
-    const [isOnline, setIsOnline] = React.useState(true);
-    const [syncError, setSyncError] = React.useState(false);
+export type NetworkState = "online" | "offline" | "flaky";
+export type SyncState = "disabled" | "enabled" | "error" | "reconnecting";
+export type PaymentsState = "available" | "unavailable";
 
-    // We'll mock a payments error state for now, but provide a way to set it
-    const [paymentsError, setPaymentsError] = React.useState(false);
+export function useAppConnectivity() {
+    const [network, setNetwork] = React.useState<NetworkState>("online");
+    const [sync, setSync] = React.useState<SyncState>("disabled");
+    const [payments, setPayments] = React.useState<PaymentsState>("available");
 
     React.useEffect(() => {
-        // Initial state
-        setIsOnline(navigator.onLine);
+        setNetwork(navigator.onLine ? "online" : "offline");
 
-        const handleOnline = () => setIsOnline(true);
-        const handleOffline = () => setIsOnline(false);
+        const handleOnline = () => setNetwork("online");
+        const handleOffline = () => setNetwork("offline");
 
         window.addEventListener("online", handleOnline);
         window.addEventListener("offline", handleOffline);
 
-        // Check if Drive is configured but token is expired
-        // In a real implementation this would check the actual token validity
         async function checkSync() {
             try {
                 const s = await getSettings();
                 if (s?.googleSyncEnabled && s?.googleAuthToken) {
-                    // Check if token looks expired (mock validation for now)
-                    // if (Date.now() > tokenExpiry) setSyncError(true);
+                    setSync("enabled");
+                } else {
+                    setSync("disabled");
                 }
             } catch (err) {
                 console.error("Failed to check sync status:", err);
+                setSync("error");
             }
         }
 
         checkSync();
 
         return () => {
-            window.addEventListener("online", handleOnline);
-            window.addEventListener("offline", handleOffline);
+            window.removeEventListener("online", handleOnline);
+            window.removeEventListener("offline", handleOffline);
         };
     }, []);
 
     return {
-        isOnline,
-        syncError,
-        paymentsError,
-        setSyncError,
-        setPaymentsError
+        network,
+        sync,
+        payments,
+        setNetwork,
+        setSync,
+        setPayments
     };
 }

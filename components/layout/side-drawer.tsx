@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { Logo } from "@/components/ui/logo";
 import {
     X, FileText, Users, Menu, LayoutDashboard,
     Palmtree, FileSpreadsheet, Settings,
@@ -120,23 +121,8 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                     style={{ borderBottom: "1px solid var(--border)" }}
                 >
                     <div>
-                        <Link href="/dashboard" onClick={() => setOpen(false)} className="block rounded-lg">
-                            <Image
-                                src="/brand/logo-light.png"
-                                alt="LekkerLedger"
-                                width={120}
-                                height={30}
-                                className="h-10 w-auto transition-opacity hover:opacity-80 block dark:hidden"
-                                priority
-                            />
-                            <Image
-                                src="/brand/logo-dark.png"
-                                alt="LekkerLedger"
-                                width={120}
-                                height={30}
-                                className="h-10 w-auto transition-opacity hover:opacity-80 hidden dark:block"
-                                priority
-                            />
+                        <Link href="/dashboard" onClick={() => setOpen(false)} className="block rounded-lg py-1">
+                            <Logo />
                         </Link>
                         <p className="text-[9px] mt-0.5 font-medium opacity-40" style={{ color: "var(--text-muted)" }}>
                             By Nightshift Labs

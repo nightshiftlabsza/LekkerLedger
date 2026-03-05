@@ -85,7 +85,7 @@ function SettingsContent() {
             <PageHeader title="Settings" />
 
             {/* Tab switcher */}
-            <div className="flex bg-[var(--surface-1)] p-1.5 rounded-[2.5rem] mb-2 border border-[var(--border)] overflow-x-auto scrollbar-hide">
+            <div className="flex bg-[var(--surface-1)] p-2 rounded-[2rem] mb-2 border border-[var(--border)] overflow-x-auto scrollbar-hide">
                 <div className="flex min-w-max gap-1">
                     <TabButton id="general" icon={Building2} label="General" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="storage" icon={Database} label="Storage & Sync" activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -404,11 +404,11 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
     const active = activeTab === id;
     return (
         <button onClick={() => setActiveTab(id)} aria-pressed={active}
-            className="flex flex-col items-center justify-center gap-1 py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 min-w-[80px]"
+            className="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all duration-200 min-w-[80px]"
             style={{
                 backgroundColor: active ? "var(--primary)" : "transparent",
                 color: active ? "#ffffff" : "var(--text-muted)",
-                boxShadow: active ? "var(--shadow-sm)" : "none",
+                boxShadow: active ? "var(--shadow-1)" : "none",
             }}>
             <Icon className="h-4 w-4" />{label}
         </button>
