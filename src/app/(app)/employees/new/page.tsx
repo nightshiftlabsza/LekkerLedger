@@ -88,10 +88,10 @@ export default function AddEmployeePage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
             <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
-                <div className="max-w-xl mx-auto flex items-center gap-3">
+                <div className="max-w-xl mx-auto lg:pl-64 flex items-center gap-3">
                     <SideDrawer />
                     <Link href="/employees">
                         <button
@@ -108,222 +108,224 @@ export default function AddEmployeePage() {
                 </div>
             </header>
 
-            <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6">
-                <Card className="animate-slide-up">
-                    <CardContent className="p-6">
-                        <form onSubmit={handleSave} className="space-y-5">
-                            {!canAdd && (
-                                <Alert variant="default" className="border-[var(--focus)] bg-[var(--surface-2)]">
-                                    <Sparkles className="h-4 w-4 text-[var(--focus)]" />
-                                    <AlertDescription className="text-[var(--text-muted)]">
-                                        <strong>{tierLimitReached === "annual" ? "Annual" : "Standard"} Tier Limit:</strong>
-                                        {tierLimitReached === "annual" ? " You can only have up to 3 active workers." : " You can only have 1 active worker."}
-                                        <Link href="/pricing" className="ml-1 underline font-bold">Upgrade to Pro</Link> for unlimited seats.
-                                    </AlertDescription>
-                                </Alert>
-                            )}
-
-                            {errors.form && (
-                                <Alert variant="error">
-                                    <AlertDescription>{errors.form}</AlertDescription>
-                                </Alert>
-                            )}
-
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Full Name *</Label>
-                                <Input
-                                    id="name"
-                                    placeholder="e.g. Thandi Dlamini"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    error={errors.name}
-                                    disabled={loading}
-                                    autoFocus
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="role">Role</Label>
-                                <Input
-                                    id="role"
-                                    placeholder="e.g. Domestic Worker, Gardener"
-                                    value={formData.role}
-                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                    error={errors.role}
-                                    disabled={loading}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="idNumber">ID / Passport Number (Optional)</Label>
-                                <Input
-                                    id="idNumber"
-                                    placeholder="e.g. 9001015009087"
-                                    value={formData.idNumber}
-                                    onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
-                                    error={errors.idNumber}
-                                    disabled={loading}
-                                />
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                    Saved locally. If Drive sync is on, included in your backup. Used on the payslip PDF.
-                                </p>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-2">
-                                    <Label htmlFor="phone">Phone Number</Label>
-                                    <Input
-                                        id="phone"
-                                        type="tel"
-                                        placeholder="e.g. 071 234 5678"
-                                        value={formData.phone}
-                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                        disabled={loading}
-                                    />
-                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        For WhatsApp sharing of payslips.
-                                    </p>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="startDate">Employment Start</Label>
-                                    <Input
-                                        id="startDate"
-                                        type="date"
-                                        value={formData.startDate}
-                                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                        disabled={loading}
-                                    />
-                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        Used to calculate leave.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="hourlyRate">Default Hourly Rate (ZAR) *</Label>
-                                <div className="relative">
-                                    <span
-                                        className="absolute left-4 top-3 text-sm font-semibold pointer-events-none"
-                                        style={{ color: "var(--text-muted)" }}
-                                    >
-                                        R
-                                    </span>
-                                    <Input
-                                        id="hourlyRate"
-                                        className="pl-8"
-                                        type="number"
-                                        step="0.01"
-                                        placeholder={NMW_RATE.toString()}
-                                        value={formData.hourlyRate}
-                                        onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
-                                        onFocus={(e) => e.target.select()}
-                                        error={errors.hourlyRate}
-                                        disabled={loading}
-                                    />
-                                </div>
-                                {belowNMW && (
-                                    <Alert variant="error">
-                                        <AlertDescription>
-                                            National Minimum Wage is <strong>R{NMW_RATE}/hr</strong> for Domestic
-                                            Workers (SD7). You cannot legally pay below this.
+            <main className="flex-1 w-full px-4 py-6">
+                <div className="max-w-xl mx-auto lg:pl-64">
+                    <Card className="animate-slide-up">
+                        <CardContent className="p-6">
+                            <form onSubmit={handleSave} className="space-y-5">
+                                {!canAdd && (
+                                    <Alert variant="default" className="border-[var(--focus)] bg-[var(--surface-2)]">
+                                        <Sparkles className="h-4 w-4 text-[var(--focus)]" />
+                                        <AlertDescription className="text-[var(--text-muted)]">
+                                            <strong>{tierLimitReached === "annual" ? "Annual" : "Standard"} Tier Limit:</strong>
+                                            {tierLimitReached === "annual" ? " You can only have up to 3 active workers." : " You can only have 1 active worker."}
+                                            <Link href="/pricing" className="ml-1 underline font-bold">Upgrade to Pro</Link> for unlimited seats.
                                         </AlertDescription>
                                     </Alert>
                                 )}
-                                {!belowNMW && hourlyRateNum >= NMW_RATE && (
-                                    <p className="text-xs" style={{ color: "var(--primary)" }}>
-                                        ✓ Above National Minimum Wage
-                                    </p>
+
+                                {errors.form && (
+                                    <Alert variant="error">
+                                        <AlertDescription>{errors.form}</AlertDescription>
+                                    </Alert>
                                 )}
-                            </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="ordinaryHoursPerDay">Ordinary Hours per Day</Label>
-                                <Input
-                                    id="ordinaryHoursPerDay"
-                                    type="number"
-                                    min="1"
-                                    max="24"
-                                    value={formData.ordinaryHoursPerDay}
-                                    onChange={(e) => setFormData({ ...formData, ordinaryHoursPerDay: e.target.value })}
-                                    onFocus={(e) => e.target.select()}
-                                    disabled={loading}
-                                />
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                    Default 8 hrs. Used to calculate Minimum Sunday Shift Pay (BCEA).
-                                </p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="frequency">Pay Frequency</Label>
-                                <select
-                                    id="frequency"
-                                    className="w-full h-10 px-3 rounded-md text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-0 disabled:opacity-50"
-                                    style={{
-                                        border: "1px solid var(--border)",
-                                        backgroundColor: "var(--surface-1)",
-                                        color: "var(--text)",
-                                    }}
-                                    value={formData.frequency}
-                                    onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                                    disabled={loading}
-                                >
-                                    <option value="Weekly">Weekly</option>
-                                    <option value="Fortnightly">Fortnightly</option>
-                                    <option value="Monthly">Monthly</option>
-                                </select>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => setFormData({ ...formData, ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
-                                className="w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all duration-200 active:scale-[0.99] hover:bg-[var(--surface-2)]"
-                                style={{
-                                    border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
-                                    backgroundColor: formData.ordinarilyWorksSundays ? "rgba(196,122,28,0.04)" : "transparent",
-                                }}
-                            >
-                                <div
-                                    className="h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200"
-                                    style={{
-                                        backgroundColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "transparent",
-                                        border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
-                                    }}
-                                >
-                                    {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />}
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Full Name *</Label>
+                                    <Input
+                                        id="name"
+                                        placeholder="e.g. Thandi Dlamini"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        error={errors.name}
+                                        disabled={loading}
+                                        autoFocus
+                                    />
                                 </div>
-                                <div>
-                                    <p className="font-semibold text-sm" style={{ color: "var(--text)" }}>
-                                        Ordinarily works on Sundays
-                                    </p>
-                                    <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                                        If toggled ON, Sunday pay is calculated at 1.5× normal rate. If OFF, Sunday pay is calculated at 2.0× normal rate (BCEA Sect. 16).
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="role">Role</Label>
+                                    <Input
+                                        id="role"
+                                        placeholder="e.g. Domestic Worker, Gardener"
+                                        value={formData.role}
+                                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                        error={errors.role}
+                                        disabled={loading}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="idNumber">ID / Passport Number (Optional)</Label>
+                                    <Input
+                                        id="idNumber"
+                                        placeholder="e.g. 9001015009087"
+                                        value={formData.idNumber}
+                                        onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
+                                        error={errors.idNumber}
+                                        disabled={loading}
+                                    />
+                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                                        Saved locally. If Drive sync is on, included in your backup. Used on the payslip PDF.
                                     </p>
                                 </div>
-                            </button>
 
-                            <div
-                                className="pt-4"
-                                style={{ borderTop: "1px solid var(--border)" }}
-                            >
-                                <Button
-                                    type="submit"
-                                    className="w-full gap-2 h-12 text-base"
-                                    disabled={loading || belowNMW || !canAdd}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <Loader2 className="h-5 w-5 animate-spin" /> Saving…
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-4 w-4" /> Save Employee
-                                        </>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="phone">Phone Number</Label>
+                                        <Input
+                                            id="phone"
+                                            type="tel"
+                                            placeholder="e.g. 071 234 5678"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            disabled={loading}
+                                        />
+                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                                            For WhatsApp sharing of payslips.
+                                        </p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="startDate">Employment Start</Label>
+                                        <Input
+                                            id="startDate"
+                                            type="date"
+                                            value={formData.startDate}
+                                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                            disabled={loading}
+                                        />
+                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                                            Used to calculate leave.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="hourlyRate">Default Hourly Rate (ZAR) *</Label>
+                                    <div className="relative">
+                                        <span
+                                            className="absolute left-4 top-3 text-sm font-semibold pointer-events-none"
+                                            style={{ color: "var(--text-muted)" }}
+                                        >
+                                            R
+                                        </span>
+                                        <Input
+                                            id="hourlyRate"
+                                            className="pl-8"
+                                            type="number"
+                                            step="0.01"
+                                            placeholder={NMW_RATE.toString()}
+                                            value={formData.hourlyRate}
+                                            onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
+                                            onFocus={(e) => e.target.select()}
+                                            error={errors.hourlyRate}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    {belowNMW && (
+                                        <Alert variant="error">
+                                            <AlertDescription>
+                                                National Minimum Wage is <strong>R{NMW_RATE}/hr</strong> for Domestic
+                                                Workers (SD7). You cannot legally pay below this.
+                                            </AlertDescription>
+                                        </Alert>
                                     )}
-                                </Button>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
+                                    {!belowNMW && hourlyRateNum >= NMW_RATE && (
+                                        <p className="text-xs" style={{ color: "var(--primary)" }}>
+                                            ✓ Above National Minimum Wage
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="ordinaryHoursPerDay">Ordinary Hours per Day</Label>
+                                    <Input
+                                        id="ordinaryHoursPerDay"
+                                        type="number"
+                                        min="1"
+                                        max="24"
+                                        value={formData.ordinaryHoursPerDay}
+                                        onChange={(e) => setFormData({ ...formData, ordinaryHoursPerDay: e.target.value })}
+                                        onFocus={(e) => e.target.select()}
+                                        disabled={loading}
+                                    />
+                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                                        Default 8 hrs. Used to calculate Minimum Sunday Shift Pay (BCEA).
+                                    </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="frequency">Pay Frequency</Label>
+                                    <select
+                                        id="frequency"
+                                        className="w-full h-10 px-3 rounded-md text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-0 disabled:opacity-50"
+                                        style={{
+                                            border: "1px solid var(--border)",
+                                            backgroundColor: "var(--surface-1)",
+                                            color: "var(--text)",
+                                        }}
+                                        value={formData.frequency}
+                                        onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                                        disabled={loading}
+                                    >
+                                        <option value="Weekly">Weekly</option>
+                                        <option value="Fortnightly">Fortnightly</option>
+                                        <option value="Monthly">Monthly</option>
+                                    </select>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
+                                    className="w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all duration-200 active:scale-[0.99] hover:bg-[var(--surface-2)]"
+                                    style={{
+                                        border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
+                                        backgroundColor: formData.ordinarilyWorksSundays ? "rgba(196,122,28,0.04)" : "transparent",
+                                    }}
+                                >
+                                    <div
+                                        className="h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200"
+                                        style={{
+                                            backgroundColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "transparent",
+                                            border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
+                                        }}
+                                    >
+                                        {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />}
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-sm" style={{ color: "var(--text)" }}>
+                                            Ordinarily works on Sundays
+                                        </p>
+                                        <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                                            If toggled ON, Sunday pay is calculated at 1.5× normal rate. If OFF, Sunday pay is calculated at 2.0× normal rate (BCEA Sect. 16).
+                                        </p>
+                                    </div>
+                                </button>
+
+                                <div
+                                    className="pt-4"
+                                    style={{ borderTop: "1px solid var(--border)" }}
+                                >
+                                    <Button
+                                        type="submit"
+                                        className="w-full gap-2 h-12 text-base"
+                                        disabled={loading || belowNMW || !canAdd}
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <Loader2 className="h-5 w-5 animate-spin" /> Saving…
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="h-4 w-4" /> Save Employee
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            </form>
+                        </CardContent>
+                    </Card>
+                </div>
             </main>
         </div>
     );

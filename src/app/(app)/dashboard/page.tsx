@@ -234,7 +234,7 @@ export default function DashboardPage() {
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-[var(--text-muted)] px-1 gap-2">
                             <span className="type-overline">Updated Mar 2026</span>
                             <div className="flex gap-4 flex-wrap">
-                                <Link href="/help/coida" className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
+                                <Link href="/help/coida" prefetch={false} className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
                                     <ShieldCheck className="h-3 w-3" /> COIDA 2026
                                 </Link>
                                 <Link href="/help/compliance" className="font-bold hover:text-[var(--primary)] flex items-center gap-1">

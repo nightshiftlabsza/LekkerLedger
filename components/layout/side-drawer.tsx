@@ -103,6 +103,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                     "shadow-[var(--shadow-2)] transition-transform duration-300",
                     open ? "translate-x-0 animate-drawer-in" : "-translate-x-full lg:translate-x-0",
                 ].join(" ")}
+                style={{ backgroundColor: "var(--bg)" }}
             >
                 {/* ── Header ─────────────────────────────────────────────── */}
                 <div
@@ -135,7 +136,7 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                     <button
                         onClick={() => setOpen(false)}
                         aria-label="Close menu"
-                       
+
                         className="lg:hidden h-8 w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--surface-2)] active-scale"
                         style={{ color: "var(--text-muted)" }}
                     >
@@ -162,8 +163,8 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                                             key={href}
                                             href={href}
                                             onClick={() => setOpen(false)}
-                                           
-                                           
+
+
                                             className="relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group"
                                             style={{
                                                 color: active ? "var(--primary)" : "var(--text)",
@@ -203,8 +204,8 @@ export function SideDrawer({ showButton = true }: { showButton?: boolean }) {
                 <div className="px-4 py-4 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
                     <a
                         href="mailto:nightshiftlabsza@gmail.com?subject=LekkerLedger%20Support%20Request"
-                       
-                       
+
+
                         className="flex items-center gap-3 text-sm font-medium rounded-lg px-2 py-2 transition-colors hover:bg-[var(--surface-2)]"
                         style={{ color: "var(--text-muted)" }}
                     >
