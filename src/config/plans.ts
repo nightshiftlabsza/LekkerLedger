@@ -24,6 +24,7 @@ export interface PlanConfig {
     contractGenerator: boolean;
     ufilingExport: boolean;
     leaveLoanTracker: boolean;
+    roePack: boolean;
 
     // Marketing bullets
     marketingBullets: string[];
@@ -41,9 +42,11 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         contractGenerator: false,
         ufilingExport: false,
         leaveLoanTracker: false,
+        roePack: true, // Free users can SEE the numbers, just not download? No, user spec says Free can copy numbers.
         marketingBullets: [
             "1 active employee seat",
-            "Basic payslip flow"
+            "Basic payslip flow",
+            "ROE copy-paste numbers"
         ]
     },
     annual: {
@@ -61,12 +64,14 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         contractGenerator: true,
         ufilingExport: true,
         leaveLoanTracker: false,
+        roePack: true,
         marketingBullets: [
             "Up to 3 active employee seats",
             "12-month archive window",
             "Google Drive sync",
             "Contract generator",
-            "uFiling-ready export"
+            "uFiling-ready export",
+            "Annual COIDA ROE Pack"
         ]
     },
     lifetime: {
@@ -81,11 +86,13 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         contractGenerator: true,
         ufilingExport: true,
         leaveLoanTracker: true,
+        roePack: true,
         marketingBullets: [
             "Unlimited employees",
             "5-year archive",
             "Continuous sync",
-            "Leave + loan tracker"
+            "Leave + loan tracker",
+            "Annual COIDA ROE Pack"
         ]
     }
 } as const;

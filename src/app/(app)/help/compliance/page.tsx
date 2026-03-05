@@ -80,6 +80,20 @@ export default function CompliancePage() {
                         </div>
                     </div>
                 </div>
+
+                <div className="p-5 rounded-2xl animate-slide-up" style={{ animationDelay: "200ms", backgroundColor: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                    <div className="flex items-start gap-3">
+                        <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--primary)" }} />
+                        <div>
+                            <h3 className="font-bold text-base" style={{ color: "var(--text)" }}>5. Injury & Disease Protection (COIDA)</h3>
+                            <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                Employers of domestic workers must register with the Compensation Fund. You pay an annual assessment (roughly 1.04% of wages). In return, the Fund covers medical costs and lost wages if your employee is injured on duty.
+                                <br />
+                                <a href="https://www.labour.gov.za/compensation-for-occupational-injuries-and-diseases-act" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: COID Act</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="pt-6 pb-8 animate-slide-up space-y-4" style={{ animationDelay: "200ms" }}>

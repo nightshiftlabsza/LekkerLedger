@@ -1,5 +1,5 @@
 import localforage from "localforage";
-import { Employee, PayslipInput, LeaveRecord, EmployerSettings, PayPeriod, DocumentMeta, Contract } from "./schema";
+import { Employee, PayslipInput, LeaveRecord, EmployerSettings, PayPeriod, DocumentMeta, Contract, AuditLog } from "./schema";
 
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
 const payslipStore = localforage.createInstance({ name: "LekkerLedger", storeName: "payslips" });
@@ -191,7 +191,9 @@ export async function getSettings(): Promise<EmployerSettings> {
         employerAddress: "",
         employerIdNumber: "",
         uifRefNumber: "",
+        cfNumber: "",
         sdlNumber: "",
+        phone: "",
         proStatus: "free",
         defaultLanguage: "en",
         simpleMode: false,
@@ -415,7 +417,6 @@ export async function resetAllData(): Promise<void> {
 }
 
 // ─── Audit Logging ──────────────────────────────────────────────────────────
-import { AuditLog } from "./schema";
 
 export async function logAuditEvent(action: AuditLog["action"], details: string, metadata?: Record<string, unknown>): Promise<void> {
     const id = crypto.randomUUID();

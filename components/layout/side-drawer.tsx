@@ -22,6 +22,7 @@ const NAV_GROUPS = [
             { href: "/employees", label: "Employees", icon: Users },
             { href: "/leave", label: "Leave", icon: Palmtree },
             { href: "/contracts", label: "Contracts", icon: FileText },
+            { href: "/tools/wage-calculator", label: "Wage Calculator", icon: Calculator },
         ],
     },
     {
@@ -31,10 +32,10 @@ const NAV_GROUPS = [
         ],
     },
     {
-        label: "Tools",
+        label: "Compliance",
         links: [
+            { href: "/compliance/coida/roe", label: "Return of Earnings (ROE) Pack", icon: Sparkles },
             { href: "/ufiling", label: "uFiling Export", icon: FileSpreadsheet },
-            { href: "/tools/wage-calculator", label: "Wage Calculator", icon: Calculator },
             { href: "/help/compliance", label: "Compliance Guide", icon: BookOpen },
         ],
     },

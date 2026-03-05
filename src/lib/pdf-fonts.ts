@@ -1,20 +1,34 @@
 import { PDFDocument, StandardFonts } from "pdf-lib";
 
 export async function loadPdfFonts(pdfDoc: PDFDocument) {
-    let sansRegularBuf, sansBoldBuf, serifBoldBuf, serifRegularBuf;
+    let sansRegularBuf: ArrayBuffer | undefined;
+    let sansBoldBuf: ArrayBuffer | undefined;
+    let serifBoldBuf: ArrayBuffer | undefined;
+    let serifRegularBuf: ArrayBuffer | undefined;
+
     try {
         if (typeof fetch !== "undefined") {
             const fetchFont = async (url: string) => {
-                const r = await fetch(url);
-                if (!r.ok) throw new Error(`Font not found: ${url}`);
-                return r.arrayBuffer();
+                try {
+                    const r = await fetch(url);
+                    if (!r.ok) {
+                        console.warn(`Font not found: ${url}`);
+                        return undefined;
+                    }
+                    return await r.arrayBuffer();
+                } catch (err) {
+                    console.warn(`Error fetching font ${url}:`, err);
+                    return undefined;
+                }
             };
+
             const [sansR, sansB, serifB, serifR] = await Promise.all([
                 fetchFont("/fonts/IBMPlexSans-Regular.ttf"),
                 fetchFont("/fonts/IBMPlexSans-Bold.ttf"),
                 fetchFont("/fonts/IBMPlexSerif-Bold.ttf"),
                 fetchFont("/fonts/IBMPlexSerif-Regular.ttf"),
             ]);
+
             sansRegularBuf = sansR;
             sansBoldBuf = sansB;
             serifBoldBuf = serifB;
@@ -24,10 +38,13 @@ export async function loadPdfFonts(pdfDoc: PDFDocument) {
         console.warn("Failed to fetch custom fonts, falling back to standard fonts", e);
     }
 
-    const sansRegular = sansRegularBuf ? await pdfDoc.embedFont(sansRegularBuf) : await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const sansBold = sansBoldBuf ? await pdfDoc.embedFont(sansBoldBuf) : await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const serifBold = serifBoldBuf ? await pdfDoc.embedFont(serifBoldBuf) : await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
-    const serifRegular = serifRegularBuf ? await pdfDoc.embedFont(serifRegularBuf) : await pdfDoc.embedFont(StandardFonts.TimesRoman);
+    // Embed fonts, falling back to StandardFonts if custom ones failed to load
+    const [sansRegular, sansBold, serifBold, serifRegular] = await Promise.all([
+        sansRegularBuf ? pdfDoc.embedFont(sansRegularBuf) : pdfDoc.embedFont(StandardFonts.Helvetica),
+        sansBoldBuf ? pdfDoc.embedFont(sansBoldBuf) : pdfDoc.embedFont(StandardFonts.HelveticaBold),
+        serifBoldBuf ? pdfDoc.embedFont(serifBoldBuf) : pdfDoc.embedFont(StandardFonts.TimesRomanBold),
+        serifRegularBuf ? pdfDoc.embedFont(serifRegularBuf) : pdfDoc.embedFont(StandardFonts.TimesRoman),
+    ]);
 
     return {
         sansRegular,

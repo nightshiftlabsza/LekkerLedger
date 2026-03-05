@@ -216,6 +216,7 @@ export default function DashboardPage() {
 
                     {/* Mobile-only view for the side panels */}
                     <div className="lg:hidden space-y-6">
+                        <ComplianceCard />
                         <EmployeeCard employeeCount={employeeCount} needsInfoCount={needsInfoCount} />
                         <DocumentCard recentDocs={recentDocs} />
                         <StorageCard settings={settings} />
@@ -224,6 +225,7 @@ export default function DashboardPage() {
 
                 {/* Desktop Side Panel / Ultrawide Context Area */}
                 <div className="hidden lg:block col-span-4-desktop space-y-6">
+                    <ComplianceCard />
                     <EmployeeCard employeeCount={employeeCount} needsInfoCount={needsInfoCount} />
                     <DocumentCard recentDocs={recentDocs} />
                     <StorageCard settings={settings} />
@@ -245,6 +247,33 @@ export default function DashboardPage() {
                 </div>
             </div>
         </>
+    );
+}
+
+function ComplianceCard() {
+    return (
+        <Card className="glass-panel border-none overflow-hidden group">
+            <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="type-overline text-[var(--text-muted)]">Annual Compliance</h3>
+                    <ShieldCheck className="h-4 w-4 text-[var(--primary)]" />
+                </div>
+                <div className="space-y-3">
+                    <div>
+                        <h4 className="type-body font-bold text-[var(--text)]">COIDA ROE Pack</h4>
+                        <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                            Generate your Return of Earnings (ROE) statement for the Compensation Fund.
+                        </p>
+                    </div>
+                    <Link href="/compliance/coida/roe">
+                        <Button variant="outline" size="sm" className="w-full text-xs font-bold border-[var(--primary)]/20 hover:bg-[var(--primary)]/5 hover:border-[var(--primary)] transition-all h-9 rounded-lg gap-2">
+                            Ready in 2 minutes
+                            <ArrowRight className="h-3 w-3" />
+                        </Button>
+                    </Link>
+                </div>
+            </CardContent>
+        </Card>
     );
 }
 

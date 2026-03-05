@@ -76,7 +76,9 @@ export const EmployerSettingsSchema = z.object({
     employerAddress: z.string().default(""),
     employerIdNumber: z.string().default(""),
     uifRefNumber: z.string().default(""), // uFiling reference number
+    cfNumber: z.string().default(""), // COIDA reference number
     sdlNumber: z.string().default(""),
+    phone: z.string().default(""), // Employer contact phone
     proStatus: z.enum(["free", "annual", "pro", "lifetime", "trial"]).optional().default("free"),
     paidUntil: z.string().optional(),
     trialExpiry: z.string().optional(),
@@ -195,7 +197,7 @@ export const AuditLogSchema = z.object({
         "CREATE_EMPLOYEE", "DELETE_EMPLOYEE",
         "UPDATE_SETTINGS", "SYNC_DRIVE",
         "CREATE_PAY_PERIOD", "LOCK_PAY_PERIOD", "DELETE_PAY_PERIOD",
-        "EXPORT_UFILING", "EXPORT_DATA", "IMPORT_DATA", "DELETE_ALL_DATA",
+        "EXPORT_UFILING", "EXPORT_ROE", "EXPORT_COIDA", "EXPORT_DATA", "IMPORT_DATA", "DELETE_ALL_DATA",
         "SWITCH_HOUSEHOLD",
         "CREATE_CONTRACT", "UPDATE_CONTRACT",
     ]),

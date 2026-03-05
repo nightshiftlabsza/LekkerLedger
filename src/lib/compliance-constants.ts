@@ -51,5 +51,13 @@ export const COMPLIANCE = {
         DAYS_WORKED_PER_LEAVE_DAY: 17, // BCEA: 1 day for every 17 days worked
         RATE: 1 / 17,
         SOURCE_URL: "https://www.labour.gov.za/DocumentCenter/Acts/Basic%20Conditions%20of%20Employment/Act%20-%20Basic%20Conditions%20of%20Employment.pdf",
+    },
+    COIDA: {
+        DOMESTIC_CLASS: "M",
+        DOMESTIC_SUBCLASS: "2500",
+        ASSESSMENT_RATE: 1.04,
+        MINIMUM_ASSESSMENT_DOMESTIC: 560,
+        EARNINGS_CAP_2025: 633168,
+        SOURCE_URL: "https://www.gov.za/sites/default/files/gcis_document/202506/52453gen3115.pdf",
     }
 };

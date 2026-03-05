@@ -166,7 +166,11 @@ export default function PayPeriodWorkspacePage() {
 
     /** Bulk download all payslip PDFs as individual files */
     const handleDownloadPayslips = async () => {
-        if (!period || !settings || !plan) return;
+        if (!period || !settings || !plan) {
+            console.error("Missing data for PDF generation:", { period: !!period, settings: !!settings, plan: !!plan });
+            alert("Unable to generate PDFs: Missing required data (Settings or Employees).");
+            return;
+        }
 
         if (!isRecordWithinArchive(plan, period.endDate)) {
             alert("This record is outside your plan's archive window. Please upgrade to Pro to access and export it.");
@@ -174,27 +178,43 @@ export default function PayPeriodWorkspacePage() {
         }
 
         setGeneratingPdfs(true);
+        let completedCount = 0;
         try {
             for (const entry of period.entries) {
                 const emp = employees.find(e => e.id === entry.employeeId);
-                if (!emp) continue;
+                if (!emp) {
+                    console.warn(`Employee not found for entry: ${entry.employeeId}`);
+                    continue;
+                }
+
                 const payslipInput = entryToPayslipInput(entry, emp);
                 const pdfBytes = await generatePayslipPdfBytes(emp, payslipInput, settings);
-                const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: "application/pdf" });
+
+                // Correctly handle the Uint8Array for Blob
+                const blob = new Blob([pdfBytes.buffer as any], { type: "application/pdf" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
                 a.download = getPayslipFilename(emp, payslipInput);
                 document.body.appendChild(a);
                 a.click();
+
+                // Small cleanup
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+
+                completedCount++;
                 // Small delay between downloads to avoid browser throttling
-                await new Promise(r => setTimeout(r, 300));
+                await new Promise(r => setTimeout(r, 400));
+            }
+
+            if (completedCount === 0 && period.entries.length > 0) {
+                throw new Error("No payslips were generated. Check console for details.");
             }
         } catch (err) {
-            console.error("PDF generation failed:", err);
-            alert("Some payslips failed to generate. Please try again.");
+            console.error("Batch PDF generation failed:", err);
+            const msg = err instanceof Error ? err.message : "Unknown error";
+            alert(`Some payslips failed to generate: ${msg}. Please try again or check your settings.`);
         }
         setGeneratingPdfs(false);
     };

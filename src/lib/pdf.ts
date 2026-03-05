@@ -2,6 +2,7 @@ import { PDFDocument, rgb, PDFFont, Color } from "pdf-lib";
 import { Employee, PayslipInput, EmployerSettings } from "./schema";
 import { calculatePayslip, getNMW } from "./calculator";
 import { format } from "date-fns";
+import { loadPdfFonts } from "./pdf-fonts";
 export const PDF_COLORS = {
     PRIMARY_GREEN: rgb(0.02, 0.44, 0.2), // Emerald Green
     PRIMARY_BLUE: rgb(0.0, 0.23, 0.19), // Dark Teal
@@ -160,8 +161,7 @@ export async function generatePayslipPdfBytes(
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 portrait
     const { width, height } = page.getSize();
 
-    // Fonts: EXACT IBM Plex requirement as instructed
-    const { loadPdfFonts } = await import("./pdf-fonts");
+    // Fonts: Standardized loading
     const { sansRegular, sansBold, serifBold } = await loadPdfFonts(pdfDoc);
 
 
@@ -181,7 +181,12 @@ export async function generatePayslipPdfBytes(
         const size = opts?.size ?? 9;
         const color = opts?.color ?? PDF_COLORS.TEXT;
 
-        let displayTxt = text;
+        // Defensive: ensure text is a string and not null/undefined
+        let displayTxt = String(text ?? "");
+
+        // Safety: If somehow x or y is NaN, we skip to prevent crash
+        if (isNaN(x) || isNaN(y)) return;
+
         if (opts?.maxWidth) {
             const ellipsis = "...";
             if (font.widthOfTextAtSize(displayTxt, size) > opts.maxWidth) {
@@ -248,19 +253,21 @@ export async function generatePayslipPdfBytes(
 
     // Employer Details
     t(dict.employer, PDF_MARGIN + 10, cy - 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
-    t(settings.employerName || "Employer Name Not Set", PDF_MARGIN + 10, cy - 30, { font: sansBold, size: 10, maxWidth: 220 });
-    t(settings.employerAddress || "Address Not Set", PDF_MARGIN + 10, cy - 42, { font: sansRegular, size: 7.5, color: PDF_COLORS.TEXT_MUTED, maxWidth: 220 });
+    t(settings.employerName || "Employer Name", PDF_MARGIN + 10, cy - 30, { font: sansBold, size: 10, maxWidth: 220 });
+    t(settings.employerAddress || "Address", PDF_MARGIN + 10, cy - 42, { font: sansRegular, size: 7.5, color: PDF_COLORS.TEXT_MUTED, maxWidth: 220 });
 
     // Employee Details
     t(dict.employee, width / 2, cy - 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
-    t(employee.name, width / 2, cy - 30, { font: sansBold, size: 10 });
-    t(employee.role, width / 2, cy - 42, { font: sansRegular, size: 8, color: PDF_COLORS.TEXT_MUTED });
+    t(employee.name || "Employee Name", width / 2, cy - 30, { font: sansBold, size: 10 });
+    t(employee.role || "Domestic Worker", width / 2, cy - 42, { font: sansRegular, size: 8, color: PDF_COLORS.TEXT_MUTED });
 
     // Period Details
     t(dict.payPeriod, width - PDF_MARGIN - 10, cy - 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
-    const periodStr = `${format(new Date(payslip.payPeriodStart), "dd MMM")} – ${format(new Date(payslip.payPeriodEnd), "dd MMM yyyy")}`;
+    const pStart = payslip.payPeriodStart ? new Date(payslip.payPeriodStart) : new Date();
+    const pEnd = payslip.payPeriodEnd ? new Date(payslip.payPeriodEnd) : new Date();
+    const periodStr = `${format(pStart, "dd MMM")} – ${format(pEnd, "dd MMM yyyy")}`;
     t(periodStr, width - PDF_MARGIN - 10, cy - 30, { font: sansRegular, size: 9, align: "right" });
-    t(`${dict.daysWorked}: ${payslip.daysWorked}`, width - PDF_MARGIN - 10, cy - 42, { font: sansRegular, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    t(`${dict.daysWorked}: ${payslip.daysWorked || 0}`, width - PDF_MARGIN - 10, cy - 42, { font: sansRegular, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
     cy -= (cardH + 30);
 

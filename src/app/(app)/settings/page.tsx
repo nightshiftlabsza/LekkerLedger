@@ -111,6 +111,10 @@ function SettingsContent() {
                                     <Label htmlFor="eaddr">Physical Address</Label>
                                     <Input id="eaddr" value={settings.employerAddress} onChange={(e) => setSettings({ ...settings, employerAddress: e.target.value })} placeholder="e.g. 123 Main St, Cape Town" />
                                 </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="ephone">Contact Phone</Label>
+                                    <Input id="ephone" value={settings.phone} onChange={(e) => setSettings({ ...settings, phone: e.target.value })} placeholder="e.g. 021 123 4567" />
+                                </div>
                                 <Button onClick={() => handleSave({})} disabled={saving} className="w-full bg-[var(--primary)] text-white font-bold h-11">
                                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                                     {saved ? "Settings Saved" : "Save Changes"}
@@ -180,8 +184,18 @@ function SettingsContent() {
                             <Card className="glass-panel border-none p-5 space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
+                                        <Label htmlFor="eid">Employer ID / Co. Reg</Label>
+                                        <Input id="eid" value={settings.employerIdNumber} onChange={(e) => setSettings({ ...settings, employerIdNumber: e.target.value })} placeholder="ID Number" />
+                                    </div>
+                                    <div className="space-y-2">
                                         <Label htmlFor="uifref">uFiling Reference</Label>
                                         <Input id="uifref" value={settings.uifRefNumber} onChange={(e) => setSettings({ ...settings, uifRefNumber: e.target.value })} placeholder="U123456...-1" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="cfref">CF Registration (COIDA)</Label>
+                                        <Input id="cfref" value={settings.cfNumber} onChange={(e) => setSettings({ ...settings, cfNumber: e.target.value })} placeholder="99000..." />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="sdlref">SDL Ref (Optional)</Label>
