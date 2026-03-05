@@ -10,8 +10,8 @@ export function getUserPlan(userProfile: EmployerSettings | null | undefined): P
     if (!userProfile) return PLANS.free;
 
     // Need to safely check the data structure of userProfile
-    // If it has planId, use it
-    const planId = (userProfile as any).planId || 'free';
+    // If it has proStatus, use it
+    const planId = userProfile.proStatus || 'free';
     return getPlanById(planId);
 }
 
