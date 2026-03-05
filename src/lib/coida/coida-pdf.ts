@@ -1,4 +1,5 @@
-import { PDFDocument, rgb } from "pdf-lib";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { PDFDocument } from "pdf-lib";
 import { format } from "date-fns";
 import { Employee, EmployerSettings, PayslipInput } from "../schema";
 import { PDF_COLORS, PDF_MARGIN } from "../pdf";

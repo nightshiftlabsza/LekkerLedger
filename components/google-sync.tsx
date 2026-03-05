@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useGoogleLogin, googleLogout } from "@react-oauth/google";
-import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Folder, FileJson, Database, Shield, History, RefreshCcw, ArrowRight, Smartphone } from "lucide-react";
+import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Folder, FileJson, Database, Shield, History, RefreshCcw, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MINIMAL_SCOPES, DRIVE_SCOPE, GOOGLE_SCOPES, syncDataToDrive, syncDataFromDrive, deleteDataFromDrive } from "@/lib/google-drive";
+import { MINIMAL_SCOPES, DRIVE_SCOPE, syncDataToDrive, syncDataFromDrive, deleteDataFromDrive } from "@/lib/google-drive";
 import { subscribeToDataChanges } from "@/lib/storage";
 
 interface SyncEvent {

@@ -36,8 +36,6 @@ export async function calculateRoeData(startYear: number): Promise<RoeData> {
         return end >= startDate && end <= endDate;
     });
 
-    const employees = await getEmployees();
-
     // Count employees who had at least one payslip in this period
     const activeEmployeeIds = new Set(periodPayslips.map(ps => ps.employeeId));
     const employeeCount = activeEmployeeIds.size;

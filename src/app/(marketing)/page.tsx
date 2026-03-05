@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
     Check, ChevronDown, ChevronRight, Shield, FileText, Users,
     Smartphone, CloudOff, HardDrive, ArrowRight, Menu, X,

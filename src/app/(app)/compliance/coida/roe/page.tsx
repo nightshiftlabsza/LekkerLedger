@@ -33,7 +33,8 @@ import { Employee, EmployerSettings, PayslipInput } from "@/lib/schema";
  * Simple browser side bytes download
  */
 function downloadBlob(bytes: Uint8Array | string, filename: string, type: string) {
-    const blob = new Blob([bytes as any], { type });
+    // @ts-ignore - Uint8Array/string is a valid BlobPart in the browser
+    const blob = new Blob([bytes], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -359,7 +360,17 @@ export default function RoePackPage() {
     );
 }
 
-function RoeValueCard({ label, value, icon: Icon, help, onCopy, isEstimate }: any) {
+function RoeValueCard({ label, value, icon: Icon, help, onCopy, isEstimate }: {
+    label: string,
+    value: string,
+    icon: React.ElementType,
+    help: string,
+    onCopy: () => void,
+    isEstimate?: boolean
+}) {
+    // Suppress unused warning if actually needed for visual logic
+    void isEstimate;
+    void help;
     return (
         <Card className="border-none glass-panel hover:shadow-md transition-shadow">
             <CardContent className="p-5 flex items-center justify-between gap-4">
@@ -388,7 +399,12 @@ function RoeValueCard({ label, value, icon: Icon, help, onCopy, isEstimate }: an
     );
 }
 
-function DocDownloadRow({ label, description, isPaid, onClick }: any) {
+function DocDownloadRow({ label, description, isPaid, onClick }: {
+    label: string,
+    description: string,
+    isPaid: boolean,
+    onClick: () => void
+}) {
     return (
         <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${isPaid ? "border-[var(--border)] hover:border-[var(--primary)]/30" : "border-[var(--border)] opacity-60"}`}>
             <div className="overflow-hidden mr-2">

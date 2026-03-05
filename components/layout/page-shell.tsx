@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { Logo } from "@/components/ui/logo";
 import { CloudOff, X } from "lucide-react";
