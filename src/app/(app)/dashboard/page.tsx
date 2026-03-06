@@ -4,9 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import {
     ArrowRight, AlertTriangle, Users,
-    FileText,
+    FileText, FolderOpen,
     BookOpen, ChevronRight, Banknote,
-    ShieldCheck,
+    ShieldCheck, UserPlus,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,7 @@ export default function DashboardPage() {
     if (loading) {
         return (
             <>
-                <PageHeader title="Dashboard" subtitle="See this month&apos;s payroll status and what to do next." />
+                <PageHeader title="Dashboard" subtitle="See this month's payroll status and what to do next." />
                 <CardSkeleton />
                 <div className="grid grid-cols-2 gap-3"><StatSkeleton /><StatSkeleton /></div>
                 <CardSkeleton />
@@ -102,7 +102,7 @@ export default function DashboardPage() {
     const payrollBody = currentPeriod
         ? "Open this month, finish any remaining entries, check the totals, and then generate the payslips."
         : employeeCount > 0
-            ? "Start this month&apos;s pay period and work through each employee one by one."
+            ? "Start this month's pay period and work through each employee one by one."
             : "Add one employee to unlock payroll, documents, and leave tracking.";
 
     // Build next actions for task list
@@ -147,9 +147,71 @@ export default function DashboardPage() {
     const now = new Date();
     const alerts = computeDashboardAlerts({ employees, summaries, settings, now });
 
+    const SummaryCell = ({ label, value }: { label: string; value: string }) => (
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/50 px-4 py-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</p>
+            <p className="mt-1 text-sm font-semibold text-[var(--text)]">{value}</p>
+        </div>
+    );
+
+    const DocumentCard = ({ recentDocs }: { recentDocs: DocumentMeta[] }) => (
+        <Card className="glass-panel border-none">
+            <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="type-overline text-[var(--text-muted)]">Recent Documents</h3>
+                    <Link href="/documents">
+                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] gap-1">
+                            View all <ChevronRight className="h-3 w-3" />
+                        </Button>
+                    </Link>
+                </div>
+                {recentDocs.length === 0 ? (
+                    <p className="type-body text-[var(--text-muted)]">No documents yet. Generate payslips from a pay period.</p>
+                ) : (
+                    <div className="space-y-2">
+                        {recentDocs.slice(0, 3).map(doc => (
+                            <div key={doc.id} className="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
+                                <FileText className="h-4 w-4 text-[var(--primary)] shrink-0" />
+                                <span className="type-body text-[var(--text)] truncate">{doc.fileName}</span>
+                                <span className="type-overline text-[var(--text-muted)] ml-auto shrink-0">
+                                    {format(new Date(doc.createdAt), "d MMM")}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+
+    const StorageCard = ({ settings }: { settings: EmployerSettings | null }) => (
+        <Card className="glass-panel border-none">
+            <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="type-overline text-[var(--text-muted)]">Storage & Sync</h3>
+                    <Link href="/settings?tab=sync">
+                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] gap-1">
+                            Manage <ChevronRight className="h-3 w-3" />
+                        </Button>
+                    </Link>
+                </div>
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2 text-sm">
+                        <span className="text-[var(--text-muted)] shrink-0">Storage:</span>
+                        <span className="font-bold text-[var(--text)] truncate">This device</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                        <span className="text-[var(--text-muted)] shrink-0">Backup:</span>
+                        <span className="font-bold text-[var(--text)] truncate">{settings?.googleSyncEnabled ? "Google connected" : "Local only"}</span>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+
     return (
         <>
-            <PageHeader title="Dashboard" subtitle="See this month&apos;s payroll status and what to do next." />
+            <PageHeader title="Dashboard" subtitle="See this month's payroll status and what to do next." />
 
             <div className="ultrawide-grid grid-cols-12-desktop gap-6 space-y-6 lg:space-y-0">
                 {/* Main Content Area */}
@@ -268,7 +330,6 @@ export default function DashboardPage() {
                         );
                     })}
 
-                    {/* 2. Next Actions or Empty State */}
                     {employeeCount === 0 ? (
                         <EmptyState
                             title="Welcome to LekkerLedger"
@@ -279,13 +340,32 @@ export default function DashboardPage() {
                             requirements={[
                                 "Employee's full name",
                                 `Their hourly rate (minimum R${COMPLIANCE.NMW.RATE_PER_HOUR.toFixed(2)}/hr)`,
-                                "Expected weekly/monthly hours"
+                                "Expected weekly or monthly hours",
                             ]}
                         />
+                    ) : nextActions.length > 0 ? (
+                        <TaskList title="What to do next" items={nextActions} />
                     ) : (
-                        nextActions.length > 0 && <TaskList title="What to do next" items={nextActions} />
+                        <Card className="glass-panel border-none">
+                            <CardContent className="space-y-3 p-5">
+                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">What to do next</p>
+                                <h2 className="type-h3 text-[var(--text)]">Everything urgent is up to date.</h2>
+                                <p className="text-sm leading-relaxed text-[var(--text-muted)]">Use Documents to review recent files, or open Monthly Payroll when you are ready for the next cycle.</p>
+                                <div className="flex flex-col gap-3 sm:flex-row">
+                                    <Link href="/payroll" className="flex-1">
+                                        <Button className="h-11 w-full gap-2 rounded-xl bg-[var(--primary)] font-bold text-white hover:bg-[var(--primary-hover)]">
+                                            Open Monthly Payroll <ArrowRight className="h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                    <Link href="/documents" className="flex-1">
+                                        <Button variant="outline" className="h-11 w-full gap-2 rounded-xl border-[var(--border)] font-bold hover:bg-[var(--surface-2)]">
+                                            View Documents <ChevronRight className="h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
                     )}
-
                     {/* Mobile-only view for the side panels */}
                     <div className="lg:hidden space-y-6">
                         <ComplianceCard />
@@ -349,31 +429,23 @@ function ComplianceCard() {
     );
 }
 
-function EmployeeCard({ employeeCount, needsInfoCount }: { employeeCount: number; needsInfoCount: number }) {
-    if (employeeCount === 0) return null;
+function SummaryCell({ label, value }: { label: string; value: string }) {
     return (
-        <Card className="glass-panel border-none">
-            <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="type-overline text-[var(--text-muted)]">Employees</h3>
-                    <Link href="/employees">
-                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] gap-1">
-                            View all <ChevronRight className="h-3 w-3" />
-                        </Button>
-                    </Link>
-                </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                    <span className="type-h3 text-[var(--text)]">{employeeCount}</span>
-                    <span className="type-body text-[var(--text-muted)]">active</span>
-                    {needsInfoCount > 0 && (
-                        <StatusChip variant="needs-info" label={`${needsInfoCount} needs info`} />
-                    )}
-                </div>
-            </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/50 px-4 py-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</p>
+            <p className="mt-1 text-sm font-semibold text-[var(--text)]">{value}</p>
+        </div>
     );
 }
 
+function OverviewRow({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/50 px-4 py-3">
+            <span className="text-sm text-[var(--text-muted)]">{label}</span>
+            <span className="text-sm font-semibold text-[var(--text)]">{value}</span>
+        </div>
+    );
+}
 function DocumentCard({ recentDocs }: { recentDocs: DocumentMeta[] }) {
     return (
         <Card className="glass-panel border-none">
@@ -432,4 +504,7 @@ function StorageCard({ settings }: { settings: EmployerSettings | null }) {
         </Card>
     );
 }
+
+
+
 

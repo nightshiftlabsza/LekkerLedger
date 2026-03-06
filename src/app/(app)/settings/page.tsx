@@ -20,7 +20,7 @@ import { getSettings, saveSettings, resetAllData, exportData, importData, getEmp
 import { EmployerSettings, Employee } from "@/lib/schema";
 import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
-import { PLAN_ORDER, PLANS, getPlanDisplayPrice, getPlanPeriodLabel, getPlanSavingsLabel } from "@/config/plans";
+import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "@/config/plans";
 import { getUserPlan, canUseDriveSync } from "../../../lib/entitlements";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
@@ -268,7 +268,9 @@ function SettingsContent() {
                 {activeTab === "plan" && (() => {
                     const currentPlan = getUserPlan(settings);
                     const currentCycle = settings.billingCycle === "monthly" ? "monthly" : "yearly";
-                    const displayCycle = currentPlan.id === "free" ? "yearly" : currentCycle;
+                    const displayCycle: BillingCycle = currentPlan.id === "free" ? "monthly" : currentCycle;
+                    const comparisonCycle: BillingCycle = currentPlan.id === "free" ? "yearly" : currentCycle;
+                    const currentPricePresentation = getPlanPricePresentation(currentPlan, displayCycle);
 
                     return (
                         <div className="space-y-6">
@@ -292,12 +294,12 @@ function SettingsContent() {
                                         </div>
                                         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 lg:min-w-[220px]">
                                             <div className="flex items-end gap-2">
-                                                <span className="text-3xl font-semibold type-mono text-[var(--text)]">{getPlanDisplayPrice(currentPlan, displayCycle)}</span>
-                                                <span className="pb-1 text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{getPlanPeriodLabel(currentPlan, displayCycle)}</span>
+                                                <span className="text-3xl font-semibold type-mono text-[var(--text)]">{currentPricePresentation.primaryPrice}</span>
+                                                {currentPricePresentation.periodLabel ? (
+                                                    <span className="pb-1 text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{currentPricePresentation.periodLabel}</span>
+                                                ) : null}
                                             </div>
-                                            {currentPlan.pricing.yearly && (
-                                                <p className="mt-2 text-sm font-semibold text-[var(--text-muted)]">{getPlanSavingsLabel(currentPlan)}</p>
-                                            )}
+                                            <p className="mt-2 text-sm font-semibold text-[var(--text-muted)]">{currentPricePresentation.helperText}</p>
                                         </div>
                                     </div>
 
@@ -326,9 +328,10 @@ function SettingsContent() {
                                     {PLAN_ORDER.map((planId) => {
                                         const plan = PLANS[planId];
                                         const isCurrent = currentPlan.id === plan.id;
-                                        const cycle = plan.id === "free" ? "yearly" : currentCycle;
+                                        const cycle: BillingCycle = plan.id === "free" ? "monthly" : comparisonCycle;
+                                        const pricePresentation = getPlanPricePresentation(plan, cycle);
                                         return (
-                                            <Card key={plan.id} className={`glass-panel border ${plan.id === "pro" ? "border-[var(--primary)]" : "border-[var(--border)]"} p-5`}>
+                                            <Card key={plan.id} className={`glass-panel border ${plan.id === "standard" ? "border-[var(--primary)]" : "border-[var(--border)]"} p-5`}>
                                                 <div className="space-y-4">
                                                     <div className="flex items-start justify-between gap-3">
                                                         <div>
@@ -336,7 +339,7 @@ function SettingsContent() {
                                                             <h3 className="text-lg font-black text-[var(--text)] mt-2">{plan.bestFor}</h3>
                                                         </div>
                                                         {plan.badge && (
-                                                            <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${plan.id === "pro" ? "bg-[var(--primary)] text-white" : "bg-[var(--accent-subtle)] text-[var(--primary)]"}`}>
+                                                            <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${plan.id === "standard" ? "bg-[var(--primary)] text-white" : "bg-[var(--accent-subtle)] text-[var(--primary)]"}`}>
                                                                 {plan.badge}
                                                             </span>
                                                         )}
@@ -344,10 +347,12 @@ function SettingsContent() {
 
                                                     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
                                                         <div className="flex items-end gap-2">
-                                                            <span className="text-3xl font-semibold type-mono text-[var(--text)]">{getPlanDisplayPrice(plan, cycle)}</span>
-                                                            <span className="pb-1 text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{getPlanPeriodLabel(plan, cycle)}</span>
+                                                            <span className="text-3xl font-semibold type-mono text-[var(--text)]">{pricePresentation.primaryPrice}</span>
+                                                            {pricePresentation.periodLabel ? (
+                                                                <span className="pb-1 text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{pricePresentation.periodLabel}</span>
+                                                            ) : null}
                                                         </div>
-                                                        {plan.pricing.yearly && <p className="mt-2 text-sm font-semibold text-[var(--text-muted)]">{getPlanSavingsLabel(plan)}</p>}
+                                                        <p className="mt-2 text-sm font-semibold text-[var(--text-muted)]">{pricePresentation.helperText}</p>
                                                     </div>
 
                                                     <ul className="space-y-2.5">
@@ -509,6 +514,9 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
         </button>
     );
 }
+
+
+
 
 
 

@@ -12,7 +12,7 @@ import { getSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
 import { createCheckoutSession } from "@/lib/billing-client";
 import { hasStoredGoogleSession } from "@/lib/google-session";
-import { type BillingCycle, PLAN_ORDER, PLANS, getPlanDisplayPrice, getPlanPeriodLabel, getPlanPrice, getPlanSavingsLabel } from "@/config/plans";
+import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPrice, getPlanPricePresentation } from "@/config/plans";
 import { EmployerSettings } from "@/lib/schema";
 import { getUserPlan } from "@/lib/entitlements";
 
@@ -117,7 +117,8 @@ function UpgradePageContent() {
                     </div>
                 )}
 
-                <div className="flex justify-center">
+                <div className="space-y-2">
+                    <div className="flex justify-center">
                     <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
                         {(["monthly", "yearly"] as BillingCycle[]).map((cycle) => (
                             <button
@@ -134,16 +135,21 @@ function UpgradePageContent() {
                             </button>
                         ))}
                     </div>
+                    </div>
+                    <p className="text-center text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+                        Yearly lowers the monthly cost on paid plans.
+                    </p>
                 </div>
 
                 <div className="grid gap-6 xl:grid-cols-3">
                     {PLAN_ORDER.map((planId) => {
                         const plan = PLANS[planId];
-                        const featured = plan.id === "pro";
-                        const cycle = plan.id === "free" ? "yearly" : billingCycle;
+                        const featured = plan.id === "standard";
+                        const cycle = plan.id === "free" ? "monthly" : billingCycle;
                         const isCurrent = currentPlan.id === plan.id;
                         const isStartingCheckout = checkoutPlanId === plan.id;
                         const selectedPrice = plan.id === "free" ? null : getPlanPrice(plan.id, billingCycle);
+                        const pricePresentation = getPlanPricePresentation(plan, cycle);
                         return (
                             <Card key={plan.id} className={`overflow-hidden border ${featured ? "border-[var(--primary)] shadow-[var(--shadow-2)]" : "border-[var(--border)]"}`}>
                                 <CardContent className="p-7 space-y-5">
@@ -162,17 +168,17 @@ function UpgradePageContent() {
                                     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
                                         <div className="flex items-end gap-2">
                                             <span className="text-4xl font-semibold type-mono" style={{ color: "var(--text)" }}>
-                                                {getPlanDisplayPrice(plan, cycle)}
+                                                {pricePresentation.primaryPrice}
                                             </span>
-                                            <span className="pb-1 text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                                                {getPlanPeriodLabel(plan, cycle)}
-                                            </span>
+                                            {pricePresentation.periodLabel ? (
+                                                <span className="pb-1 text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+                                                    {pricePresentation.periodLabel}
+                                                </span>
+                                            ) : null}
                                         </div>
-                                        {plan.pricing.yearly && (
-                                            <p className="mt-2 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
-                                                {billingCycle === "yearly" ? getPlanSavingsLabel(plan) : `${getPlanDisplayPrice(plan, "yearly")}/year if you prefer the lower yearly rate`}
-                                            </p>
-                                        )}
+                                        <p className="mt-2 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
+                                            {pricePresentation.helperText}
+                                        </p>
                                     </div>
 
                                     <ul className="space-y-3">
@@ -236,5 +242,7 @@ function UpgradePageContent() {
         </div>
     );
 }
+
+
 
 
