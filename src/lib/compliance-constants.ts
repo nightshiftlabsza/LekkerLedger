@@ -57,7 +57,7 @@ export const COMPLIANCE = {
         DOMESTIC_SUBCLASS: "2500",
         ASSESSMENT_RATE: 1.04,
         MINIMUM_ASSESSMENT_DOMESTIC: 560,
-        EARNINGS_CAP_2025: 633168,
+        DOMESTIC_EARNINGS_CAP: 633168,
         SOURCE_URL: "https://www.gov.za/sites/default/files/gcis_document/202506/52453gen3115.pdf",
     }
 };

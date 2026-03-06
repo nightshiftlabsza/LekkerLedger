@@ -123,7 +123,7 @@ export default function EmployeeHistoryPage() {
                         <div className="space-y-1">
                             <p className="font-bold text-lg" style={{ color: "var(--text)" }}>No payslips yet</p>
                             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                                Generate a payslip for {employee?.name} to start building a compliance archive.
+                                Generate a payslip for {employee?.name} to start building a document archive.
                             </p>
                         </div>
                         {employee && (
@@ -194,7 +194,7 @@ export default function EmployeeHistoryPage() {
 
                         <Alert className="mt-4 bg-[var(--surface-2)] border-[var(--border)]">
                             <AlertDescription className="text-[11px] text-center text-[var(--text-muted)]">
-                                BCEA requires employers to retain payslip records for 5 years. This archive is stored privately on your device.
+                                Keep payslip records for at least 3 years. This archive is stored privately on your device.
                             </AlertDescription>
                         </Alert>
                     </>

@@ -20,7 +20,7 @@ export default function TermsOfService() {
                         <Scale className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Terms of Service</h1>
-                    <p className="text-zinc-500 font-medium">Last Updated: March 2, 2026</p>
+                    <p className="text-zinc-500 font-medium">Updated periodically</p>
                 </header>
 
                 <div className="prose prose-zinc dark:prose-invert max-w-none space-y-8 text-zinc-400 leading-relaxed font-medium">

@@ -49,20 +49,20 @@ describe("Compliance Logic (SD7 & NMW)", () => {
     it("should mark wage as compliant if at or above NMW", () => {
         const audit = getComplianceAudit(mockEmployee, mockBreakdown);
         expect(audit.wageCompliant).toBe(true);
-        expect(audit.wageStatusText).toContain("COMPLIANT");
+        expect(audit.wageStatusText).toContain("Meets the current minimum-wage check");
     });
 
     it("should mark wage as non-compliant if below NMW", () => {
         const lowPayEmp = { ...mockEmployee, hourlyRate: 25.00 };
         const audit = getComplianceAudit(lowPayEmp, mockBreakdown);
         expect(audit.wageCompliant).toBe(false);
-        expect(audit.wageStatusText).toContain("NON-COMPLIANT");
+        expect(audit.wageStatusText).toContain("Below the current minimum-wage check");
     });
 
     it("should verify UIF compliance for > 24 hours", () => {
         const audit = getComplianceAudit(mockEmployee, mockBreakdown);
         expect(audit.uifCompliant).toBe(true);
-        expect(audit.uifStatusText).toContain("Compliant");
+        expect(audit.uifStatusText).toContain("Matches the 1% deduction check");
     });
 
     it("should mark UIF as NOT applicable for ≤ 24 hours", () => {
@@ -78,7 +78,7 @@ describe("Compliance Logic (SD7 & NMW)", () => {
         };
         const audit = getComplianceAudit(mockEmployee, highAccommodationBreakdown);
         expect(audit.accommodationCompliant).toBe(false);
-        expect(audit.accommodationStatusText).toContain("NON-COMPLIANT");
+        expect(audit.accommodationStatusText).toContain("Above the 10% accommodation check");
     });
 
     it("should suggest 1.5x Sunday multiplier if worker ordinarily works Sundays", () => {

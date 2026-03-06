@@ -14,33 +14,33 @@ export interface ComplianceAudit {
 }
 
 /**
- * Generates a compliance audit based on SD7 and NMW Act.
+ * Generates household payroll checks using rate and deduction references.
  */
 export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, date: Date | string = new Date()): ComplianceAudit {
     const safeDate = new Date(date);
     const nmw = getNMWForDate(safeDate);
 
-    // 1. Wage Compliance
+    // 1. Wage check
     const isWageCompliant = employee.hourlyRate >= nmw;
     const wageStatusText = isWageCompliant
-        ? `COMPLIANT (R${employee.hourlyRate.toFixed(2)}/hr)`
-        : `NON-COMPLIANT (R${employee.hourlyRate.toFixed(2)}/hr is below the R${nmw.toFixed(2)}/hr minimum)`;
+        ? `Meets the current minimum-wage check (R${employee.hourlyRate.toFixed(2)}/hr)`
+        : `Below the current minimum-wage check (R${employee.hourlyRate.toFixed(2)}/hr vs R${nmw.toFixed(2)}/hr)`;
 
-    // 2. UIF Compliance (check if it was applied if hours > 24)
+    // 2. UIF check (check if it was applied if hours > 24)
     const totalHours = breakdown.totalHours;
     const expectedUIF = totalHours > UIF_THRESHOLD_HOURS ? Math.min(breakdown.grossPay, 17712) * UIF_RATE : 0;
     const isUifCompliant = Math.abs(breakdown.deductions.uifEmployee - expectedUIF) < 0.01;
     const uifStatusText = totalHours > UIF_THRESHOLD_HOURS
-        ? (isUifCompliant ? "Compliant (1% deducted)" : "NON-COMPLIANT (Incorrect deduction)")
+        ? (isUifCompliant ? "Matches the 1% deduction check" : "Differs from the 1% deduction check")
         : "Not Applicable (≤ 24hrs/month)";
 
-    // 3. Accommodation Deduction Check (Max 10% of gross pay)
+    // 3. Accommodation deduction check (Max 10% of gross pay)
     const accommodationValue = breakdown.deductions.accommodation ?? 0;
     const maxAccommodation = breakdown.grossPay * ACCOMMODATION_MAX_PCT;
     const isAccommodationCompliant = accommodationValue <= maxAccommodation + 0.01; // Allow for tiny float rounding
     const accommodationStatusText = isAccommodationCompliant
-        ? `Compliant (<= 10% of gross)`
-        : `NON-COMPLIANT (Exceeds 10% of gross pay)`;
+        ? "Within the 10% accommodation check"
+        : "Above the 10% accommodation check";
 
     // 4. Sunday Pay Multiplier
     const sundayRateMultiplier = employee.ordinarilyWorksSundays ? "1.5x" : "2.0x";
@@ -58,7 +58,7 @@ export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, 
 }
 
 /**
- * Generates the human-readable text block requested from Gemini 3.1.
+ * Generates a human-readable record summary for the current payslip checks.
  */
 export function generateComplianceNoteText(employee: Employee, breakdown: PayBreakdown, date: Date | string = new Date()): string {
     const safeDate = new Date(date);
@@ -67,32 +67,32 @@ export function generateComplianceNoteText(employee: Employee, breakdown: PayBre
 
     return `
 ======================================================================
-CONTRACT & COMPLIANCE SUMMARY: ${employee.name.toUpperCase()} (${employee.role})
+PAYROLL CHECK SUMMARY: ${employee.name.toUpperCase()} (${employee.role})
 ID Number: ${employee.idNumber || "NOT PROVIDED"}
 ======================================================================
 
-1. WAGE & DEDUCTION COMPLIANCE (BCEA, SD7 & COIDA)
+1. PAY & DEDUCTION CHECKS
 ----------------------------------------------------------------------
 * Minimum Wage Status      : ${audit.wageStatusText}
 * UIF Deduction (1%)       : R${breakdown.deductions.uifEmployee.toFixed(2)} (${audit.uifStatusText})
-* COIDA Coverage           : Mandatory for all domestic workers (2026 Ruling).
+* COIDA Registration       : Check that the employer is registered with the Compensation Fund where required.
 * Accommodation Deduction  : R${(breakdown.deductions.accommodation ?? 0).toFixed(2)} - ${audit.accommodationStatusText}
 * Sunday Work Rate         : ${audit.sundayMultiplier} normal wage
 * Overtime Rate            : ${audit.overtimeRate} normal wage (for hours exceeding 45/week)
 
-2. LEAVE ENTITLEMENTS (BCEA & SD7)
+2. LEAVE REFERENCE NOTES
 ----------------------------------------------------------------------
 * Annual Leave             : 3 weeks per 12-month cycle, or 1 day for every 17 days worked.
 * Sick Leave               : 1 day for every 26 days worked (first 6 months). Thereafter, the number of days normally worked in 6 weeks over a 36-month cycle.
 * Family Responsibility    : 5 days per year (applicable if employed > 4 months and working >= 4 days/week).
 * Maternity Leave          : Up to 4 consecutive months unpaid (claimable via UIF).
 
-3. ADDITIONAL SD7 & COIDA CLAUSES
+3. ADDITIONAL RECORD NOTES
 ----------------------------------------------------------------------
 * Notice Period            : 1 week if employed for 6 months or less; 4 weeks if employed for more than 6 months.
 * COIDA Registration       : Employers must be registered with the Compensation Commissioner.
 * Record Keeping           : The employer must retain these written particulars of employment for 3 years after termination.
 
-> NOTE: This summary is generated for administrative reference. Any non-compliant items marked above must be rectified to align with the Department of Employment and Labour regulations (BCEA, COIDA, and UIF).
+> NOTE: This summary is a calculation check for administrative reference. Review the figures against your records and official guidance before relying on it.
 `.trim();
 }

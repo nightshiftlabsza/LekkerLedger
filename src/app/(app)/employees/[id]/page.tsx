@@ -401,7 +401,7 @@ function EmployeeDetailContent() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-sm" style={{ color: "var(--text)" }}>Certificate of Service</p>
-                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>BCEA-compliant PDF for the employee</p>
+                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>Payslip PDF for the employee</p>
                                     </div>
                                 </button>
 
@@ -433,7 +433,7 @@ function EmployeeDetailContent() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-sm" style={{ color: "var(--text)" }}>Employment Contract</p>
-                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>BCEA-compliant contract PDF</p>
+                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>Employment contract PDF</p>
                                     </div>
                                 </button>
                             </CardContent>

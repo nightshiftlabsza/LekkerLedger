@@ -84,7 +84,7 @@ export default function OnboardingPage() {
                                     Welcome to LekkerLedger
                                 </h1>
                                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                                    Before we generate your first legal payslip, let&apos;s get you set up.
+                                    Before we generate your first payslip PDF, let&apos;s get you set up.
                                 </p>
                             </div>
 
@@ -98,7 +98,7 @@ export default function OnboardingPage() {
                                             <div>
                                                 <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>The Law Made Simple</h3>
                                                 <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-                                                    LekkerLedger bakes in all the rules of the Basic Conditions of Employment Act. You don&apos;t have to calculate Min Wage, UIF or Leave days manually.
+                                                    LekkerLedger includes common payroll checks for domestic work, so you do not have to calculate minimum wage, UIF, or leave days manually.
                                                 </p>
                                                 <Link href="/rules" className="text-xs font-semibold mt-2 inline-block" style={{ color: "var(--primary)" }}>
                                                     Read the 4 Golden Rules &rarr;
@@ -138,7 +138,7 @@ export default function OnboardingPage() {
                                             <div>
                                                 <h3 className="font-bold text-sm">Clear Records, Less Admin</h3>
                                                 <p className="text-[11px] mt-1 text-zinc-400 leading-relaxed">
-                                                    Consistent payslips protect both employer and employee. LekkerLedger helps you keep organised records with built-in compliance checks.
+                                                    Consistent payslips protect both employer and employee. LekkerLedger helps you keep organised records with built-in payroll checks.
                                                 </p>
                                             </div>
                                         </div>
@@ -152,7 +152,7 @@ export default function OnboardingPage() {
 
                             <div className="text-center pt-2 space-y-2">
                                 <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                                    Join South African households simplifying their compliance.
+                                    Join South African households organising their payroll records.
                                 </p>
                                 <div className="pt-2">
                                     <Link href="/settings?tab=sync" className="text-[10px] font-bold uppercase tracking-widest text-[var(--primary)] hover:underline">

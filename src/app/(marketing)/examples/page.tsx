@@ -129,7 +129,7 @@ export default function ExamplesPage() {
                         Your employee documentation, <span className="text-[var(--primary)]">elevated.</span>
                     </h1>
                     <p className="text-[var(--text-muted)] font-medium text-lg leading-relaxed">
-                        LekkerLedger generates professional, A4-ready PDFs that comply with BCEA Section 33 and the 2026 Sectoral Determination for Domestic Workers.
+                        LekkerLedger generates professional, A4-ready PDFs for household payroll records and sharing.
                     </p>
                 </header>
 
@@ -232,7 +232,7 @@ export default function ExamplesPage() {
                             <div className="mt-16 pt-8 border-t border-[var(--border)] grid grid-cols-2 items-end relative z-10">
                                 <div className="space-y-3">
                                     <p className="text-[9px] text-[var(--text-muted)] leading-relaxed max-w-[240px]">
-                                        Generated via LekkerLedger. This document fulfills the requirements of Section 33 of the Basic Conditions of Employment Act.
+                                        Generated via LekkerLedger. Review the details before using this document in your records.
                                         <br /><span className="font-bold">Compliance Ref: 2026 Mar / NMW R30.23</span>
                                     </p>
                                     <div className="flex gap-4">
@@ -246,7 +246,7 @@ export default function ExamplesPage() {
                                 </div>
                                 <div className="text-right space-y-1">
                                     <div className="inline-block border-2 border-[var(--focus)] p-2 px-3 rounded-full mb-2">
-                                        <span className="text-[10px] font-black text-[var(--focus)] uppercase tracking-widest">LEGAL • COMPLIANT</span>
+                                        <span className="text-[10px] font-black text-[var(--focus)] uppercase tracking-widest">GENERATED • REVIEWED</span>
                                     </div>
                                     <p className="text-[9px] text-[var(--text-muted)] font-medium italic">Proudly South African Domestic Standard</p>
                                 </div>
@@ -262,7 +262,7 @@ export default function ExamplesPage() {
                                 {[
                                     { title: "ID & Roles", desc: "Identity numbers and job descriptions are mandatory parts of every payslip." },
                                     { title: "Hourly Breakdown", desc: "Clearly distinguishing between ordinary time, overtime, and public holidays." },
-                                    { title: "Statutory Deductions", desc: "UIF calculations updated automatically with the 2026 caps and rates." },
+                                    { title: "Statutory Deductions", desc: "UIF calculations updated automatically using the current settings stored in the app." },
                                     { title: "Leave Summary", desc: "Built-in tracking for annual, sick, and family responsibility leave." }
                                 ].map((item, i) => (
                                     <li key={i} className="flex gap-4">

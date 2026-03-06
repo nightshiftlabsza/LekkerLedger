@@ -284,7 +284,7 @@ export default function RoePackPage() {
                             <div className="space-y-2">
                                 <h2 className="type-h3 text-[var(--text)]">Final Step: Documents</h2>
                                 <p className="type-body text-[var(--text-muted)]">
-                                    CF requires you to keep a detailed payroll report for 5 years.
+                                    Keep these documents with your payroll records for future reference.
                                 </p>
                             </div>
 
@@ -304,13 +304,13 @@ export default function RoePackPage() {
                                         <div className="space-y-3">
                                             <DocDownloadRow
                                                 label="Detailed Payroll Report (PDF)"
-                                                description="List of all employees and wages for CF audit."
+                                                description="List of all employees and wages for your Compensation Fund records."
                                                 isPaid={isPaid}
                                                 onClick={() => handleDownloadReport("pdf")}
                                             />
                                             <DocDownloadRow
                                                 label="Employer Details Scan (PDF)"
-                                                description="Confirms your CF number and personal details."
+                                                description="A review copy of your Compensation Fund and contact details."
                                                 isPaid={isPaid}
                                                 onClick={handleDownloadConfirmation}
                                             />
@@ -355,7 +355,7 @@ export default function RoePackPage() {
                     {/* Legal Footer */}
                     <div className="flex flex-col items-center gap-2 py-4">
                         <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)] type-overline">
-                            <ShieldCheck className="h-3 w-3" /> Compliance Support Tool
+                            <ShieldCheck className="h-3 w-3" /> Record Support Tool
                         </div>
                         <p className="text-[10px] text-center text-[var(--text-muted)] leading-relaxed max-w-[280px]">
                             LekkerLedger is a calculation aid. You are responsible for the truthfulness of your submission to the Compensation Fund.

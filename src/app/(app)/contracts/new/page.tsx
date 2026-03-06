@@ -108,7 +108,7 @@ export default function NewContractPage() {
             </div>
 
             <div className="space-y-2">
-                <PageHeader title="New Contract" subtitle="Create a BCEA-compliant employment agreement" />
+                <PageHeader title="New Contract" subtitle="Create an employment agreement for your household" />
                 <Stepper steps={STEPS} currentStep={currentStep} className="py-6" />
             </div>
 

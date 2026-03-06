@@ -20,7 +20,7 @@ export default function PrivacyPolicy() {
                         <ShieldCheck className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Privacy Policy</h1>
-                    <p className="text-zinc-500 font-medium">Last Updated: March 2, 2026 • Designed with POPIA principles</p>
+                    <p className="text-zinc-500 font-medium">Updated periodically • Designed with POPIA principles</p>
                 </header>
 
                 <div className="prose prose-zinc dark:prose-invert max-w-none space-y-8 text-zinc-400 leading-relaxed font-medium">
@@ -33,7 +33,7 @@ export default function PrivacyPolicy() {
 
                     <section className="space-y-4 text-[var(--primary)]/90 italic p-6 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10">
                         <p>
-                            If you ever need to prove compliance, LekkerLedger&apos;s built-in vault provides an undisputed chronological history of payslips, contracts, and UIF declarations. Keep up to 5 years of history instantly accessible.
+                            LekkerLedger keeps your payslips, contracts, and UIF declarations together in date order. Depending on plan, you can keep up to 5 years of history accessible in one place.
                         </p>
                         <p>
                             <strong>Important:</strong> LekkerLedger is a &ldquo;privacy-first&rdquo; tool. We have no central database for your employee data. If Drive sync is <strong>OFF</strong>: your data is stored on this device only. If Drive sync is <strong>ON</strong>: your data is stored in your personal private Google Drive folder — not our servers.

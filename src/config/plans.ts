@@ -46,7 +46,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         marketingBullets: [
             "1 active employee seat",
             "Basic payslip flow",
-            "ROE copy-paste numbers"
+            "Return of Earnings (ROE) copy-and-paste numbers"
         ]
     },
     annual: {
@@ -71,7 +71,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             "Google Drive sync",
             "Contract generator",
             "uFiling-ready export",
-            "Annual COIDA ROE Pack"
+            "Annual Compensation Fund Return of Earnings (ROE) pack"
         ]
     },
     lifetime: {
@@ -92,7 +92,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             "5-year archive",
             "Continuous sync",
             "Leave + loan tracker",
-            "Annual COIDA ROE Pack"
+            "Annual Compensation Fund Return of Earnings (ROE) pack"
         ]
     }
 } as const;

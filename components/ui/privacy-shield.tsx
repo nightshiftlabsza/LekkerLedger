@@ -44,7 +44,7 @@ export function PrivacyShield({ className, isSensitiveFocused }: PrivacyShieldPr
                 <span className="text-[9px] font-medium opacity-70 leading-none">
                     {isSensitiveFocused
                         ? "Protecting sensitive data"
-                        : "On-device storage only · POPIA Compliant"}
+                        : "On-device storage only · POPIA-aware handling"}
                 </span>
             </div>
         </div>

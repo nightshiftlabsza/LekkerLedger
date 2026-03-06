@@ -233,10 +233,10 @@ export default function DashboardPage() {
                     {/* Help & Compliance (small) */}
                     <div className="flex flex-col gap-2 pt-2 border-t border-[var(--border)]">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-[var(--text-muted)] px-1 gap-2">
-                            <span className="type-overline">Updated Mar 2026</span>
+                            <span className="type-overline">Reference links</span>
                             <div className="flex gap-4 flex-wrap">
                                 <Link href="/help/coida" prefetch={false} className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
-                                    <ShieldCheck className="h-3 w-3" /> COIDA 2026
+                                    <ShieldCheck className="h-3 w-3" /> Compensation Fund guide
                                 </Link>
                                 <Link href="/help/compliance" className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
                                     <BookOpen className="h-3 w-3" /> Compliance Guide
@@ -255,12 +255,12 @@ function ComplianceCard() {
         <Card className="glass-panel border-none overflow-hidden group">
             <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
-                    <h3 className="type-overline text-[var(--text-muted)]">Annual Compliance</h3>
+                    <h3 className="type-overline text-[var(--text-muted)]">Annual records</h3>
                     <ShieldCheck className="h-4 w-4 text-[var(--primary)]" />
                 </div>
                 <div className="space-y-3">
                     <div>
-                        <h4 className="type-body font-bold text-[var(--text)]">COIDA ROE Pack</h4>
+                        <h4 className="type-body font-bold text-[var(--text)]">Return of Earnings (ROE) Pack</h4>
                         <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                             Generate your Return of Earnings (ROE) statement for the Compensation Fund.
                         </p>

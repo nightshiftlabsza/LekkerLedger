@@ -127,7 +127,7 @@ export default function DocumentsPage() {
                         <div className="mt-8">
                             <EmptyState
                                 title="No documents yet"
-                                description="Generate your first payslip to start building your compliance archive."
+                                description="Generate your first payslip to start building your document archive."
                                 icon={FolderOpen}
                                 actionLabel="Create first payslip"
                                 actionHref="/payroll/new"
@@ -189,7 +189,7 @@ export default function DocumentsPage() {
                             <div className="mt-8">
                                 <EmptyState
                                     title="No documents yet"
-                                    description="Generate your first payslip to start building your compliance archive."
+                                    description="Generate your first payslip to start building your document archive."
                                     icon={FolderOpen}
                                     actionLabel="Create first payslip"
                                     actionHref="/payroll/new"

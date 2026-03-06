@@ -10,7 +10,7 @@ export default function ContractsPage() {
         <div className="space-y-6">
             <PageHeader
                 title="Contracts"
-                subtitle="Manage employment agreements and BCEA compliance"
+                subtitle="Manage employment agreements and household records"
                 actions={
                     <Link href="/contracts/new">
                         <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
@@ -29,8 +29,8 @@ export default function ContractsPage() {
                             <FileBadge className="h-4 w-4 text-emerald-600" />
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-[var(--text)]">BCEA Compliant</p>
-                            <p className="text-[10px] text-[var(--text-muted)]">Templates follow Sectoral Determination 7 guidelines.</p>
+                            <p className="text-xs font-bold text-[var(--text)]">Contract template</p>
+                            <p className="text-[10px] text-[var(--text-muted)]">Templates include common domestic-work terms and wage references.</p>
                         </div>
                     </CardContent>
                 </Card>

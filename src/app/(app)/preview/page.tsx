@@ -339,7 +339,7 @@ function PreviewContent() {
                         <div className="p-4 flex items-center justify-between cursor-pointer" onClick={() => setShowFullAudit(!showFullAudit)}>
                             <div className="flex items-center gap-2">
                                 <ShieldCheck className="h-5 w-5 text-[var(--focus)]" />
-                                <h3 className="font-bold text-sm uppercase">SD7 Compliance Audit</h3>
+                                <h3 className="font-bold text-sm uppercase">Payroll checks summary</h3>
                             </div>
                             {showFullAudit ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </div>
@@ -352,7 +352,7 @@ function PreviewContent() {
                             {showFullAudit && (
                                 <div className="pt-3 border-t border-[var(--border)] space-y-4">
                                     <ComplianceRow
-                                        label="UIF Compliance"
+                                        label="UIF check"
                                         status={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).uifCompliant}
                                         text={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).uifStatusText}
                                     />
@@ -376,7 +376,7 @@ function PreviewContent() {
                                                 } catch (e) { console.error(e); } finally { setDownloading(""); }
                                             }}
                                         >
-                                            {downloading === "audit" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Audit PDF
+                                            {downloading === "audit" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Checks PDF
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -413,7 +413,7 @@ function PreviewContent() {
                                         }}
                                     >
                                         {copied ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                                        {copied ? "Copied!" : "Copy Legal Summary"}
+                                        {copied ? "Copied!" : "Copy check summary"}
                                     </Button>
                                 </div>
                             )}

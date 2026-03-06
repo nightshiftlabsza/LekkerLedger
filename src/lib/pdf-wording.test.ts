@@ -1,0 +1,139 @@
+import fs from "fs/promises";
+import path from "path";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+import { generatePayslipPdfBytes } from "./pdf";
+import { generateEmploymentContract } from "./contract-pdf";
+import { generateCertificateOfService } from "./certificate-pdf";
+import { generateBCEASummaryPdf } from "./compliance-pdf";
+import { generateRoePayrollPdfBytes } from "./coida/coida-pdf";
+import type { Employee, EmployerSettings, PayslipInput } from "./schema";
+import type { RoeData } from "./coida/roe";
+
+const employee: Employee = {
+  id: "11111111-1111-1111-1111-111111111111",
+  name: "Nomsa Dlamini",
+  idNumber: "8001010234081",
+  role: "Domestic Worker",
+  hourlyRate: 30.23,
+  phone: "0123456789",
+  startDate: "2026-01-01",
+  ordinarilyWorksSundays: false,
+  ordinaryHoursPerDay: 8,
+  frequency: "Monthly",
+};
+
+const settings: EmployerSettings = {
+  employerName: "Lerato Mokoena",
+  employerAddress: "12 Protea Avenue, Cape Town",
+  employerIdNumber: "7001010000000",
+  uifRefNumber: "1234567/8",
+  cfNumber: "990001234",
+  sdlNumber: "L123456789",
+  phone: "0215551234",
+  proStatus: "annual",
+  paidUntil: undefined,
+  trialExpiry: undefined,
+  logoData: undefined,
+  defaultLanguage: "en",
+  simpleMode: false,
+  advancedMode: false,
+  density: "comfortable",
+  googleSyncEnabled: false,
+  googleAuthToken: undefined,
+  piiObfuscationEnabled: true,
+  installationId: "test-installation",
+  usageHistory: [],
+};
+
+const payslip: PayslipInput = {
+  id: "ps-1",
+  employeeId: employee.id,
+  payPeriodStart: new Date("2026-03-01"),
+  payPeriodEnd: new Date("2026-03-31"),
+  ordinaryHours: 160,
+  overtimeHours: 8,
+  sundayHours: 0,
+  publicHolidayHours: 0,
+  daysWorked: 22,
+  shortFallHours: 0,
+  hourlyRate: employee.hourlyRate,
+  includeAccommodation: false,
+  accommodationCost: undefined,
+  otherDeductions: 0,
+  createdAt: new Date("2026-03-31T10:00:00Z"),
+  ordinarilyWorksSundays: false,
+  ordinaryHoursPerDay: 8,
+  annualLeaveTaken: 0,
+  sickLeaveTaken: 0,
+  familyLeaveTaken: 0,
+};
+
+const roeData: RoeData = {
+  coidYear: "2025",
+  startDate: new Date("2025-03-01"),
+  endDate: new Date("2026-02-28"),
+  employeeCount: 1,
+  actualEarnings: 58000,
+  provisionalEarnings: 58000,
+  maxCapPerEmployee: 633168,
+  assessmentRate: 1.04,
+  minAssessment: 560,
+};
+
+const forbiddenSnippets = [
+  "BCEA Compliant",
+  "COMPLIANT",
+  "LEGAL",
+  "COIDA 2026",
+  "2026 Ruling",
+  "BCEA COMPLIANCE SUMMARY",
+  "Compliance Engine",
+  "BCEA/SD7",
+];
+
+function decodePdf(bytes: Uint8Array) {
+  return Buffer.from(bytes).toString("latin1");
+}
+
+beforeAll(() => {
+  vi.stubGlobal("fetch", async (input: string | URL | Request) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.pathname : input.url;
+    if (!url.startsWith("/fonts/")) {
+      throw new Error(`Unexpected fetch in PDF wording test: ${url}`);
+    }
+
+    const filePath = path.join(process.cwd(), "public", url.replace(/^\//, ""));
+    const bytes = await fs.readFile(filePath);
+    return new Response(bytes, { status: 200 });
+  });
+});
+
+function expectNoForbiddenPdfCopy(bytes: Uint8Array) {
+  const text = decodePdf(bytes);
+  forbiddenSnippets.forEach((snippet) => {
+    expect(text).not.toContain(snippet);
+  });
+}
+
+describe("PDF wording smoke tests", () => {
+  it("keeps forbidden wording out of the payslip PDF", async () => {
+    expectNoForbiddenPdfCopy(await generatePayslipPdfBytes(employee, payslip, settings));
+  });
+
+  it("keeps forbidden wording out of the contract PDF", async () => {
+    expectNoForbiddenPdfCopy(await generateEmploymentContract(employee, settings));
+  });
+
+  it("keeps forbidden wording out of the certificate PDF", async () => {
+    expectNoForbiddenPdfCopy(await generateCertificateOfService(employee, settings));
+  });
+
+  it("keeps forbidden wording out of the checks summary PDF", async () => {
+    expectNoForbiddenPdfCopy(await generateBCEASummaryPdf(employee, payslip, settings));
+  });
+
+  it("keeps forbidden wording out of the ROE payroll PDF", async () => {
+    expectNoForbiddenPdfCopy(await generateRoePayrollPdfBytes(roeData, [employee], [payslip], settings));
+  });
+});
+

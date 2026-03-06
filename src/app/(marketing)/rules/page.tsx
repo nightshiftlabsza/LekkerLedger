@@ -20,7 +20,7 @@ export default function RulesPage() {
                             </Button>
                         </Link>
                         <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text)" }}>
-                            Legal Guide
+                            Payroll Guide
                         </h1>
                     </div>
                 </div>
@@ -49,9 +49,9 @@ export default function RulesPage() {
                             <div>
                                 <h3 className="font-bold text-base flex w-full flex-wrap gap-2 items-center" style={{ color: "var(--text)" }}>1. Minimum Wage is <ComplianceInlineBadge type="nmw" /></h3>
                                 <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    As of 2026, the legal minimum you can pay a domestic worker is <ComplianceInlineBadge type="nmw" /> per hour worked.
+                                    The current National Minimum Wage reference for domestic workers is <ComplianceInlineBadge type="nmw" /> per hour worked.
                                     <br />
-                                    <a href="https://www.gov.za/documents/notices/national-minimum-wage-act-national-minimum-wage-9-jan-2025" target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:opacity-80 underline text-xs mt-2 block">Source: Dept. of Employment & Labour (2026)</a>
+                                    <a href="https://www.gov.za/documents/notices/national-minimum-wage-act-national-minimum-wage-9-jan-2025" target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:opacity-80 underline text-xs mt-2 block">Source: Department of Employment & Labour notice</a>
                                 </p>
                             </div>
                         </div>
@@ -110,7 +110,7 @@ export default function RulesPage() {
 
                 <div className="pt-6 pb-8 animate-slide-up space-y-4" style={{ animationDelay: "200ms" }}>
                     <p className="text-xs text-center leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                        This guide is informational only and does not constitute legal advice. Always verify against <a href="https://www.gov.za" target="_blank" rel="noopener noreferrer" className="underline">official government sources</a>. Last updated: March 2026.
+                        This guide is informational only and does not constitute legal advice. Always verify against <a href="https://www.gov.za" target="_blank" rel="noopener noreferrer" className="underline">official government sources</a>. Guidance can change. Check the linked sources before relying on this page.
                     </p>
                     <Link href="/">
                         <Button className="w-full gap-2 h-12 text-base font-bold">

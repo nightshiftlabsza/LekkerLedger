@@ -46,7 +46,7 @@ export function ComplianceSplash({ isOpen, onClose }: { isOpen: boolean; onClose
                             <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
                             <div className="space-y-1">
                                 <p className="text-xs font-black uppercase text-red-500">Legal Risk #1</p>
-                                <p className="text-xs font-medium text-[var(--text)]">Minimum Wage breaches are strictly monitored. Paying even R1 below the rate triggers automatic penalties.</p>
+                                <p className="text-xs font-medium text-[var(--text)]">Minimum wage checks matter. If a rate falls below the reference amount, review it before finalising the record.</p>
                             </div>
                         </div>
 
@@ -54,7 +54,7 @@ export function ComplianceSplash({ isOpen, onClose }: { isOpen: boolean; onClose
                             <ShieldCheck className="h-5 w-5 text-[var(--focus)] shrink-0" />
                             <div className="space-y-1">
                                 <p className="text-xs font-black uppercase text-[var(--focus)]">Legal Rule #2</p>
-                                <p className="text-xs font-medium text-[var(--text)]">UIF registration is mandatory for anyone working {'>'}24 hours per month. Non-compliance is a criminal offense.</p>
+                                <p className="text-xs font-medium text-[var(--text)]">UIF registration is generally required when someone works more than 24 hours per month. Check the official UIF guidance if you are unsure.</p>
                             </div>
                         </div>
                     </div>

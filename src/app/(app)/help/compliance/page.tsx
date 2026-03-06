@@ -32,9 +32,9 @@ export default function CompliancePage() {
                         <div>
                             <h3 className="font-bold text-base flex w-full flex-wrap gap-2 items-center" style={{ color: "var(--text)" }}>1. Minimum Wage is <ComplianceInlineBadge type="nmw" /></h3>
                             <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                As of 2026, the legal minimum you can pay a domestic worker is <ComplianceInlineBadge type="nmw" /> per hour worked.
+                                The current National Minimum Wage reference for domestic workers is <ComplianceInlineBadge type="nmw" /> per hour worked.
                                 <br />
-                                <a href="https://www.gov.za/documents/notices/national-minimum-wage-act-national-minimum-wage-9-jan-2025" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: Dept. of Employment & Labour (2026)</a>
+                                <a href="https://www.gov.za/documents/notices/national-minimum-wage-act-national-minimum-wage-9-jan-2025" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: Department of Employment & Labour notice</a>
                             </p>
                         </div>
                     </div>
@@ -87,7 +87,7 @@ export default function CompliancePage() {
                         <div>
                             <h3 className="font-bold text-base" style={{ color: "var(--text)" }}>5. Injury & Disease Protection (COIDA)</h3>
                             <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Employers of domestic workers must register with the Compensation Fund. You pay an annual assessment (roughly 1.04% of wages). In return, the Fund covers medical costs and lost wages if your employee is injured on duty.
+                                Domestic employers must register with the Compensation Fund where required. Assessment rates can change by year and employer class, so check the current notice before relying on a percentage. Accepted claims may help with medical costs or lost wages, subject to the Fund&apos;s process.
                                 <br />
                                 <a href="https://www.labour.gov.za/compensation-for-occupational-injuries-and-diseases-act" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: COID Act</a>
                             </p>
@@ -98,7 +98,7 @@ export default function CompliancePage() {
 
             <div className="pt-6 pb-8 animate-slide-up space-y-4" style={{ animationDelay: "200ms" }}>
                 <p className="text-xs text-center leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                    This guide is informational only and does not constitute legal advice. Always verify against <a href="https://www.gov.za" target="_blank" rel="noopener noreferrer" className="underline">official government sources</a>. Last updated: March 2026.
+                    This guide is informational only and does not constitute legal advice. Always verify against <a href="https://www.gov.za" target="_blank" rel="noopener noreferrer" className="underline">official government sources</a>. Guidance can change. Check the linked sources before relying on this page.
                 </p>
                 <Link href="/dashboard">
                     <Button className="w-full gap-2 h-12 text-base font-bold">

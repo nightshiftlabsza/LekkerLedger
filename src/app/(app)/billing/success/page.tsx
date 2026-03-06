@@ -22,7 +22,7 @@ export default function BillingSuccessPage() {
 
             <h1 className="text-3xl font-black mb-3">Payment Successful!</h1>
             <p className="text-[var(--text-muted)] max-w-md mb-8 leading-relaxed">
-                Thank you for supporting South African domestic workers. Your Pro features have been activated and your compliance vault is now unlocked.
+                Thank you for supporting South African domestic workers. Your Pro features have been activated and your document vault is now unlocked.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">

@@ -33,7 +33,7 @@ export const COIDA_PARAMETERS_REGISTRY: CoidaParameters[] = [
     {
         coidYear: "2025",
         effectiveFrom: "2025-03-01",
-        earningsCap: COMPLIANCE.COIDA.EARNINGS_CAP_2025,
+        earningsCap: COMPLIANCE.COIDA.DOMESTIC_EARNINGS_CAP,
         minAssessmentDomestic: COMPLIANCE.COIDA.MINIMUM_ASSESSMENT_DOMESTIC,
         assessmentRate: COMPLIANCE.COIDA.ASSESSMENT_RATE,
         sourceUrl: COMPLIANCE.COIDA.SOURCE_URL,

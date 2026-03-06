@@ -45,7 +45,7 @@ export function ContractsClient() {
             <EmptyState
                 icon={FileText}
                 title="No contracts yet"
-                description="Generate your first BCEA-compliant employment contract for a domestic worker."
+                description="Generate your first employment contract template for a domestic worker."
                 actionLabel="Generate Contract"
                 actionHref="/contracts/new"
             />
@@ -57,7 +57,7 @@ export function ContractsClient() {
             <EmptyState
                 icon={FileText}
                 title="No contracts yet"
-                description="Generate your first BCEA-compliant employment contract for a domestic worker."
+                description="Generate your first employment contract template for a domestic worker."
                 actionLabel={employees.length > 0 ? "Generate Contract" : "Add Employee First"}
                 actionHref={employees.length > 0 ? "/contracts/new" : "/employees/new"}
             />

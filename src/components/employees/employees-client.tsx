@@ -165,7 +165,7 @@ export function EmployeesClient() {
                         </div>
                         <div className="space-y-1">
                             <p className="text-xs font-bold text-[var(--text)]">Compliance Tip</p>
-                            <p className="text-[10px] leading-relaxed text-[var(--text-muted)]">Ensure all employees have a signed contract and valid ID on record for BCEA compliance.</p>
+                            <p className="text-[10px] leading-relaxed text-[var(--text-muted)]">Ensure all employees have a signed contract and valid ID on record for clear payroll records.</p>
                         </div>
                     </CardContent>
                 </Card>
