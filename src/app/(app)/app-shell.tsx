@@ -7,14 +7,16 @@ import { googleLogout } from "@react-oauth/google";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
-import { GlobalCreateDesktop, GlobalCreateFAB } from "@/components/global-create";
+import { GlobalCreateFAB } from "@/components/global-create";
 import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, Settings, LifeBuoy, Sparkles, LogOut } from "lucide-react";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { ToastProvider } from "@/components/ui/toast";
 import { Logo } from "@/components/ui/logo";
-import { getHouseholds, getSettings, saveHousehold, saveSettings, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
+import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
+import { getHouseholds, getSettings, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
+import { clearStoredGoogleAccessToken, getStoredGoogleAccessToken, getStoredGoogleEmail } from "@/lib/google-session";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -27,6 +29,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const [activeHouseholdId, setActiveHouseholdState] = React.useState("default");
     const [multiHouseholdEnabled, setMultiHouseholdEnabled] = React.useState(false);
     const [settings, setSettingsState] = React.useState<EmployerSettings | null>(null);
+    const [addHouseholdOpen, setAddHouseholdOpen] = React.useState(false);
+    const [newHouseholdName, setNewHouseholdName] = React.useState("");
+    const [addHouseholdError, setAddHouseholdError] = React.useState("");
+    const [addingHousehold, setAddingHousehold] = React.useState(false);
 
     React.useEffect(() => {
         if (network === "online") setOfflineBannerDismissed(false);
@@ -55,80 +61,94 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         window.location.reload();
     };
 
-    const handleAddHousehold = async () => {
+    const handleAddHousehold = () => {
         if (!multiHouseholdEnabled) {
             router.push("/upgrade");
             return;
         }
 
-        const name = window.prompt("Name this household workspace");
-        if (!name) return;
-        const trimmed = name.trim();
-        if (!trimmed) return;
+        setNewHouseholdName("");
+        setAddHouseholdError("");
+        setAddHouseholdOpen(true);
+    };
 
-        const household = {
-            id: crypto.randomUUID(),
-            name: trimmed,
-            createdAt: new Date().toISOString(),
-        } satisfies Household;
+    const handleConfirmAddHousehold = async () => {
+        const trimmed = newHouseholdName.trim();
+        if (!trimmed) {
+            setAddHouseholdError("Enter a household name before you continue.");
+            return;
+        }
 
-        await saveHousehold(household);
-        await setActiveHouseholdId(household.id);
-        window.location.reload();
+        const duplicateName = households.some((household) => household.name.trim().toLowerCase() === trimmed.toLowerCase());
+        if (duplicateName) {
+            setAddHouseholdError("That household name already exists. Choose a different label so the workspaces stay clear.");
+            return;
+        }
+
+        setAddingHousehold(true);
+        setAddHouseholdError("");
+
+        try {
+            const household = {
+                id: crypto.randomUUID(),
+                name: trimmed,
+                createdAt: new Date().toISOString(),
+            } satisfies Household;
+
+            await saveHousehold(household);
+            await setActiveHouseholdId(household.id);
+            setHouseholds((current) => [...current, household]);
+            setActiveHouseholdState(household.id);
+            setAddHouseholdOpen(false);
+            window.location.reload();
+        } catch (error) {
+            console.error("Failed to add household", error);
+            setAddHouseholdError("The household could not be created just now. Please try again.");
+            setAddingHousehold(false);
+        }
     };
 
     return (
         <ToastProvider>
             <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
                 <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)]">
-                    <div className="content-container-wide w-full flex items-center justify-between py-3 px-4 sm:px-6 lg:px-8">
+                    <div className="content-container-wide flex w-full items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-3">
                             <SideDrawer open={moreOpen} onOpenChange={setMoreOpen} showButton={true} />
-                            <Link href="/dashboard" className="lg:hidden flex items-center gap-2 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-2.5 py-2 outline-none shadow-[0_6px_18px_rgba(16,24,40,0.05)] hover:border-[var(--primary)]/20 transition-all">
+                            <Link href="/dashboard" className="flex items-center gap-2 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-2.5 py-2 outline-none shadow-[0_6px_18px_rgba(16,24,40,0.05)] transition-all hover:border-[var(--primary)]/20 lg:hidden">
                                 <Logo
                                     iconClassName="h-9 w-9"
                                     textClassName="text-[1.12rem]"
                                     className="gap-2.5"
                                 />
                             </Link>
-                            <div className="hidden lg:flex items-center gap-4">
-                                <div className="flex items-center gap-3 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-3 py-2.5 shadow-[0_6px_18px_rgba(16,24,40,0.04)]">
-                                    <Logo
-                                        showText={false}
-                                        iconClassName="h-9 w-9"
-                                        frameClassName="drop-shadow-[0_8px_18px_rgba(16,24,40,0.08)]"
-                                    />
-                                    <div className="border-l border-[var(--border)] pl-3">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                                        Workspace
-                                    </p>
-                                    <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
-                                        Household payroll
-                                    </p>
-                                    </div>
-                                </div>
+                        </div>
+
+                        <div className="ml-auto flex items-center gap-3">
+                            {network === "offline" && (
+                                <span className="flex items-center gap-1.5 rounded-full border border-[var(--focus)]/20 bg-[var(--primary)]/10 px-2 py-0.5 text-[10px] font-bold text-[var(--focus)]">
+                                    <CloudOff className="h-3 w-3" /> Offline
+                                </span>
+                            )}
+
+                            <div className="hidden lg:flex flex-col items-end gap-2">
+                                <AccountMenu settings={settings} />
                                 <HouseholdSwitcher
                                     households={households}
                                     activeId={activeHouseholdId}
                                     isPro={multiHouseholdEnabled}
                                     onSwitch={handleSwitchHousehold}
                                     onAddHousehold={handleAddHousehold}
+                                    variant="account"
                                 />
                             </div>
-                        </div>
 
-                        <div className="flex items-center gap-3">
-                            {network === "offline" && (
-                                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[10px] font-bold text-[var(--focus)] border border-[var(--focus)]/20">
-                                    <CloudOff className="h-3 w-3" /> Offline
-                                </span>
-                            )}
-                            <AccountMenu settings={settings} />
-                            <GlobalCreateDesktop />
+                            <div className="lg:hidden">
+                                <AccountMenu settings={settings} />
+                            </div>
                         </div>
                     </div>
                 </header>
-
                 {showOfflineBanner && (
                     <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold"
                         style={{ backgroundColor: "rgba(196,122,28,0.10)", borderBottom: "1px solid rgba(196,122,28,0.25)", color: "var(--primary)" }}>
@@ -189,6 +209,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </main>
 
                 <GlobalCreateFAB />
+                <AddHouseholdDialog
+                    open={addHouseholdOpen}
+                    name={newHouseholdName}
+                    error={addHouseholdError}
+                    saving={addingHousehold}
+                    onNameChange={(value) => {
+                        setNewHouseholdName(value);
+                        if (addHouseholdError) setAddHouseholdError("");
+                    }}
+                    onClose={() => {
+                        if (addingHousehold) return;
+                        setAddHouseholdOpen(false);
+                        setAddHouseholdError("");
+                    }}
+                    onSubmit={() => void handleConfirmAddHousehold()}
+                />
                 <BottomNav onMore={() => setMoreOpen(true)} />
             </div>
         </ToastProvider>
@@ -196,13 +232,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
+    const router = useRouter();
     const [open, setOpen] = React.useState(false);
     const [googleEmail, setGoogleEmail] = React.useState<string | null>(null);
     const menuRef = React.useRef<HTMLDivElement | null>(null);
 
     React.useEffect(() => {
         if (typeof window === "undefined") return;
-        setGoogleEmail(localStorage.getItem("google_email"));
+        setGoogleEmail(getStoredGoogleEmail());
     }, []);
 
     React.useEffect(() => {
@@ -222,27 +259,29 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
         };
     }, []);
 
-    const hasGoogleSession = typeof window !== "undefined" && !!sessionStorage.getItem("google_access_token");
-    const googleState = settings?.googleSyncEnabled && hasGoogleSession
-        ? "Google backup on"
-        : hasGoogleSession
-            ? "Google connected"
+    const hasGoogleSession = typeof window !== "undefined" && !!getStoredGoogleAccessToken();
+    const hasGoogleBackupSetup = !!googleEmail && !!settings?.googleSyncEnabled;
+    const googleState = hasGoogleSession
+        ? settings?.googleSyncEnabled
+            ? "Google backup on"
+            : "Google connected"
+        : hasGoogleBackupSetup
+            ? "Reconnect Google backup"
             : "Local only";
 
-    const handleSignOut = async () => {
+    const accountSummary = hasGoogleSession && googleEmail
+        ? `Signed in as ${googleEmail}.`
+        : hasGoogleBackupSetup && googleEmail
+            ? `Previously connected as ${googleEmail}. Sign in again to back up or restore from your Google Drive.`
+            : googleEmail
+                ? `Previously connected as ${googleEmail}. Sign in again if you want Google features on this device.`
+                : "Your records are currently only on this device until you connect Google.";
+
+    const handleSignOut = () => {
         googleLogout();
-        sessionStorage.removeItem("google_access_token");
-        localStorage.removeItem("google_email");
-        localStorage.removeItem("google_has_drive_scope");
-        setGoogleEmail(null);
-        if (settings) {
-            await saveSettings({
-                ...settings,
-                googleSyncEnabled: false,
-                googleAuthToken: undefined,
-            });
-        }
+        clearStoredGoogleAccessToken();
         setOpen(false);
+        router.push("/open-app?source=logout");
     };
 
     return (
@@ -250,14 +289,14 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
             <button
                 type="button"
                 onClick={() => setOpen((current) => !current)}
-                className="hidden sm:flex items-center gap-2 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-3 py-2 shadow-[0_6px_18px_rgba(16,24,40,0.04)] transition-colors hover:border-[var(--primary)]/25"
+                className="hidden items-center gap-2 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-3 py-2 shadow-[0_6px_18px_rgba(16,24,40,0.04)] transition-colors hover:border-[var(--primary)]/25 sm:flex"
             >
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">
                     <CircleUserRound className="h-4 w-4" />
                 </div>
                 <div className="text-left">
                     <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Account</p>
-                    <p className="text-sm font-semibold text-[var(--text)]">{googleEmail || googleState}</p>
+                    <p className="text-sm font-semibold text-[var(--text)]">{hasGoogleSession && googleEmail ? googleEmail : googleState}</p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />
             </button>
@@ -267,11 +306,7 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
                         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Current setup</p>
                         <p className="mt-1 text-sm font-semibold text-[var(--text)]">{googleState}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
-                            {googleEmail
-                                ? `Connected as ${googleEmail}.`
-                                : "Your records are currently only on this device until you connect Google."}
-                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{accountSummary}</p>
                     </div>
 
                     <div className="mt-3 space-y-1">
@@ -283,15 +318,15 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                     {hasGoogleSession && (
                         <button
                             type="button"
-                            onClick={() => void handleSignOut()}
+                            onClick={handleSignOut}
                             className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-[var(--border)] px-4 py-3 text-left transition-colors hover:bg-[var(--surface-2)]"
                         >
                             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--text-muted)]">
                                 <LogOut className="h-4 w-4" />
                             </div>
                             <div>
-                                <p className="text-sm font-semibold text-[var(--text)]">Sign out of Google</p>
-                                <p className="text-xs text-[var(--text-muted)]">Disconnect this session from your Google account.</p>
+                                <p className="text-sm font-semibold text-[var(--text)]">Sign out of this session</p>
+                                <p className="text-xs text-[var(--text-muted)]">Stop Google access on this device without deleting your Drive backup.</p>
                             </div>
                         </button>
                     )}
@@ -300,7 +335,6 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
         </div>
     );
 }
-
 function MenuLink({
     href,
     icon: Icon,
@@ -330,3 +364,12 @@ function MenuLink({
         </Link>
     );
 }
+
+
+
+
+
+
+
+
+

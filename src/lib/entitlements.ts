@@ -1,4 +1,5 @@
 import { PLANS, PlanId, PlanConfig } from "../config/plans";
+import { isPaidPlanId } from "./billing";
 import { EmployerSettings } from "./schema";
 
 function normalizePlanId(planId: string | undefined | null): PlanId {
@@ -12,17 +13,50 @@ export function getPlanById(planId: string | undefined | null): PlanConfig {
     return PLANS[normalizePlanId(planId)];
 }
 
-export function getUserPlan(userProfile: EmployerSettings | null | undefined): PlanConfig {
+export function getUserPlan(userProfile: EmployerSettings | null | undefined, now = new Date()): PlanConfig {
     if (!userProfile) return PLANS.free;
-    return getPlanById(userProfile.proStatus || "free");
+
+    const resolvedPlan = getPlanById(userProfile.proStatus || "free");
+    if (!isPaidPlanId(resolvedPlan.id)) {
+        return resolvedPlan;
+    }
+
+    if (userProfile.paidUntil) {
+        const paidUntil = new Date(userProfile.paidUntil);
+        if (!Number.isNaN(paidUntil.getTime()) && paidUntil <= now) {
+            return PLANS.free;
+        }
+    }
+
+    return resolvedPlan;
+}
+
+export function hasPaidAccess(userProfile: EmployerSettings | null | undefined, now = new Date()): boolean {
+    return isPaidPlanId(getUserPlan(userProfile, now).id);
 }
 
 export function canUseDriveSync(plan: PlanConfig): boolean {
     return plan.driveSync;
 }
 
+export function canUseLeaveTracking(plan: PlanConfig): boolean {
+    return plan.leaveTracking;
+}
+
+export function canUseDocumentsHub(plan: PlanConfig): boolean {
+    return plan.documentsHub;
+}
+
+export function canUseContractGenerator(plan: PlanConfig): boolean {
+    return plan.contractGenerator;
+}
+
+export function canUseUFilingExport(plan: PlanConfig): boolean {
+    return plan.ufilingExport;
+}
+
 export function canDownloadRoePack(plan: PlanConfig): boolean {
-    return plan.id !== "free" && plan.roePack;
+    return plan.roeDownloads;
 }
 
 export function canCreateEmployee(plan: PlanConfig, currentActiveEmployeesCount: number): boolean {

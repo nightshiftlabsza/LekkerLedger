@@ -71,7 +71,7 @@ export default function DashboardPage() {
     if (loading) {
         return (
             <>
-                <PageHeader title="Dashboard" />
+                <PageHeader title="Dashboard" subtitle="See this month&apos;s payroll status and what to do next." />
                 <CardSkeleton />
                 <div className="grid grid-cols-2 gap-3"><StatSkeleton /><StatSkeleton /></div>
                 <CardSkeleton />
@@ -83,6 +83,27 @@ export default function DashboardPage() {
     const completedEntries = currentPeriod?.entries.filter(e => e.status === "complete").length ?? 0;
     const totalEntries = currentPeriod?.entries.length ?? 0;
     const needsInfoCount = employees.filter(e => !e.idNumber || !e.startDate).length;
+    const currentMonth = format(new Date(), "MMMM yyyy");
+    const monthlyPayrollHref = currentPeriod
+        ? `/payroll/${currentPeriod.id}`
+        : employeeCount > 0
+            ? "/payroll/new"
+            : "/employees/new";
+    const progressPercent = totalEntries > 0 ? (completedEntries / totalEntries) * 100 : 0;
+    const payrollHeadline = currentPeriod
+        ? currentPeriod.status === "review"
+            ? `${currentPeriod.name} is ready for review.`
+            : completedEntries === totalEntries && totalEntries > 0
+                ? `${currentPeriod.name} is ready to finalise.`
+                : `${completedEntries} of ${totalEntries} employees complete for ${currentPeriod.name}.`
+        : employeeCount > 0
+            ? `${currentMonth} has not been started yet.`
+            : "Add your first employee to begin monthly payroll.";
+    const payrollBody = currentPeriod
+        ? "Open this month, finish any remaining entries, check the totals, and then generate the payslips."
+        : employeeCount > 0
+            ? "Start this month&apos;s pay period and work through each employee one by one."
+            : "Add one employee to unlock payroll, documents, and leave tracking.";
 
     // Build next actions for task list
     const nextActions: TaskItem[] = [];
@@ -108,9 +129,9 @@ export default function DashboardPage() {
     } else if (employeeCount > 0) {
         nextActions.push({
             id: "start-period",
-            label: `Start ${format(new Date(), "MMMM yyyy")} monthly payroll`,
+            label: `Add ${format(new Date(), "MMMM yyyy")} payroll`,
             status: "draft",
-            href: "/payroll",
+            href: "/payroll/new",
         });
     }
     if (needsInfoCount > 0) {
@@ -128,58 +149,101 @@ export default function DashboardPage() {
 
     return (
         <>
-            <PageHeader title="Dashboard" />
+            <PageHeader title="Dashboard" subtitle="See this month&apos;s payroll status and what to do next." />
 
             <div className="ultrawide-grid grid-cols-12-desktop gap-6 space-y-6 lg:space-y-0">
                 {/* Main Content Area */}
                 <div className="ultrawide-main col-span-8-desktop space-y-6">
-                    {/* 1. Monthly Payroll Hero */}
-                    <Card className={`glass-panel overflow-hidden ${currentPeriod ? "border-2 border-[var(--primary)]/25" : "border-none"}`}>
-                        <CardContent className="p-6 space-y-4">
-                            <div className="flex items-center gap-3">
-                                <div className="h-12 w-12 rounded-2xl bg-[var(--primary)] flex items-center justify-center shrink-0">
-                                    <Banknote className="h-6 w-6 text-white" />
+                    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.85fr)]">
+                        <Card className={`glass-panel overflow-hidden ${currentPeriod ? "border-2 border-[var(--primary)]/20" : "border-none"}`}>
+                            <CardContent className="space-y-5 p-6">
+                                <div className="flex items-start gap-4">
+                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--primary)] text-white">
+                                        <Banknote className="h-6 w-6" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Monthly payroll</p>
+                                        <div>
+                                            <h2 className="type-h3 text-[var(--text)]">{payrollHeadline}</h2>
+                                            <p className="mt-1 text-sm leading-relaxed text-[var(--text-muted)]">{payrollBody}</p>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <div className="grid gap-3 sm:grid-cols-3">
+                                    <SummaryCell label="This month" value={currentPeriod?.name ?? currentMonth} />
+                                    <SummaryCell label="Employees" value={employeeCount === 0 ? "None yet" : `${employeeCount} active`} />
+                                    <SummaryCell label="Needs info" value={needsInfoCount === 0 ? "All set" : `${needsInfoCount} to fix`} />
+                                </div>
+
+                                {currentPeriod && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-muted)]">
+                                            <span>Progress</span>
+                                            <span>{completedEntries} of {totalEntries} complete</span>
+                                        </div>
+                                        <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-2)]">
+                                            <div
+                                                className="h-full rounded-full bg-[var(--primary)] transition-all duration-500"
+                                                style={{ width: `${progressPercent}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col gap-3 sm:flex-row">
+                                    <Link href={monthlyPayrollHref} className="flex-1">
+                                        <Button className="h-11 w-full gap-2 rounded-xl bg-[var(--primary)] font-bold text-white hover:bg-[var(--primary-hover)]">
+                                            {currentPeriod ? `Open ${currentPeriod.name}` : employeeCount > 0 ? `Add ${currentMonth} Payroll` : "Add First Employee"}
+                                            <ArrowRight className="h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                    <Link href={employeeCount > 0 ? "/employees/new" : "/help/compliance"} className="sm:w-auto">
+                                        <Button variant="outline" className="h-11 w-full gap-2 rounded-xl border-[var(--border)] font-bold text-[var(--text)] hover:bg-[var(--surface-2)] sm:w-auto">
+                                            {employeeCount > 0 ? "Add employee" : "See compliance guide"}
+                                            <ChevronRight className="h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="glass-panel border-none">
+                            <CardContent className="space-y-4 p-5">
                                 <div>
-                                    <h2 className="type-h3 text-[var(--text)]">Monthly Payroll</h2>
-                                    <p className="type-label text-[var(--text-muted)]">
-                                        {currentPeriod
-                                            ? currentPeriod.status === "review"
-                                                ? `${currentPeriod.name} - Ready for review`
-                                                : completedEntries === totalEntries && totalEntries > 0
-                                                    ? `${currentPeriod.name} - Ready to finalise`
-                                                    : `${currentPeriod.name} - ${completedEntries} of ${totalEntries} employees done`
-                                            : "Nothing started for this month yet"}
-                                    </p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">At a glance</p>
+                                    <h2 className="type-h3 text-[var(--text)]">Household snapshot</h2>
                                 </div>
-                            </div>
 
-                            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 px-4 py-3">
-                                <p className="text-sm font-semibold text-[var(--text)]">
-                                    {currentPeriod
-                                        ? "Open this month to finish hours, check the totals, and then generate the payslips."
-                                        : "When you are ready, start this month and work through one employee at a time."}
-                                </p>
-                            </div>
-
-                            {currentPeriod && (
-                                <div className="h-2 rounded-full bg-[var(--surface-2)] overflow-hidden">
-                                    <div
-                                        className="h-full rounded-full bg-[var(--primary)] transition-all duration-500"
-                                        style={{ width: `${totalEntries > 0 ? (completedEntries / totalEntries) * 100 : 0}%` }}
-                                    />
+                                <div className="space-y-3">
+                                    <OverviewRow label="Active employees" value={employeeCount === 0 ? "None yet" : `${employeeCount}`} />
+                                    <OverviewRow label="Recent documents" value={recentDocs.length === 0 ? "None yet" : `${recentDocs.length}`} />
+                                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/50 px-4 py-3">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <p className="text-sm font-semibold text-[var(--text)]">Backup status</p>
+                                                <p className="text-xs text-[var(--text-muted)]">Google backup or local-only storage</p>
+                                            </div>
+                                            <SyncStatusBadge state={settings?.googleSyncEnabled ? "synced" : "disconnected"} />
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
 
-                            <Link href={currentPeriod ? `/payroll/${currentPeriod.id}` : "/payroll"}>
-                                <Button className="w-full gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] h-11 rounded-xl">
-                                    {currentPeriod ? `Open ${currentPeriod.name}` : employeeCount > 0 ? `Start ${format(new Date(), "MMMM yyyy")}` : "Get Started"}
-                                    <ArrowRight className="h-4 w-4" />
-                                </Button>
-                            </Link>
-                        </CardContent>
-                    </Card>
-
+                                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+                                    <Link href="/employees/new">
+                                        <Button variant="outline" className="h-11 w-full gap-2 rounded-xl border-[var(--border)] font-bold hover:bg-[var(--surface-2)]">
+                                            <UserPlus className="h-4 w-4" /> Add employee
+                                        </Button>
+                                    </Link>
+                                    <Link href="/documents">
+                                        <Button variant="ghost" className="h-11 w-full gap-2 rounded-xl font-bold text-[var(--primary)] hover:bg-[var(--surface-2)]">
+                                            <FolderOpen className="h-4 w-4" /> Open documents
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                     {/* Alert banners */}
                     {alerts.map(alert => {
                         const isUrgent = alert.severity === "urgent";

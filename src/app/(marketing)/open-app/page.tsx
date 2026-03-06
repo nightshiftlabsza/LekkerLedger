@@ -9,36 +9,21 @@ import { ArrowRight, CheckCircle2, Cloud, HardDrive, Loader2, ShieldCheck } from
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MINIMAL_SCOPES, DRIVE_SCOPE } from "@/lib/google-drive";
-
-const ACCESS_TOKEN_KEY = "google_access_token";
-
-function getStoredEmail() {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("google_email");
-}
-
-function hasStoredDriveScope() {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("google_has_drive_scope") === "true";
-}
-
-function storeAccessToken(token: string) {
-    if (typeof window === "undefined") return;
-    sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-}
+import { getStoredGoogleAccessToken, getStoredGoogleEmail, hasStoredGoogleDriveScope, storeGoogleAccessToken, storeGoogleIdentity, setStoredGoogleDriveScope } from "@/lib/google-session";
 
 function OpenAppContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [email, setEmail] = React.useState<string | null>(null);
     const [hasDriveAccess, setHasDriveAccess] = React.useState(false);
+    const [hasSession, setHasSession] = React.useState(false);
     const [status, setStatus] = React.useState<"idle" | "loading" | "error">("idle");
     const [error, setError] = React.useState("");
 
     React.useEffect(() => {
-        setEmail(getStoredEmail());
-        setHasDriveAccess(hasStoredDriveScope());
+        setEmail(getStoredGoogleEmail());
+        setHasDriveAccess(hasStoredGoogleDriveScope());
+        setHasSession(!!getStoredGoogleAccessToken());
     }, []);
 
     const fetchUserInfo = React.useCallback(async (accessToken: string) => {
@@ -55,7 +40,7 @@ function OpenAppContent() {
             throw new Error("Google account email missing.");
         }
 
-        localStorage.setItem("google_email", data.email);
+        storeGoogleIdentity({ email: data.email, sub: data.sub });
         setEmail(data.email);
     }, []);
 
@@ -69,9 +54,15 @@ function OpenAppContent() {
             try {
                 setStatus("loading");
                 setError("");
-                storeAccessToken(tokenResponse.access_token);
+                storeGoogleAccessToken(tokenResponse.access_token);
                 await fetchUserInfo(tokenResponse.access_token);
+                setHasSession(true);
                 setStatus("idle");
+                const nextDestination = searchParams.get("next");
+                if (nextDestination) {
+                    completeGooglePath(nextDestination);
+                    return;
+                }
                 router.push("/settings?tab=storage&source=open-app");
             } catch (loginError) {
                 console.error(loginError);
@@ -85,18 +76,43 @@ function OpenAppContent() {
         },
     });
 
+    const reconnectGoogle = useGoogleLogin({
+        scope: `${MINIMAL_SCOPES} ${DRIVE_SCOPE}`,
+        onSuccess: async (tokenResponse) => {
+            try {
+                setStatus("loading");
+                setError("");
+                storeGoogleAccessToken(tokenResponse.access_token);
+                await fetchUserInfo(tokenResponse.access_token);
+                setStoredGoogleDriveScope(true);
+                setHasDriveAccess(true);
+                setHasSession(true);
+                setStatus("idle");
+                completeGooglePath(searchParams.get("next"));
+            } catch (reconnectError) {
+                console.error(reconnectError);
+                setStatus("error");
+                setError("Google reconnection could not be completed. Please try again.");
+            }
+        },
+        onError: () => {
+            setStatus("error");
+            setError("Google reconnection could not be completed. Please try again.");
+        },
+    });
     const enableDrive = useGoogleLogin({
         scope: DRIVE_SCOPE,
         onSuccess: async (tokenResponse) => {
             try {
                 setStatus("loading");
                 setError("");
-                storeAccessToken(tokenResponse.access_token);
-                if (!getStoredEmail()) {
+                storeGoogleAccessToken(tokenResponse.access_token);
+                if (!getStoredGoogleEmail()) {
                     await fetchUserInfo(tokenResponse.access_token);
                 }
-                localStorage.setItem("google_has_drive_scope", "true");
+                setStoredGoogleDriveScope(true);
                 setHasDriveAccess(true);
+                setHasSession(true);
                 setStatus("idle");
                 completeGooglePath(searchParams.get("next"));
             } catch (driveError) {
@@ -112,6 +128,7 @@ function OpenAppContent() {
     });
 
     const recommendedGoogle = searchParams.get("recommended") === "google";
+    const showLoggedOutNotice = searchParams.get("source") === "logout";
 
     return (
         <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
@@ -132,6 +149,12 @@ function OpenAppContent() {
                     {error && (
                         <div className="rounded-2xl border px-4 py-3 text-sm font-medium" style={{ borderColor: "rgba(180,35,24,0.25)", backgroundColor: "rgba(180,35,24,0.06)", color: "var(--danger)" }}>
                             {error}
+                        </div>
+                    )}
+
+                    {showLoggedOutNotice && (
+                        <div className="rounded-2xl border px-4 py-3 text-sm font-medium" style={{ borderColor: "rgba(0,122,77,0.22)", backgroundColor: "rgba(0,122,77,0.06)", color: "var(--text)" }}>
+                            You signed out of Google on this device. Your local records stay here, and your private Drive backup remains in your own Google account until you reconnect.
                         </div>
                     )}
 
@@ -224,6 +247,26 @@ function OpenAppContent() {
                                         {status === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                                         Connect Google account
                                     </Button>
+                                ) : !hasSession && hasDriveAccess ? (
+                                    <div className="space-y-3">
+                                        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 text-sm" style={{ color: "var(--text-muted)" }}>
+                                            Previously connected as <strong style={{ color: "var(--text)" }}>{email}</strong>. Sign in again to use your private Drive backup on this device.
+                                        </div>
+                                        <Button className="w-full font-bold" onClick={() => reconnectGoogle()} disabled={status === "loading"}>
+                                            {status === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                                            Reconnect Google backup
+                                        </Button>
+                                    </div>
+                                ) : !hasSession ? (
+                                    <div className="space-y-3">
+                                        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 text-sm" style={{ color: "var(--text-muted)" }}>
+                                            Previously connected as <strong style={{ color: "var(--text)" }}>{email}</strong>. Sign in again to continue with Google on this device.
+                                        </div>
+                                        <Button className="w-full font-bold" onClick={() => login()} disabled={status === "loading"}>
+                                            {status === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                                            Reconnect Google account
+                                        </Button>
+                                    </div>
                                 ) : !hasDriveAccess ? (
                                     <div className="space-y-3">
                                         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 text-sm" style={{ color: "var(--text-muted)" }}>

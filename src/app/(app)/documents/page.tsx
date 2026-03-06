@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { FeatureGateCard } from "@/components/ui/feature-gate-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable } from "@/components/ui/data-table";
 import { FiltersBar, type FilterChip } from "@/components/ui/filters-bar";
@@ -17,7 +18,7 @@ import { getContracts, getDocumentFile, getDocuments, getEmployees, getPayslipsF
 import { Contract, DocumentMeta, Employee } from "@/lib/schema";
 import { generatePayslipPdfBytes } from "@/lib/pdf";
 import { generateEmploymentContract } from "@/lib/contract-pdf";
-import { getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
+import { canUseDocumentsHub, getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
 import { PLANS, PlanConfig } from "../../../config/plans";
 
 const TABS = ["Payslips", "Contracts", "Exports", "Vault"] as const;
@@ -228,6 +229,18 @@ export default function DocumentsPage() {
                     title="Loading documents"
                     description="Pulling together your payslips, contracts, exports, and stored records."
                     icon={FolderOpen}
+                />
+            </>
+        );
+    }
+
+    if (!canUseDocumentsHub(plan)) {
+        return (
+            <>
+                <PageHeader title="Documents" subtitle="Payslips, contracts, exports, and vault history" />
+                <FeatureGateCard
+                    title="Documents hub is available on Standard and Pro"
+                    description="Free keeps payroll and payslips simple for one worker. Upgrade for contracts, document uploads, exports, and longer record access."
                 />
             </>
         );
@@ -549,3 +562,4 @@ export default function DocumentsPage() {
         </>
     );
 }
+

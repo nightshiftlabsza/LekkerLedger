@@ -18,7 +18,8 @@ import {
     Household,
     HouseholdSchema,
 } from "./schema";
-
+import { fetchVerifiedEntitlements } from "./billing-client";
+import { getStoredGoogleAccessToken } from "./google-session";
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
 const payslipStore = localforage.createInstance({ name: "LekkerLedger", storeName: "payslips" });
 const leaveStore = localforage.createInstance({ name: "LekkerLedger", storeName: "leave" });
@@ -30,7 +31,6 @@ const documentFileStore = localforage.createInstance({ name: "LekkerLedger", sto
 const contractStore = localforage.createInstance({ name: "LekkerLedger", storeName: "contracts" });
 const householdStore = localforage.createInstance({ name: "LekkerLedger", storeName: "households" });
 
-export const FREE_PAYSLIP_LIMIT = 2;
 export const DEFAULT_HOUSEHOLD_ID = "default";
 const DEFAULT_HOUSEHOLD_NAME = "Main household";
 const BACKUP_SCHEMA_VERSION = "2.3";
@@ -480,6 +480,42 @@ export async function getAllLeaveRecords(): Promise<LeaveRecord[]> {
 
 const SETTINGS_KEY = "employer-settings";
 
+function applyVerifiedEntitlementsToSettings(settings: EmployerSettings, entitlements: Awaited<ReturnType<typeof fetchVerifiedEntitlements>>): EmployerSettings {
+    const verifiedPlanId = entitlements?.isActive ? entitlements.planId : "free";
+    const billingCycle = entitlements?.billingCycle || settings.billingCycle || "monthly";
+    return {
+        ...settings,
+        proStatus: verifiedPlanId,
+        paidUntil: entitlements?.isActive ? entitlements.paidUntil : undefined,
+        billingCycle,
+    };
+}
+
+async function overlayVerifiedEntitlements(settings: EmployerSettings): Promise<EmployerSettings> {
+    if (typeof window === "undefined") return settings;
+
+    const accessToken = getStoredGoogleAccessToken();
+    const localPlan = settings.proStatus === "standard" || settings.proStatus === "pro" ? settings.proStatus : "free";
+    if (!accessToken) {
+        if (localPlan !== "free") {
+            return {
+                ...settings,
+                proStatus: "free",
+                paidUntil: undefined,
+            };
+        }
+        return settings;
+    }
+
+    try {
+        const entitlements = await fetchVerifiedEntitlements(accessToken);
+        return applyVerifiedEntitlementsToSettings(settings, entitlements);
+    } catch (error) {
+        console.warn("Failed to verify billing entitlements", error);
+        return settings;
+    }
+}
+
 export async function getSettings(): Promise<EmployerSettings> {
     await ensureDefaultHousehold();
     const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
@@ -492,15 +528,21 @@ export async function getSettings(): Promise<EmployerSettings> {
 
     const householdSettings = await ensureHouseholdScopedSettings(activeHouseholdId, legacySeed);
 
-    return {
+    return overlayVerifiedEntitlements({
         ...normalizedGlobal,
         ...householdSettings,
         activeHouseholdId,
-    };
+    });
 }
 
 export async function saveSettings(settings: EmployerSettings): Promise<void> {
-    const normalized = buildDefaultSettings(settings);
+    const existingStoredSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
+    const normalized = buildDefaultSettings({
+        ...settings,
+        proStatus: existingStoredSettings?.proStatus ?? settings.proStatus,
+        paidUntil: existingStoredSettings?.paidUntil ?? settings.paidUntil,
+        billingCycle: existingStoredSettings?.billingCycle ?? settings.billingCycle,
+    });
     const activeHouseholdId = normalized.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;
     const globalSettings = buildDefaultSettings({
         ...stripHouseholdScopedSettings(normalized),
@@ -518,7 +560,6 @@ export async function saveSettings(settings: EmployerSettings): Promise<void> {
     });
     await notifyListeners();
 }
-
 const COMPLIANCE_SHOWN_KEY = "ll-compliance-shown";
 
 export async function getComplianceShownFlag(): Promise<boolean> {
@@ -613,29 +654,6 @@ export async function getInstallationId(): Promise<string> {
     }
 
     return installationId || "unknown";
-}
-
-export async function incrementUsageCount(): Promise<void> {
-    const settings = await getSettings();
-    const now = await getSecureTime();
-    const history = [...(settings.usageHistory || []), now.toISOString()].slice(-100);
-    await saveSettings({ ...settings, usageHistory: history });
-    await logAuditEvent("UPDATE_SETTINGS", "Usage limit incremented");
-}
-
-export async function getUsageStats(): Promise<{ count30Days: number; isLimited: boolean }> {
-    const settings = await getSettings();
-    const now = await getSecureTime();
-    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
-    const recent = (settings.usageHistory || []).filter((dateString) => new Date(dateString) > thirtyDaysAgo);
-
-    const hasPaidPlan = settings.proStatus === "standard" || settings.proStatus === "pro";
-    const hasActiveTrial = settings.proStatus === "trial" && !!settings.trialExpiry && new Date(settings.trialExpiry) > now;
-
-    return {
-        count30Days: recent.length,
-        isLimited: !(hasPaidPlan || hasActiveTrial) && recent.length >= FREE_PAYSLIP_LIMIT,
-    };
 }
 
 export async function exportData(): Promise<string> {
@@ -956,6 +974,9 @@ export function getCurrentTaxYearRange(now: Date = new Date()): { start: Date; e
         label: `${startYear}/${endYear}`,
     };
 }
+
+
+
 
 
 

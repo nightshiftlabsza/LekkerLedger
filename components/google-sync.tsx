@@ -6,6 +6,7 @@ import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Folder, Fi
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MINIMAL_SCOPES, DRIVE_SCOPE, syncDataToDrive, syncDataFromDrive, deleteDataFromDrive } from "@/lib/google-drive";
+import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail, hasStoredGoogleDriveScope, setStoredGoogleDriveScope, storeGoogleAccessToken, storeGoogleIdentity } from "@/lib/google-session";
 import { getSettings, saveSettings, subscribeToDataChanges } from "@/lib/storage";
 
 interface SyncEvent {
@@ -20,35 +21,14 @@ interface GoogleSyncProps {
     driveSyncAllowed?: boolean;
 }
 
-const ACCESS_TOKEN_KEY = "google_access_token";
-
 function getStoredToken(): string | null {
-    if (typeof window === "undefined") return null;
-    return sessionStorage.getItem(ACCESS_TOKEN_KEY);
-}
-
-function setStoredToken(token: string) {
-    if (typeof window === "undefined") return;
-    sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-}
-
-function clearStoredToken() {
-    if (typeof window === "undefined") return;
-    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    return getStoredGoogleAccessToken();
 }
 
 export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
     const [token, setToken] = useState<string | null>(() => getStoredToken());
-    const [email, setEmail] = useState<string | null>(() => {
-        if (typeof window !== "undefined") return localStorage.getItem("google_email");
-        return null;
-    });
-    const [hasDriveScope, setHasDriveScope] = useState<boolean>(() => {
-        if (typeof window !== "undefined") return localStorage.getItem("google_has_drive_scope") === "true";
-        return false;
-    });
+    const [email, setEmail] = useState<string | null>(() => getStoredGoogleEmail());
+    const [hasDriveScope, setHasDriveScope] = useState<boolean>(() => hasStoredGoogleDriveScope());
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [statusMessage, setStatusMessage] = useState("");
     const [pendingAction, setPendingAction] = useState<null | "restore" | "delete">(null);
@@ -100,7 +80,7 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
             const data = await response.json();
             if (!data.email) return null;
             setEmail(data.email);
-            localStorage.setItem("google_email", data.email);
+            storeGoogleIdentity({ email: data.email, sub: data.sub });
             return data.email;
         } catch (error) {
             console.error("Failed to fetch user info", error);
@@ -110,7 +90,7 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
 
     const persistAuth = useCallback((accessToken: string) => {
         setToken(accessToken);
-        setStoredToken(accessToken);
+        storeGoogleAccessToken(accessToken);
     }, []);
 
     const clearAuth = useCallback(async () => {
@@ -118,9 +98,7 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
         setToken(null);
         setEmail(null);
         setHasDriveScope(false);
-        clearStoredToken();
-        localStorage.removeItem("google_email");
-        localStorage.removeItem("google_has_drive_scope");
+        clearStoredGoogleSession();
         const settings = await getSettings();
         await saveSettings({ ...settings, googleSyncEnabled: false });
         setPendingAction(null);
@@ -215,7 +193,7 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
             }
             persistAuth(accessToken);
             setHasDriveScope(true);
-            localStorage.setItem("google_has_drive_scope", "true");
+            setStoredGoogleDriveScope(true);
             const settings = await getSettings();
             await saveSettings({ ...settings, googleSyncEnabled: true });
             await runRestore(true);
@@ -284,26 +262,26 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
                     </div>
 
                     {!token ? (
-                            <Button onClick={() => login()} className="bg-[#4285F4] hover:bg-[#3367d6] text-white font-bold whitespace-nowrap">
-                                Connect Google account
+                        <Button onClick={() => login()} className="bg-[#4285F4] hover:bg-[#3367d6] text-white font-bold whitespace-nowrap">
+                            Connect Google account
+                        </Button>
+                    ) : !hasDriveScope ? (
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <Button onClick={() => enableDrive()} className="bg-amber-500 hover:bg-amber-600 text-white font-bold whitespace-nowrap h-12 rounded-xl shadow-lg shadow-amber-500/20">
+                                <Cloud className="h-4 w-4 mr-2" /> Enable private Drive backup
                             </Button>
-                        ) : !hasDriveScope ? (
-                            <div className="flex flex-col sm:flex-row gap-2">
-                                <Button onClick={() => enableDrive()} className="bg-amber-500 hover:bg-amber-600 text-white font-bold whitespace-nowrap h-12 rounded-xl shadow-lg shadow-amber-500/20">
-                                    <Cloud className="h-4 w-4 mr-2" /> Enable private Drive backup
-                                </Button>
-                                <Button variant="ghost" className="text-[var(--text-muted)]" onClick={clearAuth}>Sign out</Button>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col sm:flex-row gap-2">
-                                <Button variant="outline" onClick={() => handleBackup(false)} disabled={status === "loading"}>
-                                    <RefreshCcw className={`h-4 w-4 mr-2 ${status === "loading" ? "animate-spin" : ""}`} /> Backup now
-                                </Button>
-                                <Button variant="ghost" onClick={() => setPendingAction("restore")} disabled={status === "loading"}>
-                                    <Download className="h-4 w-4 mr-2" /> Restore backup
-                                </Button>
-                                <Button variant="ghost" className="text-rose-500 hover:text-rose-600 hover:bg-rose-50" onClick={clearAuth}>
-                                    Disconnect
+                            <Button variant="ghost" className="text-[var(--text-muted)]" onClick={clearAuth}>Sign out</Button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <Button variant="outline" onClick={() => handleBackup(false)} disabled={status === "loading"}>
+                                <RefreshCcw className={`h-4 w-4 mr-2 ${status === "loading" ? "animate-spin" : ""}`} /> Backup now
+                            </Button>
+                            <Button variant="ghost" onClick={() => setPendingAction("restore")} disabled={status === "loading"}>
+                                <Download className="h-4 w-4 mr-2" /> Restore backup
+                            </Button>
+                            <Button variant="ghost" className="text-rose-500 hover:text-rose-600 hover:bg-rose-50" onClick={clearAuth}>
+                                Disconnect
                             </Button>
                         </div>
                     )}
@@ -444,4 +422,3 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
         </div>
     );
 }
-

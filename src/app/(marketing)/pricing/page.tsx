@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Check, ChevronRight, ShieldCheck } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { Button } from "@/components/ui/button";
-import { PLAN_ORDER, PLANS, type BillingCycle, getPlanDisplayPrice, getPlanPeriodLabel } from "@/src/config/plans";
+import { PLAN_ORDER, PLANS, type BillingCycle, getPlanDisplayPrice, getPlanPeriodLabel } from "@/config/plans";
 
 const COMPARISON_GROUPS = [
     {
@@ -270,4 +270,5 @@ export default function PricingPage() {
         </div>
     );
 }
+
 

@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable } from "@/components/ui/data-table";
-import { getAllLeaveRecords, getContractsForEmployee, getCurrentPayPeriod, getEmployees, subscribeToDataChanges } from "@/lib/storage";
+import { FeatureGateCard } from "@/components/ui/feature-gate-card";
+import { getAllLeaveRecords, getContractsForEmployee, getCurrentPayPeriod, getEmployees, getSettings, subscribeToDataChanges } from "@/lib/storage";
 import { formatLeaveRange, getLeaveAllowanceForType } from "@/lib/leave";
 import { Contract, Employee, LeaveRecord, PayPeriod } from "@/lib/schema";
+import { canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
 
 export function LeaveClient() {
     const [isClient, setIsClient] = React.useState(false);
@@ -18,11 +20,22 @@ export function LeaveClient() {
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [currentPeriod, setCurrentPeriod] = React.useState<PayPeriod | null>(null);
     const [contractsByEmployee, setContractsByEmployee] = React.useState<Record<string, Contract[]>>({});
+    const [leaveTrackingEnabled, setLeaveTrackingEnabled] = React.useState(false);
 
     React.useEffect(() => {
         setIsClient(true);
         async function load() {
             try {
+                const settings = await getSettings();
+                const plan = getUserPlan(settings);
+                const leaveEnabled = canUseLeaveTracking(plan);
+                setLeaveTrackingEnabled(leaveEnabled);
+
+                if (!leaveEnabled) {
+                    setLoading(false);
+                    return;
+                }
+
                 const [recs, emps, cp] = await Promise.all([
                     getAllLeaveRecords(),
                     getEmployees(),
@@ -39,7 +52,7 @@ export function LeaveClient() {
                 setLoading(false);
             }
         }
-        load();
+        void load();
         return subscribeToDataChanges(load);
     }, []);
 
@@ -58,6 +71,15 @@ export function LeaveClient() {
                 description="Add employees first, then track their leave."
                 actionLabel="Add employee"
                 actionHref="/employees/new"
+            />
+        );
+    }
+
+    if (!leaveTrackingEnabled) {
+        return (
+            <FeatureGateCard
+                title="Leave tracking is available on Standard and Pro"
+                description="Free keeps payroll simple for one worker. Upgrade when you want dedicated annual, sick, and family leave records."
             />
         );
     }

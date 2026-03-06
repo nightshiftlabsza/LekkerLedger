@@ -15,21 +15,21 @@ export interface PlanConfig {
     maxHouseholds: number;
     archiveMonths: number;
     driveSync: boolean;
+    leaveTracking: boolean;
+    documentsHub: boolean;
     contractGenerator: boolean;
     ufilingExport: boolean;
-    leaveLoanTracker: boolean;
-    roePack: boolean;
+    roeDownloads: boolean;
     multiHousehold: boolean;
     description: string;
     bestFor: string;
     marketingBullets: string[];
 }
 
-export interface PlanSavings {
-    yearlyEquivalent: number;
-    yearlyPrice: number;
-    amount: number;
-    percent: number;
+export interface PlanPricePresentation {
+    primaryPrice: string;
+    periodLabel: string;
+    helperText: string;
 }
 
 export const PLAN_ORDER: PlanId[] = ["free", "standard", "pro"];
@@ -45,20 +45,20 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         maxHouseholds: 1,
         archiveMonths: 3,
         driveSync: false,
+        leaveTracking: false,
+        documentsHub: false,
         contractGenerator: false,
         ufilingExport: false,
-        leaveLoanTracker: false,
-        roePack: true,
+        roeDownloads: false,
         multiHousehold: false,
-        description: "A calm starting point for one household paying one employee correctly and keeping the basics tidy.",
-        bestFor: "Try LekkerLedger with one employee.",
+        description: "Basic payslips for one worker, with no monthly or yearly billing.",
+        bestFor: "Basic payslips for one worker.",
         marketingBullets: [
             "1 active employee",
             "1 household workspace",
-            "3-month archive",
-            "Clear payslip flow",
-            "ROE copy-ready numbers"
-        ]
+            "Monthly payroll and payslip flow",
+            "Stored on this device",
+        ],
     },
     standard: {
         id: "standard",
@@ -74,21 +74,21 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         maxHouseholds: 1,
         archiveMonths: 12,
         driveSync: true,
+        leaveTracking: true,
+        documentsHub: true,
         contractGenerator: true,
         ufilingExport: true,
-        leaveLoanTracker: false,
-        roePack: true,
+        roeDownloads: true,
         multiHousehold: false,
-        description: "For most households that want backup, document exports, and annual paperwork handled cleanly.",
-        bestFor: "For most households with up to 3 employees.",
+        description: "Proper records for most households, with paperwork, backup, and room for up to 3 employees.",
+        bestFor: "For most households.",
         marketingBullets: [
             "Up to 3 active employees",
-            "1 household workspace",
+            "Leave tracking, contracts, and document hub",
+            "Private Google Drive backup",
+            "uFiling export and ROE downloads",
             "12-month archive",
-            "Google Drive backup",
-            "Contracts and uFiling export",
-            "Annual COIDA ROE pack"
-        ]
+        ],
     },
     pro: {
         id: "pro",
@@ -104,21 +104,20 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         maxHouseholds: Number.POSITIVE_INFINITY,
         archiveMonths: 60,
         driveSync: true,
+        leaveTracking: true,
+        documentsHub: true,
         contractGenerator: true,
         ufilingExport: true,
-        leaveLoanTracker: true,
-        roePack: true,
+        roeDownloads: true,
         multiHousehold: true,
-        description: "For larger households, multiple homes, or anyone who wants deeper record history and admin control.",
-        bestFor: "For larger households or deeper control.",
+        description: "More headroom and control for larger households, multiple homes, and longer-running records.",
+        bestFor: "For larger households or more control.",
         marketingBullets: [
             "Unlimited employees",
             "Multi-household workspace",
             "5-year archive",
-            "Google Drive backup",
-            "Leave and loan tracking",
-            "Contracts, uFiling export, and ROE pack"
-        ]
+            "Everything in Standard",
+        ],
     },
 } as const;
 
@@ -133,36 +132,52 @@ export function getPlanDisplayPrice(plan: PlanId | PlanConfig, cycle: BillingCyc
     return `R${price}`;
 }
 
-export function getPlanSavings(plan: PlanId | PlanConfig): PlanSavings | null {
+export function getPlanPricePresentation(plan: PlanId | PlanConfig, cycle: BillingCycle): PlanPricePresentation {
     const resolvedPlan = typeof plan === "string" ? PLANS[plan] : plan;
-    if (!resolvedPlan.pricing.monthly || !resolvedPlan.pricing.yearly) return null;
 
-    const yearlyEquivalent = resolvedPlan.pricing.monthly * 12;
-    const yearlyPrice = resolvedPlan.pricing.yearly;
-    const amount = yearlyEquivalent - yearlyPrice;
+    if (!resolvedPlan.pricing.monthly || !resolvedPlan.pricing.yearly) {
+        return {
+            primaryPrice: "Free",
+            periodLabel: "",
+            helperText: "No monthly or yearly billing",
+        };
+    }
 
-    if (amount <= 0) return null;
+    if (cycle === "yearly") {
+        return {
+            primaryPrice: `≈ R${(resolvedPlan.pricing.yearly / 12).toFixed(2)}`,
+            periodLabel: "/month",
+            helperText: `Billed yearly at R${resolvedPlan.pricing.yearly}/year`,
+        };
+    }
 
     return {
-        yearlyEquivalent,
-        yearlyPrice,
-        amount,
-        percent: Math.round((amount / yearlyEquivalent) * 100),
+        primaryPrice: `R${resolvedPlan.pricing.monthly}`,
+        periodLabel: "/month",
+        helperText: `Billed yearly at R${resolvedPlan.pricing.yearly}/year`,
     };
 }
 
 export function getPlanPeriodLabel(plan: PlanId | PlanConfig, cycle: BillingCycle): string {
     const resolvedPlan = typeof plan === "string" ? PLANS[plan] : plan;
-    if (!resolvedPlan.pricing[cycle]) return "forever";
+    if (!resolvedPlan.pricing[cycle]) return "";
     return cycle === "monthly" ? "/month" : "/year";
 }
 
 export function getPlanSavingsLabel(plan: PlanId | PlanConfig): string {
-    const savings = getPlanSavings(plan);
-    if (!savings) return "";
-    return `Save ${savings.percent}% yearly`;
+    const resolvedPlan = typeof plan === "string" ? PLANS[plan] : plan;
+    const monthly = resolvedPlan.pricing.monthly;
+    const yearly = resolvedPlan.pricing.yearly;
+
+    if (!monthly || !yearly) return "";
+
+    const yearlyEquivalent = monthly * 12;
+    const amountSaved = yearlyEquivalent - yearly;
+    if (amountSaved <= 0) return "";
+
+    const percentSaved = Math.round((amountSaved / yearlyEquivalent) * 100);
+    return `Save ${percentSaved}% yearly`;
 }
 
 export const REFUND_POLICY_SUMMARY = `If you request a refund within 14 days of purchase, we'll refund you in full. Use the in-app Support link or email support@lekkerledger.co.za with your purchase email and date.`;
-
 

@@ -11,3 +11,4 @@ self.onmessage = async (evt: MessageEvent) => {
         self.postMessage({ msgId, bytes: null, error: msg });
     }
 };
+

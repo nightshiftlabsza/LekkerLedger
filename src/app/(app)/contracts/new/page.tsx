@@ -6,10 +6,12 @@ import { ArrowLeft, ArrowRight, Save, Loader2, FileText, Clock, Banknote, Calend
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { FeatureGateCard } from "@/components/ui/feature-gate-card";
 import { Stepper } from "@/components/ui/stepper";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getEmployees, saveContract, getSettings } from "@/lib/storage";
 import { Contract, Employee, EmployerSettings } from "@/lib/schema";
+import { canUseContractGenerator, getUserPlan } from "@/lib/entitlements";
 
 const STEPS = [
     { label: "Employee", description: "Choose the worker" },
@@ -129,6 +131,21 @@ export default function NewContractPage() {
     };
 
     if (loading) return null;
+
+    if (settings && !canUseContractGenerator(getUserPlan(settings))) {
+        return (
+            <div className="max-w-4xl mx-auto space-y-8 pb-20">
+                <PageHeader
+                    title="Employment contract"
+                    subtitle="Work through the actual job terms first, then save a draft PDF to review before anyone signs."
+                />
+                <FeatureGateCard
+                    title="Contract drafts are available on Standard and Pro"
+                    description="Free keeps payroll and payslips simple. Upgrade if you need employment contracts, document storage, and fuller household records."
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-20">
@@ -470,3 +487,4 @@ function SummaryRow({ icon: Icon, label, value }: { icon: React.ElementType; lab
         </div>
     );
 }
+

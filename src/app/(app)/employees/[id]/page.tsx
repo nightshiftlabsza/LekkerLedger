@@ -11,12 +11,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-    getEmployee, getPayslipsForEmployee, getLeaveForEmployee,
+    getEmployee, getPayslipsForEmployee, getLeaveForEmployee, getSettings,
     deletePayslip
 } from "@/lib/storage";
 import { Employee, PayslipInput, LeaveRecord } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { format } from "date-fns";
+import { canUseDocumentsHub, canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
 
 type Tab = "profile" | "history" | "leave" | "documents";
 
@@ -38,6 +39,8 @@ function EmployeeDetailContent() {
     const [payslips, setPayslips] = React.useState<PayslipInput[]>([]);
     const [leaveRecords, setLeaveRecords] = React.useState<LeaveRecord[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const [showLeaveTab, setShowLeaveTab] = React.useState(false);
+    const [showDocumentsTab, setShowDocumentsTab] = React.useState(false);
     const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
@@ -58,10 +61,11 @@ function EmployeeDetailContent() {
     React.useEffect(() => {
         async function load() {
             if (!id) return;
-            const [emp, ps, leave] = await Promise.all([
+            const [emp, ps, leave, settings] = await Promise.all([
                 getEmployee(id),
                 getPayslipsForEmployee(id),
                 getLeaveForEmployee(id),
+                getSettings(),
             ]);
             if (!emp) { router.push("/employees"); return; }
             setEmployee(emp);
@@ -69,10 +73,18 @@ function EmployeeDetailContent() {
                 (a, b) => new Date(b.payPeriodStart).getTime() - new Date(a.payPeriodStart).getTime()
             ));
             setLeaveRecords(leave);
+            const plan = getUserPlan(settings);
+            const allowLeave = canUseLeaveTracking(plan);
+            const allowDocuments = canUseDocumentsHub(plan);
+            setShowLeaveTab(allowLeave);
+            setShowDocumentsTab(allowDocuments);
             setLoading(false);
 
+            const visibleTabs = TABS.filter((tab) => (tab.id !== "leave" || allowLeave) && (tab.id !== "documents" || allowDocuments));
             const tabParam = searchParams?.get("tab") as Tab | null;
-            if (tabParam && TABS.some(t => t.id === tabParam)) setActiveTab(tabParam);
+            if (tabParam && visibleTabs.some((tab) => tab.id === tabParam)) {
+                setActiveTab(tabParam);
+            }
         }
         load();
     }, [id, router, searchParams]);
@@ -103,6 +115,7 @@ function EmployeeDetailContent() {
 
     if (!employee) return null;
 
+    const visibleTabs = TABS.filter((tab) => (tab.id !== "leave" || showLeaveTab) && (tab.id !== "documents" || showDocumentsTab));
     const annualLeaveDays = leaveRecords.filter(r => r.type === "annual").reduce((s, r) => s + r.days, 0);
     const sickLeaveDays = leaveRecords.filter(r => r.type === "sick").reduce((s, r) => s + r.days, 0);
 
@@ -158,7 +171,7 @@ function EmployeeDetailContent() {
                 {/* Tab bar — pill style matching settings page */}
                 <div className="flex gap-1 p-1.5 rounded-2xl border border-[var(--border)]"
                     style={{ backgroundColor: "var(--surface-1)" }}>
-                    {TABS.map(({ id: tabId, label, icon: Icon }) => {
+                    {visibleTabs.map(({ id: tabId, label, icon: Icon }) => {
                         const active = activeTab === tabId;
                         return (
                             <button
@@ -412,4 +425,7 @@ export default function EmployeeDetailPage() {
         </React.Suspense>
     );
 }
+
+
+
 

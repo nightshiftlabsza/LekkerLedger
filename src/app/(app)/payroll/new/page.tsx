@@ -5,10 +5,11 @@ export default function NewPayrollPage() {
     return (
         <div className="w-full max-w-3xl mx-auto space-y-6 pb-20">
             <PageHeader
-                title="Create Payslip"
-                subtitle="Start a new pay period"
+                title="Create Payroll"
+                subtitle="Start a new monthly pay period"
             />
             <NewPayrollWizardClient />
         </div>
     );
 }
+

@@ -1,0 +1,45 @@
+import Link from "next/link";
+import { ArrowRight, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
+interface FeatureGateCardProps {
+    title: string;
+    description: string;
+    ctaLabel?: string;
+    href?: string;
+    eyebrow?: string;
+}
+
+export function FeatureGateCard({
+    title,
+    description,
+    ctaLabel = "Compare plans",
+    href = "/pricing",
+    eyebrow = "Standard and Pro",
+}: FeatureGateCardProps) {
+    return (
+        <Card className="border-[var(--primary)] bg-[var(--primary)]/5 shadow-[var(--shadow-1)]">
+            <CardContent className="p-6 space-y-4">
+                <div className="flex items-start gap-3">
+                    <div className="rounded-2xl bg-[var(--primary)] p-3 text-white">
+                        <Lock className="h-5 w-5" />
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">
+                            {eyebrow}
+                        </p>
+                        <h2 className="text-xl font-black text-[var(--text)]">{title}</h2>
+                        <p className="text-sm leading-6 text-[var(--text-muted)]">{description}</p>
+                    </div>
+                </div>
+
+                <Link href={href} className="block">
+                    <Button className="w-full justify-center font-bold">
+                        {ctaLabel} <ArrowRight className="h-4 w-4" />
+                    </Button>
+                </Link>
+            </CardContent>
+        </Card>
+    );
+}

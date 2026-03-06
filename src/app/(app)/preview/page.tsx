@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/toast";
-import { getEmployees, getPayslipsForEmployee, getSettings, getUsageStats, incrementUsageCount } from "@/lib/storage";
+import { getEmployees, getPayslipsForEmployee, getSettings } from "@/lib/storage";
 import { Employee, EmployerSettings, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
@@ -33,7 +33,6 @@ async function buildPayslipPdf(
     employee: Employee,
     payslip: PayslipInput,
     settings: EmployerSettings,
-    isLimited: boolean,
 ) {
     const normalisedPayslip = {
         ...payslip,
@@ -41,7 +40,7 @@ async function buildPayslipPdf(
         payPeriodEnd: new Date(payslip.payPeriodEnd),
         createdAt: new Date(payslip.createdAt),
     };
-    const bytes = await generatePayslipPdfBytes(employee, normalisedPayslip, settings, settings.defaultLanguage, isLimited);
+    const bytes = await generatePayslipPdfBytes(employee, normalisedPayslip, settings, settings.defaultLanguage);
     const fileName = getPayslipFilename(employee, normalisedPayslip);
     const periodLabel = format(normalisedPayslip.payPeriodEnd, "MMM yyyy");
     return { bytes, fileName, periodLabel };
@@ -56,7 +55,7 @@ function PreviewContent() {
     const [employee, setEmployee] = React.useState<Employee | null>(null);
     const [payslip, setPayslip] = React.useState<PayslipInput | null>(null);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
-    const [usageStats, setUsageStats] = React.useState({ count30Days: 0, isLimited: false });
+
     const [loading, setLoading] = React.useState(true);
     const [action, setAction] = React.useState<"" | "download" | "whatsapp" | "email">("");
     const [error, setError] = React.useState("");
@@ -70,11 +69,10 @@ function PreviewContent() {
             }
 
             try {
-                const [employeeRows, payslips, loadedSettings, stats] = await Promise.all([
+                const [employeeRows, payslips, loadedSettings] = await Promise.all([
                     getEmployees(),
                     getPayslipsForEmployee(empId),
                     getSettings(),
-                    getUsageStats(),
                 ]);
 
                 const foundEmployee = employeeRows.find((entry) => entry.id === empId);
@@ -86,7 +84,6 @@ function PreviewContent() {
                     setEmployee(foundEmployee);
                     setPayslip(foundPayslip);
                     setSettings(loadedSettings);
-                    setUsageStats(stats);
                     triggerCelebration();
                 }
             } catch (loadError) {
@@ -105,10 +102,7 @@ function PreviewContent() {
 
         setAction(nextAction);
         try {
-            const { bytes, fileName, periodLabel } = await buildPayslipPdf(employee, payslip, settings, usageStats.isLimited);
-
-            await incrementUsageCount();
-            setUsageStats(await getUsageStats());
+            const { bytes, fileName, periodLabel } = await buildPayslipPdf(employee, payslip, settings);
 
             if (nextAction === "download") {
                 const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
@@ -205,14 +199,7 @@ function PreviewContent() {
                     </div>
                 </div>
 
-                {usageStats.isLimited && (
-                    <Alert variant="warning" className="border-[var(--focus)] bg-[var(--surface-2)]">
-                        <AlertCircle className="h-4 w-4 text-[var(--focus)]" />
-                        <AlertDescription>
-                            <strong>Free limit reached.</strong> This payslip will include the free-plan watermark until you upgrade.
-                        </AlertDescription>
-                    </Alert>
-                )}
+
 
                 <Alert className="border-emerald-500/20 bg-emerald-500/10 text-emerald-700">
                     <CheckCircle2 className="h-4 w-4" />
@@ -318,3 +305,4 @@ export default function PreviewPage() {
         </React.Suspense>
     );
 }
+

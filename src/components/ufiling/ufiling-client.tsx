@@ -12,7 +12,9 @@ import { getEmployees, getAllPayslips, getSettings, getPayPeriods } from "@/lib/
 import { Employee, PayslipInput, EmployerSettings, PayPeriod } from "@/lib/schema";
 import { generateUFilingData, generateUFilingTaxYearData, rowsToCsv, downloadCsv, UFilingRow } from "@/lib/ufiling";
 import { DataTable } from "@/components/ui/data-table";
+import { canUseUFilingExport, getUserPlan } from "@/lib/entitlements";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FeatureGateCard } from "@/components/ui/feature-gate-card";
 
 export function UFilingClient() {
     const [isClient, setIsClient] = React.useState(false);
@@ -101,6 +103,15 @@ export function UFilingClient() {
                     "Review the month and finalise it",
                     "Lock the pay period so the records stay consistent"
                 ]}
+            />
+        );
+    }
+
+    if (settings && !canUseUFilingExport(getUserPlan(settings))) {
+        return (
+            <FeatureGateCard
+                title="uFiling exports are available on Standard and Pro"
+                description="Free keeps payroll simple for one worker. Upgrade when you need declaration exports, backup, contracts, and fuller household records."
             />
         );
     }
@@ -335,3 +346,5 @@ function GuideStep({ step, title, desc }: { step: number; title: string; desc: s
         </div>
     );
 }
+
+

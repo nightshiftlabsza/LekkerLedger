@@ -57,7 +57,7 @@ export function PayrollClient() {
                         className="gap-1.5 bg-[var(--primary)] text-white font-bold opacity-50 cursor-not-allowed"
                     >
                         <Plus className="h-4 w-4" />
-                        Start {format(new Date(), "MMMM yyyy")}
+                        Add {format(new Date(), "MMMM yyyy")} Payroll
                     </Button>
                 </div>
                 <EmptyState
@@ -80,7 +80,7 @@ export function PayrollClient() {
                             className="gap-1.5 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]"
                         >
                             <Plus className="h-4 w-4" />
-                            Start {format(new Date(), "MMMM yyyy")}
+                            Add {format(new Date(), "MMMM yyyy")} Payroll
                         </Button>
                     </Link>
                 )}
@@ -212,3 +212,4 @@ export function PayrollClient() {
         </div>
     );
 }
+

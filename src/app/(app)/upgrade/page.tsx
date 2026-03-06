@@ -4,19 +4,17 @@ import * as React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import dynamic from "next/dynamic";
-import { ArrowRight, Check, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { getSettings, saveSettings } from "@/lib/storage";
+import { getSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
-import { type BillingCycle, PLAN_ORDER, PLANS, getPlanDisplayPrice, getPlanPeriodLabel, getPlanPrice, getPlanSavingsLabel } from "@/src/config/plans";
+import { createCheckoutSession } from "@/lib/billing-client";
+import { hasStoredGoogleSession } from "@/lib/google-session";
+import { type BillingCycle, PLAN_ORDER, PLANS, getPlanDisplayPrice, getPlanPeriodLabel, getPlanPrice, getPlanSavingsLabel } from "@/config/plans";
 import { EmployerSettings } from "@/lib/schema";
 import { getUserPlan } from "@/lib/entitlements";
-
-const PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c";
-const PaystackHookWrapper = dynamic(() => import("@/components/paystack-wrapper"), { ssr: false });
 
 export default function UpgradePage() {
     return (
@@ -26,15 +24,24 @@ export default function UpgradePage() {
     );
 }
 
+function buildGoogleConnectHref(planId: "standard" | "pro", billingCycle: BillingCycle): string {
+    const params = new URLSearchParams({
+        recommended: "google",
+        next: `/upgrade?plan=${planId}&billing=${billingCycle}&pay=1`,
+        source: "billing",
+    });
+    return `/open-app?${params.toString()}`;
+}
+
 function UpgradePageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("yearly");
-    const [selectedPlan, setSelectedPlan] = React.useState<"standard" | "pro" | null>(null);
-    const [makePayment, setMakePayment] = React.useState(false);
-    const hasAutoOpenedPayment = React.useRef(false);
+    const [checkoutPlanId, setCheckoutPlanId] = React.useState<"standard" | "pro" | null>(null);
+    const [checkoutError, setCheckoutError] = React.useState("");
+    const hasAutoStartedCheckout = React.useRef(false);
 
     React.useEffect(() => {
         async function load() {
@@ -43,71 +50,43 @@ function UpgradePageContent() {
             const requestedBilling = searchParams.get("billing");
             setBillingCycle(requestedBilling === "monthly" ? "monthly" : requestedBilling === "yearly" ? "yearly" : currentSettings.billingCycle === "monthly" ? "monthly" : "yearly");
         }
-        load();
+        void load();
     }, [searchParams]);
 
+    const startCheckout = React.useCallback(async (planId: "standard" | "pro") => {
+        setCheckoutError("");
+
+        if (!hasStoredGoogleSession()) {
+            router.push(buildGoogleConnectHref(planId, billingCycle));
+            return;
+        }
+
+        try {
+            setCheckoutPlanId(planId);
+            const checkout = await createCheckoutSession({ planId, billingCycle });
+            window.location.href = checkout.authorizationUrl;
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Checkout could not be started.";
+            setCheckoutError(message);
+            toast(message);
+            setCheckoutPlanId(null);
+        }
+    }, [billingCycle, router, toast]);
+
     React.useEffect(() => {
-        if (!settings || hasAutoOpenedPayment.current) return;
+        if (!settings || hasAutoStartedCheckout.current) return;
         const requestedPlan = searchParams.get("plan");
         const shouldPayNow = searchParams.get("pay") === "1";
         if ((requestedPlan === "standard" || requestedPlan === "pro") && shouldPayNow) {
             const currentPlan = getUserPlan(settings);
             if (currentPlan.id !== requestedPlan) {
-                setSelectedPlan(requestedPlan);
-                setMakePayment(true);
-                hasAutoOpenedPayment.current = true;
+                hasAutoStartedCheckout.current = true;
+                void startCheckout(requestedPlan);
             }
         }
-    }, [searchParams, settings]);
+    }, [searchParams, settings, startCheckout]);
 
     const currentPlan = settings ? getUserPlan(settings) : PLANS.free;
-    const selectedPrice = selectedPlan ? getPlanPrice(selectedPlan, billingCycle) : null;
-
-    const getPaystackConfig = () => {
-        const email = typeof window !== "undefined" ? localStorage.getItem("google_email") || "user@lekkerledger.co.za" : "user@lekkerledger.co.za";
-        return {
-            reference: new Date().getTime().toString(),
-            email,
-            amount: (selectedPrice ?? 0) * 100,
-            publicKey: PAYSTACK_PUBLIC_KEY,
-            currency: "ZAR",
-            metadata: {
-                custom_fields: [
-                    { display_name: "Plan ID", variable_name: "planId", value: selectedPlan || "unknown" },
-                    { display_name: "Billing Cycle", variable_name: "billingCycle", value: billingCycle },
-                    { display_name: "Source", variable_name: "source", value: "upgrade_page" },
-                ],
-            },
-        };
-    };
-
-    const handleUpgradeSuccess = async () => {
-        if (!settings || !selectedPlan) return;
-        const paidUntil = new Date();
-        if (billingCycle === "monthly") {
-            paidUntil.setMonth(paidUntil.getMonth() + 1);
-        } else {
-            paidUntil.setFullYear(paidUntil.getFullYear() + 1);
-        }
-
-        const updated = {
-            ...settings,
-            proStatus: selectedPlan,
-            billingCycle,
-            paidUntil: paidUntil.toISOString(),
-        } satisfies EmployerSettings;
-
-        await saveSettings(updated);
-        setSettings(updated);
-        setMakePayment(false);
-        toast(`${PLANS[selectedPlan].label} activated.`);
-        router.push("/billing/success");
-    };
-
-    const handleSelectPlan = (planId: "standard" | "pro") => {
-        setSelectedPlan(planId);
-        setMakePayment(true);
-    };
 
     if (!settings) {
         return null;
@@ -120,17 +99,24 @@ function UpgradePageContent() {
                 subtitle="Choose the level of Google-connected backup, archive depth, and household control you need."
             />
 
-            {makePayment && selectedPlan && selectedPrice && (
-                <div className="fixed inset-0 z-[100] pointer-events-none">
-                    <PaystackHookWrapper
-                        config={getPaystackConfig()}
-                        onSuccess={handleUpgradeSuccess}
-                        onClose={() => setMakePayment(false)}
-                    />
-                </div>
-            )}
-
             <div className="mx-auto max-w-6xl space-y-8">
+                <Card className="border-[var(--primary)] bg-[var(--primary)]/5">
+                    <CardContent className="p-5 space-y-3 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                        <p className="font-semibold" style={{ color: "var(--text)" }}>
+                            Paid access is confirmed through your Google sign-in, not by this browser alone.
+                        </p>
+                        <p>
+                            If you are not signed into Google yet, choosing a paid plan will first take you to Google connect. After that, LekkerLedger starts the Paystack checkout securely from the server.
+                        </p>
+                    </CardContent>
+                </Card>
+
+                {checkoutError && (
+                    <div className="rounded-2xl border px-4 py-3 text-sm font-medium" style={{ borderColor: "rgba(180,35,24,0.25)", backgroundColor: "rgba(180,35,24,0.06)", color: "var(--danger)" }}>
+                        {checkoutError}
+                    </div>
+                )}
+
                 <div className="flex justify-center">
                     <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
                         {(["monthly", "yearly"] as BillingCycle[]).map((cycle) => (
@@ -156,6 +142,8 @@ function UpgradePageContent() {
                         const featured = plan.id === "pro";
                         const cycle = plan.id === "free" ? "yearly" : billingCycle;
                         const isCurrent = currentPlan.id === plan.id;
+                        const isStartingCheckout = checkoutPlanId === plan.id;
+                        const selectedPrice = plan.id === "free" ? null : getPlanPrice(plan.id, billingCycle);
                         return (
                             <Card key={plan.id} className={`overflow-hidden border ${featured ? "border-[var(--primary)] shadow-[var(--shadow-2)]" : "border-[var(--border)]"}`}>
                                 <CardContent className="p-7 space-y-5">
@@ -202,9 +190,9 @@ function UpgradePageContent() {
                                                 {isCurrent ? "Current plan" : "Free plan"}
                                             </Button>
                                         ) : (
-                                            <Button className="w-full font-bold" disabled={isCurrent} onClick={() => { if (plan.id !== "free") handleSelectPlan(plan.id); }}>
-                                                {isCurrent ? "Current plan" : `Choose ${plan.label}`}
-                                                {!isCurrent && <ArrowRight className="h-4 w-4" />}
+                                            <Button className="w-full font-bold" disabled={isCurrent || !!checkoutPlanId || !selectedPrice} onClick={() => void startCheckout(plan.id === "standard" ? "standard" : "pro")}>
+                                                {isCurrent ? "Current plan" : isStartingCheckout ? "Opening checkout..." : `Choose ${plan.label}`}
+                                                {isStartingCheckout ? <Loader2 className="h-4 w-4 animate-spin" /> : !isCurrent && <ArrowRight className="h-4 w-4" />}
                                             </Button>
                                         )}
                                     </div>

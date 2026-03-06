@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { calculatePayslip } from "@/lib/calculator";
 import { getNMWForDate } from "@/lib/legal/registry";
 import type { Employee, PayslipInput } from "@/lib/schema";
-import { PLANS, PLAN_ORDER, type BillingCycle, getPlanDisplayPrice, getPlanPeriodLabel } from "@/src/config/plans";
+import { PLANS, PLAN_ORDER, type BillingCycle, getPlanDisplayPrice, getPlanPeriodLabel } from "@/config/plans";
 import { MarketingHeader } from "../../../components/layout/marketing-header";
 
 const TRUST_SIGNALS = [
@@ -24,8 +24,18 @@ const TRUST_SIGNALS = [
     "Built for South African households",
 ] as const;
 
+const SAMPLE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_3.75rem_5.5rem_6rem] gap-x-4 sm:grid-cols-[minmax(0,1fr)_5rem_6.75rem_7rem]";
+
 function formatRand(value: number) {
     return `R ${value.toFixed(2)}`;
+}
+
+function formatIdNumber(idNumber: string) {
+    if (idNumber.length !== 13) {
+        return idNumber;
+    }
+
+    return `${idNumber.slice(0, 6)} ${idNumber.slice(6, 10)} ${idNumber.slice(10)}`;
 }
 
 function buildHomepageSample(referenceDate: Date) {
@@ -37,7 +47,7 @@ function buildHomepageSample(referenceDate: Date) {
         id: "sample-zanele-khumalo",
         householdId: "sample-household",
         name: "Zanele Khumalo",
-        idNumber: "",
+        idNumber: "9002150836082",
         role: "Domestic Worker",
         hourlyRate,
         phone: "",
@@ -75,12 +85,16 @@ function buildHomepageSample(referenceDate: Date) {
     const periodLabel = `${payPeriodStart.toLocaleDateString("en-ZA", { day: "numeric", month: "short" })} - ${payPeriodEnd.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`;
 
     return {
-        employerName: "Nomsa Dlamini",
+        employer: {
+            name: "Nomsa Dlamini",
+            address: "18 Acacia Avenue, Northcliff, Johannesburg, 2195",
+        },
         employee,
         payslip,
         breakdown: calculatePayslip(payslip),
         monthLabel,
         periodLabel,
+        leaveDaysRemaining: 4.5,
     };
 }
 
@@ -175,17 +189,23 @@ function HeroTrustRail({ className = "" }: { className?: string }) {
 
 function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
     return (
-        <div className="rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]">
-            <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface-raised)] px-5 py-4">
+        <div className="overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]">
+            <div
+                className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4"
+                style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.10) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
+            >
                 <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
+                        LekkerLedger
+                    </p>
+                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
                         Sample payslip
                     </p>
-                    <p className="mt-1 text-sm font-semibold" style={{ color: "var(--text)" }}>
-                        Fictional example
-                    </p>
                 </div>
-                <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+                <p
+                    className="rounded-full border border-[var(--focus)]/20 bg-white/70 px-3 py-1.5 text-xs font-semibold shadow-sm"
+                    style={{ color: "var(--text)" }}
+                >
                     {sample.monthLabel}
                 </p>
             </div>
@@ -193,31 +213,56 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
             <div className="p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-5">
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                            LekkerLedger
-                        </p>
-                        <h2 className="mt-2 font-[family:var(--font-serif)] text-2xl font-semibold" style={{ color: "var(--text)" }}>
+                        <h2 className="font-[family:var(--font-serif)] text-2xl font-semibold" style={{ color: "var(--text)" }}>
                             PAYSLIP
                         </h2>
+                        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
+                            Household payroll record
+                        </p>
                     </div>
                     <div className="text-right">
                         <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                             Pay period
                         </p>
-                        <p className="mt-2 text-sm font-semibold" style={{ color: "var(--text)" }}>
+                        <p className="mt-2 rounded-full bg-[var(--accent-subtle)] px-3 py-1.5 text-sm font-semibold" style={{ color: "var(--text)" }}>
                             {sample.periodLabel}
                         </p>
                     </div>
                 </div>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                    <SamplePartyBlock label="Employer" value={sample.employerName} />
-                    <SamplePartyBlock label="Employee" value={sample.employee.name} detail={sample.employee.role} />
-                    <SamplePartyBlock label="Month" value={sample.monthLabel} detail={`${sample.payslip.daysWorked} days worked`} />
+                    <SamplePartyBlock
+                        label="Employer"
+                        value={sample.employer.name}
+                        detail={<p>{sample.employer.address}</p>}
+                    />
+                    <SamplePartyBlock
+                        label="Employee"
+                        value={sample.employee.name}
+                        detail={
+                            <>
+                                <p>{sample.employee.role}</p>
+                                <p className="tabular-nums">ID {formatIdNumber(sample.employee.idNumber)}</p>
+                            </>
+                        }
+                    />
+                    <SamplePartyBlock
+                        label="Month"
+                        value={sample.monthLabel}
+                        detail={
+                            <>
+                                <p>{sample.payslip.daysWorked} days worked</p>
+                                <p style={{ color: "var(--primary)" }}>{sample.leaveDaysRemaining.toFixed(1)} leave days remaining</p>
+                            </>
+                        }
+                    />
                 </div>
 
-                <div className="mt-6 rounded-[22px] border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-3 border-b border-[var(--border)] pb-3 text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+                <div
+                    className="mt-6 rounded-[22px] border border-[var(--border)] p-4"
+                    style={{ background: "linear-gradient(180deg, rgba(255, 252, 248, 0.96) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
+                >
+                    <div className={`${SAMPLE_FIGURE_GRID} border-b border-[var(--border)] pb-3 text-[10px] font-black uppercase tracking-[0.16em]`} style={{ color: "var(--text-muted)" }}>
                         <span>Description</span>
                         <span className="text-right">Hours</span>
                         <span className="text-right">Rate</span>
@@ -237,7 +282,10 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
                     </div>
                 </div>
 
-                <div className="mt-4 rounded-[22px] border border-[var(--border)] bg-[var(--surface-1)] p-4">
+                <div
+                    className="mt-4 rounded-[22px] border border-[var(--focus)]/20 p-4"
+                    style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.08) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
+                >
                     <div className="flex items-end justify-between gap-4">
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
@@ -247,7 +295,7 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
                                 Based on the payroll details above.
                             </p>
                         </div>
-                        <p className="font-[family:var(--font-serif)] text-3xl font-semibold" style={{ color: "var(--text)" }}>
+                        <p className="font-[family:var(--font-serif)] text-3xl font-semibold tabular-nums" style={{ color: "var(--primary-pressed)" }}>
                             {formatRand(sample.breakdown.netPay)}
                         </p>
                     </div>
@@ -261,19 +309,22 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
     );
 }
 
-function SamplePartyBlock({ label, value, detail }: { label: string; value: string; detail?: string }) {
+function SamplePartyBlock({ label, value, detail }: { label: string; value: string; detail?: React.ReactNode }) {
     return (
-        <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+        <div
+            className="rounded-[18px] border border-[var(--border)] px-4 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+            style={{ background: "linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
+        >
+            <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
                 {label}
             </p>
             <p className="mt-2 text-sm font-semibold" style={{ color: "var(--text)" }}>
                 {value}
             </p>
             {detail ? (
-                <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+                <div className="mt-2 space-y-1 text-xs" style={{ color: "var(--text-muted)" }}>
                     {detail}
-                </p>
+                </div>
             ) : null}
         </div>
     );
@@ -281,17 +332,17 @@ function SamplePartyBlock({ label, value, detail }: { label: string; value: stri
 
 function SampleFigureRow({ label, hours, rate, total, bold = false }: { label: string; hours: string; rate: string; total: string; bold?: boolean }) {
     return (
-        <div className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-3 py-2 text-sm">
-            <span className={bold ? "font-semibold" : ""} style={{ color: bold ? "var(--text)" : "var(--text-muted)" }}>
+        <div className={`${SAMPLE_FIGURE_GRID} items-baseline py-2 text-[13px] sm:text-sm`}>
+            <span className={`pr-2 ${bold ? "font-semibold" : ""}`} style={{ color: bold ? "var(--text)" : "var(--text-muted)" }}>
                 {label}
             </span>
-            <span className="text-right" style={{ color: "var(--text-muted)" }}>
+            <span className="text-right tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
                 {hours}
             </span>
-            <span className="text-right" style={{ color: "var(--text-muted)" }}>
+            <span className="text-right tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
                 {rate}
             </span>
-            <span className={bold ? "font-semibold" : ""} style={{ color: "var(--text)" }}>
+            <span className={`text-right tabular-nums whitespace-nowrap ${bold ? "font-semibold" : ""}`} style={{ color: "var(--text)" }}>
                 {total}
             </span>
         </div>
@@ -604,4 +655,5 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         </button>
     );
 }
+
 

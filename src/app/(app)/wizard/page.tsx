@@ -14,13 +14,14 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { StickyBottomBar } from "@/components/layout/sticky-bottom-bar";
-import { getEmployees, savePayslip, getSecureTime, getSettings, getUsageStats, getAllPayslips, deletePayslip, saveDocumentMeta } from "@/lib/storage";
+import { getEmployees, savePayslip, getSecureTime, getSettings, getAllPayslips, deletePayslip, saveDocumentMeta } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { format } from "date-fns";
 import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import { getHolidaysInRange } from "@/lib/holidays";
 import { formatDateSafe } from "@/lib/utils";
+import { canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
 
 const STEPS = [
     { label: "Hours", description: "Ordinary & overtime" },
@@ -98,15 +99,18 @@ function WizardContent() {
     const [hoursError, setHoursError] = React.useState("");
     const [includeAccommodation, setIncludeAccommodation] = React.useState(false);
     const [accommodationCost, setAccommodationCost] = React.useState("");
-    const [usageLimited, setUsageLimited] = React.useState(false);
+    const leaveTrackingEnabled = settings ? canUseLeaveTracking(getUserPlan(settings)) : false;
 
     React.useEffect(() => {
         async function load() {
-            const [employees, s, stats] = await Promise.all([getEmployees(), getSettings(), getUsageStats()]);
+            const [employees, s] = await Promise.all([getEmployees(), getSettings()]);
             const emp = employees.find((e) => e.id === empId);
-            if (emp) { setEmployee(emp); } else { router.push("/employees"); }
+            if (emp) {
+                setEmployee(emp);
+            } else {
+                router.push("/employees");
+            }
             setSettings(s);
-            setUsageLimited(stats.isLimited);
             setLoadingInitial(false);
         }
         load();
@@ -139,9 +143,9 @@ function WizardContent() {
             includeAccommodation,
             accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
             otherDeductions: 0,
-            annualLeaveTaken: Number(leave.annual) || 0,
-            sickLeaveTaken: Number(leave.sick) || 0,
-            familyLeaveTaken: Number(leave.family) || 0,
+            annualLeaveTaken: leaveTrackingEnabled ? Number(leave.annual) || 0 : 0,
+            sickLeaveTaken: leaveTrackingEnabled ? Number(leave.sick) || 0 : 0,
+            familyLeaveTaken: leaveTrackingEnabled ? Number(leave.family) || 0 : 0,
             createdAt: new Date(),
         })
         : null;
@@ -173,9 +177,9 @@ function WizardContent() {
                 includeAccommodation,
                 accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
                 otherDeductions: 0,
-                annualLeaveTaken: Number(leave.annual) || 0,
-                sickLeaveTaken: Number(leave.sick) || 0,
-                familyLeaveTaken: Number(leave.family) || 0,
+                annualLeaveTaken: leaveTrackingEnabled ? Number(leave.annual) || 0 : 0,
+                sickLeaveTaken: leaveTrackingEnabled ? Number(leave.sick) || 0 : 0,
+                familyLeaveTaken: leaveTrackingEnabled ? Number(leave.family) || 0 : 0,
                 createdAt: new Date(),
             };
 
@@ -327,17 +331,6 @@ function WizardContent() {
                 >
                     <Stepper steps={STEPS} currentStep={currentStep} />
                 </div>
-
-                {usageLimited && (
-                    <Alert variant="warning" className="border-[var(--focus)] bg-[var(--surface-2)]">
-                        <AlertCircle className="h-4 w-4 text-[var(--focus)]" />
-                        <AlertDescription className="text-[var(--text)]">
-                            <strong>Free limit reached (2/month).</strong> Next payslip will be watermarked.
-                            <Link href="/pricing" className="ml-2 underline font-bold">Compare plans</Link>.
-                        </AlertDescription>
-                    </Alert>
-                )}
-
                 {/* National Minimum Wage notice */}
                 {employee.hourlyRate <= NMW_RATE && (
                     <Alert variant="warning">
@@ -563,50 +556,49 @@ function WizardContent() {
                                         <strong>{totalHours > 24 ? "applicable" : "NOT applicable"}</strong>{" "}
                                         — worker has {totalHours > 24 ? "more than" : "24 or fewer"} hours per month.
                                     </AlertDescription>
-                                </Alert>
-
-                                <div className="pt-4 space-y-4" style={{ borderTop: "1px solid var(--border)" }}>
-                                    <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                                        <AlertCircle className="w-4 h-4 text-[var(--focus)]" />
-                                        Leave Taken (This Month)
-                                    </h3>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        <div className="space-y-1.5">
-                                            <Label className="text-[10px] text-zinc-500 font-bold uppercase">Annual</Label>
-                                            <Input
-                                                type="number"
-                                                className="h-11"
-                                                min="0"
-                                                placeholder="0"
-                                                value={leave.annual}
-                                                onChange={(e) => setLeave({ ...leave, annual: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <Label className="text-[10px] text-zinc-500 font-bold uppercase">Sick</Label>
-                                            <Input
-                                                type="number"
-                                                className="h-11"
-                                                min="0"
-                                                placeholder="0"
-                                                value={leave.sick}
-                                                onChange={(e) => setLeave({ ...leave, sick: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <Label className="text-[10px] text-zinc-500 font-bold uppercase">Family</Label>
-                                            <Input
-                                                type="number"
-                                                className="h-11"
-                                                min="0"
-                                                placeholder="0"
-                                                value={leave.family}
-                                                onChange={(e) => setLeave({ ...leave, family: e.target.value })}
-                                            />
+                                </Alert>                                {leaveTrackingEnabled && (
+                                    <div className="pt-4 space-y-4" style={{ borderTop: "1px solid var(--border)" }}>
+                                        <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+                                            <AlertCircle className="w-4 h-4 text-[var(--focus)]" />
+                                            Leave Taken (This Month)
+                                        </h3>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div className="space-y-1.5">
+                                                <Label className="text-[10px] text-zinc-500 font-bold uppercase">Annual</Label>
+                                                <Input
+                                                    type="number"
+                                                    className="h-11"
+                                                    min="0"
+                                                    placeholder="0"
+                                                    value={leave.annual}
+                                                    onChange={(e) => setLeave({ ...leave, annual: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label className="text-[10px] text-zinc-500 font-bold uppercase">Sick</Label>
+                                                <Input
+                                                    type="number"
+                                                    className="h-11"
+                                                    min="0"
+                                                    placeholder="0"
+                                                    value={leave.sick}
+                                                    onChange={(e) => setLeave({ ...leave, sick: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label className="text-[10px] text-zinc-500 font-bold uppercase">Family</Label>
+                                                <Input
+                                                    type="number"
+                                                    className="h-11"
+                                                    min="0"
+                                                    placeholder="0"
+                                                    value={leave.family}
+                                                    onChange={(e) => setLeave({ ...leave, family: e.target.value })}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => setIncludeAccommodation((v) => !v)}
@@ -853,6 +845,12 @@ export default function WizardPage() {
         </React.Suspense>
     );
 }
+
+
+
+
+
+
 
 
 

@@ -157,7 +157,7 @@ export async function generatePayslipPdfBytes(
     const breakdown = calculatePayslip(payslip);
     const nmw = getNMW(payslip.payPeriodEnd);
 
-    void isLimited;
+
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 portrait
     const { width, height } = page.getSize();
@@ -373,6 +373,7 @@ export async function generatePayslipPdfBytes(
 
     return pdfDoc.save();
 }
+
 
 
 

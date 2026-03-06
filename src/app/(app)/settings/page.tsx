@@ -20,7 +20,7 @@ import { getSettings, saveSettings, resetAllData, exportData, importData, getEmp
 import { EmployerSettings, Employee } from "@/lib/schema";
 import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
-import { PLAN_ORDER, PLANS, getPlanDisplayPrice, getPlanPeriodLabel, getPlanSavingsLabel } from "@/src/config/plans";
+import { PLAN_ORDER, PLANS, getPlanDisplayPrice, getPlanPeriodLabel, getPlanSavingsLabel } from "@/config/plans";
 import { getUserPlan, canUseDriveSync } from "../../../lib/entitlements";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
@@ -509,6 +509,7 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
         </button>
     );
 }
+
 
 
 

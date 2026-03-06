@@ -11,7 +11,7 @@ describe("Home page", () => {
         await act(async () => {
             render(<Page />);
         });
-        expect(screen.getByRole("heading", { name: /run household payroll clearly, keep payslips on record/i })).toBeTruthy();
+        expect(screen.getByRole("heading", { name: /household payroll records without the cost and complexity of business payroll software/i })).toBeTruthy();
         expect(screen.getAllByRole("link", { name: /start free/i }).length).toBeGreaterThan(0);
         expect(screen.getByText(/sample payslip/i)).toBeTruthy();
         expect(screen.queryByText(/live preview/i)).toBeNull();

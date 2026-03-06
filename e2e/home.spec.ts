@@ -13,12 +13,10 @@ test("home page contains a main element", async ({ page }) => {
 
 test("home page hero shows new headline and CTAs", async ({ page }) => {
     await page.goto("/");
-    // New headline
-    await expect(page.getByText(/Create a professional payslip for your domestic worker/i)).toBeVisible();
-    // Primary CTA
-    await expect(page.getByRole("button", { name: /Create your first payslip/i }).first()).toBeVisible();
-    // Secondary CTA
-    await expect(page.getByText(/How your data is stored/i).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Household payroll records without the cost and complexity of business payroll software\./i })).toBeVisible();
+    await expect(page.getByText(/Manage payslips, documents, and domestic worker records in one place, with UIF deductions shown clearly on every payslip\./i)).toBeVisible();
+    await expect(page.getByRole("link", { name: /Start free/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /How storage works/i }).first()).toBeVisible();
 });
 
 test("home page does not contain old fear messaging", async ({ page }) => {
@@ -51,3 +49,4 @@ test("home page has all major sections", async ({ page }) => {
     await expect(page.getByText(/Start free/i)).toBeVisible();
     await expect(page.getByText(/Frequently asked questions/i)).toBeVisible();
 });
+

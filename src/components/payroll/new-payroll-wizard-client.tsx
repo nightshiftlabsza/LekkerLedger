@@ -160,13 +160,13 @@ export function NewPayrollWizardClient() {
                                 <div className="h-12 w-12 rounded-full bg-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] group-hover:scale-110 transition-transform">
                                     <Plus className="h-6 w-6" />
                                 </div>
-                                <h3 className="type-h3 text-[var(--text)]">Create Payslip</h3>
+                                <h3 className="type-h3 text-[var(--text)]">Create Payroll</h3>
                                 <p className="text-xs text-[var(--text-muted)] mt-1">
-                                    Start a new pay run locally.
+                                    Start a new monthly payroll on this device.
                                 </p>
                             </button>
 
-                            <Link href="/settings" className="flex flex-col items-center gap-3 p-6 text-center rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-all group">
+                            <Link href="/settings?tab=storage" className="flex flex-col items-center gap-3 p-6 text-center rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-all group">
                                 <div className="h-12 w-12 rounded-full bg-[var(--surface-3)] flex items-center justify-center text-[var(--text-muted)] group-hover:scale-110 transition-transform">
                                     <Save className="h-6 w-6" />
                                 </div>
@@ -332,6 +332,4 @@ export function NewPayrollWizardClient() {
         </div>
     );
 }
-
-
 
