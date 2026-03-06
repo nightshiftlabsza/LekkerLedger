@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { calculatePayslip } from "@/lib/calculator";
 import { getNMWForDate } from "@/lib/legal/registry";
 import type { Employee, PayslipInput } from "@/lib/schema";
-import { PLANS, PLAN_ORDER, type BillingCycle, getPlanDisplayPrice, getPlanPeriodLabel } from "@/config/plans";
+import { PLANS, PLAN_ORDER, type BillingCycle, getPlanPricePresentation } from "@/config/plans";
 import { MarketingHeader } from "../../../components/layout/marketing-header";
 
 const TRUST_SIGNALS = [
@@ -155,7 +155,7 @@ function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
                         </div>
 
                         <p className="max-w-[34rem] text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                            Start free for one employee. Upgrade later if you need backup, longer history, or more than one household.
+                            Start free with basic payslips. Upgrade when you need proper records, private backup, or more household headroom.
                         </p>
                     </div>
 
@@ -417,16 +417,16 @@ function HowItWorks() {
 function WhyPeoplePay() {
     const reasons = [
         {
-            title: "Backup in your own account",
-            body: "Paid plans let you keep a private Google Drive backup in your own account instead of relying on one device.",
+            title: "Proper records, not just payslips",
+            body: "Standard adds leave tracking, contracts, document history, and annual exports for households that want the paperwork done properly.",
         },
         {
-            title: "Longer record history",
-            body: "Keep older payslips, documents, and annual paperwork support close at hand when you need them later.",
+            title: "Private backup in your own account",
+            body: "Paid plans can back up into your own Google Drive app-data area so you are not relying on one browser or one device.",
         },
         {
-            title: "More room to grow",
-            body: "Upgrade if you need more employees, more than one household, or extra tools like leave and loan tracking.",
+            title: "More headroom when the admin grows",
+            body: "Pro adds multiple households, unlimited employees, and a longer archive when you need more control.",
         },
     ];
 
@@ -439,14 +439,14 @@ function WhyPeoplePay() {
                             Why households upgrade
                         </p>
                         <h2 className="type-h2 max-w-[14ch]" style={{ color: "var(--text)" }}>
-                            Pay only when you need backup, history, or more headroom.
+                            Standard is where proper records start.
                         </h2>
                         <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            Free is enough to get one employee under control. Paid plans are there for record safety and larger household setups, not pressure.
+                            Free is the starter path for basic payslips. Standard and Pro are for households that want paperwork, backup, and cleaner annual admin.
                         </p>
                         <div className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-raised)] p-4">
                             <p className="text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                                The value stays practical: safer records, less rework later, and more room when the admin grows.
+                                Upgrade because the records matter, not because a free watermark forces you.
                             </p>
                         </div>
                     </div>
@@ -470,11 +470,11 @@ function WhyPeoplePay() {
 }
 
 function PricingPreview() {
-    const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("monthly");
+    const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("yearly");
     const homepageBullets: Record<string, string[]> = {
-        free: ["1 active employee", "Local-only setup", "Good for getting started"],
-        standard: ["Up to 3 active employees", "Google Drive backup", "Contracts and annual ROE pack"],
-        pro: ["Unlimited employees", "Leave and loan tracking", "Multi-household workspace"],
+        free: ["1 active employee", "Basic monthly payslips", "Stored on this device"],
+        standard: ["Up to 3 active employees", "Leave, contracts, and documents", "Private Google Drive backup"],
+        pro: ["Unlimited employees", "Multi-household workspace", "5-year archive"],
     };
 
     return (
@@ -485,29 +485,34 @@ function PricingPreview() {
                         <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                             Pricing preview
                         </p>
-                        <h2 className="type-h2 max-w-[17ch]" style={{ color: "var(--text)" }}>
-                            Pick the plan that fits your household.
+                        <h2 className="type-h2 max-w-[18ch]" style={{ color: "var(--text)" }}>
+                            Payslips and paperwork for domestic workers, made simple.
                         </h2>
                         <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            Start free for one employee, then move up only when you need backup, more records, or more household headroom.
+                            Start free with basic payslips. Upgrade for contracts, record history, reminders, and private backup in your own Google Drive.
                         </p>
                     </div>
 
-                    <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
-                        {(["monthly", "yearly"] as BillingCycle[]).map((cycle) => (
-                            <button
-                                key={cycle}
-                                type="button"
-                                onClick={() => setBillingCycle(cycle)}
-                                className="rounded-full px-5 py-2.5 text-sm font-bold transition-all"
-                                style={{
-                                    backgroundColor: billingCycle === cycle ? "var(--primary)" : "transparent",
-                                    color: billingCycle === cycle ? "#ffffff" : "var(--text-muted)",
-                                }}
-                            >
-                                {cycle === "monthly" ? "Monthly" : "Yearly"}
-                            </button>
-                        ))}
+                    <div className="space-y-2">
+                        <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
+                            {(["monthly", "yearly"] as BillingCycle[]).map((cycle) => (
+                                <button
+                                    key={cycle}
+                                    type="button"
+                                    onClick={() => setBillingCycle(cycle)}
+                                    className="rounded-full px-5 py-2.5 text-sm font-bold transition-all"
+                                    style={{
+                                        backgroundColor: billingCycle === cycle ? "var(--primary)" : "transparent",
+                                        color: billingCycle === cycle ? "#ffffff" : "var(--text-muted)",
+                                    }}
+                                >
+                                    {cycle === "monthly" ? "Monthly" : "Yearly"}
+                                </button>
+                            ))}
+                        </div>
+                        <p className="text-right text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+                            Yearly lowers the monthly cost.
+                        </p>
                     </div>
                 </div>
 
@@ -515,6 +520,8 @@ function PricingPreview() {
                     {PLAN_ORDER.map((planId) => {
                         const plan = PLANS[planId];
                         const featured = plan.id === "standard";
+                        const cycle = plan.id === "free" ? "monthly" : billingCycle;
+                        const pricePresentation = getPlanPricePresentation(plan, cycle);
 
                         return (
                             <div
@@ -542,12 +549,17 @@ function PricingPreview() {
                                     <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] p-4">
                                         <div className="flex items-end gap-2">
                                             <span className="text-4xl font-semibold type-mono" style={{ color: "var(--text)" }}>
-                                                {getPlanDisplayPrice(plan, plan.id === "free" ? "yearly" : billingCycle)}
+                                                {pricePresentation.primaryPrice}
                                             </span>
-                                            <span className="pb-1 text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                                                {getPlanPeriodLabel(plan, plan.id === "free" ? "yearly" : billingCycle)}
-                                            </span>
+                                            {pricePresentation.periodLabel ? (
+                                                <span className="pb-1 text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+                                                    {pricePresentation.periodLabel}
+                                                </span>
+                                            ) : null}
                                         </div>
+                                        <p className="mt-2 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
+                                            {pricePresentation.helperText}
+                                        </p>
                                     </div>
 
                                     <ul className="space-y-2.5">
@@ -597,11 +609,11 @@ function FAQPreview() {
         },
         {
             q: "Can I start with one employee?",
-            a: "Yes. Free supports one active employee, which is enough for many households getting their records in order.",
+            a: "Yes. Free supports one active employee and basic payslips, so you can try the monthly flow before paying.",
         },
         {
             q: "What changes when I upgrade?",
-            a: "Paid plans add things like Google Drive backup, longer record history, annual paperwork support, and room for larger household setups.",
+            a: "Standard adds leave tracking, contracts, documents, backup, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access.",
         },
         {
             q: "Do I need to know all the rules before I sign up?",
@@ -655,5 +667,8 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         </button>
     );
 }
+
+
+
 
 

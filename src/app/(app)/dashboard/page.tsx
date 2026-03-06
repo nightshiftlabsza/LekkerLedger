@@ -146,68 +146,6 @@ export default function DashboardPage() {
     const now = new Date();
     const alerts = computeDashboardAlerts({ employees, summaries, settings, now });
 
-    const SummaryCell = ({ label, value }: { label: string; value: string }) => (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/50 px-4 py-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</p>
-            <p className="mt-1 text-sm font-semibold text-[var(--text)]">{value}</p>
-        </div>
-    );
-
-    const DocumentCard = ({ recentDocs }: { recentDocs: DocumentMeta[] }) => (
-        <Card className="glass-panel border-none">
-            <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="type-overline text-[var(--text-muted)]">Recent Documents</h3>
-                    <Link href="/documents">
-                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] gap-1">
-                            View all <ChevronRight className="h-3 w-3" />
-                        </Button>
-                    </Link>
-                </div>
-                {recentDocs.length === 0 ? (
-                    <p className="type-body text-[var(--text-muted)]">No documents yet. Generate payslips from a pay period.</p>
-                ) : (
-                    <div className="space-y-2">
-                        {recentDocs.slice(0, 3).map(doc => (
-                            <div key={doc.id} className="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-                                <FileText className="h-4 w-4 text-[var(--primary)] shrink-0" />
-                                <span className="type-body text-[var(--text)] truncate">{doc.fileName}</span>
-                                <span className="type-overline text-[var(--text-muted)] ml-auto shrink-0">
-                                    {format(new Date(doc.createdAt), "d MMM")}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </CardContent>
-        </Card>
-    );
-
-    const StorageCard = ({ settings }: { settings: EmployerSettings | null }) => (
-        <Card className="glass-panel border-none">
-            <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="type-overline text-[var(--text-muted)]">Storage & Sync</h3>
-                    <Link href="/settings?tab=sync">
-                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] gap-1">
-                            Manage <ChevronRight className="h-3 w-3" />
-                        </Button>
-                    </Link>
-                </div>
-                <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2 text-sm">
-                        <span className="text-[var(--text-muted)] shrink-0">Storage:</span>
-                        <span className="font-bold text-[var(--text)] truncate">This device</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                        <span className="text-[var(--text-muted)] shrink-0">Backup:</span>
-                        <span className="font-bold text-[var(--text)] truncate">{settings?.googleSyncEnabled ? "Google connected" : "Local only"}</span>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-
     return (
         <>
             <PageHeader title="Dashboard" subtitle="See this month's payroll status and what to do next." />

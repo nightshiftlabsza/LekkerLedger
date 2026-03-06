@@ -5,7 +5,14 @@ import Link from "next/link";
 import { ArrowRight, Check, ChevronRight, ShieldCheck } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { Button } from "@/components/ui/button";
-import { PLAN_ORDER, PLANS, type BillingCycle, getPlanDisplayPrice, getPlanPeriodLabel } from "@/config/plans";
+import { PLAN_ORDER, PLANS, type BillingCycle, getPlanPricePresentation } from "@/config/plans";
+
+const INCLUDED_IN_EVERY_PLAN = [
+    "Monthly payroll workflow",
+    "Payslip preview and PDF download",
+    "UIF shown clearly on payslips",
+    "Built for South African domestic employers",
+] as const;
 
 const COMPARISON_GROUPS = [
     {
@@ -13,24 +20,39 @@ const COMPARISON_GROUPS = [
         rows: [
             { label: "Active employees", values: { free: "1", standard: "Up to 3", pro: "Unlimited" } },
             { label: "Household workspaces", values: { free: "1", standard: "1", pro: "Multiple" } },
-            { label: "Archive window", values: { free: "3 months", standard: "12 months", pro: "5 years" } },
+            { label: "Archive access", values: { free: "3 months", standard: "12 months", pro: "5 years" } },
         ],
     },
     {
-        title: "Payroll and documents",
+        title: "Core Payroll",
         rows: [
-            { label: "Payslip generation", values: { free: true, standard: true, pro: true } },
-            { label: "Contract generator", values: { free: false, standard: true, pro: true } },
-            { label: "uFiling export", values: { free: false, standard: true, pro: true } },
-            { label: "Annual COIDA ROE pack", values: { free: "Copy-ready numbers", standard: true, pro: true } },
+            { label: "Monthly payroll workflow", values: { free: true, standard: true, pro: true } },
+            { label: "Payslip preview and PDF download", values: { free: true, standard: true, pro: true } },
+            { label: "Leave tracking", values: { free: false, standard: true, pro: true } },
+            { label: "ROE PDF and CSV downloads", values: { free: false, standard: true, pro: true } },
         ],
     },
     {
-        title: "Storage and control",
+        title: "Records & Paperwork",
         rows: [
-            { label: "Google Drive backup", values: { free: false, standard: true, pro: true } },
-            { label: "Leave and loan tracking", values: { free: false, standard: false, pro: true } },
-            { label: "Multi-household switching", values: { free: false, standard: false, pro: true } },
+            { label: "Contract drafts", values: { free: false, standard: true, pro: true } },
+            { label: "Documents hub", values: { free: false, standard: true, pro: true } },
+            { label: "uFiling CSV export", values: { free: false, standard: true, pro: true } },
+        ],
+    },
+    {
+        title: "Storage & Backup",
+        rows: [
+            { label: "Stored on this device", values: { free: true, standard: true, pro: true } },
+            { label: "Private Google Drive backup", values: { free: false, standard: true, pro: true } },
+            { label: "Manual document uploads", values: { free: false, standard: true, pro: true } },
+        ],
+    },
+    {
+        title: "Household Control",
+        rows: [
+            { label: "Unlimited employees when you grow", values: { free: false, standard: false, pro: true } },
+            { label: "Multi-household workspace", values: { free: false, standard: false, pro: true } },
         ],
     },
 ] as const;
@@ -49,7 +71,6 @@ function FeatureValue({ value }: { value: boolean | string }) {
 
 export default function PricingPage() {
     const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("yearly");
-    const getEffectiveMonthlyLabel = (yearlyPrice: number) => `≈ R${(yearlyPrice / 12).toFixed(2)}/month billed yearly`;
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
@@ -63,27 +84,32 @@ export default function PricingPage() {
                                 Household pricing
                             </div>
                             <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                                Proper payroll records for South African households, without enterprise software pricing.
+                                Payslips, paperwork, and household payroll records in one place.
                             </h1>
                             <p className="mx-auto max-w-2xl text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Start free, then move up only when you need backup, archive depth, or more household control. Paid plans are built to keep routine payroll admin tidy without pushing you into enterprise-style software.
+                                Start free with basic payslips. Standard is the normal paid plan for proper records, private backup, and annual paperwork. Pro adds more headroom for larger or multi-household setups.
                             </p>
 
-                            <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
-                                {(["monthly", "yearly"] as BillingCycle[]).map((cycle) => (
-                                    <button
-                                        key={cycle}
-                                        type="button"
-                                        onClick={() => setBillingCycle(cycle)}
-                                        className="rounded-full px-5 py-2.5 text-sm font-bold transition-all"
-                                        style={{
-                                            backgroundColor: billingCycle === cycle ? "var(--primary)" : "transparent",
-                                            color: billingCycle === cycle ? "#ffffff" : "var(--text-muted)",
-                                        }}
-                                    >
-                                        {cycle === "monthly" ? "Monthly" : "Yearly"}
-                                    </button>
-                                ))}
+                            <div className="space-y-2">
+                                <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
+                                    {(["monthly", "yearly"] as BillingCycle[]).map((cycle) => (
+                                        <button
+                                            key={cycle}
+                                            type="button"
+                                            onClick={() => setBillingCycle(cycle)}
+                                            className="rounded-full px-5 py-2.5 text-sm font-bold transition-all"
+                                            style={{
+                                                backgroundColor: billingCycle === cycle ? "var(--primary)" : "transparent",
+                                                color: billingCycle === cycle ? "#ffffff" : "var(--text-muted)",
+                                            }}
+                                        >
+                                            {cycle === "monthly" ? "Monthly" : "Yearly"}
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+                                    Yearly lowers the monthly cost on paid plans.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -94,8 +120,10 @@ export default function PricingPage() {
                         <div className="grid gap-6 xl:grid-cols-3">
                             {PLAN_ORDER.map((planId) => {
                                 const plan = PLANS[planId];
-                                const featured = plan.id === "pro";
-                                const cycle = plan.id === "free" ? "yearly" : billingCycle;
+                                const featured = plan.id === "standard";
+                                const cycle = plan.id === "free" ? "monthly" : billingCycle;
+                                const pricePresentation = getPlanPricePresentation(plan, cycle);
+
                                 return (
                                     <article
                                         key={plan.id}
@@ -122,19 +150,17 @@ export default function PricingPage() {
                                             <div className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-raised)] p-5">
                                                 <div className="flex items-end gap-2">
                                                     <span className="text-5xl font-semibold type-mono" style={{ color: "var(--text)" }}>
-                                                        {getPlanDisplayPrice(plan, cycle)}
+                                                        {pricePresentation.primaryPrice}
                                                     </span>
-                                                    <span className="pb-1 text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                                                        {getPlanPeriodLabel(plan, cycle)}
-                                                    </span>
+                                                    {pricePresentation.periodLabel ? (
+                                                        <span className="pb-1 text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                                                            {pricePresentation.periodLabel}
+                                                        </span>
+                                                    ) : null}
                                                 </div>
-                                                {plan.pricing.yearly && (
-                                                    <p className="mt-3 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
-                                                        {billingCycle === "yearly"
-                                                            ? getEffectiveMonthlyLabel(plan.pricing.yearly)
-                                                            : `Or ${getPlanDisplayPrice(plan, "yearly")}/year`}
-                                                    </p>
-                                                )}
+                                                <p className="mt-3 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
+                                                    {pricePresentation.helperText}
+                                                </p>
                                             </div>
 
                                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -160,10 +186,10 @@ export default function PricingPage() {
                                             </Link>
                                             <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                                 {plan.id === "free"
-                                                    ? "A calm starting point for one household that wants clean records from day one."
+                                                    ? "A simple starting point for one worker and basic monthly payslips."
                                                     : plan.id === "standard"
-                                                        ? "Usually far cheaper than reconstructing records later."
-                                                        : "Built for multiple homes, deeper archives, and households that need more control."}
+                                                        ? "The paid plan for most households that want proper records and backup."
+                                                        : "Best when you need multiple households, longer archive access, or more headroom."}
                                             </p>
                                         </div>
                                     </article>
@@ -175,17 +201,56 @@ export default function PricingPage() {
 
                 <section className="border-y border-[var(--border)]" style={{ backgroundColor: "var(--surface-2)" }}>
                     <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8">
+                        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+                            <div className="rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] p-7 shadow-[var(--shadow-1)]">
+                                <p className="text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+                                    Included in every plan
+                                </p>
+                                <ul className="mt-5 space-y-3">
+                                    {INCLUDED_IN_EVERY_PLAN.map((item) => (
+                                        <li key={item} className="flex items-start gap-3 text-sm" style={{ color: "var(--text-muted)" }}>
+                                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                            <span>{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <div className="rounded-[28px] border border-[var(--primary)] bg-[var(--primary)]/5 p-7 shadow-[var(--shadow-1)]">
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-2xl bg-[var(--primary)] p-3 text-white">
+                                        <ShieldCheck className="h-5 w-5" />
+                                    </div>
+                                    <h2 className="type-h3" style={{ color: "var(--text)" }}>
+                                        Built for South African domestic employers
+                                    </h2>
+                                </div>
+                                <div className="mt-5 space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                    <p>
+                                        Free is for basic payslips. Standard is where proper household records start. Pro adds scale, multiple households, and longer-running archive access.
+                                    </p>
+                                    <p>
+                                        Records stay on this device by default. Paid backup goes into your own private Google Drive app-data area, not a central LekkerLedger employee database.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8">
                         <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                             <div className="max-w-2xl space-y-3">
                                 <h2 className="type-h2" style={{ color: "var(--text)" }}>
-                                    Clear feature differences, so households can self-select fast.
+                                    Compare the plans in more detail.
                                 </h2>
                                 <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    The paid plans are designed to reduce the time, clean-up work, and risk of missing something once your records need to be shared, archived, or revisited.
+                                    The table below focuses on what actually changes when you move from basic payslips to fuller records, backup, and larger household control.
                                 </p>
                             </div>
                             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-5 py-4 text-sm leading-relaxed shadow-[var(--shadow-1)]" style={{ color: "var(--text-muted)" }}>
-                                <strong style={{ color: "var(--text)" }}>Quiet reassurance:</strong> the goal is not to scare you. The goal is to help you stay organised before a routine payroll or compliance request turns into an expensive clean-up.
+                                <strong style={{ color: "var(--text)" }}>Quick read:</strong> Standard is the default paid plan. Pro is mainly for more headroom, multiple households, and deeper archive access.
                             </div>
                         </div>
 
@@ -234,10 +299,10 @@ export default function PricingPage() {
                                 </h3>
                                 <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Free stays free. Standard and Pro are available as monthly or yearly plans, and the yearly option lowers the effective monthly cost.
+                                        Free has no monthly or yearly billing. Standard and Pro can be paid monthly or yearly, and the yearly view shows the lower effective monthly cost without percentage callouts.
                                     </p>
                                     <p>
-                                        If you request a refund within 14 days of purchase, we&apos;ll refund you in full. That keeps the decision low-risk without cluttering the page with hard-sell language.
+                                        If you request a refund within 14 days of purchase, we&apos;ll refund you in full. That keeps the decision low-risk without turning the page into a hard-sell funnel.
                                     </p>
                                     <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
                                         View the refund policy <ChevronRight className="h-4 w-4" />
@@ -245,21 +310,16 @@ export default function PricingPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-[28px] border border-[var(--primary)] bg-[var(--primary)]/5 p-7 shadow-[var(--shadow-1)]">
-                                <div className="flex items-center gap-3">
-                                    <div className="rounded-2xl bg-[var(--primary)] p-3 text-white">
-                                        <ShieldCheck className="h-5 w-5" />
-                                    </div>
-                                    <h3 className="type-h3" style={{ color: "var(--text)" }}>
-                                        Why people pay for this
-                                    </h3>
-                                </div>
-                                <div className="mt-5 space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            <div className="rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] p-7 shadow-[var(--shadow-1)]">
+                                <h3 className="type-h3 mb-4" style={{ color: "var(--text)" }}>
+                                    What changes when you upgrade
+                                </h3>
+                                <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Not because payroll should feel frightening. But because the rules are real, and when records are missing, inconsistent, or hard to find, the tidy-up work usually costs more than doing it properly once.
+                                        Standard adds the records and paperwork most households eventually need: leave tracking, contracts, document storage, backup, exports, and annual ROE downloads.
                                     </p>
                                     <p>
-                                        Standard is the paid plan for most households that want proper records, backup, and annual paperwork. Pro is for households that want deeper history and admin control, with multi-household and unlimited-employee headroom when needed.
+                                        Pro does not invent new tools. It mainly adds more room: unlimited employees, multiple households, and a longer archive for households with deeper admin needs.
                                     </p>
                                 </div>
                             </div>
@@ -270,5 +330,3 @@ export default function PricingPage() {
         </div>
     );
 }
-
-
