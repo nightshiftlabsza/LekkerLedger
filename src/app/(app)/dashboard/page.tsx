@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { TaskList, type TaskItem } from "@/components/ui/task-list";
-import { StatusChip } from "@/components/ui/status-chip";
 import { CardSkeleton, StatSkeleton } from "@/components/ui/loading-skeleton";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
