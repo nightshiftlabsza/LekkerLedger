@@ -368,19 +368,17 @@ export default function DashboardPage() {
                     )}
                     {/* Mobile-only view for the side panels */}
                     <div className="lg:hidden space-y-6">
-                        <ComplianceCard />
-                        <EmployeeCard employeeCount={employeeCount} needsInfoCount={needsInfoCount} />
                         <DocumentCard recentDocs={recentDocs} />
                         <StorageCard settings={settings} />
+                        <ComplianceCard />
                     </div>
                 </div>
 
                 {/* Desktop Side Panel / Ultrawide Context Area */}
                 <div className="hidden lg:block col-span-4-desktop space-y-6">
-                    <ComplianceCard />
-                    <EmployeeCard employeeCount={employeeCount} needsInfoCount={needsInfoCount} />
                     <DocumentCard recentDocs={recentDocs} />
                     <StorageCard settings={settings} />
+                    <ComplianceCard />
 
                     {/* Help & Compliance (small) */}
                     <div className="flex flex-col gap-2 pt-2 border-t border-[var(--border)]">
@@ -504,6 +502,7 @@ function StorageCard({ settings }: { settings: EmployerSettings | null }) {
         </Card>
     );
 }
+
 
 
 
