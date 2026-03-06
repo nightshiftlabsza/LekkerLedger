@@ -141,7 +141,7 @@ function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
                         </div>
 
                         <p className="max-w-[34rem] text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                            Free covers one active employee. Paid plans add backup, longer history, and more room when a household setup grows.
+                            Start free for one employee. Upgrade later if you need backup, longer history, or more than one household.
                         </p>
                     </div>
 
@@ -254,7 +254,7 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
                 </div>
 
                 <p className="mt-4 text-xs leading-5" style={{ color: "var(--text-muted)" }}>
-                    Fictional example for illustration. Real payslips are generated from your own payroll data.
+                    Sample only. Your real payslips are generated from your own payroll records.
                 </p>
             </div>
         </div>
@@ -435,10 +435,10 @@ function PricingPreview() {
                             Pricing preview
                         </p>
                         <h2 className="type-h2 max-w-[17ch]" style={{ color: "var(--text)" }}>
-                            A quick pricing preview, not the full comparison.
+                            Pick the plan that fits your household.
                         </h2>
                         <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            Use this to choose a direction. Full feature detail stays on the pricing page.
+                            Start free for one employee, then move up only when you need backup, more records, or more household headroom.
                         </p>
                     </div>
 
@@ -528,10 +528,7 @@ function PricingPreview() {
                     })}
                 </div>
 
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
-                        Refunds, payment detail, and the full comparison stay on the pricing page.
-                    </p>
+                <div className="mt-8 flex justify-start sm:justify-end">
                     <Link href="/pricing" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:underline">
                         See full pricing <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
@@ -557,7 +554,7 @@ function FAQPreview() {
         },
         {
             q: "Do I need to know all the rules before I sign up?",
-            a: "No. You can start by getting the monthly record-keeping under control, then use the trust, pricing, and rules pages if you need more detail.",
+            a: "No. You can start by getting the monthly record-keeping under control and read more later if a question comes up.",
         },
     ];
 
@@ -607,3 +604,4 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         </button>
     );
 }
+

@@ -17,7 +17,7 @@ describe("Home page", () => {
         expect(screen.queryByText(/live preview/i)).toBeNull();
         expect(screen.queryByText(/the homepage now shows the flow once/i)).toBeNull();
         expect(screen.getByRole("heading", { name: /keep the month clear, then keep the records ready/i })).toBeTruthy();
-        expect(screen.getByRole("heading", { name: /a quick pricing preview, not the full comparison/i })).toBeTruthy();
+        expect(screen.getByRole("heading", { name: /pick the plan that fits your household/i })).toBeTruthy();
         expect(screen.getByRole("heading", { name: /short answers to common signup hesitations/i })).toBeTruthy();
     });
 });
