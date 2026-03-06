@@ -52,8 +52,8 @@ export function MarketingHeader() {
                 </nav>
 
                 <div className="hidden lg:flex items-center gap-3">
-                    <Link href="/dashboard" className="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]">
-                        Sign in
+                    <Link href="/open-app" className="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]">
+                        Open app
                     </Link>
                     <Link href="/onboarding">
                         <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-1)]">
@@ -100,9 +100,9 @@ export function MarketingHeader() {
                                 </Link>
                             ))}
                             <div className="grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-4">
-                                <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
+                                <Link href="/open-app" onClick={() => setMenuOpen(false)}>
                                     <Button variant="outline" className="w-full justify-center font-bold">
-                                        Sign in
+                                        Open app
                                     </Button>
                                 </Link>
                                 <Link href="/onboarding" onClick={() => setMenuOpen(false)}>

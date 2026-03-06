@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
-import { Save, Lock, FileText, AlertTriangle, ArrowLeft, Download, Loader2, Palmtree, AlertCircle } from "lucide-react";
+import { Save, Lock, FileText, AlertTriangle, ArrowLeft, Download, Loader2, Palmtree, AlertCircle, Mail, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
 import { ActionBar } from "@/components/ui/action-bar";
 import { ReviewSummary, type ReviewSection } from "@/components/ui/review-summary";
+import { useToast } from "@/components/ui/toast";
 import {
     getPayPeriod, savePayPeriod, lockPayPeriod as doLockPayPeriod,
     getEmployees, getSettings, getLeaveForEmployee,
@@ -39,6 +40,7 @@ export default function PayPeriodWorkspacePage() {
     const [showReview, setShowReview] = React.useState(false);
     const [showLockConfirm, setShowLockConfirm] = React.useState(false);
     const [generatingPdfs, setGeneratingPdfs] = React.useState(false);
+    const { toast } = useToast();
 
     React.useEffect(() => {
         async function load() {
@@ -119,6 +121,7 @@ export default function PayPeriodWorkspacePage() {
                     employeeId: emp.id,
                     periodId: period.id,
                     fileName: getPayslipFilename(emp, payslipInput),
+                    source: "generated",
                     createdAt: new Date().toISOString(),
                 });
             }
@@ -165,60 +168,95 @@ export default function PayPeriodWorkspacePage() {
         };
     };
 
-    /** Bulk download all payslip PDFs as individual files */
-    const handleDownloadPayslips = async () => {
+    const buildPayslipFiles = async (): Promise<File[]> => {
         if (!period || !settings || !plan) {
             console.error("Missing data for PDF generation:", { period: !!period, settings: !!settings, plan: !!plan });
-            alert("Unable to generate PDFs: Missing required data (Settings or Employees).");
-            return;
+            throw new Error("Missing settings or employee data.");
         }
 
         if (!isRecordWithinArchive(plan, period.endDate)) {
-            alert("This record is outside your plan's archive window. Please upgrade to Pro to access and export it.");
-            return;
+            throw new Error("This month is outside your archive window.");
         }
 
+        const files: File[] = [];
+        for (const entry of period.entries) {
+            const emp = employees.find(e => e.id === entry.employeeId);
+            if (!emp) continue;
+            const payslipInput = entryToPayslipInput(entry, emp);
+            const pdfBytes = await generatePayslipPdfBytes(emp, payslipInput, settings);
+            const fileName = getPayslipFilename(emp, payslipInput);
+            files.push(new File([Uint8Array.from(pdfBytes)], fileName, { type: "application/pdf" }));
+        }
+
+        if (files.length === 0) {
+            throw new Error("No payslips were generated.");
+        }
+
+        return files;
+    };
+
+    const downloadFiles = async (files: File[]) => {
+        for (const file of files) {
+            const url = URL.createObjectURL(file);
+            const anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = file.name;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+            URL.revokeObjectURL(url);
+            await new Promise((resolve) => setTimeout(resolve, 300));
+        }
+    };
+
+    /** Bulk download all payslip PDFs as individual files */
+    const handleDownloadPayslips = async () => {
         setGeneratingPdfs(true);
-        let completedCount = 0;
         try {
-            for (const entry of period.entries) {
-                const emp = employees.find(e => e.id === entry.employeeId);
-                if (!emp) {
-                    console.warn(`Employee not found for entry: ${entry.employeeId}`);
-                    continue;
-                }
-
-                const payslipInput = entryToPayslipInput(entry, emp);
-                const pdfBytes = await generatePayslipPdfBytes(emp, payslipInput, settings);
-
-                // Correctly handle the Uint8Array for Blob
-                // @ts-expect-error - Uint8Array is a valid BlobPart in the browser environment
-                const blob = new Blob([pdfBytes], { type: "application/pdf" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = getPayslipFilename(emp, payslipInput);
-                document.body.appendChild(a);
-                a.click();
-
-                // Small cleanup
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-                completedCount++;
-                // Small delay between downloads to avoid browser throttling
-                await new Promise(r => setTimeout(r, 400));
-            }
-
-            if (completedCount === 0 && period.entries.length > 0) {
-                throw new Error("No payslips were generated. Check console for details.");
-            }
-        } catch (err) {
-            console.error("Batch PDF generation failed:", err);
-            const msg = err instanceof Error ? err.message : "Unknown error";
-            alert(`Some payslips failed to generate: ${msg}. Please try again or check your settings.`);
+            const files = await buildPayslipFiles();
+            await downloadFiles(files);
+            toast("Payslips downloaded", "success");
+        } catch (error) {
+            console.error("Batch PDF generation failed:", error);
+            toast(error instanceof Error ? error.message : "Could not generate payslips", "error");
+        } finally {
+            setGeneratingPdfs(false);
         }
-        setGeneratingPdfs(false);
+    };
+
+    const handleSharePayslips = async (channel: "email" | "whatsapp") => {
+        setGeneratingPdfs(true);
+        try {
+            const files = await buildPayslipFiles();
+            const shareText = `Payslips for ${period?.name} from LekkerLedger.`;
+            const navigatorWithShare = navigator as Navigator & {
+                canShare?: (data?: ShareData) => boolean;
+            };
+
+            if (navigatorWithShare.share && navigatorWithShare.canShare?.({ files })) {
+                await navigatorWithShare.share({
+                    title: `${period?.name} payslips`,
+                    text: shareText,
+                    files,
+                });
+                toast(channel === "email" ? "Email share opened" : "WhatsApp share opened", "success");
+                return;
+            }
+
+            await downloadFiles(files);
+            if (channel === "email") {
+                window.location.href = `mailto:?subject=${encodeURIComponent(`${period?.name} payslips`)}&body=${encodeURIComponent("Your payslip PDFs have been downloaded. Attach them from your Downloads folder before sending.")}`;
+                toast("Payslips downloaded. Attach them from Downloads in your email app.", "info");
+            } else {
+                window.open(`https://wa.me/?text=${encodeURIComponent("The payslips have been downloaded on this device. Attach them from your Downloads folder in WhatsApp.")}`, "_blank", "noopener,noreferrer");
+                toast("Payslips downloaded. Attach them from Downloads in WhatsApp.", "info");
+            }
+        } catch (error) {
+            console.error("Sharing payslips failed:", error);
+            toast(error instanceof Error ? error.message : "Could not prepare the payslips", "error");
+        } finally {
+            setGeneratingPdfs(false);
+        }
     };
 
     if (loading) {
@@ -270,7 +308,7 @@ export default function PayPeriodWorkspacePage() {
                                 <ArrowLeft className="h-3.5 w-3.5" /> Back
                             </Button>
                         </Link>
-                        {isLocked && <StatusChip variant="locked" />}
+                        {isLocked && <StatusChip variant="locked" label="Finalised" />}
                     </div>
                 }
             />
@@ -288,8 +326,8 @@ export default function PayPeriodWorkspacePage() {
                                     <FileText className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <h3 className="type-h3 text-[var(--text)]">Review & Confirm</h3>
-                                    <p className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider">Step 2: Check for compliance errors</p>
+                                    <h3 className="type-h3 text-[var(--text)]">Review this month</h3>
+                                    <p className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider">Check the totals before you finalise it</p>
                                 </div>
                             </div>
 
@@ -371,10 +409,10 @@ export default function PayPeriodWorkspacePage() {
                         <CardContent className="p-6 space-y-4">
                             <div className="flex items-center gap-3">
                                 <AlertTriangle className="h-6 w-6 text-[var(--primary)]" />
-                                <h3 className="type-h3 text-[var(--text)]">Lock this pay period?</h3>
+                                <h3 className="type-h3 text-[var(--text)]">Finalise this month?</h3>
                             </div>
                             <p className="type-body text-[var(--text-muted)]">
-                                Locking prevents all edits. If you need to make changes later, create an adjustment in a new pay period.
+                                Finalising freezes these figures so your payslips and records stay consistent. If you need to fix something later, do it in a new month or adjustment.
                             </p>
                             <div className="flex gap-3">
                                 <Button variant="outline" onClick={() => setShowLockConfirm(false)} className="flex-1 font-bold">
@@ -385,7 +423,7 @@ export default function PayPeriodWorkspacePage() {
                                     disabled={saving}
                                     className="flex-1 gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]"
                                 >
-                                    <Lock className="h-4 w-4" /> {saving ? "Locking..." : "Confirm & Lock"}
+                                    <Lock className="h-4 w-4" /> {saving ? "Finalising..." : "Confirm & Finalise"}
                                 </Button>
                             </div>
                         </CardContent>
@@ -398,7 +436,7 @@ export default function PayPeriodWorkspacePage() {
                 <div className="space-y-3">
                     <div className="flex items-center justify-between px-1">
                         <h3 className="type-overline text-[var(--text-muted)]">
-                            Employees ({completedCount}/{totalCount} complete)
+                            Employees ({completedCount}/{totalCount} done)
                         </h3>
                     </div>
 
@@ -542,25 +580,48 @@ export default function PayPeriodWorkspacePage() {
                         <div className="flex items-center gap-3">
                             <Lock className="h-5 w-5 text-[var(--primary)]" />
                             <div>
-                                <h3 className="type-body-bold text-[var(--text)]">Period Locked</h3>
+                                <h3 className="type-body-bold text-[var(--text)]">Month finalised</h3>
                                 <p className="type-overline text-[var(--text-muted)]">
-                                    Locked on {period.lockedAt ? format(new Date(period.lockedAt), "dd MMM yyyy, HH:mm") : "N/A"}
+                                    Finalised on {period.lockedAt ? format(new Date(period.lockedAt), "dd MMM yyyy, HH:mm") : "N/A"}
                                 </p>
                             </div>
                         </div>
-                        <Button
-                            onClick={handleDownloadPayslips}
-                            disabled={generatingPdfs}
-                            className={`w-full gap-2 h-12 text-base font-bold ${!isRecordWithinArchive(plan, period.endDate) ? 'bg-[var(--surface-2)] text-[var(--accent)] border border-[var(--border)] hover:bg-[var(--surface-2)] cursor-not-allowed' : 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]'}`}
-                        >
-                            {!isRecordWithinArchive(plan, period.endDate) ? (
-                                <><Lock className="h-5 w-5" /> Upgrade to Export Payslips ({totalCount})</>
-                            ) : generatingPdfs ? (
-                                <><Loader2 className="h-5 w-5 animate-spin" /> Generating PDFs…</>
-                            ) : (
-                                <><Download className="h-5 w-5" /> Download All Payslips ({totalCount})</>
-                            )}
-                        </Button>
+                        <div className="grid gap-3 sm:grid-cols-3">
+                            <Button
+                                onClick={handleDownloadPayslips}
+                                disabled={generatingPdfs}
+                                className={`w-full gap-2 h-12 text-base font-bold ${!isRecordWithinArchive(plan, period.endDate) ? 'bg-[var(--surface-2)] text-[var(--accent)] border border-[var(--border)] hover:bg-[var(--surface-2)] cursor-not-allowed' : 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]'}`}
+                            >
+                                {!isRecordWithinArchive(plan, period.endDate) ? (
+                                    <><Lock className="h-5 w-5" /> Upgrade to Export</>
+                                ) : generatingPdfs ? (
+                                    <><Loader2 className="h-5 w-5 animate-spin" /> Preparing…</>
+                                ) : (
+                                    <><Download className="h-5 w-5" /> Download all ({totalCount})</>
+                                )}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled={generatingPdfs || !isRecordWithinArchive(plan, period.endDate)}
+                                onClick={() => handleSharePayslips("email")}
+                                className="h-12 gap-2 font-bold"
+                            >
+                                <Mail className="h-4 w-4" /> Email
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled={generatingPdfs || !isRecordWithinArchive(plan, period.endDate)}
+                                onClick={() => handleSharePayslips("whatsapp")}
+                                className="h-12 gap-2 font-bold"
+                            >
+                                <MessageCircle className="h-4 w-4" /> WhatsApp
+                            </Button>
+                        </div>
+                        <p className="text-xs text-[var(--text-muted)]">
+                            On Android and other supported devices, Email and WhatsApp will use the device share sheet with the PDF files attached. On desktop browsers, the files will download first so you can attach them.
+                        </p>
                     </CardContent>
                 </Card>
             )}

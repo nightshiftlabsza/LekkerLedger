@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { getNMWForDate } from "./legal/registry";
 import { PDF_COLORS } from "./pdf-theme";
 import { loadPdfFonts } from "./pdf-fonts";
+import { drawPdfBrandLockup } from "./pdf-brand";
 
 export async function generateCertificateOfService(
     employee: Employee,
@@ -23,7 +24,14 @@ export async function generateCertificateOfService(
     page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: PDF_COLORS.PAPER });
 
     // Clean paper header instead of dark band
-    page.drawText("LekkerLedger", { x: MARGIN, y: PAGE_H - 60, size: 22, font: serifBold, color: PDF_COLORS.TEXT });
+    drawPdfBrandLockup(page, {
+        x: MARGIN,
+        y: PAGE_H - 60,
+        size: 30,
+        serifBold,
+        sansBold,
+        subtitle: "HOUSEHOLD EMPLOYMENT RECORD",
+    });
 
     page.drawText("CERTIFICATE OF SERVICE", {
         x: PAGE_W - MARGIN - serifBold.widthOfTextAtSize("CERTIFICATE OF SERVICE", 18),
@@ -108,9 +116,23 @@ export async function generateCertificateOfService(
     page.drawText("Employee Signature", { x: empR, y: cy - 14, size: 8, font: sansBold, color: PDF_COLORS.TEXT_MUTED });
     page.drawText(employee.name, { x: empR, y: cy - 26, size: 8, font: sansRegular, color: PDF_COLORS.TEXT });
 
+    page.drawRectangle({
+        x: MARGIN,
+        y: 178,
+        width: PAGE_W - MARGIN * 2,
+        height: 34,
+        color: PDF_COLORS.SURFACE,
+        borderColor: PDF_COLORS.BORDER,
+        borderWidth: 0.5,
+    });
+    page.drawText(
+        "Keep the signed copy with the employee's records. Review the details before issuing it.",
+        { x: MARGIN + 10, y: 191, size: 8, font: sansRegular, color: PDF_COLORS.TEXT_MUTED, maxWidth: PAGE_W - MARGIN * 2 - 20 },
+    );
+
     // Footer
     page.drawLine({ start: { x: MARGIN, y: 38 }, end: { x: PAGE_W - MARGIN, y: 38 }, thickness: 0.5, color: PDF_COLORS.BORDER });
-    const footerText = "LekkerLedger.app · Civic Ledger Design · Certificate of service record";
+    const footerText = "Generated with LekkerLedger from your saved details.";
     page.drawText(footerText, { x: PAGE_W / 2 - sansRegular.widthOfTextAtSize(footerText, 7) / 2, y: 25, size: 7, font: sansRegular, color: PDF_COLORS.TEXT_MUTED });
 
     // ── Compliance Seal ──

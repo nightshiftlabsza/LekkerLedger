@@ -3,17 +3,18 @@ import { Employee, PayslipInput, EmployerSettings } from "./schema";
 import { calculatePayslip, getNMW } from "./calculator";
 import { format } from "date-fns";
 import { loadPdfFonts } from "./pdf-fonts";
+import { drawPdfBrandLockup } from "./pdf-brand";
 export const PDF_COLORS = {
-    PRIMARY_GREEN: rgb(0.02, 0.44, 0.2), // Emerald Green
-    PRIMARY_BLUE: rgb(0.0, 0.23, 0.19), // Dark Teal
-    TEXT: rgb(0.1, 0.1, 0.1), // Dark gray
-    TEXT_MUTED: rgb(0.4, 0.4, 0.4), // Muted gray
-    BORDER: rgb(0.9, 0.9, 0.9), // Light gray
-    PAPER: rgb(0.98, 0.98, 0.98), // Off-white paper background
+    PRIMARY_GREEN: rgb(0, 122 / 255, 77 / 255),
+    PRIMARY_BLUE: rgb(62 / 255, 95 / 255, 104 / 255),
+    TEXT: rgb(16 / 255, 24 / 255, 40 / 255),
+    TEXT_MUTED: rgb(71 / 255, 84 / 255, 103 / 255),
+    BORDER: rgb(230 / 255, 224 / 255, 214 / 255),
+    PAPER: rgb(250 / 255, 247 / 255, 240 / 255),
     SURFACE: rgb(1, 1, 1), // White surface for cards/elements
-    RULING_LINE: rgb(0.95, 0.95, 0.95), // Very light gray for subtle lines
-    DANGER: rgb(0.8, 0.2, 0.2), // Red for negative values
-    FOCUS_GOLD: rgb(0.96, 0.62, 0.04), // Amber for highlights
+    RULING_LINE: rgb(0.9, 0.88, 0.84),
+    DANGER: rgb(180 / 255, 35 / 255, 24 / 255),
+    FOCUS_GOLD: rgb(196 / 255, 122 / 255, 28 / 255),
 };
 
 export const PDF_MARGIN = 50;
@@ -215,9 +216,14 @@ export async function generatePayslipPdfBytes(
     // ── Header (Official Stationery Look) ────────────────────────────────────
     const headerY = height - 60;
 
-    // Brand Mark
-    t("LekkerLedger", PDF_MARGIN, headerY, { font: serifBold, size: 22 });
-    t(dict.proudlySA.toUpperCase(), PDF_MARGIN, headerY - 14, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
+    drawPdfBrandLockup(page, {
+        x: PDF_MARGIN,
+        y: headerY,
+        size: 30,
+        serifBold,
+        sansBold,
+        subtitle: dict.proudlySA.toUpperCase(),
+    });
 
     // Document Title
     t(dict.payslip, width - PDF_MARGIN, headerY, { font: serifBold, size: 18, color: PDF_COLORS.PRIMARY_GREEN, align: "right" });

@@ -35,7 +35,7 @@ export function PageShell({ title, children, actions }: PageShellProps) {
                             <Logo
                                 showText={false}
                                 iconClassName="h-6 w-auto"
-                                frameClassName="rounded-xl p-1.5 shadow-[0_8px_18px_rgba(16,24,40,0.10)]"
+                                frameClassName="drop-shadow-[0_8px_18px_rgba(16,24,40,0.10)]"
                             />
                             <span className="font-extrabold text-sm uppercase tracking-widest pt-0.5 text-[var(--text)]">{title}</span>
                         </Link>
@@ -79,3 +79,4 @@ export function PageShell({ title, children, actions }: PageShellProps) {
         </div>
     );
 }
+

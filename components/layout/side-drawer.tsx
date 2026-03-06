@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
 import {
-    X, FileText, Users, Menu, LayoutDashboard,
+    X, Users, Menu, LayoutDashboard,
     Palmtree, FileSpreadsheet, Settings,
     BookOpen, Sparkles, Mail, Calculator,
     FolderOpen, Banknote,
@@ -20,7 +20,6 @@ const NAV_GROUPS = [
             { href: "/payroll", label: "Monthly Payroll", icon: Banknote },
             { href: "/employees", label: "Employees", icon: Users },
             { href: "/leave", label: "Leave", icon: Palmtree },
-            { href: "/contracts", label: "Contracts", icon: FileText },
             { href: "/tools/wage-calculator", label: "Wage Calculator", icon: Calculator },
         ],
     },
@@ -42,7 +41,8 @@ const NAV_GROUPS = [
         label: "Account",
         links: [
             { href: "/settings", label: "Settings", icon: Settings },
-            { href: "/upgrade", label: "Support & Pro", icon: Sparkles },
+            { href: "/upgrade", label: "Billing", icon: Sparkles },
+            { href: "/help/compliance", label: "Help", icon: BookOpen },
         ],
     },
 ] as const;
@@ -124,9 +124,6 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                         <Link href="/dashboard" onClick={() => setOpen(false)} className="block rounded-lg py-1">
                             <Logo />
                         </Link>
-                        <p className="text-[9px] mt-0.5 font-medium opacity-40" style={{ color: "var(--text-muted)" }}>
-                            By Nightshift Labs
-                        </p>
                     </div>
                     <button
                         onClick={() => setOpen(false)}
@@ -212,11 +209,7 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                 </div>
 
                 {/* ── Footer ─────────────────────────────────────────────── */}
-                <div className="px-5 pb-5 pt-3 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
-                    <p className="text-[10px] uppercase tracking-[0.15em] font-bold opacity-40" style={{ color: "var(--text-muted)" }}>
-                        Crafted in South Africa 🇿🇦
-                    </p>
-                </div>
+                <div className="px-5 pb-5 pt-3 shrink-0" style={{ borderTop: "1px solid var(--border)" }} />
             </div>
         </>
     );

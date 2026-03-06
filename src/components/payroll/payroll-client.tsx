@@ -102,15 +102,18 @@ export function PayrollClient() {
                                     </p>
                                 </div>
                             </div>
-                            <StatusChip variant={currentPeriod.status === "review" ? "needs-info" : "draft"} />
+                            <StatusChip
+                                variant={currentPeriod.status === "review" ? "needs-info" : "draft"}
+                                label={currentPeriod.status === "review" ? "Needs review" : "In progress"}
+                            />
                         </div>
 
                         {/* Progress */}
                         <div className="space-y-2">
                             <div className="flex justify-between text-xs font-bold">
-                                <span className="text-[var(--text-muted)]">Employee progress</span>
+                                <span className="text-[var(--text-muted)]">Household progress</span>
                                 <span className="text-[var(--text)]">
-                                    {currentPeriod.entries.filter(e => e.status === "complete").length} of {currentPeriod.entries.length} complete
+                                    {currentPeriod.entries.filter(e => e.status === "complete").length} of {currentPeriod.entries.length} employees done
                                 </span>
                             </div>
                             <div className="h-2 rounded-full bg-[var(--surface-2)] overflow-hidden">
@@ -127,7 +130,7 @@ export function PayrollClient() {
 
                         <Link href={`/payroll/${currentPeriod.id}`}>
                             <Button className="w-full gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] h-12 rounded-xl">
-                                Continue {currentPeriod.name} Payroll
+                                Open {currentPeriod.name}
                                 <ArrowRight className="h-4 w-4" />
                             </Button>
                         </Link>
@@ -150,11 +153,11 @@ export function PayrollClient() {
                 />
             )}
 
-            {/* History — locked periods */}
+            {/* Finalised months */}
             {lockedPeriods.length > 0 || employeeIdFilter ? (
                 <div className="space-y-3">
                     <div className="flex items-center justify-between px-1">
-                        <h3 className="type-overline text-[var(--text-muted)]">History</h3>
+                        <h3 className="type-overline text-[var(--text-muted)]">Finalised Months</h3>
                         {employeeIdFilter && (
                             <Button
                                 variant="ghost"
@@ -170,7 +173,7 @@ export function PayrollClient() {
                     {employeeIdFilter && (
                         <div className="px-1 mb-4">
                             <p className="text-xs text-[var(--text-muted)]">
-                                Showing history for <span className="font-bold text-[var(--primary-hover)]">{filteredEmployee?.name || "Employee"}</span>
+                                Showing finalised months for <span className="font-bold text-[var(--primary-hover)]">{filteredEmployee?.name || "Employee"}</span>
                             </p>
                         </div>
                     )}
@@ -178,7 +181,7 @@ export function PayrollClient() {
                     {lockedPeriods.length === 0 ? (
                         <div className="py-12 text-center border-2 border-dashed rounded-2xl">
                             <Lock className="h-8 w-8 mx-auto mb-2 text-[var(--text-muted)] opacity-20" />
-                            <p className="text-sm font-bold text-[var(--text-muted)]">No history for this employee</p>
+                            <p className="text-sm font-bold text-[var(--text-muted)]">No finalised months for this employee</p>
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -193,11 +196,11 @@ export function PayrollClient() {
                                                 <div>
                                                     <p className="type-body-bold text-[var(--text)]">{period.name}</p>
                                                     <p className="type-overline text-[var(--text-muted)]">
-                                                        Locked {period.lockedAt ? format(new Date(period.lockedAt), "d MMM yyyy") : ""}
+                                                        Finalised {period.lockedAt ? format(new Date(period.lockedAt), "d MMM yyyy") : ""}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <StatusChip variant="locked" />
+                                            <StatusChip variant="locked" label="Finalised" />
                                         </CardContent>
                                     </Card>
                                 </Link>

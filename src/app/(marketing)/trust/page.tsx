@@ -38,7 +38,7 @@ export default function TrustCenterPage() {
                                 We take a strict &quot;local-first&quot; approach to your data. There is no central LekkerLedger database containing your employee&apos;s personal details, ID numbers, or salaries.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                This model inherently minimizes risk and aligns closely with POPIA data minimization principles.
+                                This model inherently minimizes risk and aligns closely with POPIA data minimization principles. If you enable Google backup, the backup lives in your own Google Drive app data area, and your payroll records remain private from LekkerLedger.
                             </p>
                             <Link href="/legal/privacy" className="inline-flex items-center text-sm font-bold text-[var(--primary)] hover:underline mt-2">
                                 Read full Privacy Policy <ArrowRight className="h-4 w-4 ml-1" />
@@ -48,12 +48,12 @@ export default function TrustCenterPage() {
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                                 <HardDrive className="h-5 w-5 text-zinc-500 mb-3" />
                                 <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Local Storage</h4>
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Your data is securely stored in your browser&apos;s IndexedDB by default.</p>
+                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Your payroll records are stored in your browser&apos;s IndexedDB by default and are not uploaded to a LekkerLedger central employee database.</p>
                             </div>
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                                 <FolderSync className="h-5 w-5 text-green-500 mb-3" />
-                                <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Google Drive Sync</h4>
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paid plans can sync a backup copy to a hidden LekkerLedger folder in your private Google Drive.</p>
+                                <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Google-connected Backup</h4>
+                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paid plans can back up records to Google Drive&apos;s private app data area in your own account so you can restore them on another browser or device.</p>
                             </div>
                         </div>
                     </div>
@@ -111,7 +111,7 @@ export default function TrustCenterPage() {
                             <div>
                                 <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text)" }}>No Hidden Fees</h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    Free covers the essentials. Standard is R29/month or R199/year for one household with a small team, and Pro is R39/month or R299/year for unlimited employees and multi-household workspaces. Both paid tiers are still priced for households rather than the higher monthly fees common in managed payroll services.
+                                    Free covers the essentials. Standard is R29/month or R199/year for most households that want proper records, backup, contracts, and annual paperwork. Pro is R39/month or R299/year for deeper record control, longer archive history, and richer admin tracking, with unlimited employees and multi-household workspaces when you need them. Both paid tiers are still priced for households rather than the higher monthly fees common in managed payroll services.
                                 </p>
                             </div>
                         </div>

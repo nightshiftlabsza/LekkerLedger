@@ -65,7 +65,7 @@ export default function PricingPage() {
                                 Proper payroll records for South African households, without enterprise software pricing.
                             </h1>
                             <p className="mx-auto max-w-2xl text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Start free, then choose the level of backup, archive depth, and household control you need. Yearly plans keep the cost lower if this has become part of your normal monthly admin, and both paid tiers still sit well below typical managed payroll pricing.
+                                Start free, then choose the level of backup, archive depth, and household control you need. Yearly plans keep the cost lower if this has become part of your normal monthly admin, and the paid tiers are the right fit when you want Google-connected access across browsers or devices without handing your payroll records to a LekkerLedger central database.
                             </p>
 
                             <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
@@ -259,7 +259,7 @@ export default function PricingPage() {
                                         Not because payroll should feel frightening. But because the rules are real, and when records are missing, inconsistent, or hard to find, the tidy-up work usually costs more than doing it properly once.
                                     </p>
                                     <p>
-                                        LekkerLedger is priced for households that want calm, defensible records without paying the kind of monthly fee commonly charged by managed payroll services or enterprise tools.
+                                        Standard is the paid plan for most households that want proper records, backup, and annual paperwork. Pro is for households that want deeper history and admin control, with multi-household and unlimited-employee headroom when needed.
                                     </p>
                                 </div>
                             </div>

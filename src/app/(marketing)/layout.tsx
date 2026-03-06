@@ -3,11 +3,11 @@ import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GoogleWrapper } from "@/components/google-wrapper";
-import { SplashPortal } from "@/components/ui/splash-portal";
 import { ToastProvider } from "@/components/ui/toast";
 import { Suspense } from "react";
 import { AnalyticsPageView } from "@/components/AnalyticsPageView";
 import { PwaInstallTracking } from "@/components/PwaInstallTracking";
+import { MarketingFooter } from "@/components/layout/marketing-footer";
 
 const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-sans",
@@ -24,9 +24,9 @@ const ibmPlexSerif = IBM_Plex_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "LekkerLedger | SA Domestic Worker Payslips",
+  title: "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
   description:
-    "Create a domestic-worker payslip with clear BCEA and UIF fields. Fast, reliable, and proudly South African.",
+    "Run South African household payroll with payslips, employee records, backup, and annual paperwork in one calm workspace.",
   manifest: "/manifest.webmanifest",
 };
 
@@ -34,7 +34,6 @@ export const viewport: Viewport = {
   themeColor: "#c47a1c",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -118,8 +117,8 @@ export default function RootLayout({
         <GoogleWrapper>
           <ThemeProvider>
             <ToastProvider>
-              <SplashPortal />
               {children}
+              <MarketingFooter />
             </ToastProvider>
           </ThemeProvider>
         </GoogleWrapper>

@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
-import { FileText, Eye, FolderOpen, FileSpreadsheet, Cloud, HardDrive, History, Lock } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Cloud, Download, Eye, FileSpreadsheet, FileText, FolderOpen, HardDrive, History, Lock, ScrollText, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,336 +12,513 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable } from "@/components/ui/data-table";
 import { FiltersBar, type FilterChip } from "@/components/ui/filters-bar";
 import { DocumentPreview } from "@/components/ui/document-preview";
-import { getDocuments, getEmployees, getPayslipsForEmployee, getSettings } from "@/lib/storage";
-import { DocumentMeta, Employee } from "@/lib/schema";
+import { useToast } from "@/components/ui/toast";
+import { getContracts, getDocumentFile, getDocuments, getEmployees, getPayslipsForEmployee, getSettings, saveDocumentFile, saveDocumentMeta } from "@/lib/storage";
+import { Contract, DocumentMeta, Employee } from "@/lib/schema";
 import { generatePayslipPdfBytes } from "@/lib/pdf";
+import { generateEmploymentContract } from "@/lib/contract-pdf";
 import { getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
 import { PLANS, PlanConfig } from "../../../config/plans";
 
-const TABS = ["Payslips", "Contracts", "Exports", "Archive"] as const;
+const TABS = ["Payslips", "Contracts", "Exports", "Vault"] as const;
 type Tab = typeof TABS[number];
-const TAB_TYPE_MAP: Record<Tab, DocumentMeta["type"]> = {
-    Payslips: "payslip",
-    Contracts: "contract",
-    Exports: "export",
-    Archive: "archive",
-};
 
-const TYPE_ICONS: Record<string, React.ElementType> = {
-    payslip: FileText,
-    contract: FileText,
-    export: FileSpreadsheet,
-    archive: FolderOpen,
+const TAB_TYPE_MAP: Record<Exclude<Tab, "Contracts">, DocumentMeta["type"]> = {
+    Payslips: "payslip",
+    Exports: "export",
+    Vault: "archive",
 };
 
 export default function DocumentsPage() {
-    const [activeTab, setActiveTab] = React.useState<Tab>("Payslips");
+    const { toast } = useToast();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const initialTab = (searchParams.get("tab") || "").toLowerCase();
+    const defaultTab = initialTab === "contracts" ? "Contracts" : initialTab === "vault" ? "Vault" : initialTab === "exports" ? "Exports" : "Payslips";
+
+    const [activeTab, setActiveTab] = React.useState<Tab>(defaultTab as Tab);
     const [loading, setLoading] = React.useState(true);
     const [documents, setDocuments] = React.useState<DocumentMeta[]>([]);
+    const [contracts, setContracts] = React.useState<Contract[]>([]);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [plan, setPlan] = React.useState<PlanConfig>(PLANS.free);
-    const router = useRouter();
-
+    const [settings, setSettings] = React.useState<Awaited<ReturnType<typeof getSettings>> | null>(null);
     const [search, setSearch] = React.useState("");
     const [empFilter, setEmpFilter] = React.useState<string>("");
-
-    // Preview state
     const [previewDoc, setPreviewDoc] = React.useState<DocumentMeta | null>(null);
+    const [previewFileName, setPreviewFileName] = React.useState<string | undefined>(undefined);
     const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
     const [isGenerating, setIsGenerating] = React.useState(false);
-
-    const [isClient, setIsClient] = React.useState(false);
+    const uploadInputRef = React.useRef<HTMLInputElement | null>(null);
+    const [uploadTargetContract, setUploadTargetContract] = React.useState<Contract | null>(null);
 
     React.useEffect(() => {
-        setIsClient(true);
         async function load() {
             setLoading(true);
-            const [docs, emps, userSettings] = await Promise.all([getDocuments(), getEmployees(), getSettings()]);
+            const [docs, contractRows, employeeRows, userSettings] = await Promise.all([
+                getDocuments(),
+                getContracts(),
+                getEmployees(),
+                getSettings(),
+            ]);
             setDocuments(docs);
-            setEmployees(emps);
+            setContracts(contractRows);
+            setEmployees(employeeRows);
             setPlan(getUserPlan(userSettings));
+            setSettings(userSettings);
             setLoading(false);
         }
         load();
     }, []);
 
-    const filtered = React.useMemo(() => {
-        return documents.filter(doc => {
-            if (doc.type !== TAB_TYPE_MAP[activeTab]) return false;
-            if (empFilter && doc.employeeId !== empFilter) return false;
-
-            if (search) {
-                const searchLower = search.toLowerCase();
-                const empName = employees.find(e => e.id === doc.employeeId)?.name.toLowerCase() ?? "";
-                if (!doc.fileName.toLowerCase().includes(searchLower) && !empName.includes(searchLower)) {
-                    return false;
-                }
-            }
-            return true;
-        });
-    }, [documents, activeTab, empFilter, search, employees]);
-
-    const filters: FilterChip[] = employees.map(e => ({
-        key: e.id,
-        label: e.name,
-        active: empFilter === e.id
+    const employeeFilters: FilterChip[] = employees.map((employee) => ({
+        key: employee.id,
+        label: employee.name,
+        active: empFilter === employee.id,
     }));
+
+    const filteredDocuments = React.useMemo(() => {
+        if (activeTab === "Contracts") return [];
+        return documents.filter((document) => {
+            if (document.type !== TAB_TYPE_MAP[activeTab]) return false;
+            if (empFilter && document.employeeId !== empFilter) return false;
+            if (!search) return true;
+            const employeeName = employees.find((employee) => employee.id === document.employeeId)?.name.toLowerCase() ?? "";
+            return document.fileName.toLowerCase().includes(search.toLowerCase()) || employeeName.includes(search.toLowerCase());
+        });
+    }, [activeTab, documents, empFilter, employees, search]);
+
+    const filteredContracts = React.useMemo(() => {
+        if (activeTab !== "Contracts") return [];
+        return contracts.filter((contract) => {
+            if (empFilter && contract.employeeId !== empFilter) return false;
+            if (!search) return true;
+            const employeeName = employees.find((employee) => employee.id === contract.employeeId)?.name.toLowerCase() ?? "";
+            return contract.jobTitle.toLowerCase().includes(search.toLowerCase()) || employeeName.includes(search.toLowerCase());
+        });
+    }, [activeTab, contracts, empFilter, employees, search]);
 
     const handlePreview = async (doc: DocumentMeta) => {
         setPreviewDoc(doc);
+        setPreviewFileName(doc.fileName);
+        if (doc.source === "uploaded") {
+            setIsGenerating(true);
+            try {
+                const blob = await getDocumentFile(doc.id);
+                if (!blob) throw new Error("Uploaded file not found.");
+                setPreviewUrl(URL.createObjectURL(blob));
+            } catch (error) {
+                toast(error instanceof Error ? error.message : "Could not open the uploaded file", "error");
+                setPreviewDoc(null);
+                setPreviewFileName(undefined);
+            } finally {
+                setIsGenerating(false);
+            }
+            return;
+        }
+
         if (doc.type === "payslip" && doc.employeeId) {
             setIsGenerating(true);
             try {
-                const [payslips, settings] = await Promise.all([
-                    getPayslipsForEmployee(doc.employeeId),
-                    getSettings()
-                ]);
-                const employee = employees.find(e => e.id === doc.employeeId);
-                // The doc.id might match the payslip id
-                const payslip = payslips.find(p => p.id === doc.id);
-
+                const [payslips, settings] = await Promise.all([getPayslipsForEmployee(doc.employeeId), getSettings()]);
+                const employee = employees.find((entry) => entry.id === doc.employeeId);
+                const payslip = payslips.find((entry) => entry.id === doc.id);
                 if (payslip && employee && settings) {
                     const pdfBytes = await generatePayslipPdfBytes(employee, payslip, settings);
                     const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
                     setPreviewUrl(URL.createObjectURL(blob));
                 }
-            } catch (err) {
-                console.error("Failed to generate preview", err);
             } finally {
                 setIsGenerating(false);
             }
         }
     };
 
-    const handleClosePreview = () => {
+    const handleContractUploadClick = (contract: Contract) => {
+        setUploadTargetContract(contract);
+        uploadInputRef.current?.click();
+    };
+
+    const handleSignedDocumentSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        const targetContract = uploadTargetContract;
+        event.target.value = "";
+        if (!file) return;
+        const employee = targetContract
+            ? employees.find((entry) => entry.id === targetContract.employeeId)
+            : employees.find((entry) => entry.id === empFilter);
+
+        try {
+            const id = crypto.randomUUID();
+            const createdAt = new Date().toISOString();
+            const nextDocument: DocumentMeta = {
+                id,
+                householdId: employee?.householdId ?? settings?.activeHouseholdId ?? "default",
+                type: "archive",
+                employeeId: employee?.id,
+                periodId: targetContract?.id,
+                fileName: file.name,
+                mimeType: file.type || "application/octet-stream",
+                source: "uploaded",
+                sizeBytes: file.size,
+                createdAt,
+            };
+            await saveDocumentFile(id, file);
+            await saveDocumentMeta(nextDocument);
+            setDocuments((current) => [nextDocument, ...current]);
+            toast(targetContract ? "Signed copy saved to Documents." : "Document uploaded to Vault.", "success");
+        } catch (error) {
+            toast(error instanceof Error ? error.message : "Could not save the signed copy.", "error");
+        } finally {
+            setUploadTargetContract(null);
+        }
+    };
+
+    const buildContractFileName = (contract: Contract, employee: Employee | undefined) => {
+        const safeName = (employee?.name || "employee").replace(/\s+/g, "_");
+        return `Contract_${safeName}_v${contract.version}.pdf`;
+    };
+
+    const openContractPreview = async (contract: Contract) => {
+        if (!settings) return;
+        const employee = employees.find((entry) => entry.id === contract.employeeId);
+        if (!employee) return;
+        setPreviewDoc(null);
+        setPreviewFileName(buildContractFileName(contract, employee));
+        setIsGenerating(true);
+        try {
+            const pdfBytes = await generateEmploymentContract(contract, employee, settings);
+            const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
+            setPreviewUrl(URL.createObjectURL(blob));
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const downloadContract = async (contract: Contract) => {
+        if (!settings) return;
+        const employee = employees.find((entry) => entry.id === contract.employeeId);
+        if (!employee) return;
+        const pdfBytes = await generateEmploymentContract(contract, employee, settings);
+        const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = buildContractFileName(contract, employee);
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+
+    const closePreview = () => {
         if (previewUrl) URL.revokeObjectURL(previewUrl);
         setPreviewDoc(null);
+        setPreviewFileName(undefined);
         setPreviewUrl(null);
     };
 
-    if (!isClient || loading) {
+    const noContent = documents.length === 0 && contracts.length === 0;
+
+    if (loading) {
         return (
             <>
-                <PageHeader title="Documents" subtitle="Payslips, contracts, exports, and archives" />
-                <div className="ultrawide-grid">
-                    <div className="ultrawide-main space-y-6">
-                        <div className="mt-8">
-                            <EmptyState
-                                title="No documents yet"
-                                description="Generate your first payslip to start building your document archive."
-                                icon={FolderOpen}
-                                actionLabel="Create first payslip"
-                                actionHref="/payroll/new"
-                                secondaryActionLabel="Add employee"
-                                secondaryActionHref="/employees/new"
-                            />
-                        </div>
-                    </div>
-                </div>
+                <PageHeader title="Documents" subtitle="Payslips, contracts, exports, and vault history" />
+                <EmptyState
+                    title="Loading documents"
+                    description="Pulling together your payslips, contracts, exports, and stored records."
+                    icon={FolderOpen}
+                />
             </>
         );
     }
 
-    const isEmpty = documents.length === 0;
-
     return (
         <>
-            <PageHeader title="Documents" subtitle="Payslips, contracts, exports, and archives" />
+            <PageHeader
+                title="Documents"
+                subtitle="Payslips, contracts, exports, and vault history in one place"
+                actions={activeTab === "Contracts" ? (
+                    <div className="flex items-center gap-2">
+                        <Link href="/contracts/new">
+                            <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
+                                <ScrollText className="h-4 w-4" /> New Contract
+                            </Button>
+                        </Link>
+                    </div>
+                ) : activeTab === "Vault" ? (
+                    <Button
+                        type="button"
+                        className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold"
+                        onClick={() => {
+                            setUploadTargetContract(null);
+                            uploadInputRef.current?.click();
+                        }}
+                    >
+                        <Upload className="h-4 w-4" /> Upload Document
+                    </Button>
+                ) : undefined}
+            />
+            <input
+                ref={uploadInputRef}
+                type="file"
+                accept=".pdf,image/*"
+                className="hidden"
+                onChange={handleSignedDocumentSelected}
+            />
 
             <div className="ultrawide-grid">
                 <div className="ultrawide-main space-y-6">
-                    {/* Tab bar - Horizontal on Mobile/Standard, becomes less prominent in 2-pane if we want, but keeping it inside main for now */}
                     <div className="flex items-center gap-1 border-b border-[var(--border)] -mx-4 px-4 overflow-x-auto no-scrollbar lg:mx-0 lg:px-0">
-                        {TABS.map(tab => (
+                        {TABS.map((tab) => (
                             <button
                                 key={tab}
                                 type="button"
                                 onClick={() => setActiveTab(tab)}
-                                className={`px-4 py-3 text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === tab
-                                    ? "border-[var(--primary)] text-[var(--primary)]"
-                                    : "border-transparent text-[var(--text-muted)] hover:text-[var(--text)]"
-                                    }`}
+                                className={`px-4 py-3 text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === tab ? "border-[var(--primary)] text-[var(--primary)]" : "border-transparent text-[var(--text-muted)] hover:text-[var(--text)]"}`}
                             >
                                 {tab}
                             </button>
                         ))}
                     </div>
 
-                    {/* Mobile Filters (Hidden on Ultrawide) */}
-                    {!isEmpty && (
-                        <div className="mt-4 2xl:hidden">
-                            {(filtered.length > 0 || search || empFilter) && (
-                                <div className="mb-4">
-                                    <FiltersBar
-                                        searchPlaceholder={`Search ${activeTab.toLowerCase()}...`}
-                                        searchValue={search}
-                                        onSearchChange={setSearch}
-                                        filters={filters}
-                                        onFilterToggle={(key) => setEmpFilter(prev => prev === key ? "" : key)}
-                                    />
-                                </div>
-                            )}
-                        </div>
+                    {!noContent && (
+                        <FiltersBar
+                            searchPlaceholder={`Search ${activeTab.toLowerCase()}...`}
+                            searchValue={search}
+                            onSearchChange={setSearch}
+                            filters={employeeFilters}
+                            onFilterToggle={(key) => setEmpFilter((current) => current === key ? "" : key)}
+                        />
                     )}
 
-                    {/* Main Table */}
-                    <div className="mt-4">
-                        {isEmpty && !search && !empFilter ? (
-                            <div className="mt-8">
-                                <EmptyState
-                                    title="No documents yet"
-                                    description="Generate your first payslip to start building your document archive."
-                                    icon={FolderOpen}
-                                    actionLabel="Create first payslip"
-                                    actionHref="/payroll/new"
-                                    secondaryActionLabel="Add employee"
-                                    secondaryActionHref="/employees/new"
-                                />
-                            </div>
+                    {noContent ? (
+                        <EmptyState
+                            title="No documents yet"
+                            description="Your payslips, contracts, exports, and archived records will collect here."
+                            icon={FolderOpen}
+                            actionLabel="Start payroll"
+                            actionHref="/payroll/new"
+                            secondaryActionLabel="Add employee"
+                            secondaryActionHref="/employees/new"
+                        />
+                    ) : activeTab === "Contracts" ? (
+                        filteredContracts.length === 0 ? (
+                            <EmptyState
+                                title="No contracts yet"
+                                description="Contracts now live here with the rest of your employee documents."
+                                icon={ScrollText}
+                                actionLabel="Create contract"
+                                actionHref="/contracts/new"
+                            />
                         ) : (
-                            <DataTable<DocumentMeta>
-                                data={filtered}
-                                keyField={(doc) => doc.id}
-                                emptyMessage={
-                                    search || empFilter
-                                        ? `No ${activeTab.toLowerCase()} match your filters.`
-                                        : `No ${activeTab.toLowerCase()} yet.`
-                                }
+                            <DataTable<Contract>
+                                data={filteredContracts}
+                                keyField={(contract) => contract.id}
+                                onRowClick={openContractPreview}
                                 columns={[
-                                    {
-                                        key: "fileName",
-                                        label: "File Name",
-                                        render: (doc) => {
-                                            const Icon = TYPE_ICONS[doc.type] ?? FileText;
-                                            return (
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-9 w-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
-                                                        <Icon className="h-4 w-4 text-[var(--primary)]" />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="type-body-bold text-[var(--text)] leading-none mb-1">{doc.fileName}</span>
-                                                        <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">{doc.type}</span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        },
-                                    },
                                     {
                                         key: "employee",
                                         label: "Employee",
-                                        render: (doc) => {
-                                            if (!doc.employeeId) return <span className="text-[var(--text-muted)]">-</span>;
-                                            const emp = employees.find(e => e.id === doc.employeeId);
-                                            return <span className="type-body text-[var(--text)] font-medium">{emp?.name ?? "Unknown"}</span>;
-                                        },
+                                        render: (contract) => <span className="type-body-bold text-[var(--text)]">{employees.find((employee) => employee.id === contract.employeeId)?.name ?? "Unknown"}</span>,
                                     },
                                     {
-                                        key: "storage",
-                                        label: "Storage",
-                                        render: (doc) => (
-                                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] w-fit">
-                                                {doc.driveFileId ? (
-                                                    <>
-                                                        <Cloud className="h-3 w-3 text-blue-500" />
-                                                        <span className="text-[10px] font-black uppercase text-blue-600">Synced</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
-                                                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">Local</span>
-                                                    </>
-                                                )}
-                                            </div>
-                                        )
+                                        key: "jobTitle",
+                                        label: "Job title",
+                                        render: (contract) => <span className="type-body text-[var(--text-muted)]">{contract.jobTitle}</span>,
                                     },
                                     {
-                                        key: "date",
-                                        label: "Timestamp",
-                                        render: (doc) => (
-                                            <div className="flex flex-col">
-                                                <span className="type-body text-[var(--text)] font-medium">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>
-                                                <span className="text-[10px] text-[var(--text-muted)] font-mono">{format(new Date(doc.createdAt), "HH:mm")}</span>
-                                            </div>
-                                        ),
+                                        key: "status",
+                                        label: "Status",
+                                        render: (contract) => <span className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-[11px] font-bold text-[var(--text-muted)]">{contract.status === "draft" ? "Draft" : contract.status}</span>,
+                                    },
+                                    {
+                                        key: "updatedAt",
+                                        label: "Updated",
+                                        render: (contract) => <span className="type-body text-[var(--text-muted)]">{format(new Date(contract.updatedAt), "d MMM yyyy")}</span>,
                                     },
                                     {
                                         key: "actions",
                                         label: "",
                                         align: "right",
-                                        render: (doc) => {
-                                            const isLocked = !isRecordWithinArchive(plan, doc.createdAt);
-                                            return (
-                                                <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                                                    {isLocked ? (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-9 w-9 p-0 text-[var(--accent)] hover:text-[var(--accent-hover)] hover:bg-[var(--accent)]/10 group"
-                                                            title="Upgrade to view older records"
-                                                            onClick={() => router.push("/upgrade")}
-                                                        >
-                                                            <Lock className="h-4 w-4" />
-                                                        </Button>
-                                                    ) : (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-9 w-9 p-0 hover:bg-[var(--primary)]/10 group"
-                                                            title="View Document"
-                                                            onClick={() => handlePreview(doc)}
-                                                        >
-                                                            <Eye className="h-4 w-4 text-[var(--primary-hover)] group-hover:text-[var(--primary)]" />
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            )
-                                        }
-                                    }
+                                        render: (contract) => (
+                                            <div className="flex items-center justify-end gap-1">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-9 w-9 p-0"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        void openContractPreview(contract);
+                                                    }}
+                                                >
+                                                    <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-9 w-9 p-0"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        void downloadContract(contract);
+                                                    }}
+                                                >
+                                                    <Download className="h-4 w-4 text-[var(--text-muted)]" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-9 w-9 p-0"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleContractUploadClick(contract);
+                                                    }}
+                                                >
+                                                    <Upload className="h-4 w-4 text-[var(--text-muted)]" />
+                                                </Button>
+                                            </div>
+                                        ),
+                                    },
                                 ]}
+                                renderCard={(contract) => {
+                                    const employee = employees.find((entry) => entry.id === contract.employeeId);
+                                    return (
+                                        <button
+                                            type="button"
+                                            onClick={() => void openContractPreview(contract)}
+                                            className="glass-panel rounded-xl p-4 space-y-3 text-left w-full"
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <p className="text-sm font-bold text-[var(--text)]">{employee?.name ?? "Unknown"}</p>
+                                                    <p className="text-xs text-[var(--text-muted)]">{contract.jobTitle}</p>
+                                                </div>
+                                                <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-[10px] font-black uppercase tracking-wide text-[var(--text-muted)]">
+                                                    {contract.status}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
+                                                <span>Updated {format(new Date(contract.updatedAt), "d MMM yyyy")}</span>
+                                                <span>Open draft</span>
+                                            </div>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-9 px-3"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        void downloadContract(contract);
+                                                    }}
+                                                >
+                                                    <Download className="mr-2 h-4 w-4" /> Download
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-9 px-3"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleContractUploadClick(contract);
+                                                    }}
+                                                >
+                                                    <Upload className="mr-2 h-4 w-4" /> Upload signed copy
+                                                </Button>
+                                            </div>
+                                        </button>
+                                    );
+                                }}
                             />
-                        )}
-                    </div>
+                        )
+                    ) : (
+                        <DataTable<DocumentMeta>
+                            data={filteredDocuments}
+                            keyField={(doc) => doc.id}
+                            emptyMessage={`No ${activeTab.toLowerCase()} match your filters.`}
+                            columns={[
+                                {
+                                    key: "fileName",
+                                    label: "File",
+                                    render: (doc) => (
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-9 w-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+                                                {doc.type === "export" ? <FileSpreadsheet className="h-4 w-4 text-[var(--primary)]" /> : <FileText className="h-4 w-4 text-[var(--primary)]" />}
+                                            </div>
+                                            <div>
+                                                <span className="type-body-bold text-[var(--text)]">{doc.fileName}</span>
+                                            </div>
+                                        </div>
+                                    ),
+                                },
+                                {
+                                    key: "employee",
+                                    label: "Employee",
+                                    render: (doc) => <span className="type-body text-[var(--text-muted)]">{doc.employeeId ? employees.find((employee) => employee.id === doc.employeeId)?.name ?? "Unknown" : "-"}</span>,
+                                },
+                                {
+                                    key: "storage",
+                                    label: "Storage",
+                                    render: (doc) => (
+                                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] w-fit">
+                                            {doc.driveFileId ? <Cloud className="h-3 w-3 text-[var(--primary)]" /> : <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />}
+                                            <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">{doc.driveFileId ? "Drive backup" : "This device"}</span>
+                                        </div>
+                                    ),
+                                },
+                                {
+                                    key: "date",
+                                    label: "Added",
+                                    render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
+                                },
+                                {
+                                    key: "actions",
+                                    label: "",
+                                    align: "right",
+                                    render: (doc) => {
+                                        const isLocked = !isRecordWithinArchive(plan, doc.createdAt);
+                                        if (isLocked) {
+                                            return (
+                                                <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => router.push("/upgrade")}>
+                                                    <Lock className="h-4 w-4 text-[var(--text-muted)]" />
+                                                </Button>
+                                            );
+                                        }
+                                        return (
+                                            <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => handlePreview(doc)}>
+                                                <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                            </Button>
+                                        );
+                                    },
+                                },
+                            ]}
+                        />
+                    )}
                 </div>
 
-                {/* Ultrawide Sidebar (Search & Advanced Filters) */}
-                {!isEmpty && (
+                {!noContent && (
                     <aside className="ultrawide-panel hidden 2xl:block">
                         <Card className="glass-panel border-none p-5 sticky top-0">
-                            <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <h3 className="type-label uppercase tracking-widest text-[var(--text-muted)]">Search Documents</h3>
-                                    <FiltersBar
-                                        searchPlaceholder="Quick find..."
-                                        searchValue={search}
-                                        onSearchChange={setSearch}
-                                        filters={[]}
-                                    />
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                                    <History className="h-4 w-4 text-[var(--primary)]" />
+                                    One documentation hub
                                 </div>
-
-                                <div className="space-y-3">
-                                    <h3 className="type-label uppercase tracking-widest text-[var(--text-muted)]">Filter by Employee</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {employees.map(e => (
-                                            <button
-                                                key={e.id}
-                                                onClick={() => setEmpFilter(prev => prev === e.id ? "" : e.id)}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${empFilter === e.id
-                                                    ? 'bg-[var(--primary)] border-[var(--primary)] text-white'
-                                                    : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)]'
-                                                    }`}
-                                            >
-                                                {e.name}
-                                            </button>
-                                        ))}
+                                <p className="text-sm text-[var(--text-muted)]">
+                                    This screen keeps payslips, contracts, exports, and uploaded signed records together so nothing feels split across the app.
+                                </p>
+                                {activeTab === "Contracts" && (
+                                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4 space-y-2">
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                                            <Upload className="h-4 w-4 text-[var(--primary)]" />
+                                            Signed copy workflow
+                                        </div>
+                                        <p className="text-sm text-[var(--text-muted)]">
+                                            Use the contract draft first. After you print and sign the final version, upload the signed copy here so it stays with the rest of the employee record.
+                                        </p>
                                     </div>
-                                </div>
-
-                                <div className="pt-4 border-t border-[var(--border)]">
-                                    <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] font-medium">
-                                        <History className="h-3.5 w-3.5" />
-                                        <span>Total matching: {filtered.length}</span>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </Card>
                     </aside>
@@ -356,15 +534,15 @@ export default function DocumentsPage() {
             {previewUrl && (
                 <DocumentPreview
                     url={previewUrl}
-                    fileName={previewDoc?.fileName}
-                    onClose={handleClosePreview}
+                    fileName={previewFileName ?? previewDoc?.fileName}
+                    onClose={closePreview}
                     onDownload={() => {
-                        const a = document.createElement("a");
-                        a.href = previewUrl;
-                        a.download = previewDoc?.fileName ?? "document.pdf";
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
+                        const anchor = document.createElement("a");
+                        anchor.href = previewUrl;
+                        anchor.download = previewFileName ?? previewDoc?.fileName ?? "document.pdf";
+                        document.body.appendChild(anchor);
+                        anchor.click();
+                        document.body.removeChild(anchor);
                     }}
                 />
             )}

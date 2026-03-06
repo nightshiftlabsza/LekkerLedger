@@ -5,27 +5,26 @@ import Link from "next/link";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import {
     ArrowLeft, User, Clock, FileText, Palmtree,
-    Pencil, Eye, Trash2, Loader2, FileBadge, ScrollText,
-    CalendarDays, Banknote, Phone, Briefcase, CheckCircle2
+    Pencil, Trash2, Loader2,
+    CalendarDays, Banknote, Phone, Briefcase, CheckCircle2, FolderOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
     getEmployee, getPayslipsForEmployee, getLeaveForEmployee,
-    getSettings, deletePayslip
+    deletePayslip
 } from "@/lib/storage";
-import { Employee, PayslipInput, LeaveRecord, EmployerSettings } from "@/lib/schema";
+import { Employee, PayslipInput, LeaveRecord } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { format } from "date-fns";
-import { generateCertificateOfService } from "@/lib/certificate-pdf";
 
-type Tab = "profile" | "history" | "leave" | "docs";
+type Tab = "profile" | "history" | "leave" | "documents";
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: "profile", label: "Profile", icon: User },
     { id: "history", label: "Pay History", icon: Clock },
     { id: "leave", label: "Leave", icon: Palmtree },
-    { id: "docs", label: "Docs", icon: FileText },
+    { id: "documents", label: "Documents", icon: FileText },
 ];
 
 function EmployeeDetailContent() {
@@ -38,11 +37,8 @@ function EmployeeDetailContent() {
     const [employee, setEmployee] = React.useState<Employee | null>(null);
     const [payslips, setPayslips] = React.useState<PayslipInput[]>([]);
     const [leaveRecords, setLeaveRecords] = React.useState<LeaveRecord[]>([]);
-    const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
-    const [generatingPdf, setGeneratingPdf] = React.useState(false);
-    const [generatingContract, setGeneratingContract] = React.useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
     const handleDeleteEmployee = async () => {
@@ -62,11 +58,10 @@ function EmployeeDetailContent() {
     React.useEffect(() => {
         async function load() {
             if (!id) return;
-            const [emp, ps, leave, s] = await Promise.all([
+            const [emp, ps, leave] = await Promise.all([
                 getEmployee(id),
                 getPayslipsForEmployee(id),
                 getLeaveForEmployee(id),
-                getSettings(),
             ]);
             if (!emp) { router.push("/employees"); return; }
             setEmployee(emp);
@@ -74,7 +69,6 @@ function EmployeeDetailContent() {
                 (a, b) => new Date(b.payPeriodStart).getTime() - new Date(a.payPeriodStart).getTime()
             ));
             setLeaveRecords(leave);
-            setSettings(s);
             setLoading(false);
 
             const tabParam = searchParams?.get("tab") as Tab | null;
@@ -219,9 +213,9 @@ function EmployeeDetailContent() {
                                         <Button
                                             variant="ghost"
                                             onClick={() => setShowDeleteConfirm(true)}
-                                            className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 font-bold h-11"
+                                            className="w-full rounded-2xl border border-red-200 bg-red-50 text-red-700 hover:text-red-800 hover:bg-red-100 font-bold h-11"
                                         >
-                                            <Trash2 className="h-4 w-4 mr-2" /> Delete Employee
+                                            <Trash2 className="h-4 w-4 mr-2" /> Delete employee
                                         </Button>
                                     ) : (
                                         <div className="p-4 rounded-xl border border-red-200 bg-red-50 space-y-3 mt-4">
@@ -264,8 +258,8 @@ function EmployeeDetailContent() {
                                 payslips.map((ps, i) => {
                                     const calc = calculatePayslip(ps);
                                     return (
-                                        <Card key={ps.id} className="glass-panel border-none animate-slide-up" style={{ animationDelay: `${i * 50}ms` }}>
-                                            <CardContent className="p-4">
+                                        <Card key={ps.id} className="glass-panel border-none animate-slide-up hover-lift cursor-pointer" style={{ animationDelay: `${i * 50}ms` }}>
+                                            <CardContent className="p-4" onClick={() => router.push(`/preview?payslipId=${ps.id}&empId=${id}`)}>
                                                 <div className="flex items-center justify-between gap-3">
                                                     <div>
                                                         <p className="font-bold text-sm" style={{ color: "var(--text)" }}>
@@ -274,28 +268,25 @@ function EmployeeDetailContent() {
                                                         <p className="text-xs tabular-nums" style={{ color: "var(--text-muted)" }}>
                                                             Net: <strong>R{calc.netPay.toFixed(2)}</strong> · Gross: R{calc.grossPay.toFixed(2)}
                                                         </p>
+                                                        <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-[var(--primary)]">
+                                                            Open payslip
+                                                        </p>
                                                     </div>
                                                     <div className="flex items-center gap-1.5 shrink-0">
                                                         {deleteConfirmId === ps.id ? (
                                                             <>
                                                                 <span className="text-xs font-bold text-red-500">Delete?</span>
                                                                 <Button size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold text-red-500 hover:bg-red-50"
-                                                                    onClick={() => handleDeletePayslip(ps.id)}>Yes</Button>
+                                                                    onClick={(event) => { event.stopPropagation(); handleDeletePayslip(ps.id); }}>Yes</Button>
                                                                 <Button size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold"
-                                                                    onClick={() => setDeleteConfirmId(null)}>No</Button>
+                                                                    onClick={(event) => { event.stopPropagation(); setDeleteConfirmId(null); }}>No</Button>
                                                             </>
                                                         ) : (
-                                                            <>
-                                                                <Link href={`/preview?payslipId=${ps.id}&empId=${id}`}>
-                                                                    <Button variant="ghost" size="sm" className="gap-1.5 text-xs font-bold text-[var(--focus)] hover:bg-[var(--primary)]/10 h-8">
-                                                                        <Eye className="h-3.5 w-3.5" /> View
-                                                                    </Button>
-                                                                </Link>
-                                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50"
-                                                                    onClick={() => setDeleteConfirmId(ps.id)}>
+                                                            <Button variant="outline" size="sm" className="h-10 px-3 text-xs font-bold text-red-700 border-red-200 hover:text-red-800 hover:bg-red-50"
+                                                                    onClick={(event) => { event.stopPropagation(); setDeleteConfirmId(ps.id); }}>
                                                                     <Trash2 className="h-4 w-4" />
+                                                                    <span className="ml-1">Delete</span>
                                                                 </Button>
-                                                            </>
                                                         )}
                                                     </div>
                                                 </div>
@@ -364,75 +355,27 @@ function EmployeeDetailContent() {
                         </div>
                     )}
 
-                    {/* DOCS TAB */}
-                    {activeTab === "docs" && (
+                    {/* DOCUMENTS TAB */}
+                    {activeTab === "documents" && (
                         <Card className="glass-panel border-none">
                             <CardContent className="p-5 space-y-3">
                                 <h3 className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>
-                                    Generate Documents
+                                    Employee documents
                                 </h3>
-                                <button
-                                    className="w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50"
-                                    style={{ borderColor: "var(--border)" }}
-                                    disabled={generatingPdf}
-                                    onClick={async () => {
-                                        if (!settings) return;
-                                        setGeneratingPdf(true);
-                                        try {
-                                            const bytes = await generateCertificateOfService(employee, settings);
-                                            const blob = new Blob([bytes as unknown as ArrayBuffer], { type: "application/pdf" });
-                                            const url = URL.createObjectURL(blob);
-                                            const a = document.createElement("a");
-                                            a.href = url;
-                                            a.download = `${employee.name.replace(/\s+/g, "_")}_Certificate_of_Service.pdf`;
-                                            a.click();
-                                            URL.revokeObjectURL(url);
-                                        } catch { alert("Failed to generate PDF."); }
-                                        finally { setGeneratingPdf(false); }
-                                    }}
-                                >
-                                    <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-                                        {generatingPdf
-                                            ? <Loader2 className="h-5 w-5 animate-spin text-[var(--focus)]" />
-                                            : <FileBadge className="h-5 w-5 text-[var(--focus)]" />}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-sm" style={{ color: "var(--text)" }}>Certificate of Service</p>
-                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>Payslip PDF for the employee</p>
-                                    </div>
-                                </button>
-
-                                <button
-                                    className="w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50"
-                                    style={{ borderColor: "var(--border)" }}
-                                    disabled={generatingContract}
-                                    onClick={async () => {
-                                        if (!settings) return;
-                                        setGeneratingContract(true);
-                                        try {
-                                            const { generateEmploymentContract } = await import("@/lib/contract-pdf");
-                                            const bytes = await generateEmploymentContract(employee, settings);
-                                            const blob = new Blob([bytes as unknown as ArrayBuffer], { type: "application/pdf" });
-                                            const url = URL.createObjectURL(blob);
-                                            const a = document.createElement("a");
-                                            a.href = url;
-                                            a.download = `${employee.name.replace(/\s+/g, "_")}_Employment_Contract.pdf`;
-                                            a.click();
-                                            URL.revokeObjectURL(url);
-                                        } catch { alert("Failed to generate contract."); }
-                                        finally { setGeneratingContract(false); }
-                                    }}
-                                >
-                                    <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-                                        {generatingContract
-                                            ? <Loader2 className="h-5 w-5 animate-spin text-[var(--focus)]" />
-                                            : <ScrollText className="h-5 w-5 text-[var(--focus)]" />}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-sm" style={{ color: "var(--text)" }}>Employment Contract</p>
-                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>Employment contract PDF</p>
-                                    </div>
-                                </button>
+                                <Link href={`/documents?tab=contracts`}>
+                                    <Button className="w-full h-12 justify-start gap-3 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
+                                        <FolderOpen className="h-4 w-4" />
+                                        Open the documents hub
+                                    </Button>
+                                </Link>
+                                <p className="text-sm text-[var(--text-muted)]">
+                                    Contracts, certificates, exports, and older records should live in one documents area instead of being scattered through employee pages.
+                                </p>
+                                <Link href={`/contracts/new?employeeId=${id}`}>
+                                    <Button variant="outline" className="w-full h-11 font-bold">
+                                        Start a contract draft
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
                     )}

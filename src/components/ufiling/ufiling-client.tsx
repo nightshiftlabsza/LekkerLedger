@@ -98,8 +98,8 @@ export function UFilingClient() {
                 actionHref="/payroll"
                 requirements={[
                     "Complete payslips for your employees",
-                    "Review and generate the PDF documents",
-                    "Lock the pay period to seal the records"
+                    "Review the month and finalise it",
+                    "Lock the pay period so the records stay consistent"
                 ]}
             />
         );
@@ -115,8 +115,8 @@ export function UFilingClient() {
                 actionHref="/payroll"
                 requirements={[
                     "Complete payslips for your employees",
-                    "Review and generate the PDF documents",
-                    "Lock the pay period to seal the records"
+                    "Review the month and finalise it",
+                    "Lock the pay period so the records stay consistent"
                 ]}
             />
         );
@@ -162,10 +162,10 @@ export function UFilingClient() {
                 </button>
                 {showGuide && (
                     <div className="mt-2 p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] space-y-5 animate-in fade-in zoom-in-95 duration-300 shadow-xl relative z-10">
-                        <GuideStep step={1} title="Download CSV" desc="Select a locked month below and click Download." />
-                        <GuideStep step={2} title="Login to uFiling" desc="Access ufiling.co.za and enter your employer credentials." />
-                        <GuideStep step={3} title="Electronic Declarations" desc="Navigate to Declarations → Electronic Declarations → Upload CSV File." />
-                        <GuideStep step={4} title="Validate & Submit" desc="Select the file, validate it against the Department’s rules, and submit." />
+                        <GuideStep step={1} title="Download CSV" desc="Select a locked month below and download the declaration file." />
+                        <GuideStep step={2} title="Open uFiling" desc="Go to https://www.ufiling.co.za/ and sign in with your employer details." />
+                        <GuideStep step={3} title="Electronic declarations" desc="Open the declarations area and upload the CSV file." />
+                        <GuideStep step={4} title="Check and submit" desc="Validate it against the official uFiling checks from the Department of Employment and Labour, then submit it there." />
                     </div>
                 )}
             </div>
@@ -297,9 +297,14 @@ export function UFilingClient() {
                     <Download className="h-5 w-5" /> Download Export Bundle (CSV)
                 </Button>
                 {!settings?.uifRefNumber && (
-                    <p className="text-center text-[10px] text-red-500 font-bold mt-3 uppercase tracking-wider">
-                        Cannot export without a UIF Reference Number
-                    </p>
+                    <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-center">
+                        <p className="text-[11px] font-bold text-[var(--text)]">
+                            Add your UIF reference number in Settings before exporting.
+                        </p>
+                        <Link href="/settings" className="mt-1 inline-block text-[11px] font-bold text-[var(--primary)] hover:underline">
+                            Open Settings
+                        </Link>
+                    </div>
                 )}
             </div>
         </div>

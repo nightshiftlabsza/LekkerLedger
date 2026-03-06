@@ -22,18 +22,18 @@ export default function BillingSuccessPage() {
 
             <h1 className="text-3xl font-black mb-3">Payment Successful!</h1>
             <p className="text-[var(--text-muted)] max-w-md mb-8 leading-relaxed">
-                Thank you for supporting South African domestic workers. Your Pro features have been activated and your document vault is now unlocked.
+                Your paid features are active. Next, connect Google so your records can be restored across the Android app, the website, or another browser while staying private from LekkerLedger.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
-                <Link href="/dashboard" className="w-full">
+                <Link href="/open-app?source=billing&recommended=google&next=/dashboard" className="w-full">
                     <Button className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl">
-                        Return to Dashboard <ArrowRight className="h-4 w-4" />
+                        Connect Google Access <ArrowRight className="h-4 w-4" />
                     </Button>
                 </Link>
-                <Link href="/upgrade" className="w-full">
+                <Link href="/dashboard" className="w-full">
                     <Button variant="outline" className="w-full h-12 font-bold rounded-2xl">
-                        View Plan
+                        Open Dashboard
                     </Button>
                 </Link>
             </div>

@@ -279,7 +279,7 @@ export default function RoePackPage() {
                             <div className="space-y-2">
                                 <h2 className="type-h3 text-[var(--text)]">Final Step: Documents</h2>
                                 <p className="type-body text-[var(--text-muted)]">
-                                    CF requires you to keep a detailed payroll report for 5 years.
+                                    Keep these support records together with your yearly Compensation Fund paperwork.
                                 </p>
                             </div>
 
@@ -298,14 +298,14 @@ export default function RoePackPage() {
 
                                         <div className="space-y-3">
                                             <DocDownloadRow
-                                                label="Detailed Payroll Report (PDF)"
-                                                description="List of all employees and wages for CF audit."
+                                                label="Detailed payroll record (PDF)"
+                                                description="Yearly employee and wage summary for your Compensation Fund records."
                                                 isPaid={isPaid}
                                                 onClick={() => handleDownloadReport("pdf")}
                                             />
                                             <DocDownloadRow
-                                                label="Employer Details Scan (PDF)"
-                                                description="Confirms your CF number and personal details."
+                                                label="Employer details record (PDF)"
+                                                description="Printable employer details page for supporting paperwork."
                                                 isPaid={isPaid}
                                                 onClick={handleDownloadConfirmation}
                                             />

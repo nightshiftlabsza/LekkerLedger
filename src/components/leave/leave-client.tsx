@@ -2,14 +2,14 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Palmtree, Plus, Calendar, Clock } from "lucide-react";
-import { format } from "date-fns";
+import { Palmtree, Plus, Clock, CalendarRange } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable } from "@/components/ui/data-table";
-import { getAllLeaveRecords, getEmployees, getCurrentPayPeriod, subscribeToDataChanges } from "@/lib/storage";
-import { LeaveRecord, Employee, PayPeriod } from "@/lib/schema";
+import { getAllLeaveRecords, getContractsForEmployee, getCurrentPayPeriod, getEmployees, subscribeToDataChanges } from "@/lib/storage";
+import { formatLeaveRange, getLeaveAllowanceForType } from "@/lib/leave";
+import { Contract, Employee, LeaveRecord, PayPeriod } from "@/lib/schema";
 
 export function LeaveClient() {
     const [isClient, setIsClient] = React.useState(false);
@@ -17,6 +17,7 @@ export function LeaveClient() {
     const [records, setRecords] = React.useState<LeaveRecord[]>([]);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [currentPeriod, setCurrentPeriod] = React.useState<PayPeriod | null>(null);
+    const [contractsByEmployee, setContractsByEmployee] = React.useState<Record<string, Contract[]>>({});
 
     React.useEffect(() => {
         setIsClient(true);
@@ -25,13 +26,15 @@ export function LeaveClient() {
                 const [recs, emps, cp] = await Promise.all([
                     getAllLeaveRecords(),
                     getEmployees(),
-                    getCurrentPayPeriod()
+                    getCurrentPayPeriod(),
                 ]);
-                setRecords(recs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+                const contractPairs = await Promise.all(emps.map(async (employee) => [employee.id, await getContractsForEmployee(employee.id)] as const));
+                setRecords(recs.sort((a, b) => new Date(b.startDate || b.date).getTime() - new Date(a.startDate || a.date).getTime()));
                 setEmployees(emps);
                 setCurrentPeriod(cp);
-            } catch (err) {
-                console.error("Failed to load leave records:", err);
+                setContractsByEmployee(Object.fromEntries(contractPairs));
+            } catch (error) {
+                console.error("Failed to load leave records:", error);
             } finally {
                 setLoading(false);
             }
@@ -40,9 +43,12 @@ export function LeaveClient() {
         return subscribeToDataChanges(load);
     }, []);
 
-    const empName = (id: string) => employees.find(e => e.id === id)?.name ?? "Unknown";
-    const annualTotal = records.filter(r => r.type === "annual").reduce((s, r) => s + r.days, 0);
-    const sickTotal = records.filter(r => r.type === "sick").reduce((s, r) => s + r.days, 0);
+    const employeeName = (id: string) => employees.find((employee) => employee.id === id)?.name ?? "Unknown";
+    const annualTaken = records.filter((record) => record.type === "annual").reduce((sum, record) => sum + record.days, 0);
+    const selectedEmployee = employees[0];
+    const selectedEmployeeRecords = selectedEmployee ? records.filter((record) => record.employeeId === selectedEmployee.id) : [];
+    const selectedEmployeeContracts = selectedEmployee ? contractsByEmployee[selectedEmployee.id] || [] : [];
+    const annualBalance = selectedEmployee ? getLeaveAllowanceForType("annual", selectedEmployeeRecords, selectedEmployeeContracts) : null;
 
     if (!isClient || loading) {
         return (
@@ -50,7 +56,7 @@ export function LeaveClient() {
                 icon={Palmtree}
                 title="No employees yet"
                 description="Add employees first, then track their leave."
-                actionLabel="Add Employee"
+                actionLabel="Add employee"
                 actionHref="/employees/new"
             />
         );
@@ -62,7 +68,7 @@ export function LeaveClient() {
                 icon={Palmtree}
                 title="No employees yet"
                 description="Add employees first, then track their leave."
-                actionLabel="Add Employee"
+                actionLabel="Add employee"
                 actionHref="/employees/new"
             />
         );
@@ -70,34 +76,31 @@ export function LeaveClient() {
 
     return (
         <div className="space-y-6">
-            {/* Summary cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="glass-panel border-none overflow-hidden relative group">
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:scale-110 transition-transform">
-                        <Palmtree className="h-12 w-12 text-[var(--primary)]" />
-                    </div>
+            <div className="grid gap-4 md:grid-cols-3">
+                <Card className="glass-panel border-none">
                     <CardContent className="p-6">
-                        <p className="text-3xl font-black text-[var(--text)] mb-1">{annualTotal}</p>
-                        <p className="type-overline text-[var(--text-muted)] flex items-center gap-1.5">
-                            <Calendar className="h-3 w-3" /> Annual Days Taken
+                        <p className="text-3xl font-black text-[var(--text)] mb-1">{annualTaken}</p>
+                        <p className="type-overline text-[var(--text-muted)]">Annual leave days recorded</p>
+                    </CardContent>
+                </Card>
+                <Card className="glass-panel border-none">
+                    <CardContent className="p-6">
+                        <p className="text-3xl font-black text-[var(--text)] mb-1">{annualBalance?.remaining ?? 0}</p>
+                        <p className="type-overline text-[var(--text-muted)]">
+                            {selectedEmployee ? `${selectedEmployee.name.split(" ")[0]}'s annual days left` : "Annual days remaining"}
                         </p>
                     </CardContent>
                 </Card>
-                <Card className="glass-panel border-none overflow-hidden relative group">
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:scale-110 transition-transform">
-                        <Palmtree className="h-12 w-12 text-[var(--primary)]" />
-                    </div>
+                <Card className="glass-panel border-none">
                     <CardContent className="p-6">
-                        <p className="text-3xl font-black text-[var(--text)] mb-1">{sickTotal}</p>
-                        <p className="type-overline text-[var(--text-muted)] flex items-center gap-1.5">
-                            <Calendar className="h-3 w-3" /> Sick Days Taken
-                        </p>
+                        <p className="text-3xl font-black text-[var(--text)] mb-1">{records.length}</p>
+                        <p className="type-overline text-[var(--text-muted)]">Leave records on file</p>
                     </CardContent>
                 </Card>
             </div>
 
             {currentPeriod && (
-                <Card className="bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-2xl">
+                <Card className="border border-[var(--primary)]/20 bg-[var(--primary)]/8 rounded-2xl">
                     <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shrink-0">
@@ -105,16 +108,16 @@ export function LeaveClient() {
                             </div>
                             <div>
                                 <p className="type-body-bold text-[var(--text)]">
-                                    Payroll for {currentPeriod.name} is {currentPeriod.status}
+                                    {currentPeriod.name} payroll is still in progress
                                 </p>
                                 <p className="text-xs text-[var(--text-muted)]">
-                                    New leave records for this month will auto-populate into your payroll drafts.
+                                    Leave recorded here will flow into this month&apos;s payroll before you finalise it.
                                 </p>
                             </div>
                         </div>
                         <Link href={`/payroll/${currentPeriod.id}`}>
                             <Button size="sm" variant="outline" className="h-9 px-4 border-[var(--primary)] text-[var(--primary-hover)] hover:bg-[var(--primary)] hover:text-white transition-all font-bold shrink-0">
-                                View Payroll
+                                Open payroll
                             </Button>
                         </Link>
                     </CardContent>
@@ -123,17 +126,20 @@ export function LeaveClient() {
 
             <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
-                    <h2 className="type-h3 text-[var(--text)]">Recent Records</h2>
+                    <div>
+                        <h2 className="type-h3 text-[var(--text)]">Leave history</h2>
+                        <p className="text-sm text-[var(--text-muted)]">Keep one clean record of annual, sick, and family leave.</p>
+                    </div>
                     <Link href="/leave/new">
                         <Button size="sm" className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] h-9">
-                            <Plus className="h-4 w-4" /> Add Leave
+                            <Plus className="h-4 w-4" /> Add leave
                         </Button>
                     </Link>
                 </div>
 
                 {records.length === 0 ? (
                     <div className="py-12 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--surface-1)]">
-                        <p className="text-sm font-bold text-[var(--text-muted)]">No leave records entered yet.</p>
+                        <p className="text-sm font-bold text-[var(--text-muted)]">No leave records yet.</p>
                     </div>
                 ) : (
                     <DataTable<LeaveRecord>
@@ -143,45 +149,33 @@ export function LeaveClient() {
                             {
                                 key: "employee",
                                 label: "Employee",
-                                render: (row) => (
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-8 w-8 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[10px] font-black text-[var(--text-muted)]">
-                                            {empName(row.employeeId).substring(0, 2).toUpperCase()}
-                                        </div>
-                                        <span className="type-body-bold text-[var(--text)]">{empName(row.employeeId)}</span>
-                                    </div>
-                                )
+                                render: (row) => <span className="type-body-bold text-[var(--text)]">{employeeName(row.employeeId)}</span>,
                             },
                             {
                                 key: "type",
                                 label: "Type",
+                                render: (row) => <span className="type-body text-[var(--text-muted)]">{row.type === "family" ? "Family responsibility" : `${row.type.charAt(0).toUpperCase()}${row.type.slice(1)} leave`}</span>,
+                            },
+                            {
+                                key: "range",
+                                label: "Dates",
                                 render: (row) => (
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${row.type === 'annual' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
-                                        }`}>
-                                        {row.type}
-                                    </span>
-                                )
+                                    <div className="flex items-center gap-2 text-[var(--text)]">
+                                        <CalendarRange className="h-4 w-4 text-[var(--primary)]" />
+                                        <span>{formatLeaveRange(row)}</span>
+                                    </div>
+                                ),
                             },
                             {
                                 key: "days",
                                 label: "Days",
-                                render: (row) => <span className="type-mono font-bold text-[var(--text)]">{row.days}d</span>
+                                render: (row) => <span className="type-mono font-bold text-[var(--text)]">{row.days}d</span>,
                             },
                             {
-                                key: "date",
-                                label: "Date",
-                                render: (row) => <span className="type-body text-[var(--text-muted)]">{format(new Date(row.date), "dd MMM yyyy")}</span>
+                                key: "note",
+                                label: "Notes",
+                                render: (row) => <span className="type-body text-[var(--text-muted)]">{row.note || "-"}</span>,
                             },
-                            {
-                                key: "actions",
-                                label: "",
-                                align: "right",
-                                render: () => (
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[var(--text-muted)] hover:text-[var(--primary-hover)]">
-                                        <Calendar className="h-4 w-4" />
-                                    </Button>
-                                )
-                            }
                         ]}
                     />
                 )}

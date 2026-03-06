@@ -6,7 +6,7 @@ export default function PayrollPage() {
         <div className="pb-20">
             <PageHeader
                 title="Monthly Payroll"
-                subtitle="Manage pay periods for your household"
+                subtitle="Work through one month at a time, then finalise it when you are happy"
             />
             <PayrollClient />
         </div>

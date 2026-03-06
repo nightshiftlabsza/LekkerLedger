@@ -109,8 +109,8 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         leaveLoanTracker: true,
         roePack: true,
         multiHousehold: true,
-        description: "For bookkeepers, families, and employers running multiple households with unlimited staff records.",
-        bestFor: "Multiple households and unlimited employees.",
+        description: "For households that want deeper records and admin control, and for bookkeepers or families managing multiple households.",
+        bestFor: "Deeper record control, multiple households, or unlimited employees.",
         marketingBullets: [
             "Unlimited employees",
             "Multi-household workspace",

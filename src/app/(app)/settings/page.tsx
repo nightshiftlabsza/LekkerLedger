@@ -80,20 +80,20 @@ function SettingsContent() {
     }
 
     return (
-        <div className="max-w-3xl mx-auto pb-20">
+        <div className="max-w-4xl mx-auto pb-20">
             <PageHeader title="Settings" />
 
             {/* Tab switcher */}
-            <div className="flex bg-[var(--surface-1)] p-2 rounded-[2rem] mb-2 border border-[var(--border)] overflow-x-auto scrollbar-hide">
-                <div className="flex min-w-max gap-1">
+            <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)]/92 p-2 shadow-[var(--shadow-1)] mb-2">
+                <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 xl:grid-cols-5">
                     <TabButton id="general" icon={Building2} label="General" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="storage" icon={Database} label="Storage & Sync" activeTab={activeTab} setActiveTab={setActiveTab} />
-                    <TabButton id="plan" icon={ShieldCheck} label="Plan" activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabButton id="plan" icon={ShieldCheck} label="Billing" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="exports" icon={Download} label="Exports" activeTab={activeTab} setActiveTab={setActiveTab} />
-                    <TabButton id="support" icon={HelpCircle} label="Support" activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabButton id="support" icon={HelpCircle} label="Help" activeTab={activeTab} setActiveTab={setActiveTab} />
                 </div>
             </div>
-            <p className="lg:hidden text-[9px] text-center text-[var(--text-muted)] font-black uppercase tracking-widest mb-6">Swipe for more tabs</p>
+            <p className="sm:hidden text-[9px] text-center text-[var(--text-muted)] font-black uppercase tracking-widest mb-6">More tabs appear below as the screen gets wider</p>
 
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeTab === "general" && (
@@ -123,25 +123,46 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">App Experience</h2>
                             <Card className="glass-panel border-none p-1 overflow-hidden">
-                                <div className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] transition-colors border-b border-[var(--border)]">
-                                    <div className="flex items-center gap-3">
+                                <div className="p-4 border-b border-[var(--border)] space-y-3">
+                                    <div className="flex items-start gap-3">
                                         <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--focus)]"><Smartphone className="h-4 w-4" /></div>
                                         <div>
-                                            <p className="text-sm font-bold">Simple Mode</p>
-                                            <p className="text-[10px] text-[var(--text-muted)]">Hide advanced compliance tools and graphs</p>
+                                            <p className="text-sm font-bold">Experience mode</p>
+                                            <p className="text-[10px] text-[var(--text-muted)]">Pick the simpler guided view or the more detailed view. One mode is always active.</p>
                                         </div>
                                     </div>
-                                    <Switch checked={settings.simpleMode} onCheckedChange={(val) => handleSave({ simpleMode: val })} />
-                                </div>
-                                <div className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500"><Zap className="h-4 w-4" /></div>
-                                        <div>
-                                            <p className="text-sm font-bold">Advanced Mode</p>
-                                            <p className="text-[10px] text-[var(--text-muted)]">Show raw calculation logs and legal references</p>
-                                        </div>
+                                    <div className="grid gap-3 md:grid-cols-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSave({ simpleMode: true, advancedMode: false })}
+                                            className="rounded-2xl border p-4 text-left transition-colors"
+                                            style={{
+                                                borderColor: !settings.advancedMode ? "var(--primary)" : "var(--border)",
+                                                backgroundColor: !settings.advancedMode ? "rgba(0,122,77,0.06)" : "var(--surface-1)",
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Smartphone className="h-4 w-4 text-[var(--primary)]" />
+                                                <p className="text-sm font-bold text-[var(--text)]">Guided mode</p>
+                                            </div>
+                                            <p className="mt-2 text-xs text-[var(--text-muted)]">Cleaner screens with less legal detail and fewer admin-heavy extras.</p>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSave({ simpleMode: false, advancedMode: true })}
+                                            className="rounded-2xl border p-4 text-left transition-colors"
+                                            style={{
+                                                borderColor: settings.advancedMode ? "var(--primary)" : "var(--border)",
+                                                backgroundColor: settings.advancedMode ? "rgba(0,122,77,0.06)" : "var(--surface-1)",
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Zap className="h-4 w-4 text-[var(--primary)]" />
+                                                <p className="text-sm font-bold text-[var(--text)]">Detailed mode</p>
+                                            </div>
+                                            <p className="mt-2 text-xs text-[var(--text-muted)]">Show fuller checks, references, and more of the underlying record detail.</p>
+                                        </button>
                                     </div>
-                                    <Switch checked={settings.advancedMode} onCheckedChange={(val) => handleSave({ advancedMode: val })} />
                                 </div>
                                 <div className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] transition-colors border-b border-[var(--border)]">
                                     <div className="flex items-center gap-3">
@@ -206,17 +227,6 @@ function SettingsContent() {
                                 </Button>
                             </Card>
                         </section>
-
-                        <section className="space-y-4">
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Privacy & Security</h2>
-                            <Card className="glass-panel border-none p-4 flex items-center justify-between">
-                                <div className="space-y-1 pr-4">
-                                    <p className="text-sm font-bold text-[var(--text)]">PII Obfuscation</p>
-                                    <p className="text-xs text-[var(--text-muted)]">Mask sensitive text when saving to local storage.</p>
-                                </div>
-                                <Switch checked={settings.piiObfuscationEnabled} onCheckedChange={(val) => handleSave({ piiObfuscationEnabled: val })} />
-                            </Card>
-                        </section>
                     </div>
                 )}
 
@@ -227,9 +237,10 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Storage Rules</h2>
                             <Card className="glass-panel border-none p-5 space-y-4 text-sm text-[var(--text-muted)] leading-relaxed">
-                                <p><strong>1. Local First:</strong> All records are stored securely on this device&apos;s browser until you manually wipe them or your browser clears its cache.</p>
-                                <p><strong>2. Google Drive Sync:</strong> If connected, your data is continuously backed up to a dedicated, hidden folder in your Google Drive.</p>
-                                <p><strong>3. PDF Generation:</strong> PDF payslips and contracts never leave your device unless you share or export them explicitly.</p>
+                                <p><strong>1. Local first:</strong> All payroll records stay on this browser or device unless you choose to connect Google.</p>
+                                <p><strong>2. Google-connected backup:</strong> If enabled on a paid plan, a backup is stored in your own Google Drive app data area so you can restore records on another browser or device.</p>
+                                <p><strong>3. Private from LekkerLedger:</strong> We do not keep a central employee payroll database and we cannot browse your normal Google Drive files.</p>
+                                <p><strong>4. PDF generation:</strong> Payslips and contracts do not leave your device unless you explicitly share or export them.</p>
                             </Card>
                         </section>
 
@@ -488,7 +499,7 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
     const active = activeTab === id;
     return (
         <button onClick={() => setActiveTab(id)} aria-pressed={active}
-            className="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all duration-200 min-w-[80px]"
+            className="flex min-h-[76px] w-full flex-col items-center justify-center gap-2 rounded-[1.5rem] px-3 py-3 text-[10px] font-black uppercase tracking-[0.16em] transition-all duration-200"
             style={{
                 backgroundColor: active ? "var(--primary)" : "transparent",
                 color: active ? "#ffffff" : "var(--text-muted)",

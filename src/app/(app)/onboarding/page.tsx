@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getSettings, saveSettings } from "@/lib/storage";
 import { EmployerSettings } from "@/lib/schema";
+import { getUserPlan } from "@/lib/entitlements";
 
 export default function OnboardingPage() {
     const router = useRouter();
@@ -52,6 +53,11 @@ export default function OnboardingPage() {
         setSaving(true);
         await saveSettings(form);
         setSaving(false);
+        const selectedPlan = getUserPlan(form);
+        if (selectedPlan.id !== "free" && !form.googleSyncEnabled) {
+            router.push("/open-app?source=onboarding&recommended=google&next=/dashboard");
+            return;
+        }
         router.push("/dashboard");
     };
 
@@ -86,7 +92,7 @@ export default function OnboardingPage() {
                                     Welcome to LekkerLedger
                                 </h1>
                                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                                    Before we generate your first payslip PDF, let&apos;s get you set up.
+                                    Start locally now. If you move onto a paid plan, Google connection is the recommended setup for restoring records across browsers and devices.
                                 </p>
                             </div>
 
@@ -119,7 +125,7 @@ export default function OnboardingPage() {
                                             <div>
                                                 <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>Private & Open Source</h3>
                                                 <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                                    Your payroll data stays on your device. If you enable Google Drive sync, a backup is stored in your own private Drive folder. LekkerLedger does not maintain a central employee database.
+                                                    Your payroll data stays on your device by default. If you enable Google backup later, the backup lives in your own Google Drive app data area. LekkerLedger does not maintain a central employee database and your payroll records stay private from us.
                                                 </p>
                                                 <div className="flex items-center gap-1.5 mt-2">
                                                     <Github className="h-3 w-3" style={{ color: "var(--text-muted)" }} />
@@ -140,7 +146,7 @@ export default function OnboardingPage() {
                                             <div>
                                                 <h3 className="font-bold text-sm">Clear Records, Less Admin</h3>
                                                 <p className="text-[11px] mt-1 text-zinc-400 leading-relaxed">
-                                                    Consistent payslips protect both employer and employee. LekkerLedger helps you keep organised records with built-in payroll checks.
+                                                    Consistent payslips protect both employer and employee. Paid plans also work best with Google-connected backup so your records can travel with you when needed.
                                                 </p>
                                             </div>
                                         </div>
@@ -157,8 +163,8 @@ export default function OnboardingPage() {
                                     Join South African households organising their payroll records.
                                 </p>
                                 <div className="pt-2">
-                                    <Link href="/settings?tab=sync" className="text-[10px] font-bold uppercase tracking-widest text-[var(--primary)] hover:underline">
-                                        Returning user? Restore from Backup
+                                    <Link href="/open-app" className="text-[10px] font-bold uppercase tracking-widest text-[var(--primary)] hover:underline">
+                                        Returning user? Open the app
                                     </Link>
                                 </div>
                             </div>
@@ -234,7 +240,7 @@ export default function OnboardingPage() {
                             </div>
 
                             <p className="text-center text-[10px] px-8 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Designed with POPIA principles in mind. Saved locally; backed up to your Drive if sync is enabled.
+                                Designed with POPIA principles in mind. Saved locally by default; backed up in your own Google account only if you enable it.
                             </p>
                         </form>
                     )}

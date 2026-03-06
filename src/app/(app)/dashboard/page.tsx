@@ -92,7 +92,7 @@ export default function DashboardPage() {
             const emp = employees.find(e => e.id === entry.employeeId);
             nextActions.push({
                 id: `hours-${entry.employeeId}`,
-                label: `Add hours for ${emp?.name ?? "employee"}`,
+                label: `Add this month's hours for ${emp?.name ?? "employee"}`,
                 status: "needs-info",
                 href: `/payroll/${currentPeriod.id}`,
             });
@@ -100,7 +100,7 @@ export default function DashboardPage() {
         if (completedEntries === totalEntries && totalEntries > 0) {
             nextActions.push({
                 id: "review",
-                label: `Review & generate payslips (${totalEntries})`,
+                label: `Check ${currentPeriod.name} before finalising`,
                 status: "in-progress",
                 href: `/payroll/${currentPeriod.id}`,
             });
@@ -108,7 +108,7 @@ export default function DashboardPage() {
     } else if (employeeCount > 0) {
         nextActions.push({
             id: "start-period",
-            label: `Start ${format(new Date(), "MMMM yyyy")} payroll`,
+            label: `Start ${format(new Date(), "MMMM yyyy")} monthly payroll`,
             status: "draft",
             href: "/payroll",
         });
@@ -145,13 +145,21 @@ export default function DashboardPage() {
                                     <p className="type-label text-[var(--text-muted)]">
                                         {currentPeriod
                                             ? currentPeriod.status === "review"
-                                                ? `${currentPeriod.name} — Review & Generate`
+                                                ? `${currentPeriod.name} - Ready for review`
                                                 : completedEntries === totalEntries && totalEntries > 0
-                                                    ? `${currentPeriod.name} — Ready to Review`
-                                                    : `${currentPeriod.name} — ${completedEntries} of ${totalEntries} complete`
-                                            : "No active pay period"}
+                                                    ? `${currentPeriod.name} - Ready to finalise`
+                                                    : `${currentPeriod.name} - ${completedEntries} of ${totalEntries} employees done`
+                                            : "Nothing started for this month yet"}
                                     </p>
                                 </div>
+                            </div>
+
+                            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 px-4 py-3">
+                                <p className="text-sm font-semibold text-[var(--text)]">
+                                    {currentPeriod
+                                        ? "Open this month to finish hours, check the totals, and then generate the payslips."
+                                        : "When you are ready, start this month and work through one employee at a time."}
+                                </p>
                             </div>
 
                             {currentPeriod && (
@@ -165,7 +173,7 @@ export default function DashboardPage() {
 
                             <Link href={currentPeriod ? `/payroll/${currentPeriod.id}` : "/payroll"}>
                                 <Button className="w-full gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] h-11 rounded-xl">
-                                    {currentPeriod ? `Continue ${currentPeriod.name}` : employeeCount > 0 ? `Start ${format(new Date(), "MMMM yyyy")}` : "Get Started"}
+                                    {currentPeriod ? `Open ${currentPeriod.name}` : employeeCount > 0 ? `Start ${format(new Date(), "MMMM yyyy")}` : "Get Started"}
                                     <ArrowRight className="h-4 w-4" />
                                 </Button>
                             </Link>
@@ -211,7 +219,7 @@ export default function DashboardPage() {
                             ]}
                         />
                     ) : (
-                        nextActions.length > 0 && <TaskList title="Next Actions" items={nextActions} />
+                        nextActions.length > 0 && <TaskList title="What to do next" items={nextActions} />
                     )}
 
                     {/* Mobile-only view for the side panels */}
@@ -262,7 +270,7 @@ function ComplianceCard() {
                     <div>
                         <h4 className="type-body font-bold text-[var(--text)]">COIDA ROE Pack</h4>
                         <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                            Generate your Return of Earnings (ROE) statement for the Compensation Fund.
+                            Gather the yearly totals and supporting records you usually need for the Compensation Fund return.
                         </p>
                     </div>
                     <Link href="/compliance/coida/roe">

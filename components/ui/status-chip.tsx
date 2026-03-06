@@ -9,11 +9,11 @@ const VARIANTS: Record<ChipVariant, { bg: string; text: string; icon: React.Elem
     complete: { bg: "rgba(6,118,71,0.10)", text: "var(--success)", icon: CheckCircle2, label: "Complete" },
     "needs-info": { bg: "rgba(196,122,28,0.10)", text: "var(--focus)", icon: AlertCircle, label: "Needs info" },
     blocked: { bg: "rgba(180,35,24,0.10)", text: "var(--danger)", icon: XCircle, label: "Blocked" },
-    draft: { bg: "rgba(71,84,103,0.10)", text: "var(--text-muted)", icon: FileEdit, label: "Draft" },
-    locked: { bg: "rgba(71,84,103,0.10)", text: "var(--text-muted)", icon: Lock, label: "Locked" },
+    draft: { bg: "rgba(71,84,103,0.10)", text: "var(--text-muted)", icon: FileEdit, label: "In progress" },
+    locked: { bg: "rgba(71,84,103,0.10)", text: "var(--text-muted)", icon: Lock, label: "Finalised" },
     "in-progress": { bg: "rgba(196,122,28,0.10)", text: "var(--focus)", icon: Loader2, label: "In progress" },
     empty: { bg: "rgba(71,84,103,0.08)", text: "var(--text-muted)", icon: Circle, label: "Not started" },
-    partial: { bg: "rgba(196,122,28,0.10)", text: "var(--focus)", icon: Clock, label: "Partial" },
+    partial: { bg: "rgba(196,122,28,0.10)", text: "var(--focus)", icon: Clock, label: "Started" },
 };
 
 interface StatusChipProps {

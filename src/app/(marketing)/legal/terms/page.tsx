@@ -70,7 +70,7 @@ export default function TermsOfService() {
                 </div>
 
                 <footer className="pt-20 border-t border-zinc-800/50">
-                    <p className="text-xs text-zinc-600">© {currentYear} LekkerLedger. All rights reserved. Crafted by Nightshift Labs ZA in South Africa.</p>
+                    <p className="text-xs text-zinc-600">© {currentYear} LekkerLedger. All rights reserved.</p>
                 </footer>
             </div>
         </div>

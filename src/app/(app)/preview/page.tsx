@@ -1,434 +1,320 @@
 "use client";
 
-// import "../../lib/pdf.worker.ts";
-
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Download, Loader2, CheckCircle2, MessageCircle, AlertCircle, CheckCircle, ChevronDown, ChevronUp, FileText, ShieldCheck, Copy } from "lucide-react";
-import { triggerCelebration } from "@/components/ui/confetti-trigger";
+import { ArrowLeft, Download, Loader2, CheckCircle2, MessageCircle, AlertCircle, Mail, ShieldCheck, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
+import { triggerCelebration } from "@/components/ui/confetti-trigger";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/toast";
 import { getEmployees, getPayslipsForEmployee, getSettings, getUsageStats, incrementUsageCount } from "@/lib/storage";
-import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
+import { Employee, EmployerSettings, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
-import { shareViaWhatsApp } from "@/lib/share";
-import { getComplianceAudit, generateComplianceNoteText } from "@/lib/compliance";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
+import { shareViaEmail, shareViaWhatsApp } from "@/lib/share";
+import { getComplianceAudit } from "@/lib/compliance";
 import { track } from "@/lib/analytics";
 
 function Row({ label, value, bold, red }: { label: string; value: string; bold?: boolean; red?: boolean }) {
     return (
-        <div className="flex justify-between items-center py-2.5 text-sm" style={{ borderBottom: "1px solid var(--border)" }}>
-            <span style={{ color: bold ? "var(--text)" : "var(--text-muted)", fontWeight: bold ? 600 : 400 }}>
-                {label}
-            </span>
-            <span
-                className="tabular-nums font-medium"
-                style={{ color: red ? "var(--danger)" : bold ? "var(--text)" : "var(--text-muted)", fontWeight: bold ? 700 : 500 }}
-            >
+        <div className="flex items-center justify-between border-b border-[var(--border)] py-2.5 text-sm last:border-0">
+            <span className={bold ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]"}>{label}</span>
+            <span className={`tabular-nums ${bold ? "font-bold text-[var(--text)]" : "font-medium"} ${red ? "text-[var(--danger)]" : ""}`}>
                 {value}
             </span>
         </div>
     );
 }
 
-function ComplianceRow({ label, status, text }: { label: string; status: boolean; text: string }) {
-    return (
-        <div className="flex items-start gap-2.5">
-            {status ? (
-                <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-            ) : (
-                <AlertCircle className="h-4 w-4 text-rose-500 mt-0.5 flex-shrink-0" />
-            )}
-            <div>
-                <p className="text-xs font-bold" style={{ color: "var(--text)" }}>{label}</p>
-                <p className="text-xs sm:text-[11px] leading-tight mt-0.5" style={{ color: status ? "var(--text-muted)" : "var(--rose-500)" }}>{text}</p>
-            </div>
-        </div>
-    );
+async function buildPayslipPdf(
+    employee: Employee,
+    payslip: PayslipInput,
+    settings: EmployerSettings,
+    isLimited: boolean,
+) {
+    const normalisedPayslip = {
+        ...payslip,
+        payPeriodStart: new Date(payslip.payPeriodStart),
+        payPeriodEnd: new Date(payslip.payPeriodEnd),
+        createdAt: new Date(payslip.createdAt),
+    };
+    const bytes = await generatePayslipPdfBytes(employee, normalisedPayslip, settings, settings.defaultLanguage, isLimited);
+    const fileName = getPayslipFilename(employee, normalisedPayslip);
+    const periodLabel = format(normalisedPayslip.payPeriodEnd, "MMM yyyy");
+    return { bytes, fileName, periodLabel };
 }
 
 function PreviewContent() {
+    const { toast } = useToast();
     const searchParams = useSearchParams();
     const payslipId = searchParams?.get("payslipId");
     const empId = searchParams?.get("empId");
 
     const [employee, setEmployee] = React.useState<Employee | null>(null);
     const [payslip, setPayslip] = React.useState<PayslipInput | null>(null);
-    const [loading, setLoading] = React.useState(true);
-    const [downloading, setDownloading] = React.useState<string | boolean>("");
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
-    const [error, setError] = React.useState("");
-    const [showFullAudit, setShowFullAudit] = React.useState(false);
-    const [copied, setCopied] = React.useState(false);
     const [usageStats, setUsageStats] = React.useState({ count30Days: 0, isLimited: false });
+    const [loading, setLoading] = React.useState(true);
+    const [action, setAction] = React.useState<"" | "download" | "whatsapp" | "email">("");
+    const [error, setError] = React.useState("");
 
     React.useEffect(() => {
         async function load() {
-            if (!payslipId || !empId) { setError("Payslip not found."); setLoading(false); return; }
+            if (!payslipId || !empId) {
+                setError("Payslip not found.");
+                setLoading(false);
+                return;
+            }
+
             try {
-                const [empList, payslips, s, stats] = await Promise.all([
+                const [employeeRows, payslips, loadedSettings, stats] = await Promise.all([
                     getEmployees(),
                     getPayslipsForEmployee(empId),
                     getSettings(),
                     getUsageStats(),
                 ]);
-                const emp = empList.find((e: Employee) => e.id === empId);
-                const ps = payslips.find((p: PayslipInput) => p.id === payslipId);
 
-                if (!emp || !ps) { setError("Payslip data not found."); }
-                else {
-                    setEmployee(emp);
-                    setPayslip(ps);
-                    setSettings(s);
+                const foundEmployee = employeeRows.find((entry) => entry.id === empId);
+                const foundPayslip = payslips.find((entry) => entry.id === payslipId);
+
+                if (!foundEmployee || !foundPayslip) {
+                    setError("Payslip data not found.");
+                } else {
+                    setEmployee(foundEmployee);
+                    setPayslip(foundPayslip);
+                    setSettings(loadedSettings);
                     setUsageStats(stats);
                     triggerCelebration();
                 }
-            } catch (e) {
-                console.error(e);
+            } catch (loadError) {
+                console.error(loadError);
                 setError("Failed to load payslip data.");
             } finally {
                 setLoading(false);
             }
         }
-        load();
-    }, [payslipId, empId]);
 
-    const handleDownload = async () => {
+        void load();
+    }, [empId, payslipId]);
+
+    const runAction = async (nextAction: "download" | "whatsapp" | "email") => {
         if (!employee || !payslip || !settings) return;
 
-        setDownloading(true);
+        setAction(nextAction);
         try {
-            // Dates come from localStorage as ISO strings, not Date objects — coerce them
-            const payslipWithDates = {
-                ...payslip,
-                payPeriodStart: new Date(payslip.payPeriodStart),
-                payPeriodEnd: new Date(payslip.payPeriodEnd),
-                createdAt: new Date(payslip.createdAt),
-            };
-            const bytes: Uint8Array = await generatePayslipPdfBytes(employee, payslipWithDates, settings, settings.defaultLanguage, usageStats.isLimited);
-
+            const { bytes, fileName, periodLabel } = await buildPayslipPdf(employee, payslip, settings, usageStats.isLimited);
 
             await incrementUsageCount();
-            const stats = await getUsageStats();
-            setUsageStats(stats);
+            setUsageStats(await getUsageStats());
 
-            const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
-            const filename = getPayslipFilename(employee, payslipWithDates);
-
-            // GA4: fire before download so an interruption can't prevent it
-            track("payslip_export", { method: "download_pdf" });
-
-            // Use File System Access API in installed PWA/app context (supports Windows PWA shell)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if (typeof (window as any).showSaveFilePicker === "function") {
-                try {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const handle = await (window as any).showSaveFilePicker({
-                        suggestedName: filename,
-                        types: [{ description: "PDF Document", accept: { "application/pdf": [".pdf"] } }],
-                    });
-                    const writable = await handle.createWritable();
-                    await writable.write(blob);
-                    await writable.close();
-                    return; // done
-                } catch (err) {
-                    // User cancelled the picker — don't treat as error
-                    if ((err as Error)?.name === "AbortError") return;
-                    // Otherwise fall through to anchor method
-                }
+            if (nextAction === "download") {
+                const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+                track("payslip_export", { method: "download_pdf" });
+                toast("Payslip downloaded.", "success");
+                return;
             }
 
-            // Fallback: anchor click (works in browsers)
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            if (nextAction === "whatsapp") {
+                const result = await shareViaWhatsApp(bytes, employee.name, employee.phone ?? "", periodLabel);
+                toast(result === "shared" ? "WhatsApp share opened." : "Payslip downloaded. Attach it from Downloads in WhatsApp.", "info");
+                return;
+            }
 
-        } catch (e) {
-            console.error("PDF generation failed:", e);
-            const msg = e instanceof Error ? e.message : String(e);
-            setError(`Failed to generate PDF: ${msg}`);
-
+            const result = await shareViaEmail(bytes, employee.name, periodLabel);
+            toast(result === "shared" ? "Email share opened." : "Payslip downloaded. Attach it from Downloads in your email app.", "info");
+        } catch (actionError) {
+            console.error(actionError);
+            toast(actionError instanceof Error ? actionError.message : "Could not prepare the payslip.", "error");
         } finally {
-            setDownloading(false);
-        }
-    };
-
-    const handleWhatsApp = async () => {
-        if (!employee || !payslip || !settings) return;
-        setDownloading("whatsapp");
-        try {
-            const payslipWithDates = {
-                ...payslip,
-                payPeriodStart: new Date(payslip.payPeriodStart),
-                payPeriodEnd: new Date(payslip.payPeriodEnd),
-                createdAt: new Date(payslip.createdAt),
-            };
-            const bytes = await generatePayslipPdfBytes(employee, payslipWithDates, settings, settings.defaultLanguage, usageStats.isLimited);
-            const periodLabel = format(payslipWithDates.payPeriodStart, "MMM yyyy");
-            await shareViaWhatsApp(bytes, employee.name, employee.phone ?? "", periodLabel);
-        } catch (e) {
-            console.error("WhatsApp share failed:", e);
-        } finally {
-            setDownloading(false);
+            setAction("");
         }
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
+            <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
                 <Loader2 className="h-8 w-8 animate-spin text-[var(--focus)]" />
             </div>
         );
     }
 
-    if (error || !employee || !payslip) {
+    if (error || !employee || !payslip || !settings) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "var(--bg)" }}>
+            <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-[var(--bg)]">
                 <Alert variant="error" className="max-w-md">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{error || "Something went wrong."}</AlertDescription>
                 </Alert>
-                <Link href="/employees" className="mt-6">
-                    <Button variant="outline" className="gap-2"><ArrowLeft className="h-4 w-4" /> Back</Button>
+                <Link href="/employees">
+                    <Button variant="outline" className="gap-2">
+                        <ArrowLeft className="h-4 w-4" /> Back
+                    </Button>
                 </Link>
             </div>
         );
     }
 
     const breakdown = calculatePayslip(payslip);
-    const _periodStr = `${format(new Date(payslip.payPeriodStart), "d MMM")} – ${format(new Date(payslip.payPeriodEnd), "d MMM yyyy")}`;
-    void _periodStr; // computed for potential future display
+    const audit = getComplianceAudit(employee, breakdown, payslip.payPeriodEnd);
+    const periodLabel = `${format(new Date(payslip.payPeriodStart), "d MMM")} - ${format(new Date(payslip.payPeriodEnd), "d MMM yyyy")}`;
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
-            <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
-                <div className="max-w-xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Link href="/employees">
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl"><ArrowLeft className="h-4 w-4" /></Button>
-                        </Link>
-                        <div>
-                            <p className="text-[10px] leading-none mb-0.5" style={{ color: "var(--text-muted)" }}>
-                                <Link href="/employees" className="hover:underline">Employees</Link> › {employee?.name ?? "Payslip"}
-                            </p>
-                            <h1 className="font-bold text-base text-[var(--text)]">Payslip Preview</h1>
+        <div className="min-h-screen bg-[var(--bg)]">
+            <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <Link href={`/employees/${employee.id}?tab=history`}>
+                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl">
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Button>
+                            </Link>
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
+                                    <Link href="/employees" className="hover:underline">Employees</Link> {" › "}
+                                    <Link href={`/employees/${employee.id}?tab=history`} className="hover:underline">{employee.name}</Link>
+                                </p>
+                                <h1 className="text-lg font-black text-[var(--text)]">Payslip record</h1>
+                            </div>
+                        </div>
+                        <div className="hidden sm:flex items-center gap-2">
+                            <Button variant="outline" className="gap-2" onClick={() => void runAction("email")} disabled={!!action}>
+                                {action === "email" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                                Email
+                            </Button>
+                            <Button variant="outline" className="gap-2 border-green-600/30 text-green-700 hover:bg-green-50" onClick={() => void runAction("whatsapp")} disabled={!!action}>
+                                {action === "whatsapp" ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                                WhatsApp
+                            </Button>
+                            <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={() => void runAction("download")} disabled={!!action}>
+                                {action === "download" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                Download PDF
+                            </Button>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            onClick={handleWhatsApp}
-                            disabled={!!downloading}
-                            size="sm"
-                            variant="outline"
-                            className="gap-2 border-green-600/40 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
-                        >
-                            <MessageCircle className="h-4 w-4" />
-                            <span className="hidden sm:inline">WhatsApp</span>
-                        </Button>
-                        <Button onClick={handleDownload} disabled={!!downloading} size="sm" className="gap-2 bg-[var(--primary)] text-white">
-                            {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                            <span className="hidden sm:inline">Download</span>
-                        </Button>
-                    </div>
                 </div>
-            </div>
 
-            <main className="flex-1 max-w-4xl mx-auto w-full space-y-6">
-                {/* Usage Warning */}
                 {usageStats.isLimited && (
-                    <Alert variant="warning" className="animate-slide-down border-[var(--focus)] bg-[var(--surface-2)]">
+                    <Alert variant="warning" className="border-[var(--focus)] bg-[var(--surface-2)]">
                         <AlertCircle className="h-4 w-4 text-[var(--focus)]" />
-                        <AlertDescription className="text-[var(--text)]">
-                            <strong>Free limit reached (2/month).</strong> This copy will be watermarked.
-                            <Link href="/pricing" className="ml-2 underline font-bold">Compare plans</Link> to remove limits.
+                        <AlertDescription>
+                            <strong>Free limit reached.</strong> This payslip will include the free-plan watermark until you upgrade.
                         </AlertDescription>
                     </Alert>
                 )}
 
-                <Alert className="bg-emerald-500/10 border-emerald-500/20 text-emerald-600">
+                <Alert className="border-emerald-500/20 bg-emerald-500/10 text-emerald-700">
                     <CheckCircle2 className="h-4 w-4" />
-                    <AlertDescription>Payslip generated for <strong>{employee.name}</strong>.</AlertDescription>
+                    <AlertDescription>Payslip ready for {employee.name}.</AlertDescription>
                 </Alert>
 
-                <Card className="border-none glass-panel shadow-sm">
-                    <CardContent className="p-5 flex items-center gap-4">
-                        <div className="h-14 w-14 rounded-2xl bg-[var(--primary)] flex items-center justify-center text-white font-black text-xl">
-                            {employee.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="font-bold text-lg text-[var(--text)] truncate">{employee.name}</p>
-                            <p className="text-sm text-[var(--text-muted)]">{employee.role}</p>
+                <Card className="glass-panel border-none">
+                    <CardContent className="p-5 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--primary)] text-xl font-black text-white">
+                                {employee.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <p className="text-lg font-black text-[var(--text)]">{employee.name}</p>
+                                <p className="text-sm text-[var(--text-muted)]">{employee.role}</p>
+                            </div>
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] font-bold text-muted uppercase">Period</p>
-                            <p className="text-xs font-bold text-[var(--text)]">{format(new Date(payslip.payPeriodEnd), "MMM yyyy")}</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Period</p>
+                            <p className="text-sm font-semibold text-[var(--text)]">{periodLabel}</p>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="border-none glass-panel overflow-hidden">
-                    <CardContent className="p-5">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[var(--focus)] mb-2">Earnings</p>
-                        <Row label={`Ordinary (${payslip.ordinaryHours}h)`} value={`R ${breakdown.ordinaryPay.toFixed(2)}`} />
-                        {payslip.overtimeHours > 0 && <Row label={`Overtime (${payslip.overtimeHours}h)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}
-                        <Row label="Gross Pay" value={`R ${breakdown.grossPay.toFixed(2)}`} bold />
+                <div className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+                    <Card className="glass-panel border-none overflow-hidden">
+                        <CardContent className="p-5">
+                            <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-[var(--focus)]">Earnings</p>
+                            <Row label={`Ordinary (${payslip.ordinaryHours}h)`} value={`R ${breakdown.ordinaryPay.toFixed(2)}`} />
+                            {payslip.overtimeHours > 0 && <Row label={`Overtime (${payslip.overtimeHours}h)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}
+                            {payslip.sundayHours > 0 && <Row label={`Sunday (${payslip.sundayHours}h)`} value={`R ${breakdown.sundayPay.toFixed(2)}`} />}
+                            {payslip.publicHolidayHours > 0 && <Row label={`Public holiday (${payslip.publicHolidayHours}h)`} value={`R ${breakdown.publicHolidayPay.toFixed(2)}`} />}
+                            <Row label="Gross pay" value={`R ${breakdown.grossPay.toFixed(2)}`} bold />
 
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[var(--focus)] mt-5 mb-2">Deductions</p>
-                        <Row label="UIF (1%)" value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`} red />
-                        {breakdown.deductions.accommodation && <Row label="Accommodation" value={`-R ${breakdown.deductions.accommodation.toFixed(2)}`} red />}
-                        <Row label="Total Deductions" value={`R ${breakdown.deductions.total.toFixed(2)}`} bold />
-                    </CardContent>
-                    <div className="bg-[var(--primary)] p-5 flex items-center justify-between text-white">
-                        <div>
-                            <p className="font-bold text-lg">Net Pay</p>
-                            <p className="text-white/70 text-xs">Take home</p>
-                        </div>
-                        <p className="font-black text-3xl tabular-nums">R {breakdown.netPay.toFixed(2)}</p>
-                    </div>
-                </Card>
-
-                <div className="flex flex-col gap-3">
-                    <Button onClick={handleDownload} disabled={!!downloading} className="w-full h-12 text-base font-bold bg-[var(--primary)] text-white">
-                        {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5 mr-2" />}
-                        Download PDF
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="w-full h-12 text-[#25D366] font-extrabold bg-[#25D366]/5 hover:bg-[#25D366]/10 border-[#25D366]/30 shadow-sm"
-                        onClick={async () => {
-                            if (!employee || !payslip || !settings) return;
-                            setDownloading('wa');
-                            try {
-                                const bytes: Uint8Array = await new Promise((resolve, reject) => {
-                                    const worker = new Worker(new URL('../../pdf.worker.ts', import.meta.url));
-                                    worker.onmessage = (e) => {
-                                        const { bytes, error } = e.data;
-                                        if (error) reject(new Error(error));
-                                        else resolve(bytes);
-                                        worker.terminate();
-                                    };
-                                    worker.onerror = (e) => { reject(new Error(e.message)); worker.terminate(); };
-                                    worker.postMessage({ employee, payslip, settings, msgId: 'wa', isLimited: usageStats.isLimited });
-                                });
-                                await incrementUsageCount();
-                                const stats = await getUsageStats();
-                                setUsageStats(stats);
-                                await shareViaWhatsApp(bytes, employee.name, employee.phone || "", format(payslip.payPeriodEnd, "MMM yyyy"));
-                            } catch (e) { console.error(e); }
-                            setDownloading("");
-                        }}
-                    >
-                        <MessageCircle className="h-5 w-5 mr-2" /> Share via WhatsApp
-                    </Button>
-                </div>
-
-                {!settings?.simpleMode && (
-                    <Card className="border-none glass-panel">
-                        <div className="p-4 flex items-center justify-between cursor-pointer" onClick={() => setShowFullAudit(!showFullAudit)}>
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="h-5 w-5 text-[var(--focus)]" />
-                                <h3 className="font-bold text-sm uppercase">Payroll checks summary</h3>
+                            <p className="mb-2 mt-6 text-[10px] font-black uppercase tracking-widest text-[var(--focus)]">Deductions</p>
+                            <Row label="UIF (1%)" value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`} red />
+                            {breakdown.deductions.accommodation ? <Row label="Accommodation" value={`-R ${breakdown.deductions.accommodation.toFixed(2)}`} red /> : null}
+                            {breakdown.deductions.other ? <Row label="Other deductions" value={`-R ${breakdown.deductions.other.toFixed(2)}`} red /> : null}
+                            <Row label="Total deductions" value={`R ${breakdown.deductions.total.toFixed(2)}`} bold />
+                        </CardContent>
+                        <div className="flex items-center justify-between bg-[var(--primary)] p-5 text-white">
+                            <div>
+                                <p className="text-lg font-bold">Net pay</p>
+                                <p className="text-xs text-white/75">Take-home amount</p>
                             </div>
-                            {showFullAudit ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </div>
-                        <div className="px-4 pb-4 space-y-3">
-                            <ComplianceRow
-                                label="Wage Status"
-                                status={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).wageCompliant}
-                                text={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).wageStatusText}
-                            />
-                            {showFullAudit && (
-                                <div className="pt-3 border-t border-[var(--border)] space-y-4">
-                                    <ComplianceRow
-                                        label="UIF check"
-                                        status={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).uifCompliant}
-                                        text={getComplianceAudit(employee, breakdown, payslip.payPeriodEnd).uifStatusText}
-                                    />
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-9 gap-2 text-[11px]"
-                                            disabled={downloading === "audit"}
-                                            onClick={async () => {
-                                                setDownloading("audit");
-                                                try {
-                                                    const { generateBCEASummaryPdf } = await import('@/lib/compliance-pdf');
-                                                    const bytes = await generateBCEASummaryPdf(employee, payslip, settings!);
-                                                    const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
-                                                    const url = URL.createObjectURL(blob);
-                                                    const link = document.createElement("a");
-                                                    link.href = url;
-                                                    link.download = `Audit_${employee.name.replace(/\s+/g, "_")}.pdf`;
-                                                    link.click();
-                                                } catch (e) { console.error(e); } finally { setDownloading(""); }
-                                            }}
-                                        >
-                                            {downloading === "audit" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Checks PDF
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-9 gap-2 text-[11px]"
-                                            disabled={downloading === "cert"}
-                                            onClick={async () => {
-                                                setDownloading("cert");
-                                                try {
-                                                    const { generateCertificateOfServicePdf } = await import('@/lib/compliance-pdf');
-                                                    const bytes = await generateCertificateOfServicePdf(employee, settings!);
-                                                    const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
-                                                    const url = URL.createObjectURL(blob);
-                                                    const link = document.createElement("a");
-                                                    link.href = url;
-                                                    link.download = `Certificate_${employee.name.replace(/\s+/g, "_")}.pdf`;
-                                                    link.click();
-                                                } catch (e) { console.error(e); } finally { setDownloading(""); }
-                                            }}
-                                        >
-                                            {downloading === "cert" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Certificate
-                                        </Button>
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="w-full text-xs gap-2"
-                                        onClick={() => {
-                                            const text = generateComplianceNoteText(employee, breakdown, payslip.payPeriodEnd);
-                                            navigator.clipboard.writeText(text).then(() => {
-                                                setCopied(true);
-                                                setTimeout(() => setCopied(false), 2000);
-                                            });
-                                        }}
-                                    >
-                                        {copied ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                                        {copied ? "Copied!" : "Copy check summary"}
-                                    </Button>
-                                </div>
-                            )}
+                            <p className="text-3xl font-black tabular-nums">R {breakdown.netPay.toFixed(2)}</p>
                         </div>
                     </Card>
-                )}
-            </main>
+
+                    <div className="space-y-6">
+                        <Card className="glass-panel border-none">
+                            <CardContent className="p-5 space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="h-4 w-4 text-[var(--primary)]" />
+                                    <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text)]">Quick checks</h2>
+                                </div>
+                                <div className="space-y-3 text-sm">
+                                    <div>
+                                        <p className="font-semibold text-[var(--text)]">Pay level</p>
+                                        <p className={`text-sm ${audit.wageCompliant ? "text-[var(--text-muted)]" : "text-[var(--danger)]"}`}>{audit.wageStatusText}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-[var(--text)]">UIF</p>
+                                        <p className={`text-sm ${audit.uifCompliant ? "text-[var(--text-muted)]" : "text-[var(--danger)]"}`}>{audit.uifStatusText}</p>
+                                    </div>
+                                </div>
+                                <p className="text-xs leading-relaxed text-[var(--text-muted)]">
+                                    This is a quick sense-check, not a legal verdict. If you need certificates, contracts, or other paperwork, keep them together in Documents.
+                                </p>
+                                <Link href="/documents">
+                                    <Button variant="outline" className="w-full gap-2 font-bold">
+                                        <FolderOpen className="h-4 w-4" /> Open Documents
+                                    </Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+
+                        <div className="grid gap-3 sm:hidden">
+                            <Button variant="outline" className="h-11 gap-2" onClick={() => void runAction("email")} disabled={!!action}>
+                                {action === "email" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                                Email
+                            </Button>
+                            <Button variant="outline" className="h-11 gap-2 border-green-600/30 text-green-700 hover:bg-green-50" onClick={() => void runAction("whatsapp")} disabled={!!action}>
+                                {action === "whatsapp" ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                                WhatsApp
+                            </Button>
+                            <Button className="h-11 gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={() => void runAction("download")} disabled={!!action}>
+                                {action === "download" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                Download PDF
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
 
 export default function PreviewPage() {
     return (
-        <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[var(--focus)]" /></div>}>
+        <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[var(--bg)]"><Loader2 className="h-8 w-8 animate-spin text-[var(--focus)]" /></div>}>
             <PreviewContent />
         </React.Suspense>
     );
 }
-
-
-

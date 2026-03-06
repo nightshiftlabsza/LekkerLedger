@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LekkerLedger logo option B" fill="none">
+  <defs>
+    <linearGradient id="bFold" x1="320" y1="94" x2="394" y2="154" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#249462" />
+      <stop offset="1" stop-color="#007A4D" />
+    </linearGradient>
+  </defs>
+  <ellipse cx="252" cy="430" rx="146" ry="22" fill="#101828" opacity=".055" />
+  <g transform="translate(256 256) rotate(-8) translate(-256 -256)">
+    <rect x="125" y="118" width="248" height="302" rx="18" fill="#D8D2C7" />
+    <rect x="116" y="110" width="248" height="302" rx="18" fill="#E4DED3" />
+    <path d="M131 96h194c11 0 20 9 20 20v17l55 53v214c0 13-11 24-24 24H131c-13 0-24-11-24-24V120c0-13 11-24 24-24Z" fill="#ECE9DA" />
+    <path d="M345 133h38c9 0 17 8 17 17v36Z" fill="url(#bFold)" />
+    <path d="M345 96h38c10 0 17 7 17 17v20L345 96Z" fill="#3FAA73" />
+    <path d="M386 178 370 423h12c10 0 18-8 18-18V186c0-4-5-7-14-8Z" fill="#C8C2B8" opacity=".72" />
+    <g fill="#A9A79D">
+      <rect x="146" y="176" width="96" height="16" rx="8" />
+      <rect x="255" y="176" width="96" height="16" rx="8" />
+      <rect x="146" y="228" width="96" height="16" rx="8" />
+      <rect x="255" y="228" width="96" height="16" rx="8" />
+      <rect x="146" y="280" width="96" height="16" rx="8" />
+      <rect x="255" y="280" width="96" height="16" rx="8" />
+      <rect x="146" y="332" width="96" height="16" rx="8" />
+      <rect x="255" y="332" width="96" height="16" rx="8" />
+    </g>
+    <path d="M148 208h205" stroke="#E1DCCF" stroke-width="3" opacity=".7" />
+    <path d="M148 260h205" stroke="#E1DCCF" stroke-width="3" opacity=".7" />
+    <path d="M148 312h205" stroke="#E1DCCF" stroke-width="3" opacity=".7" />
+    <g fill="#CEC9C0" opacity=".96">
+      <path d="M234 356c-21-2-37-11-51-26 17-14 37-18 56-9 1 13 0 24-5 35Z" />
+      <path d="M266 343c-16-15-21-32-18-52 20 1 35 13 40 33-5 8-11 14-22 19Z" />
+      <path d="M292 359c-20 0-37-8-51-22 16-15 35-20 53-13 4 12 4 23-2 35Z" />
+    </g>
+    <path d="M324 420c10-37 39-62 86-63-1 44-17 76-55 92-13 5-22 .5-31-29Z" fill="#007A4D" />
+    <path d="M324 420c17-11 32-25 45-42 11-17 24-30 41-41" stroke="#176241" stroke-linecap="round" stroke-width="3" />
+    <path d="M361 381c12 1 24 0 36-3" stroke="#176241" stroke-linecap="round" stroke-width="2.2" opacity=".84" />
+    <path d="M349 404c14 1 26 0 38-4" stroke="#176241" stroke-linecap="round" stroke-width="2.2" opacity=".84" />
+    <path d="M377 424c10-17 26-27 46-30-3 18-13 31-30 39-7 3-12 1-16-9Z" fill="#DBD6CE" opacity=".96" />
+  </g>
+</svg>

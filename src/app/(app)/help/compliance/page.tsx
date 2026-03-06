@@ -114,6 +114,38 @@ function BackToTop() {
     );
 }
 
+function ExpandableSection({
+    id,
+    title,
+    description,
+    children,
+    defaultOpen = false,
+}: {
+    id: string;
+    title: string;
+    description: string;
+    children: React.ReactNode;
+    defaultOpen?: boolean;
+}) {
+    return (
+        <Card id={id} className="glass-panel border-none overflow-hidden scroll-mt-20">
+            <details className="group" open={defaultOpen}>
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5">
+                    <div>
+                        <h2 className="type-h3 text-[var(--text)]">{title}</h2>
+                        <p className="mt-1 text-sm text-[var(--text-muted)]">{description}</p>
+                    </div>
+                    <span className="text-sm font-semibold text-[var(--primary)] group-open:hidden">Open</span>
+                    <span className="hidden text-sm font-semibold text-[var(--primary)] group-open:inline">Close</span>
+                </summary>
+                <div className="border-t border-[var(--border)] p-5">
+                    {children}
+                </div>
+            </details>
+        </Card>
+    );
+}
+
 export default function CompliancePage() {
     const [copiedId, setCopiedId] = React.useState<string | null>(null);
 
@@ -165,51 +197,38 @@ export default function CompliancePage() {
                 <CardContent className="space-y-4 p-6">
                     <div className="flex items-center gap-2 text-[var(--primary)]">
                         <ListChecks className="h-4 w-4" />
-                        <p className="type-overline">What changed recently</p>
+                        <p className="type-overline">Start here first</p>
                     </div>
                     <p className="type-body measure-readable leading-7 text-[var(--text-muted)]">
-                        {renderRichText(complianceGuide.intro)}
-                        <CitationLinks footnotes={complianceGuide.introFootnotes} />
+                        Most households do not need to study labour law every week. In practice, you usually want 5 things under control: correct employee details, a clean monthly payroll record, payslips kept in Documents, UIF where it applies, and annual ROE paperwork when required.
                     </p>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                        {complianceGuide.startHereSteps.slice(0, 4).map((step) => (
+                            <Card key={step.id} className="border border-[var(--border)] bg-[var(--surface-raised)] shadow-none">
+                                <CardContent className="space-y-3 p-5">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <Badge variant="outline">{step.screenLabel}</Badge>
+                                        <Link href={step.screenHref} className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
+                                            Open
+                                        </Link>
+                                    </div>
+                                    <h3 className="type-h4 text-[var(--text)]">{step.title}</h3>
+                                    <p className="type-body text-[var(--text-muted)]">{renderRichText(step.whatToDo)}</p>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 </CardContent>
             </Card>
 
-            <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-                <aside className="xl:sticky xl:top-24 xl:self-start">
-                    <Card className="glass-panel border-none">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="type-h4">On this page</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2 pt-0">
-                            {complianceGuide.toc.map((item) => (
-                                <a
-                                    key={item.id}
-                                    href={`#${item.id}`}
-                                    className="block rounded-xl border border-transparent px-3 py-2 text-sm text-[var(--text-muted)] hover:border-[var(--border)] hover:bg-[var(--surface-raised)] hover:text-[var(--text)]"
-                                >
-                                    {item.title}
-                                </a>
-                            ))}
-                            <div className="pt-3">
-                                <p className="type-overline mb-2 text-[var(--text-muted)]">Screens</p>
-                                <div className="space-y-2">
-                                    {complianceGuide.guideSections.map((section) => (
-                                        <a
-                                            key={section.id}
-                                            href={`#${section.id}`}
-                                            className="block rounded-xl px-3 py-2 text-sm text-[var(--text-muted)] hover:bg-[var(--surface-raised)] hover:text-[var(--text)]"
-                                        >
-                                            {section.screenLabel ?? section.title}
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </aside>
-
-                <div className="space-y-10">
-                    <section id="start-here" className="space-y-5 scroll-mt-20">
+            <div className="space-y-6">
+                <ExpandableSection
+                    id="start-here"
+                    title="Step-by-step setup"
+                    description="Use this if you are setting up the household for the first time."
+                    defaultOpen
+                >
+                    <section className="space-y-5 scroll-mt-20">
                         <CopyHeading id="start-here" title="Start Here (onboarding path)" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <p className="type-body leading-7 text-[var(--text-muted)]">5–10 minutes. Follow this path first if you are setting up the household for the first time.</p>
                         <div className="grid gap-4 lg:grid-cols-2">
@@ -239,8 +258,14 @@ export default function CompliancePage() {
                         </div>
                         <BackToTop />
                     </section>
+                </ExpandableSection>
 
-                    <section id="full-guide" className="space-y-5 scroll-mt-20">
+                <ExpandableSection
+                    id="full-guide"
+                    title="Detailed guide by screen"
+                    description="Open this when you want fuller explanations, edge cases, and screen-by-screen guidance."
+                >
+                    <section className="space-y-5 scroll-mt-20">
                         <CopyHeading id="full-guide" title="Full Guide (by screens)" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <div className="space-y-6">
                             {complianceGuide.guideSections.map((section) => (
@@ -304,8 +329,14 @@ export default function CompliancePage() {
                         </div>
                         <BackToTop />
                     </section>
+                </ExpandableSection>
 
-                    <section id="screen-callouts" className="space-y-5 scroll-mt-20">
+                <ExpandableSection
+                    id="screen-callouts"
+                    title="What each screen is for"
+                    description="Short reminders for the main screens without reading the full reference."
+                >
+                    <section className="space-y-5 scroll-mt-20">
                         <CopyHeading id="screen-callouts" title="Screen callout boxes" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <div className="grid gap-4 lg:grid-cols-2">
                             {complianceGuide.screenCallouts.map((callout) => (
@@ -337,8 +368,14 @@ export default function CompliancePage() {
                         </div>
                         <BackToTop />
                     </section>
+                </ExpandableSection>
 
-                    <section id="microcopy" className="space-y-5 scroll-mt-20">
+                <ExpandableSection
+                    id="microcopy"
+                    title="Field help and wording"
+                    description="Open only if you want detailed tooltip wording or field-by-field help."
+                >
+                    <section className="space-y-5 scroll-mt-20">
                         <CopyHeading id="microcopy" title="Microcopy/tooltips" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <div className="space-y-3">
                             {complianceGuide.microcopyGroups.map((group) => (
@@ -368,8 +405,14 @@ export default function CompliancePage() {
                         </div>
                         <BackToTop />
                     </section>
+                </ExpandableSection>
 
-                    <section id="worked-examples" className="space-y-5 scroll-mt-20">
+                <ExpandableSection
+                    id="worked-examples"
+                    title="Worked examples"
+                    description="Simple examples for common household pay situations."
+                >
+                    <section className="space-y-5 scroll-mt-20">
                         <CopyHeading id="worked-examples" title="Worked examples" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <div className="grid gap-4 lg:grid-cols-2">
                             {complianceGuide.workedExamples.map((example) => (
@@ -398,8 +441,14 @@ export default function CompliancePage() {
                         </div>
                         <BackToTop />
                     </section>
+                </ExpandableSection>
 
-                    <section id="source-log" className="space-y-5 scroll-mt-20">
+                <ExpandableSection
+                    id="source-log"
+                    title="Sources and verification"
+                    description="Reference material behind the guide. Most household users will not need this every visit."
+                >
+                    <section className="space-y-5 scroll-mt-20">
                         <CopyHeading id="source-log" title="Source log" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <Alert>
                             <AlertTitle>Source note</AlertTitle>
@@ -457,7 +506,7 @@ export default function CompliancePage() {
                         </Card>
                         <BackToTop />
                     </section>
-                </div>
+                </ExpandableSection>
             </div>
         </div>
     );

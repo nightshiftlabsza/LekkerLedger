@@ -20,17 +20,17 @@ export default function StoragePage() {
                         <Database className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Security & Storage</h1>
-                    <p className="text-zinc-500 font-medium">How we keep your household employment data private and secure.</p>
+                    <p className="text-zinc-500 font-medium">How household payroll records stay private from LekkerLedger while still being portable when you choose Google backup.</p>
                 </header>
 
                 <div className="prose prose-zinc dark:prose-invert max-w-none space-y-10 text-zinc-400 leading-relaxed font-medium">
                     <section className="space-y-6">
                         <h2 className="text-2xl font-black text-[var(--text)]">The &quot;No Central Database&quot; Promise</h2>
                         <p>
-                            Unlike traditional HR software, LekkerLedger is designed for households. This means we do not host a massive, centralized database of your employees&apos; personal information, wages, or ID numbers on our servers.
+                            Unlike traditional HR software, LekkerLedger is designed for households. We do not host a massive, centralized database of your employees&apos; personal information, wages, or ID numbers on our servers.
                         </p>
                         <p>
-                            Instead, your data belongs to you, and it stays with you. You have two options for how your data is stored: <strong>Local Only</strong> or <strong>Google Drive Sync</strong>.
+                            Instead, your data belongs to you, and it stays with you. You have two options for how your data is stored: <strong>Local Only</strong> or <strong>Google-connected backup in your own Google Drive app data area</strong>.
                         </p>
                     </section>
 
@@ -45,10 +45,10 @@ export default function StoragePage() {
                             </div>
                             <h3 className="text-xl font-bold text-[var(--text)] mb-2">Local Storage (Default)</h3>
                             <p className="text-sm text-[var(--text-muted)] mb-4 leading-relaxed">
-                                By default, everything you enter is saved securely in your internet browser&apos;s local storage database (IndexedDB).
+                                By default, everything you enter is saved in your browser&apos;s local storage database (IndexedDB).
                             </p>
                             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" /> Never leaves your device</li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" /> Never leaves your device unless you choose backup</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" /> Works completely offline</li>
                                 <li className="flex gap-2 items-start"><AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" /> <span className="text-amber-500/90 font-medium">Risk: If you clear your browser data or lose your device, your data is gone indefinitely unless exported.</span></li>
                             </ul>
@@ -62,13 +62,14 @@ export default function StoragePage() {
                             <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center mb-4 border border-[var(--primary)]/20">
                                 <Cloud className="h-5 w-5 text-[var(--primary)]" />
                             </div>
-                            <h3 className="text-xl font-bold text-[var(--text)] mb-2">Google Drive Sync</h3>
+                            <h3 className="text-xl font-bold text-[var(--text)] mb-2">Google-connected Backup</h3>
                             <p className="text-sm text-[var(--text-muted)] mb-4 leading-relaxed">
-                                You can authorize LekkerLedger to create a hidden app-data folder in your personal Google Drive account to sync your records.
+                                You can authorize LekkerLedger to store a backup file in Google Drive&apos;s private app data area inside your own Google account so you can restore records on another browser or device.
                             </p>
                             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Access data across multiple devices</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Protected by your Google security</li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Private from LekkerLedger and outside our central systems</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Safe from browser cache clears</li>
                             </ul>
                         </div>
@@ -77,11 +78,12 @@ export default function StoragePage() {
                     <section className="space-y-4 pt-8">
                         <h2 className="text-2xl font-black text-[var(--text)]">Google Drive Permissions Explained</h2>
                         <p>
-                            If you elect to use Google Drive Sync, LekkerLedger will request the <code>drive.file</code> scope. What does this mean?
+                            If you elect to use Google-connected backup, LekkerLedger will request Google account access and Drive app-data access. What does this mean?
                         </p>
                         <ul className="list-disc pl-6 space-y-2">
-                            <li><strong>We DO NOT</strong> have access to your personal files, photos, or emails in Google Drive.</li>
-                            <li><strong>We ONLY</strong> have access to the specific files and folders that the LekkerLedger app creates itself.</li>
+                            <li><strong>We DO NOT</strong> have access to your normal Google Drive files, photos, or emails.</li>
+                            <li><strong>We ONLY</strong> use the private app data area needed to store and restore your LekkerLedger backup.</li>
+                            <li>Your payroll records are not copied into a LekkerLedger central employee database.</li>
                             <li>You can revoke this permission at any time from your Google Account security settings.</li>
                         </ul>
                     </section>

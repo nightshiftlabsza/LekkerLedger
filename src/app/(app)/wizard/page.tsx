@@ -187,6 +187,7 @@ function WizardContent() {
                 type: "payslip",
                 employeeId: employee.id,
                 fileName: `${employee.name.split(' ')[0]}_Payslip_${format(safeDate(dates.start), "MMM_yyyy")}.pdf`,
+                source: "generated",
                 createdAt: new Date().toISOString(),
             });
 

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LekkerLedger Logo Options</title>
+  <style>
+    :root {
+      --paper: #faf7f0;
+      --ink: #101828;
+      --muted: #475467;
+      --border: #e6e0d6;
+      --teal: #3e5f68;
+    }
+    body {
+      margin: 0;
+      padding: 32px;
+      background: var(--paper);
+      color: var(--ink);
+      font: 16px/1.5 "IBM Plex Sans", system-ui, sans-serif;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font: 600 34px/1.1 "IBM Plex Serif", Georgia, serif;
+    }
+    p {
+      margin: 0 0 28px;
+      color: var(--muted);
+      max-width: 68ch;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #fff;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.04);
+    }
+    .label {
+      margin: 0 0 12px;
+      font-weight: 600;
+    }
+    .pair {
+      display: grid;
+      grid-template-columns: 1fr 90px;
+      gap: 16px;
+      align-items: center;
+    }
+    .site {
+      display: grid;
+      place-items: center;
+      min-height: 180px;
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(196, 122, 28, 0.04), rgba(196, 122, 28, 0)),
+        #faf7f0;
+    }
+    .icon {
+      display: grid;
+      place-items: center;
+      min-height: 180px;
+      border-radius: 14px;
+      background: var(--teal);
+    }
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>LekkerLedger Logo Options</h1>
+  <p>Each option includes a transparent website/logo mark and a teal-square app icon variant. These stay closer to the simpler ledger-file feel while keeping within the Civic Ledger brand rules.</p>
+  <div class="grid">
+    <section class="card">
+      <p class="label">Option A: Closest to the original ledger file</p>
+      <div class="pair">
+        <div class="site"><img src="./option-a-ledger-file-site.svg" alt="Option A website mark"></div>
+        <div class="icon"><img src="./option-a-ledger-file-icon.svg" alt="Option A app icon"></div>
+      </div>
+    </section>
+    <section class="card">
+      <p class="label">Option B: Calmer civic file</p>
+      <div class="pair">
+        <div class="site"><img src="./option-b-civic-file-site.svg" alt="Option B website mark"></div>
+        <div class="icon"><img src="./option-b-civic-file-icon.svg" alt="Option B app icon"></div>
+      </div>
+    </section>
+    <section class="card">
+      <p class="label">Option C: Stronger ledger-sheet feel</p>
+      <div class="pair">
+        <div class="site"><img src="./option-c-ledger-sheet-site.svg" alt="Option C website mark"></div>
+        <div class="icon"><img src="./option-c-ledger-sheet-icon.svg" alt="Option C app icon"></div>
+      </div>
+    </section>
+    <section class="card">
+      <p class="label">Option D: Simplest archive-file direction</p>
+      <div class="pair">
+        <div class="site"><img src="./option-d-archive-file-site.svg" alt="Option D website mark"></div>
+        <div class="icon"><img src="./option-d-archive-file-icon.svg" alt="Option D app icon"></div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

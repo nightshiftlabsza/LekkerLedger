@@ -3,6 +3,7 @@ import { Employee, EmployerSettings } from "./schema";
 import { format } from "date-fns";
 import { PDF_COLORS } from "./pdf-theme";
 import { loadPdfFonts } from "./pdf-fonts";
+import { drawPdfBrandLockup } from "./pdf-brand";
 
 export type DisciplinaryType = "verbal-warning" | "written-warning" | "final-warning" | "disciplinary-notice";
 
@@ -88,7 +89,14 @@ export async function generateDisciplinaryPdfBytes(input: DisciplinaryInput): Pr
     };
 
     // Header
-    page.drawText("LekkerLedger", { x: MARGIN, y: PAGE_H - 60, size: 22, font: serifBold, color: PDF_COLORS.TEXT });
+    drawPdfBrandLockup(page, {
+        x: MARGIN,
+        y: PAGE_H - 60,
+        size: 30,
+        serifBold,
+        sansBold,
+        subtitle: "HOUSEHOLD EMPLOYMENT RECORD",
+    });
 
     const titleColor = input.type === "final-warning" ? PDF_COLORS.DANGER : PDF_COLORS.PRIMARY_GREEN;
     page.drawText(titles[input.type], {

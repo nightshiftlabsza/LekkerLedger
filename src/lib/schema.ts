@@ -91,7 +91,10 @@ export const LeaveRecordSchema = z.object({
     employeeId: z.string(),
     type: z.enum(["annual", "sick", "family"]),
     days: z.number().positive(),
-    date: z.string(), // ISO date of leave taken
+    date: z.string(), // ISO date of leave taken (legacy start date alias)
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    exceedsAllowance: z.boolean().optional(),
     payslipId: z.string().optional(), // link to payslip that logged it
     note: z.string().optional().default(""),
 });
@@ -181,6 +184,8 @@ export const DocumentMetaSchema = z.object({
     employeeId: z.string().optional(),
     periodId: z.string().optional(),
     fileName: z.string(),
+    mimeType: z.string().optional(),
+    source: z.enum(["generated", "uploaded"]).optional().default("generated"),
     sizeBytes: z.number().optional(),
     createdAt: z.string(), // ISO date
     driveFileId: z.string().optional(),
@@ -198,6 +203,7 @@ export const ContractSchema = z.object({
     signedAt: z.string().optional(), // ISO date
     effectiveDate: z.string(), // ISO date
     jobTitle: z.string(),
+    placeOfWork: z.string().default(""),
     duties: z.array(z.string()).default([]),
     workingHours: z.object({
         daysPerWeek: z.number().default(5),
@@ -212,6 +218,21 @@ export const ContractSchema = z.object({
     leave: z.object({
         annualDays: z.number().default(21),
         sickDays: z.number().default(30), // per 3-year cycle usually, but simplified
+    }),
+    terms: z.object({
+        accommodationProvided: z.boolean().default(false),
+        accommodationDetails: z.string().default(""),
+        overtimeAgreement: z.string().default("Overtime must be agreed in advance and paid according to the BCEA."),
+        sundayHolidayAgreement: z.string().default("Sunday and public-holiday work must be agreed and paid at the correct rate."),
+        noticeClause: z.string().default("Notice periods follow the BCEA and should be given in writing."),
+        lawyerReviewAcknowledged: z.boolean().default(false),
+    }).default({
+        accommodationProvided: false,
+        accommodationDetails: "",
+        overtimeAgreement: "Overtime must be agreed in advance and paid according to the BCEA.",
+        sundayHolidayAgreement: "Sunday and public-holiday work must be agreed and paid at the correct rate.",
+        noticeClause: "Notice periods follow the BCEA and should be given in writing.",
+        lawyerReviewAcknowledged: false,
     }),
     createdAt: z.string(), // ISO date
     updatedAt: z.string(), // ISO date

@@ -91,7 +91,7 @@ export default function UpgradePage() {
         <div className="space-y-8 pb-20">
             <PageHeader
                 title="Plans & billing"
-                subtitle="Choose the level of backup, archive depth, and household control you need."
+                subtitle="Choose the level of Google-connected backup, archive depth, and household control you need."
             />
 
             {makePayment && selectedPlan && selectedPrice && (
@@ -193,10 +193,10 @@ export default function UpgradePage() {
                         <CardContent className="p-6 space-y-4">
                             <h3 className="type-h3" style={{ color: "var(--text)" }}>What changes on paid plans</h3>
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Paid plans are for households that want less repeated admin: backup, exports, deeper archives, and cleaner annual paperwork. They are meant to cost less than the time or outside help it usually takes to reconstruct records later.
+                                Paid plans are for households that want less repeated admin: Google-connected backup across browsers and devices, exports, deeper archives, and cleaner annual paperwork. They are meant to cost less than the time or outside help it usually takes to reconstruct records later.
                             </p>
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Pro is where multi-household support lives. If you manage multiple homes or want one place for several employer records, choose Pro instead of juggling separate record trails or separate service fees.
+                                Standard is the paid plan for most households that want proper records, Google-connected backup, and annual paperwork. Pro is for households that want deeper history and admin control, with multi-household support and unlimited employees there when you need more headroom.
                             </p>
                         </CardContent>
                     </Card>

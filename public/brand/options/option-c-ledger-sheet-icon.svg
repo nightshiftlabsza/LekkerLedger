@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LekkerLedger app icon option C" fill="none">
+  <rect x="32" y="32" width="448" height="448" rx="44" fill="#3E5F68" />
+  <g opacity=".08" stroke="#FFFDF6" stroke-linecap="round" stroke-width="3">
+    <path d="M88 116c17-10 35-15 55-16" />
+    <path d="M389 99c20 10 37 25 48 43" />
+  </g>
+  <g transform="translate(0 10) scale(.95 .95) translate(13 8)">
+    <g transform="translate(256 256) rotate(-6) translate(-256 -256)">
+      <rect x="132" y="114" width="236" height="305" rx="18" fill="#D8D3C8" />
+      <rect x="124" y="106" width="236" height="305" rx="18" fill="#E5DFD4" />
+      <path d="M139 95h185c11 0 20 9 20 20v18l54 52v212c0 14-11 25-25 25H139c-14 0-25-11-25-25V120c0-14 11-25 25-25Z" fill="#ECE9DA" />
+      <path d="M344 133h38c9 0 16 7 16 16v36Z" fill="#007A4D" />
+      <path d="M344 95h37c10 0 17 7 17 17v21L344 95Z" fill="#43AF78" />
+      <path d="M385 176 370 421h13c9 0 15-7 15-16V185c0-4-4-7-13-9Z" fill="#C5BFB4" opacity=".68" />
+      <g fill="#A9A79D">
+        <rect x="154" y="175" width="88" height="15" rx="7.5" />
+        <rect x="254" y="175" width="88" height="15" rx="7.5" />
+        <rect x="154" y="222" width="88" height="15" rx="7.5" />
+        <rect x="254" y="222" width="88" height="15" rx="7.5" />
+        <rect x="154" y="269" width="88" height="15" rx="7.5" />
+        <rect x="254" y="269" width="88" height="15" rx="7.5" />
+        <rect x="154" y="316" width="88" height="15" rx="7.5" />
+        <rect x="254" y="316" width="88" height="15" rx="7.5" />
+      </g>
+      <g fill="#CEC9C0" opacity=".94">
+        <path d="M237 355c-18-2-33-10-45-24 15-13 33-17 50-10 2 12 1 23-5 34Z" />
+        <path d="M267 346c-14-13-19-29-16-46 18 2 31 12 35 29-4 7-9 12-19 17Z" />
+        <path d="M292 360c-18 0-33-6-45-19 15-14 32-18 48-12 3 10 2 20-3 31Z" />
+      </g>
+      <path d="M323 420c8-35 35-58 76-60 1 39-13 70-47 86-12 6-20 2-29-26Z" fill="#007A4D" />
+      <path d="M323 420c16-11 28-23 39-39 9-13 20-24 37-35" stroke="#176241" stroke-linecap="round" stroke-width="3" />
+      <path d="M356 384c10 1 21 .5 31-2" stroke="#176241" stroke-linecap="round" stroke-width="2.2" opacity=".84" />
+      <path d="M347 404c12 1 23 0 34-4" stroke="#176241" stroke-linecap="round" stroke-width="2.2" opacity=".84" />
+      <path d="M373 423c9-15 22-24 39-27-2 16-11 27-26 34-6 3-10 1-13-7Z" fill="#DCD7CF" opacity=".95" />
+    </g>
+  </g>
+</svg>

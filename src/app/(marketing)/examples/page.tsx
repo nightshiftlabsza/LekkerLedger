@@ -146,7 +146,12 @@ export default function ExamplesPage() {
 
                             <div className="flex justify-between items-start mb-12 border-b-2 border-[var(--primary)] pb-6 relative z-10">
                                 <div>
-                                    <Logo showText={true} className="mb-2" textClassName="text-2xl" />
+                                    <Logo
+                                        showText={true}
+                                        className="mb-2 gap-2.5"
+                                        iconClassName="h-11 w-11"
+                                        textClassName="text-[1.65rem]"
+                                    />
                                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] ml-1">
                                         Example only - household payroll record
                                     </p>
@@ -272,9 +277,9 @@ export default function ExamplesPage() {
 
                         <section className="p-8 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] space-y-6">
                             <div>
-                                <h3 className="text-xl font-bold font-serif">Need high-volume?</h3>
+                                <h3 className="text-xl font-bold font-serif">Need deeper control?</h3>
                                 <p className="text-sm text-[var(--text-muted)] mt-2 leading-relaxed">
-                                    Pro supports unlimited employees, a deeper archive, and multi-household workflows for bookkeepers or families managing more than one home.
+                                    Pro adds deeper archive history, leave and loan tracking, and more control over long-running records. It also supports unlimited employees and multi-household workflows if your setup grows beyond one home.
                                 </p>
                             </div>
                             <Link href="/onboarding" className="block">

@@ -11,7 +11,9 @@ import {
     EmployerSettingsSchema,
     PayPeriod,
     DocumentMeta,
+    DocumentMetaSchema,
     Contract,
+    ContractSchema,
     AuditLog,
     Household,
     HouseholdSchema,
@@ -24,14 +26,15 @@ const settingsStore = localforage.createInstance({ name: "LekkerLedger", storeNa
 const auditStore = localforage.createInstance({ name: "LekkerLedger", storeName: "audit_logs" });
 const payPeriodStore = localforage.createInstance({ name: "LekkerLedger", storeName: "pay_periods" });
 const documentStore = localforage.createInstance({ name: "LekkerLedger", storeName: "documents" });
+const documentFileStore = localforage.createInstance({ name: "LekkerLedger", storeName: "document_files" });
 const contractStore = localforage.createInstance({ name: "LekkerLedger", storeName: "contracts" });
 const householdStore = localforage.createInstance({ name: "LekkerLedger", storeName: "households" });
 
 export const FREE_PAYSLIP_LIMIT = 2;
 export const DEFAULT_HOUSEHOLD_ID = "default";
 const DEFAULT_HOUSEHOLD_NAME = "Main household";
-const BACKUP_SCHEMA_VERSION = "2.2";
-const SUPPORTED_BACKUP_VERSIONS = new Set(["1.0", "2.0", "2.1", "2.2", 1, 2]);
+const BACKUP_SCHEMA_VERSION = "2.3";
+const SUPPORTED_BACKUP_VERSIONS = new Set(["1.0", "2.0", "2.1", "2.2", "2.3", 1, 2]);
 const SECURE_TIME_CACHE_MS = 5 * 60 * 1000;
 const HOUSEHOLD_SETTINGS_KEY_PREFIX = "employer-settings::";
 
@@ -53,6 +56,12 @@ const BackupHouseholdSettingsSchema = z.object({
     settings: HouseholdScopedSettingsSchema.default({}),
 });
 
+const BackupUploadedDocumentSchema = z.object({
+    id: z.string(),
+    mimeType: z.string(),
+    base64: z.string(),
+});
+
 const BackupPayloadSchema = z.object({
     version: z.union([z.string(), z.number()]).optional(),
     timestamp: z.string().optional(),
@@ -61,8 +70,27 @@ const BackupPayloadSchema = z.object({
     employees: z.array(EmployeeSchema).default([]),
     payslips: z.array(PayslipInputSchema).default([]),
     leave: z.array(LeaveRecordSchema).default([]),
+    documents: z.array(DocumentMetaSchema).default([]),
+    contracts: z.array(ContractSchema).default([]),
+    uploadedDocuments: z.array(BackupUploadedDocumentSchema).default([]),
     settings: EmployerSettingsSchema.partial().default({}),
 });
+
+async function blobToBase64(blob: Blob): Promise<string> {
+    const arrayBuffer = await blob.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = "";
+    bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+    });
+    return btoa(binary);
+}
+
+function base64ToBlob(base64: string, mimeType: string): Blob {
+    const binary = atob(base64);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    return new Blob([bytes], { type: mimeType });
+}
 function normalizeLegacyPlanId(status: EmployerSettings["proStatus"] | undefined): EmployerSettings["proStatus"] {
     if (status === "annual") return "standard";
     if (status === "lifetime") return "pro";
@@ -620,6 +648,9 @@ export async function exportData(): Promise<string> {
         employees: unknown[];
         payslips: unknown[];
         leave: unknown[];
+        documents: unknown[];
+        contracts: unknown[];
+        uploadedDocuments: { id: string; mimeType: string; base64: string }[];
         settings: unknown;
     } = {
         version: BACKUP_SCHEMA_VERSION,
@@ -629,12 +660,28 @@ export async function exportData(): Promise<string> {
         employees: [],
         payslips: [],
         leave: [],
+        documents: [],
+        contracts: [],
+        uploadedDocuments: [],
         settings: {},
     };
 
     await employeeStore.iterate((value) => { data.employees.push(decodeData(value)); });
     await payslipStore.iterate((value) => { data.payslips.push(decodeData(value)); });
     await leaveStore.iterate((value) => { data.leave.push(decodeData(value)); });
+    await documentStore.iterate((value) => { data.documents.push(decodeData(value)); });
+    await contractStore.iterate((value) => { data.contracts.push(decodeData(value)); });
+
+    for (const document of data.documents as DocumentMeta[]) {
+        if (document.source !== "uploaded") continue;
+        const blob = await documentFileStore.getItem<Blob>(document.id);
+        if (!blob) continue;
+        data.uploadedDocuments.push({
+            id: document.id,
+            mimeType: blob.type || document.mimeType || "application/octet-stream",
+            base64: await blobToBase64(blob),
+        });
+    }
 
     const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
     if (rawSettings) {
@@ -688,6 +735,11 @@ export async function importData(json: string): Promise<{ success: boolean; erro
         await Promise.all(parsed.data.employees.map(async (employee) => employeeStore.setItem(employee.id, await encodeData(employee))));
         await Promise.all(parsed.data.payslips.map(async (payslip) => payslipStore.setItem(payslip.id, await encodeData(payslip))));
         await Promise.all(parsed.data.leave.map(async (record) => leaveStore.setItem(record.id, await encodeData(record))));
+        await Promise.all(parsed.data.documents.map(async (document) => documentStore.setItem(document.id, await encodeData(document))));
+        await Promise.all(parsed.data.contracts.map(async (contract) => contractStore.setItem(contract.id, await encodeData(contract))));
+        await Promise.all(parsed.data.uploadedDocuments.map(async (document) =>
+            documentFileStore.setItem(document.id, base64ToBlob(document.base64, document.mimeType))
+        ));
 
         const importedGlobalSettings = buildDefaultSettings(stripHouseholdScopedSettings(parsed.data.settings as EmployerSettings));
         await settingsStore.setItem(SETTINGS_KEY, importedGlobalSettings);
@@ -714,6 +766,8 @@ export async function importData(json: string): Promise<{ success: boolean; erro
             employees: parsed.data.employees.length,
             payslips: parsed.data.payslips.length,
             leaveRecords: parsed.data.leave.length,
+            documents: parsed.data.documents.length,
+            contracts: parsed.data.contracts.length,
         });
         return { success: true };
     } catch {
@@ -732,6 +786,7 @@ export async function resetAllData(): Promise<void> {
         settingsStore.clear(),
         payPeriodStore.clear(),
         documentStore.clear(),
+        documentFileStore.clear(),
         contractStore.clear(),
         householdStore.clear(),
     ]);
@@ -836,7 +891,17 @@ export async function saveDocumentMeta(doc: DocumentMeta): Promise<void> {
 
 export async function deleteDocumentMeta(id: string): Promise<void> {
     await documentStore.removeItem(id);
+    await documentFileStore.removeItem(id);
     await notifyListeners();
+}
+
+export async function saveDocumentFile(id: string, file: Blob): Promise<void> {
+    await documentFileStore.setItem(id, file);
+}
+
+export async function getDocumentFile(id: string): Promise<Blob | null> {
+    const file = await documentFileStore.getItem<Blob>(id);
+    return file ?? null;
 }
 
 export async function getContracts(): Promise<Contract[]> {

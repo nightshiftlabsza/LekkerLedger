@@ -15,7 +15,7 @@ const FAQ_ITEMS: FaqItem[] = [
     },
     {
         question: "Where is my data stored?",
-        answer: "Your employee data stays on your device by default. If you sign in with Google, you can optionally sync to your own Google Drive. LekkerLedger does not maintain a central employee database.",
+        answer: "Your employee data stays on your device by default. If you connect Google on a paid plan, a backup is stored in your own Google Drive app data area so you can restore it on another browser or device. LekkerLedger does not maintain a central employee database and your payroll records stay private from us.",
     },
     {
         question: "Is this legal advice?",
@@ -31,7 +31,7 @@ const FAQ_ITEMS: FaqItem[] = [
     },
     {
         question: "Which plan supports more than one household?",
-        answer: "Pro is the multi-household tier. It's designed for families, bookkeepers, or anyone managing payroll admin across more than one home.",
+        answer: "Pro is the tier with multi-household support, but it is not only for multiple homes. It also suits a single household that wants deeper archive history, richer admin tracking, and more record control.",
     },
     {
         question: "How long should I keep payslip records?",
