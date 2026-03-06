@@ -10,6 +10,12 @@ function buildPdfFile(pdfBytes: Uint8Array, fileName: string): File {
     return new File([pdfBytes.slice(0)], fileName, { type: "application/pdf" });
 }
 
+function openWhatsAppChat(phone?: string): void {
+    const intlPhone = normalisePhone(phone || "");
+    const base = intlPhone ? `https://wa.me/${intlPhone}` : "https://web.whatsapp.com/";
+    window.open(base, "_blank", "noopener,noreferrer");
+}
+
 export function downloadPdf(pdfBytes: Uint8Array, fileName: string): void {
     const blob = new Blob([pdfBytes.slice(0)], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
@@ -53,10 +59,7 @@ export async function sharePdfFile(
     downloadPdf(pdfBytes, fileName);
 
     if (channel === "whatsapp") {
-        const intlPhone = normalisePhone(options.employeePhone || "");
-        const message = encodeURIComponent(options.text);
-        const base = intlPhone ? `https://wa.me/${intlPhone}` : "https://wa.me/";
-        window.open(`${base}?text=${message}`, "_blank", "noopener,noreferrer");
+        openWhatsAppChat(options.employeePhone);
     }
 
     if (channel === "email") {

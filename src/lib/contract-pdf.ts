@@ -89,7 +89,7 @@ function addPage(pdfDoc: PDFDocument, fonts: PdfFonts) {
     drawPdfBrandLockup(page, {
         x: MARGIN,
         y: PAGE_H - 60,
-        size: 30,
+        size: 24,
         serifBold: fonts.serifBold,
         sansBold: fonts.sansBold,
         subtitle: "HOUSEHOLD EMPLOYMENT RECORD",
@@ -97,10 +97,10 @@ function addPage(pdfDoc: PDFDocument, fonts: PdfFonts) {
     page.drawLine({
         start: { x: MARGIN, y: PAGE_H - 90 },
         end: { x: PAGE_W - MARGIN, y: PAGE_H - 90 },
-        thickness: 1.5,
-        color: PDF_COLORS.PRIMARY_GREEN,
+        thickness: 1,
+        color: PDF_COLORS.BORDER,
     });
-    const footerText = "Generated with LekkerLedger from your saved details. Review before signing.";
+    const footerText = "Prepared from your saved details. Review, update if needed, and keep the signed copy with your records.";
     page.drawLine({
         start: { x: MARGIN, y: 38 },
         end: { x: PAGE_W - MARGIN, y: 38 },
@@ -124,27 +124,18 @@ type PdfFonts = {
 };
 
 function drawSection(page: PDFPage, fonts: PdfFonts, title: string, y: number) {
-    page.drawRectangle({
-        x: MARGIN,
-        y: y - 6,
-        width: BODY_W,
-        height: 20,
-        color: PDF_COLORS.SURFACE,
-        borderColor: PDF_COLORS.BORDER,
-        borderWidth: 0.5,
-    });
-    page.drawLine({
-        start: { x: MARGIN, y: y + 14 },
-        end: { x: MARGIN, y: y - 6 },
-        thickness: 3,
-        color: PDF_COLORS.PRIMARY_GREEN,
-    });
     page.drawText(title, {
-        x: MARGIN + 10,
-        y: y + 4,
+        x: MARGIN,
+        y,
         size: 9,
         font: fonts.sansBold,
-        color: PDF_COLORS.TEXT,
+        color: PDF_COLORS.TEXT_MUTED,
+    });
+    page.drawLine({
+        start: { x: MARGIN, y: y - 6 },
+        end: { x: PAGE_W - MARGIN, y: y - 6 },
+        thickness: 0.5,
+        color: PDF_COLORS.BORDER,
     });
 }
 
@@ -228,9 +219,9 @@ export async function generateEmploymentContract(
     pageOne.drawText("EMPLOYMENT CONTRACT DRAFT", {
         x: PAGE_W - MARGIN - fonts.serifBold.widthOfTextAtSize("EMPLOYMENT CONTRACT DRAFT", 18),
         y: PAGE_H - 60,
-        size: 18,
+        size: 16,
         font: fonts.serifBold,
-        color: PDF_COLORS.PRIMARY_GREEN,
+        color: PDF_COLORS.TEXT,
     });
     const subtitle = "Based on the domestic-worker sample structure from the Department of Employment and Labour";
     pageOne.drawText(subtitle, {
@@ -254,13 +245,13 @@ export async function generateEmploymentContract(
         width: BODY_W,
         height: 30,
         color: PDF_COLORS.SURFACE,
-        borderColor: PDF_COLORS.FOCUS_GOLD,
-        borderWidth: 0.8,
+        borderColor: PDF_COLORS.BORDER,
+        borderWidth: 0.6,
     });
     drawParagraph(
         pageOne,
         fonts,
-        "Draft only. Review the wording with the employee and, if possible, a South African labour lawyer before signing.",
+        "Draft for review. Confirm that the pay, hours, duties, leave, and signatures match the real arrangement before signing.",
         PAGE_H - 142,
         BODY_W - 16,
     );
@@ -314,9 +305,9 @@ export async function generateEmploymentContract(
     pageTwo.drawText("EMPLOYMENT TERMS", {
         x: PAGE_W - MARGIN - fonts.serifBold.widthOfTextAtSize("EMPLOYMENT TERMS", 18),
         y: PAGE_H - 60,
-        size: 18,
+        size: 16,
         font: fonts.serifBold,
-        color: PDF_COLORS.PRIMARY_GREEN,
+        color: PDF_COLORS.TEXT,
     });
 
     cy = PAGE_H - 120;
@@ -370,7 +361,7 @@ export async function generateEmploymentContract(
     drawParagraph(
         pageTwo,
         fonts,
-        "LekkerLedger provides this as a drafting aid, not as legal advice or a guarantee that the wording is correct for every household.",
+        "This document is a drafting aid based on the details saved in LekkerLedger. Review it carefully before relying on it.",
         cy,
         BODY_W - 16,
     );

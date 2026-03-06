@@ -26,6 +26,10 @@ import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
 import { getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
 import { PLANS, PlanConfig } from "../../../../config/plans";
 
+function openWhatsAppDesktop(): void {
+    window.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
+}
+
 export default function PayPeriodWorkspacePage() {
     const params = useParams();
     const periodId = params.periodId as string;
@@ -248,7 +252,7 @@ export default function PayPeriodWorkspacePage() {
                 window.location.href = `mailto:?subject=${encodeURIComponent(`${period?.name} payslips`)}&body=${encodeURIComponent("Your payslip PDFs have been downloaded. Attach them from your Downloads folder before sending.")}`;
                 toast("Payslips downloaded. Attach them from Downloads in your email app.", "info");
             } else {
-                window.open(`https://wa.me/?text=${encodeURIComponent("The payslips have been downloaded on this device. Attach them from your Downloads folder in WhatsApp.")}`, "_blank", "noopener,noreferrer");
+                openWhatsAppDesktop();
                 toast("Payslips downloaded. Attach them from Downloads in WhatsApp.", "info");
             }
         } catch (error) {

@@ -93,6 +93,7 @@ const forbiddenSnippets = [
   "BCEA COMPLIANCE SUMMARY",
   "Compliance Engine",
   "BCEA/SD7",
+  "Civic Ledger Design",
 ];
 
 function decodePdf(bytes: Uint8Array) {

@@ -66,13 +66,13 @@ export async function generateRoePayrollPdfBytes(
         drawPdfBrandLockup(page, {
             x: PDF_MARGIN,
             y: pageState.y,
-            size: 30,
+            size: 24,
             serifBold,
             sansBold,
             subtitle: "COMPENSATION FUND RECORDS",
             titleSize: 20,
         });
-        t(page, "DETAILED PAYROLL RECORD", PDF_MARGIN + 42, pageState.y - 18, { font: sansBold, size: 9, color: PDF_COLORS.PRIMARY_GREEN, maxWidth: width / 2 });
+        t(page, "Detailed payroll record", PDF_MARGIN + 34, pageState.y - 18, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED, maxWidth: width / 2 });
         t(page, `Assessment Year: ${roeData.startDate.getFullYear()}/${roeData.endDate.getFullYear()}`, width - PDF_MARGIN, pageState.y, { align: "right", font: sansBold });
 
         pageState.y -= 50;
@@ -127,12 +127,12 @@ export async function generateRoePayrollPdfBytes(
     drawLine(pageState.page, pageState.y);
     pageState.y -= 20;
     const totalPageWidth = pageState.page.getSize().width;
-    t(pageState.page, "REPORT TOTALS", PDF_MARGIN, pageState.y, { font: sansBold, size: 10 });
-    t(pageState.page, formatCurrency(roeData.actualEarnings), totalPageWidth - PDF_MARGIN, pageState.y, { font: serifBold, size: 14, align: "right", color: PDF_COLORS.PRIMARY_GREEN });
+    t(pageState.page, "Report totals", PDF_MARGIN, pageState.y, { font: sansBold, size: 10, color: PDF_COLORS.TEXT_MUTED });
+    t(pageState.page, formatCurrency(roeData.actualEarnings), totalPageWidth - PDF_MARGIN, pageState.y, { font: serifBold, size: 13, align: "right", color: PDF_COLORS.TEXT });
     t(pageState.page, "Total declared earnings (capped)", totalPageWidth - PDF_MARGIN, pageState.y - 12, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
     t(pageState.page, `Generated: ${format(new Date(), "yyyy-MM-dd HH:mm XXX")}`, PDF_MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED });
-    t(pageState.page, "Generated with LekkerLedger from your saved records", totalPageWidth - PDF_MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    t(pageState.page, "Prepared from your saved records. Review before filing or sharing.", totalPageWidth - PDF_MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
     return pdfDoc.save();
 }
@@ -162,7 +162,7 @@ export async function generateEmployerConfirmationPdfBytes(
     drawPdfBrandLockup(page, {
         x: PDF_MARGIN,
         y: height - 60,
-        size: 30,
+        size: 24,
         serifBold,
         sansBold,
         subtitle: "COMPENSATION FUND RECORDS",
@@ -170,7 +170,7 @@ export async function generateEmployerConfirmationPdfBytes(
     });
 
     let currentY = height - 100;
-    t("EMPLOYER DETAILS RECORD", width / 2, currentY, { font: serifBold, size: 16, align: "center", color: PDF_COLORS.PRIMARY_GREEN, maxWidth: width - (PDF_MARGIN * 2) });
+    t("EMPLOYER DETAILS RECORD", width / 2, currentY, { font: serifBold, size: 15, align: "center", color: PDF_COLORS.TEXT, maxWidth: width - (PDF_MARGIN * 2) });
 
     currentY -= 60;
     const drawField = (label: string, value: string) => {
@@ -188,13 +188,13 @@ export async function generateEmployerConfirmationPdfBytes(
 
     t("REVIEW NOTE", PDF_MARGIN, currentY, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
     currentY -= 15;
-    t("Review these details before using them in your Return of Earnings (ROE) submission or when preparing a scanned supporting copy.", PDF_MARGIN, currentY, { size: 9, maxWidth: width - (PDF_MARGIN * 2) });
+    t("Review these details before using them in a Return of Earnings submission or as a supporting copy.", PDF_MARGIN, currentY, { size: 9, maxWidth: width - (PDF_MARGIN * 2) });
 
     currentY -= 60;
     page.drawLine({ start: { x: PDF_MARGIN, y: currentY }, end: { x: PDF_MARGIN + 200, y: currentY }, thickness: 1, color: PDF_COLORS.TEXT });
     t("Signature", PDF_MARGIN, currentY - 10, { size: 7 });
     t(`Date: ${format(new Date(), "yyyy-MM-dd XXX")}`, width - PDF_MARGIN, currentY, { align: "right" });
-    t("Generated with LekkerLedger from your saved employer details", width - PDF_MARGIN, 40, { align: "right", size: 7, color: PDF_COLORS.TEXT_MUTED });
+    t("Prepared from your saved employer details. Review before filing or sharing.", width - PDF_MARGIN, 40, { align: "right", size: 7, color: PDF_COLORS.TEXT_MUTED });
 
     return pdfDoc.save();
 }

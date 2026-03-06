@@ -1,4 +1,4 @@
-import { render, act } from "@testing-library/react";
+import { render, act, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import Page from "@/app/(marketing)/page";
 
@@ -7,11 +7,15 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Home page", () => {
-    it("renders without crashing", async () => {
+    it("renders the calmer homepage flow", async () => {
         await act(async () => {
             render(<Page />);
         });
-        expect(document.body).toBeTruthy();
+        expect(screen.getByRole("heading", { name: /one calm place to run household payroll/i })).toBeTruthy();
+        expect(screen.getAllByRole("link", { name: /start free/i }).length).toBeGreaterThan(0);
+        expect(screen.getByRole("heading", { name: /a shorter path from monthly payroll to annual paperwork/i })).toBeTruthy();
+        expect(screen.getByRole("heading", { name: /enough pricing to choose a direction/i })).toBeTruthy();
+        expect(screen.getByRole("heading", { name: /short answers to the main signup questions/i })).toBeTruthy();
     });
 });
 

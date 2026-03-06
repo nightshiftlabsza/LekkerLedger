@@ -27,7 +27,7 @@ export async function generateCertificateOfService(
     drawPdfBrandLockup(page, {
         x: MARGIN,
         y: PAGE_H - 60,
-        size: 30,
+        size: 24,
         serifBold,
         sansBold,
         subtitle: "HOUSEHOLD EMPLOYMENT RECORD",
@@ -36,9 +36,9 @@ export async function generateCertificateOfService(
     page.drawText("CERTIFICATE OF SERVICE", {
         x: PAGE_W - MARGIN - serifBold.widthOfTextAtSize("CERTIFICATE OF SERVICE", 18),
         y: PAGE_H - 60,
-        size: 18,
+        size: 16,
         font: serifBold,
-        color: PDF_COLORS.PRIMARY_GREEN,
+        color: PDF_COLORS.TEXT,
     });
 
     page.drawText("(Section 42 of the Basic Conditions of Employment Act)", {
@@ -50,13 +50,12 @@ export async function generateCertificateOfService(
     });
 
     // Header Rule (Ledger style)
-    page.drawLine({ start: { x: MARGIN, y: PAGE_H - 90 }, end: { x: PAGE_W - MARGIN, y: PAGE_H - 90 }, thickness: 1.5, color: PDF_COLORS.PRIMARY_GREEN });
+    page.drawLine({ start: { x: MARGIN, y: PAGE_H - 90 }, end: { x: PAGE_W - MARGIN, y: PAGE_H - 90 }, thickness: 1, color: PDF_COLORS.BORDER });
 
     // Sections
     function section(title: string, y: number) {
-        page.drawRectangle({ x: MARGIN, y: y - 6, width: PAGE_W - MARGIN * 2, height: 20, color: PDF_COLORS.SURFACE, borderColor: PDF_COLORS.BORDER, borderWidth: 0.5 });
-        page.drawLine({ start: { x: MARGIN, y: y + 14 }, end: { x: MARGIN, y: y - 6 }, thickness: 3, color: PDF_COLORS.PRIMARY_GREEN });
-        page.drawText(title.toUpperCase(), { x: MARGIN + 10, y: y + 4, size: 9, font: sansBold, color: PDF_COLORS.TEXT });
+        page.drawText(title.toUpperCase(), { x: MARGIN, y, size: 9, font: sansBold, color: PDF_COLORS.TEXT_MUTED });
+        page.drawLine({ start: { x: MARGIN, y: y - 6 }, end: { x: PAGE_W - MARGIN, y: y - 6 }, thickness: 0.5, color: PDF_COLORS.BORDER });
     }
 
     function row(label: string, value: string, y: number) {
@@ -102,7 +101,7 @@ export async function generateCertificateOfService(
     cy -= 45;
     page.drawText("Description of Work Performed:", { x: MARGIN, y: cy, size: 9, font: sansBold, color: PDF_COLORS.TEXT_MUTED });
     cy -= 18;
-    const text = `The employee was employed as a ${employee.role}. All duties per the employment agreement were performed to satisfaction.`;
+    const text = `This certificate records that the employee worked as ${employee.role || "an employee"} during the period shown above.`;
     page.drawText(text, { x: MARGIN, y: cy, size: 9, font: sansRegular, color: PDF_COLORS.TEXT, maxWidth: PAGE_W - MARGIN * 2 });
 
     // Signatures
@@ -126,21 +125,14 @@ export async function generateCertificateOfService(
         borderWidth: 0.5,
     });
     page.drawText(
-        "Keep the signed copy with the employee's records. Review the details before issuing it.",
+        "Review the details before issuing this certificate and keep a signed copy with the employee's records.",
         { x: MARGIN + 10, y: 191, size: 8, font: sansRegular, color: PDF_COLORS.TEXT_MUTED, maxWidth: PAGE_W - MARGIN * 2 - 20 },
     );
 
     // Footer
     page.drawLine({ start: { x: MARGIN, y: 38 }, end: { x: PAGE_W - MARGIN, y: 38 }, thickness: 0.5, color: PDF_COLORS.BORDER });
-    const footerText = "Generated with LekkerLedger from your saved details.";
+    const footerText = "Prepared from your saved details. Review before issuing and keep the final copy with your records.";
     page.drawText(footerText, { x: PAGE_W / 2 - sansRegular.widthOfTextAtSize(footerText, 7) / 2, y: 25, size: 7, font: sansRegular, color: PDF_COLORS.TEXT_MUTED });
-
-    // ── Compliance Seal ──
-    const sealX = PAGE_W / 2;
-    const sealY = 95;
-    page.drawCircle({ x: sealX, y: sealY, size: 28, color: PDF_COLORS.SURFACE, borderColor: PDF_COLORS.FOCUS_GOLD, borderWidth: 1.5 });
-    page.drawText("BCEA", { x: sealX - sansBold.widthOfTextAtSize("BCEA", 7) / 2, y: sealY + 5, size: 7, font: sansBold, color: PDF_COLORS.FOCUS_GOLD });
-    page.drawText("SEC 42", { x: sealX - sansRegular.widthOfTextAtSize("SEC 42", 6) / 2, y: sealY - 5, size: 6, font: sansRegular, color: PDF_COLORS.TEXT_MUTED });
 
     return pdfDoc.save();
 }

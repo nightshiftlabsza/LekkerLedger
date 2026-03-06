@@ -29,7 +29,7 @@ type SupportLang = "en" | "zu" | "xh";
 const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
     en: {
         payslip: "PAYSLIP",
-        netPayable: "NET PAYABLE",
+        netPayable: "NET AMOUNT PAID",
         employee: "EMPLOYEE",
         employer: "EMPLOYER",
         payPeriod: "PAY PERIOD",
@@ -51,20 +51,20 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         uifEmployer: "UIF Employer (1%)",
         sdlEmployer: "SDL Employer (0%)",
         exempt: "Exempt",
-        leaveRecorded: "Leave Recorded",
+        leaveRecorded: "Leave taken in this period",
         annual: "Annual",
         sick: "Sick",
         family: "Family",
-        legalDisclaimer: "Generated per Sectoral Determination 7 and the BCEA.",
+        legalDisclaimer: "Prepared from payroll information entered by the employer. Review against official requirements where needed.",
         minWage: "Min Wage",
-        proudlySA: "Household Payroll Record",
+        proudlySA: "",
         legal: "RECORD",
         compliant: "REVIEW",
         bcea_sd7: "PAYROLL"
     },
     zu: {
         payslip: "ISILIPHU SEHOLO",
-        netPayable: "IMALO ETHOLAKALAYO",
+        netPayable: "IMALI EKHOKHIWEYO",
         employee: "UMSEBENZI",
         employer: "UMQASHI",
         payPeriod: "ISIKHATHI SOKUHOLA",
@@ -86,20 +86,20 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         uifEmployer: "I-UIF Yomqashi (1%)",
         sdlEmployer: "I-SDL Yomqashi (0%)",
         exempt: "Ikhululiwe",
-        leaveRecorded: "Ikhefu Elirekhodiwe",
+        leaveRecorded: "Ikhefu kule nkathi",
         annual: "Lonyaka",
         sick: "Lokugula",
         family: "Lomndeni",
         legalDisclaimer: "SENZIWE ngokuhambisana ne-Sectoral Determination 7 kanye ne-BCEA.",
         minWage: "Iholo elincane",
-        proudlySA: "Kwenziwe eNingizimu Afrika",
+        proudlySA: "",
         legal: "KUMTHETHO",
         compliant: "KUYAHHAMBISANA",
         bcea_sd7: "PAYROLL"
     },
     xh: {
         payslip: "ISILIPHU SOMVUZO",
-        netPayable: "IMALI EPHUMAYO",
+        netPayable: "IMALI EHLAWULIWEYO",
         employee: "UMSEBENZI",
         employer: "UMQASHI",
         payPeriod: "IXESHA LOMVUZO",
@@ -121,13 +121,13 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         uifEmployer: "I-UIF yoMqashi (1%)",
         sdlEmployer: "I-SDL yoMqashi (0%)",
         exempt: "Ikhululwe",
-        leaveRecorded: "Ikhefu Elibhalisiweyo",
+        leaveRecorded: "Ikhefu kweli xesha",
         annual: "Yonyaka",
         sick: "Yokugula",
         family: "Yosapho",
         legalDisclaimer: "SENZIWE ngokungqinelana neSectoral Determination 7 kunye neBCEA.",
         minWage: "Umvuzo ophantsi",
-        proudlySA: "Yenziwe eMzantsi Afrika",
+        proudlySA: "",
         legal: "KUSEMthethweni",
         compliant: "IYAQHUBEKA",
         bcea_sd7: "PAYROLL"
@@ -219,63 +219,51 @@ export async function generatePayslipPdfBytes(
     drawPdfBrandLockup(page, {
         x: PDF_MARGIN,
         y: headerY,
-        size: 30,
+        size: 23,
         serifBold,
         sansBold,
-        subtitle: dict.proudlySA.toUpperCase(),
+        subtitle: dict.proudlySA ? dict.proudlySA.toUpperCase() : undefined,
+        titleSize: 16,
     });
 
     // Document Title
-    t(dict.payslip, width - PDF_MARGIN, headerY, { font: serifBold, size: 18, color: PDF_COLORS.PRIMARY_GREEN, align: "right" });
-    t(format(payslip.payPeriodEnd, "MMMM yyyy").toUpperCase(), width - PDF_MARGIN, headerY - 14, { font: sansBold, size: 9, color: PDF_COLORS.TEXT, align: "right" });
+    t(dict.payslip, width - PDF_MARGIN, headerY, { font: serifBold, size: 15, color: PDF_COLORS.TEXT, align: "right" });
+    t(format(payslip.payPeriodEnd, "MMMM yyyy").toUpperCase(), width - PDF_MARGIN, headerY - 13, { font: sansBold, size: 8.5, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
     // Header Rules (Official look)
-    drawLine(headerY - 30, PDF_MARGIN, width - PDF_MARGIN, 1.5, PDF_COLORS.PRIMARY_GREEN);
+    drawLine(headerY - 28, PDF_MARGIN, width - PDF_MARGIN, 1, PDF_COLORS.BORDER);
 
     // ── Parties Section (Ledger Card Motif) ──────────────────────────────────
     let cy = headerY - 60;
-
-    // Card Surface
-    const cardH = 80;
-    page.drawRectangle({
-        x: PDF_MARGIN,
-        y: cy - cardH,
-        width: width - (PDF_MARGIN * 2),
-        height: cardH,
-        color: PDF_COLORS.SURFACE,
-        borderColor: PDF_COLORS.BORDER,
-        borderWidth: 0.5
-    });
-
-    // Ledger Motif: Subtle ruling lines inside the card
-    for (let ly = cy - 20; ly > cy - cardH; ly -= 20) {
-        page.drawLine({
-            start: { x: PDF_MARGIN + 5, y: ly },
-            end: { x: width - PDF_MARGIN - 5, y: ly },
-            thickness: 0.2,
-            color: PDF_COLORS.RULING_LINE
-        });
-    }
+    const infoBottomY = cy - 52;
+    const employerX = PDF_MARGIN;
+    const employeeX = PDF_MARGIN + 220;
+    const periodX = width - PDF_MARGIN;
 
     // Employer Details
-    t(dict.employer, PDF_MARGIN + 10, cy - 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
-    t(settings.employerName || "Employer Name", PDF_MARGIN + 10, cy - 30, { font: sansBold, size: 10, maxWidth: 220 });
-    t(settings.employerAddress || "Address", PDF_MARGIN + 10, cy - 42, { font: sansRegular, size: 7.5, color: PDF_COLORS.TEXT_MUTED, maxWidth: 220 });
+    t(dict.employer, employerX, cy - 2, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
+    t(settings.employerName || "Employer Name", employerX, cy - 18, { font: sansBold, size: 10, maxWidth: 180 });
+    if (settings.employerAddress?.trim()) {
+        t(settings.employerAddress, employerX, cy - 31, { font: sansRegular, size: 7.5, color: PDF_COLORS.TEXT_MUTED, maxWidth: 180 });
+    }
 
     // Employee Details
-    t(dict.employee, width / 2, cy - 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
-    t(employee.name || "Employee Name", width / 2, cy - 30, { font: sansBold, size: 10 });
-    t(employee.role || "Domestic Worker", width / 2, cy - 42, { font: sansRegular, size: 8, color: PDF_COLORS.TEXT_MUTED });
+    t(dict.employee, employeeX, cy - 2, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
+    t(employee.name || "Employee Name", employeeX, cy - 18, { font: sansBold, size: 10, maxWidth: 150 });
+    if (employee.role?.trim()) {
+        t(employee.role, employeeX, cy - 31, { font: sansRegular, size: 8, color: PDF_COLORS.TEXT_MUTED, maxWidth: 150 });
+    }
 
     // Period Details
-    t(dict.payPeriod, width - PDF_MARGIN - 10, cy - 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    t(dict.payPeriod, periodX, cy - 2, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
     const pStart = payslip.payPeriodStart ? new Date(payslip.payPeriodStart) : new Date();
     const pEnd = payslip.payPeriodEnd ? new Date(payslip.payPeriodEnd) : new Date();
     const periodStr = `${format(pStart, "dd MMM")} – ${format(pEnd, "dd MMM yyyy")}`;
-    t(periodStr, width - PDF_MARGIN - 10, cy - 30, { font: sansRegular, size: 9, align: "right" });
-    t(`${dict.daysWorked}: ${payslip.daysWorked || 0}`, width - PDF_MARGIN - 10, cy - 42, { font: sansRegular, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    t(periodStr, periodX, cy - 18, { font: sansRegular, size: 9, align: "right" });
+    t(`${dict.daysWorked}: ${payslip.daysWorked || 0} days`, periodX, cy - 31, { font: sansRegular, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    drawLine(infoBottomY);
 
-    cy -= (cardH + 30);
+    cy = infoBottomY - 22;
 
     // ── Earnings Table ───────────────────────────────────────────────────────
     t(dict.description, PDF_MARGIN, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
@@ -333,19 +321,27 @@ export async function generatePayslipPdfBytes(
     t(dict.totalDeductions, PDF_MARGIN, cy, { font: sansBold, size: 9, color: PDF_COLORS.TEXT_MUTED });
     t(`R ${breakdown.deductions.total.toFixed(2)}`, width - PDF_MARGIN, cy, { font: sansBold, size: 9, align: "right" });
 
-    // ── Net Pay (Primary CTA Green Block) ────────────────────────────────────
-    cy -= 50;
-    const netPayH = 40;
+    // ── Net Pay Summary ───────────────────────────────────────────────────────
+    cy -= 44;
+    const netPayH = 34;
     page.drawRectangle({
         x: PDF_MARGIN,
-        y: cy + 5,
+        y: cy + 4,
         width: width - (PDF_MARGIN * 2),
         height: netPayH,
+        color: PDF_COLORS.SURFACE,
+        borderColor: PDF_COLORS.BORDER,
+        borderWidth: 0.8,
+    });
+    page.drawLine({
+        start: { x: PDF_MARGIN, y: cy + 4 },
+        end: { x: width - PDF_MARGIN, y: cy + 4 },
+        thickness: 1.1,
         color: PDF_COLORS.PRIMARY_GREEN,
     });
 
-    t(dict.netPayable, PDF_MARGIN + 16, cy + 18, { font: serifBold, size: 10, color: rgb(1, 1, 1) });
-    t(`R ${breakdown.netPay.toFixed(2)}`, width - PDF_MARGIN - 16, cy + 16, { font: serifBold, size: 16, color: rgb(1, 1, 1), align: "right" });
+    t(dict.netPayable, PDF_MARGIN + 14, cy + 16, { font: sansBold, size: 9, color: PDF_COLORS.TEXT });
+    t(`R ${breakdown.netPay.toFixed(2)}`, width - PDF_MARGIN - 14, cy + 15, { font: serifBold, size: 13, color: PDF_COLORS.TEXT, align: "right" });
 
     // ── Footer (Official Rules & Seal) ───────────────────────────────────────
     const footerY = 70;
@@ -354,8 +350,16 @@ export async function generatePayslipPdfBytes(
     t(dict.employerContributions, PDF_MARGIN, footerY + 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
     t(`${dict.uifEmployer}: R ${breakdown.employerContributions.uifEmployer.toFixed(2)} · ${dict.sdlEmployer}: R 0.00`, PDF_MARGIN, footerY + 5, { size: 7, color: PDF_COLORS.TEXT_MUTED });
 
-    const leaveText = `${dict.leaveRecorded}: ${dict.annual}: ${breakdown.leaveTaken.annual} d | ${dict.sick}: ${breakdown.leaveTaken.sick} d | ${dict.family}: ${breakdown.leaveTaken.family} d`;
-    t(leaveText, width - PDF_MARGIN, footerY + 15, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    const leaveItems = [
+        breakdown.leaveTaken.annual > 0 ? `${dict.annual}: ${breakdown.leaveTaken.annual} days` : null,
+        breakdown.leaveTaken.sick > 0 ? `${dict.sick}: ${breakdown.leaveTaken.sick} days` : null,
+        breakdown.leaveTaken.family > 0 ? `${dict.family}: ${breakdown.leaveTaken.family} days` : null,
+    ].filter(Boolean);
+
+    if (leaveItems.length > 0) {
+        const leaveText = `${dict.leaveRecorded}: ${leaveItems.join(" | ")}`;
+        t(leaveText, width - PDF_MARGIN, footerY + 15, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    }
 
     // metadata line
     const appVersion = "0.1.0"; // From package.json
@@ -365,7 +369,7 @@ export async function generatePayslipPdfBytes(
 
     const legalText = `${dict.legalDisclaimer} ${dict.minWage}: R${nmw.toFixed(2)}/hr.`;
     t(legalText, PDF_MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED });
-    t("LekkerLedger.app · Civic Ledger Design", width - PDF_MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
+    t("Generated by LekkerLedger", width - PDF_MARGIN, 40, { size: 7, color: PDF_COLORS.TEXT_MUTED, align: "right" });
 
     return pdfDoc.save();
 }
