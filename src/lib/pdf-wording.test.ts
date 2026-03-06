@@ -11,6 +11,7 @@ import type { RoeData } from "./coida/roe";
 
 const employee: Employee = {
   id: "11111111-1111-1111-1111-111111111111",
+  householdId: "default",
   name: "Nomsa Dlamini",
   idNumber: "8001010234081",
   role: "Domestic Worker",
@@ -33,6 +34,8 @@ const settings: EmployerSettings = {
   proStatus: "annual",
   paidUntil: undefined,
   trialExpiry: undefined,
+  billingCycle: "yearly",
+  activeHouseholdId: "default",
   logoData: undefined,
   defaultLanguage: "en",
   simpleMode: false,
@@ -47,6 +50,7 @@ const settings: EmployerSettings = {
 
 const payslip: PayslipInput = {
   id: "ps-1",
+  householdId: "default",
   employeeId: employee.id,
   payPeriodStart: new Date("2026-03-01"),
   payPeriodEnd: new Date("2026-03-31"),
