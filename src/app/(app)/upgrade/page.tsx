@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -18,6 +19,14 @@ const PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c";
 const PaystackHookWrapper = dynamic(() => import("@/components/paystack-wrapper"), { ssr: false });
 
 export default function UpgradePage() {
+    return (
+        <Suspense fallback={null}>
+            <UpgradePageContent />
+        </Suspense>
+    );
+}
+
+function UpgradePageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
