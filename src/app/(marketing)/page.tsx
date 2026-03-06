@@ -119,6 +119,7 @@ function MarketingHeader() {
 
 /* ─── 2. HERO ──────────────────────────────────────────────────────────────── */
 function Hero({ nmw }: { nmw: number }) {
+    const demoMonth = new Intl.DateTimeFormat("en-ZA", { month: "long", year: "numeric" }).format(new Date());
     return (
         <section className="relative overflow-hidden" style={{ backgroundColor: "var(--bg)" }}>
             {/* Background decoration */}
@@ -187,7 +188,7 @@ function Hero({ nmw }: { nmw: number }) {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Payslip</p>
-                                        <p className="text-lg font-black" style={{ color: "var(--text)" }}>March 2026</p>
+                                        <p className="text-lg font-black" style={{ color: "var(--text)" }}>{demoMonth}</p>
                                     </div>
                                     <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
                                         <FileText className="h-5 w-5 text-[var(--primary)]" />
@@ -220,8 +221,8 @@ function Hero({ nmw }: { nmw: number }) {
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[var(--accent-subtle)] text-[var(--primary)]">Structured payslip PDF</span>
-                                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[var(--accent-subtle)] text-[var(--primary)]">UIF calculation support</span>
+                                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[var(--accent-subtle)] text-[var(--primary)]">Sample layout</span>
+                                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[var(--accent-subtle)] text-[var(--primary)]">UIF Included</span>
                                 </div>
                             </div>
                         </div>
@@ -232,7 +233,7 @@ function Hero({ nmw }: { nmw: number }) {
                                 <ClipboardCheck className="h-4 w-4 text-[var(--primary)]" />
                                 <span className="text-xs font-bold" style={{ color: "var(--text)" }}>Contract ready</span>
                             </div>
-                            <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>Employment contract template</p>
+                            <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>BCEA-aligned template</p>
                         </div>
                     </div>
                 </div>
@@ -288,10 +289,10 @@ function HowItWorks() {
             <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-20 md:py-28">
                 <div className="text-center max-w-2xl mx-auto mb-16">
                     <h2 className="type-h2" style={{ color: "var(--text)" }}>
-                        Clear payroll records shouldn&apos;t cost a fortune.
+                        Clear household paperwork shouldn&apos;t cost a fortune.
                     </h2>
                     <p className="text-base mt-4" style={{ color: "var(--text-muted)" }}>
-                        Generate payslips and contracts for your household staff, without the consultation fees.
+                        Generate the key payslips and contracts households commonly need, without the consultation fees.
                     </p>
                 </div>
 
@@ -317,10 +318,10 @@ function HowItWorks() {
 /* ─── 5. GUARDRAILS ───────────────────────────────────────────────────────── */
 function Guardrails({ nmw }: { nmw: number }) {
     const items = [
-        `Minimum wage check — reference rate R${nmw.toFixed(2)}/hr`,
-        "Compensation for Occupational Injuries and Diseases Act (COIDA) registration reminder for domestic employers",
+        `Minimum wage check — current rate R${nmw.toFixed(2)}/hr (as of 1 Mar 2026)`,
+        "COIDA registration reminder — mandatory for all domestic workers from 2026",
         "UIF threshold reminder — if your employee works more than 24 hours/month",
-        "Payslip field checklist — what a clear payslip should include",
+        "Payslip field checklist — what a compliant payslip should include",
         "Archive reminders — keep statements/records for at least 3 years",
         "Public holiday & Sunday rate reminders",
     ];
@@ -387,7 +388,7 @@ function Guardrails({ nmw }: { nmw: number }) {
 function FeatureGrid() {
     const features = [
         { icon: FileText, title: "Payslip PDFs (monthly)", desc: "Professional payslips with clear totals, deductions, and pay periods." },
-        { icon: ClipboardCheck, title: "Contract generator", desc: "Employment contract templates with common domestic-work terms." },
+        { icon: ClipboardCheck, title: "Contract generator", desc: "Simple BCEA-aligned employment contract templates." },
         { icon: Calendar, title: "Leave tracking", desc: "Annual, sick, and family responsibility leave — easy to explain and review." },
         { icon: FolderSync, title: "Archive & history", desc: "Searchable records of payslips, contracts, and documents." },
         { icon: Download, title: "uFiling export", desc: "Export UIF declarations where applicable." },
@@ -399,7 +400,7 @@ function FeatureGrid() {
             <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-20 md:py-28">
                 <div className="text-center max-w-2xl mx-auto mb-16">
                     <h2 className="type-h2" style={{ color: "var(--text)" }}>
-                        Core tools for household payroll records.
+                        Everything you need for household payroll records.
                     </h2>
                 </div>
 
@@ -418,11 +419,11 @@ function FeatureGrid() {
                 <div className="mt-16 bg-[var(--surface-1)] border border-[var(--border)] rounded-2xl p-8 max-w-5xl mx-auto shadow-xl flex flex-col md:flex-row gap-10 items-center">
                     <div className="flex-1 space-y-5">
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--accent-subtle)] text-[var(--primary)] text-xs font-bold uppercase tracking-wider">
-                            <FolderSync className="h-4 w-4" /> Built-in record archive
+                            <FolderSync className="h-4 w-4" /> Built-in Compliance Archive
                         </div>
-                        <h3 className="type-h3" style={{ color: "var(--text)" }}>A document archive you can refer back to.</h3>
+                        <h3 className="type-h3" style={{ color: "var(--text)" }}>A document vault designed for inspections.</h3>
                         <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            Keep your payslips, contracts, and UIF declarations together in date order. Depending on plan, you can keep up to 5 years of history accessible in one place.
+                            If you ever need a tidy record trail, LekkerLedger&apos;s built-in vault keeps a chronological history of payslips, contracts, and Unemployment Insurance Fund (UIF) declarations. Keep up to 5 years of history instantly accessible.
                         </p>
                         <Link href="/dashboard" className="inline-block">
                             <Button variant="outline" className="mt-2 h-11 px-6 rounded-xl border-[var(--border)] shadow-sm">Start your free vault today</Button>
@@ -436,12 +437,12 @@ function FeatureGrid() {
                             <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
                                 <Database className="h-3.5 w-3.5" /> Vault History
                             </span>
-                            <span className="text-xs text-[var(--primary)] font-bold bg-[var(--accent-subtle)] px-2 py-1 rounded">Recent Records</span>
+                            <span className="text-xs text-[var(--primary)] font-bold bg-[var(--accent-subtle)] px-2 py-1 rounded">Recent records</span>
                         </div>
                         {[
-                            { title: "Payslip - February", type: "PDF copy", date: "28 Feb", icon: FileText },
-                            { title: "Payslip - January", type: "PDF copy", date: "31 Jan", icon: FileText },
-                            { title: "Employment Contract", type: "Signed PDF", date: "15 Jan", icon: ClipboardCheck }
+                            { title: "Recent payslip", type: "PDF copy", date: "28 Feb", icon: FileText },
+                            { title: "Earlier payslip", type: "PDF copy", date: "31 Jan", icon: FileText },
+                            { title: "BCEA Employment Contract", type: "Signed PDF", date: "15 Jan", icon: ClipboardCheck }
                         ].map((doc, i) => (
                             <div key={i} className="flex items-center justify-between p-3.5 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] hover:border-[var(--primary)]/30 transition-colors">
                                 <div className="flex items-center gap-3.5">
@@ -611,13 +612,13 @@ function PricingSummary() {
 function FAQAccordion() {
     const faqs = [
         { q: "Is my employee data stored on LekkerLedger's servers?", a: "No. LekkerLedger doesn't keep a central database of your employee records. Payroll data is stored locally on your device, and you can optionally sync it to your personal private Google Drive. See our privacy policy for full details." },
-        { q: "Do I need to register for COIDA?", a: "Yes. Domestic employers generally need to register with the Compensation Fund (COIDA). LekkerLedger helps you keep the monthly payroll records you may need when preparing your declarations." },
+        { q: "Do I need to register for COIDA?", a: "Yes. Employers of domestic workers generally need to register with the Compensation Fund (COIDA) to cover occupational injuries. LekkerLedger helps you maintain the monthly records used for declarations." },
         { q: "Do I need to register for UIF?", a: "It depends on hours worked. If your employee works more than 24 hours per month, UIF registration is generally expected. LekkerLedger includes UIF calculations — but always check official guidance for your situation." },
         { q: "Can I use LekkerLedger for one employee only?", a: "Yes! The free Standard plan supports one active employee — perfect for most households." },
         { q: "What does 'Annual Support' include?", a: "Annual Support (R99/year) gives you up to 3 employees, 1 year of archived history, contract generation, and repeat-payroll features. It renews yearly — cancel anytime to stop renewal." },
-        { q: "What does the once-off Pro plan include?", a: "Lekker Pro (R299, pay once) gives you unlimited employees, 5 years of archive history, Google Drive sync, and the full document vault. No recurring fees ever." },
-        { q: "Can I export records for uFiling?", a: "Yes — there's a built-in uFiling export tool to generate UIF declaration files for you to review before submitting." },
-        { q: "Is this legal advice?", a: "No. LekkerLedger provides tools and general information to help you create clearer records. We are not a law firm. Always verify against official sources for your specific situation." },
+        { q: "What does the once-off Pro plan include?", a: "Lekker Pro (R299, pay once) gives you unlimited employees, 5 years of archive history, Google Drive sync, and the full legal vault. No recurring fees ever." },
+        { q: "Can I export records for uFiling?", a: "Yes — there's a built-in uFiling export tool to generate UIF declarations for submission." },
+        { q: "Is this legal advice?", a: "No. LekkerLedger provides tools and general information to help you create compliant records. We are not a law firm. Always verify against official sources for your specific situation." },
         { q: "Can my domestic worker get a copy of the payslip?", a: "Absolutely — you can download the PDF and share it via WhatsApp, email, or print. Clear payslips benefit both employer and employee." },
     ];
 
@@ -720,5 +721,6 @@ function Footer() {
         </footer>
     );
 }
+
 
 

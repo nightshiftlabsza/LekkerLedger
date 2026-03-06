@@ -27,8 +27,8 @@ export default function ExamplesPage() {
         const samplePayslip: PayslipInput = {
             id: "ps-sample",
             employeeId: "sample-id",
-            payPeriodStart: new Date("2026-03-01"),
-            payPeriodEnd: new Date("2026-03-31"),
+            payPeriodStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            payPeriodEnd: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
             ordinaryHours: 160,
             overtimeHours: 8,
             sundayHours: 0,
@@ -71,7 +71,7 @@ export default function ExamplesPage() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = "LekkerLedger_Sample_Payslip_March_2026.pdf";
+            a.download = "LekkerLedger_Sample_Payslip.pdf";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -82,9 +82,11 @@ export default function ExamplesPage() {
     };
 
     const nmw = COMPLIANCE.NMW.RATE_PER_HOUR;
-    const date = "March 2026";
-    const periodStart = "01 Mar 2026";
-    const periodEnd = "31 Mar 2026";
+    const samplePeriodStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const samplePeriodEnd = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
+    const date = new Intl.DateTimeFormat("en-ZA", { month: "long", year: "numeric" }).format(samplePeriodEnd);
+    const periodStart = new Intl.DateTimeFormat("en-ZA", { day: "2-digit", month: "short", year: "numeric" }).format(samplePeriodStart).replace(",", "");
+    const periodEnd = new Intl.DateTimeFormat("en-ZA", { day: "2-digit", month: "short", year: "numeric" }).format(samplePeriodEnd).replace(",", "");
 
     const ordinaryHours = 160;
     const ordinaryRate = nmw;
@@ -129,23 +131,20 @@ export default function ExamplesPage() {
                         Your employee documentation, <span className="text-[var(--primary)]">elevated.</span>
                     </h1>
                     <p className="text-[var(--text-muted)] font-medium text-lg leading-relaxed">
-                        LekkerLedger generates professional, A4-ready PDFs for household payroll records and sharing.
+                        LekkerLedger generates professional, A4-ready PDFs for household payroll records. Always verify details against official government sources before relying on any template.
                     </p>
                 </header>
 
                 <div className="grid lg:grid-cols-12 gap-12 items-start">
-                    {/* The Classy Payslip Paper */}
                     <div className="lg:col-span-8">
                         <div className="bg-white rounded-sm shadow-2xl border border-[var(--border)] aspect-[1/1.414] w-full p-8 sm:p-12 relative overflow-hidden transition-all duration-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.12)]">
-                            {/* Paper Grain Effect (Subtle - using a locally available pattern or just a subtle color) */}
                             <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[var(--bg)]" />
 
-                            {/* Header Section */}
                             <div className="flex justify-between items-start mb-12 border-b-2 border-[var(--primary)] pb-6 relative z-10">
                                 <div>
                                     <Logo showText={true} className="mb-2" textClassName="text-2xl" />
                                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] ml-1">
-                                        South African Domestic Standard
+                                        Example only - household payroll record
                                     </p>
                                 </div>
                                 <div className="text-right">
@@ -154,7 +153,6 @@ export default function ExamplesPage() {
                                 </div>
                             </div>
 
-                            {/* Parties Card */}
                             <div className="grid grid-cols-3 gap-6 mb-12 relative z-10">
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)]/30">
                                     <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider mb-2">Employer</p>
@@ -173,7 +171,6 @@ export default function ExamplesPage() {
                                 </div>
                             </div>
 
-                            {/* Earnings Table */}
                             <table className="w-full text-sm mb-12 relative z-10">
                                 <thead>
                                     <tr className="border-b-2 border-[var(--border)] pb-2 text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest text-left">
@@ -204,11 +201,10 @@ export default function ExamplesPage() {
                                 </tbody>
                             </table>
 
-                            {/* Deductions */}
                             <div className="space-y-3 mb-12 relative z-10 w-full max-w-sm ml-auto">
                                 <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em] text-right mb-4">Deductions</p>
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-[var(--text-muted)] font-medium">UIF Contribution (1% Individual)</span>
+                                    <span className="text-[var(--text-muted)] font-medium">Unemployment Insurance Fund (UIF) contribution (1% individual)</span>
                                     <span className="font-bold text-[var(--danger)]">- R {uifDeduction.toFixed(2)}</span>
                                 </div>
                                 <div className="pt-3 border-t border-[var(--border)] flex justify-between items-center">
@@ -217,7 +213,6 @@ export default function ExamplesPage() {
                                 </div>
                             </div>
 
-                            {/* Net Payable Block */}
                             <div className="bg-[var(--primary)] p-6 rounded-xl flex justify-between items-center text-white shadow-md relative z-10 opacity-90">
                                 <div>
                                     <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80 mb-1">Net Payable</p>
@@ -228,41 +223,34 @@ export default function ExamplesPage() {
                                 </div>
                             </div>
 
-                            {/* Footer / Meta */}
                             <div className="mt-16 pt-8 border-t border-[var(--border)] grid grid-cols-2 items-end relative z-10">
                                 <div className="space-y-3">
-                                    <p className="text-[9px] text-[var(--text-muted)] leading-relaxed max-w-[240px]">
-                                        Generated via LekkerLedger. Review the details before using this document in your records.
-                                        <br /><span className="font-bold">Compliance Ref: 2026 Mar / NMW R30.23</span>
+                                    <p className="text-[9px] text-[var(--text-muted)] leading-relaxed max-w-[260px]">
+                                        Sample layout generated via LekkerLedger for illustration only.
+                                        <br /><span className="font-bold">Reference rate shown: R {nmw.toFixed(2)}/hr</span>
                                     </p>
-                                    <div className="flex gap-4">
-                                        <div className="h-10 w-10 text-[var(--success)] opacity-30">
-                                            <ShieldCheck className="h-full w-full" />
-                                        </div>
-                                        <p className="text-[8px] uppercase tracking-widest text-[var(--text-muted)] mt-2">
-                                            Tamper-evident hash: 0x8a2...f3b
-                                        </p>
-                                    </div>
+                                    <p className="text-[8px] uppercase tracking-widest text-[var(--text-muted)] mt-2">
+                                        Review before use and verify against official government sources.
+                                    </p>
                                 </div>
-                                <div className="text-right space-y-1">
-                                    <div className="inline-block border-2 border-[var(--focus)] p-2 px-3 rounded-full mb-2">
-                                        <span className="text-[10px] font-black text-[var(--focus)] uppercase tracking-widest">GENERATED • REVIEWED</span>
+                                <div className="text-right space-y-2">
+                                    <div className="inline-block border-2 border-dashed border-[var(--primary)]/40 p-2 px-3 rounded-full mb-2">
+                                        <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">Sample document</span>
                                     </div>
-                                    <p className="text-[9px] text-[var(--text-muted)] font-medium italic">Proudly South African Domestic Standard</p>
+                                    <p className="text-[9px] text-[var(--text-muted)] font-medium italic">Illustrative layout only - not an official standard</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Features Sidebar */}
                     <div className="lg:col-span-4 space-y-8">
                         <section className="glass-panel p-8 rounded-2xl border-2 border-[var(--border)] space-y-6">
-                            <h3 className="text-xl font-bold font-serif">Key Compliance Fields</h3>
+                            <h3 className="text-xl font-bold font-serif">Key record fields</h3>
                             <ul className="space-y-4">
                                 {[
                                     { title: "ID & Roles", desc: "Identity numbers and job descriptions are mandatory parts of every payslip." },
                                     { title: "Hourly Breakdown", desc: "Clearly distinguishing between ordinary time, overtime, and public holidays." },
-                                    { title: "Statutory Deductions", desc: "UIF calculations updated automatically using the current settings stored in the app." },
+                                    { title: "Statutory deductions", desc: "UIF calculations are shown clearly so you can review them before use." },
                                     { title: "Leave Summary", desc: "Built-in tracking for annual, sick, and family responsibility leave." }
                                 ].map((item, i) => (
                                     <li key={i} className="flex gap-4">
@@ -302,7 +290,6 @@ export default function ExamplesPage() {
                 </div>
 
                 <div className="pt-12 border-t border-[var(--border)] text-center pb-8 space-y-6">
-
                     <div className="flex justify-center gap-4">
                         <Link href="/">
                             <Button variant="outline" className="font-bold rounded-xl border-[var(--border)] h-11 px-8 text-sm">
@@ -315,4 +302,3 @@ export default function ExamplesPage() {
         </div>
     );
 }
-

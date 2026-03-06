@@ -79,9 +79,9 @@ export default function TrustCenterPage() {
                             <p className="text-xs" style={{ color: "var(--text-muted)" }}>1% deducted from employee, 1% contributed by employer.</p>
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
-                            <h4 className="font-bold text-sm uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>COIDA</h4>
-                            <div className="text-xl font-bold mb-1" style={{ color: "var(--text)" }}>Mandatory</div>
-                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Since 2021, all domestic employers must register with the Compensation Fund.</p>
+                            <h4 className="font-bold text-sm uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>Compensation for Occupational Injuries and Diseases Act (COIDA)</h4>
+                            <div className="text-xl font-bold mb-1" style={{ color: "var(--text)" }}>Registration required</div>
+                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Domestic employers generally need to register with the Compensation Fund for injury-on-duty cover.</p>`r`n                            <a href="https://www.labour.gov.za/compensation-for-occupational-injuries-and-diseases-act" target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-bold text-[var(--primary)] hover:underline">Source: Compensation Fund guidance</a>
                         </div>
                     </div>
                     <div className="mt-6">
@@ -129,3 +129,4 @@ export default function TrustCenterPage() {
         </div>
     );
 }
+

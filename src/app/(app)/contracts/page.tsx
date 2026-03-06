@@ -29,8 +29,8 @@ export default function ContractsPage() {
                             <FileBadge className="h-4 w-4 text-emerald-600" />
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-[var(--text)]">Contract template</p>
-                            <p className="text-[10px] text-[var(--text-muted)]">Templates include common domestic-work terms and wage references.</p>
+                            <p className="text-xs font-bold text-[var(--text)]">BCEA-aligned templates</p>
+                            <p className="text-[10px] text-[var(--text-muted)]">Templates follow household employment record guidance.</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -60,3 +60,4 @@ export default function ContractsPage() {
         </div>
     );
 }
+

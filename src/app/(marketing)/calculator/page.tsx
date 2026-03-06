@@ -31,7 +31,7 @@ export default function CalculatorPage() {
 
                     <div className="space-y-3">
                         <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                            Wage & UIF Estimator
+                            Wage & Unemployment Insurance Fund (UIF) Estimator
                         </h1>
                         <p className="text-sm leading-relaxed font-medium" style={{ color: "var(--text-muted)" }}>
                             Get a quick estimate of gross pay, UIF deductions, and net pay based on hours worked and hourly rate.
@@ -52,3 +52,4 @@ export default function CalculatorPage() {
         </div>
     );
 }
+

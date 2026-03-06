@@ -6,6 +6,7 @@ import { ChevronLeft, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function PrivacyPolicy() {
+    const currentYear = new Date().getFullYear();
     return (
         <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
             <div className="max-w-4xl mx-auto px-6 py-12 sm:py-20 space-y-12">
@@ -33,7 +34,7 @@ export default function PrivacyPolicy() {
 
                     <section className="space-y-4 text-[var(--primary)]/90 italic p-6 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10">
                         <p>
-                            LekkerLedger keeps your payslips, contracts, and UIF declarations together in date order. Depending on plan, you can keep up to 5 years of history accessible in one place.
+                            If you ever need a record trail, LekkerLedger&apos;s built-in vault keeps a chronological history of payslips, contracts, and Unemployment Insurance Fund (UIF) declarations. Keep up to 5 years of history instantly accessible.
                         </p>
                         <p>
                             <strong>Important:</strong> LekkerLedger is a &ldquo;privacy-first&rdquo; tool. We have no central database for your employee data. If Drive sync is <strong>OFF</strong>: your data is stored on this device only. If Drive sync is <strong>ON</strong>: your data is stored in your personal private Google Drive folder — not our servers.
@@ -56,7 +57,7 @@ export default function PrivacyPolicy() {
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">3. How We Use Data</h2>
-                        <p>Your data is used solely to generate payslips, UI updates, and compliance reports on your behalf. We do not sell or trade your personal information.</p>
+                        <p>Your data is used solely to generate payslips, UIF declarations, and record summaries for your records. We do not sell or trade your personal information.</p>
                     </section>
 
                     <section className="space-y-4">
@@ -77,9 +78,10 @@ export default function PrivacyPolicy() {
                 </div>
 
                 <footer className="pt-20 border-t border-zinc-800/50">
-                    <p className="text-xs text-zinc-600">© 2026 LekkerLedger. All rights reserved. Crafted by Nightshift Labs in South Africa.</p>
+                    <p className="text-xs text-zinc-600">© {currentYear} LekkerLedger. All rights reserved. Crafted by Nightshift Labs in South Africa.</p>
                 </footer>
             </div>
         </div>
     );
 }
+

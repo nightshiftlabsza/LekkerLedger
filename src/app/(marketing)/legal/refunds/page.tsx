@@ -6,6 +6,7 @@ import { ChevronLeft, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function RefundPolicy() {
+    const currentYear = new Date().getFullYear();
     return (
         <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
             <div className="max-w-4xl mx-auto px-6 py-12 sm:py-20 space-y-12">
@@ -68,9 +69,10 @@ export default function RefundPolicy() {
                 </div>
 
                 <footer className="pt-20 border-t border-zinc-800/50">
-                    <p className="text-xs text-zinc-600">© 2026 LekkerLedger. All rights reserved. Crafted by Nightshift Labs in South Africa.</p>
+                    <p className="text-xs text-zinc-600">© {currentYear} LekkerLedger. All rights reserved. Crafted by Nightshift Labs in South Africa.</p>
                 </footer>
             </div>
         </div>
     );
 }
+

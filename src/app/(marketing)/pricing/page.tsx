@@ -25,6 +25,7 @@ const PaystackHookWrapper = dynamic(() => import('@/components/paystack-wrapper'
 
 export default function PricingPage() {
     const { toast } = useToast();
+    const currentYear = new Date().getFullYear();
     const [status, setStatus] = React.useState<"free" | "annual" | "lifetime" | "trial" | "pro">("free");
     const [selectedPlan, setSelectedPlan] = React.useState<"annual" | "pro" | null>(null);
     const [makePayment, setMakePayment] = React.useState(false);
@@ -120,7 +121,7 @@ export default function PricingPage() {
                             title={PLANS.annual.label}
                             price={annualPriceLabel().split(' ')[0]} // Get "R99/year" out of "R99/year (promo...)"
                             period="per year"
-                            description="Cloud backup and priority legal compliance updates."
+                            description="Cloud backup and priority reference rate and template updates."
                             badge="Popular"
                             features={PLANS.annual.marketingBullets.map(b => ({ text: b, included: true }))}
                             buttonText={status === "annual" ? "Active" : "Subscribe Yearly"}
@@ -145,10 +146,10 @@ export default function PricingPage() {
                     {/* Disclaimer */}
                     <div className="mt-8 text-center space-y-2">
                         <p className="text-xs font-medium text-[var(--text-muted)]">
-                            Always up to date with the latest SA pay rules...
+                            We aim to keep reference rates and templates current. Always verify against official government sources.
                         </p>
                         <p className="text-[10px] text-[var(--text-muted)] opacity-70">
-                            Disclaimer: LekkerLedger is a compliance tool, not legal advice.
+                            Disclaimer: LekkerLedger is a record-keeping tool, not legal advice.
                         </p>
                     </div>
 
@@ -209,7 +210,7 @@ export default function PricingPage() {
             {/* Footer */}
             <footer className="border-t border-[var(--border)] py-8 px-4" style={{ backgroundColor: "var(--surface-2)" }}>
                 <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>© 2026 LekkerLedger. All rights reserved. Crafted by Nightshift Labs 🇿🇦</p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>© {currentYear} LekkerLedger. All rights reserved. Crafted by Nightshift Labs 🇿🇦</p>
                     <div className="flex items-center gap-4">
                         <Link href="/legal/privacy" className="text-xs hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Privacy</Link>
                         <Link href="/legal/terms" className="text-xs hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Terms</Link>
@@ -364,3 +365,4 @@ function PricingCard({
         </Card>
     );
 }
+

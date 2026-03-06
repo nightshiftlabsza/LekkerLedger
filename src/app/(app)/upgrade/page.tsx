@@ -115,7 +115,7 @@ export default function UpgradePage() {
                         title={PLANS.annual.label}
                         price={annualPriceLabel().split(' ')[0]}
                         period="per year"
-                        description="Cloud backup and priority legal compliance updates."
+                        description="Cloud backup and priority reference rate and template updates."
                         badge="Popular"
                         features={PLANS.annual.marketingBullets.map((b) => ({ text: b, included: true }))}
                         buttonText={status === "annual" ? "Active" : "Subscribe Yearly"}
@@ -252,3 +252,4 @@ function PricingCard({
         </Card>
     );
 }
+

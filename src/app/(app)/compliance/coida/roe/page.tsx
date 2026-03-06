@@ -43,12 +43,18 @@ function downloadBlob(bytes: Uint8Array | string, filename: string, type: string
     setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
+function getCurrentCoidStartYear(now = new Date()) {
+    return now.getMonth() >= 2 ? now.getFullYear() : now.getFullYear() - 1;
+}
+
 export default function RoePackPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [step, setStep] = React.useState(1);
     const [loading, setLoading] = React.useState(false);
-    const [selectedYear, setSelectedYear] = React.useState(2025);
+    const currentCoidYear = React.useMemo(() => getCurrentCoidStartYear(), []);
+    const availableYears = React.useMemo(() => [currentCoidYear, currentCoidYear - 1], [currentCoidYear]);
+    const [selectedYear, setSelectedYear] = React.useState(() => getCurrentCoidStartYear());
     const [roeData, setRoeData] = React.useState<RoeData | null>(null);
     const [isPaid, setIsPaid] = React.useState(false);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
@@ -186,33 +192,24 @@ export default function RoePackPage() {
                             <Card className="border-none glass-panel">
                                 <CardContent className="p-6 space-y-6">
                                     <div className="space-y-4">
-                                        <div
-                                            onClick={() => setSelectedYear(2025)}
-                                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedYear === 2025 ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)] hover:border-[var(--primary)]/30"
-                                                }`}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="font-bold text-[var(--text)]">2025/2026 Year</p>
-                                                    <p className="text-xs text-[var(--text-muted)]">1 Mar 2025 – 28 Feb 2026</p>
+                                        {availableYears.map((year) => {
+                                            const endDay = ((year + 1) % 4 === 0 && ((year + 1) % 100 !== 0 || (year + 1) % 400 === 0)) ? 29 : 28;
+                                            return (
+                                                <div
+                                                    key={year}
+                                                    onClick={() => setSelectedYear(year)}
+                                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedYear === year ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)] hover:border-[var(--primary)]/30"}`}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <p className="font-bold text-[var(--text)]">{year}/{year + 1} Year</p>
+                                                            <p className="text-xs text-[var(--text-muted)]">1 Mar {year} – {endDay} Feb {year + 1}</p>
+                                                        </div>
+                                                        {selectedYear === year && <div className="h-5 w-5 rounded-full bg-[var(--primary)] flex items-center justify-center"><Check className="h-3 w-3 text-white" /></div>}
+                                                    </div>
                                                 </div>
-                                                {selectedYear === 2025 && <div className="h-5 w-5 rounded-full bg-[var(--primary)] flex items-center justify-center"><Check className="h-3 w-3 text-white" /></div>}
-                                            </div>
-                                        </div>
-
-                                        <div
-                                            onClick={() => setSelectedYear(2024)}
-                                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedYear === 2024 ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)] hover:border-[var(--primary)]/30"
-                                                }`}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="font-bold text-[var(--text)]">2024/2025 Year</p>
-                                                    <p className="text-xs text-[var(--text-muted)]">1 Mar 2024 – 28 Feb 2025</p>
-                                                </div>
-                                                {selectedYear === 2024 && <div className="h-5 w-5 rounded-full bg-[var(--primary)] flex items-center justify-center"><Check className="h-3 w-3 text-white" /></div>}
-                                            </div>
-                                        </div>
+                                            );
+                                        })}
                                     </div>
 
                                     <Button
@@ -284,7 +281,7 @@ export default function RoePackPage() {
                             <div className="space-y-2">
                                 <h2 className="type-h3 text-[var(--text)]">Final Step: Documents</h2>
                                 <p className="type-body text-[var(--text-muted)]">
-                                    Keep these documents with your payroll records for future reference.
+                                    CF requires you to keep a detailed payroll report for 5 years.
                                 </p>
                             </div>
 
@@ -304,13 +301,13 @@ export default function RoePackPage() {
                                         <div className="space-y-3">
                                             <DocDownloadRow
                                                 label="Detailed Payroll Report (PDF)"
-                                                description="List of all employees and wages for your Compensation Fund records."
+                                                description="List of all employees and wages for CF audit."
                                                 isPaid={isPaid}
                                                 onClick={() => handleDownloadReport("pdf")}
                                             />
                                             <DocDownloadRow
                                                 label="Employer Details Scan (PDF)"
-                                                description="A review copy of your Compensation Fund and contact details."
+                                                description="Confirms your CF number and personal details."
                                                 isPaid={isPaid}
                                                 onClick={handleDownloadConfirmation}
                                             />
@@ -355,7 +352,7 @@ export default function RoePackPage() {
                     {/* Legal Footer */}
                     <div className="flex flex-col items-center gap-2 py-4">
                         <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)] type-overline">
-                            <ShieldCheck className="h-3 w-3" /> Record Support Tool
+                            <ShieldCheck className="h-3 w-3" /> Compliance Support Tool
                         </div>
                         <p className="text-[10px] text-center text-[var(--text-muted)] leading-relaxed max-w-[280px]">
                             LekkerLedger is a calculation aid. You are responsible for the truthfulness of your submission to the Compensation Fund.
@@ -431,5 +428,7 @@ function DocDownloadRow({ label, description, isPaid, onClick }: {
         </div>
     );
 }
+
+
 
 

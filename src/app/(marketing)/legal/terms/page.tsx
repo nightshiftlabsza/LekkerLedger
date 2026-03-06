@@ -6,6 +6,7 @@ import { ChevronLeft, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function TermsOfService() {
+    const currentYear = new Date().getFullYear();
     return (
         <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
             <div className="max-w-4xl mx-auto px-6 py-12 sm:py-20 space-y-12">
@@ -34,7 +35,7 @@ export default function TermsOfService() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">2. Nature of Service</h2>
                         <p>
-                            LekkerLedger is a payroll calculation and compliance tool. While we aim to keep rules updated based on current South African labor laws (BCEA, Sectoral Determination 7), calculations should always be verified against official sources. We are not a law firm or a substitute for legal advice.
+                            LekkerLedger is a payroll calculation and record-keeping tool. While we aim to keep rules updated based on current South African labour laws (Basic Conditions of Employment Act (BCEA), Sectoral Determination 7 (SD7)), calculations should always be verified against official sources. We are not a law firm or a substitute for legal advice.
                         </p>
                     </section>
 
@@ -69,9 +70,10 @@ export default function TermsOfService() {
                 </div>
 
                 <footer className="pt-20 border-t border-zinc-800/50">
-                    <p className="text-xs text-zinc-600">© 2026 LekkerLedger. All rights reserved. Crafted by Nightshift Labs ZA in South Africa.</p>
+                    <p className="text-xs text-zinc-600">© {currentYear} LekkerLedger. All rights reserved. Crafted by Nightshift Labs ZA in South Africa.</p>
                 </footer>
             </div>
         </div>
     );
 }
+

@@ -2,110 +2,465 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { BookOpen, ShieldCheck, ChevronLeft } from "lucide-react";
+import { ArrowUp, Check, Copy, ExternalLink, FileText, ListChecks } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { ComplianceInlineBadge } from "@/components/ui/compliance-badge";
+import { complianceGuide, type GuideBlock, type GuideListItem } from "@/src/content/compliance-guide";
 
-export default function CompliancePage() {
+
+function renderRichText(text: string) {
+    return text.split(/(\*\*.*?\*\*)/g).filter(Boolean).map((part, index) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+            return <strong key={`${part}-${index}`} className="font-semibold text-[var(--text)]">{part.slice(2, -2)}</strong>;
+        }
+        return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+    });
+}
+
+function CitationLinks({ footnotes }: { footnotes?: number[] }) {
+    if (!footnotes?.length) return null;
 
     return (
-        <>
-            <PageHeader title="Compliance Guide" subtitle="SA domestic worker regulations" />
-
-            <div className="text-center space-y-2 mb-6">
-                <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(196,122,28,0.1)", color: "var(--primary)" }}>
-                    <BookOpen className="h-6 w-6" />
-                </div>
-                <h2 className="text-2xl font-extrabold" style={{ color: "var(--text)" }}>
-                    The 4 Golden Rules
-                </h2>
-                <p className="text-sm mt-2 font-medium" style={{ color: "var(--primary-hover)" }}>
-                    <ShieldCheck className="inline-block h-4 w-4 mr-1 mb-0.5" /> Note: LekkerLedger is a record-keeping tool, not a law firm. This guide is for educational purposes.
-                </p>
-            </div>
-
-            <div className="space-y-4">
-                <div className="p-5 rounded-2xl animate-slide-up" style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border)" }}>
-                    <div className="flex items-start gap-3">
-                        <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--primary)" }} />
-                        <div>
-                            <h3 className="font-bold text-base flex w-full flex-wrap gap-2 items-center" style={{ color: "var(--text)" }}>1. Minimum Wage is <ComplianceInlineBadge type="nmw" /></h3>
-                            <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                The current National Minimum Wage reference for domestic workers is <ComplianceInlineBadge type="nmw" /> per hour worked.
-                                <br />
-                                <a href="https://www.gov.za/documents/notices/national-minimum-wage-act-national-minimum-wage-9-jan-2025" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: Department of Employment & Labour notice</a>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="p-5 rounded-2xl animate-slide-up" style={{ animationDelay: "50ms", backgroundColor: "var(--surface-1)", border: "1px solid var(--border)" }}>
-                    <div className="flex items-start gap-3">
-                        <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--primary)" }} />
-                        <div>
-                            <h3 className="font-bold text-base" style={{ color: "var(--text)" }}>2. The 4-Hour Daily Minimum</h3>
-                            <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Even if your employee only works for 1 or 2 hours on a given day, you are legally required to pay them for a minimum of 4 hours.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="p-5 rounded-2xl animate-slide-up" style={{ animationDelay: "100ms", backgroundColor: "var(--surface-1)", border: "1px solid var(--border)" }}>
-                    <div className="flex items-start gap-3">
-                        <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--primary)" }} />
-                        <div>
-                            <h3 className="font-bold text-base" style={{ color: "var(--text)" }}>3. Unemployment Insurance Fund (UIF)</h3>
-                            <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                If your employee works <strong>more than 24 hours in a month</strong>, you must register them for UIF. You deduct 1% from their gross pay, and contribute another 1% yourself (total 2%). LekkerLedger includes UIF calculation tools to help with this.
-                                <br />
-                                <a href="https://www.gov.za/services/uif/register-uif" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: Register with the UIF</a>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="p-5 rounded-2xl animate-slide-up" style={{ animationDelay: "150ms", backgroundColor: "var(--surface-1)", border: "1px solid var(--border)" }}>
-                    <div className="flex items-start gap-3">
-                        <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--primary)" }} />
-                        <div>
-                            <h3 className="font-bold text-base" style={{ color: "var(--text)" }}>4. Mandatory Leave Entitlements</h3>
-                            <div className="text-sm mt-2 space-y-2" style={{ color: "var(--text-muted)" }}>
-                                <p><strong>Annual Leave:</strong> 1 day for every 17 days worked (or 15 days per year).</p>
-                                <p><strong>Sick Leave:</strong> 30 days over a 36-month cycle (about 10 days per year).</p>
-                                <p><strong>Family Responsibility:</strong> 3 days per year, but only after they have worked for you for 4 months.</p>
-                                <p><strong>Public Holidays:</strong> Paid at double the normal rate if worked.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="p-5 rounded-2xl animate-slide-up" style={{ animationDelay: "200ms", backgroundColor: "var(--surface-1)", border: "1px solid var(--border)" }}>
-                    <div className="flex items-start gap-3">
-                        <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--primary)" }} />
-                        <div>
-                            <h3 className="font-bold text-base" style={{ color: "var(--text)" }}>5. Injury & Disease Protection (COIDA)</h3>
-                            <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Domestic employers must register with the Compensation Fund where required. Assessment rates can change by year and employer class, so check the current notice before relying on a percentage. Accepted claims may help with medical costs or lost wages, subject to the Fund&apos;s process.
-                                <br />
-                                <a href="https://www.labour.gov.za/compensation-for-occupational-injuries-and-diseases-act" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline text-xs mt-2 block">Source: COID Act</a>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="pt-6 pb-8 animate-slide-up space-y-4" style={{ animationDelay: "200ms" }}>
-                <p className="text-xs text-center leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                    This guide is informational only and does not constitute legal advice. Always verify against <a href="https://www.gov.za" target="_blank" rel="noopener noreferrer" className="underline">official government sources</a>. Guidance can change. Check the linked sources before relying on this page.
-                </p>
-                <Link href="/dashboard">
-                    <Button className="w-full gap-2 h-12 text-base font-bold">
-                        <ChevronLeft className="h-5 w-5" /> Go to Dashboard
-                    </Button>
-                </Link>
-            </div>
-        </>
+        <span className="ml-1 inline-flex flex-wrap gap-1 align-middle">
+            {footnotes.map((id) => (
+                <a
+                    key={id}
+                    href={`#footnote-${id}`}
+                    className="rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-muted)] hover:text-[var(--text)]"
+                >
+                    [{id}]
+                </a>
+            ))}
+        </span>
     );
 }
+
+function BlockRenderer({ block }: { block: GuideBlock }) {
+    if (block.type === "paragraph") {
+        return (
+            <p className="type-body leading-7 text-[var(--text-muted)]">
+                {renderRichText(block.text)}
+                <CitationLinks footnotes={block.footnotes} />
+            </p>
+        );
+    }
+
+    const ListTag = block.ordered ? "ol" : "ul";
+
+    return (
+        <ListTag className={`space-y-2 pl-5 text-[var(--text-muted)] ${block.ordered ? "list-decimal" : "list-disc"}`}>
+            {block.items.map((item, index) => (
+                <li key={`${item.lead ?? item.text}-${index}`} className="type-body leading-7">
+                    {item.lead && <strong className="font-semibold text-[var(--text)]">{renderRichText(item.lead)} </strong>}
+                    {renderRichText(item.text)}
+                    <CitationLinks footnotes={item.footnotes} />
+                </li>
+            ))}
+        </ListTag>
+    );
+}
+
+function CopyHeading({
+    id,
+    title,
+    level,
+    copiedId,
+    onCopy,
+    actions,
+}: {
+    id: string;
+    title: string;
+    level: "h2" | "h3";
+    copiedId: string | null;
+    onCopy: (id: string) => void;
+    actions?: React.ReactNode;
+}) {
+    const Tag = level;
+    const className = level === "h2" ? "type-h2" : "type-h3";
+
+    return (
+        <div className="flex items-start justify-between gap-3">
+            <Tag id={id} className={`${className} scroll-mt-20 text-[var(--text)]`}>
+                {title}
+            </Tag>
+            <div className="flex items-center gap-2 shrink-0">
+                {actions}
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Copy link to ${title}`}
+                    onClick={() => onCopy(id)}
+                    className="h-9 w-9 rounded-xl"
+                >
+                    {copiedId === id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+            </div>
+        </div>
+    );
+}
+
+function BackToTop() {
+    return (
+        <div className="pt-2">
+            <a href="#top" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
+                <ArrowUp className="h-4 w-4" />
+                Back to top
+            </a>
+        </div>
+    );
+}
+
+export default function CompliancePage() {
+    const [copiedId, setCopiedId] = React.useState<string | null>(null);
+
+    const handleCopy = React.useCallback(async (id: string) => {
+        const url = typeof window === "undefined"
+            ? `#${id}`
+            : `${window.location.origin}${window.location.pathname}#${id}`;
+
+        try {
+            await navigator.clipboard.writeText(url);
+        } catch {
+            if (typeof window !== "undefined") {
+                window.location.hash = id;
+            }
+        }
+
+        setCopiedId(id);
+        window.setTimeout(() => setCopiedId((current) => (current === id ? null : current)), 1800);
+    }, []);
+
+    return (
+        <div id="top" className="space-y-6 pb-8">
+            <PageHeader
+                title={complianceGuide.title}
+                subtitle={complianceGuide.subtitle}
+                actions={
+                    <Link href="/compliance/coida/roe">
+                        <Button variant="outline" className="gap-2">
+                            <FileText className="h-4 w-4" />
+                            Open ROE wizard
+                        </Button>
+                    </Link>
+                }
+            />
+
+            <div className="flex flex-wrap gap-2">
+                <Badge>Authoritative in-app guide</Badge>
+                <Badge variant="outline">Updated 6 Mar 2026</Badge>
+            </div>
+
+            <Alert variant="warning">
+                <AlertTitle>Not legal advice</AlertTitle>
+                <AlertDescription>
+                    {complianceGuide.disclaimer}
+                </AlertDescription>
+            </Alert>
+
+            <Card className="glass-panel border-none">
+                <CardContent className="space-y-4 p-6">
+                    <div className="flex items-center gap-2 text-[var(--primary)]">
+                        <ListChecks className="h-4 w-4" />
+                        <p className="type-overline">What changed recently</p>
+                    </div>
+                    <p className="type-body measure-readable leading-7 text-[var(--text-muted)]">
+                        {renderRichText(complianceGuide.intro)}
+                        <CitationLinks footnotes={complianceGuide.introFootnotes} />
+                    </p>
+                </CardContent>
+            </Card>
+
+            <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
+                <aside className="xl:sticky xl:top-24 xl:self-start">
+                    <Card className="glass-panel border-none">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="type-h4">On this page</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2 pt-0">
+                            {complianceGuide.toc.map((item) => (
+                                <a
+                                    key={item.id}
+                                    href={`#${item.id}`}
+                                    className="block rounded-xl border border-transparent px-3 py-2 text-sm text-[var(--text-muted)] hover:border-[var(--border)] hover:bg-[var(--surface-raised)] hover:text-[var(--text)]"
+                                >
+                                    {item.title}
+                                </a>
+                            ))}
+                            <div className="pt-3">
+                                <p className="type-overline mb-2 text-[var(--text-muted)]">Screens</p>
+                                <div className="space-y-2">
+                                    {complianceGuide.guideSections.map((section) => (
+                                        <a
+                                            key={section.id}
+                                            href={`#${section.id}`}
+                                            className="block rounded-xl px-3 py-2 text-sm text-[var(--text-muted)] hover:bg-[var(--surface-raised)] hover:text-[var(--text)]"
+                                        >
+                                            {section.screenLabel ?? section.title}
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </aside>
+
+                <div className="space-y-10">
+                    <section id="start-here" className="space-y-5 scroll-mt-20">
+                        <CopyHeading id="start-here" title="Start Here (onboarding path)" level="h2" copiedId={copiedId} onCopy={handleCopy} />
+                        <p className="type-body leading-7 text-[var(--text-muted)]">5–10 minutes. Follow this path first if you are setting up the household for the first time.</p>
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            {complianceGuide.startHereSteps.map((step) => (
+                                <Card key={step.id} className="glass-panel border-none">
+                                    <CardContent className="space-y-4 p-5">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <Badge variant="outline">{step.screenLabel}</Badge>
+                                            <Link href={step.screenHref} className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
+                                                Open screen
+                                            </Link>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h3 className="type-h4 text-[var(--text)]">{step.title}</h3>
+                                            <a href={`#${step.seeAlsoId}`} className="text-sm text-[var(--text-muted)] underline-offset-4 hover:underline">
+                                                See full guide section
+                                            </a>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <p className="type-body text-[var(--text-muted)]"><strong className="text-[var(--text)]">What to do:</strong> {renderRichText(step.whatToDo)}<CitationLinks footnotes={step.footnotes} /></p>
+                                            <p className="type-body text-[var(--text-muted)]"><strong className="text-[var(--text)]">What it means:</strong> {renderRichText(step.whatItMeans)}</p>
+                                            <p className="type-body text-[var(--text-muted)]"><strong className="text-[var(--text)]">Common mistakes:</strong> {renderRichText(step.commonMistakes)}<CitationLinks footnotes={step.footnotes} /></p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                        <BackToTop />
+                    </section>
+
+                    <section id="full-guide" className="space-y-5 scroll-mt-20">
+                        <CopyHeading id="full-guide" title="Full Guide (by screens)" level="h2" copiedId={copiedId} onCopy={handleCopy} />
+                        <div className="space-y-6">
+                            {complianceGuide.guideSections.map((section) => (
+                                <Card key={section.id} className="glass-panel border-none">
+                                    <CardContent className="space-y-5 p-6">
+                                        <CopyHeading
+                                            id={section.id}
+                                            title={section.title}
+                                            level="h3"
+                                            copiedId={copiedId}
+                                            onCopy={handleCopy}
+                                            actions={section.screenHref ? (
+                                                <Link href={section.screenHref} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
+                                                    {section.screenLabel ?? "Open screen"}
+                                                    <ExternalLink className="h-4 w-4" />
+                                                </Link>
+                                            ) : undefined}
+                                        />
+                                        {section.intro?.map((block, index) => (
+                                            <BlockRenderer key={`${section.id}-intro-${index}`} block={block} />
+                                        ))}
+                                        {section.subsections?.map((subsection) => (
+                                            <div key={`${section.id}-${subsection.title}`} className="space-y-3 border-t border-[var(--border)] pt-4 first:border-t-0 first:pt-0">
+                                                <h4 className="type-h4 text-[var(--text)]">{subsection.title}</h4>
+                                                <div className="space-y-3">
+                                                    {subsection.blocks.map((block, index) => (
+                                                        <BlockRenderer key={`${section.id}-${subsection.title}-${index}`} block={block} />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {section.wizardSteps && (
+                                            <Card className="border-[var(--primary)]/15 bg-[var(--surface-raised)] shadow-none">
+                                                <CardContent className="space-y-4 p-5">
+                                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                                        <div>
+                                                            <p className="type-overline text-[var(--text-muted)]">Wizard mapping</p>
+                                                            <h4 className="type-h4 text-[var(--text)]">{section.wizardSteps.title}</h4>
+                                                        </div>
+                                                        <Link href="/compliance/coida/roe">
+                                                            <Button variant="outline" className="gap-2">
+                                                                <FileText className="h-4 w-4" />
+                                                                Go to /compliance/coida/roe
+                                                            </Button>
+                                                        </Link>
+                                                    </div>
+                                                    <ul className="list-disc space-y-2 pl-5 text-[var(--text-muted)]">
+                                                        {section.wizardSteps.steps.map((step, index) => (
+                                                            <li key={`${section.id}-wizard-${index}`} className="type-body leading-7">
+                                                                {step.lead && <strong className="font-semibold text-[var(--text)]">{renderRichText(step.lead)} </strong>}
+                                                                {renderRichText(step.text)}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                        <BackToTop />
+                    </section>
+
+                    <section id="screen-callouts" className="space-y-5 scroll-mt-20">
+                        <CopyHeading id="screen-callouts" title="Screen callout boxes" level="h2" copiedId={copiedId} onCopy={handleCopy} />
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            {complianceGuide.screenCallouts.map((callout) => (
+                                <Card key={callout.id} id={callout.id} className="border-[var(--primary)]/20 bg-[var(--surface-raised)] shadow-none scroll-mt-20">
+                                    <CardContent className="space-y-4 p-5">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <p className="type-overline text-[var(--text-muted)]">What to do on this screen</p>
+                                                <h3 className="type-h4 text-[var(--text)]">{callout.title}</h3>
+                                            </div>
+                                            {callout.screenHref && (
+                                                <Link href={callout.screenHref} className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
+                                                    Open
+                                                </Link>
+                                            )}
+                                        </div>
+                                        <ul className="list-disc space-y-2 pl-5 text-[var(--text-muted)]">
+                                            {callout.items.map((item) => (
+                                                <li key={item} className="type-body leading-7">{item}</li>
+                                            ))}
+                                        </ul>
+                                        <div className="space-y-2 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+                                            <p className="type-body text-[var(--text-muted)]"><strong className="text-[var(--text)]">Common mistake:</strong> {callout.commonMistake}</p>
+                                            <p className="type-body text-[var(--text-muted)]"><strong className="text-[var(--text)]">You’re okay if…</strong> {callout.okayIf}<CitationLinks footnotes={callout.footnotes} /></p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                        <BackToTop />
+                    </section>
+
+                    <section id="microcopy" className="space-y-5 scroll-mt-20">
+                        <CopyHeading id="microcopy" title="Microcopy/tooltips" level="h2" copiedId={copiedId} onCopy={handleCopy} />
+                        <div className="space-y-3">
+                            {complianceGuide.microcopyGroups.map((group) => (
+                                <Card key={group.id} className="glass-panel border-none overflow-hidden">
+                                    <details className="group">
+                                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5">
+                                            <div>
+                                                <p className="type-overline text-[var(--text-muted)]">Tooltip pack</p>
+                                                <h3 className="type-h4 text-[var(--text)]">{group.title}</h3>
+                                            </div>
+                                            <span className="text-sm font-semibold text-[var(--primary)] group-open:hidden">Open</span>
+                                            <span className="hidden text-sm font-semibold text-[var(--primary)] group-open:inline">Close</span>
+                                        </summary>
+                                        <div className="border-t border-[var(--border)] px-5 pb-5 pt-4">
+                                            <div className="space-y-3">
+                                                {group.items.map((item) => (
+                                                    <div key={`${group.id}-${item.number}`} className="rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
+                                                        <p className="type-label text-[var(--text)]">{item.number}. {item.label}</p>
+                                                        <p className="type-body mt-2 text-[var(--text-muted)]">{renderRichText(item.text)}<CitationLinks footnotes={item.footnotes} /></p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </details>
+                                </Card>
+                            ))}
+                        </div>
+                        <BackToTop />
+                    </section>
+
+                    <section id="worked-examples" className="space-y-5 scroll-mt-20">
+                        <CopyHeading id="worked-examples" title="Worked examples" level="h2" copiedId={copiedId} onCopy={handleCopy} />
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            {complianceGuide.workedExamples.map((example) => (
+                                <Card key={example.id} id={example.id} className="glass-panel border-none scroll-mt-20">
+                                    <CardContent className="space-y-4 p-5">
+                                        <h3 className="type-h4 text-[var(--text)]">{example.title}</h3>
+                                        {example.paragraphs?.map((paragraph, index) => (
+                                            <p key={`${example.id}-paragraph-${index}`} className="type-body leading-7 text-[var(--text-muted)]">
+                                                {renderRichText(paragraph.text)}
+                                                <CitationLinks footnotes={paragraph.footnotes} />
+                                            </p>
+                                        ))}
+                                        {example.bullets && (
+                                            <ul className="list-disc space-y-2 pl-5 text-[var(--text-muted)]">
+                                                {example.bullets.map((bullet: GuideListItem, index) => (
+                                                    <li key={`${example.id}-bullet-${index}`} className="type-body leading-7">
+                                                        {renderRichText(bullet.text)}
+                                                        <CitationLinks footnotes={bullet.footnotes} />
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                        <BackToTop />
+                    </section>
+
+                    <section id="source-log" className="space-y-5 scroll-mt-20">
+                        <CopyHeading id="source-log" title="Source log" level="h2" copiedId={copiedId} onCopy={handleCopy} />
+                        <Alert>
+                            <AlertTitle>Source note</AlertTitle>
+                            <AlertDescription>{complianceGuide.sourceVerificationNote}</AlertDescription>
+                        </Alert>
+                        <div className="space-y-3">
+                            {complianceGuide.sourceLog.map((section) => (
+                                <Card key={section.id} className="glass-panel border-none overflow-hidden">
+                                    <details className="group" open={section.id === "source-dashboard"}>
+                                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5">
+                                            <h3 className="type-h4 text-[var(--text)]">{section.title}</h3>
+                                            <span className="text-sm font-semibold text-[var(--primary)] group-open:hidden">Open</span>
+                                            <span className="hidden text-sm font-semibold text-[var(--primary)] group-open:inline">Close</span>
+                                        </summary>
+                                        <div className="border-t border-[var(--border)] px-5 pb-5 pt-4">
+                                            <ul className="space-y-3">
+                                                {section.items.map((item, index) => (
+                                                    <li key={`${section.id}-${index}`} className={`rounded-xl border p-4 ${item.note ? "border-[var(--focus)]/30 bg-[var(--surface-raised)]" : "border-[var(--border)] bg-[var(--surface-1)]"}`}>
+                                                        <p className="type-body leading-7 text-[var(--text-muted)]">
+                                                            {renderRichText(item.text)}
+                                                            <CitationLinks footnotes={item.footnotes} />
+                                                        </p>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </details>
+                                </Card>
+                            ))}
+                        </div>
+
+                        <Card className="glass-panel border-none">
+                            <CardHeader>
+                                <CardTitle className="type-h4">Footnotes</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3 pt-0">
+                                {complianceGuide.footnotes.map((footnote) => (
+                                    <div key={footnote.id} id={`footnote-${footnote.id}`} className="rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 scroll-mt-20">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <Badge variant="outline">[{footnote.id}]</Badge>
+                                            {footnote.needsVerification && <Badge>Verify link</Badge>}
+                                        </div>
+                                        <a
+                                            href={footnote.href}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="mt-3 inline-flex items-center gap-2 break-all text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]"
+                                        >
+                                            {footnote.title}
+                                            <ExternalLink className="h-4 w-4 shrink-0" />
+                                        </a>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                        <BackToTop />
+                    </section>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+
