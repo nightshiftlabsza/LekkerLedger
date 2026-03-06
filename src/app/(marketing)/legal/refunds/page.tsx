@@ -21,7 +21,7 @@ export default function RefundPolicy() {
                         <CreditCard className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Refund & Cancellation</h1>
-                    <p className="text-zinc-500 font-medium">Updated 6 March 2026 • Consumer Protection Act aware</p>
+        <p className="text-zinc-500 font-medium">Updated 6 March 2026 • Consumer Protection Act aware</p>
                 </header>
 
                 <div className="prose prose-zinc dark:prose-invert max-w-none space-y-8 text-zinc-400 leading-relaxed font-medium">
@@ -31,8 +31,8 @@ export default function RefundPolicy() {
                             LekkerLedger offers two paid plans today:
                         </p>
                         <ul className="list-disc pl-6 space-y-2">
-                            <li><strong>Standard:</strong> R29/month or R199/year for one household, up to 3 active employees, and the core paid features.</li>
-                            <li><strong>Pro:</strong> R39/month or R299/year for unlimited employees, multi-household workspaces, and the deepest archive.</li>
+          <li><strong>Standard:</strong> R29/month or R249/year for one household, up to 3 active employees, and the core paid features.</li>
+          <li><strong>Pro:</strong> R49/month or R399/year for unlimited employees, multi-household workspaces, and the deepest archive.</li>
                         </ul>
                         <p>
                             If you are unsatisfied with any purchase for any reason within 14 days of the transaction date, we will issue a full refund — no questions asked.
@@ -48,9 +48,9 @@ export default function RefundPolicy() {
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">3. No Exceptions</h2>
-                        <p>
-                            Our 14-day refund guarantee applies to any paid upgrade. If the product is not right for you, request a refund within 14 days of the purchase date and we will process it in full.
-                        </p>
+        <p>
+          Our 14-day refund policy applies to any paid upgrade. If the product is not right for you, request a refund within 14 days of the purchase date and we will process it in full.
+        </p>
                     </section>
 
                     <section className="space-y-4">
@@ -62,9 +62,9 @@ export default function RefundPolicy() {
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">5. Cooling-off Period</h2>
-                        <p>
-                            In accordance with Section 44 of the Electronic Communications and Transactions Act, you are entitled to a cooling-off period if the transaction was a result of direct marketing. Our 14-day refund guarantee exceeds this requirement and applies to all purchases.
-                        </p>
+        <p>
+          In accordance with Section 44 of the Electronic Communications and Transactions Act, you are entitled to a cooling-off period if the transaction was a result of direct marketing. Our 14-day refund policy goes beyond that minimum and applies to all purchases.
+        </p>
                     </section>
                 </div>
 

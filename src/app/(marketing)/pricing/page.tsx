@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Check, ChevronRight, ShieldCheck } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { Button } from "@/components/ui/button";
-import { PLAN_ORDER, PLANS, type BillingCycle, getPlanDisplayPrice, getPlanPeriodLabel, getPlanSavings, getPlanSavingsLabel } from "@/src/config/plans";
+import { PLAN_ORDER, PLANS, type BillingCycle, getPlanDisplayPrice, getPlanPeriodLabel } from "@/src/config/plans";
 
 const COMPARISON_GROUPS = [
     {
@@ -49,6 +49,7 @@ function FeatureValue({ value }: { value: boolean | string }) {
 
 export default function PricingPage() {
     const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("yearly");
+    const getEffectiveMonthlyLabel = (yearlyPrice: number) => `≈ R${(yearlyPrice / 12).toFixed(2)}/month billed yearly`;
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
@@ -65,7 +66,7 @@ export default function PricingPage() {
                                 Proper payroll records for South African households, without enterprise software pricing.
                             </h1>
                             <p className="mx-auto max-w-2xl text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Start free, then choose the level of backup, archive depth, and household control you need. Yearly plans keep the cost lower if this has become part of your normal monthly admin, and the paid tiers are the right fit when you want Google-connected access across browsers or devices without handing your payroll records to a LekkerLedger central database.
+                                Start free, then move up only when you need backup, archive depth, or more household control. Paid plans are built to keep routine payroll admin tidy without pushing you into enterprise-style software.
                             </p>
 
                             <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
@@ -94,7 +95,6 @@ export default function PricingPage() {
                             {PLAN_ORDER.map((planId) => {
                                 const plan = PLANS[planId];
                                 const featured = plan.id === "pro";
-                                const savings = getPlanSavings(plan);
                                 const cycle = plan.id === "free" ? "yearly" : billingCycle;
                                 return (
                                     <article
@@ -128,11 +128,11 @@ export default function PricingPage() {
                                                         {getPlanPeriodLabel(plan, cycle)}
                                                     </span>
                                                 </div>
-                                                {plan.pricing.yearly && savings && (
+                                                {plan.pricing.yearly && (
                                                     <p className="mt-3 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
                                                         {billingCycle === "yearly"
-                                                            ? `${getPlanSavingsLabel(plan)} • Save R${savings.amount} over 12 months`
-                                                            : `Yearly works out cheaper: ${getPlanDisplayPrice(plan, "yearly")}/year`}
+                                                            ? getEffectiveMonthlyLabel(plan.pricing.yearly)
+                                                            : `Or ${getPlanDisplayPrice(plan, "yearly")}/year`}
                                                     </p>
                                                 )}
                                             </div>
@@ -162,8 +162,8 @@ export default function PricingPage() {
                                                 {plan.id === "free"
                                                     ? "A calm starting point for one household that wants clean records from day one."
                                                     : plan.id === "standard"
-                                                        ? "Often lower than a single month of a managed household payroll service."
-                                                        : "Built for anyone managing multiple homes, family employers, or a growing payroll archive."}
+                                                        ? "Usually far cheaper than reconstructing records later."
+                                                        : "Built for multiple homes, deeper archives, and households that need more control."}
                                             </p>
                                         </div>
                                     </article>

@@ -5,13 +5,13 @@ import Link from "next/link";
 import {
     Check, ChevronDown, ChevronRight, Shield, FileText, Users,
     CloudOff, HardDrive, ArrowRight, Menu, X,
-    FolderSync, Mail, ClipboardCheck,
+    FolderSync, ClipboardCheck,
     Calendar, Download, AlertCircle, Database
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getNMWForDate } from "@/lib/legal/registry";
 import { Logo } from "@/components/ui/logo";
-import { PLANS, PLAN_ORDER, getPlanDisplayPrice, getPlanPeriodLabel, getPlanSavingsLabel } from "@/src/config/plans";
+import { PLANS, PLAN_ORDER, type BillingCycle, getPlanDisplayPrice, getPlanPeriodLabel, getPlanPrice } from "@/src/config/plans";
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * MARKETING HOMEPAGE — follows Audit A §4 wireframe exactly:
@@ -31,14 +31,13 @@ export default function HomePage() {
                 <Hero nmw={nmw} />
                 <TrustStrip />
                 <HowItWorks />
+                <ProductTour />
                 <Guardrails nmw={nmw} />
                 <FeatureGrid />
                 <PrivacyExplainer />
                 <PricingSummary />
-                <FAQAccordion />
+                <FAQPreview />
             </main>
-
-            <Footer />
         </div>
     );
 }
@@ -280,13 +279,13 @@ function TrustStrip() {
         <section style={{ backgroundColor: "var(--bg)" }}>
             <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-6 md:py-8">
                 <div className="rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] px-5 py-5 shadow-[var(--shadow-1)] sm:px-6 lg:px-8">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="max-w-md">
+                    <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                        <div className="max-w-lg">
                             <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                                 Built for trust
                             </p>
                             <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Local-first for free use, with Google-connected backup for paid users who want access across the Android app, the website, or another browser.
+                                Payroll records stay with you: on your device by default, with optional private backup in your own Google Drive when you want continuity across devices.
                             </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
@@ -347,13 +346,166 @@ function HowItWorks() {
     );
 }
 
+/* ─── 4.5 PRODUCT TOUR ───────────────────────────────────────────────────── */
+function ProductTour() {
+    const panels = [
+        {
+            eyebrow: "Monthly view",
+            title: "See what is done, what still needs attention, and what is ready to export.",
+            body: "The dashboard works like a calm task hub for household payroll instead of a generic admin app.",
+            href: "/open-app",
+            cta: "Open the app",
+            accent: "bg-[var(--primary)]/10 text-[var(--primary)]",
+        },
+        {
+            eyebrow: "Records and documents",
+            title: "Move from payroll entry to payslips, exports, and employee history without hunting through menus.",
+            body: "The main product areas are visible and connected, so people can understand what LekkerLedger actually does before they sign up.",
+            href: "/examples",
+            cta: "See sample documents",
+            accent: "bg-[var(--accent-subtle)] text-[var(--primary)]",
+        },
+    ];
+
+    return (
+        <section style={{ backgroundColor: "var(--surface-2)" }}>
+            <div className="content-container-wide px-4 py-20 sm:px-6 md:py-24 lg:px-8">
+                <div className="mx-auto mb-14 max-w-2xl text-center">
+                    <h2 className="type-h2" style={{ color: "var(--text)" }}>
+                        See the product before you commit.
+                    </h2>
+                    <p className="mt-4 text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                        A homepage should show the product, not only describe it. These previews show the task hub, payroll review flow, and record areas people usually want to inspect first.
+                    </p>
+                </div>
+
+                <div className="space-y-8">
+                    <div className="grid gap-8 rounded-[32px] border border-[var(--border)] bg-[var(--bg)] p-6 shadow-[var(--shadow-1)] xl:grid-cols-[0.92fr_1.08fr] xl:items-center xl:p-8">
+                        <div className="max-w-xl space-y-5">
+                            <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${panels[0].accent}`}>
+                                {panels[0].eyebrow}
+                            </span>
+                            <h3 className="text-[clamp(1.7rem,2.2vw,2.3rem)] font-semibold leading-tight font-[family:var(--font-serif)]" style={{ color: "var(--text)" }}>
+                                {panels[0].title}
+                            </h3>
+                            <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                {panels[0].body}
+                            </p>
+                            <Link href={panels[0].href} className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)]">
+                                {panels[0].cta} <ArrowRight className="h-3.5 w-3.5" />
+                            </Link>
+                        </div>
+
+                        <div className="space-y-3 rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-1)]">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>March payroll</p>
+                                    <p className="mt-1 text-lg font-black" style={{ color: "var(--text)" }}>Household dashboard</p>
+                                </div>
+                                <span className="rounded-full bg-[var(--accent-subtle)] px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">
+                                    2 tasks left
+                                </span>
+                            </div>
+                            <div className="grid gap-3 md:grid-cols-3">
+                                {[
+                                    ["Employees", "3 active"],
+                                    ["This month", "Review stage"],
+                                    ["Archive", "Up to date"],
+                                ].map(([label, value]) => (
+                                    <div key={label} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--text-muted)" }}>{label}</p>
+                                        <p className="mt-2 text-sm font-bold" style={{ color: "var(--text)" }}>{value}</p>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="space-y-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
+                                {[
+                                    "Finish Nomsa's payslip inputs",
+                                    "Review UIF totals before export",
+                                    "Download March PDF pack",
+                                ].map((task) => (
+                                    <div key={task} className="flex items-center gap-3">
+                                        <span className="h-2.5 w-2.5 rounded-full bg-[var(--primary)]" />
+                                        <span className="text-sm" style={{ color: "var(--text-muted)" }}>{task}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid gap-8 rounded-[32px] border border-[var(--border)] bg-[var(--bg)] p-6 shadow-[var(--shadow-1)] xl:grid-cols-[0.92fr_1.08fr] xl:items-center xl:p-8">
+                        <div className="max-w-xl space-y-5">
+                            <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${panels[1].accent}`}>
+                                {panels[1].eyebrow}
+                            </span>
+                            <h3 className="text-[clamp(1.7rem,2.2vw,2.3rem)] font-semibold leading-tight font-[family:var(--font-serif)]" style={{ color: "var(--text)" }}>
+                                {panels[1].title}
+                            </h3>
+                            <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                {panels[1].body}
+                            </p>
+                            <Link href={panels[1].href} className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)]">
+                                {panels[1].cta} <ArrowRight className="h-3.5 w-3.5" />
+                            </Link>
+                        </div>
+
+                        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+                            <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-1)]">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>Payroll run</p>
+                                        <p className="mt-1 text-base font-black" style={{ color: "var(--text)" }}>Payslip review</p>
+                                    </div>
+                                    <FileText className="h-5 w-5 text-[var(--primary)]" />
+                                </div>
+                                <div className="mt-4 space-y-3">
+                                    {[
+                                        ["Gross pay", "R4,836.80"],
+                                        ["UIF", "R48.37"],
+                                        ["Net pay", "R4,788.43"],
+                                    ].map(([label, value]) => (
+                                        <div key={label} className="flex items-center justify-between border-b border-[var(--border)]/70 pb-2 text-sm last:border-b-0 last:pb-0">
+                                            <span style={{ color: "var(--text-muted)" }}>{label}</span>
+                                            <span className="font-mono font-bold" style={{ color: "var(--text)" }}>{value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-1)]">
+                                    <div className="flex items-center gap-3">
+                                        <Users className="h-5 w-5 text-[var(--primary)]" />
+                                        <div>
+                                            <p className="text-sm font-bold" style={{ color: "var(--text)" }}>Employee record</p>
+                                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Rate, leave, start date, document history</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-1)]">
+                                    <div className="flex items-center gap-3">
+                                        <Download className="h-5 w-5 text-[var(--primary)]" />
+                                        <div>
+                                            <p className="text-sm font-bold" style={{ color: "var(--text)" }}>Annual paperwork</p>
+                                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>uFiling export, COIDA pack, archived PDFs</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
 /* ─── 5. GUARDRAILS ───────────────────────────────────────────────────────── */
 function Guardrails({ nmw }: { nmw: number }) {
     const items = [
         `Minimum wage check — current rate R${nmw.toFixed(2)}/hr (as of 1 Mar 2026)`,
         "COIDA registration reminder — mandatory for all domestic workers from 2026",
         "UIF threshold reminder — if your employee works more than 24 hours/month",
-        "Payslip field checklist — what a compliant payslip should include",
+        "Payslip field checklist — what a complete payslip should include",
         "Archive reminders — keep statements/records for at least 3 years",
         "Public holiday & Sunday rate reminders",
     ];
@@ -628,12 +780,13 @@ function PrivacyExplainer() {
 
 /* ─── 8. PRICING SUMMARY ─────────────────────────────────────────────────── */
 function PricingSummary() {
+    const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("monthly");
     const homepageBullets: Record<string, { intro?: string; items: string[] }> = {
         free: {
             items: [
                 "1 active employee",
                 "1 household workspace",
-                "Core payslip flow",
+                "Clear payslip flow",
                 "ROE copy-ready numbers",
             ],
         },
@@ -651,29 +804,64 @@ function PricingSummary() {
                 "Leave and loan tracking",
                 "5-year archive and deeper record history",
                 "Unlimited employees when your household grows",
-                "Multi-household workspace if you manage more than one home",
+                "Multi-household workspace",
             ],
         },
+    };
+    const comparisonRows = [
+        { label: "Active employees", values: { free: "1", standard: "Up to 3", pro: "Unlimited" } },
+        { label: "Archive history", values: { free: "3 months", standard: "12 months", pro: "5 years" } },
+        { label: "Google backup", values: { free: "No", standard: "Yes", pro: "Yes" } },
+        { label: "Contracts + uFiling export", values: { free: "No", standard: "Yes", pro: "Yes" } },
+        { label: "Leave + loan tracking", values: { free: "No", standard: "No", pro: "Yes" } },
+        { label: "Multi-household workspace", values: { free: "No", standard: "No", pro: "Yes" } },
+    ] as const;
+    const getEffectiveMonthlyLabel = (planId: "standard" | "pro") => {
+        const yearlyPrice = getPlanPrice(planId, "yearly");
+        if (!yearlyPrice) return "";
+        return `≈ R${(yearlyPrice / 12).toFixed(2)}/month billed yearly`;
     };
 
     return (
         <section style={{ backgroundColor: "var(--bg)" }}>
             <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-20 md:py-28">
                 <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+                    <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                        Simple payroll and records for domestic employers
+                    </p>
                     <h2 className="type-h2" style={{ color: "var(--text)" }}>
-                        Start free. Step up only when your household needs more depth.
+                        Payslips, UIF-ready numbers, and household records in one place.
                     </h2>
                     <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                        Simple household pricing, with a lower yearly rate when you want to save.
+                        Start free, then move up only when you need backup, archive depth, or support for more households and employees.
                     </p>
+                    <div className="flex justify-center pt-3">
+                        <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
+                            {(["monthly", "yearly"] as BillingCycle[]).map((cycle) => (
+                                <button
+                                    key={cycle}
+                                    type="button"
+                                    onClick={() => setBillingCycle(cycle)}
+                                    className="rounded-full px-5 py-2.5 text-sm font-bold transition-all"
+                                    style={{
+                                        backgroundColor: billingCycle === cycle ? "var(--primary)" : "transparent",
+                                        color: billingCycle === cycle ? "#ffffff" : "var(--text-muted)",
+                                    }}
+                                >
+                                    {cycle === "monthly" ? "Monthly" : "Yearly"}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
                     {PLAN_ORDER.map((planId) => {
                         const plan = PLANS[planId];
                         const featured = plan.id === "pro";
-                        const primaryCycle = plan.id === "free" ? "yearly" : "monthly";
+                        const primaryCycle = plan.id === "free" ? "yearly" : billingCycle;
                         const summary = homepageBullets[plan.id];
+                        const paidHref = `/open-app?recommended=google&next=${encodeURIComponent(`/upgrade?plan=${plan.id}&billing=${billingCycle}&pay=1`)}`;
                         return (
                             <div key={plan.id} className={`relative rounded-[24px] border p-6 shadow-[var(--shadow-1)] ${featured ? "border-[var(--primary)]" : "border-[var(--border)]"}`} style={{ backgroundColor: "var(--surface-1)" }}>
                                 <div className="space-y-4">
@@ -700,7 +888,9 @@ function PricingSummary() {
                                         </div>
                                         {plan.pricing.yearly && (
                                             <p className="mt-2 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
-                                                or {getPlanDisplayPrice(plan, "yearly")}/year • {getPlanSavingsLabel(plan)}
+                                                {billingCycle === "yearly"
+                                                    ? getEffectiveMonthlyLabel(plan.id as "standard" | "pro")
+                                                    : `Or ${getPlanDisplayPrice(plan, "yearly")}/year`}
                                             </p>
                                         )}
                                     </div>
@@ -719,11 +909,62 @@ function PricingSummary() {
                                             </li>
                                         ))}
                                     </ul>
+
+                                    <div className="border-t border-[var(--border)] pt-4">
+                                        {plan.id === "free" ? (
+                                            <Link href="/onboarding">
+                                                <Button className="w-full h-11 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-sm">
+                                                    Start free
+                                                </Button>
+                                            </Link>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                <Link href={paidHref}>
+                                                    <Button className="w-full h-11 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-sm">
+                                                        Continue with Google to pay
+                                                    </Button>
+                                                </Link>
+                                                <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                                    Choose {plan.label}, connect Google, then finish payment from the app with your plan preselected.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         );
                     })}
                 </div>
+
+                <div className="mt-8 overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-1)]">
+                    <div className="hidden grid-cols-[1.6fr_repeat(3,1fr)] border-b border-[var(--border)] bg-[var(--surface-raised)] px-6 py-4 text-xs font-black uppercase tracking-[0.16em] md:grid" style={{ color: "var(--text-muted)" }}>
+                        <div>What changes</div>
+                        <div className="text-center">Free</div>
+                        <div className="text-center">Standard</div>
+                        <div className="text-center">Pro</div>
+                    </div>
+                    {comparisonRows.map((row) => (
+                        <div key={row.label} className="grid gap-4 border-t border-[var(--border)] px-6 py-4 first:border-t-0 md:grid-cols-[1.6fr_repeat(3,1fr)] md:items-center">
+                            <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>{row.label}</div>
+                            <div className="flex items-center justify-between text-sm md:block md:text-center" style={{ color: "var(--text-muted)" }}>
+                                <span className="font-bold md:hidden" style={{ color: "var(--text)" }}>Free</span>
+                                <span>{row.values.free}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm md:block md:text-center" style={{ color: "var(--text-muted)" }}>
+                                <span className="font-bold md:hidden" style={{ color: "var(--text)" }}>Standard</span>
+                                <span>{row.values.standard}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm md:block md:text-center" style={{ color: "var(--text-muted)" }}>
+                                <span className="font-bold md:hidden" style={{ color: "var(--text)" }}>Pro</span>
+                                <span>{row.values.pro}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <p className="mt-6 text-center text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
+                    Built specifically for South African domestic employers.
+                </p>
 
                 <div className="text-center mt-8 space-y-3">
                     <Link href="/pricing" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]">
@@ -743,16 +984,16 @@ function PricingSummary() {
 }
 
 /* ─── 9. FAQ ACCORDION ───────────────────────────────────────────────────── */
-function FAQAccordion() {
+function FAQPreview() {
     const faqs = [
         { q: "Is my employee data stored on LekkerLedger's servers?", a: "No. LekkerLedger doesn't keep a central database of your employee records. Payroll data is stored locally on your device, and paid users can connect Google to keep a private backup in their own Google Drive app data area. Your payroll records stay private from us." },
         { q: "Do I need to register for COIDA?", a: "Yes. Employers of domestic workers generally need to register with the Compensation Fund (COIDA) to cover occupational injuries. This is one of those areas where the legal expectation matters, so it helps to keep the record trail tidy early instead of rebuilding it later." },
         { q: "Do I need to register for UIF?", a: "It depends on hours worked. If your employee works more than 24 hours per month, UIF registration is generally expected. LekkerLedger includes UIF calculations so you are not guessing later, but always check official guidance for your situation." },
         { q: "Can I use LekkerLedger for one employee only?", a: "Yes. Free supports one active employee, Standard supports up to 3, and Pro supports unlimited employees." },
-        { q: "What does Standard include?", a: "Standard starts at R29/month or R199/year. It gives you up to 3 active employees, 12 months of archive history, Google Drive backup, contracts, uFiling export, and the annual ROE pack. It is also still well below the price of most managed payroll services." },
-        { q: "What does Pro include?", a: "Pro starts at R39/month or R299/year. It gives you everything in Standard, plus leave and loan tracking, a 5-year archive, and deeper record control for households that want more history and admin depth. It also adds unlimited employees and multi-household support if you need that headroom." },
+        { q: "What does Standard include?", a: "Standard starts at R29/month or R249/year. It gives you up to 3 active employees, 12 months of archive history, Google Drive backup, contracts, uFiling export, and the annual ROE pack. It is still priced to stay accessible for normal households." },
+        { q: "What does Pro include?", a: "Pro starts at R49/month or R399/year. It gives you everything in Standard, plus leave and loan tracking, a 5-year archive, and deeper record control for households that want more history and admin depth. It also adds unlimited employees and multi-household support if you need that headroom." },
         { q: "Can I export records for uFiling?", a: "Yes — there's a built-in uFiling export tool to generate UIF declarations for submission." },
-        { q: "Is this legal advice?", a: "No. LekkerLedger provides tools and general information to help you create compliant records. We are not a law firm. Always verify against official sources for your specific situation." },
+        { q: "Is this legal advice?", a: "No. LekkerLedger provides tools and general information to help you keep clearer records. We are not a law firm. Always verify against official sources for your specific situation." },
         { q: "Can my domestic worker get a copy of the payslip?", a: "Absolutely — you can download the PDF and share it via WhatsApp, email, or print. Clear payslips benefit both employer and employee." },
     ];
 
@@ -798,71 +1039,5 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         </>
     );
 }
-
-
-
-/* ─── FOOTER ─────────────────────────────────────────────────────────────── */
-function Footer() {
-    return (
-        <footer className="border-t border-[var(--border)]" style={{ backgroundColor: "var(--surface-2)" }}>
-            <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-12">
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <div>
-                        <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Product</h4>
-                        <div className="space-y-2">
-                            <Link href="#how-it-works" className="block text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>How it works</Link>
-                            <Link href="/pricing" className="block text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Pricing</Link>
-                            <Link href="/calculator" className="block text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Wage Calculator</Link>
-                            <Link href="/rules" className="block text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Compliance Guide</Link>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Legal</h4>
-                        <div className="space-y-2">
-                            <Link href="/legal/privacy" className="block text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Privacy Policy</Link>
-                            <Link href="/legal/terms" className="block text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Terms of Service</Link>
-                            <Link href="/legal/refunds" className="block text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Refund Policy</Link>
-                            <Link href="/trust" className="block text-sm font-semibold mt-2 text-[var(--primary)] hover:underline">Trust Center</Link>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Connect</h4>
-                        <div className="space-y-2">
-                            <a href="mailto:support@lekkerledger.co.za" className="flex items-center gap-2 text-sm hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>
-                                <Mail className="h-3.5 w-3.5" /> Email Support
-                            </a>
-                        </div>
-                    </div>
-                    <div className="max-w-xs">
-                        <Link href="/" className="inline-block mb-5 outline-none hover:opacity-90 transition-opacity">
-                            <Logo
-                                iconClassName="h-12 w-12"
-                                textClassName="text-[1.32rem]"
-                                className="gap-2.5"
-                            />
-                        </Link>
-                        <p className="text-[11px] font-black uppercase tracking-[0.16em] mb-3" style={{ color: "var(--text-muted)" }}>
-                            Household payroll records
-                        </p>
-                        <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            Calm payroll records, annual paperwork, and document history in one place.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="mt-10 pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>© {new Date().getFullYear()} LekkerLedger. All rights reserved.</p>
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>General information, not legal advice.</p>
-                </div>
-            </div>
-        </footer>
-    );
-}
-
-
-
-
-
-
 
 

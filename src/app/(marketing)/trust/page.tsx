@@ -111,12 +111,12 @@ export default function TrustCenterPage() {
                             <div>
                                 <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text)" }}>No Hidden Fees</h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    Free covers the essentials. Standard is R29/month or R199/year for most households that want proper records, backup, contracts, and annual paperwork. Pro is R39/month or R299/year for deeper record control, longer archive history, and richer admin tracking, with unlimited employees and multi-household workspaces when you need them. Both paid tiers are still priced for households rather than the higher monthly fees common in managed payroll services.
+                    Free covers the essentials. Standard is R29/month or R249/year for most households that want proper records, backup, contracts, and annual paperwork. Pro is R49/month or R399/year for deeper record control, longer archive history, and richer admin tracking, with unlimited employees and multi-household workspaces when you need them. Both paid tiers are still priced for households rather than the higher monthly fees common in managed payroll services.
                                 </p>
                             </div>
                         </div>
                         <div className="p-8 rounded-2xl border border-[var(--primary)] bg-[var(--primary)]/5">
-                            <h3 className="text-xl font-black mb-3" style={{ color: "var(--text)" }}>14-Day Refund Guarantee</h3>
+                            <h3 className="text-xl font-black mb-3" style={{ color: "var(--text)" }}>14-Day Refund Policy</h3>
                             <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-muted)" }}>
                                 If you are unsatisfied with your upgrade for any reason within 14 days, email us and we will issue a full refund — no questions asked.
                             </p>

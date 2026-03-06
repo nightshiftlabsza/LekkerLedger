@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,20 +19,37 @@ const PaystackHookWrapper = dynamic(() => import("@/components/paystack-wrapper"
 
 export default function UpgradePage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("yearly");
     const [selectedPlan, setSelectedPlan] = React.useState<"standard" | "pro" | null>(null);
     const [makePayment, setMakePayment] = React.useState(false);
+    const hasAutoOpenedPayment = React.useRef(false);
 
     React.useEffect(() => {
         async function load() {
             const currentSettings = await getSettings();
             setSettings(currentSettings as EmployerSettings);
-            setBillingCycle(currentSettings.billingCycle === "monthly" ? "monthly" : "yearly");
+            const requestedBilling = searchParams.get("billing");
+            setBillingCycle(requestedBilling === "monthly" ? "monthly" : requestedBilling === "yearly" ? "yearly" : currentSettings.billingCycle === "monthly" ? "monthly" : "yearly");
         }
         load();
-    }, []);
+    }, [searchParams]);
+
+    React.useEffect(() => {
+        if (!settings || hasAutoOpenedPayment.current) return;
+        const requestedPlan = searchParams.get("plan");
+        const shouldPayNow = searchParams.get("pay") === "1";
+        if ((requestedPlan === "standard" || requestedPlan === "pro") && shouldPayNow) {
+            const currentPlan = getUserPlan(settings);
+            if (currentPlan.id !== requestedPlan) {
+                setSelectedPlan(requestedPlan);
+                setMakePayment(true);
+                hasAutoOpenedPayment.current = true;
+            }
+        }
+    }, [searchParams, settings]);
 
     const currentPlan = settings ? getUserPlan(settings) : PLANS.free;
     const selectedPrice = selectedPlan ? getPlanPrice(selectedPlan, billingCycle) : null;

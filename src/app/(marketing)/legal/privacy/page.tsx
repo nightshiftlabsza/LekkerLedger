@@ -61,7 +61,7 @@ export default function PrivacyPolicy() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">4. POPIA Compliance & Your Rights</h2>
+          <h2 className="text-2xl font-black text-white">4. POPIA & Your Rights</h2>
                         <p className="text-xs" style={{ color: "var(--text-muted)" }}>Your data is securely stored in your browser&apos;s IndexedDB by default.</p>
                         <p>As per POPIA, you have the following rights regarding the data you process using LekkerLedger:</p>
                         <ul className="list-disc pl-6 space-y-2">
