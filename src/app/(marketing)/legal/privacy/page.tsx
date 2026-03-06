@@ -34,7 +34,7 @@ export default function PrivacyPolicy() {
 
                     <section className="space-y-4 text-[var(--primary)]/90 italic p-6 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10">
                         <p>
-                            If you ever need a record trail, LekkerLedger&apos;s built-in vault keeps a chronological history of payslips, contracts, and Unemployment Insurance Fund (UIF) declarations. Keep up to 5 years of history instantly accessible.
+                            If you ever need a record trail, LekkerLedger&apos;s built-in vault keeps a chronological history of payslips, contracts, and Unemployment Insurance Fund (UIF) declarations. Standard keeps 12 months accessible, and Pro extends that to 5 years.
                         </p>
                         <p>
                             <strong>Important:</strong> LekkerLedger is a &ldquo;privacy-first&rdquo; tool. We have no central database for your employee data. If Drive sync is <strong>OFF</strong>: your data is stored on this device only. If Drive sync is <strong>ON</strong>: your data is stored in your personal private Google Drive folder — not our servers.
@@ -84,4 +84,5 @@ export default function PrivacyPolicy() {
         </div>
     );
 }
+
 

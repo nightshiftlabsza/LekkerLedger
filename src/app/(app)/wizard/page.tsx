@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
-import { SideDrawer } from "@/components/layout/side-drawer";
 import { StickyBottomBar } from "@/components/layout/sticky-bottom-bar";
 import { getEmployees, savePayslip, getSecureTime, getSettings, getUsageStats, getAllPayslips, deletePayslip, saveDocumentMeta } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
@@ -124,6 +123,7 @@ function WizardContent() {
     const breakdown = employee
         ? calculatePayslip({
             id: "preview",
+            householdId: employee.householdId ?? "default",
             employeeId: employee.id,
             payPeriodStart: safeDate(dates.start),
             payPeriodEnd: safeDate(dates.end),
@@ -150,13 +150,14 @@ function WizardContent() {
         if (!employee) return;
         setLoading(true);
         try {
-            // Trial Expiry Check
+            // Validate against secure time before save
             const [_settingsCheck, nowSafe] = await Promise.all([getSettings(), getSecureTime()]);
             void _settingsCheck;
             void nowSafe;
 
             const payslipInput: PayslipInput = {
                 id: crypto.randomUUID(),
+                householdId: employee.householdId ?? "default",
                 employeeId: employee.id,
                 payPeriodStart: safeDate(dates.start),
                 payPeriodEnd: safeDate(dates.end),
@@ -182,7 +183,7 @@ function WizardContent() {
 
             await saveDocumentMeta({
                 id: payslipInput.id,
-                householdId: "default",
+                householdId: employee.householdId ?? "default",
                 type: "payslip",
                 employeeId: employee.id,
                 fileName: `${employee.name.split(' ')[0]}_Payslip_${format(safeDate(dates.start), "MMM_yyyy")}.pdf`,
@@ -260,7 +261,7 @@ function WizardContent() {
     if (loadingInitial) {
         return (
             <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
-                <header className="sticky top-0 z-30 px-4 py-3 bg-[var(--surface-1)] border-b border-[var(--border)]">
+                <div className="mb-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
                     <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
@@ -270,7 +271,7 @@ function WizardContent() {
                             </div>
                         </div>
                     </div>
-                </header>
+                </div>
                 <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 space-y-5 flex flex-col">
                     <div className="h-24 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse border border-[var(--border)]" />
                     <div className="flex-1 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse border border-[var(--border)]" />
@@ -284,10 +285,9 @@ function WizardContent() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
+            <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
                 <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <SideDrawer />
                         <Link href="/employees">
                             <button
                                 aria-label="Back"
@@ -312,9 +312,9 @@ function WizardContent() {
                         Step {currentStep + 1}/{STEPS.length}
                     </span>
                 </div>
-            </header>
+            </div>
 
-            <main className="flex-1 px-4 py-6 pb-24 content-container">
+            <main className="flex-1 content-container">
                 {/* Stepper */}
                 <div
                     className="p-5 rounded-2xl"
@@ -332,7 +332,7 @@ function WizardContent() {
                         <AlertCircle className="h-4 w-4 text-[var(--focus)]" />
                         <AlertDescription className="text-[var(--text)]">
                             <strong>Free limit reached (2/month).</strong> Next payslip will be watermarked.
-                            <Link href="/pricing" className="ml-2 underline font-bold">Upgrade to Pro</Link>.
+                            <Link href="/pricing" className="ml-2 underline font-bold">Compare plans</Link>.
                         </AlertDescription>
                     </Alert>
                 )}
@@ -852,3 +852,8 @@ export default function WizardPage() {
         </React.Suspense>
     );
 }
+
+
+
+
+

@@ -2,367 +2,272 @@
 
 import * as React from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import {
-    Check, Zap, Menu, X
-} from "lucide-react";
+import { ArrowRight, Check, ChevronRight, ShieldCheck } from "lucide-react";
+import { MarketingHeader } from "@/components/layout/marketing-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { getSettings, saveSettings } from "@/lib/storage";
-import { useToast } from "@/components/ui/toast";
-import { PLANS, annualPriceLabel } from "../../../config/plans";
-import { Logo } from "@/components/ui/logo";
+import { PLAN_ORDER, PLANS, type BillingCycle, getPlanDisplayPrice, getPlanPeriodLabel, getPlanSavings, getPlanSavingsLabel } from "@/src/config/plans";
 
-const PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c";
-const PAYSTACK_PLAN_ANNUAL = "PLN_xdijjb5u3pqneld";
+const COMPARISON_GROUPS = [
+    {
+        title: "Coverage",
+        rows: [
+            { label: "Active employees", values: { free: "1", standard: "Up to 3", pro: "Unlimited" } },
+            { label: "Household workspaces", values: { free: "1", standard: "1", pro: "Multiple" } },
+            { label: "Archive window", values: { free: "3 months", standard: "12 months", pro: "5 years" } },
+        ],
+    },
+    {
+        title: "Payroll and documents",
+        rows: [
+            { label: "Payslip generation", values: { free: true, standard: true, pro: true } },
+            { label: "Contract generator", values: { free: false, standard: true, pro: true } },
+            { label: "uFiling export", values: { free: false, standard: true, pro: true } },
+            { label: "Annual COIDA ROE pack", values: { free: "Copy-ready numbers", standard: true, pro: true } },
+        ],
+    },
+    {
+        title: "Storage and control",
+        rows: [
+            { label: "Google Drive backup", values: { free: false, standard: true, pro: true } },
+            { label: "Leave and loan tracking", values: { free: false, standard: false, pro: true } },
+            { label: "Multi-household switching", values: { free: false, standard: false, pro: true } },
+        ],
+    },
+] as const;
 
-const PaystackHookWrapper = dynamic(() => import('@/components/paystack-wrapper'), { ssr: false });
+function FeatureValue({ value }: { value: boolean | string }) {
+    if (value === true) {
+        return <Check className="mx-auto h-4 w-4 text-[var(--primary)]" />;
+    }
 
-/* ═══════════════════════════════════════════════════════════════════════════
- * PRICING PAGE — uses marketing layout (NO app shell nav)
- * Full pricing comparison + payment integration
- * ═══════════════════════════════════════════════════════════════════════════ */
+    if (value === false) {
+        return <span style={{ color: "var(--text-muted)" }}>-</span>;
+    }
+
+    return <span>{value}</span>;
+}
 
 export default function PricingPage() {
-    const { toast } = useToast();
-    const currentYear = new Date().getFullYear();
-    const [status, setStatus] = React.useState<"free" | "annual" | "lifetime" | "trial" | "pro">("free");
-    const [selectedPlan, setSelectedPlan] = React.useState<"annual" | "pro" | null>(null);
-    const [makePayment, setMakePayment] = React.useState(false);
-
-    React.useEffect(() => {
-        async function load() {
-            const s = await getSettings();
-            setStatus(s.proStatus || "free");
-        }
-        load();
-    }, []);
-
-    const getPaystackConfig = () => {
-        const isAnnual = selectedPlan === "annual";
-        const email = typeof window !== "undefined" ? localStorage.getItem("google_email") || "user@lekkerledger.co.za" : "user@lekkerledger.co.za";
-        return {
-            reference: (new Date()).getTime().toString(),
-            email,
-            amount: isAnnual ? 9900 : 29900,
-            publicKey: PAYSTACK_PUBLIC_KEY,
-            currency: 'ZAR',
-            plan: isAnnual ? PAYSTACK_PLAN_ANNUAL : undefined,
-        };
-    };
-
-    const handleUpgradeSuccess = async (plan: "annual" | "pro") => {
-        const s = await getSettings();
-        await saveSettings({ ...s, proStatus: plan });
-        setStatus(plan);
-        setMakePayment(false);
-        toast(`Payment Successful! Welcome to Lekker ${plan === "pro" ? "Pro Lifetime" : "Annual Support"}! Access activated.`);
-    };
-
-    const handleAction = (plan: "annual" | "pro") => {
-        setSelectedPlan(plan);
-        setMakePayment(true);
-    };
-
-    const handleStartTrial = async () => {
-        const s = await getSettings();
-        const expiry = new Date();
-        expiry.setMonth(expiry.getMonth() + 1);
-        await saveSettings({
-            ...s,
-            proStatus: "trial",
-            trialExpiry: expiry.toISOString()
-        });
-        setStatus("trial");
-        toast("Your 1-month Pro trial has started! Enjoy full access.");
-    };
+    const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("yearly");
 
     return (
-        <div className="min-h-screen flex flex-col selection:bg-amber-200" style={{ backgroundColor: "var(--bg)" }}>
-            {/* Marketing Header */}
-            <PricingHeader />
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
+            <MarketingHeader />
 
-            {makePayment && selectedPlan && (
-                <div className="fixed inset-0 z-[100] pointer-events-none">
-                    <PaystackHookWrapper
-                        config={getPaystackConfig()}
-                        onSuccess={() => handleUpgradeSuccess(selectedPlan)}
-                        onClose={() => setMakePayment(false)}
-                    />
-                </div>
-            )}
+            <main id="main-content" className="flex-1">
+                <section className="border-b border-[var(--border)]" style={{ backgroundColor: "var(--surface-2)" }}>
+                    <div className="content-container-wide px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+                        <div className="mx-auto max-w-3xl text-center space-y-6">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                                Household pricing
+                            </div>
+                            <h1 className="type-h1" style={{ color: "var(--text)" }}>
+                                Proper payroll records for South African households, without enterprise software pricing.
+                            </h1>
+                            <p className="mx-auto max-w-2xl text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                Start free, then choose the level of backup, archive depth, and household control you need. Yearly plans keep the cost lower if this has become part of your normal monthly admin, and both paid tiers still sit well below typical managed payroll pricing.
+                            </p>
 
-            <main id="main-content" className="flex-1 px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-                <div className="max-w-5xl mx-auto">
-                    {/* Header */}
-                    <div className="text-center space-y-4 max-w-2xl mx-auto mb-16">
-                        <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                            Simple, transparent pricing.
-                        </h1>
-                        <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            Start free with one employee. Upgrade when your household needs more.
-                        </p>
+                            <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
+                                {(["monthly", "yearly"] as BillingCycle[]).map((cycle) => (
+                                    <button
+                                        key={cycle}
+                                        type="button"
+                                        onClick={() => setBillingCycle(cycle)}
+                                        className="rounded-full px-5 py-2.5 text-sm font-bold transition-all"
+                                        style={{
+                                            backgroundColor: billingCycle === cycle ? "var(--primary)" : "transparent",
+                                            color: billingCycle === cycle ? "#ffffff" : "var(--text-muted)",
+                                        }}
+                                    >
+                                        {cycle === "monthly" ? "Monthly" : "Yearly"}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
+                </section>
 
-                    {/* Pricing Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-                        <PricingCard
-                            title={PLANS.free.label}
-                            price="R0"
-                            period="forever"
-                            description="Local-first payroll and compliance for one household."
-                            features={PLANS.free.marketingBullets.map(b => ({ text: b, included: true }))}
-                            buttonText={status === "free" ? "Current Plan" : "Downgrade"}
-                            buttonDisabled={status === "free"}
-                            onAction={() => { }}
-                        />
+                <section>
+                    <div className="content-container-wide px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+                        <div className="grid gap-6 xl:grid-cols-3">
+                            {PLAN_ORDER.map((planId) => {
+                                const plan = PLANS[planId];
+                                const featured = plan.id === "pro";
+                                const savings = getPlanSavings(plan);
+                                const cycle = plan.id === "free" ? "yearly" : billingCycle;
+                                return (
+                                    <article
+                                        key={plan.id}
+                                        className={`flex flex-col rounded-[28px] border p-7 ${featured ? "border-[var(--primary)] shadow-[var(--shadow-2)]" : "border-[var(--border)] shadow-[var(--shadow-1)]"}`}
+                                        style={{ backgroundColor: "var(--surface-1)" }}
+                                    >
+                                        <div className="space-y-5">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div>
+                                                    <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                                                        {plan.label}
+                                                    </p>
+                                                    <h2 className="mt-2 text-2xl font-black" style={{ color: "var(--text)" }}>
+                                                        {plan.bestFor}
+                                                    </h2>
+                                                </div>
+                                                {plan.badge && (
+                                                    <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${featured ? "bg-[var(--primary)] text-white" : "bg-[var(--accent-subtle)] text-[var(--primary)]"}`}>
+                                                        {plan.badge}
+                                                    </span>
+                                                )}
+                                            </div>
 
-                        <PricingCard
-                            title={PLANS.annual.label}
-                            price={annualPriceLabel().split(' ')[0]} // Get "R99/year" out of "R99/year (promo...)"
-                            period="per year"
-                            description="Cloud backup and priority reference rate and template updates."
-                            badge="Popular"
-                            features={PLANS.annual.marketingBullets.map(b => ({ text: b, included: true }))}
-                            buttonText={status === "annual" ? "Active" : "Subscribe Yearly"}
-                            onAction={() => handleAction("annual")}
-                            colorClass="text-[var(--color-success)]"
-                        />
+                                            <div className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-raised)] p-5">
+                                                <div className="flex items-end gap-2">
+                                                    <span className="text-5xl font-semibold type-mono" style={{ color: "var(--text)" }}>
+                                                        {getPlanDisplayPrice(plan, cycle)}
+                                                    </span>
+                                                    <span className="pb-1 text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                                                        {getPlanPeriodLabel(plan, cycle)}
+                                                    </span>
+                                                </div>
+                                                {plan.pricing.yearly && savings && (
+                                                    <p className="mt-3 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
+                                                        {billingCycle === "yearly"
+                                                            ? `${getPlanSavingsLabel(plan)} • Save R${savings.amount} over 12 months`
+                                                            : `Yearly works out cheaper: ${getPlanDisplayPrice(plan, "yearly")}/year`}
+                                                    </p>
+                                                )}
+                                            </div>
 
-                        <PricingCard
-                            title={PLANS.lifetime.label}
-                            price={`R${PLANS.lifetime.onceOffPrice}`}
-                            period="once-off"
-                            description="The complete payroll vault. Pay once, keep forever."
-                            badge="Best Value"
-                            features={PLANS.lifetime.marketingBullets.map(b => ({ text: b, included: true }))}
-                            buttonText={status === "pro" || status === "lifetime" ? "Activated" : "Get Lifetime Access"}
-                            onAction={() => handleAction("pro")}
-                            isPro
-                            colorClass="text-[var(--primary)]"
-                        />
+                                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                                {plan.description}
+                                            </p>
+
+                                            <ul className="space-y-3">
+                                                {plan.marketingBullets.map((bullet) => (
+                                                    <li key={bullet} className="flex items-start gap-3 text-sm" style={{ color: "var(--text-muted)" }}>
+                                                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                                        <span>{bullet}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+
+                                        <div className="mt-8 space-y-3 border-t border-[var(--border)] pt-6">
+                                            <Link href="/onboarding">
+                                                <Button className="w-full justify-center font-bold">
+                                                    {plan.id === "free" ? "Start free" : `Choose ${plan.label}`}
+                                                    <ArrowRight className="h-4 w-4" />
+                                                </Button>
+                                            </Link>
+                                            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                                {plan.id === "free"
+                                                    ? "A calm starting point for one household that wants clean records from day one."
+                                                    : plan.id === "standard"
+                                                        ? "Often lower than a single month of a managed household payroll service."
+                                                        : "Built for anyone managing multiple homes, family employers, or a growing payroll archive."}
+                                            </p>
+                                        </div>
+                                    </article>
+                                );
+                            })}
+                        </div>
                     </div>
+                </section>
 
-                    {/* Disclaimer */}
-                    <div className="mt-8 text-center space-y-2">
-                        <p className="text-xs font-medium text-[var(--text-muted)]">
-                            We aim to keep reference rates and templates current. Always verify against official government sources.
-                        </p>
-                        <p className="text-[10px] text-[var(--text-muted)] opacity-70">
-                            Disclaimer: LekkerLedger is a record-keeping tool, not legal advice.
-                        </p>
-                    </div>
-
-                    {/* Free Trial Banner */}
-                    {status === "free" && (
-                        <div className="mt-12 p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden group" style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--primary)]/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-[var(--primary)]/20 transition-all duration-700" />
-                            <div className="space-y-3 z-10 text-center md:text-left">
-                                <h3 className="type-h3" style={{ color: "var(--text)" }}>Experience Pro Risk-Free</h3>
-                                <p className="max-w-md text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    Unlock every feature, unlimited employees, and cloud backups for 30 days. No credit card required.
+                <section className="border-y border-[var(--border)]" style={{ backgroundColor: "var(--surface-2)" }}>
+                    <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8">
+                        <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                            <div className="max-w-2xl space-y-3">
+                                <h2 className="type-h2" style={{ color: "var(--text)" }}>
+                                    Clear feature differences, so households can self-select fast.
+                                </h2>
+                                <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                    The paid plans are designed to reduce the time, clean-up work, and risk of missing something once your records need to be shared, archived, or revisited.
                                 </p>
                             </div>
-                            <Button
-                                className="h-14 px-10 rounded-2xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-semibold text-base shadow-xl z-10 whitespace-nowrap"
-                                onClick={handleStartTrial}
-                            >
-                                Start 30-Day Free Trial
-                            </Button>
-                        </div>
-                    )}
-
-                    {/* How Billing Works */}
-                    <div className="mt-16 p-8 rounded-2xl border border-[var(--border)]" style={{ backgroundColor: "var(--surface-1)" }}>
-                        <h3 className="text-lg font-bold mb-4" style={{ color: "var(--text)" }}>How billing works</h3>
-                        <div className="grid md:grid-cols-3 gap-6">
-                            <div>
-                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Standard</p>
-                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Free forever for 1 employee and limited history.</p>
-                            </div>
-                            <div>
-                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Annual Support (R99/year)</p>
-                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Renews yearly. Cancel anytime—your access continues until the end of the paid year.</p>
-                            </div>
-                            <div>
-                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Lekker Pro (R299 once-off)</p>
-                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>One-time payment for long-term access on this device, plus features like extended archive and (if enabled) Drive backup.</p>
+                            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-5 py-4 text-sm leading-relaxed shadow-[var(--shadow-1)]" style={{ color: "var(--text-muted)" }}>
+                                <strong style={{ color: "var(--text)" }}>Quiet reassurance:</strong> the goal is not to scare you. The goal is to help you stay organised before a routine payroll or compliance request turns into an expensive clean-up.
                             </div>
                         </div>
-                        <div className="mt-6 pt-4 border-t border-[var(--border)] space-y-3">
-                            <div>
-                                <p className="text-sm font-bold mb-1" style={{ color: "var(--text)" }}>Refunds</p>
-                                <p className="text-sm" style={{ color: "var(--text-muted)" }}>If you request a refund within 14 days of purchase, we’ll refund you in full. How to request: Use the in-app Support link or email support@lekkerledger.co.za with your purchase email + date.</p>
+
+                        <div className="overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-1)]">
+                            <div className="hidden grid-cols-[1.5fr_repeat(3,1fr)] border-b border-[var(--border)] bg-[var(--surface-raised)] px-6 py-4 text-xs font-black uppercase tracking-[0.16em] md:grid" style={{ color: "var(--text-muted)" }}>
+                                <div>Feature</div>
+                                <div className="text-center">Free</div>
+                                <div className="text-center">Standard</div>
+                                <div className="text-center">Pro</div>
                             </div>
-                            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                                <Link href="/legal/refunds" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
-                                    View full refund & cancellation policy →
-                                </Link>
-                                <Link href="/examples" className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
-                                    View sample payslip →
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
 
-            {/* Footer */}
-            <footer className="border-t border-[var(--border)] py-8 px-4" style={{ backgroundColor: "var(--surface-2)" }}>
-                <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>© {currentYear} LekkerLedger. All rights reserved. Crafted by Nightshift Labs 🇿🇦</p>
-                    <div className="flex items-center gap-4">
-                        <Link href="/legal/privacy" className="text-xs hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Privacy</Link>
-                        <Link href="/legal/terms" className="text-xs hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Terms</Link>
-                        <Link href="/legal/refunds" className="text-xs hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>Refunds</Link>
-                    </div>
-                </div>
-            </footer>
-        </div>
-    );
-}
-
-/* ─── PRICING HEADER (marketing, no app nav) ─────────────────────────────── */
-function PricingHeader() {
-    const [mobileOpen, setMobileOpen] = React.useState(false);
-    const links = [
-        { href: "/#how-it-works", label: "How it works" },
-        { href: "/pricing", label: "Pricing" },
-        { href: "/legal/privacy", label: "Privacy" },
-        { href: "/rules", label: "Compliance guide" },
-        { href: "/#faq", label: "FAQ" },
-    ];
-
-    return (
-        <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-sm">
-            <div className="content-container-wide px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-                {/* Logo */}
-                <Link href="/" className="inline-block outline-none hover:opacity-90 transition-opacity">
-                    <Logo />
-                </Link>
-
-                {/* Desktop nav */}
-                <nav className="hidden lg:flex items-center gap-8 flex-1 justify-center">
-                    {links.map(l => (
-                        <Link key={l.href} href={l.href} className="text-sm font-semibold transition-colors hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>
-                            {l.label}
-                        </Link>
-                    ))}
-                </nav>
-
-                {/* Desktop CTA */}
-                <div className="hidden lg:flex items-center gap-3">
-                    <Link href="/dashboard" className="text-sm font-semibold transition-colors hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>
-                        Sign in
-                    </Link>
-                    <Link href="/dashboard">
-                        <Button className="h-10 px-5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-sm shadow-[var(--shadow-1)]">
-                            Create your first payslip
-                        </Button>
-                    </Link>
-                </div>
-
-                {/* Mobile hamburger */}
-                <button
-                    onClick={() => setMobileOpen(!mobileOpen)}
-                    className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-[var(--bg)] border border-[var(--border)] shadow-sm active:scale-95 transition-all text-[var(--text)] hover:text-[var(--primary)]"
-                    aria-label="Toggle menu"
-                >
-                    {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </button>
-            </div>
-
-            {/* Mobile menu */}
-            {mobileOpen && (
-                <div className="lg:hidden border-t border-[var(--border)] px-4 py-4 space-y-2" style={{ backgroundColor: "var(--surface-1)" }}>
-                    {links.map(l => (
-                        <Link
-                            key={l.href}
-                            href={l.href}
-                            className="block px-3 py-2 text-sm font-bold rounded-lg transition-colors hover:bg-[var(--surface-2)]"
-                            style={{ color: "var(--text-muted)" }}
-                            onClick={() => setMobileOpen(false)}
-                        >
-                            {l.label}
-                        </Link>
-                    ))}
-                    <div className="pt-4 mt-2 border-t border-[var(--border)] flex flex-col gap-2">
-                        <Link href="/dashboard" className="w-full">
-                            <Button variant="outline" className="w-full justify-center rounded-xl h-11 border-[var(--border)] shadow-sm">Sign in</Button>
-                        </Link>
-                        <Link href="/dashboard" className="w-full">
-                            <Button className="w-full justify-center rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold h-11 shadow-[var(--shadow-1)]">
-                                Create your first payslip
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-            )}
-        </header>
-    );
-}
-
-/* ─── PRICING CARD ────────────────────────────────────────────────────────── */
-function PricingCard({
-    title, price, period, description, features, badge,
-    buttonText, buttonDisabled, onAction, isPro, colorClass
-}: {
-    title: string;
-    price: string;
-    period: string;
-    description: string;
-    features: { text: string; included: boolean }[];
-    badge?: string;
-    buttonText: string;
-    buttonDisabled?: boolean;
-    onAction: () => void;
-    isPro?: boolean;
-    colorClass?: string;
-}) {
-    return (
-        <Card className={`relative overflow-hidden transition-all duration-300 glass-panel hover-lift active-scale ${isPro ? 'border-2 border-[var(--primary)] shadow-2xl md:scale-105 z-10' : ''}`}>
-            {badge && (
-                <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest shadow-sm z-10 ${isPro ? 'bg-[var(--primary)] text-white' : 'bg-[var(--accent-subtle)] text-[var(--primary)] border-l border-b border-[var(--border)]'}`}>
-                    {badge}
-                </div>
-            )}
-            <CardContent className="p-8 space-y-8 h-full flex flex-col bg-[var(--surface-1)]">
-                <div className="space-y-4">
-                    <div className="space-y-1">
-                        <h3 className={`text-xl font-black tracking-tight ${colorClass || 'text-[var(--text-muted)]'}`}>{title}</h3>
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-5xl font-semibold tracking-tight type-mono">{price}</span>
-                            <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">{period}</span>
-                        </div>
-                    </div>
-                    <p className="text-xs text-[var(--text-muted)] leading-relaxed h-8">
-                        {description}
-                    </p>
-                </div>
-
-                <div className="flex-1 space-y-4 border-t border-[var(--border)] pt-6">
-                    <ul className="space-y-3">
-                        {features.map((f, i) => (
-                            <li key={i} className={`flex items-start gap-3 text-xs leading-tight ${f.included ? 'text-[var(--text)] font-medium' : 'text-[var(--text-muted)]'}`}>
-                                <div className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${f.included ? (isPro ? 'bg-amber-100 text-[var(--primary)]' : 'bg-zinc-100 text-zinc-500') : 'bg-zinc-50'}`}>
-                                    {f.included ? <Check className="h-2.5 w-2.5 stroke-[4px]" /> : <div className="h-1 w-1 bg-zinc-300 rounded-full" />}
+                            {COMPARISON_GROUPS.map((group) => (
+                                <div key={group.title} className="border-b border-[var(--border)] last:border-b-0">
+                                    <div className="bg-[var(--surface-raised)] px-6 py-4 text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+                                        {group.title}
+                                    </div>
+                                    {group.rows.map((row) => (
+                                        <div key={row.label} className="grid gap-4 border-t border-[var(--border)] px-6 py-4 md:grid-cols-[1.5fr_repeat(3,1fr)] md:items-center">
+                                            <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>{row.label}</div>
+                                            <div className="flex items-center justify-between text-sm md:block md:text-center" style={{ color: "var(--text-muted)" }}>
+                                                <span className="md:hidden font-bold" style={{ color: "var(--text)" }}>Free</span>
+                                                <FeatureValue value={row.values.free} />
+                                            </div>
+                                            <div className="flex items-center justify-between text-sm md:block md:text-center" style={{ color: "var(--text-muted)" }}>
+                                                <span className="md:hidden font-bold" style={{ color: "var(--text)" }}>Standard</span>
+                                                <FeatureValue value={row.values.standard} />
+                                            </div>
+                                            <div className="flex items-center justify-between text-sm md:block md:text-center" style={{ color: "var(--text-muted)" }}>
+                                                <span className="md:hidden font-bold" style={{ color: "var(--text)" }}>Pro</span>
+                                                <FeatureValue value={row.values.pro} />
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                                {f.text}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
 
-                <Button
-                    variant={isPro ? "default" : "outline"}
-                    className={`h-12 w-full rounded-2xl font-black text-sm tracking-tight shadow-sm transition-all ${isPro ? 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white shadow-[var(--primary)]/20' : ''}`}
-                    disabled={buttonDisabled}
-                    onClick={onAction}
-                >
-                    {buttonText} {isPro && <Zap className="h-3.5 w-3.5 fill-current ml-2" />}
-                </Button>
-            </CardContent>
-        </Card>
+                <section>
+                    <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8">
+                        <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+                            <div className="rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] p-7 shadow-[var(--shadow-1)]">
+                                <h3 className="type-h3 mb-4" style={{ color: "var(--text)" }}>
+                                    Billing and refunds
+                                </h3>
+                                <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                    <p>
+                                        Free stays free. Standard and Pro are available as monthly or yearly plans, and the yearly option lowers the effective monthly cost.
+                                    </p>
+                                    <p>
+                                        If you request a refund within 14 days of purchase, we'll refund you in full. That keeps the decision low-risk without cluttering the page with hard-sell language.
+                                    </p>
+                                    <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
+                                        View the refund policy <ChevronRight className="h-4 w-4" />
+                                    </Link>
+                                </div>
+                            </div>
+
+                            <div className="rounded-[28px] border border-[var(--primary)] bg-[var(--primary)]/5 p-7 shadow-[var(--shadow-1)]">
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-2xl bg-[var(--primary)] p-3 text-white">
+                                        <ShieldCheck className="h-5 w-5" />
+                                    </div>
+                                    <h3 className="type-h3" style={{ color: "var(--text)" }}>
+                                        Why people pay for this
+                                    </h3>
+                                </div>
+                                <div className="mt-5 space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                    <p>
+                                        Not because payroll should feel frightening. But because the rules are real, and when records are missing, inconsistent, or hard to find, the tidy-up work usually costs more than doing it properly once.
+                                    </p>
+                                    <p>
+                                        LekkerLedger is priced for households that want calm, defensible records without paying the kind of monthly fee commonly charged by managed payroll services or enterprise tools.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
     );
 }
 

@@ -1,9 +1,21 @@
-import { describe, expect, it } from "vitest";
-import { exportData, getAllLeaveRecords, saveEmployee, saveLeaveRecord, savePayslip } from "./storage";
+import { beforeEach, describe, expect, it } from "vitest";
+import {
+    exportData,
+    getAllLeaveRecords,
+    getSettings,
+    resetAllData,
+    saveEmployee,
+    saveHousehold,
+    saveLeaveRecord,
+    savePayslip,
+    saveSettings,
+    setActiveHouseholdId,
+} from "./storage";
 import type { Employee, LeaveRecord, PayslipInput } from "./schema";
 
 const baseEmployee: Employee = {
     id: "00000000-0000-4000-8000-000000000001",
+    householdId: "default",
     name: "Test Employee",
     idNumber: "1234567890123",
     role: "Domestic Worker",
@@ -17,6 +29,7 @@ const baseEmployee: Employee = {
 
 const basePayslip: PayslipInput = {
     id: "payslip-1",
+    householdId: "default",
     employeeId: baseEmployee.id,
     payPeriodStart: new Date("2026-03-01"),
     payPeriodEnd: new Date("2026-03-31"),
@@ -39,6 +52,10 @@ const basePayslip: PayslipInput = {
 };
 
 describe("storage safeguards", () => {
+    beforeEach(async () => {
+        await resetAllData();
+    });
+
     it("rejects duplicate employee ID numbers", async () => {
         await saveEmployee(baseEmployee);
 
@@ -58,9 +75,42 @@ describe("storage safeguards", () => {
         })).rejects.toThrow(/already exists/i);
     });
 
+    it("keeps employer settings scoped to each household", async () => {
+        const defaultSettings = await getSettings();
+        await saveSettings({
+            ...defaultSettings,
+            employerName: "Main household",
+            employerAddress: "1 Example Street",
+        });
+
+        await saveHousehold({
+            id: "household-2",
+            name: "Second household",
+            createdAt: new Date("2026-03-02T00:00:00Z").toISOString(),
+        });
+        await setActiveHouseholdId("household-2");
+
+        const secondHouseholdSettings = await getSettings();
+        expect(secondHouseholdSettings.employerName).toBe("");
+        expect(secondHouseholdSettings.employerAddress).toBe("");
+
+        await saveSettings({
+            ...secondHouseholdSettings,
+            employerName: "Second household",
+            employerAddress: "2 Example Street",
+        });
+
+        await setActiveHouseholdId("default");
+        const restoredDefaultSettings = await getSettings();
+
+        expect(restoredDefaultSettings.employerName).toBe("Main household");
+        expect(restoredDefaultSettings.employerAddress).toBe("1 Example Street");
+    });
+
     it("round-trips leave records through encoded storage and export", async () => {
         const leaveRecord: LeaveRecord = {
             id: "leave-1",
+            householdId: "default",
             employeeId: baseEmployee.id,
             type: "annual",
             days: 2,
@@ -75,5 +125,6 @@ describe("storage safeguards", () => {
         expect(records).toEqual([leaveRecord]);
         expect(backup).toContain('"leave"');
         expect(backup).toContain('"type": "annual"');
+        expect(backup).toContain('"householdSettings"');
     });
 });

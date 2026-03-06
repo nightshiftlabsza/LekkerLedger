@@ -32,7 +32,11 @@ export function PageShell({ title, children, actions }: PageShellProps) {
                     <div className="flex items-center gap-3">
                         <SideDrawer />
                         <Link href="/" className="flex items-center gap-2 py-1">
-                            <Logo showText={false} iconClassName="h-6 w-auto" />
+                            <Logo
+                                showText={false}
+                                iconClassName="h-6 w-auto"
+                                frameClassName="rounded-xl p-1.5 shadow-[0_8px_18px_rgba(16,24,40,0.10)]"
+                            />
                             <span className="font-extrabold text-sm uppercase tracking-widest pt-0.5 text-[var(--text)]">{title}</span>
                         </Link>
                     </div>
@@ -54,7 +58,7 @@ export function PageShell({ title, children, actions }: PageShellProps) {
                     <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
                         <div className="flex items-center gap-2">
                             <CloudOff className="h-4 w-4 shrink-0" />
-                            <span>You&apos;re offline — your changes are saved locally and will sync when reconnected.</span>
+                            <span>You&apos;re offline - your changes are saved locally and will sync when reconnected.</span>
                         </div>
                         <button
                             onClick={() => setBannerDismissed(true)}

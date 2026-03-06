@@ -25,14 +25,14 @@
   --text-secondary: #667085;
 
   /* Accents */
-  --primary: #1A6B3C;
-  --primary-hover: #165E35;
-  --primary-pressed: #124E2C;
+  --primary: #007A4D;
+  --primary-hover: #006341;
+  --primary-pressed: #004F33;
   --on-primary: #FFFFFF;
 
-  --focus: #C9962A;
+  --focus: #C47A1C;
   --focus-offset: 3px;
-  --accent-subtle: rgba(201, 150, 42, 0.14);
+  --accent-subtle: rgba(196, 122, 28, 0.12);
 
   /* Glassmorphism */
   --glass-bg: rgba(255, 255, 255, 0.85);
@@ -156,14 +156,14 @@
   --text-secondary: #B9C2D1;
 
   /* Keep brand consistent (ONE green + ONE gold) */
-  --primary: #1A6B3C;
-  --primary-hover: #20844A;
-  --primary-pressed: #165E35;
+  --primary: #007A4D;
+  --primary-hover: #0A8B58;
+  --primary-pressed: #006341;
   --on-primary: #FFFFFF;
 
-  --focus: #C9962A;
+  --focus: #C47A1C;
   --focus-offset: 3px;
-  --accent-subtle: rgba(201, 150, 42, 0.2);
+  --accent-subtle: rgba(196, 122, 28, 0.16);
 
   --danger: #F97066;
   --success: #32D583;
@@ -440,7 +440,7 @@ p,
 }
 
 .content-container {
-  max-width: 1200px;
+  max-width: 1320px;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
@@ -515,7 +515,7 @@ p,
 
 /* Wider container for ultrawide layouts with multi-column panels */
 .content-container-wide {
-  max-width: 1600px;
+  max-width: 1680px;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
@@ -662,4 +662,5 @@ p,
   border: 1px solid var(--border);
   border-radius: var(--radius-2);
 }
+
 

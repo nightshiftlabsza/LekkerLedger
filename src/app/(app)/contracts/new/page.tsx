@@ -72,8 +72,10 @@ export default function NewContractPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
+            const selectedEmployee = employees.find((employee) => employee.id === formData.employeeId);
             const contract: Contract = {
                 id: crypto.randomUUID(),
+                householdId: selectedEmployee?.householdId ?? "default",
                 employeeId: formData.employeeId!,
                 status: "active", // Default to active on save for now
                 version: formData.version!,
@@ -364,3 +366,4 @@ export default function NewContractPage() {
         </div>
     );
 }
+

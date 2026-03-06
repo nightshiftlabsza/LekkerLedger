@@ -5,6 +5,7 @@ import { PayslipInput } from "./schema";
 describe("calculatePayslip() - Complex SD7 Edge Cases", () => {
     const mockInput: PayslipInput = {
         id: "ps-1",
+        householdId: "default",
         employeeId: "emp-1",
         payPeriodStart: new Date("2026-03-01"),
         payPeriodEnd: new Date("2026-03-31"),
@@ -79,3 +80,4 @@ describe("calculatePayslip() - Complex SD7 Edge Cases", () => {
         expect(result.grossPay).toBe(500);
     });
 });
+

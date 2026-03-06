@@ -2,38 +2,21 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getSettings } from "@/lib/storage";
 import { Logo } from "@/components/ui/logo";
 
-
 const NAV_LINKS = [
-    { href: "#how-it-works", label: "How it works" },
+    { href: "/#how-it-works", label: "How it works" },
     { href: "/pricing", label: "Pricing" },
-    { href: "/legal/privacy", label: "Privacy" },
+    { href: "/trust", label: "Trust" },
     { href: "/rules", label: "Compliance guide" },
+    { href: "/#faq", label: "FAQ" },
 ] as const;
 
 export function MarketingHeader() {
-    const router = useRouter();
     const [menuOpen, setMenuOpen] = React.useState(false);
 
-    const handleCta = async () => {
-        try {
-            const s = await getSettings();
-            if (!s.employerName) {
-                router.push("/onboarding");
-            } else {
-                router.push("/dashboard");
-            }
-        } catch {
-            router.push("/onboarding");
-        }
-    };
-
-    // Close on Escape
     React.useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if (e.key === "Escape") setMenuOpen(false);
@@ -42,91 +25,91 @@ export function MarketingHeader() {
         return () => document.removeEventListener("keydown", handler);
     }, []);
 
-    // Prevent body scroll when mobile menu is open
     React.useEffect(() => {
         document.body.style.overflow = menuOpen ? "hidden" : "";
-        return () => { document.body.style.overflow = ""; };
+        return () => {
+            document.body.style.overflow = "";
+        };
     }, [menuOpen]);
 
     return (
-        <header className="sticky top-0 z-30 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
-            <div className="max-w-7xl mx-auto w-full flex items-center justify-between px-4 py-4 xl:py-5">
-                {/* Logo */}
-                <Link href="/" className="focus-ring rounded-lg shrink-0 py-1">
+        <header className="sticky top-0 z-30 glass-panel shadow-[var(--shadow-1)]" style={{ borderBottom: "1px solid var(--border)" }}>
+            <div className="content-container-wide flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+                <Link href="/" className="rounded-lg py-1">
                     <Logo />
                 </Link>
 
-                {/* Desktop nav */}
-                <nav className="hidden md:flex items-center gap-8">
+                <nav className="hidden lg:flex items-center gap-8">
                     {NAV_LINKS.map(({ href, label }) => (
                         <Link
                             key={href}
                             href={href}
-                            className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] hover:underline underline-offset-4 transition-all"
+                            className="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]"
                         >
                             {label}
                         </Link>
                     ))}
-                    <Button
-                        className="font-black px-6 rounded-xl h-11 shadow-lg active-scale"
-                        style={{ backgroundColor: "var(--primary)", color: "white" }}
-                        onClick={handleCta}
-                    >
-                        Create your first payslip <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
                 </nav>
 
-                {/* Mobile hamburger */}
+                <div className="hidden lg:flex items-center gap-3">
+                    <Link href="/dashboard" className="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]">
+                        Sign in
+                    </Link>
+                    <Link href="/onboarding">
+                        <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-1)]">
+                            Start free <ArrowRight className="h-4 w-4" />
+                        </Button>
+                    </Link>
+                </div>
+
                 <button
                     onClick={() => setMenuOpen(true)}
                     aria-label="Open menu"
-                    className="md:hidden h-10 w-10 flex items-center justify-center rounded-xl transition-all hover:bg-[var(--surface-2)] active-scale text-[var(--text-muted)]"
+                    className="lg:hidden flex h-10 w-10 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-raised)]"
                 >
                     <Menu className="h-5 w-5" />
                 </button>
             </div>
 
-            {/* Mobile menu overlay */}
             {menuOpen && (
-                <div className="fixed inset-0 z-50 md:hidden">
-                    {/* Backdrop */}
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setMenuOpen(false)} />
-
-                    {/* Menu panel */}
-                    <div className="absolute top-0 left-0 right-0 glass-panel shadow-[var(--shadow-xl)] animate-slide-down border-b border-[var(--border)]">
-                        <div className="flex items-center justify-between px-4 py-4">
+                <div className="fixed inset-0 z-50 lg:hidden">
+                    <div className="absolute inset-0 bg-black/35 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
+                    <div className="absolute inset-x-0 top-0 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-2)]">
+                        <div className="flex items-center justify-between px-4 py-4 sm:px-6">
                             <Link href="/" onClick={() => setMenuOpen(false)} className="rounded-lg py-1">
                                 <Logo />
                             </Link>
                             <button
                                 onClick={() => setMenuOpen(false)}
                                 aria-label="Close menu"
-                                className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-[var(--surface-2)] active-scale"
-                                style={{ color: "var(--text-muted)" }}
+                                className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-raised)]"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <nav className="px-4 pb-6 space-y-1">
+                        <nav className="space-y-1 px-4 pb-4 sm:px-6">
                             {NAV_LINKS.map(({ href, label }) => (
                                 <Link
                                     key={href}
                                     href={href}
                                     onClick={() => setMenuOpen(false)}
-                                    className="block px-4 py-3 rounded-xl text-sm font-semibold text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
+                                    className="block rounded-xl px-4 py-3 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--surface-raised)]"
                                 >
                                     {label}
                                 </Link>
                             ))}
-                            <div className="pt-3">
-                                <Button
-                                    className="w-full font-black h-12 rounded-xl shadow-lg active-scale"
-                                    style={{ backgroundColor: "var(--primary)", color: "white" }}
-                                    onClick={() => { setMenuOpen(false); handleCta(); }}
-                                >
-                                    Create your first payslip <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
+                            <div className="grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-4">
+                                <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
+                                    <Button variant="outline" className="w-full justify-center font-bold">
+                                        Sign in
+                                    </Button>
+                                </Link>
+                                <Link href="/onboarding" onClick={() => setMenuOpen(false)}>
+                                    <Button className="w-full justify-center font-bold">
+                                        Start free <ArrowRight className="h-4 w-4" />
+                                    </Button>
+                                </Link>
                             </div>
                         </nav>
                     </div>

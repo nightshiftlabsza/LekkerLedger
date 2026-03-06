@@ -11,8 +11,6 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { SideDrawer } from "@/components/layout/side-drawer";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { getEmployees, getPayslipsForEmployee, getSettings, getUsageStats, incrementUsageCount } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
@@ -212,10 +210,9 @@ function PreviewContent() {
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border)]">
+            <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
                 <div className="max-w-xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <SideDrawer />
                         <Link href="/employees">
                             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl"><ArrowLeft className="h-4 w-4" /></Button>
                         </Link>
@@ -243,16 +240,16 @@ function PreviewContent() {
                         </Button>
                     </div>
                 </div>
-            </header>
+            </div>
 
-            <main className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full pb-24 lg:pb-8">
+            <main className="flex-1 max-w-4xl mx-auto w-full space-y-6">
                 {/* Usage Warning */}
                 {usageStats.isLimited && (
                     <Alert variant="warning" className="animate-slide-down border-[var(--focus)] bg-[var(--surface-2)]">
                         <AlertCircle className="h-4 w-4 text-[var(--focus)]" />
                         <AlertDescription className="text-[var(--text)]">
                             <strong>Free limit reached (2/month).</strong> This copy will be watermarked.
-                            <Link href="/pricing" className="ml-2 underline font-bold">Upgrade to Pro</Link> to remove limits.
+                            <Link href="/pricing" className="ml-2 underline font-bold">Compare plans</Link> to remove limits.
                         </AlertDescription>
                     </Alert>
                 )}
@@ -421,7 +418,6 @@ function PreviewContent() {
                     </Card>
                 )}
             </main>
-            <BottomNav />
         </div>
     );
 }
@@ -433,3 +429,6 @@ export default function PreviewPage() {
         </React.Suspense>
     );
 }
+
+
+

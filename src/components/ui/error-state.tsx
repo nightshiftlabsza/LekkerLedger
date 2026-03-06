@@ -14,7 +14,7 @@ export function ErrorState({
     title = "Something went wrong",
     message,
     onRetry,
-    supportEmail = "nightshiftlabsza@gmail.com",
+    supportEmail = "support@lekkerledger.co.za",
 }: ErrorStateProps) {
     return (
         <Card className="border-rose-500/20 glass-panel bg-rose-500/5 overflow-hidden">
@@ -60,3 +60,4 @@ export function ErrorState({
         </Card>
     );
 }
+

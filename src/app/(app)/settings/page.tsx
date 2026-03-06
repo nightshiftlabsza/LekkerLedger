@@ -21,14 +21,14 @@ import { EmployerSettings, Employee } from "@/lib/schema";
 import { useToast } from "@/components/ui/toast";
 import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
-import { annualPriceLabel } from "../../../config/plans";
+import { PLAN_ORDER, PLANS, getPlanDisplayPrice, getPlanPeriodLabel, getPlanSavingsLabel } from "@/src/config/plans";
 import { getUserPlan, canUseDriveSync } from "../../../lib/entitlements";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 
 function SettingsContent() {
     const searchParams = useSearchParams();
-    const { } = useToast();
+    const { toast } = useToast();
     const [activeTab, setActiveTab] = React.useState<SettingsTab>("general");
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [, setEmployees] = React.useState<Employee[]>([]);
@@ -258,57 +258,108 @@ function SettingsContent() {
 
                 {activeTab === "plan" && (() => {
                     const currentPlan = getUserPlan(settings);
-                    // For annual, show the runtime label (promo vs regular). For others, use what's in config or default to 0.
-                    const displayPrice = currentPlan.id === "annual"
-                        ? annualPriceLabel()
-                        : currentPlan.id === "lifetime"
-                            ? `R${currentPlan.onceOffPrice} once-off`
-                            : "R0";
+                    const currentCycle = settings.billingCycle === "monthly" ? "monthly" : "yearly";
+                    const displayCycle = currentPlan.id === "free" ? "yearly" : currentCycle;
 
                     return (
                         <div className="space-y-6">
                             <section className="space-y-4">
-                                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Subscription Plan</h2>
-                                <Card className="border-[var(--primary)] border-2 glass-panel p-6 shadow-[0_0_15px_rgba(245,158,11,0.1)] relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 rounded-full blur-2xl pointer-events-none" />
+                                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Current Plan</h2>
+                                <Card className="border-[var(--primary)] border-2 glass-panel p-6 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-[var(--primary)]/5 blur-2xl pointer-events-none" />
 
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div>
-                                            <h3 className="type-h3 text-[var(--text)]">{currentPlan.label}</h3>
-                                            <p className="type-label text-[var(--primary-hover)] uppercase font-black tracking-widest mt-1">
-                                                {currentPlan.id === "lifetime" ? "Lifetime access"
-                                                    : currentPlan.id === "annual" && settings.paidUntil
-                                                        ? `Paid until ${new Date(settings.paidUntil).toLocaleDateString()}`
-                                                        : "Plan Active"}
+                                    <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                                        <div className="space-y-2">
+                                            <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{currentPlan.label}</p>
+                                            <h3 className="type-h3 text-[var(--text)]">{currentPlan.bestFor}</h3>
+                                            <p className="text-sm text-[var(--text-muted)] max-w-2xl">{currentPlan.description}</p>
+                                            <p className="text-xs font-bold text-[var(--primary-hover)] uppercase tracking-wider">
+                                                {currentPlan.id === "free"
+                                                    ? "Free plan active"
+                                                    : settings.paidUntil
+                                                        ? `Paid through ${new Date(settings.paidUntil).toLocaleDateString("en-ZA")}`
+                                                        : "Paid plan active"}
                                             </p>
                                         </div>
-                                        <div className="text-right">
-                                            <span className="text-2xl font-black text-[var(--text)]">{displayPrice}</span>
+                                        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 lg:min-w-[220px]">
+                                            <div className="flex items-end gap-2">
+                                                <span className="text-3xl font-semibold type-mono text-[var(--text)]">{getPlanDisplayPrice(currentPlan, displayCycle)}</span>
+                                                <span className="pb-1 text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{getPlanPeriodLabel(currentPlan, displayCycle)}</span>
+                                            </div>
+                                            {currentPlan.pricing.yearly && (
+                                                <p className="mt-2 text-sm font-semibold text-[var(--text-muted)]">{getPlanSavingsLabel(currentPlan)}</p>
+                                            )}
                                         </div>
                                     </div>
 
-                                    <ul className="space-y-3 mb-6">
-                                        {currentPlan.marketingBullets.map((bullet, i) => (
-                                            <li key={i} className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
-                                                <CheckCircle2 className="h-4 w-4 text-[var(--primary)]" /> {bullet}
+                                    <ul className="mt-6 space-y-3">
+                                        {currentPlan.marketingBullets.map((bullet, index) => (
+                                            <li key={`${currentPlan.id}-${index}`} className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
+                                                <CheckCircle2 className="h-4 w-4 text-[var(--primary)]" />
+                                                {bullet}
                                             </li>
                                         ))}
                                     </ul>
 
-                                    {currentPlan.id === "free" ? (
+                                    <div className="mt-6">
                                         <Link href="/upgrade" className="block">
-                                            <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
-                                                Upgrade
+                                            <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold" disabled={currentPlan.id === "pro"}>
+                                                {currentPlan.id === "pro" ? "Highest plan active" : "Review paid options"}
                                             </Button>
                                         </Link>
-                                    ) : currentPlan.id === "annual" ? (
-                                        <Link href="/upgrade" className="block">
-                                            <Button variant="outline" className="w-full font-bold">
-                                                Upgrade to Lifetime
-                                            </Button>
-                                        </Link>
-                                    ) : null}
+                                    </div>
                                 </Card>
+                            </section>
+
+                            <section className="space-y-4">
+                                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Compare Plans</h2>
+                                <div className="grid gap-4 xl:grid-cols-3">
+                                    {PLAN_ORDER.map((planId) => {
+                                        const plan = PLANS[planId];
+                                        const isCurrent = currentPlan.id === plan.id;
+                                        const cycle = plan.id === "free" ? "yearly" : currentCycle;
+                                        return (
+                                            <Card key={plan.id} className={`glass-panel border ${plan.id === "pro" ? "border-[var(--primary)]" : "border-[var(--border)]"} p-5`}>
+                                                <div className="space-y-4">
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div>
+                                                            <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{plan.label}</p>
+                                                            <h3 className="text-lg font-black text-[var(--text)] mt-2">{plan.bestFor}</h3>
+                                                        </div>
+                                                        {plan.badge && (
+                                                            <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${plan.id === "pro" ? "bg-[var(--primary)] text-white" : "bg-[var(--accent-subtle)] text-[var(--primary)]"}`}>
+                                                                {plan.badge}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
+                                                        <div className="flex items-end gap-2">
+                                                            <span className="text-3xl font-semibold type-mono text-[var(--text)]">{getPlanDisplayPrice(plan, cycle)}</span>
+                                                            <span className="pb-1 text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{getPlanPeriodLabel(plan, cycle)}</span>
+                                                        </div>
+                                                        {plan.pricing.yearly && <p className="mt-2 text-sm font-semibold text-[var(--text-muted)]">{getPlanSavingsLabel(plan)}</p>}
+                                                    </div>
+
+                                                    <ul className="space-y-2.5">
+                                                        {plan.marketingBullets.map((bullet) => (
+                                                            <li key={bullet} className="flex items-start gap-2.5 text-sm text-[var(--text-muted)]">
+                                                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                                                <span>{bullet}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+
+                                                    <Link href="/upgrade" className="block">
+                                                        <Button variant={isCurrent ? "outline" : "default"} className={`w-full font-bold ${isCurrent ? "" : "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"}`} disabled={isCurrent}>
+                                                            {isCurrent ? "Current plan" : `Choose ${plan.label}`}
+                                                        </Button>
+                                                    </Link>
+                                                </div>
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
                             </section>
                         </div>
                     );
@@ -449,5 +500,7 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
         </button>
     );
 }
+
+
 
 

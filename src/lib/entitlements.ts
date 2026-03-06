@@ -1,15 +1,20 @@
 import { PLANS, PlanId, PlanConfig } from "../config/plans";
 import { EmployerSettings } from "./schema";
 
+function normalizePlanId(planId: string | undefined | null): PlanId {
+    if (!planId || planId === "free") return "free";
+    if (planId === "standard" || planId === "annual") return "standard";
+    if (planId === "pro" || planId === "lifetime") return "pro";
+    return "free";
+}
+
 export function getPlanById(planId: string | undefined | null): PlanConfig {
-    if (!planId) return PLANS.free;
-    return PLANS[planId as PlanId] || PLANS.free;
+    return PLANS[normalizePlanId(planId)];
 }
 
 export function getUserPlan(userProfile: EmployerSettings | null | undefined): PlanConfig {
     if (!userProfile) return PLANS.free;
-    const planId = userProfile.proStatus || "free";
-    return getPlanById(planId);
+    return getPlanById(userProfile.proStatus || "free");
 }
 
 export function canUseDriveSync(plan: PlanConfig): boolean {
@@ -22,6 +27,14 @@ export function canDownloadRoePack(plan: PlanConfig): boolean {
 
 export function canCreateEmployee(plan: PlanConfig, currentActiveEmployeesCount: number): boolean {
     return currentActiveEmployeesCount < plan.maxActiveEmployees;
+}
+
+export function canUseMultipleHouseholds(plan: PlanConfig): boolean {
+    return plan.multiHousehold;
+}
+
+export function canAddHousehold(plan: PlanConfig, currentHouseholdsCount: number): boolean {
+    return currentHouseholdsCount < plan.maxHouseholds;
 }
 
 export function isRecordWithinArchive(plan: PlanConfig, recordDate: Date | string | number): boolean {

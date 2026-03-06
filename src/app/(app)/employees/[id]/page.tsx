@@ -10,8 +10,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { SideDrawer } from "@/components/layout/side-drawer";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import {
     getEmployee, getPayslipsForEmployee, getLeaveForEmployee,
     getSettings, deletePayslip
@@ -94,13 +92,13 @@ function EmployeeDetailContent() {
     if (loading) {
         return (
             <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
-                <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border)]">
+                <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
                     <div className="max-w-4xl mx-auto w-full flex items-center gap-3">
                         <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
                         <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
                         <div className="h-4 w-32 bg-[var(--surface-2)] animate-pulse rounded" />
                     </div>
-                </header>
+                </div>
                 <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 space-y-4">
                     <div className="h-16 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse" />
                     <div className="h-48 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse" />
@@ -117,10 +115,9 @@ function EmployeeDetailContent() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border)]">
+            <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
                 <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <SideDrawer />
                         <Link href="/employees">
                             <button
                                 aria-label="Back to employees"
@@ -147,9 +144,9 @@ function EmployeeDetailContent() {
                         </Button>
                     </Link>
                 </div>
-            </header>
+            </div>
 
-            <main className="flex-1 px-4 py-6 pb-24 max-w-4xl mx-auto w-full space-y-5">
+            <main className="flex-1 px-4 py-6 pb-8 max-w-4xl mx-auto w-full space-y-5">
                 {/* Hero */}
                 <div className="flex items-center gap-4 animate-fade-in">
                     <div className="h-16 w-16 rounded-2xl flex items-center justify-center text-white font-black text-2xl shrink-0"
@@ -441,7 +438,6 @@ function EmployeeDetailContent() {
                     )}
                 </div>
             </main>
-            <BottomNav />
         </div>
     );
 }
@@ -473,3 +469,4 @@ export default function EmployeeDetailPage() {
         </React.Suspense>
     );
 }
+

@@ -20,7 +20,7 @@ export default function SupportPage() {
                         <LifeBuoy className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Support & Contact</h1>
-                    <p className="text-zinc-500 font-medium text-lg">We are here to help you get your household payroll set up correctly.</p>
+                    <p className="text-zinc-500 font-medium text-lg">We are here to help you get your household payroll set up correctly and keep the record trail tidy.</p>
                 </header>
 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -89,3 +89,4 @@ export default function SupportPage() {
         </div>
     );
 }
+

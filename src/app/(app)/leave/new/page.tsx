@@ -42,8 +42,10 @@ function NewLeaveContent() {
         e.preventDefault();
         setSaving(true);
         try {
+            const selectedEmployee = employees.find((employee) => employee.id === formData.employeeId);
             const record: LeaveRecord = {
                 id: crypto.randomUUID(),
+                householdId: selectedEmployee?.householdId ?? "default",
                 ...formData
             };
             await saveLeaveRecord(record);
@@ -160,3 +162,4 @@ export default function NewLeavePage() {
         </React.Suspense>
     );
 }
+

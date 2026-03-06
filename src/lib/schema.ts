@@ -6,6 +6,7 @@ export const NMW_DOMESTIC = getNMW(); // SD7 NMW as of current date
 
 export const EmployeeSchema = z.object({
     id: z.string().uuid(),
+    householdId: z.string().default("default"),
     name: z.string().min(2, "Full name required (at least 2 characters)"),
     idNumber: z.string().optional().default(""),
     role: z.string().min(1, "Role is required").default("Domestic Worker"),
@@ -33,6 +34,7 @@ export type Employee = z.infer<typeof EmployeeSchema>;
 
 export const PayslipInputSchema = z.object({
     id: z.string(),
+    householdId: z.string().default("default"),
     employeeId: z.string(),
     payPeriodStart: z.coerce.date(),
     payPeriodEnd: z.coerce.date(),
@@ -85,6 +87,7 @@ export type LeaveType = "annual" | "sick" | "family";
 
 export const LeaveRecordSchema = z.object({
     id: z.string(),
+    householdId: z.string().default("default"),
     employeeId: z.string(),
     type: z.enum(["annual", "sick", "family"]),
     days: z.number().positive(),
@@ -104,9 +107,11 @@ export const EmployerSettingsSchema = z.object({
     cfNumber: z.string().default(""), // COIDA reference number
     sdlNumber: z.string().default(""),
     phone: z.string().default(""), // Employer contact phone
-    proStatus: z.enum(["free", "annual", "pro", "lifetime", "trial"]).optional().default("free"),
+    proStatus: z.enum(["free", "standard", "pro", "trial", "annual", "lifetime"]).optional().default("free"),
     paidUntil: z.string().optional(),
     trialExpiry: z.string().optional(),
+    billingCycle: z.enum(["monthly", "yearly"]).optional().default("monthly"),
+    activeHouseholdId: z.string().default("default"),
     logoData: z.string().optional(),
     defaultLanguage: z.enum(["en", "zu", "xh"]).optional().default("en"),
     simpleMode: z.boolean().default(false),
@@ -186,6 +191,7 @@ export type DocumentMeta = z.infer<typeof DocumentMetaSchema>;
 // Contract (Phase 8)
 export const ContractSchema = z.object({
     id: z.string().uuid(),
+    householdId: z.string().default("default"),
     employeeId: z.string().uuid(),
     status: z.enum(["draft", "active", "replaced"]).default("draft"),
     version: z.number().default(1),
@@ -232,3 +238,5 @@ export const AuditLogSchema = z.object({
 });
 
 export type AuditLog = z.infer<typeof AuditLogSchema>;
+
+

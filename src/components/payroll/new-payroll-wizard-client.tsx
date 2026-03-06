@@ -62,6 +62,7 @@ export function NewPayrollWizardClient() {
             const id = crypto.randomUUID();
             const newEmp: Employee = {
                 id,
+                householdId: "default",
                 name: newEmpName.trim(),
                 role: "Domestic Worker",
                 hourlyRate: parseFloat(newEmpRate) || NMW_RATE,
@@ -331,3 +332,6 @@ export function NewPayrollWizardClient() {
         </div>
     );
 }
+
+
+

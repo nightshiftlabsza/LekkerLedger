@@ -114,7 +114,7 @@ export default function PayPeriodWorkspacePage() {
 
                 await saveDocumentMeta({
                     id: payslipInput.id,
-                    householdId: "default",
+                    householdId: emp.householdId ?? period.householdId ?? "default",
                     type: "payslip",
                     employeeId: emp.id,
                     periodId: period.id,
@@ -143,6 +143,7 @@ export default function PayPeriodWorkspacePage() {
 
         return {
             id: `${period!.id}-${entry.employeeId}`,
+            householdId: period!.householdId || emp.householdId || "default",
             employeeId: entry.employeeId,
             payPeriodStart: new Date(period!.startDate),
             payPeriodEnd: new Date(period!.endDate),
@@ -566,3 +567,6 @@ export default function PayPeriodWorkspacePage() {
         </div>
     );
 }
+
+
+

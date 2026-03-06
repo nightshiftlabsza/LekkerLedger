@@ -21,18 +21,18 @@ export default function RefundPolicy() {
                         <CreditCard className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Refund & Cancellation</h1>
-                    <p className="text-zinc-500 font-medium">Updated periodically • Consumer Protection Act aware</p>
+                    <p className="text-zinc-500 font-medium">Updated 6 March 2026 • Consumer Protection Act aware</p>
                 </header>
 
                 <div className="prose prose-zinc dark:prose-invert max-w-none space-y-8 text-zinc-400 leading-relaxed font-medium">
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">1. Our Plans</h2>
                         <p>
-                            LekkerLedger offers two upgrade options:
+                            LekkerLedger offers two paid plans today:
                         </p>
                         <ul className="list-disc pl-6 space-y-2">
-                            <li><strong>Annual Support (R99/yr):</strong> A yearly renewal. You can cancel at any time to stop the next renewal. Access continues until the end of your current annual period.</li>
-                            <li><strong>Lekker Pro (R299):</strong> A once-off lifetime payment. No renewal, no recurring fees. Our 14-day &ldquo;No Questions Asked&rdquo; refund guarantee applies.</li>
+                            <li><strong>Standard:</strong> R29/month or R199/year for one household, up to 3 active employees, and the core paid features.</li>
+                            <li><strong>Pro:</strong> R39/month or R299/year for unlimited employees, multi-household workspaces, and the deepest archive.</li>
                         </ul>
                         <p>
                             If you are unsatisfied with any purchase for any reason within 14 days of the transaction date, we will issue a full refund — no questions asked.
@@ -40,16 +40,16 @@ export default function RefundPolicy() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">2. Cancellation (Annual Support only)</h2>
+                        <h2 className="text-2xl font-black text-white">2. Cancellation</h2>
                         <p>
-                            Annual Support renews yearly. You can cancel at any time via your Settings page — there are no cancellation fees. Upon cancellation, your access continues until the end of the current annual period and will not renew. Lekker Pro is a once-off payment with no renewal to cancel.
+                            Monthly and yearly plans renew at the end of the billing period unless you cancel before renewal. If you cancel, access continues until the end of the period you already paid for. There are no cancellation fees.
                         </p>
                     </section>
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">3. No Exceptions</h2>
                         <p>
-                            Our 14-day refund guarantee is unconditional. It applies regardless of whether you have used the Pro features. Simply request a refund within 14 days of your purchase date and we will process it in full.
+                            Our 14-day refund guarantee applies to any paid upgrade. If the product is not right for you, request a refund within 14 days of the purchase date and we will process it in full.
                         </p>
                     </section>
 
@@ -75,4 +75,5 @@ export default function RefundPolicy() {
         </div>
     );
 }
+
 

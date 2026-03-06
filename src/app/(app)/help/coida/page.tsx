@@ -23,7 +23,7 @@ export default function CoidaHelpPage() {
                                 The Compensation for Occupational Injuries and Diseases Act (COIDA) covers work-related injuries and diseases through the Compensation Fund.
                             </p>
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                LekkerLedger helps you prepare record summaries for your annual Return of Earnings (ROE), but you must still verify details and submit through the official channels yourself.
+                                LekkerLedger helps you prepare record summaries for your annual Return of Earnings (ROE), but you must still verify details and submit through the official channels yourself. COIDA is one of the areas where the legal expectation matters, so keeping the paperwork tidy early usually saves stress later.
                             </p>
                         </div>
                     </div>
@@ -45,7 +45,7 @@ export default function CoidaHelpPage() {
                 </div>
 
                 <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                    This guide is informational only and does not constitute legal advice. Verify requirements on official government sources before you rely on them.
+                    This guide is informational only and does not constitute legal advice. The goal is to make the rules easier to follow without alarmism, so verify requirements on official government sources before you rely on them.
                 </p>
 
                 <Link href="/dashboard">
@@ -57,3 +57,4 @@ export default function CoidaHelpPage() {
         </div>
     );
 }
+

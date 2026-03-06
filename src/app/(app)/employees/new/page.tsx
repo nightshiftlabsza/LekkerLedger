@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { SideDrawer } from "@/components/layout/side-drawer";
 import { EmployeeSchema, Employee } from "@/lib/schema";
 import { saveEmployee, getEmployees, getSettings } from "@/lib/storage";
 import { getUserPlan, canCreateEmployee } from "@/lib/entitlements";
@@ -88,9 +87,8 @@ export default function AddEmployeePage() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
+            <div className="max-w-xl mx-auto mb-6 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
                 <div className="max-w-xl mx-auto flex items-center gap-3">
-                    <SideDrawer />
                     <Link href="/employees">
                         <button
                             aria-label="Back"
@@ -104,7 +102,7 @@ export default function AddEmployeePage() {
                         Add Employee
                     </h1>
                 </div>
-            </header>
+            </div>
 
             <main className="flex-1 w-full px-4 py-6">
                 <div className="max-w-xl mx-auto">
@@ -116,8 +114,8 @@ export default function AddEmployeePage() {
                                         <Sparkles className="h-4 w-4 text-[var(--focus)]" />
                                         <AlertDescription className="text-[var(--text-muted)]">
                                             <strong>Tier Limit Reached:</strong>
-                                            {tierLimitReached === "annual" ? " You can only have up to 3 active workers." : " You can only have 1 active worker."}
-                                            <Link href="/pricing" className="ml-1 underline font-bold">Upgrade to Pro</Link> for unlimited seats.
+                                            {tierLimitReached === "standard" ? " You can only have up to 3 active workers in one household." : " You can only have 1 active worker on Free."}
+                                            <Link href="/pricing" className="ml-1 underline font-bold">Compare plans</Link> to raise your limit.
                                         </AlertDescription>
                                     </Alert>
                                 )}
@@ -328,3 +326,5 @@ export default function AddEmployeePage() {
         </div>
     );
 }
+
+

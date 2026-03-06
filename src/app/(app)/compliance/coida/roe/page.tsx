@@ -20,7 +20,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { SideDrawer } from "@/components/layout/side-drawer";
 import { calculateRoeData, type RoeData } from "@/lib/coida/roe";
 import { generateRoePayrollPdfBytes, generateEmployerConfirmationPdfBytes } from "@/lib/coida/coida-pdf";
 import { generateRoeCsv } from "@/lib/coida/coida-csv";
@@ -138,9 +137,8 @@ export default function RoePackPage() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
+            <div className="max-w-xl mx-auto mb-6 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
                 <div className="max-w-xl mx-auto flex items-center gap-3">
-                    <SideDrawer />
                     <button
                         onClick={() => step > 1 ? setStep(step - 1) : router.push("/dashboard")}
                         aria-label="Back"
@@ -153,7 +151,7 @@ export default function RoePackPage() {
                         Return of Earnings (ROE) Pack
                     </h1>
                 </div>
-            </header>
+            </div>
 
             <main className="flex-1 w-full px-4 py-6">
                 <div className="max-w-xl mx-auto space-y-6">
@@ -327,7 +325,7 @@ export default function RoePackPage() {
                                                 <span className="text-sm font-bold text-[var(--text)]">Upgrade to unlock downloads</span>
                                             </div>
                                             <p className="text-xs text-[var(--text-muted)] mb-4">
-                                                Document exports and historical archiving are available on Annual and Lifetime plans.
+                                                Document exports and deeper archiving are available on Standard and Pro.
                                             </p>
                                             <Link href="/pricing">
                                                 <Button className="w-full h-10 font-bold bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white">
@@ -428,6 +426,9 @@ function DocDownloadRow({ label, description, isPaid, onClick }: {
         </div>
     );
 }
+
+
+
 
 
 

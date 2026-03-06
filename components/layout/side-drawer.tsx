@@ -198,7 +198,7 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                 {/* ── Support ────────────────────────────────────────────── */}
                 <div className="px-4 py-4 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
                     <a
-                        href="mailto:nightshiftlabsza@gmail.com?subject=LekkerLedger%20Support%20Request"
+                        href="mailto:support@lekkerledger.co.za?subject=LekkerLedger%20Support%20Request"
 
 
                         className="flex items-center gap-3 text-sm font-medium rounded-lg px-2 py-2 transition-colors hover:bg-[var(--surface-2)]"
@@ -221,3 +221,4 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
         </>
     );
 }
+

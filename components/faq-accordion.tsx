@@ -11,35 +11,35 @@ interface FaqItem {
 const FAQ_ITEMS: FaqItem[] = [
     {
         question: "Is LekkerLedger a payroll service?",
-        answer: "No. LekkerLedger is a records tool — it helps you generate payslips, contracts, and keep an organised archive. You still pay your employee directly; we help you document it properly.",
+        answer: "No. LekkerLedger is a records tool. It helps you generate payslips, contracts, exports, and a clean archive. You still pay your employee directly; LekkerLedger helps you document it properly.",
     },
     {
         question: "Where is my data stored?",
-        answer: "Your employee data stays on your device (in your browser's local storage). If you sign in with Google, you can optionally sync to your own Google Drive. LekkerLedger does not maintain a central employee database.",
+        answer: "Your employee data stays on your device by default. If you sign in with Google, you can optionally sync to your own Google Drive. LekkerLedger does not maintain a central employee database.",
     },
     {
         question: "Is this legal advice?",
-        answer: "No. LekkerLedger provides guardrails based on publicly available regulations (like the National Minimum Wage and BCEA requirements), but it is not a substitute for professional legal advice. If you have a specific legal question, consult a labour attorney.",
+        answer: "No. LekkerLedger provides guardrails based on publicly available regulations, but it is not a substitute for professional legal advice.",
     },
     {
         question: "What happens if I lose my device?",
-        answer: "If you've enabled Google Drive sync, your records are backed up to your personal Drive. Without sync, data is only on your device — so we recommend enabling it for peace of mind.",
-    },
-    {
-        question: "Do I need to register with UIF?",
-        answer: "If your domestic worker works more than 24 hours per month, UIF registration is required by law. LekkerLedger reminds you of this threshold and can generate uFiling-compatible export files.",
+        answer: "If you've enabled Google Drive backup, your records are backed up to your personal Drive. Without backup, data is only on your device.",
     },
     {
         question: "Can I use this for more than one employee?",
-        answer: "The free plan supports 1 employee. The Annual Support plan (R99/year) supports up to 3, and the Pro plan (R299 once-off) supports unlimited employees.",
+        answer: "Yes. Free supports 1 active employee. Standard supports up to 3 active employees. Pro supports unlimited employees.",
+    },
+    {
+        question: "Which plan supports more than one household?",
+        answer: "Pro is the multi-household tier. It's designed for families, bookkeepers, or anyone managing payroll admin across more than one home.",
     },
     {
         question: "How long should I keep payslip records?",
-        answer: "The domestic sector determination requires keeping payslip statements and records for at least three years. LekkerLedger's paid plans offer archives of 1–5 years, and we recommend keeping records for as long as practically possible.",
+        answer: "Household employers should keep payroll records for years, not weeks. Requests do happen, and it is much easier to respond calmly when the record trail is already there. Standard gives you a 12-month archive, and Pro extends that to 5 years with deeper backup and workspace tools.",
     },
     {
-        question: "Is this open source?",
-        answer: "Yes. LekkerLedger's core is open source on GitHub. You can inspect the code, suggest improvements, or run it yourself.",
+        question: "Why pay for this instead of fixing records later?",
+        answer: "Because tidy monthly records are usually far cheaper than rushed clean-up work later, especially if UIF or COIDA paperwork needs to be reconstructed. The paid plans are priced for households, not large HR teams or managed payroll retainers.",
     },
 ];
 
@@ -53,7 +53,7 @@ export function FaqAccordion() {
                 return (
                     <div
                         key={i}
-                        className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] overflow-hidden transition-shadow hover:shadow-[var(--shadow-sm)]"
+                        className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] overflow-hidden transition-shadow hover:shadow-[var(--shadow-1)]"
                     >
                         <button
                             onClick={() => setOpenIndex(isOpen ? null : i)}
@@ -88,3 +88,5 @@ export function FaqAccordion() {
         </div>
     );
 }
+
+

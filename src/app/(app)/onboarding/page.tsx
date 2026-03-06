@@ -26,6 +26,8 @@ export default function OnboardingPage() {
         phone: "",
         logoData: "",
         proStatus: "free",
+        billingCycle: "monthly",
+        activeHouseholdId: "default",
         defaultLanguage: "en",
         simpleMode: false,
         advancedMode: false,
@@ -241,3 +243,6 @@ export default function OnboardingPage() {
         </div>
     );
 }
+
+
+

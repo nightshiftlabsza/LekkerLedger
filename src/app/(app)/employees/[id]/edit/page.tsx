@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { SideDrawer } from "@/components/layout/side-drawer";
 import { EmployeeSchema, Employee } from "@/lib/schema";
 import { saveEmployee, getEmployee } from "@/lib/storage";
 import { NMW_RATE } from "@/lib/calculator";
@@ -105,9 +104,8 @@ export default function EditEmployeePage() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
+            <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
                 <div className="max-w-xl mx-auto flex items-center gap-3">
-                    <SideDrawer />
                     <Link href="/employees">
                         <button aria-label="Back" className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-2)] text-[var(--text-muted)]">
                             <ArrowLeft className="h-4 w-4" />
@@ -122,7 +120,7 @@ export default function EditEmployeePage() {
                         </h1>
                     </div>
                 </div>
-            </header>
+            </div>
 
             <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6">
                 <Card className="animate-slide-up">
@@ -268,3 +266,4 @@ export default function EditEmployeePage() {
         </div>
     );
 }
+

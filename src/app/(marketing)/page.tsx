@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getNMWForDate } from "@/lib/legal/registry";
 import { Logo } from "@/components/ui/logo";
-import { PLANS, annualPriceLabel } from "@/src/config/plans";
+import { PLANS, PLAN_ORDER, getPlanDisplayPrice, getPlanPeriodLabel, getPlanSavingsLabel } from "@/src/config/plans";
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * MARKETING HOMEPAGE — follows Audit A §4 wireframe exactly:
@@ -76,9 +76,9 @@ function MarketingHeader() {
                     <Link href="/dashboard" className="text-sm font-semibold transition-colors hover:text-[var(--primary)]" style={{ color: "var(--text-muted)" }}>
                         Sign in
                     </Link>
-                    <Link href="/dashboard">
+                    <Link href="/onboarding">
                         <Button className="h-10 px-5 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-sm shadow-[var(--shadow-1)]">
-                            Create your first payslip
+                            Start free
                         </Button>
                     </Link>
                 </div>
@@ -105,9 +105,9 @@ function MarketingHeader() {
                         <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
                             <Button variant="outline" className="w-full h-11 rounded-xl font-bold text-sm">Sign in</Button>
                         </Link>
-                        <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
+                        <Link href="/onboarding" onClick={() => setMobileOpen(false)}>
                             <Button className="w-full h-11 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-sm mt-2">
-                                Create your first payslip
+                                Start free
                             </Button>
                         </Link>
                     </div>
@@ -133,11 +133,11 @@ function Hero({ nmw }: { nmw: number }) {
                     {/* Left: Copy */}
                     <div className="space-y-8 max-w-xl">
                         <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                            Create a professional payslip for your domestic worker with <span className="text-[var(--primary)]">the key details in one flow.</span>
+                            Run household payroll properly with <span className="text-[var(--primary)]">payslips, records, and annual paperwork in one calm workspace.</span>
                         </h1>
 
                         <p className="type-body-large" style={{ color: "var(--text-muted)" }}>
-                            Your records stay on your device by default. Optional Google Drive backup if you choose. Works offline once loaded.
+                            Keep the payroll records South African households are expected to keep, without paying the kind of monthly fee usually charged by fully managed payroll services or scrambling later when paperwork is requested.
                         </p>
 
                         <div className="pt-2">
@@ -160,9 +160,9 @@ function Hero({ nmw }: { nmw: number }) {
 
                         {/* CTAs */}
                         <div className="flex flex-col sm:flex-row gap-3">
-                            <Link href="/dashboard">
+                            <Link href="/onboarding">
                                 <Button className="h-13 px-8 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-base shadow-[var(--shadow-2)] transition-all">
-                                    Create your first payslip <ArrowRight className="h-4 w-4 ml-2" />
+                                    Start free <ArrowRight className="h-4 w-4 ml-2" />
                                 </Button>
                             </Link>
                             <div className="flex flex-col justify-center gap-1.5 sm:ml-4 mt-3 sm:mt-0">
@@ -176,7 +176,7 @@ function Hero({ nmw }: { nmw: number }) {
                         </div>
 
                         <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                            Free plan available • No credit card for trial
+                            Built for households that want clear records before catch-up admin becomes stressful or expensive
                         </p>
                     </div>
 
@@ -289,10 +289,10 @@ function HowItWorks() {
             <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-20 md:py-28">
                 <div className="text-center max-w-2xl mx-auto mb-16">
                     <h2 className="type-h2" style={{ color: "var(--text)" }}>
-                        Clear household paperwork shouldn&apos;t cost a fortune.
+                        Clear household paperwork shouldn&apos;t cost what a managed payroll service costs.
                     </h2>
                     <p className="text-base mt-4" style={{ color: "var(--text-muted)" }}>
-                        Generate the key payslips and contracts households commonly need, without the consultation fees.
+                        Generate the key payslips and contracts households commonly need, without the fees of a fully managed payroll service.
                     </p>
                 </div>
 
@@ -423,10 +423,10 @@ function FeatureGrid() {
                         </div>
                         <h3 className="type-h3" style={{ color: "var(--text)" }}>A document vault designed for inspections.</h3>
                         <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            If you ever need a tidy record trail, LekkerLedger&apos;s built-in vault keeps a chronological history of payslips, contracts, and Unemployment Insurance Fund (UIF) declarations. Keep up to 5 years of history instantly accessible.
+                            If you ever need a tidy record trail, LekkerLedger&apos;s built-in vault keeps a chronological history of payslips, contracts, and Unemployment Insurance Fund (UIF) declarations. Standard keeps 12 months accessible, and Pro extends that to 5 years.
                         </p>
-                        <Link href="/dashboard" className="inline-block">
-                            <Button variant="outline" className="mt-2 h-11 px-6 rounded-xl border-[var(--border)] shadow-sm">Start your free vault today</Button>
+                        <Link href="/onboarding" className="inline-block">
+                            <Button variant="outline" className="mt-2 h-11 px-6 rounded-xl border-[var(--border)] shadow-sm">Start your record vault</Button>
                         </Link>
                     </div>
                     {/* Visual html depiction of archive */}
@@ -545,47 +545,63 @@ function PrivacyExplainer() {
 
 /* ─── 8. PRICING SUMMARY ─────────────────────────────────────────────────── */
 function PricingSummary() {
-    const plansToShow = [
-        { key: 'free', title: "Standard" },
-        { key: 'annual', title: "Annual Support", badge: "Popular" },
-        { key: 'lifetime', title: "Lekker Pro", badge: "Best Value" }
-    ];
-
     return (
         <section style={{ backgroundColor: "var(--bg)" }}>
             <div className="content-container-wide px-4 sm:px-6 lg:px-8 py-20 md:py-28">
-                <div className="text-center max-w-2xl mx-auto mb-16">
+                <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
                     <h2 className="type-h2" style={{ color: "var(--text)" }}>
-                        Start free. Upgrade when your household needs more.
+                        Start free. Step up only when your household needs more depth.
                     </h2>
+                    <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                        Simple household pricing, with a lower yearly rate when you want to save.
+                    </p>
                 </div>
 
-                <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                    {plansToShow.map((p, i) => {
-                        const plan = PLANS[p.key as keyof typeof PLANS];
+                <div className="grid gap-6 lg:grid-cols-3">
+                    {PLAN_ORDER.map((planId) => {
+                        const plan = PLANS[planId];
+                        const featured = plan.id === "pro";
+                        const primaryCycle = plan.id === "free" ? "yearly" : "monthly";
                         return (
-                            <div key={i} className={`relative p-6 rounded-2xl border transition-all ${i === 2 ? 'border-[var(--primary)] shadow-xl shadow-[var(--primary)]/10 scale-[1.02]' : 'border-[var(--border)]'}`} style={{ backgroundColor: "var(--surface-1)" }}>
-                                {p.badge && (
-                                    <span className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${i === 2 ? 'bg-[var(--primary)] text-white' : 'bg-[var(--accent-subtle)] text-[var(--primary)] border border-[var(--border)]'}`}>
-                                        {p.badge}
-                                    </span>
-                                )}
-                                <div className="text-center mb-4 pt-2">
-                                    <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{p.title}</h3>
-                                    <div className="mt-2">
-                                        <span className="text-4xl font-semibold type-mono" style={{ color: "var(--text)" }}>
-                                            {p.key === 'free' ? "Free" : p.key === 'annual' ? annualPriceLabel().split(' ')[0] : `R${PLANS.lifetime.onceOffPrice}`}
-                                        </span>
+                            <div key={plan.id} className={`relative rounded-[24px] border p-6 shadow-[var(--shadow-1)] ${featured ? "border-[var(--primary)]" : "border-[var(--border)]"}`} style={{ backgroundColor: "var(--surface-1)" }}>
+                                <div className="space-y-4">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div>
+                                            <p className="text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>{plan.label}</p>
+                                            <h3 className="mt-2 text-xl font-black" style={{ color: "var(--text)" }}>{plan.bestFor}</h3>
+                                        </div>
+                                        {plan.badge && (
+                                            <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${featured ? "bg-[var(--primary)] text-white" : "bg-[var(--accent-subtle)] text-[var(--primary)]"}`}>
+                                                {plan.badge}
+                                            </span>
+                                        )}
                                     </div>
+
+                                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
+                                        <div className="flex items-end gap-2">
+                                            <span className="text-4xl font-semibold type-mono" style={{ color: "var(--text)" }}>
+                                                {getPlanDisplayPrice(plan, primaryCycle)}
+                                            </span>
+                                            <span className="pb-1 text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+                                                {getPlanPeriodLabel(plan, primaryCycle)}
+                                            </span>
+                                        </div>
+                                        {plan.pricing.yearly && (
+                                            <p className="mt-2 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
+                                                or {getPlanDisplayPrice(plan, "yearly")}/year • {getPlanSavingsLabel(plan)}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <ul className="space-y-2.5">
+                                        {plan.marketingBullets.slice(0, 4).map((bullet) => (
+                                            <li key={bullet} className="flex items-start gap-2.5 text-sm" style={{ color: "var(--text-muted)" }}>
+                                                <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                                <span>{bullet}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
-                                <ul className="space-y-2 mb-6">
-                                    {plan.marketingBullets.slice(0, 4).map((b, j) => (
-                                        <li key={j} className="flex items-center gap-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                                            <Check className="h-3.5 w-3.5 text-green-500 stroke-[3px] shrink-0" />
-                                            {b}
-                                        </li>
-                                    ))}
-                                </ul>
                             </div>
                         );
                     })}
@@ -596,9 +612,9 @@ function PricingSummary() {
                         See full pricing & comparison <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                     <div>
-                        <Link href="/dashboard">
+                        <Link href="/onboarding">
                             <Button className="h-11 px-6 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] text-white font-bold text-sm">
-                                Create your first payslip
+                                Start free
                             </Button>
                         </Link>
                     </div>
@@ -612,11 +628,11 @@ function PricingSummary() {
 function FAQAccordion() {
     const faqs = [
         { q: "Is my employee data stored on LekkerLedger's servers?", a: "No. LekkerLedger doesn't keep a central database of your employee records. Payroll data is stored locally on your device, and you can optionally sync it to your personal private Google Drive. See our privacy policy for full details." },
-        { q: "Do I need to register for COIDA?", a: "Yes. Employers of domestic workers generally need to register with the Compensation Fund (COIDA) to cover occupational injuries. LekkerLedger helps you maintain the monthly records used for declarations." },
-        { q: "Do I need to register for UIF?", a: "It depends on hours worked. If your employee works more than 24 hours per month, UIF registration is generally expected. LekkerLedger includes UIF calculations — but always check official guidance for your situation." },
-        { q: "Can I use LekkerLedger for one employee only?", a: "Yes! The free Standard plan supports one active employee — perfect for most households." },
-        { q: "What does 'Annual Support' include?", a: "Annual Support (R99/year) gives you up to 3 employees, 1 year of archived history, contract generation, and repeat-payroll features. It renews yearly — cancel anytime to stop renewal." },
-        { q: "What does the once-off Pro plan include?", a: "Lekker Pro (R299, pay once) gives you unlimited employees, 5 years of archive history, Google Drive sync, and the full legal vault. No recurring fees ever." },
+        { q: "Do I need to register for COIDA?", a: "Yes. Employers of domestic workers generally need to register with the Compensation Fund (COIDA) to cover occupational injuries. This is one of those areas where the legal expectation matters, so it helps to keep the record trail tidy early instead of rebuilding it later." },
+        { q: "Do I need to register for UIF?", a: "It depends on hours worked. If your employee works more than 24 hours per month, UIF registration is generally expected. LekkerLedger includes UIF calculations so you are not guessing later, but always check official guidance for your situation." },
+        { q: "Can I use LekkerLedger for one employee only?", a: "Yes. Free supports one active employee, Standard supports up to 3, and Pro supports unlimited employees." },
+        { q: "What does Standard include?", a: "Standard starts at R29/month or R199/year. It gives you up to 3 active employees, 12 months of archive history, Google Drive backup, contracts, uFiling export, and the annual ROE pack. It is also still well below the price of most managed payroll services." },
+        { q: "What does Pro include?", a: "Pro starts at R39/month or R299/year. It adds unlimited employees, multi-household support, a 5-year archive, Google Drive backup, leave and loan tracking, contracts, uFiling export, and the annual ROE pack, while still staying priced for households rather than enterprise HR teams." },
         { q: "Can I export records for uFiling?", a: "Yes — there's a built-in uFiling export tool to generate UIF declarations for submission." },
         { q: "Is this legal advice?", a: "No. LekkerLedger provides tools and general information to help you create compliant records. We are not a law firm. Always verify against official sources for your specific situation." },
         { q: "Can my domestic worker get a copy of the payslip?", a: "Absolutely — you can download the PDF and share it via WhatsApp, email, or print. Clear payslips benefit both employer and employee." },
@@ -721,6 +737,11 @@ function Footer() {
         </footer>
     );
 }
+
+
+
+
+
 
 
 

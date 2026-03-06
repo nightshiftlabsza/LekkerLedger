@@ -13,6 +13,7 @@ export default function ExamplesPage() {
     const handleDownload = async () => {
         const sampleEmployee: Employee = {
             id: "sample-id",
+            householdId: "default",
             name: "Nomsa Dlamini",
             idNumber: "800101 0234 081",
             role: "Domestic Helper",
@@ -26,6 +27,7 @@ export default function ExamplesPage() {
 
         const samplePayslip: PayslipInput = {
             id: "ps-sample",
+            householdId: "default",
             employeeId: "sample-id",
             payPeriodStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
             payPeriodEnd: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
@@ -57,6 +59,8 @@ export default function ExamplesPage() {
             installationId: "sample",
             usageHistory: [],
             proStatus: "free",
+            billingCycle: "monthly",
+            activeHouseholdId: "default",
             defaultLanguage: "en",
             density: "comfortable",
             googleSyncEnabled: false,
@@ -270,12 +274,12 @@ export default function ExamplesPage() {
                             <div>
                                 <h3 className="text-xl font-bold font-serif">Need high-volume?</h3>
                                 <p className="text-sm text-[var(--text-muted)] mt-2 leading-relaxed">
-                                    Our Pro plan supports up to 5 employees with automated bulk generation and Google Drive archiving.
+                                    Pro supports unlimited employees, a deeper archive, and multi-household workflows for bookkeepers or families managing more than one home.
                                 </p>
                             </div>
                             <Link href="/onboarding" className="block">
                                 <Button className="w-full gap-2 bg-[var(--text)] text-white hover:opacity-90 font-bold h-12 rounded-xl">
-                                    Start Free Today <ArrowRight className="h-4 w-4" />
+                                    Start free <ArrowRight className="h-4 w-4" />
                                 </Button>
                             </Link>
                         </section>
@@ -302,3 +306,5 @@ export default function ExamplesPage() {
         </div>
     );
 }
+
+

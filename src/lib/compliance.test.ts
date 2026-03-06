@@ -6,6 +6,7 @@ import { PayBreakdown } from "./calculator";
 describe("Compliance Logic (SD7 & NMW)", () => {
     const mockEmployee: Employee = {
         id: "emp-1",
+        householdId: "default",
         name: "Test Worker",
         idNumber: "1234567890123",
         role: "Domestic Worker",
@@ -93,3 +94,6 @@ describe("Compliance Logic (SD7 & NMW)", () => {
         expect(audit.sundayMultiplier).toBe("2.0x");
     });
 });
+
+
+

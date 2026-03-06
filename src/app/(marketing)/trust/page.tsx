@@ -20,7 +20,7 @@ export default function TrustCenterPage() {
                     </div>
                     <h1 className="type-h1" style={{ color: "var(--text)" }}>Trust Center</h1>
                     <p className="type-body-large" style={{ color: "var(--text-muted)" }}>
-                        How we process your data, compute your payroll, and protect your privacy. Everything laid out clearly.
+                        How we process your data, compute your payroll, and protect your privacy. Everything laid out clearly, so compliance can feel calm rather than intimidating.
                     </p>
                 </div>
             </header>
@@ -53,7 +53,7 @@ export default function TrustCenterPage() {
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                                 <FolderSync className="h-5 w-5 text-green-500 mb-3" />
                                 <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Google Drive Sync</h4>
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Pro users can sync an encrypted copy to their private Google Drive.</p>
+                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paid plans can sync a backup copy to a hidden LekkerLedger folder in your private Google Drive.</p>
                             </div>
                         </div>
                     </div>
@@ -80,8 +80,9 @@ export default function TrustCenterPage() {
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <h4 className="font-bold text-sm uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>Compensation for Occupational Injuries and Diseases Act (COIDA)</h4>
-                            <div className="text-xl font-bold mb-1" style={{ color: "var(--text)" }}>Registration required</div>
-                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Domestic employers generally need to register with the Compensation Fund for injury-on-duty cover.</p>`r`n                            <a href="https://www.labour.gov.za/compensation-for-occupational-injuries-and-diseases-act" target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-bold text-[var(--primary)] hover:underline">Source: Compensation Fund guidance</a>
+                            <div className="text-xl font-bold mb-1" style={{ color: "var(--text)" }}>Registration generally required</div>
+                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Domestic employers generally need to register with the Compensation Fund for injury-on-duty cover. This is one of the areas where tidy records matter because the legal expectation is real, even if the goal is calm compliance rather than panic.</p>
+                            <a href="https://www.labour.gov.za/compensation-for-occupational-injuries-and-diseases-act" target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-bold text-[var(--primary)] hover:underline">Source: Compensation Fund guidance</a>
                         </div>
                     </div>
                     <div className="mt-6">
@@ -110,7 +111,7 @@ export default function TrustCenterPage() {
                             <div>
                                 <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text)" }}>No Hidden Fees</h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    Our Standard plan is free forever. The Lekker Pro plan is a once-off payment, while Annual Support is a yearly subscription that you can cancel anytime.
+                                    Free covers the essentials. Standard is R29/month or R199/year for one household with a small team, and Pro is R39/month or R299/year for unlimited employees and multi-household workspaces. Both paid tiers are still priced for households rather than the higher monthly fees common in managed payroll services.
                                 </p>
                             </div>
                         </div>
@@ -129,4 +130,6 @@ export default function TrustCenterPage() {
         </div>
     );
 }
+
+
 

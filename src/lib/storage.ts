@@ -13,6 +13,8 @@ import {
     DocumentMeta,
     Contract,
     AuditLog,
+    Household,
+    HouseholdSchema,
 } from "./schema";
 
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
@@ -23,20 +25,157 @@ const auditStore = localforage.createInstance({ name: "LekkerLedger", storeName:
 const payPeriodStore = localforage.createInstance({ name: "LekkerLedger", storeName: "pay_periods" });
 const documentStore = localforage.createInstance({ name: "LekkerLedger", storeName: "documents" });
 const contractStore = localforage.createInstance({ name: "LekkerLedger", storeName: "contracts" });
+const householdStore = localforage.createInstance({ name: "LekkerLedger", storeName: "households" });
 
 export const FREE_PAYSLIP_LIMIT = 2;
-const BACKUP_SCHEMA_VERSION = "2.0";
-const SUPPORTED_BACKUP_VERSIONS = new Set(["1.0", "2.0", 1, 2]);
+export const DEFAULT_HOUSEHOLD_ID = "default";
+const DEFAULT_HOUSEHOLD_NAME = "Main household";
+const BACKUP_SCHEMA_VERSION = "2.2";
+const SUPPORTED_BACKUP_VERSIONS = new Set(["1.0", "2.0", "2.1", "2.2", 1, 2]);
 const SECURE_TIME_CACHE_MS = 5 * 60 * 1000;
+const HOUSEHOLD_SETTINGS_KEY_PREFIX = "employer-settings::";
+
+const HouseholdScopedSettingsSchema = EmployerSettingsSchema.pick({
+    employerName: true,
+    employerAddress: true,
+    employerIdNumber: true,
+    uifRefNumber: true,
+    cfNumber: true,
+    sdlNumber: true,
+    phone: true,
+    logoData: true,
+}).partial();
+
+type HouseholdScopedSettings = z.infer<typeof HouseholdScopedSettingsSchema>;
+
+const BackupHouseholdSettingsSchema = z.object({
+    householdId: z.string(),
+    settings: HouseholdScopedSettingsSchema.default({}),
+});
 
 const BackupPayloadSchema = z.object({
     version: z.union([z.string(), z.number()]).optional(),
     timestamp: z.string().optional(),
+    households: z.array(HouseholdSchema).default([]),
+    householdSettings: z.array(BackupHouseholdSettingsSchema).default([]),
     employees: z.array(EmployeeSchema).default([]),
     payslips: z.array(PayslipInputSchema).default([]),
     leave: z.array(LeaveRecordSchema).default([]),
     settings: EmployerSettingsSchema.partial().default({}),
 });
+function normalizeLegacyPlanId(status: EmployerSettings["proStatus"] | undefined): EmployerSettings["proStatus"] {
+    if (status === "annual") return "standard";
+    if (status === "lifetime") return "pro";
+    return status ?? "free";
+}
+
+function buildDefaultSettings(overrides: Partial<EmployerSettings> = {}): EmployerSettings {
+    const normalizedPlanId = normalizeLegacyPlanId(overrides.proStatus);
+    const inferredBillingCycle = overrides.billingCycle
+        ?? ((overrides.proStatus === "annual" || overrides.proStatus === "lifetime") ? "yearly" : "monthly");
+
+    return {
+        employerName: "",
+        employerAddress: "",
+        employerIdNumber: "",
+        uifRefNumber: "",
+        cfNumber: "",
+        sdlNumber: "",
+        phone: "",
+        logoData: "",
+        paidUntil: undefined,
+        trialExpiry: undefined,
+        defaultLanguage: "en",
+        simpleMode: false,
+        advancedMode: false,
+        density: "comfortable",
+        googleSyncEnabled: false,
+        googleAuthToken: undefined,
+        piiObfuscationEnabled: true,
+        installationId: "",
+        usageHistory: [],
+        ...overrides,
+        proStatus: normalizedPlanId,
+        billingCycle: inferredBillingCycle,
+        activeHouseholdId: overrides.activeHouseholdId ?? DEFAULT_HOUSEHOLD_ID,
+    };
+}
+
+function buildDefaultHousehold(): Household {
+    return {
+        id: DEFAULT_HOUSEHOLD_ID,
+        name: DEFAULT_HOUSEHOLD_NAME,
+        createdAt: new Date(0).toISOString(),
+    };
+}
+
+function getHouseholdSettingsKey(householdId: string): string {
+    return `${HOUSEHOLD_SETTINGS_KEY_PREFIX}${householdId}`;
+}
+
+function getEmptyHouseholdScopedSettings(): HouseholdScopedSettings {
+    return {
+        employerName: "",
+        employerAddress: "",
+        employerIdNumber: "",
+        uifRefNumber: "",
+        cfNumber: "",
+        sdlNumber: "",
+        phone: "",
+        logoData: "",
+    };
+}
+
+function extractHouseholdScopedSettings(settings: Partial<EmployerSettings> = {}): HouseholdScopedSettings {
+    return {
+        employerName: settings.employerName ?? "",
+        employerAddress: settings.employerAddress ?? "",
+        employerIdNumber: settings.employerIdNumber ?? "",
+        uifRefNumber: settings.uifRefNumber ?? "",
+        cfNumber: settings.cfNumber ?? "",
+        sdlNumber: settings.sdlNumber ?? "",
+        phone: settings.phone ?? "",
+        logoData: settings.logoData ?? "",
+    };
+}
+
+function stripHouseholdScopedSettings(settings: Partial<EmployerSettings> = {}): Partial<EmployerSettings> {
+    return {
+        ...settings,
+        ...getEmptyHouseholdScopedSettings(),
+    };
+}
+
+async function getHouseholdScopedSettings(householdId: string): Promise<HouseholdScopedSettings | null> {
+    const raw = await settingsStore.getItem<unknown>(getHouseholdSettingsKey(householdId));
+    if (!raw) return null;
+    const parsed = HouseholdScopedSettingsSchema.safeParse(raw);
+    if (!parsed.success) {
+        return getEmptyHouseholdScopedSettings();
+    }
+    return {
+        ...getEmptyHouseholdScopedSettings(),
+        ...parsed.data,
+    };
+}
+
+async function ensureHouseholdScopedSettings(householdId: string, seed: Partial<HouseholdScopedSettings> = {}): Promise<HouseholdScopedSettings> {
+    const existing = await getHouseholdScopedSettings(householdId);
+    if (existing) return existing;
+    const created = {
+        ...getEmptyHouseholdScopedSettings(),
+        ...seed,
+    };
+    await settingsStore.setItem(getHouseholdSettingsKey(householdId), created);
+    return created;
+}
+
+async function ensureDefaultHousehold(): Promise<void> {
+    const existing = await householdStore.getItem<Household>(DEFAULT_HOUSEHOLD_ID);
+    if (!existing) {
+        await householdStore.setItem(DEFAULT_HOUSEHOLD_ID, buildDefaultHousehold());
+    }
+}
 
 async function encodeData(data: unknown): Promise<string | unknown> {
     const settings = await getSettings();
@@ -82,10 +221,55 @@ export function setImportingMode(value: boolean) {
     isImporting = value;
 }
 
+export async function getHouseholds(): Promise<Household[]> {
+    await ensureDefaultHousehold();
+    const households: Household[] = [];
+    await householdStore.iterate<unknown, void>((value: unknown) => {
+        const parsed = HouseholdSchema.safeParse(value);
+        if (parsed.success) households.push(parsed.data);
+    });
+    return households.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+export async function saveHousehold(household: Household): Promise<void> {
+    await householdStore.setItem(household.id, household);
+    await ensureHouseholdScopedSettings(household.id);
+    await logAuditEvent("SWITCH_HOUSEHOLD", `Saved household: ${household.name}`, { householdId: household.id });
+    await notifyListeners();
+}
+export async function getActiveHouseholdId(): Promise<string> {
+    const settings = await getSettings();
+    return settings.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;
+}
+
+export async function setActiveHouseholdId(householdId: string): Promise<void> {
+    await ensureDefaultHousehold();
+    const households = await getHouseholds();
+    const exists = households.some((household) => household.id === householdId);
+    if (!exists) throw new Error("Household not found.");
+
+    const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
+    const globalSettings = buildDefaultSettings({
+        ...stripHouseholdScopedSettings(rawSettings ?? {}),
+        activeHouseholdId: householdId,
+    });
+
+    await settingsStore.setItem(SETTINGS_KEY, globalSettings);
+    await ensureHouseholdScopedSettings(householdId);
+    await logAuditEvent("SWITCH_HOUSEHOLD", "Changed active household", { householdId });
+    await notifyListeners();
+}
+
+
 export async function getEmployees(): Promise<Employee[]> {
+    const activeHouseholdId = await getActiveHouseholdId();
     const employees: Employee[] = [];
     await employeeStore.iterate<unknown, void>((value: unknown) => {
-        if (value) employees.push(decodeData<Employee>(value));
+        if (!value) return;
+        const decoded = decodeData<Employee>(value);
+        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
+            employees.push(decoded);
+        }
     });
     return employees.sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -96,8 +280,10 @@ export async function getEmployee(id: string): Promise<Employee | null> {
 }
 
 export async function saveEmployee(employee: Employee): Promise<void> {
+    const activeHouseholdId = await getActiveHouseholdId();
     const normalized: Employee = {
         ...employee,
+        householdId: employee.householdId || activeHouseholdId,
         name: employee.name.trim(),
         idNumber: employee.idNumber?.trim() ?? "",
         phone: employee.phone?.trim() ?? "",
@@ -114,6 +300,7 @@ export async function saveEmployee(employee: Employee): Promise<void> {
     await employeeStore.setItem(normalized.id, await encodeData(normalized));
     await logAuditEvent("CREATE_EMPLOYEE", `Saved employee: ${normalized.name}`, {
         employeeId: normalized.id,
+        householdId: normalized.householdId,
         idNumber: normalized.idNumber || undefined,
     });
     await notifyListeners();
@@ -145,6 +332,7 @@ export async function deleteEmployee(id: string): Promise<void> {
 }
 
 export async function savePayslip(payslip: PayslipInput): Promise<void> {
+    const activeHouseholdId = await getActiveHouseholdId();
     const duplicate = (await getAllPayslips()).find((existing) =>
         existing.id !== payslip.id &&
         existing.employeeId === payslip.employeeId &&
@@ -156,12 +344,18 @@ export async function savePayslip(payslip: PayslipInput): Promise<void> {
         throw new Error("A payslip for this employee and pay period already exists.");
     }
 
-    await payslipStore.setItem(payslip.id, await encodeData(payslip));
-    await logAuditEvent("CREATE_PAYSLIP", `Generated payslip for employee ID: ${payslip.employeeId}`, {
-        payslipId: payslip.id,
-        employeeId: payslip.employeeId,
-        payPeriodStart: new Date(payslip.payPeriodStart).toISOString(),
-        payPeriodEnd: new Date(payslip.payPeriodEnd).toISOString(),
+    const normalized: PayslipInput = {
+        ...payslip,
+        householdId: payslip.householdId || activeHouseholdId,
+    };
+
+    await payslipStore.setItem(normalized.id, await encodeData(normalized));
+    await logAuditEvent("CREATE_PAYSLIP", `Generated payslip for employee ID: ${normalized.employeeId}`, {
+        payslipId: normalized.id,
+        householdId: normalized.householdId,
+        employeeId: normalized.employeeId,
+        payPeriodStart: new Date(normalized.payPeriodStart).toISOString(),
+        payPeriodEnd: new Date(normalized.payPeriodEnd).toISOString(),
     });
     await notifyListeners();
 }
@@ -186,9 +380,15 @@ export async function getTotalDaysWorkedForEmployee(employeeId: string): Promise
 }
 
 export async function getAllPayslips(): Promise<PayslipInput[]> {
+    const activeHouseholdId = await getActiveHouseholdId();
+    const activeEmployeeIds = new Set((await getEmployees()).map((employee) => employee.id));
     const payslips: PayslipInput[] = [];
     await payslipStore.iterate<unknown, void>((value: unknown) => {
-        if (value) payslips.push(decodeData<PayslipInput>(value));
+        if (!value) return;
+        const decoded = decodeData<PayslipInput>(value);
+        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || activeEmployeeIds.has(decoded.employeeId)) {
+            payslips.push(decoded);
+        }
     });
     return payslips.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
@@ -200,12 +400,18 @@ export async function deletePayslip(id: string): Promise<void> {
 }
 
 export async function saveLeaveRecord(record: LeaveRecord): Promise<void> {
-    await leaveStore.setItem(record.id, await encodeData(record));
-    await logAuditEvent("CREATE_LEAVE_RECORD", `Saved leave record: ${record.type} for employee ${record.employeeId}`, {
-        leaveId: record.id,
-        employeeId: record.employeeId,
-        leaveType: record.type,
-        date: record.date,
+    const activeHouseholdId = await getActiveHouseholdId();
+    const normalized: LeaveRecord = {
+        ...record,
+        householdId: record.householdId || activeHouseholdId,
+    };
+    await leaveStore.setItem(normalized.id, await encodeData(normalized));
+    await logAuditEvent("CREATE_LEAVE_RECORD", `Saved leave record: ${normalized.type} for employee ${normalized.employeeId}`, {
+        leaveId: normalized.id,
+        householdId: normalized.householdId,
+        employeeId: normalized.employeeId,
+        leaveType: normalized.type,
+        date: normalized.date,
     });
     await notifyListeners();
 }
@@ -232,9 +438,14 @@ export async function getLeaveForEmployee(employeeId: string): Promise<LeaveReco
 }
 
 export async function getAllLeaveRecords(): Promise<LeaveRecord[]> {
+    const activeHouseholdId = await getActiveHouseholdId();
+    const activeEmployeeIds = new Set((await getEmployees()).map((employee) => employee.id));
     const records: LeaveRecord[] = [];
     await leaveStore.iterate<unknown, void>((value: unknown) => {
-        records.push(decodeData<LeaveRecord>(value));
+        const decoded = decodeData<LeaveRecord>(value);
+        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || activeEmployeeIds.has(decoded.employeeId)) {
+            records.push(decoded);
+        }
     });
     return records;
 }
@@ -242,37 +453,41 @@ export async function getAllLeaveRecords(): Promise<LeaveRecord[]> {
 const SETTINGS_KEY = "employer-settings";
 
 export async function getSettings(): Promise<EmployerSettings> {
-    const settings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
-    return settings ?? {
-        employerName: "",
-        employerAddress: "",
-        employerIdNumber: "",
-        uifRefNumber: "",
-        cfNumber: "",
-        sdlNumber: "",
-        phone: "",
-        logoData: "",
-        proStatus: "free",
-        paidUntil: undefined,
-        trialExpiry: undefined,
-        defaultLanguage: "en",
-        simpleMode: false,
-        advancedMode: false,
-        density: "comfortable",
-        googleSyncEnabled: false,
-        googleAuthToken: undefined,
-        piiObfuscationEnabled: true,
-        installationId: "",
-        usageHistory: [],
+    await ensureDefaultHousehold();
+    const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
+    const normalizedGlobal = buildDefaultSettings(stripHouseholdScopedSettings(rawSettings ?? {}));
+    const activeHouseholdId = normalizedGlobal.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;
+
+    const legacySeed = activeHouseholdId === DEFAULT_HOUSEHOLD_ID
+        ? extractHouseholdScopedSettings(rawSettings ?? {})
+        : getEmptyHouseholdScopedSettings();
+
+    const householdSettings = await ensureHouseholdScopedSettings(activeHouseholdId, legacySeed);
+
+    return {
+        ...normalizedGlobal,
+        ...householdSettings,
+        activeHouseholdId,
     };
 }
 
 export async function saveSettings(settings: EmployerSettings): Promise<void> {
-    await settingsStore.setItem(SETTINGS_KEY, settings);
-    if (typeof window !== "undefined") {
-        localStorage.setItem("ll-density", settings.density || "comfortable");
+    const normalized = buildDefaultSettings(settings);
+    const activeHouseholdId = normalized.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;
+    const globalSettings = buildDefaultSettings({
+        ...stripHouseholdScopedSettings(normalized),
+        activeHouseholdId,
+    });
+    const householdSettings = extractHouseholdScopedSettings(normalized);
+
+    await settingsStore.setItem(SETTINGS_KEY, globalSettings);
+    await settingsStore.setItem(getHouseholdSettingsKey(activeHouseholdId), householdSettings);
+    if (typeof window !== "undefined" && typeof window.localStorage?.setItem === "function") {
+        window.localStorage.setItem("ll-density", globalSettings.density || "comfortable");
     }
-    await logAuditEvent("UPDATE_SETTINGS", `Employer settings updated (PII: ${settings.piiObfuscationEnabled}, Sync: ${settings.googleSyncEnabled})`);
+    await logAuditEvent("UPDATE_SETTINGS", `Employer settings updated (PII: ${globalSettings.piiObfuscationEnabled}, Sync: ${globalSettings.googleSyncEnabled})`, {
+        householdId: activeHouseholdId,
+    });
     await notifyListeners();
 }
 
@@ -386,19 +601,22 @@ export async function getUsageStats(): Promise<{ count30Days: number; isLimited:
     const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
     const recent = (settings.usageHistory || []).filter((dateString) => new Date(dateString) > thirtyDaysAgo);
 
-    const isPro = settings.proStatus === "pro" ||
-        (settings.proStatus === "trial" && !!settings.trialExpiry && new Date(settings.trialExpiry) > now);
+    const hasPaidPlan = settings.proStatus === "standard" || settings.proStatus === "pro";
+    const hasActiveTrial = settings.proStatus === "trial" && !!settings.trialExpiry && new Date(settings.trialExpiry) > now;
 
     return {
         count30Days: recent.length,
-        isLimited: !isPro && recent.length >= FREE_PAYSLIP_LIMIT,
+        isLimited: !(hasPaidPlan || hasActiveTrial) && recent.length >= FREE_PAYSLIP_LIMIT,
     };
 }
 
 export async function exportData(): Promise<string> {
+    const households = await getHouseholds();
     const data: {
         version: string;
         timestamp: string;
+        households: unknown[];
+        householdSettings: { householdId: string; settings: HouseholdScopedSettings }[];
         employees: unknown[];
         payslips: unknown[];
         leave: unknown[];
@@ -406,6 +624,8 @@ export async function exportData(): Promise<string> {
     } = {
         version: BACKUP_SCHEMA_VERSION,
         timestamp: new Date().toISOString(),
+        households,
+        householdSettings: [],
         employees: [],
         payslips: [],
         leave: [],
@@ -418,16 +638,29 @@ export async function exportData(): Promise<string> {
 
     const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
     if (rawSettings) {
-        const { googleAuthToken, ...safeSettings } = rawSettings;
+        const { googleAuthToken, ...safeSettings } = stripHouseholdScopedSettings(rawSettings);
         void googleAuthToken;
         data.settings = safeSettings;
+    }
+
+    for (const household of households) {
+        const householdSettings = await getHouseholdScopedSettings(household.id);
+        if (householdSettings) {
+            data.householdSettings.push({ householdId: household.id, settings: householdSettings });
+        }
+    }
+
+    if (data.householdSettings.length === 0 && rawSettings) {
+        data.householdSettings.push({
+            householdId: DEFAULT_HOUSEHOLD_ID,
+            settings: extractHouseholdScopedSettings(rawSettings),
+        });
     }
 
     const json = JSON.stringify(data, null, 2);
     await logAuditEvent("EXPORT_DATA", "Manual data backup export triggered", { version: BACKUP_SCHEMA_VERSION });
     return json;
 }
-
 export async function importData(json: string): Promise<{ success: boolean; error?: string }> {
     let parsedJson: unknown;
     try {
@@ -448,12 +681,36 @@ export async function importData(json: string): Promise<{ success: boolean; erro
     setImportingMode(true);
     try {
         await resetAllData();
+        await Promise.all(parsed.data.households.map(async (household) => householdStore.setItem(household.id, household)));
+        if (parsed.data.households.length === 0) {
+            await ensureDefaultHousehold();
+        }
         await Promise.all(parsed.data.employees.map(async (employee) => employeeStore.setItem(employee.id, await encodeData(employee))));
         await Promise.all(parsed.data.payslips.map(async (payslip) => payslipStore.setItem(payslip.id, await encodeData(payslip))));
         await Promise.all(parsed.data.leave.map(async (record) => leaveStore.setItem(record.id, await encodeData(record))));
-        await settingsStore.setItem(SETTINGS_KEY, { ...(parsed.data.settings as EmployerSettings) });
+
+        const importedGlobalSettings = buildDefaultSettings(stripHouseholdScopedSettings(parsed.data.settings as EmployerSettings));
+        await settingsStore.setItem(SETTINGS_KEY, importedGlobalSettings);
+
+        if (parsed.data.householdSettings.length > 0) {
+            await Promise.all(
+                parsed.data.householdSettings.map(async (entry) =>
+                    settingsStore.setItem(getHouseholdSettingsKey(entry.householdId), {
+                        ...getEmptyHouseholdScopedSettings(),
+                        ...entry.settings,
+                    })
+                )
+            );
+        } else {
+            await settingsStore.setItem(
+                getHouseholdSettingsKey(DEFAULT_HOUSEHOLD_ID),
+                extractHouseholdScopedSettings(parsed.data.settings as EmployerSettings)
+            );
+        }
+
         await logAuditEvent("IMPORT_DATA", "Manual data restore completed", {
             version: String(parsed.data.version ?? "legacy"),
+            households: parsed.data.households.length,
             employees: parsed.data.employees.length,
             payslips: parsed.data.payslips.length,
             leaveRecords: parsed.data.leave.length,
@@ -466,7 +723,6 @@ export async function importData(json: string): Promise<{ success: boolean; erro
         await notifyListeners();
     }
 }
-
 export async function resetAllData(): Promise<void> {
     await logAuditEvent("DELETE_ALL_DATA", "TOTAL WIPE: User requested manual reset of all application data");
     await Promise.all([
@@ -477,6 +733,7 @@ export async function resetAllData(): Promise<void> {
         payPeriodStore.clear(),
         documentStore.clear(),
         contractStore.clear(),
+        householdStore.clear(),
     ]);
 }
 
@@ -501,9 +758,14 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
 }
 
 export async function getPayPeriods(): Promise<PayPeriod[]> {
+    const activeHouseholdId = await getActiveHouseholdId();
     const periods: PayPeriod[] = [];
     await payPeriodStore.iterate<unknown, void>((value: unknown) => {
-        if (value) periods.push(decodeData<PayPeriod>(value));
+        if (!value) return;
+        const decoded = decodeData<PayPeriod>(value);
+        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
+            periods.push(decoded);
+        }
     });
     return periods.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 }
@@ -514,9 +776,10 @@ export async function getPayPeriod(id: string): Promise<PayPeriod | null> {
 }
 
 export async function savePayPeriod(period: PayPeriod): Promise<void> {
-    const updated = { ...period, updatedAt: new Date().toISOString() };
+    const activeHouseholdId = await getActiveHouseholdId();
+    const updated = { ...period, householdId: period.householdId || activeHouseholdId, updatedAt: new Date().toISOString() };
     await payPeriodStore.setItem(updated.id, await encodeData(updated));
-    await logAuditEvent("CREATE_PAY_PERIOD", `Updated draft pay period: ${period.name}`, { periodId: period.id });
+    await logAuditEvent("CREATE_PAY_PERIOD", `Updated draft pay period: ${period.name}`, { periodId: period.id, householdId: updated.householdId });
     await notifyListeners();
 }
 
@@ -551,15 +814,23 @@ export async function getCurrentPayPeriod(): Promise<PayPeriod | null> {
 }
 
 export async function getDocuments(): Promise<DocumentMeta[]> {
+    const activeHouseholdId = await getActiveHouseholdId();
+    const activeEmployeeIds = new Set((await getEmployees()).map((employee) => employee.id));
     const documents: DocumentMeta[] = [];
     await documentStore.iterate<unknown, void>((value: unknown) => {
-        if (value) documents.push(decodeData<DocumentMeta>(value));
+        if (!value) return;
+        const decoded = decodeData<DocumentMeta>(value);
+        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || (decoded.employeeId && activeEmployeeIds.has(decoded.employeeId))) {
+            documents.push(decoded);
+        }
     });
     return documents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function saveDocumentMeta(doc: DocumentMeta): Promise<void> {
-    await documentStore.setItem(doc.id, await encodeData(doc));
+    const activeHouseholdId = await getActiveHouseholdId();
+    const normalized = { ...doc, householdId: doc.householdId || activeHouseholdId };
+    await documentStore.setItem(normalized.id, await encodeData(normalized));
     await notifyListeners();
 }
 
@@ -569,9 +840,14 @@ export async function deleteDocumentMeta(id: string): Promise<void> {
 }
 
 export async function getContracts(): Promise<Contract[]> {
+    const activeHouseholdId = await getActiveHouseholdId();
     const contracts: Contract[] = [];
     await contractStore.iterate<unknown, void>((value: unknown) => {
-        if (value) contracts.push(decodeData<Contract>(value));
+        if (!value) return;
+        const decoded = decodeData<Contract>(value);
+        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
+            contracts.push(decoded);
+        }
     });
     return contracts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 }
@@ -582,8 +858,10 @@ export async function getContractsForEmployee(employeeId: string): Promise<Contr
 }
 
 export async function saveContract(contract: Contract): Promise<void> {
-    await contractStore.setItem(contract.id, await encodeData(contract));
-    await logAuditEvent("UPDATE_CONTRACT", `Saved contract version ${contract.version} for employee ${contract.employeeId}`, { contractId: contract.id });
+    const activeHouseholdId = await getActiveHouseholdId();
+    const normalized = { ...contract, householdId: contract.householdId || activeHouseholdId };
+    await contractStore.setItem(normalized.id, await encodeData(normalized));
+    await logAuditEvent("UPDATE_CONTRACT", `Saved contract version ${normalized.version} for employee ${normalized.employeeId}`, { contractId: normalized.id, householdId: normalized.householdId });
     await notifyListeners();
 }
 
@@ -613,3 +891,22 @@ export function getCurrentTaxYearRange(now: Date = new Date()): { start: Date; e
         label: `${startYear}/${endYear}`,
     };
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

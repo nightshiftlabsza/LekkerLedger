@@ -4,12 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Download, Loader2, Clock, AlertCircle, FileText } from "lucide-react";
-import { BottomNav } from "@/components/layout/bottom-nav";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { SideDrawer } from "@/components/layout/side-drawer";
 import { getEmployees, getPayslipsForEmployee, getSettings } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
@@ -85,10 +83,9 @@ export default function EmployeeHistoryPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
-            <header className="sticky top-0 z-30 px-4 py-3 glass-panel border-b border-[var(--border)]">
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
+            <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
                 <div className="max-w-xl mx-auto flex items-center gap-3">
-                    <SideDrawer />
                     <Link href="/employees">
                         <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl">
                             <ArrowLeft className="h-4 w-4" />
@@ -103,7 +100,7 @@ export default function EmployeeHistoryPage() {
                         )}
                     </div>
                 </div>
-            </header>
+            </div>
 
             <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-3">
                 {loading ? (
@@ -200,7 +197,7 @@ export default function EmployeeHistoryPage() {
                     </>
                 )}
             </main>
-            <BottomNav />
         </div>
     );
 }
+

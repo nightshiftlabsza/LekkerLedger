@@ -1,115 +1,168 @@
-export type PlanId = "free" | "annual" | "lifetime";
+export type PlanId = "free" | "standard" | "pro";
+export type BillingCycle = "monthly" | "yearly";
 
 export interface PlanConfig {
     id: PlanId;
     label: string;
-    isDefault?: boolean;
+    shortLabel: string;
+    badge?: string;
     currency: "ZAR";
-    billing: "free" | "annual" | "once_off";
-
-    // Annual pricing
-    annualPromoPrice?: number;
-    annualRegularPrice?: number;
-    promoRuleText?: string;
-
-    // Lifetime pricing
-    onceOffPrice?: number;
-
-    // Limits
-    maxActiveEmployees: number; // Infinity for unlimited
+    pricing: {
+        monthly?: number;
+        yearly?: number;
+    };
+    maxActiveEmployees: number;
+    maxHouseholds: number;
     archiveMonths: number;
-
-    // Features
     driveSync: boolean;
     contractGenerator: boolean;
     ufilingExport: boolean;
     leaveLoanTracker: boolean;
     roePack: boolean;
-
-    // Marketing bullets
+    multiHousehold: boolean;
+    description: string;
+    bestFor: string;
     marketingBullets: string[];
 }
+
+export interface PlanSavings {
+    yearlyEquivalent: number;
+    yearlyPrice: number;
+    amount: number;
+    percent: number;
+}
+
+export const PLAN_ORDER: PlanId[] = ["free", "standard", "pro"];
 
 export const PLANS: Record<PlanId, PlanConfig> = {
     free: {
         id: "free",
-        label: "Free Starter",
+        label: "Free",
+        shortLabel: "Free",
         currency: "ZAR",
-        billing: "free",
+        pricing: {},
         maxActiveEmployees: 1,
+        maxHouseholds: 1,
         archiveMonths: 3,
         driveSync: false,
         contractGenerator: false,
         ufilingExport: false,
         leaveLoanTracker: false,
-        roePack: true, // Free users can SEE the numbers, just not download? No, user spec says Free can copy numbers.
+        roePack: true,
+        multiHousehold: false,
+        description: "Core payslips and household payroll records for one employer and one active employee.",
+        bestFor: "One household with one employee.",
         marketingBullets: [
-            "1 active employee seat",
-            "Basic payslip flow",
-            "Return of Earnings (ROE) copy-and-paste numbers"
+            "1 active employee",
+            "1 household workspace",
+            "3-month archive",
+            "Core payslip flow",
+            "ROE copy-ready numbers"
         ]
     },
-    annual: {
-        id: "annual",
-        label: "Annual Support",
-        isDefault: true,
+    standard: {
+        id: "standard",
+        label: "Standard",
+        shortLabel: "Standard",
+        badge: "Popular",
         currency: "ZAR",
-        billing: "annual",
-        annualPromoPrice: 99,
-        annualRegularPrice: 149,
-        promoRuleText: "Launch promo: R99/year for first 200",
+        pricing: {
+            monthly: 29,
+            yearly: 199,
+        },
         maxActiveEmployees: 3,
+        maxHouseholds: 1,
         archiveMonths: 12,
         driveSync: true,
         contractGenerator: true,
         ufilingExport: true,
         leaveLoanTracker: false,
         roePack: true,
+        multiHousehold: false,
+        description: "For households managing a small team and wanting proper backups, exports, and annual paperwork.",
+        bestFor: "One household with up to 3 active employees.",
         marketingBullets: [
-            "Up to 3 active employee seats",
-            "12-month archive window",
-            "Google Drive sync",
-            "Contract generator",
-            "uFiling-ready export",
-            "Annual Compensation Fund Return of Earnings (ROE) pack"
+            "Up to 3 active employees",
+            "1 household workspace",
+            "12-month archive",
+            "Google Drive backup",
+            "Contracts and uFiling export",
+            "Annual COIDA ROE pack"
         ]
     },
-    lifetime: {
-        id: "lifetime",
-        label: "Pro Lifetime",
+    pro: {
+        id: "pro",
+        label: "Pro",
+        shortLabel: "Pro",
+        badge: "Best value",
         currency: "ZAR",
-        billing: "once_off",
-        onceOffPrice: 299,
-        maxActiveEmployees: Infinity,
+        pricing: {
+            monthly: 39,
+            yearly: 299,
+        },
+        maxActiveEmployees: Number.POSITIVE_INFINITY,
+        maxHouseholds: Number.POSITIVE_INFINITY,
         archiveMonths: 60,
         driveSync: true,
         contractGenerator: true,
         ufilingExport: true,
         leaveLoanTracker: true,
         roePack: true,
+        multiHousehold: true,
+        description: "For bookkeepers, families, and employers running multiple households with unlimited staff records.",
+        bestFor: "Multiple households and unlimited employees.",
         marketingBullets: [
             "Unlimited employees",
+            "Multi-household workspace",
             "5-year archive",
-            "Continuous sync",
-            "Leave + loan tracker",
-            "Annual Compensation Fund Return of Earnings (ROE) pack"
+            "Google Drive backup",
+            "Leave and loan tracking",
+            "Contracts, uFiling export, and ROE pack"
         ]
-    }
+    },
 } as const;
 
-export const NEXT_PUBLIC_ANNUAL_PRICE_MODE = process.env.NEXT_PUBLIC_ANNUAL_PRICE_MODE === "regular" ? "regular" : "promo";
-
-export function getAnnualPrice(): number {
-    return NEXT_PUBLIC_ANNUAL_PRICE_MODE === "promo"
-        ? (PLANS.annual.annualPromoPrice ?? 149)
-        : (PLANS.annual.annualRegularPrice ?? 149);
+export function getPlanPrice(plan: PlanId | PlanConfig, cycle: BillingCycle): number | null {
+    const resolvedPlan = typeof plan === "string" ? PLANS[plan] : plan;
+    return resolvedPlan.pricing[cycle] ?? null;
 }
 
-export function annualPriceLabel(): string {
-    return NEXT_PUBLIC_ANNUAL_PRICE_MODE === "promo"
-        ? `R99/year (Launch promo for first 200)`
-        : `R149/year`;
+export function getPlanDisplayPrice(plan: PlanId | PlanConfig, cycle: BillingCycle): string {
+    const price = getPlanPrice(plan, cycle);
+    if (price === null) return "Free";
+    return `R${price}`;
 }
 
-// Keep the old refund policy summary here if it's used elsewhere, or just export it
-export const REFUND_POLICY_SUMMARY = `If you request a refund within 14 days of purchase, we’ll refund you in full. How to request: Use the in-app Support link or email support@lekkerledger.co.za with your purchase email + date.`;
+export function getPlanSavings(plan: PlanId | PlanConfig): PlanSavings | null {
+    const resolvedPlan = typeof plan === "string" ? PLANS[plan] : plan;
+    if (!resolvedPlan.pricing.monthly || !resolvedPlan.pricing.yearly) return null;
+
+    const yearlyEquivalent = resolvedPlan.pricing.monthly * 12;
+    const yearlyPrice = resolvedPlan.pricing.yearly;
+    const amount = yearlyEquivalent - yearlyPrice;
+
+    if (amount <= 0) return null;
+
+    return {
+        yearlyEquivalent,
+        yearlyPrice,
+        amount,
+        percent: Math.round((amount / yearlyEquivalent) * 100),
+    };
+}
+
+export function getPlanPeriodLabel(plan: PlanId | PlanConfig, cycle: BillingCycle): string {
+    const resolvedPlan = typeof plan === "string" ? PLANS[plan] : plan;
+    if (!resolvedPlan.pricing[cycle]) return "forever";
+    return cycle === "monthly" ? "/month" : "/year";
+}
+
+export function getPlanSavingsLabel(plan: PlanId | PlanConfig): string {
+    const savings = getPlanSavings(plan);
+    if (!savings) return "";
+    return `Save ${savings.percent}% yearly`;
+}
+
+export const REFUND_POLICY_SUMMARY = `If you request a refund within 14 days of purchase, we'll refund you in full. Use the in-app Support link or email support@lekkerledger.co.za with your purchase email and date.`;
+
+

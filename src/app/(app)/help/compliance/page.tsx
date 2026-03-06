@@ -157,7 +157,7 @@ export default function CompliancePage() {
             <Alert variant="warning">
                 <AlertTitle>Not legal advice</AlertTitle>
                 <AlertDescription>
-                    {complianceGuide.disclaimer}
+                    {complianceGuide.disclaimer} The goal here is to help you stay organised early, because routine payroll clean-up is usually much harder than keeping records tidy month by month.
                 </AlertDescription>
             </Alert>
 
@@ -462,5 +462,6 @@ export default function CompliancePage() {
         </div>
     );
 }
+
 
 
