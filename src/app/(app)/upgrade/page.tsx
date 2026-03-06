@@ -210,7 +210,7 @@ export default function UpgradePage() {
                                 <h3 className="type-h3" style={{ color: "var(--text)" }}>Refunds and trust</h3>
                             </div>
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                If you request a refund within 14 days of purchase, we'll refund you in full. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
+                                If you request a refund within 14 days of purchase, we&apos;ll refund you in full. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
                             </p>
                             <Link href="/legal/refunds" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)]">
                                 View refund policy <ArrowRight className="h-4 w-4" />

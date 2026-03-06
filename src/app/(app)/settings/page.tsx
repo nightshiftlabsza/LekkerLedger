@@ -18,7 +18,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
 import { getSettings, saveSettings, resetAllData, exportData, importData, getEmployees } from "@/lib/storage";
 import { EmployerSettings, Employee } from "@/lib/schema";
-import { useToast } from "@/components/ui/toast";
 import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
 import { PLAN_ORDER, PLANS, getPlanDisplayPrice, getPlanPeriodLabel, getPlanSavingsLabel } from "@/src/config/plans";
@@ -28,7 +27,6 @@ type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 
 function SettingsContent() {
     const searchParams = useSearchParams();
-    const { toast } = useToast();
     const [activeTab, setActiveTab] = React.useState<SettingsTab>("general");
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [, setEmployees] = React.useState<Employee[]>([]);

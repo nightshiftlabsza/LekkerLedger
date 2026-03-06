@@ -237,7 +237,7 @@ export default function PricingPage() {
                                         Free stays free. Standard and Pro are available as monthly or yearly plans, and the yearly option lowers the effective monthly cost.
                                     </p>
                                     <p>
-                                        If you request a refund within 14 days of purchase, we'll refund you in full. That keeps the decision low-risk without cluttering the page with hard-sell language.
+                                        If you request a refund within 14 days of purchase, we&apos;ll refund you in full. That keeps the decision low-risk without cluttering the page with hard-sell language.
                                     </p>
                                     <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
                                         View the refund policy <ChevronRight className="h-4 w-4" />
