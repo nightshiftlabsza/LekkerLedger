@@ -7,15 +7,18 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Home page", () => {
-    it("renders the calmer homepage flow", async () => {
+    it("renders the rebuilt homepage flow", async () => {
         await act(async () => {
             render(<Page />);
         });
-        expect(screen.getByRole("heading", { name: /one calm place to run household payroll/i })).toBeTruthy();
+        expect(screen.getByRole("heading", { name: /run household payroll clearly, keep payslips on record/i })).toBeTruthy();
         expect(screen.getAllByRole("link", { name: /start free/i }).length).toBeGreaterThan(0);
-        expect(screen.getByRole("heading", { name: /a shorter path from monthly payroll to annual paperwork/i })).toBeTruthy();
-        expect(screen.getByRole("heading", { name: /enough pricing to choose a direction/i })).toBeTruthy();
-        expect(screen.getByRole("heading", { name: /short answers to the main signup questions/i })).toBeTruthy();
+        expect(screen.getByText(/sample payslip/i)).toBeTruthy();
+        expect(screen.queryByText(/live preview/i)).toBeNull();
+        expect(screen.queryByText(/the homepage now shows the flow once/i)).toBeNull();
+        expect(screen.getByRole("heading", { name: /keep the month clear, then keep the records ready/i })).toBeTruthy();
+        expect(screen.getByRole("heading", { name: /a quick pricing preview, not the full comparison/i })).toBeTruthy();
+        expect(screen.getByRole("heading", { name: /short answers to common signup hesitations/i })).toBeTruthy();
     });
 });
 

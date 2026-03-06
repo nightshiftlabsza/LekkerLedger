@@ -10,7 +10,6 @@ const NAV_LINKS = [
     { href: "/#how-it-works", label: "How it works" },
     { href: "/pricing", label: "Pricing" },
     { href: "/trust", label: "Trust" },
-    { href: "/rules", label: "Compliance guide" },
     { href: "/#faq", label: "FAQ" },
 ] as const;
 
@@ -33,7 +32,7 @@ export function MarketingHeader() {
     }, [menuOpen]);
 
     return (
-        <header className="sticky top-0 z-30 glass-panel shadow-[var(--shadow-1)]" style={{ borderBottom: "1px solid var(--border)" }}>
+        <header className="sticky top-0 z-30 bg-[var(--bg)] shadow-[var(--shadow-1)]" style={{ borderBottom: "1px solid var(--border)" }}>
             <div className="content-container-wide flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
                 <Link href="/" className="rounded-lg py-1">
                     <Logo />
@@ -73,7 +72,7 @@ export function MarketingHeader() {
 
             {menuOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
-                    <div className="absolute inset-0 bg-black/35 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
+                    <div className="absolute inset-0 bg-black/30" onClick={() => setMenuOpen(false)} />
                     <div className="absolute inset-x-0 top-0 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-2)]">
                         <div className="flex items-center justify-between px-4 py-4 sm:px-6">
                             <Link href="/" onClick={() => setMenuOpen(false)} className="rounded-lg py-1">
