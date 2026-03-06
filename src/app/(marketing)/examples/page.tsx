@@ -279,7 +279,7 @@ export default function ExamplesPage() {
                             <div>
                                 <h3 className="text-xl font-bold font-serif">Need deeper control?</h3>
                                 <p className="text-sm text-[var(--text-muted)] mt-2 leading-relaxed">
-                                    Pro adds deeper archive history, leave and loan tracking, and more control over long-running records. It also supports unlimited employees and multi-household workflows if your setup grows beyond one home.
+                                    Pro adds deeper archive history, multiple households, and more control over long-running records. It also supports unlimited employees when your setup grows beyond one home.
                                 </p>
                             </div>
                             <Link href="/onboarding" className="block">
@@ -311,5 +311,6 @@ export default function ExamplesPage() {
         </div>
     );
 }
+
 
 

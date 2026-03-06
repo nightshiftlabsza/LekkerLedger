@@ -446,7 +446,7 @@ function WhyPeoplePay() {
                         </p>
                         <div className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-raised)] p-4">
                             <p className="text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                                Upgrade because the records matter, not because a free watermark forces you.
+                                Upgrade when the records matter, not because the app gets in your way.
                             </p>
                         </div>
                     </div>
@@ -667,6 +667,8 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         </button>
     );
 }
+
+
 
 
 
