@@ -9,5 +9,5 @@ test('sample payslip preview is accessible', async ({ request }) => {
 
 test('pricing page loads', async ({ page }) => {
     await page.goto('/pricing');
-    await expect(page.locator('h1')).toContainText('Simple, transparent pricing');
+    await expect(page.locator('h1')).toContainText('Payslips, paperwork, and household payroll records in one place.');
 });

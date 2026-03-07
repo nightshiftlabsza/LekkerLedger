@@ -102,8 +102,10 @@ function WizardContent() {
     const leaveTrackingEnabled = settings ? canUseLeaveTracking(getUserPlan(settings)) : false;
 
     React.useEffect(() => {
+        let active = true;
         async function load() {
             const [employees, s] = await Promise.all([getEmployees(), getSettings()]);
+            if (!active) return;
             const emp = employees.find((e) => e.id === empId);
             if (emp) {
                 setEmployee(emp);
@@ -114,6 +116,9 @@ function WizardContent() {
             setLoadingInitial(false);
         }
         load();
+        return () => {
+            active = false;
+        };
     }, [empId, router]);
 
     const totalHours =

@@ -31,6 +31,7 @@ export function UFilingClient() {
 
     React.useEffect(() => {
         setIsClient(true);
+        let active = true;
         async function load() {
             try {
                 const [emps, pss, s, periods] = await Promise.all([
@@ -39,6 +40,7 @@ export function UFilingClient() {
                     getSettings(),
                     getPayPeriods()
                 ]);
+                if (!active) return;
                 setEmployees(emps);
                 setPayslips(pss);
                 setSettings(s);
@@ -48,10 +50,15 @@ export function UFilingClient() {
             } catch (err) {
                 console.error("Failed to load uFiling data:", err);
             } finally {
-                setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         }
         load();
+        return () => {
+            active = false;
+        };
     }, []);
 
     React.useEffect(() => {

@@ -139,30 +139,30 @@ export default function ExamplesPage() {
                     </p>
                 </header>
 
-                <div className="grid lg:grid-cols-12 gap-12 items-start">
-                    <div className="lg:col-span-8">
-                        <div className="bg-white rounded-sm shadow-2xl border border-[var(--border)] aspect-[1/1.414] w-full p-8 sm:p-12 relative overflow-hidden transition-all duration-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.12)]">
+                <div className="grid gap-8 lg:grid-cols-12 lg:gap-12 items-start">
+                    <div className="min-w-0 lg:col-span-8">
+                        <div className="bg-white rounded-sm shadow-2xl border border-[var(--border)] aspect-[1/1.414] w-full min-w-0 p-4 sm:p-8 lg:p-12 relative overflow-hidden transition-all duration-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.12)]">
                             <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[var(--bg)]" />
 
-                            <div className="flex justify-between items-start mb-12 border-b-2 border-[var(--primary)] pb-6 relative z-10">
+                            <div className="relative z-10 mb-8 flex flex-col gap-4 border-b-2 border-[var(--primary)] pb-5 sm:mb-12 sm:flex-row sm:items-start sm:justify-between sm:pb-6">
                                 <div>
                                     <Logo
                                         showText={true}
                                         className="mb-2 gap-2.5"
-                                        iconClassName="h-11 w-11"
-                                        textClassName="text-[1.65rem]"
+                                        iconClassName="h-9 w-9 sm:h-11 sm:w-11"
+                                        textClassName="text-[1.35rem] sm:text-[1.65rem]"
                                     />
                                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] ml-1">
                                         Example only - household payroll record
                                     </p>
                                 </div>
-                                <div className="text-right">
-                                    <h2 className="font-serif text-3xl font-black text-[var(--primary)] tracking-tight">PAYSLIP</h2>
-                                    <p className="text-lg font-bold text-[var(--text)] mt-1">{date.toUpperCase()}</p>
+                                <div className="text-left sm:text-right">
+                                    <h2 className="font-serif text-2xl font-black text-[var(--primary)] tracking-tight sm:text-3xl">PAYSLIP</h2>
+                                    <p className="mt-1 text-base font-bold text-[var(--text)] sm:text-lg">{date.toUpperCase()}</p>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-6 mb-12 relative z-10">
+                            <div className="relative z-10 mb-8 grid gap-4 sm:mb-12 sm:grid-cols-3 sm:gap-6">
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)]/30">
                                     <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider mb-2">Employer</p>
                                     <p className="font-bold text-sm text-[var(--text)]">Lerato Mokoena</p>
@@ -173,14 +173,15 @@ export default function ExamplesPage() {
                                     <p className="font-bold text-sm text-[var(--text)]">Nomsa Dlamini</p>
                                     <p className="text-[11px] text-[var(--text-muted)] leading-tight mt-1">ID: 800101 0234 081 • Helper</p>
                                 </div>
-                                <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)]/30 text-right">
+                                <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)]/30 text-left sm:text-right">
                                     <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider mb-2">Pay Period</p>
                                     <p className="font-bold text-sm text-[var(--text)]">{periodStart} — {periodEnd}</p>
                                     <p className="text-[11px] text-[var(--text-muted)] mt-1">Days Worked: 22</p>
                                 </div>
                             </div>
 
-                            <table className="w-full text-sm mb-12 relative z-10">
+                            <div className="relative z-10 mb-8 overflow-x-auto sm:mb-12">
+                                <table className="w-full min-w-0 text-sm">
                                 <thead>
                                     <tr className="border-b-2 border-[var(--border)] pb-2 text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest text-left">
                                         <th className="pb-3 px-1">Description</th>
@@ -208,13 +209,14 @@ export default function ExamplesPage() {
                                         <td className="py-4 text-right px-1 font-black text-lg border-t-2 border-[var(--text)]">R {grossPay.toFixed(2)}</td>
                                     </tr>
                                 </tbody>
-                            </table>
+                                </table>
+                            </div>
 
-                            <div className="space-y-3 mb-12 relative z-10 w-full max-w-sm ml-auto">
-                                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.25em] text-right mb-4">Deductions</p>
+                            <div className="relative z-10 mb-8 ml-auto w-full max-w-full space-y-3 sm:mb-12 sm:max-w-sm">
+                                <p className="mb-4 text-[10px] font-black uppercase tracking-[0.25em] text-left text-[var(--text-muted)] sm:text-right">Deductions</p>
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-[var(--text-muted)] font-medium">Unemployment Insurance Fund (UIF) contribution (1% individual)</span>
-                                    <span className="font-bold text-[var(--danger)]">- R {uifDeduction.toFixed(2)}</span>
+                                    <span className="pr-3 text-[var(--text-muted)] font-medium">Unemployment Insurance Fund (UIF) contribution (1% individual)</span>
+                                    <span className="shrink-0 font-bold text-[var(--danger)]">- R {uifDeduction.toFixed(2)}</span>
                                 </div>
                                 <div className="pt-3 border-t border-[var(--border)] flex justify-between items-center">
                                     <span className="text-xs font-black text-[var(--text-muted)] uppercase italic">Total Deductions</span>
@@ -222,17 +224,17 @@ export default function ExamplesPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-[var(--primary)] p-6 rounded-xl flex justify-between items-center text-white shadow-md relative z-10 opacity-90">
+                            <div className="relative z-10 flex flex-col gap-3 rounded-xl bg-[var(--primary)] p-5 text-white shadow-md opacity-90 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                                 <div>
                                     <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80 mb-1">Net Payable</p>
                                     <p className="font-serif text-xl font-bold">Transfer Amount</p>
                                 </div>
-                                <div className="text-right">
+                                <div className="text-left sm:text-right">
                                     <p className="font-serif text-3xl sm:text-4xl font-black tracking-tighter">R {netPay.toFixed(2)}</p>
                                 </div>
                             </div>
 
-                            <div className="mt-16 pt-8 border-t border-[var(--border)] grid grid-cols-2 items-end relative z-10">
+                            <div className="relative z-10 mt-12 grid items-end gap-6 border-t border-[var(--border)] pt-6 sm:mt-16 sm:grid-cols-2 sm:pt-8">
                                 <div className="space-y-3">
                                     <p className="text-[9px] text-[var(--text-muted)] leading-relaxed max-w-[260px]">
                                         Sample layout generated via LekkerLedger for illustration only.
@@ -242,7 +244,7 @@ export default function ExamplesPage() {
                                         Review before use and verify against official government sources.
                                     </p>
                                 </div>
-                                <div className="text-right space-y-2">
+                                <div className="space-y-2 text-left sm:text-right">
                                     <div className="inline-block border-2 border-dashed border-[var(--primary)]/40 p-2 px-3 rounded-full mb-2">
                                         <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">Sample document</span>
                                     </div>
@@ -252,7 +254,7 @@ export default function ExamplesPage() {
                         </div>
                     </div>
 
-                    <div className="lg:col-span-4 space-y-8">
+                    <div className="min-w-0 space-y-8 lg:col-span-4">
                         <section className="glass-panel p-8 rounded-2xl border-2 border-[var(--border)] space-y-6">
                             <h3 className="text-xl font-bold font-serif">Key record fields</h3>
                             <ul className="space-y-4">

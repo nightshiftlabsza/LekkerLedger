@@ -29,7 +29,7 @@ function CitationLinks({ footnotes }: { footnotes?: number[] }) {
                 <a
                     key={id}
                     href={`#footnote-${id}`}
-                    className="rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-muted)] hover:text-[var(--text)]"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text)]"
                 >
                     [{id}]
                 </a>
@@ -82,11 +82,11 @@ function CopyHeading({
     const className = level === "h2" ? "type-h2" : "type-h3";
 
     return (
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <Tag id={id} className={`${className} scroll-mt-20 text-[var(--text)]`}>
                 {title}
             </Tag>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                 {actions}
                 <Button
                     type="button"
@@ -94,7 +94,7 @@ function CopyHeading({
                     size="icon"
                     aria-label={`Copy link to ${title}`}
                     onClick={() => onCopy(id)}
-                    className="h-9 w-9 rounded-xl"
+                    className="h-11 w-11 rounded-2xl"
                 >
                     {copiedId === id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>
@@ -106,7 +106,7 @@ function CopyHeading({
 function BackToTop() {
     return (
         <div className="pt-2">
-            <a href="#top" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
+            <a href="#top" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-2 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
                 <ArrowUp className="h-4 w-4" />
                 Back to top
             </a>
@@ -148,6 +148,15 @@ function ExpandableSection({
 
 export default function CompliancePage() {
     const [copiedId, setCopiedId] = React.useState<string | null>(null);
+    const copyTimerRef = React.useRef<number | null>(null);
+
+    React.useEffect(() => {
+        return () => {
+            if (copyTimerRef.current) {
+                window.clearTimeout(copyTimerRef.current);
+            }
+        };
+    }, []);
 
     const handleCopy = React.useCallback(async (id: string) => {
         const url = typeof window === "undefined"
@@ -163,7 +172,13 @@ export default function CompliancePage() {
         }
 
         setCopiedId(id);
-        window.setTimeout(() => setCopiedId((current) => (current === id ? null : current)), 1800);
+        if (copyTimerRef.current) {
+            window.clearTimeout(copyTimerRef.current);
+        }
+        copyTimerRef.current = window.setTimeout(() => {
+            setCopiedId((current) => (current === id ? null : current));
+            copyTimerRef.current = null;
+        }, 1800);
     }, []);
 
     return (
@@ -173,7 +188,7 @@ export default function CompliancePage() {
                 subtitle={complianceGuide.subtitle}
                 actions={
                     <Link href="/compliance/coida/roe">
-                        <Button variant="outline" className="gap-2">
+                        <Button variant="outline" className="min-h-11 gap-2">
                             <FileText className="h-4 w-4" />
                             Open ROE wizard
                         </Button>
@@ -208,7 +223,7 @@ export default function CompliancePage() {
                                 <CardContent className="space-y-3 p-5">
                                     <div className="flex items-center justify-between gap-3">
                                         <Badge variant="outline">{step.screenLabel}</Badge>
-                                        <Link href={step.screenHref} className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
+                                        <Link href={step.screenHref} className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
                                             Open
                                         </Link>
                                     </div>
@@ -237,13 +252,13 @@ export default function CompliancePage() {
                                     <CardContent className="space-y-4 p-5">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <Badge variant="outline">{step.screenLabel}</Badge>
-                                            <Link href={step.screenHref} className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
+                                            <Link href={step.screenHref} className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
                                                 Open screen
                                             </Link>
                                         </div>
                                         <div className="space-y-2">
                                             <h3 className="type-h4 text-[var(--text)]">{step.title}</h3>
-                                            <a href={`#${step.seeAlsoId}`} className="text-sm text-[var(--text-muted)] underline-offset-4 hover:underline">
+                                            <a href={`#${step.seeAlsoId}`} className="inline-flex min-h-11 items-center rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 text-sm text-[var(--text-muted)] underline-offset-4 hover:underline">
                                                 See full guide section
                                             </a>
                                         </div>
@@ -278,7 +293,7 @@ export default function CompliancePage() {
                                             copiedId={copiedId}
                                             onCopy={handleCopy}
                                             actions={section.screenHref ? (
-                                                <Link href={section.screenHref} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
+                                                <Link href={section.screenHref} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
                                                     {section.screenLabel ?? "Open screen"}
                                                     <ExternalLink className="h-4 w-4" />
                                                 </Link>
@@ -306,7 +321,7 @@ export default function CompliancePage() {
                                                             <h4 className="type-h4 text-[var(--text)]">{section.wizardSteps.title}</h4>
                                                         </div>
                                                         <Link href="/compliance/coida/roe">
-                                                            <Button variant="outline" className="gap-2">
+                                                            <Button variant="outline" className="min-h-11 gap-2">
                                                                 <FileText className="h-4 w-4" />
                                                                 Go to /compliance/coida/roe
                                                             </Button>
@@ -348,7 +363,7 @@ export default function CompliancePage() {
                                                 <h3 className="type-h4 text-[var(--text)]">{callout.title}</h3>
                                             </div>
                                             {callout.screenHref && (
-                                                <Link href={callout.screenHref} className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
+                                                <Link href={callout.screenHref} className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)]">
                                                     Open
                                                 </Link>
                                             )}

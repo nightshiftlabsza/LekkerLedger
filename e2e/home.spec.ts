@@ -41,12 +41,9 @@ test("home page has marketing header (no app nav)", async ({ page }) => {
 test("home page has all major sections", async ({ page }) => {
     await page.goto("/");
     // Key section headings
-    await expect(page.getByText("Private by design")).toBeVisible();
-    await expect(page.getByText(/Compliant paperwork shouldn't cost a fortune/i)).toBeVisible();
-    await expect(page.getByText(/Guardrails that help you/i)).toBeVisible();
-    await expect(page.getByText(/Everything you need for/i)).toBeVisible();
-    await expect(page.getByText(/Your employee data isn't stored/i)).toBeVisible();
-    await expect(page.getByText(/Start free/i)).toBeVisible();
-    await expect(page.getByText(/Frequently asked questions/i)).toBeVisible();
+    await expect(page.getByText(/Keep the month clear, then keep the records ready/i)).toBeVisible();
+    await expect(page.getByText(/Standard is where proper records start/i)).toBeVisible();
+    await expect(page.getByText(/Payslips and paperwork for domestic workers, made simple/i)).toBeVisible();
+    await expect(page.getByText(/Short answers to common signup hesitations/i)).toBeVisible();
 });
 

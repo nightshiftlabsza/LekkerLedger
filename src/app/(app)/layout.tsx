@@ -47,18 +47,22 @@ export default function AppRootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
-                <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              window.gtag = gtag;
-              gtag('js', new Date());
-              gtag('config', '${gaId}', { debug_mode: ${gaDebug}, send_page_view: true });
-            `,
-                    }}
-                />
+                {gaId && (
+                    <>
+                        <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+                        <script
+                            dangerouslySetInnerHTML={{
+                                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  window.gtag = gtag;
+                  gtag('js', new Date());
+                  gtag('config', '${gaId}', { debug_mode: ${gaDebug}, send_page_view: true });
+                `,
+                            }}
+                        />
+                    </>
+                )}
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 {/* Inline script — applies correct theme before first paint to avoid flash */}

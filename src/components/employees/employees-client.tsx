@@ -21,17 +21,24 @@ export function EmployeesClient() {
 
     React.useEffect(() => {
         setIsClient(true);
+        let active = true;
         async function load() {
             try {
                 const data = await getEmployees();
+                if (!active) return;
                 setEmployees(data);
             } catch (err) {
                 console.error("Failed to load employees:", err);
             } finally {
-                setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         }
         load();
+        return () => {
+            active = false;
+        };
     }, []);
 
     const filteredEmployees = employees.filter(emp =>

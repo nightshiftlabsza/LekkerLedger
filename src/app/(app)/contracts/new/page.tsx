@@ -73,8 +73,10 @@ export default function NewContractPage() {
     });
 
     React.useEffect(() => {
+        let active = true;
         async function load() {
             const [employeeRows, employerSettings] = await Promise.all([getEmployees(), getSettings()]);
+            if (!active) return;
             setEmployees(employeeRows);
             setSettings(employerSettings);
 
@@ -94,6 +96,9 @@ export default function NewContractPage() {
             setLoading(false);
         }
         load();
+        return () => {
+            active = false;
+        };
     }, [employeeIdParam]);
 
     const selectedEmployee = employees.find((employee) => employee.id === formData.employeeId);

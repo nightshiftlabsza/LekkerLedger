@@ -40,12 +40,17 @@ export default function OnboardingPage() {
     });
 
     React.useEffect(() => {
+        let active = true;
         async function load() {
             const s = await getSettings();
+            if (!active) return;
             setForm(s);
             setLoading(false);
         }
         load();
+        return () => {
+            active = false;
+        };
     }, []);
 
     const handleSave = async (e: React.FormEvent) => {

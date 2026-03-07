@@ -25,7 +25,27 @@ function getStoredToken(): string | null {
     return getStoredGoogleAccessToken();
 }
 
-export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
+function GoogleSyncUnavailable() {
+    return (
+        <Card className="border-[var(--border)] bg-[var(--surface-2)]/60">
+            <CardContent className="p-5 sm:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                    <div className="rounded-2xl bg-[var(--primary)]/10 p-3 text-[var(--focus)]">
+                        <Cloud className="h-6 w-6" />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-2">
+                        <h3 className="text-base font-bold text-[var(--text)]">Google backup is unavailable in this local build</h3>
+                        <p className="text-sm leading-relaxed text-[var(--text-muted)]">
+                            Local payroll storage still works. Add <code>NEXT_PUBLIC_GOOGLE_CLIENT_ID</code> to enable Google sign-in and private Drive backup testing.
+                        </p>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
     const [token, setToken] = useState<string | null>(() => getStoredToken());
     const [email, setEmail] = useState<string | null>(() => getStoredGoogleEmail());
     const [hasDriveScope, setHasDriveScope] = useState<boolean>(() => hasStoredGoogleDriveScope());
@@ -36,6 +56,9 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
         if (typeof window !== "undefined") return localStorage.getItem("ll_last_sync");
         return null;
     });
+    const isMountedRef = useState(() => ({ current: true }))[0];
+    const statusTimerRef = useState(() => ({ current: null as number | null }))[0];
+    const reloadTimerRef = useState(() => ({ current: null as number | null }))[0];
     const [syncLogs, setSyncLogs] = useState<SyncEvent[]>(() => {
         if (typeof window !== "undefined") {
             try {
@@ -49,6 +72,7 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
     });
 
     const addLog = (event: Omit<SyncEvent, "id" | "timestamp">) => {
+        if (!isMountedRef.current) return;
         const newLog: SyncEvent = {
             id: Math.random().toString(36).slice(2),
             timestamp: new Date().toISOString(),
@@ -66,9 +90,17 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
     };
 
     const setTransientStatus = (nextStatus: "success" | "error", message: string, timeout = 4000) => {
+        if (!isMountedRef.current) return;
+        if (statusTimerRef.current) {
+            window.clearTimeout(statusTimerRef.current);
+        }
         setStatus(nextStatus);
         setStatusMessage(message);
-        window.setTimeout(() => setStatus("idle"), timeout);
+        statusTimerRef.current = window.setTimeout(() => {
+            if (!isMountedRef.current) return;
+            setStatus("idle");
+            statusTimerRef.current = null;
+        }, timeout);
     };
 
     const fetchUserInfo = useCallback(async (accessToken: string): Promise<string | null> => {
@@ -79,6 +111,7 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
             if (!response.ok) return null;
             const data = await response.json();
             if (!data.email) return null;
+            if (!isMountedRef.current) return data.email;
             setEmail(data.email);
             storeGoogleIdentity({ email: data.email, sub: data.sub });
             return data.email;
@@ -95,12 +128,14 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
 
     const clearAuth = useCallback(async () => {
         googleLogout();
+        if (!isMountedRef.current) return;
         setToken(null);
         setEmail(null);
         setHasDriveScope(false);
         clearStoredGoogleSession();
         const settings = await getSettings();
         await saveSettings({ ...settings, googleSyncEnabled: false });
+        if (!isMountedRef.current) return;
         setPendingAction(null);
         setStatus("idle");
         setStatusMessage("");
@@ -119,7 +154,7 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
         if (success) {
             addLog({ success: true, action: "backup", details: "Uploaded lekkerledger_data.json" });
             if (!silent) setTransientStatus("success", "Backup saved to your Google Drive app data.");
-        } else if (!silent) {
+        } else if (!silent && isMountedRef.current) {
             addLog({ success: false, action: "backup", details: "Network or permission error during upload" });
             setTransientStatus("error", "Backup failed. Check your Google connection or Drive permission and try again.", 5000);
         }
@@ -137,12 +172,19 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
         const success = await syncDataFromDrive(currentToken);
         if (success) {
             addLog({ success: true, action: "restore", details: "Downloaded remote data snapshot" });
-            if (!silent) {
+            if (!silent && isMountedRef.current) {
                 setStatus("success");
                 setStatusMessage("Successfully restored data from your Google backup.");
-                window.setTimeout(() => window.location.reload(), 1500);
+                if (reloadTimerRef.current) {
+                    window.clearTimeout(reloadTimerRef.current);
+                }
+                reloadTimerRef.current = window.setTimeout(() => {
+                    if (isMountedRef.current) {
+                        window.location.reload();
+                    }
+                }, 1500);
             }
-        } else if (!silent) {
+        } else if (!silent && isMountedRef.current) {
             addLog({ success: false, action: "restore", details: "Failed to download snapshot" });
             setTransientStatus("error", "Restore failed or no Google backup was found.", 5000);
         }
@@ -158,10 +200,11 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
         const success = await deleteDataFromDrive(currentToken);
         if (success) {
             addLog({ success: true, action: "delete", details: "Deleted lekkerledger_data.json from AppData folder" });
+            if (!isMountedRef.current) return;
             setLastSyncTime(null);
             localStorage.removeItem("ll_last_sync");
             setTransientStatus("success", "Google backup deleted successfully.");
-        } else {
+        } else if (isMountedRef.current) {
             addLog({ success: false, action: "delete", details: "Failed to delete backup from Drive" });
             setTransientStatus("error", "Failed to delete the Google backup. Please try again.", 5000);
         }
@@ -176,6 +219,7 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
                 setTransientStatus("error", "Sign-in failed. We could not verify your Google profile.", 5000);
                 return;
             }
+            if (!isMountedRef.current) return;
             persistAuth(accessToken);
             setTransientStatus("success", "Google account connected.");
         },
@@ -191,11 +235,13 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
                 setTransientStatus("error", "Google Drive access was granted, but the Google account could not be verified.", 5000);
                 return;
             }
+            if (!isMountedRef.current) return;
             persistAuth(accessToken);
             setHasDriveScope(true);
             setStoredGoogleDriveScope(true);
             const settings = await getSettings();
             await saveSettings({ ...settings, googleSyncEnabled: true });
+            if (!isMountedRef.current) return;
             await runRestore(true);
             setTransientStatus("success", "Private Google Drive backup enabled.");
         },
@@ -206,29 +252,39 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
     });
 
     useEffect(() => {
+        isMountedRef.current = true;
         const unsubscribe = subscribeToDataChanges(() => {
             const currentToken = getStoredToken();
             if (currentToken && driveSyncAllowed && hasDriveScope) {
                 void handleBackup(true);
             }
         });
-        return () => unsubscribe();
+        return () => {
+            isMountedRef.current = false;
+            if (statusTimerRef.current) {
+                window.clearTimeout(statusTimerRef.current);
+            }
+            if (reloadTimerRef.current) {
+                window.clearTimeout(reloadTimerRef.current);
+            }
+            unsubscribe();
+        };
     }, [driveSyncAllowed, handleBackup, hasDriveScope]);
 
     if (!driveSyncAllowed) {
         return (
             <Card className="border-[var(--border)] bg-[var(--surface-2)]/50">
                 <CardContent className="p-6 space-y-4">
-                    <div className="flex items-start gap-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                         <div className="p-3 bg-[var(--primary)]/10 rounded-xl text-[var(--focus)]">
                             <Cloud className="h-6 w-6" />
                         </div>
-                        <div className="space-y-1 flex-1">
-                            <h3 className="font-bold text-lg text-amber-950">Unlock Google-connected access</h3>
+                        <div className="min-w-0 flex-1 space-y-1">
+                            <h3 className="font-bold text-lg text-amber-950 break-words">Unlock Google-connected access</h3>
                             <p className="text-sm text-[var(--text)]/70 leading-relaxed">
                                 LekkerLedger is local-first. Upgrade to connect Google and keep a private backup in your own Google account so your records can travel with you across devices and browsers.
                             </p>
-                            <Button className="mt-4 bg-[var(--primary)] hover:brightness-95 text-white font-bold" onClick={() => window.location.href = "/upgrade"}>
+                            <Button className="mt-4 h-11 w-full sm:w-auto bg-[var(--primary)] hover:brightness-95 text-white font-bold" onClick={() => window.location.href = "/upgrade"}>
                                 Upgrade for Google-connected access <ArrowRight className="h-4 w-4 ml-2" />
                             </Button>
                         </div>
@@ -421,4 +477,14 @@ export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
             )}
         </div>
     );
+}
+
+export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
+    const googleAuthConfigured = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+
+    if (!googleAuthConfigured) {
+        return <GoogleSyncUnavailable />;
+    }
+
+    return <GoogleSyncContent driveSyncAllowed={driveSyncAllowed} />;
 }

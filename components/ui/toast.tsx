@@ -19,13 +19,28 @@ const ToastContext = React.createContext<ToastContextType | undefined>(undefined
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
     const [toasts, setToasts] = React.useState<Toast[]>([]);
+    const mountedRef = React.useRef(true);
+    const timerIdsRef = React.useRef<number[]>([]);
+
+    React.useEffect(() => {
+        return () => {
+            mountedRef.current = false;
+            for (const timerId of timerIdsRef.current) {
+                window.clearTimeout(timerId);
+            }
+            timerIdsRef.current = [];
+        };
+    }, []);
 
     const toast = React.useCallback((message: string, type: ToastType = "success") => {
+        if (!mountedRef.current) return;
         const id = Math.random().toString(36).substring(2, 9);
         setToasts((prev) => [...prev, { id, message, type }]);
-        setTimeout(() => {
+        const timerId = window.setTimeout(() => {
+            if (!mountedRef.current) return;
             setToasts((prev) => prev.filter((t) => t.id !== id));
         }, 3000);
+        timerIdsRef.current.push(timerId);
     }, []);
 
     return (

@@ -18,10 +18,15 @@ export function useAppConnectivity() {
     const [payments, setPayments] = React.useState<PaymentsState>("available");
 
     React.useEffect(() => {
+        let active = true;
         setNetwork(navigator.onLine ? "online" : "offline");
 
-        const handleOnline = () => setNetwork("online");
-        const handleOffline = () => setNetwork("offline");
+        const handleOnline = () => {
+            if (active) setNetwork("online");
+        };
+        const handleOffline = () => {
+            if (active) setNetwork("offline");
+        };
 
         window.addEventListener("online", handleOnline);
         window.addEventListener("offline", handleOffline);
@@ -29,6 +34,7 @@ export function useAppConnectivity() {
         async function checkSync() {
             try {
                 const settings = await getSettings();
+                if (!active) return;
                 if (settings?.googleSyncEnabled && hasSessionGoogleToken()) {
                     setSync("enabled");
                 } else {
@@ -36,13 +42,14 @@ export function useAppConnectivity() {
                 }
             } catch (error) {
                 console.error("Failed to check sync status:", error);
-                setSync("error");
+                if (active) setSync("error");
             }
         }
 
         void checkSync();
 
         return () => {
+            active = false;
             window.removeEventListener("online", handleOnline);
             window.removeEventListener("offline", handleOffline);
         };

@@ -30,6 +30,7 @@ export function BottomNav({ onMore }: BottomNavProps) {
                         <Link
                             key={item.href}
                             href={item.href}
+                            data-testid={`bottom-nav-${item.label.toLowerCase()}`}
                             className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors ${isActive ? "text-[var(--primary)]" : "text-[var(--text-muted)]"
                                 }`}
                         >
@@ -43,6 +44,7 @@ export function BottomNav({ onMore }: BottomNavProps) {
                 {/* More button — opens full side drawer */}
                 <button
                     onClick={onMore}
+                    data-testid="bottom-nav-more"
                     className="flex flex-col items-center justify-center flex-1 h-full gap-1 text-[var(--text-muted)] transition-colors"
                 >
                     <MoreHorizontal className="h-5 w-5" />

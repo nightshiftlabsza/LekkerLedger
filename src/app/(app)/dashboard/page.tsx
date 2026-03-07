@@ -37,8 +37,11 @@ export default function DashboardPage() {
     const [summaries, setSummaries] = React.useState<EmployeeSummary[]>([]);
 
     React.useEffect(() => {
+        let active = true;
         async function load() {
-            setLoading(true);
+            if (active) {
+                setLoading(true);
+            }
             const [emps, s, period, docs] = await Promise.all([
                 getEmployees(),
                 getSettings(),
@@ -55,6 +58,7 @@ export default function DashboardPage() {
                 results.push({ employee: emp, latestPayslip: latest, netPay });
             }
 
+            if (!active) return;
             setEmployees(emps);
             setSettings(s);
             setCurrentPeriod(period);
@@ -64,7 +68,11 @@ export default function DashboardPage() {
         }
         load();
 
-        return subscribeToDataChanges(load);
+        const unsubscribe = subscribeToDataChanges(load);
+        return () => {
+            active = false;
+            unsubscribe();
+        };
     }, []);
 
     if (loading) {

@@ -2,11 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Plus, ChevronDown, UserPlus, Banknote } from "lucide-react";
 import { Button } from "./ui/button";
 
 export function GlobalCreateFAB() {
     const [open, setOpen] = React.useState(false);
+    const pathname = usePathname();
+    const shouldHideFab = pathname?.startsWith("/onboarding") || pathname?.startsWith("/settings");
+
+    if (shouldHideFab) return null;
 
     return (
         <div className="relative lg:hidden">
@@ -20,8 +25,9 @@ export function GlobalCreateFAB() {
 
             <Button
                 onClick={() => setOpen(!open)}
-                className={`fixed bottom-20 right-4 h-[56px] w-[56px] justify-center rounded-2xl bg-[var(--primary)] text-white shadow-lg hover:bg-[var(--primary-hover)] transition-all z-40 p-0 flex flex-col items-center font-bold ${open ? 'rotate-45 bg-[var(--text)]' : ''}`}
+                className={`fixed bottom-20 right-4 h-[56px] w-[56px] justify-center rounded-2xl bg-[var(--primary)] p-0 text-white shadow-lg transition-all hover:bg-[var(--primary-hover)] z-40 flex flex-col items-center font-bold ${open ? 'rotate-45 bg-[var(--text)]' : ''}`}
                 aria-label="Create new"
+                data-testid="global-create-fab"
             >
                 <Plus className="h-6 w-6" />
             </Button>
@@ -32,6 +38,7 @@ export function GlobalCreateFAB() {
                     href="/payroll"
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-3 active:scale-95 transition-transform"
+                    data-testid="global-create-start-payroll"
                 >
                     <span className="bg-[var(--bg-elevated)] text-[var(--text)] text-[11px] font-bold tracking-wide px-3 py-2 rounded-xl shadow-xl border border-[var(--border)]">Start Pay Period</span>
                     <div className="h-12 w-12 bg-[var(--surface-1)] rounded-2xl shadow-xl flex items-center justify-center text-[var(--primary)] border border-[var(--border)]">
@@ -42,6 +49,7 @@ export function GlobalCreateFAB() {
                     href="/employees/new"
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-3 active:scale-95 transition-transform"
+                    data-testid="global-create-add-employee"
                 >
                     <span className="bg-[var(--bg-elevated)] text-[var(--text)] text-[11px] font-bold tracking-wide px-3 py-2 rounded-xl shadow-xl border border-[var(--border)]">Add Employee</span>
                     <div className="h-12 w-12 bg-[var(--surface-1)] rounded-2xl shadow-xl flex items-center justify-center text-[var(--primary)] border border-[var(--border)]">

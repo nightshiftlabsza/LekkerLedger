@@ -23,15 +23,22 @@ export default function EmployeeHistoryPage() {
     const [error, setError] = React.useState("");
 
     React.useEffect(() => {
+        let active = true;
         async function load() {
             try {
                 const [emps, s] = await Promise.all([
                     getEmployees(),
                     getSettings(),
                 ]);
+                if (!active) return;
                 const emp = emps.find((e: Employee) => e.id === id);
-                if (!emp) { setError("Employee not found."); setLoading(false); return; }
+                if (!emp) {
+                    setError("Employee not found.");
+                    setLoading(false);
+                    return;
+                }
                 const history = await getPayslipsForEmployee(id);
+                if (!active) return;
                 // Most recent first
                 history.sort((a: PayslipInput, b: PayslipInput) =>
                     new Date(b.payPeriodStart).getTime() - new Date(a.payPeriodStart).getTime()
@@ -41,12 +48,19 @@ export default function EmployeeHistoryPage() {
                 setSettings(s);
             } catch (e) {
                 console.error(e);
-                setError("Failed to load history.");
+                if (active) {
+                    setError("Failed to load history.");
+                }
             } finally {
-                setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         }
         load();
+        return () => {
+            active = false;
+        };
     }, [id]);
 
     const handleDownload = async (ps: PayslipInput) => {

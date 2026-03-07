@@ -51,6 +51,7 @@ export function DocumentList({
             {documents.map((doc) => (
                 <Card
                     key={doc.id}
+                    data-testid={`document-card-${doc.id}`}
                     className="glass-panel group overflow-hidden border border-[var(--border)] hover:border-[var(--primary)]/50 transition-colors"
                 >
                     <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -104,6 +105,7 @@ export function DocumentList({
                                     size="sm"
                                     onClick={() => onView(doc.id)}
                                     className="h-8 flex-1 sm:flex-none"
+                                    data-testid={`document-view-${doc.id}`}
                                 >
                                     <Eye className="h-4 w-4 sm:mr-2" />
                                     <span className="hidden sm:inline">View</span>
@@ -115,6 +117,7 @@ export function DocumentList({
                                     size="sm"
                                     onClick={() => onDownload(doc.id)}
                                     className="h-8 flex-1 sm:flex-none border-[var(--border)]"
+                                    data-testid={`document-download-${doc.id}`}
                                 >
                                     <Download className="h-4 w-4 sm:mr-2" />
                                     <span className="hidden sm:inline">Download</span>
@@ -126,6 +129,7 @@ export function DocumentList({
                                     size="sm"
                                     onClick={() => onShare(doc.id)}
                                     className="h-8 flex-1 sm:flex-none border-[var(--border)] bg-[var(--surface-2)]"
+                                    data-testid={`document-share-${doc.id}`}
                                 >
                                     <ExternalLink className="h-4 w-4 sm:mr-2" />
                                     <span className="hidden sm:inline">Share</span>

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { googleLogout } from "@react-oauth/google";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
@@ -20,6 +20,7 @@ import { clearStoredGoogleAccessToken, getStoredGoogleAccessToken, getStoredGoog
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
+    const pathname = usePathname();
     const { network, sync, payments } = useAppConnectivity();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
@@ -39,8 +40,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }, [network]);
 
     React.useEffect(() => {
+        let active = true;
         async function loadShellContext() {
             const [loadedHouseholds, settings] = await Promise.all([getHouseholds(), getSettings()]);
+            if (!active) return;
             setHouseholds(loadedHouseholds);
             setSettingsState(settings);
             setActiveHouseholdState(settings.activeHouseholdId || "default");
@@ -48,12 +51,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
 
         loadShellContext();
-        return subscribeToDataChanges(loadShellContext);
+        const unsubscribe = subscribeToDataChanges(loadShellContext);
+        return () => {
+            active = false;
+            unsubscribe();
+        };
     }, []);
 
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && sync === "error" && !syncBannerDismissed;
     const showPaymentsBanner = network === "online" && payments === "unavailable" && !paymentsBannerDismissed;
+    const isMinimalRoute = pathname?.startsWith("/onboarding");
 
     const handleSwitchHousehold = async (householdId: string) => {
         await setActiveHouseholdId(householdId);
@@ -107,6 +115,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             setAddingHousehold(false);
         }
     };
+
+    if (isMinimalRoute) {
+        return (
+            <ToastProvider>
+                <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+                    <main id="main-content" className="min-h-screen">
+                        {children}
+                    </main>
+                </div>
+            </ToastProvider>
+        );
+    }
 
     return (
         <ToastProvider>
@@ -289,6 +309,7 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
             <button
                 type="button"
                 onClick={() => setOpen((current) => !current)}
+                data-testid="account-menu-toggle"
                 className="hidden items-center gap-2 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-3 py-2 shadow-[0_6px_18px_rgba(16,24,40,0.04)] transition-colors hover:border-[var(--primary)]/25 sm:flex"
             >
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">

@@ -135,12 +135,14 @@ function NewLeaveContent() {
     const [daysTouched, setDaysTouched] = React.useState(false);
 
     React.useEffect(() => {
+        let active = true;
         async function load() {
             const emps = await getEmployees();
             const selectedEmployeeId = preselectedEmpId || emps[0]?.id || "";
             const leavePairs = await Promise.all(emps.map(async (employee) => [employee.id, await getLeaveForEmployee(employee.id)] as const));
             const contractPairs = await Promise.all(emps.map(async (employee) => [employee.id, await getContractsForEmployee(employee.id)] as const));
 
+            if (!active) return;
             setEmployees(emps);
             setLeaveRecords(Object.fromEntries(leavePairs));
             setContractsByEmployee(Object.fromEntries(contractPairs));
@@ -151,6 +153,9 @@ function NewLeaveContent() {
             setLoading(false);
         }
         load();
+        return () => {
+            active = false;
+        };
     }, [preselectedEmpId]);
 
     React.useEffect(() => {

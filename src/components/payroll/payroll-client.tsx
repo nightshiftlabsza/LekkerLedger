@@ -24,18 +24,25 @@ export function PayrollClient() {
 
     React.useEffect(() => {
         setIsClient(true);
+        let active = true;
         async function load() {
             try {
                 const [p, e] = await Promise.all([getPayPeriods(), getEmployees()]);
+                if (!active) return;
                 setPeriods(p);
                 setEmployees(e);
             } catch (err) {
                 console.error("Failed to load payroll data:", err);
             } finally {
-                setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         }
         load();
+        return () => {
+            active = false;
+        };
     }, []);
 
     const currentPeriod = periods.find(p => p.status === "draft" || p.status === "review");

@@ -33,6 +33,7 @@ function SettingsContent() {
     const [loading, setLoading] = React.useState(true);
     const [saving, setSaving] = React.useState(false);
     const [saved, setSaved] = React.useState(false);
+    const savedTimerRef = React.useRef<number | null>(null);
     const { theme, setTheme, setDensity } = useUI();
 
     const THEME_OPTIONS = [
@@ -42,8 +43,10 @@ function SettingsContent() {
     ];
 
     React.useEffect(() => {
+        let active = true;
         async function load() {
             const [s, emps] = await Promise.all([getSettings(), getEmployees()]);
+            if (!active) return;
             setSettings(s);
             setEmployees(emps);
             setLoading(false);
@@ -55,6 +58,12 @@ function SettingsContent() {
             else if (tabParam === "support") setActiveTab("support");
         }
         load();
+        return () => {
+            active = false;
+            if (savedTimerRef.current) {
+                window.clearTimeout(savedTimerRef.current);
+            }
+        };
     }, [searchParams]);
 
     const handleSave = async (updated: Partial<EmployerSettings>) => {
@@ -66,7 +75,13 @@ function SettingsContent() {
         await saveSettings(newSettings);
         setSaving(false);
         setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        if (savedTimerRef.current) {
+            window.clearTimeout(savedTimerRef.current);
+        }
+        savedTimerRef.current = window.setTimeout(() => {
+            setSaved(false);
+            savedTimerRef.current = null;
+        }, 2000);
     };
 
     if (loading || !settings) {
@@ -80,12 +95,12 @@ function SettingsContent() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto pb-20">
+        <div className="mx-auto w-full min-w-0 max-w-4xl pb-20">
             <PageHeader title="Settings" />
 
             {/* Tab switcher */}
             <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)]/92 p-2 shadow-[var(--shadow-1)] mb-2">
-                <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 xl:grid-cols-5">
+                <div className="grid grid-cols-2 gap-1 min-[520px]:grid-cols-3 xl:grid-cols-5">
                     <TabButton id="general" icon={Building2} label="General" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="storage" icon={Database} label="Storage & Sync" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="plan" icon={ShieldCheck} label="Billing" activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -93,7 +108,6 @@ function SettingsContent() {
                     <TabButton id="support" icon={HelpCircle} label="Help" activeTab={activeTab} setActiveTab={setActiveTab} />
                 </div>
             </div>
-            <p className="sm:hidden text-[9px] text-center text-[var(--text-muted)] font-black uppercase tracking-widest mb-6">More tabs appear below as the screen gets wider</p>
 
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeTab === "general" && (
@@ -201,7 +215,7 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Registrations</h2>
                             <Card className="glass-panel border-none p-5 space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
                                         <Label htmlFor="eid">Employer ID / Co. Reg</Label>
                                         <Input id="eid" value={settings.employerIdNumber} onChange={(e) => setSettings({ ...settings, employerIdNumber: e.target.value })} placeholder="ID Number" />
@@ -211,7 +225,7 @@ function SettingsContent() {
                                         <Input id="uifref" value={settings.uifRefNumber} onChange={(e) => setSettings({ ...settings, uifRefNumber: e.target.value })} placeholder="U123456...-1" />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
                                         <Label htmlFor="cfref">CF Registration (COIDA)</Label>
                                         <Input id="cfref" value={settings.cfNumber} onChange={(e) => setSettings({ ...settings, cfNumber: e.target.value })} placeholder="99000..." />
@@ -504,7 +518,8 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
     const active = activeTab === id;
     return (
         <button onClick={() => setActiveTab(id)} aria-pressed={active}
-            className="flex min-h-[76px] w-full flex-col items-center justify-center gap-2 rounded-[1.5rem] px-3 py-3 text-[10px] font-black uppercase tracking-[0.16em] transition-all duration-200"
+            data-testid={`settings-tab-${id}`}
+            className="flex min-h-[76px] w-full flex-col items-center justify-center gap-2 rounded-[1.5rem] px-3 py-3 text-[11px] font-black uppercase tracking-[0.12em] transition-all duration-200"
             style={{
                 backgroundColor: active ? "var(--primary)" : "transparent",
                 color: active ? "#ffffff" : "var(--text-muted)",

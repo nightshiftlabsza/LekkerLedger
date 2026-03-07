@@ -1,6 +1,54 @@
 import { PDFDocument, StandardFonts, PDFFont } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 
+type FontSource = {
+    name: string;
+    sources: string[];
+    fallback: StandardFonts;
+};
+
+const FONT_SIGNATURES = {
+    ttf: [0x00, 0x01, 0x00, 0x00],
+    otf: [0x4f, 0x54, 0x54, 0x4f],
+    woff: [0x77, 0x4f, 0x46, 0x46],
+    woff2: [0x77, 0x4f, 0x46, 0x32],
+} as const;
+
+const FONT_SOURCES: Record<string, FontSource> = {
+    sansRegular: {
+        name: "IBM Plex Sans Regular",
+        sources: [
+            "/fonts/IBMPlexSans-Regular.woff",
+            "/fonts/IBMPlexSans-Regular.ttf",
+        ],
+        fallback: StandardFonts.Helvetica,
+    },
+    sansBold: {
+        name: "IBM Plex Sans Bold",
+        sources: [
+            "/fonts/IBMPlexSans-Bold.woff",
+            "/fonts/IBMPlexSans-Bold.ttf",
+        ],
+        fallback: StandardFonts.HelveticaBold,
+    },
+    serifBold: {
+        name: "IBM Plex Serif Bold",
+        sources: ["/fonts/IBMPlexSerif-Bold.ttf"],
+        fallback: StandardFonts.TimesRomanBold,
+    },
+    serifRegular: {
+        name: "IBM Plex Serif Regular",
+        sources: ["/fonts/IBMPlexSerif-Regular.ttf"],
+        fallback: StandardFonts.TimesRoman,
+    },
+};
+
+function isSupportedFontBinary(buffer: ArrayBuffer): boolean {
+    const view = new Uint8Array(buffer);
+    const signatures = Object.values(FONT_SIGNATURES);
+    return signatures.some((signature) => signature.every((byte, index) => view[index] === byte));
+}
+
 export async function loadPdfFonts(pdfDoc: PDFDocument) {
     try {
         pdfDoc.registerFontkit(fontkit);
@@ -8,34 +56,51 @@ export async function loadPdfFonts(pdfDoc: PDFDocument) {
         console.warn("Fontkit already registered or failed", e);
     }
 
-    const fetchFont = async (url: string): Promise<ArrayBuffer | undefined> => {
+    const fetchFont = async (source: string, label: string): Promise<ArrayBuffer | undefined> => {
         try {
-            const r = await fetch(url, { cache: "no-cache" });
+            if (typeof window === "undefined") {
+                const [{ access, readFile }, path] = await Promise.all([
+                    import("node:fs/promises"),
+                    import("node:path"),
+                ]);
+                const localPath = path.join(process.cwd(), "public", source.replace(/^\//, "").replace(/\//g, path.sep));
+                await access(localPath);
+                const buffer = await readFile(localPath);
+                const bytes = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+                if (!isSupportedFontBinary(bytes)) {
+                    console.warn(`Skipping invalid font asset for ${label}: ${source}`);
+                    return undefined;
+                }
+                return bytes;
+            }
+
+            const r = await fetch(source, { cache: "no-cache" });
             if (!r.ok) return undefined;
 
-            // CRITICAL: Ensure we didn't get an HTML error page instead of a font
             const contentType = r.headers.get("content-type") || "";
             if (contentType.includes("text/html")) {
-                console.warn(`Font fetch for ${url} returned HTML. Likely a 404 or redirect.`);
+                console.warn(`Font fetch for ${label} returned HTML: ${source}`);
                 return undefined;
             }
 
             const buffer = await r.arrayBuffer();
-            // Basic sanity check for TTF/OTF magic bytes
-            const view = new Uint8Array(buffer);
-            const isFont = (view[0] === 0x00 && view[1] === 0x01 && view[2] === 0x00 && view[3] === 0x00) || // TTF
-                (view[0] === 0x4f && view[1] === 0x54 && view[2] === 0x54 && view[3] === 0x4f);   // OTF
-
-            if (!isFont && buffer.byteLength < 1000) {
-                console.warn(`Font fetch for ${url} returned invalid binary data.`);
+            if (!isSupportedFontBinary(buffer)) {
+                console.warn(`Font fetch for ${label} returned invalid binary data: ${source}`);
                 return undefined;
             }
-
             return buffer;
         } catch (err) {
-            console.warn(`Error fetching font ${url}:`, err);
+            console.warn(`Error fetching font ${label} from ${source}:`, err);
             return undefined;
         }
+    };
+
+    const loadFontBytes = async ({ name, sources }: FontSource): Promise<ArrayBuffer | undefined> => {
+        for (const source of sources) {
+            const buffer = await fetchFont(source, name);
+            if (buffer) return buffer;
+        }
+        return undefined;
     };
 
     const safeEmbed = async (buffer: ArrayBuffer | undefined, fallback: StandardFonts): Promise<PDFFont> => {
@@ -52,28 +117,26 @@ export async function loadPdfFonts(pdfDoc: PDFDocument) {
         sansR: undefined as ArrayBuffer | undefined,
         sansB: undefined as ArrayBuffer | undefined,
         serifB: undefined as ArrayBuffer | undefined,
-        serifR: undefined as ArrayBuffer | undefined
+        serifR: undefined as ArrayBuffer | undefined,
     };
 
     try {
-        if (typeof fetch !== "undefined") {
-            const [sansR, sansB, serifB, serifR] = await Promise.all([
-                fetchFont("/fonts/IBMPlexSans-Regular.ttf"),
-                fetchFont("/fonts/IBMPlexSans-Bold.ttf"),
-                fetchFont("/fonts/IBMPlexSerif-Bold.ttf"),
-                fetchFont("/fonts/IBMPlexSerif-Regular.ttf"),
-            ]);
-            fonts = { sansR, sansB, serifB, serifR };
-        }
+        const [sansR, sansB, serifB, serifR] = await Promise.all([
+            loadFontBytes(FONT_SOURCES.sansRegular),
+            loadFontBytes(FONT_SOURCES.sansBold),
+            loadFontBytes(FONT_SOURCES.serifBold),
+            loadFontBytes(FONT_SOURCES.serifRegular),
+        ]);
+        fonts = { sansR, sansB, serifB, serifR };
     } catch (e) {
         console.warn("Failed to fetch custom fonts", e);
     }
 
     const [sansRegular, sansBold, serifBold, serifRegular] = await Promise.all([
-        safeEmbed(fonts.sansR, StandardFonts.Helvetica),
-        safeEmbed(fonts.sansB, StandardFonts.HelveticaBold),
-        safeEmbed(fonts.serifB, StandardFonts.TimesRomanBold),
-        safeEmbed(fonts.serifR, StandardFonts.TimesRoman),
+        safeEmbed(fonts.sansR, FONT_SOURCES.sansRegular.fallback),
+        safeEmbed(fonts.sansB, FONT_SOURCES.sansBold.fallback),
+        safeEmbed(fonts.serifB, FONT_SOURCES.serifBold.fallback),
+        safeEmbed(fonts.serifR, FONT_SOURCES.serifRegular.fallback),
     ]);
 
     return {

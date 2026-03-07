@@ -8,10 +8,10 @@ export default function TrustCenterPage() {
     const nmw = getNMWForDate(new Date());
 
     return (
-        <div className="min-h-screen bg-[var(--bg)]">
+        <div className="min-h-screen overflow-x-hidden bg-[var(--bg)]">
             {/* Header section */}
             <header className="relative py-20 md:py-32 border-b border-[var(--border)] overflow-hidden" style={{ backgroundColor: "var(--surface-2)" }}>
-                <div className="absolute inset-0 z-0">
+                <div className="absolute inset-0 z-0 overflow-hidden">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--primary)]/10 rounded-full blur-3xl -mr-32 -mt-32" />
                 </div>
                 <div className="content-container-wide px-6 lg:px-8 relative z-10 text-center max-w-3xl mx-auto space-y-6">

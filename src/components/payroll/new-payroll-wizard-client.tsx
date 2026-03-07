@@ -35,10 +35,12 @@ export function NewPayrollWizardClient() {
     const [newEmpRate, setNewEmpRate] = React.useState(NMW_RATE.toString());
 
     React.useEffect(() => {
+        let active = true;
         setIsClient(true);
         async function load() {
             try {
                 const emps = await getEmployees();
+                if (!active) return;
                 setEmployees(emps);
                 // Pre-select if only one
                 if (emps.length === 1) {
@@ -49,10 +51,13 @@ export function NewPayrollWizardClient() {
                 }
             } catch (err) {
                 console.error(err);
-                toast("Failed to load employees");
+                if (active) toast("Failed to load employees");
             }
         }
         load();
+        return () => {
+            active = false;
+        };
     }, [toast]);
 
     const handleCreateEmployeeAndNext = async (e: React.FormEvent) => {
@@ -133,12 +138,6 @@ export function NewPayrollWizardClient() {
         }
     };
 
-    // Instead of a skeleton, we can just render Step 0 immediately as the shell.
-    // We defer employee-heavy steps until client hydration.
-    if (!isClient && step > 0) {
-        setStep(0);
-    }
-
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             {/* Step 0: Mode Selection */}
@@ -155,6 +154,7 @@ export function NewPayrollWizardClient() {
                         <div className="grid gap-4 sm:grid-cols-2">
                             <button
                                 onClick={() => setStep(1)}
+                                data-testid="payroll-wizard-start"
                                 className="flex flex-col items-center gap-3 p-6 text-center rounded-2xl border-2 border-[var(--primary)] bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 transition-all group"
                             >
                                 <div className="h-12 w-12 rounded-full bg-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] group-hover:scale-110 transition-transform">
@@ -181,7 +181,7 @@ export function NewPayrollWizardClient() {
             )}
 
             {/* Step 1: Choose Employee(s) */}
-            {step === 1 && (
+            {step === 1 && isClient && (
                 <Card className="glass-panel border-[var(--primary)]/30 border-2 shadow-2xl">
                     <CardContent className="p-6 md:p-8 space-y-6">
                         <div className="flex items-center gap-3 mb-2">
@@ -237,6 +237,7 @@ export function NewPayrollWizardClient() {
                                                         setSelectedEmployeeIds(prev => [...prev, emp.id]);
                                                     }
                                                 }}
+                                                data-testid={`payroll-wizard-employee-${emp.id}`}
                                                 className={`w-full flex items-center justify-between p-4 rounded-xl transition-all border-2 text-left ${isSelected ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-[var(--border)] bg-[var(--surface-1)] hover:border-[var(--primary)]/50'}`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -267,6 +268,7 @@ export function NewPayrollWizardClient() {
                                         className="flex-1 gap-2 font-bold"
                                         disabled={selectedEmployeeIds.length === 0}
                                         onClick={() => setStep(2)}
+                                        data-testid="payroll-wizard-next-to-dates"
                                     >
                                         Next <ArrowRight className="h-4 w-4" />
                                     </Button>
@@ -278,7 +280,7 @@ export function NewPayrollWizardClient() {
             )}
 
             {/* Step 2: Pay Period */}
-            {step === 2 && (
+            {step === 2 && isClient && (
                 <Card className="glass-panel border-[var(--primary)]/30 border-2 shadow-2xl animate-in slide-in-from-right-4">
                     <CardContent className="p-6 md:p-8 space-y-6">
                         <div className="flex items-center gap-3 mb-2">
@@ -294,6 +296,7 @@ export function NewPayrollWizardClient() {
                                     value={startDate}
                                     onChange={e => setStartDate(e.target.value)}
                                     disabled={saving}
+                                    data-testid="payroll-wizard-start-date"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -303,6 +306,7 @@ export function NewPayrollWizardClient() {
                                     value={endDate}
                                     onChange={e => setEndDate(e.target.value)}
                                     disabled={saving}
+                                    data-testid="payroll-wizard-end-date"
                                 />
                             </div>
                         </div>
@@ -313,6 +317,7 @@ export function NewPayrollWizardClient() {
                                 className="flex-1 font-bold"
                                 onClick={() => setStep(1)}
                                 disabled={saving}
+                                data-testid="payroll-wizard-back-to-employees"
                             >
                                 Back
                             </Button>
@@ -320,6 +325,7 @@ export function NewPayrollWizardClient() {
                                 onClick={handleCreatePayRun}
                                 disabled={saving}
                                 className="flex-1 gap-2 font-bold"
+                                data-testid="payroll-wizard-initialize"
                             >
                                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Calendar className="h-4 w-4" />}
                                 Initialize Pay Run
