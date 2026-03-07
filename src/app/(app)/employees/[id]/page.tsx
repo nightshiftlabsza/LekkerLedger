@@ -18,7 +18,7 @@ import { Employee, LeaveCarryOver, PayslipInput, LeaveRecord, Contract, CustomLe
 import { calculatePayslip } from "@/lib/calculator";
 import { format } from "date-fns";
 import { calculateAnnualLeaveForecast, calculateAnnualLeaveSummary, formatLeaveRange, formatLeaveValue, getCarryOverNudge, getLeaveTypeLabel } from "@/lib/leave";
-import { filterRecordsForArchiveWindow, getArchiveUpgradeHref } from "@/lib/archive";
+import { filterRecordsForArchiveWindow, getArchiveUpgradeHref, getArchiveUpgradeLabel, getArchiveUpgradeMessage } from "@/lib/archive";
 import { canBrowseLeaveHistory, canUseAdvancedLeaveFeatures, canUseDocumentsHub, canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
 import { PLANS, type PlanConfig } from "@/config/plans";
 
@@ -121,7 +121,7 @@ function EmployeeDetailContent() {
     const visiblePayslips = payslipArchiveResult.visible;
     const visibleLeaveRecords = leaveArchiveResult.visible;
     const archiveUpgradeHref = getArchiveUpgradeHref(currentPlan.id);
-    const archiveUpgradeLabel = currentPlan.id === "free" ? "Upgrade to Standard" : "Upgrade to Pro";
+    const archiveUpgradeLabel = getArchiveUpgradeLabel(currentPlan.id);
     const annualLeaveDays = visibleLeaveRecords.filter(r => r.type === "annual").reduce((s, r) => s + r.days, 0);
     const sickLeaveDays = visibleLeaveRecords.filter(r => r.type === "sick").reduce((s, r) => s + r.days, 0);
     const annualSummary = employee?.startDate
@@ -360,8 +360,7 @@ function EmployeeDetailContent() {
                                 <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
                                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <div>
-                                            <p className="text-sm font-bold text-[var(--text)]">You have {payslipArchiveResult.hiddenCount} older payslip{payslipArchiveResult.hiddenCount === 1 ? "" : "s"}.</p>
-                                            <p className="text-sm text-[var(--text-muted)]">Upgrade to browse your full history here.</p>
+                                            <p className="text-sm font-bold text-[var(--text)]">{getArchiveUpgradeMessage(currentPlan.id, payslipArchiveResult.hiddenCount, "payslip")}</p>
                                         </div>
                                         <Link href={archiveUpgradeHref}>
                                             <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{archiveUpgradeLabel}</Button>
@@ -540,8 +539,7 @@ function EmployeeDetailContent() {
                                 <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
                                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <div>
-                                            <p className="text-sm font-bold text-[var(--text)]">You have {leaveArchiveResult.hiddenCount} older leave record{leaveArchiveResult.hiddenCount === 1 ? "" : "s"}.</p>
-                                            <p className="text-sm text-[var(--text-muted)]">Upgrade to browse your full history here.</p>
+                                            <p className="text-sm font-bold text-[var(--text)]">{getArchiveUpgradeMessage(currentPlan.id, leaveArchiveResult.hiddenCount, "leave record")}</p>
                                         </div>
                                         <Link href={archiveUpgradeHref}>
                                             <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{archiveUpgradeLabel}</Button>

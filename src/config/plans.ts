@@ -56,7 +56,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         features: {
             driveSync: false,
             leaveTracking: false,
-            documentsHub: true,
+            documentsHub: false,
             contractSignedCopyUpload: false,
             vaultUploads: false,
             autoBackup: false,
@@ -67,13 +67,12 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             roeDownloads: false,
             multiHousehold: false,
         },
-        description: "Basic payslips for one worker, with no monthly or yearly billing.",
-        bestFor: "Basic payslips for one worker.",
+        description: "One worker. Quick monthly payslips. No sign-up needed.",
+        bestFor: "Try it out, or keep it simple.",
         marketingBullets: [
             "1 active employee",
-            "1 household",
-            "Monthly payroll and payslip flow",
-            "Browse the latest 3 months of generated records",
+            "Monthly payslips — preview, download, share",
+            "Household checklist and guides",
             "Stored on this device",
         ],
     },
@@ -81,6 +80,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         id: "standard",
         label: "Standard",
         shortLabel: "Standard",
+        badge: "Most popular",
         currency: "ZAR",
         pricing: {
             monthly: 29,
@@ -103,21 +103,24 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             roeDownloads: true,
             multiHousehold: false,
         },
-        description: "Proper records for most households, with paperwork, backup, and room for up to 3 employees.",
-        bestFor: "For most households.",
+        description: "A domestic worker, nanny, and gardener — up to 3 workers with organised records and backup.",
+        bestFor: "Do it properly.",
         marketingBullets: [
             "Up to 3 active employees",
-            "Leave tracking, contracts, and document hub",
-            "Upload signed copies for app-generated contracts",
-            "Private Google Drive backup",
-            "uFiling export and ROE downloads",
-            "12-month archive",
+            "Leave tracking — annual, sick & family responsibility",
+            "Employment contract drafts",
+            "Upload signed copies of your contracts",
+            "Documents hub for payslips and contracts",
+            "uFiling CSV export and ROE downloads",
+            "Google Drive backup",
+            "12 months of browsable history",
         ],
     },
     pro: {
         id: "pro",
         label: "Pro",
         shortLabel: "Pro",
+        badge: "Full control",
         currency: "ZAR",
         pricing: {
             monthly: 49,
@@ -140,15 +143,16 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             roeDownloads: true,
             multiHousehold: true,
         },
-        description: "More headroom and control for larger households, multiple homes, or helping manage records across more than one household.",
-        bestFor: "For multiple households or more control.",
+        description: "Full document storage, year-end summaries, long-term history, and faster support. Also for multiple households.",
+        bestFor: "Complete peace of mind.",
         marketingBullets: [
             "Unlimited employees",
-            "Multiple households (for example: main home + holiday home)",
-            "5-year archive",
-            "Private document vault in your Google account",
-            "Automatic backups and year-end summaries",
-            "Everything in Standard",
+            "Document vault — upload and store signed contracts, ID copies, anything",
+            "Year-end employment summary PDF",
+            "5 years of browsable, searchable history",
+            "Automatic scheduled backups",
+            "Faster support — reply within 1 business day",
+            "Multiple households (main home + holiday home)",
         ],
     },
 } as const;
@@ -174,22 +178,38 @@ export function getPlanPricePresentation(plan: PlanId | PlanConfig, cycle: Billi
         return {
             primaryPrice: "Free",
             periodLabel: "",
-            helperText: "No monthly or yearly billing",
+            helperText: "No billing, no account required",
+        };
+    }
+
+    if (resolvedPlan.id === "standard") {
+        if (cycle === "yearly") {
+            return {
+                primaryPrice: "R20.75",
+                periodLabel: "/month",
+                helperText: "R249/year — save R99 vs monthly",
+            };
+        }
+
+        return {
+            primaryPrice: "R29",
+            periodLabel: "/month",
+            helperText: "Billed monthly, cancel anytime",
         };
     }
 
     if (cycle === "yearly") {
         return {
-            primaryPrice: `≈ R${(resolvedPlan.pricing.yearly / 12).toFixed(2)}`,
+            primaryPrice: "R33.25",
             periodLabel: "/month",
-            helperText: `Billed yearly at R${resolvedPlan.pricing.yearly}/year`,
+            helperText: "R399/year — save R189 vs monthly",
         };
     }
 
     return {
-        primaryPrice: `R${resolvedPlan.pricing.monthly}`,
+        primaryPrice: "R49",
         periodLabel: "/month",
-        helperText: `Billed yearly at R${resolvedPlan.pricing.yearly}/year`,
+        helperText: "Billed monthly, cancel anytime",
     };
 }
 

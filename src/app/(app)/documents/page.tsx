@@ -32,7 +32,8 @@ import { PLANS, type PlanConfig } from "@/config/plans";
 import {
     filterRecordsForArchiveWindow,
     getArchiveUpgradeHref,
-    getUpgradePlanForArchive,
+    getArchiveUpgradeLabel,
+    getArchiveUpgradeMessage,
     isUploadedDocument,
 } from "@/lib/archive";
 import {
@@ -115,16 +116,13 @@ function buildYearEndSummaryFileName(year: number, householdName?: string) {
     return `${safeName}_${year}.pdf`;
 }
 
-function ArchiveBanner({ hiddenCount, href, label }: { hiddenCount: number; href: string; label: string }) {
+function ArchiveBanner({ hiddenCount, href, label, message }: { hiddenCount: number; href: string; label: string; message: string }) {
     if (hiddenCount <= 0) return null;
     return (
         <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <p className="text-sm font-bold text-[var(--text)]">
-                        You have {hiddenCount} older record{hiddenCount === 1 ? "" : "s"}.
-                    </p>
-                    <p className="text-sm text-[var(--text-muted)]">Upgrade to browse your full history in the app.</p>
+                    <p className="text-sm text-[var(--text)]">{message}</p>
                 </div>
                 <Link href={href}>
                     <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{label}</Button>
@@ -237,9 +235,8 @@ export default function DocumentsPage() {
         active: empFilter === employee.id,
     }));
 
-    const archiveUpgradePlanId = getUpgradePlanForArchive(plan.id);
     const archiveUpgradeHref = getArchiveUpgradeHref(plan.id);
-    const archiveUpgradeLabel = archiveUpgradePlanId ? `Upgrade to ${PLANS[archiveUpgradePlanId].label}` : "Upgrade";
+    const archiveUpgradeLabel = getArchiveUpgradeLabel(plan.id);
     const vaultUpgradeHref = "/upgrade?plan=pro";
     const vaultUploadsAllowed = canUseVaultUploads(plan);
     const contractSignedCopyUploadAllowed = canUseContractSignedCopyUpload(plan);
@@ -614,7 +611,7 @@ export default function DocumentsPage() {
                 <PageHeader title="Documents" subtitle="Payslips, contracts, exports, and vault history" />
                 <FeatureGateCard
                     title="Documents hub is available on Standard and Pro"
-                    description="Free keeps payroll and payslips simple for one worker. Upgrade for contracts, document uploads, exports, and longer record access."
+                    description="Upgrade when you need payslips, contracts, exports, and organised records in one place."
                 />
             </>
         );
@@ -744,8 +741,8 @@ export default function DocumentsPage() {
                                     <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
                                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                             <div>
-                                                <p className="text-sm font-bold text-[var(--text)]">Upload anything to the Vault on Pro</p>
-                                                <p className="text-sm text-[var(--text-muted)]">Standard keeps signed contract copies active on contract pages. Pro unlocks general document uploads here.</p>
+                                                <p className="text-sm font-bold text-[var(--text)]">Store signed contracts, ID copies, and other documents - all in one place.</p>
+                                                <p className="text-sm text-[var(--text-muted)]">Standard keeps signed contract copies on contract pages. Pro unlocks the full document Vault here.</p>
                                             </div>
                                             <Link href={vaultUpgradeHref}>
                                                 <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">Upgrade to Pro</Button>
@@ -812,8 +809,8 @@ export default function DocumentsPage() {
                                     <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
                                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                             <div>
-                                                <p className="text-sm font-bold text-[var(--text)]">Year-end summaries are available on Pro</p>
-                                                <p className="text-sm text-[var(--text-muted)]">Keep one ready-to-share PDF for your records or your tax practitioner.</p>
+                                                <p className="text-sm font-bold text-[var(--text)]">Year-end summaries are available on Pro.</p>
+                                                <p className="text-sm text-[var(--text-muted)]">Keep one ready-to-share PDF with yearly pay totals and leave taken.</p>
                                             </div>
                                             <Link href={vaultUpgradeHref}>
                                                 <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">Upgrade to Pro</Button>
@@ -851,7 +848,12 @@ export default function DocumentsPage() {
                                     actionLabel="Create contract"
                                     actionHref="/contracts/new"
                                 />
-                                <ArchiveBanner hiddenCount={contractsArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
+                                <ArchiveBanner
+                                    hiddenCount={contractsArchiveResult.hiddenCount}
+                                    href={archiveUpgradeHref}
+                                    label={archiveUpgradeLabel}
+                                    message={getArchiveUpgradeMessage(plan.id, contractsArchiveResult.hiddenCount)}
+                                />
                             </>
                         ) : (
                             <>
@@ -978,7 +980,12 @@ export default function DocumentsPage() {
                                         );
                                     }}
                                 />
-                                <ArchiveBanner hiddenCount={contractsArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
+                                <ArchiveBanner
+                                    hiddenCount={contractsArchiveResult.hiddenCount}
+                                    href={archiveUpgradeHref}
+                                    label={archiveUpgradeLabel}
+                                    message={getArchiveUpgradeMessage(plan.id, contractsArchiveResult.hiddenCount)}
+                                />
                             </>
                         )
                     ) : activeTab === "Payslips" ? (
@@ -1032,7 +1039,12 @@ export default function DocumentsPage() {
                                     },
                                 ]}
                             />
-                            <ArchiveBanner hiddenCount={payslipArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
+                            <ArchiveBanner
+                                hiddenCount={payslipArchiveResult.hiddenCount}
+                                href={archiveUpgradeHref}
+                                label={archiveUpgradeLabel}
+                                message={getArchiveUpgradeMessage(plan.id, payslipArchiveResult.hiddenCount)}
+                            />
                         </>
                     ) : activeTab === "Exports" ? (
                         <>
@@ -1080,14 +1092,19 @@ export default function DocumentsPage() {
                                     },
                                 ]}
                             />
-                            <ArchiveBanner hiddenCount={exportArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
+                            <ArchiveBanner
+                                hiddenCount={exportArchiveResult.hiddenCount}
+                                href={archiveUpgradeHref}
+                                label={archiveUpgradeLabel}
+                                message={getArchiveUpgradeMessage(plan.id, exportArchiveResult.hiddenCount)}
+                            />
                         </>
                     ) : filteredVaultDocuments.length === 0 ? (
                         vaultUploadsAllowed ? (
                             <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-1)] p-10 text-center">
                                 <FolderOpen className="mx-auto mb-3 h-10 w-10 text-[var(--text-muted)]" strokeWidth={1.5} />
                                 <p className="text-sm font-bold text-[var(--text)]">No Vault files yet</p>
-                                <p className="mt-1 text-sm text-[var(--text-muted)]">Upload contracts, employee documents, or compliance paperwork and keep them in one place.</p>
+                                <p className="mt-1 text-sm text-[var(--text-muted)]">Upload contracts, employee documents, or other household paperwork and keep them in one place.</p>
                                 <Button className="mt-4 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={handleVaultUploadClick}>
                                     Upload document
                                 </Button>
@@ -1095,14 +1112,14 @@ export default function DocumentsPage() {
                         ) : (
                             <FeatureGateCard
                                 title="Store signed contracts, ID copies, and other documents"
-                                description="Vault uploads are available on Pro. Your existing uploaded files still stay visible here."
+                                description="Store signed contracts, ID copies, and other documents - all in one place."
                                 ctaLabel="Upgrade to Pro"
                                 href={vaultUpgradeHref}
                                 eyebrow="Pro"
                                 benefits={[
                                     "Private document vault in your Google account",
-                                    "All uploaded files stay in one place",
                                     "Upload general household employment paperwork",
+                                    "Keep everything easy to find later",
                                 ]}
                             />
                         )
@@ -1203,7 +1220,7 @@ export default function DocumentsPage() {
                                             Vault storage
                                         </div>
                                         <p className="text-sm text-[var(--text-muted)]">
-                                            Existing uploaded files always stay visible here. Pro unlocks new uploads for contracts, employee paperwork, and compliance records.
+                                            Existing uploaded files always stay visible here. Pro unlocks new uploads for contracts, employee paperwork, and other household records.
                                         </p>
                                     </div>
                                 )}

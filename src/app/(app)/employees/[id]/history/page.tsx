@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getEmployees, getPayslipsForEmployee, getSettings } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
-import { filterRecordsForArchiveWindow, getArchiveUpgradeHref } from "@/lib/archive";
+import { filterRecordsForArchiveWindow, getArchiveUpgradeHref, getArchiveUpgradeLabel, getArchiveUpgradeMessage } from "@/lib/archive";
 import { calculatePayslip } from "@/lib/calculator";
 import { track } from "@/lib/analytics";
 import { getUserPlan } from "@/lib/entitlements";
@@ -72,7 +72,7 @@ export default function EmployeeHistoryPage() {
     );
     const visiblePayslips = archiveResult.visible;
     const archiveUpgradeHref = archivePlan ? getArchiveUpgradeHref(archivePlan.id) : "/upgrade";
-    const archiveUpgradeLabel = archivePlan?.id === "free" ? "Upgrade to Standard" : "Upgrade to Pro";
+    const archiveUpgradeLabel = archivePlan ? getArchiveUpgradeLabel(archivePlan.id) : "Upgrade";
 
     const handleDownload = async (ps: PayslipInput) => {
         if (!employee || !settings) return;
@@ -227,8 +227,11 @@ export default function EmployeeHistoryPage() {
                             <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <div>
-                                        <p className="text-sm font-bold text-[var(--text)]">You have {archiveResult.hiddenCount} older payslip{archiveResult.hiddenCount === 1 ? "" : "s"}.</p>
-                                        <p className="text-sm text-[var(--text-muted)]">Upgrade to browse your full history here.</p>
+                                        <p className="text-sm font-bold text-[var(--text)]">
+                                            {archivePlan
+                                                ? getArchiveUpgradeMessage(archivePlan.id, archiveResult.hiddenCount, "payslip")
+                                                : `You have ${archiveResult.hiddenCount} older payslip${archiveResult.hiddenCount === 1 ? "" : "s"}.`}
+                                        </p>
                                     </div>
                                     <Link href={archiveUpgradeHref}>
                                         <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{archiveUpgradeLabel}</Button>

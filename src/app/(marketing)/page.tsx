@@ -11,10 +11,12 @@ import {
     Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MarketingBillingToggle, MarketingPlanCards } from "@/components/marketing/pricing";
 import { calculatePayslip } from "@/lib/calculator";
 import { getNMWForDate } from "@/lib/legal/registry";
 import type { Employee, PayslipInput } from "@/lib/schema";
-import { PLANS, PLAN_ORDER, type BillingCycle, getPlanPricePresentation } from "@/src/config/plans";
+import { HOMEPAGE_PRICING_LINK_LABEL, PRICING_PAGE_SUBTITLE, PRICING_PAGE_TITLE } from "@/src/config/pricing-display";
+import { useMarketingBillingCycle } from "@/src/lib/use-marketing-billing-cycle";
 import { MarketingHeader } from "../../../components/layout/marketing-header";
 
 const SAMPLE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_3.75rem_5.5rem_6rem] gap-x-4 sm:grid-cols-[minmax(0,1fr)_5rem_6.75rem_7rem]";
@@ -100,8 +102,7 @@ export default function HomePage() {
             <MarketingHeader />
 
             <main id="main-content" className="flex-1">
-                <Hero />
-                <SampleProof sample={sample} />
+                <Hero sample={sample} />
                 <HowItWorks />
                 <WhatYouKeep />
                 <PricingPreview />
@@ -111,58 +112,55 @@ export default function HomePage() {
     );
 }
 
-function Hero() {
+function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
     return (
         <section className="relative overflow-hidden border-b border-[var(--border)]" style={{ backgroundColor: "var(--bg)" }}>
             <div className="absolute inset-x-0 top-24 h-px bg-[var(--border)]" />
 
             <div className="relative content-container-wide px-4 py-12 sm:px-6 md:py-16 lg:px-8 lg:py-20">
-                <div className="max-w-[38rem] space-y-6">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em]">
-                        <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
-                        For South African household employers
+                <div className="grid gap-10 xl:grid-cols-[minmax(0,38rem)_minmax(0,1fr)] xl:items-center 2xl:gap-16">
+                    <div className="max-w-[38rem] space-y-6">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em]">
+                            <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
+                            For South African household employers
+                        </div>
+
+                        <div className="space-y-4">
+                            <h1 className="type-h1" style={{ color: "var(--text)" }}>
+                                Household payroll records without the cost and complexity of business payroll software.
+                            </h1>
+                            <p className="max-w-[34rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
+                                Run the month clearly, show UIF in the same record, and keep payslips ready when you need them later.
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Link href="/onboarding">
+                                <Button className="h-12 rounded-xl bg-[var(--primary)] px-7 text-base font-bold text-white shadow-[var(--shadow-2)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]">
+                                    Start free <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                            <p className="text-xs font-medium leading-6" style={{ color: "var(--text-muted)" }}>
+                                Free to start. No account needed. Upgrade for backup and records.
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="space-y-4">
-                        <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                            Household payroll records without the cost and complexity of business payroll software.
-                        </h1>
-                    </div>
+                    <div className="w-full max-w-[46rem] xl:justify-self-end">
+                        <div className="mb-4 space-y-3 xl:max-w-[22rem] 2xl:max-w-[24rem]">
+                            <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                                Sample payslip
+                            </p>
+                            <h2 className="type-h2 max-w-[14ch] text-balance" style={{ color: "var(--text)" }}>
+                                See what the monthly record looks like.
+                            </h2>
+                            <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
+                                A real household run produces a clear monthly payslip with UIF shown in the same document, ready to review or download.
+                            </p>
+                        </div>
 
-                    <div className="space-y-3">
-                        <Link href="/onboarding">
-                            <Button className="h-12 rounded-xl bg-[var(--primary)] px-7 text-base font-bold text-white shadow-[var(--shadow-2)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]">
-                                Start free <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </Link>
-                        <p className="text-xs font-medium leading-6" style={{ color: "var(--text-muted)" }}>
-                            Free to start. No account needed. Upgrade for backup and records.
-                        </p>
+                        <SamplePayslipCard sample={sample} />
                     </div>
-                </div>
-            </div>
-        </section>
-    );
-}
-
-function SampleProof({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
-    return (
-        <section style={{ backgroundColor: "var(--surface-2)" }}>
-            <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-                <div className="grid gap-6 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] xl:items-start">
-                    <div className="space-y-4">
-                        <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                            Sample payslip
-                        </p>
-                        <h2 className="type-h2 max-w-[14ch]" style={{ color: "var(--text)" }}>
-                            See what the monthly record looks like.
-                        </h2>
-                        <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            A real household run produces a clear monthly payslip with UIF shown in the same document, ready to review or download.
-                        </p>
-                    </div>
-
-                    <SamplePayslipCard sample={sample} />
                 </div>
             </div>
         </section>
@@ -230,7 +228,7 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
                             LekkerLedger
                         </p>
                         <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                            Sample payslip
+                            Payroll sample
                         </p>
                     </div>
                     <p
@@ -545,12 +543,7 @@ function WhatYouKeep() {
 }
 
 function PricingPreview() {
-    const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("yearly");
-    const homepageBullets: Record<string, string[]> = {
-        free: ["1 active employee", "Basic monthly payslips", "Stored on this device"],
-        standard: ["Up to 3 active employees", "Leave, contracts, and documents", "Private Google Drive backup"],
-        pro: ["Unlimited employees", "Multiple households (for example: main home + holiday home)", "5-year archive"],
-    };
+    const [billingCycle, setBillingCycle] = useMarketingBillingCycle();
 
     return (
         <section id="pricing-preview" className="scroll-mt-24" style={{ backgroundColor: "var(--surface-2)" }}>
@@ -561,133 +554,23 @@ function PricingPreview() {
                             Pricing preview
                         </p>
                         <h2 className="type-h2 max-w-[18ch]" style={{ color: "var(--text)" }}>
-                            Choose the plan that fits your household.
+                            {PRICING_PAGE_TITLE}
                         </h2>
                         <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            Free covers one worker and basic payslips. Standard adds proper records, documents, and backup. Pro adds multiple households and longer archive access.
+                            {PRICING_PAGE_SUBTITLE}
                         </p>
                     </div>
 
-                    <div className="space-y-2">
-                        <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
-                            {(["monthly", "yearly"] as BillingCycle[]).map((cycle) => (
-                                <button
-                                    key={cycle}
-                                    type="button"
-                                    onClick={() => setBillingCycle(cycle)}
-                                    className="rounded-full px-5 py-2.5 text-sm font-bold transition-all"
-                                    style={{
-                                        backgroundColor: billingCycle === cycle ? "var(--primary)" : "transparent",
-                                        color: billingCycle === cycle ? "#ffffff" : "var(--text-muted)",
-                                    }}
-                                >
-                                    {cycle === "monthly" ? "Monthly" : "Yearly"}
-                                </button>
-                            ))}
-                        </div>
-                        <p className="text-right text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-                            Yearly lowers the monthly cost.
-                        </p>
-                    </div>
+                    <MarketingBillingToggle billingCycle={billingCycle} onChange={setBillingCycle} align="right" />
                 </div>
 
-                <div className="mt-8 rounded-[20px] border border-[var(--border)] bg-[var(--surface-1)] px-5 py-4 shadow-[var(--shadow-1)]">
-                    <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                        Proof point
-                    </p>
-                    <Link href="/examples" className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:underline">
-                        See what a payslip looks like <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                </div>
-
-                <div className="mt-8 grid gap-4 lg:grid-cols-3">
-                    {PLAN_ORDER.map((planId) => {
-                        const plan = PLANS[planId];
-                        const featured = plan.id === "standard";
-                        const cycle = plan.id === "free" ? "monthly" : billingCycle;
-                        const pricePresentation = getPlanPricePresentation(plan, cycle);
-
-                        return (
-                            <div
-                                key={plan.id}
-                                className={`rounded-[24px] border p-5 shadow-[var(--shadow-1)] ${featured ? "border-[var(--primary)]" : "border-[var(--border)]"}`}
-                                style={{ backgroundColor: "var(--surface-1)" }}
-                            >
-                                <div className="space-y-4">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div>
-                                            <p className="text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                                                {plan.label}
-                                            </p>
-                                            <h3 className="mt-2 text-xl font-black" style={{ color: "var(--text)" }}>
-                                                {plan.bestFor}
-                                            </h3>
-                                        </div>
-                                        {plan.badge && (
-                                            <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${featured ? "bg-[var(--primary)] text-white" : "bg-[var(--accent-subtle)] text-[var(--primary)]"}`}>
-                                                {plan.badge}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-                                        <div className="flex items-end gap-2">
-                                            <span className="text-4xl font-semibold type-mono" style={{ color: "var(--text)" }}>
-                                                {pricePresentation.primaryPrice}
-                                            </span>
-                                            {pricePresentation.periodLabel ? (
-                                                <span className="pb-1 text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                                                    {pricePresentation.periodLabel}
-                                                </span>
-                                            ) : null}
-                                        </div>
-                                        <p className="mt-2 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
-                                            {pricePresentation.helperText}
-                                        </p>
-                                    </div>
-
-                                    <ul className="space-y-2.5">
-                                        {homepageBullets[plan.id].map((bullet) => (
-                                            <li key={bullet} className="flex items-start gap-2.5 text-sm" style={{ color: "var(--text-muted)" }}>
-                                                <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
-                                                <span>{bullet}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    {plan.id === "free" ? (
-                                        <div className="space-y-2">
-                                            <Link href="/onboarding">
-                                                <Button className="h-11 w-full rounded-xl bg-[var(--primary)] text-sm font-bold text-white hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]">
-                                                    Start free
-                                                </Button>
-                                            </Link>
-                                            <p className="text-[11px] font-semibold text-[var(--text-muted)]">
-                                                No account needed for Free. Upgrade later for Google Drive backup.
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-2">
-                                            <Link
-                                                href="/onboarding"
-                                                className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] text-sm font-bold text-[var(--text)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                                            >
-                                                {`Choose ${plan.label}`}
-                                            </Link>
-                                            <p className="text-[11px] font-semibold text-[var(--text-muted)]">
-                                                14-day refund on paid upgrades.
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
+                <div className="mt-8">
+                    <MarketingPlanCards billingCycle={billingCycle} compact />
                 </div>
 
                 <div className="mt-8 flex justify-start sm:justify-end">
                     <Link href="/pricing" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:underline">
-                        See full pricing <ArrowRight className="h-3.5 w-3.5" />
+                        {HOMEPAGE_PRICING_LINK_LABEL} <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                 </div>
             </div>

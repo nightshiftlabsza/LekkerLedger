@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable } from "@/components/ui/data-table";
 import { FeatureGateCard } from "@/components/ui/feature-gate-card";
 import { getAllLeaveRecords, getContractsForEmployee, getCurrentPayPeriod, getEmployees, getSettings, subscribeToDataChanges } from "@/lib/storage";
-import { filterRecordsForArchiveWindow, getArchiveUpgradeHref } from "@/lib/archive";
+import { filterRecordsForArchiveWindow, getArchiveUpgradeHref, getArchiveUpgradeLabel, getArchiveUpgradeMessage } from "@/lib/archive";
 import { formatLeaveRange, formatLeaveValue, getLeaveAllowanceForType, getLeaveTypeLabel } from "@/lib/leave";
 import { Contract, CustomLeaveType, Employee, LeaveRecord, PayPeriod } from "@/lib/schema";
 import { canBrowseLeaveHistory, canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
@@ -66,7 +66,7 @@ export function LeaveClient() {
     );
     const visibleRecords = visibleRecordsResult.visible;
     const archiveUpgradeHref = getArchiveUpgradeHref(plan.id);
-    const archiveUpgradeLabel = plan.id === "free" ? "Upgrade to Standard" : "Upgrade to Pro";
+    const archiveUpgradeLabel = getArchiveUpgradeLabel(plan.id);
     const annualTaken = visibleRecords.filter((record) => record.type === "annual").reduce((sum, record) => sum + record.days, 0);
     const selectedEmployee = employees[0];
     const selectedEmployeeRecords = selectedEmployee ? visibleRecords.filter((record) => record.employeeId === selectedEmployee.id) : [];
@@ -244,8 +244,7 @@ export function LeaveClient() {
                     <Card className="border border-[var(--primary)]/20 bg-[var(--primary)]/8 rounded-2xl">
                         <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <p className="type-body-bold text-[var(--text)]">You have {visibleRecordsResult.hiddenCount} older leave record{visibleRecordsResult.hiddenCount === 1 ? "" : "s"}.</p>
-                                <p className="text-xs text-[var(--text-muted)]">Upgrade to browse your full history in the app.</p>
+                                <p className="type-body-bold text-[var(--text)]">{getArchiveUpgradeMessage(plan.id, visibleRecordsResult.hiddenCount, "leave record")}</p>
                             </div>
                             <Link href={archiveUpgradeHref}>
                                 <Button size="sm" className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">

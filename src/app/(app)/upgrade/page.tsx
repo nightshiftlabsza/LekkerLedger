@@ -227,7 +227,7 @@ function UpgradePageContent() {
                                 Paid plans are for households that want less repeated admin: Google-connected backup across browsers and devices, exports, deeper archives, and cleaner annual paperwork. They are meant to cost less than the time or outside help it usually takes to reconstruct records later.
                             </p>
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Standard is the paid plan for most households that want proper records, Google-connected backup, and annual paperwork. Pro is for households that want deeper history and admin control, with multi-household support and unlimited employees there when you need more headroom.
+                                Standard is the paid plan for most households that want organised records, Google-connected backup, and annual paperwork. Pro is for households that want deeper history and more control, with multi-household support and unlimited employees when you need more headroom.
                             </p>
                         </CardContent>
                     </Card>

@@ -1,4 +1,4 @@
-import type { PlanConfig, PlanId } from "@/src/config/plans";
+import { PLANS, type PlanConfig, type PlanId } from "@/src/config/plans";
 import type { DocumentMeta } from "./schema";
 
 export interface ArchiveFilterResult<T> {
@@ -16,6 +16,22 @@ export function getUpgradePlanForArchive(planId: PlanId): Exclude<PlanId, "free"
 export function getArchiveUpgradeHref(planId: PlanId): string {
     const target = getUpgradePlanForArchive(planId);
     return target ? `/upgrade?plan=${target}` : "/upgrade";
+}
+
+export function getArchiveUpgradeLabel(planId: PlanId): string {
+    const target = getUpgradePlanForArchive(planId);
+    return target ? `Upgrade to ${PLANS[target].label}` : "Upgrade";
+}
+
+export function getArchiveUpgradeMessage(planId: PlanId, hiddenCount: number, noun = "record"): string {
+    const target = getUpgradePlanForArchive(planId);
+    const nounLabel = `${noun}${hiddenCount === 1 ? "" : "s"}`;
+
+    if (!target) {
+        return `You have ${hiddenCount} older ${nounLabel}.`;
+    }
+
+    return `You have ${hiddenCount} older ${nounLabel}. Upgrade to ${PLANS[target].label} to browse your full history.`;
 }
 
 export function isUploadedDocument(document: DocumentMeta): boolean {

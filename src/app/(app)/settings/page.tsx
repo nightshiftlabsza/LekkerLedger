@@ -763,7 +763,7 @@ function SettingsContent() {
                                                 URL.revokeObjectURL(url);
                                             } catch { alert("Export failed."); }
                                         }}>
-                                        <Download className="h-4 w-4 text-[var(--primary)]" /> Download Full JSON
+                                        <Download className="h-4 w-4 text-[var(--primary)]" /> {canUseFullHistoryExport(getUserPlan(settings)) ? "Export all records" : "Download JSON export"}
                                     </Button>
                                     <label className="flex-1">
                                         <div className="flex items-center justify-center gap-2 text-xs h-12 font-black border border-[var(--border)] rounded-xl px-4 cursor-pointer hover:bg-[var(--surface-2)] transition-all">

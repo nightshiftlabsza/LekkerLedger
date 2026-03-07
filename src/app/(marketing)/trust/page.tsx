@@ -184,7 +184,7 @@ export default function TrustCenterPage() {
                             <div>
                                 <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text)" }}>No Hidden Fees</h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                    Free covers the essentials. Standard is R29/month or R249/year for most households that want proper records, backup, contracts, and annual paperwork. Pro is R49/month or R399/year for deeper record control, longer archive history, and richer admin tracking, with unlimited employees and multi-household workspaces when you need them. Both paid tiers are still priced for households rather than the higher monthly fees common in managed payroll services.
+                                    Free covers the essentials. Standard is R29/month or R249/year for most households that want organised records, backup, contracts, and annual paperwork. Pro is R49/month or R399/year for full document storage, longer archive history, and richer admin tracking, with unlimited employees and multi-household workspaces when you need them. Both paid tiers are still priced for households rather than the higher monthly fees common in managed payroll services.
                                 </p>
                             </div>
                         </div>
