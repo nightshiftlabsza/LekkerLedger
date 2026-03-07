@@ -7,10 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 
 const NAV_LINKS = [
-    { href: "/#how-it-works", label: "How it works" },
-    { href: "/storage", label: "Storage" },
     { href: "/pricing", label: "Pricing" },
-    { href: "/trust", label: "Trust" },
+    { href: "/#how-it-works", label: "How it works" },
     { href: "/#faq", label: "FAQ" },
 ] as const;
 
@@ -52,8 +50,10 @@ export function MarketingHeader() {
                 </nav>
 
                 <div className="hidden lg:flex items-center gap-3">
-                    <Link href="/open-app" className="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]">
-                        Open app
+                    <Link href="/open-app">
+                        <Button variant="ghost" className="h-11 rounded-xl px-4 font-bold">
+                            Open app
+                        </Button>
                     </Link>
                     <Link href="/onboarding">
                         <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-1)]">
@@ -101,7 +101,7 @@ export function MarketingHeader() {
                             ))}
                             <div className="grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-4">
                                 <Link href="/open-app" onClick={() => setMenuOpen(false)}>
-                                    <Button variant="outline" className="w-full justify-center font-bold">
+                                    <Button variant="ghost" className="w-full justify-center font-bold">
                                         Open app
                                     </Button>
                                 </Link>

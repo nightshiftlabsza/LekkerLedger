@@ -21,7 +21,7 @@ export default function SupportPage() {
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Support & Contact</h1>
                     <p className="text-zinc-500 font-medium text-lg">We are here to help you get your household payroll set up correctly and keep the record trail tidy.</p>
-                    <p className="text-sm font-semibold text-[var(--text-muted)]">Email support replies within 1-4 business days.</p>
+                    <p className="text-sm font-semibold text-[var(--text-muted)]">Email support replies within 1-4 business days in South Africa, Monday to Friday, excluding public holidays.</p>
                 </header>
 
                 <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -50,7 +50,7 @@ export default function SupportPage() {
                                 <h3 className="text-xl font-bold text-[var(--text)]">Email Support</h3>
                             </div>
                             <p className="text-sm text-[var(--text-muted)] leading-relaxed mb-4">
-                                Found a bug? Confused about backup, payslips, or billing? Our team replies within 1-4 business days.
+                                Found a bug? Confused about backup, payslips, or billing? Our team replies within 1-4 business days in South Africa, Monday to Friday, excluding public holidays.
                             </p>
                             <span className="text-[var(--primary)] font-bold text-sm">support@lekkerledger.co.za &rarr;</span>
                         </div>

@@ -17,6 +17,11 @@ export interface PlanConfig {
     driveSync: boolean;
     leaveTracking: boolean;
     documentsHub: boolean;
+    contractSignedCopyUpload: boolean;
+    vaultUploads: boolean;
+    autoBackup: boolean;
+    yearEndSummary: boolean;
+    fullHistoryExport: boolean;
     contractGenerator: boolean;
     ufilingExport: boolean;
     roeDownloads: boolean;
@@ -46,7 +51,12 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         archiveMonths: 3,
         driveSync: false,
         leaveTracking: false,
-        documentsHub: false,
+        documentsHub: true,
+        contractSignedCopyUpload: false,
+        vaultUploads: false,
+        autoBackup: false,
+        yearEndSummary: false,
+        fullHistoryExport: false,
         contractGenerator: false,
         ufilingExport: false,
         roeDownloads: false,
@@ -57,6 +67,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             "1 active employee",
             "1 household",
             "Monthly payroll and payslip flow",
+            "Browse the latest 3 months of generated records",
             "Stored on this device",
         ],
     },
@@ -64,7 +75,6 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         id: "standard",
         label: "Standard",
         shortLabel: "Standard",
-        badge: "Most popular",
         currency: "ZAR",
         pricing: {
             monthly: 29,
@@ -76,6 +86,11 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         driveSync: true,
         leaveTracking: true,
         documentsHub: true,
+        contractSignedCopyUpload: true,
+        vaultUploads: false,
+        autoBackup: false,
+        yearEndSummary: false,
+        fullHistoryExport: false,
         contractGenerator: true,
         ufilingExport: true,
         roeDownloads: true,
@@ -85,6 +100,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         marketingBullets: [
             "Up to 3 active employees",
             "Leave tracking, contracts, and document hub",
+            "Upload signed copies for app-generated contracts",
             "Private Google Drive backup",
             "uFiling export and ROE downloads",
             "12-month archive",
@@ -94,7 +110,6 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         id: "pro",
         label: "Pro",
         shortLabel: "Pro",
-        badge: "Deeper control",
         currency: "ZAR",
         pricing: {
             monthly: 49,
@@ -106,6 +121,11 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         driveSync: true,
         leaveTracking: true,
         documentsHub: true,
+        contractSignedCopyUpload: true,
+        vaultUploads: true,
+        autoBackup: true,
+        yearEndSummary: true,
+        fullHistoryExport: true,
         contractGenerator: true,
         ufilingExport: true,
         roeDownloads: true,
@@ -116,6 +136,8 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             "Unlimited employees",
             "Multiple households (for example: main home + holiday home)",
             "5-year archive",
+            "Private document vault in your Google account",
+            "Automatic backups and year-end summaries",
             "Everything in Standard",
         ],
     },

@@ -167,7 +167,7 @@ export default function TrustCenterPage() {
                                     All payments are securely processed by Paystack. We do not collect, process, or store your credit card information on our servers.
                                 </p>
                                 <p className="text-sm leading-relaxed mt-3" style={{ color: "var(--text-muted)" }}>
-                                    Paystack says it is PCI DSS Level 1 certified.{" "}
+                                    Payments are processed by Paystack, which holds PCI DSS Level 1 certification.{" "}
                                     <a
                                         href="https://paystack.com/compliance"
                                         target="_blank"
@@ -191,7 +191,7 @@ export default function TrustCenterPage() {
                         <div className="p-8 rounded-2xl border border-[var(--primary)] bg-[var(--primary)]/5">
                             <h3 className="text-xl font-black mb-3" style={{ color: "var(--text)" }}>14-Day Refund Policy</h3>
                             <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-muted)" }}>
-                                If you request a refund within 14 days of purchase, we will usually refund you in full after payment verification under the refund policy.
+                                If you request a refund within 14 days of your purchase date, we will refund you in full once we have verified the payment. Requests received after 14 days are outside the refund window and will not be processed.
                             </p>
                             <Link href="/legal/refunds">
                                 <Button className="w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white">Full Refund Policy</Button>

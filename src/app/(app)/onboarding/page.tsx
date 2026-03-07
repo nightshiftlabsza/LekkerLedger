@@ -128,7 +128,7 @@ export default function OnboardingPage() {
                                                 <ShieldCheck className="h-5 w-5" style={{ color: "var(--primary)" }} />
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>Private & Open Source</h3>
+                                                <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>Your records stay on your device</h3>
                                                 <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                                     Your payroll records stay on your device by default. If you enable Google backup later, the backup lives in the Google Drive app data area in your own Google account instead of being uploaded into a central company payroll database.
                                                 </p>
@@ -138,7 +138,7 @@ export default function OnboardingPage() {
                                                 <div className="flex items-center gap-1.5 mt-2">
                                                     <Github className="h-3 w-3" style={{ color: "var(--text-muted)" }} />
                                                     <a href="https://github.com/nightshiftlabsza/LekkerLedger" target="_blank" rel="noopener noreferrer" className="text-xs font-semibold hover:underline" style={{ color: "var(--text-muted)" }}>
-                                                        Code is freely available on GitHub
+                                                        Technical note: code is available on GitHub
                                                     </a>
                                                 </div>
                                             </div>

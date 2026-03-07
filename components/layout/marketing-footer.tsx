@@ -42,7 +42,7 @@ export function MarketingFooter() {
                                 Email support
                             </a>
                             <p className="text-xs text-[var(--text-muted)]">
-                                Reply within 1-4 business days.
+                                Reply within 1-4 business days in South Africa, Monday to Friday, excluding public holidays.
                             </p>
                         </div>
                     </div>

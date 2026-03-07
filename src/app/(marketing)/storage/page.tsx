@@ -48,9 +48,9 @@ export default function StoragePage() {
                                 By default, everything you enter is saved in your browser&apos;s local storage database (IndexedDB).
                             </p>
                             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" /> Never leaves your device unless you choose backup</li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" /> Payroll records are not uploaded to LekkerLedger servers. Optional Google backup is sent to your own Google account.</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" /> Works completely offline</li>
-                                <li className="flex gap-2 items-start"><AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" /> <span className="text-amber-500/90 font-medium">Risk: If you clear your browser data or lose your device, your data is gone indefinitely unless exported.</span></li>
+                                <li className="flex gap-2 items-start"><AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" /> <span className="text-amber-500/90 font-medium">If you clear your browser data without backup enabled, the records on this device cannot be recovered. That is why paid plans with sync are better for households that want backup before changing browsers or devices.</span></li>
                             </ul>
                         </div>
 
@@ -70,7 +70,7 @@ export default function StoragePage() {
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Access data across multiple devices</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Uses your Google account protections and permissions</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Stored in the Google Drive app data area in your own Google account</li>
-                                <li className="flex gap-2 items-start"><AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" /> <span>Can reduce the risk of data loss if browser data is cleared, but you should still confirm backup before changing devices.</span></li>
+                                <li className="flex gap-2 items-start"><AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" /> <span>Paid plans with sync are the better fit if you want your records to move with you. Always confirm backup before changing browsers or devices.</span></li>
                             </ul>
                         </div>
                     </div>
@@ -100,7 +100,7 @@ export default function StoragePage() {
                 </div>
 
                 <div className="pt-12 text-center pb-8 border-t border-[var(--border)] mt-12">
-                    <p className="text-lg font-bold text-[var(--text)] mb-6">Ready to create a payslip safely?</p>
+                    <p className="text-lg font-bold text-[var(--text)] mb-6">Ready to start keeping household payroll records?</p>
                     <Link href="/onboarding">
                         <Button className="h-14 px-8 text-base bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white shadow-lg shadow-[var(--primary)]/20 font-bold rounded-xl transition-all hover:-translate-y-1">
                             Start for Free

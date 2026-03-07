@@ -123,6 +123,15 @@ export default function PricingPage() {
 
                 <section>
                     <div className="content-container-wide px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+                        <div className="mb-8 rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] px-6 py-5 shadow-[var(--shadow-1)]">
+                            <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+                                Proof point
+                            </p>
+                            <Link href="/examples" className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:underline">
+                                See what a payslip looks like <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        </div>
+
                         <div className="grid gap-6 xl:grid-cols-3">
                             {PLAN_ORDER.map((planId) => {
                                 const plan = PLANS[planId];
@@ -204,9 +213,6 @@ export default function PricingPage() {
                                                     </p>
                                                 </div>
                                             )}
-                                            <Link href="/examples" className="inline-flex items-center text-[11px] font-semibold text-[var(--primary)] hover:underline">
-                                                See example PDF
-                                            </Link>
                                             <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                                 {plan.id === "free"
                                                     ? "A simple starting point for one worker and basic monthly payslips."

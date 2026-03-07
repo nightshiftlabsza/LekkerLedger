@@ -126,7 +126,7 @@ export default function ExamplesPage() {
                     </div>
                 </div>
 
-                <header className="space-y-4 max-w-2xl">
+                <header data-testid="examples-hero" className="space-y-4 max-w-2xl">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--accent-subtle)] text-[var(--primary)] text-xs font-black uppercase tracking-widest border border-[var(--primary)]/10">
                         <ShieldCheck className="h-4 w-4 shrink-0" /> Civic Ledger Design
                     </div>

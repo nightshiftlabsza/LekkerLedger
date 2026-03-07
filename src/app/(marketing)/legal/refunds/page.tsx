@@ -38,7 +38,7 @@ export default function RefundPolicy() {
           <li><strong>Pro:</strong> R49/month or R399/year for unlimited employees, multi-household workspaces, and the deepest archive.</li>
                         </ul>
                         <p>
-                            If you request a refund within 14 days of the transaction date, we will usually refund you in full once we have the payment details needed to verify the purchase.
+                            If you request a refund within 14 days of your purchase date, we will refund you in full once we have verified the payment. Requests received after 14 days are outside the refund window and will not be processed.
                         </p>
                     </section>
 
@@ -52,7 +52,7 @@ export default function RefundPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">3. Refund requests within 14 days</h2>
                         <p>
-                            Our 14-day refund policy applies to paid upgrades. If LekkerLedger is not the right fit, request a refund within 14 days of the purchase date and we will usually refund you in full after payment verification.
+                            Our 14-day refund policy applies to paid upgrades. If LekkerLedger is not the right fit, request a refund within 14 days of your purchase date and we will refund you in full once we have verified the payment. Requests received after 14 days are outside the refund window and will not be processed.
                         </p>
                     </section>
 

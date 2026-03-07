@@ -13,6 +13,9 @@ export function SupplierDetails() {
                     <strong className="text-white">Jurisdiction:</strong> South Africa
                 </p>
                 <p>
+                    <strong className="text-white">Physical address:</strong> Yssel St, Witbank, 1034
+                </p>
+                <p>
                     <strong className="text-white">General contact:</strong>{" "}
                     <a href="mailto:support@lekkerledger.co.za">support@lekkerledger.co.za</a>
                 </p>

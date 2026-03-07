@@ -17,12 +17,6 @@ import type { Employee, PayslipInput } from "@/lib/schema";
 import { PLANS, PLAN_ORDER, type BillingCycle, getPlanPricePresentation } from "@/src/config/plans";
 import { MarketingHeader } from "../../../components/layout/marketing-header";
 
-const TRUST_SIGNALS = [
-    "No central LekkerLedger employee database",
-    "14-day refund policy",
-    "Built for South African households",
-] as const;
-
 const SAMPLE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_3.75rem_5.5rem_6rem] gap-x-4 sm:grid-cols-[minmax(0,1fr)_5rem_6.75rem_7rem]";
 
 function formatRand(value: number) {
@@ -99,166 +93,79 @@ function buildHomepageSample(referenceDate: Date) {
 
 export default function HomePage() {
     const referenceDate = new Date();
+    const sample = buildHomepageSample(referenceDate);
 
     return (
         <div className="min-h-screen flex flex-col selection:bg-amber-200" style={{ backgroundColor: "var(--bg)" }}>
             <MarketingHeader />
 
             <main id="main-content" className="flex-1">
-                <Hero sample={buildHomepageSample(referenceDate)} />
+                <Hero />
+                <SampleProof sample={sample} />
                 <HowItWorks />
                 <WhatYouKeep />
-                <WhyPeoplePay />
                 <PricingPreview />
-                <CommonQuestions />
                 <FAQPreview />
             </main>
         </div>
     );
 }
 
-function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
+function Hero() {
     return (
         <section className="relative overflow-hidden border-b border-[var(--border)]" style={{ backgroundColor: "var(--bg)" }}>
             <div className="absolute inset-x-0 top-24 h-px bg-[var(--border)]" />
 
             <div className="relative content-container-wide px-4 py-12 sm:px-6 md:py-16 lg:px-8 lg:py-20">
-                <div className="grid gap-8 xl:grid-cols-[minmax(0,34rem)_minmax(24rem,1fr)] 2xl:grid-cols-[minmax(0,34rem)_minmax(28rem,40rem)_minmax(16rem,20rem)] 2xl:items-start">
-                    <div className="space-y-6">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em]">
-                            <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
-                            For South African household employers
-                        </div>
-
-                        <div className="max-w-[34rem] space-y-4">
-                            <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                                Household payroll records without the cost and complexity of business payroll software.
-                            </h1>
-                            <p className="type-body-large max-w-[34rem]" style={{ color: "var(--text-muted)" }}>
-                                Manage payslips, documents, and domestic worker records in one place, with UIF deductions shown clearly on every payslip.
-                            </p>
-                            <p className="text-sm font-semibold leading-6" style={{ color: "var(--text-muted)" }}>
-                                Built-in checks for common household-employer rules. Always review for your situation.
-                            </p>
-                            <p className="text-sm font-semibold leading-6" style={{ color: "var(--text-muted)" }}>
-                                Built for households employing domestic workers, nannies, gardeners, and carers.
-                            </p>
-                        </div>
-
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                            <div className="space-y-2">
-                                <Link href="/onboarding">
-                                    <Button className="h-12 rounded-xl bg-[var(--primary)] px-7 text-base font-bold text-white shadow-[var(--shadow-2)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]">
-                                        Start free <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </Link>
-                                <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                                    No account needed for Free. Paid backup uses your Google account.
-                                </p>
-                            </div>
-                            <div className="grid gap-2 sm:flex sm:flex-col sm:border-l sm:border-[var(--border)] sm:pl-4">
-                                <Link
-                                    href="/pricing"
-                                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[var(--primary)]/18 bg-[var(--surface-raised)] px-4 text-sm font-semibold text-[var(--primary)] shadow-[var(--shadow-1)] transition-colors hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)] sm:min-h-0 sm:justify-start sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:shadow-none"
-                                >
-                                    See full pricing
-                                </Link>
-                                <Link
-                                    href="/storage"
-                                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 text-sm font-semibold text-[var(--text-muted)] shadow-[var(--shadow-1)] transition-colors hover:border-[var(--primary)]/20 hover:text-[var(--text)] sm:min-h-0 sm:justify-start sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:shadow-none"
-                                >
-                                    How storage works
-                                </Link>
-                                <Link
-                                    href="/examples"
-                                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 text-sm font-semibold text-[var(--text-muted)] shadow-[var(--shadow-1)] transition-colors hover:border-[var(--primary)]/20 hover:text-[var(--text)] sm:min-h-0 sm:justify-start sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:shadow-none"
-                                >
-                                    See example PDF
-                                </Link>
-                            </div>
-                        </div>
-
-                        <p className="max-w-[34rem] text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                            Start free with basic payslips. Upgrade when you need proper records, private backup, or more household headroom.
-                        </p>
+                <div className="max-w-[38rem] space-y-6">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em]">
+                        <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
+                        For South African household employers
                     </div>
 
-                    <SamplePayslipCard sample={sample} />
+                    <div className="space-y-4">
+                        <h1 className="type-h1" style={{ color: "var(--text)" }}>
+                            Household payroll records without the cost and complexity of business payroll software.
+                        </h1>
+                    </div>
 
-                    <HeroTrustRail className="hidden gap-3 2xl:grid" />
-                </div>
-
-                <div className="mt-6 2xl:hidden">
-                    <HeroTrustRail className="grid gap-3 sm:grid-cols-2" />
+                    <div className="space-y-3">
+                        <Link href="/onboarding">
+                            <Button className="h-12 rounded-xl bg-[var(--primary)] px-7 text-base font-bold text-white shadow-[var(--shadow-2)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]">
+                                Start free <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
+                        <p className="text-xs font-medium leading-6" style={{ color: "var(--text-muted)" }}>
+                            Free to start. No account needed. Upgrade for backup and records.
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>
     );
 }
 
-function HeroTrustRail({ className = "" }: { className?: string }) {
+function SampleProof({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
     return (
-        <div className={className}>
-            {TRUST_SIGNALS.map((item) => (
-                <div key={item} className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-1)] px-4 py-4 shadow-[var(--shadow-1)]">
-                    <div className="flex items-start gap-3">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
-                        <p className="text-sm leading-6" style={{ color: "var(--text)" }}>
-                            {item}
+        <section style={{ backgroundColor: "var(--surface-2)" }}>
+            <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+                <div className="grid gap-6 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] xl:items-start">
+                    <div className="space-y-4">
+                        <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                            Sample payslip
+                        </p>
+                        <h2 className="type-h2 max-w-[14ch]" style={{ color: "var(--text)" }}>
+                            See what the monthly record looks like.
+                        </h2>
+                        <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
+                            A real household run produces a clear monthly payslip with UIF shown in the same document, ready to review or download.
                         </p>
                     </div>
-                </div>
-            ))}
-            <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-1)] px-4 py-4 shadow-[var(--shadow-1)]">
-                <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
-                        <div>
-                            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
-                                How storage works
-                            </p>
-                            <p className="mt-1 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                                Records stay on this device by default. Paid plans can add optional backup in the Google Drive app data area in your own Google account.
-                            </p>
-                            <p className="mt-2 text-sm font-semibold leading-6" style={{ color: "var(--text-muted)" }}>
-                                Changing devices? Paid backup lets you restore.
-                            </p>
-                        </div>
-                    </div>
-                    <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
-                        <StorageFlowStep label="This device" detail="Saved locally" />
-                        <StorageFlowArrow />
-                        <StorageFlowStep label="Optional backup" detail="Your Google Drive" />
-                        <StorageFlowArrow />
-                        <StorageFlowStep label="Restore later" detail="On another device" />
-                    </div>
-                    <Link href="/storage" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:underline">
-                        See the full storage guide <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
+
+                    <SamplePayslipCard sample={sample} />
                 </div>
             </div>
-        </div>
-    );
-}
-
-function StorageFlowStep({ label, detail }: { label: string; detail: string }) {
-    return (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-3 text-center">
-            <p className="text-[11px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--text)" }}>
-                {label}
-            </p>
-            <p className="mt-1 text-xs leading-5" style={{ color: "var(--text-muted)" }}>
-                {detail}
-            </p>
-        </div>
-    );
-}
-
-function StorageFlowArrow() {
-    return (
-        <div className="hidden sm:flex items-center justify-center" aria-hidden="true">
-            <ArrowRight className="h-4 w-4 text-[var(--text-muted)]" />
-        </div>
+        </section>
     );
 }
 
@@ -617,9 +524,6 @@ function WhatYouKeep() {
                         <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
                             LekkerLedger is for households that want the monthly payslip and the supporting record trail to stay together over time.
                         </p>
-                        <Link href="/examples" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:underline">
-                            See example PDF <ArrowRight className="h-3.5 w-3.5" />
-                        </Link>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
@@ -640,61 +544,6 @@ function WhatYouKeep() {
     );
 }
 
-function WhyPeoplePay() {
-    const reasons = [
-        {
-            title: "Proper records, not just payslips",
-            body: "Standard adds leave tracking, contracts, document history, and annual exports for households that want the paperwork done properly.",
-        },
-        {
-            title: "Private backup in your own account",
-            body: "Paid plans can back up into the Google Drive app data area in your own Google account so you are not relying on one browser or one device.",
-        },
-        {
-            title: "More headroom when the admin grows",
-            body: "Pro adds multiple households, unlimited employees, and a longer archive when you need more control, like keeping a main home and a holiday home separate.",
-        },
-    ];
-
-    return (
-        <section style={{ backgroundColor: "var(--bg)" }}>
-            <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-                <div className="grid gap-6 xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] xl:items-start">
-                    <div className="space-y-4">
-                        <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                            Why households upgrade
-                        </p>
-                        <h2 className="type-h2 max-w-[14ch]" style={{ color: "var(--text)" }}>
-                            Standard is where proper records start.
-                        </h2>
-                        <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            Free is the starter path for basic payslips. Standard and Pro are for households that want paperwork, backup, and cleaner annual admin.
-                        </p>
-                        <div className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-                            <p className="text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                                Upgrade when the records matter, not because the app gets in your way.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-3">
-                        {reasons.map((reason) => (
-                            <div key={reason.title} className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-1)]">
-                                <h3 className="text-lg font-black" style={{ color: "var(--text)" }}>
-                                    {reason.title}
-                                </h3>
-                                <p className="mt-3 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                                    {reason.body}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </section>
-    );
-}
-
 function PricingPreview() {
     const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("yearly");
     const homepageBullets: Record<string, string[]> = {
@@ -704,7 +553,7 @@ function PricingPreview() {
     };
 
     return (
-        <section style={{ backgroundColor: "var(--surface-2)" }}>
+        <section id="pricing-preview" className="scroll-mt-24" style={{ backgroundColor: "var(--surface-2)" }}>
             <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div className="max-w-2xl space-y-3">
@@ -712,10 +561,10 @@ function PricingPreview() {
                             Pricing preview
                         </p>
                         <h2 className="type-h2 max-w-[18ch]" style={{ color: "var(--text)" }}>
-                            Payslips and paperwork for domestic workers, nannies, gardeners, and carers.
+                            Choose the plan that fits your household.
                         </h2>
                         <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            Start free with basic payslips. Upgrade for contracts, record history, reminders, and private backup in your own Google Drive.
+                            Free covers one worker and basic payslips. Standard adds proper records, documents, and backup. Pro adds multiple households and longer archive access.
                         </p>
                     </div>
 
@@ -740,6 +589,15 @@ function PricingPreview() {
                             Yearly lowers the monthly cost.
                         </p>
                     </div>
+                </div>
+
+                <div className="mt-8 rounded-[20px] border border-[var(--border)] bg-[var(--surface-1)] px-5 py-4 shadow-[var(--shadow-1)]">
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+                        Proof point
+                    </p>
+                    <Link href="/examples" className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:underline">
+                        See what a payslip looks like <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
                 </div>
 
                 <div className="mt-8 grid gap-4 lg:grid-cols-3">
@@ -811,7 +669,7 @@ function PricingPreview() {
                                     ) : (
                                         <div className="space-y-2">
                                             <Link
-                                                href="/pricing"
+                                                href="/onboarding"
                                                 className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] text-sm font-bold text-[var(--text)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
                                             >
                                                 {`Choose ${plan.label}`}
@@ -821,12 +679,6 @@ function PricingPreview() {
                                             </p>
                                         </div>
                                     )}
-                                    <Link
-                                        href="/examples"
-                                        className="inline-flex items-center text-[11px] font-semibold text-[var(--primary)] hover:underline"
-                                    >
-                                        See example PDF
-                                    </Link>
                                 </div>
                             </div>
                         );
@@ -846,20 +698,24 @@ function PricingPreview() {
 function FAQPreview() {
     const faqs = [
         {
-            q: "Is my employee data stored on LekkerLedger's servers?",
-            a: "No. LekkerLedger does not keep a central employee database. Records stay on your device by default, with optional backup in your own Google Drive on paid plans.",
+            q: "Will this help me know what to do each month?",
+            a: "Yes. LekkerLedger helps you reuse the same worker details, run the month clearly, and keep the paperwork tidy so you are not starting from scratch every time.",
         },
         {
-            q: "Can I start with one employee?",
-            a: "Yes. Free supports one active employee and basic payslips, so you can try the monthly flow before paying.",
+            q: "What if I am not sure about the rules or worried about making a mistake?",
+            a: "You do not need to know everything before you start. LekkerLedger helps you keep the records organised and review the main figures clearly. For unusual situations, verify against official guidance before you rely on the record.",
         },
         {
-            q: "What changes when I upgrade?",
-            a: "Standard adds leave tracking, contracts, documents, backup, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access, which helps when you need separate records for more than one home.",
+            q: "Are employee records stored on LekkerLedger servers?",
+            a: "Employee records stay on your device by default. Paid plans can add optional backup in the Google Drive app data area in your own Google account.",
         },
         {
-            q: "Do I need to know all the rules before I sign up?",
-            a: "No. You can start by getting the monthly record-keeping under control and read more later if a question comes up.",
+            q: "Can I start with one employee, and what changes when I upgrade?",
+            a: "Yes. Free supports one active employee and basic payslips, so you can try the monthly flow before paying. Standard adds leave tracking, contracts, documents, backup, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
+        },
+        {
+            q: "What happens if I change devices later?",
+            a: "Free is simplest on one device. Paid backup lets you restore records later in your own Google account when you change browsers or devices.",
         },
     ];
 
@@ -871,8 +727,11 @@ function FAQPreview() {
                         FAQ
                     </p>
                     <h2 className="type-h2" style={{ color: "var(--text)" }}>
-                        Short answers to common signup hesitations.
+                        Questions households ask before they start.
                     </h2>
+                    <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
+                        Short answers to the practical questions that usually come up before the first monthly run.
+                    </p>
                 </div>
 
                 <div className="space-y-3">
@@ -885,76 +744,22 @@ function FAQPreview() {
     );
 }
 
-function CommonQuestions() {
-    const answers = [
-        {
-            title: "Will this help me know what to do each month?",
-            body: "Yes. LekkerLedger helps you reuse the same worker details, run the month clearly, and keep the paperwork tidy so you are not starting from scratch every time.",
-        },
-        {
-            title: "What if I am not sure about the rules?",
-            body: "You do not need to know everything before you start. LekkerLedger shows key checks and keeps the records organised. For unusual situations or edge cases, verify against official guidance before you rely on it.",
-        },
-        {
-            title: "What if I am worried about making a mistake?",
-            body: "The goal is calmer record-keeping, not legal bravado. You can start free, review the figures before you send anything, and upgrade later if you want backup, documents, and longer history.",
-        },
-    ];
-
-    return (
-        <section style={{ backgroundColor: "var(--surface-2)" }}>
-            <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-                <div className="max-w-3xl space-y-3">
-                    <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                        Common questions
-                    </p>
-                    <h2 className="type-h2 max-w-[18ch]" style={{ color: "var(--text)" }}>
-                        Plain answers for the first worries most households have.
-                    </h2>
-                    <p className="max-w-[42rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                        You do not need to become a payroll expert first. LekkerLedger helps you keep records tidy and shows the main checks, while still expecting you to verify unusual cases against official guidance.
-                    </p>
-                </div>
-
-                <div className="mt-8 grid gap-4 lg:grid-cols-3">
-                    {answers.map((item) => (
-                        <div key={item.title} className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-1)]">
-                            <h3 className="text-lg font-black" style={{ color: "var(--text)" }}>
-                                {item.title}
-                            </h3>
-                            <p className="mt-3 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                                {item.body}
-                            </p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
-
 function FAQItem({ question, answer }: { question: string; answer: string }) {
-    const [open, setOpen] = React.useState(false);
-
     return (
-        <button
-            type="button"
-            onClick={() => setOpen(!open)}
-            className="w-full rounded-xl border border-[var(--border)] p-5 text-left transition-all hover:border-[var(--primary)]/30"
+        <details
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5 transition-all hover:border-[var(--primary)]/30"
             style={{ backgroundColor: "var(--surface-1)" }}
         >
-            <div className="flex items-center justify-between gap-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
                 <h3 className="text-sm font-bold" style={{ color: "var(--text)" }}>
                     {question}
                 </h3>
-                <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} style={{ color: "var(--text-muted)" }} />
-            </div>
-            {open && (
-                <p className="mt-3 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                    {answer}
-                </p>
-            )}
-        </button>
+                <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "var(--text-muted)" }} />
+            </summary>
+            <p className="mt-3 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
+                {answer}
+            </p>
+        </details>
     );
 }
 
