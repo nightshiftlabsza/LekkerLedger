@@ -5,7 +5,10 @@ import {
     EmployeeSchema,
     PayslipInput,
     PayslipInputSchema,
+    CustomLeaveType,
     LeaveRecord,
+    LeaveCarryOver,
+    LeaveCarryOverSchema,
     LeaveRecordSchema,
     EmployerSettings,
     EmployerSettingsSchema,
@@ -21,9 +24,11 @@ import {
 import { fetchVerifiedEntitlements } from "./billing-client";
 import { getStoredGoogleAccessToken } from "./google-session";
 import { normalizeEmployeeIdNumber } from "./employee-id";
+import { calculateAnnualLeaveSummary, getLeaveTypeLabel } from "./leave";
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
 const payslipStore = localforage.createInstance({ name: "LekkerLedger", storeName: "payslips" });
 const leaveStore = localforage.createInstance({ name: "LekkerLedger", storeName: "leave" });
+const leaveCarryOverStore = localforage.createInstance({ name: "LekkerLedger", storeName: "leave_carry_over" });
 const settingsStore = localforage.createInstance({ name: "LekkerLedger", storeName: "settings" });
 const auditStore = localforage.createInstance({ name: "LekkerLedger", storeName: "audit_logs" });
 const payPeriodStore = localforage.createInstance({ name: "LekkerLedger", storeName: "pay_periods" });
@@ -34,8 +39,8 @@ const householdStore = localforage.createInstance({ name: "LekkerLedger", storeN
 
 export const DEFAULT_HOUSEHOLD_ID = "default";
 const DEFAULT_HOUSEHOLD_NAME = "Main household";
-const BACKUP_SCHEMA_VERSION = "2.3";
-const SUPPORTED_BACKUP_VERSIONS = new Set(["1.0", "2.0", "2.1", "2.2", "2.3", 1, 2]);
+const BACKUP_SCHEMA_VERSION = "2.4";
+const SUPPORTED_BACKUP_VERSIONS = new Set(["1.0", "2.0", "2.1", "2.2", "2.3", "2.4", 1, 2]);
 const SECURE_TIME_CACHE_MS = 5 * 60 * 1000;
 const HOUSEHOLD_SETTINGS_KEY_PREFIX = "employer-settings::";
 
@@ -48,6 +53,7 @@ const HouseholdScopedSettingsSchema = EmployerSettingsSchema.pick({
     sdlNumber: true,
     phone: true,
     logoData: true,
+    customLeaveTypes: true,
 }).partial();
 
 type HouseholdScopedSettings = z.infer<typeof HouseholdScopedSettingsSchema>;
@@ -71,6 +77,7 @@ const BackupPayloadSchema = z.object({
     employees: z.array(EmployeeSchema).default([]),
     payslips: z.array(PayslipInputSchema).default([]),
     leave: z.array(LeaveRecordSchema).default([]),
+    leaveCarryOvers: z.array(LeaveCarryOverSchema).default([]),
     documents: z.array(DocumentMetaSchema).default([]),
     contracts: z.array(ContractSchema).default([]),
     uploadedDocuments: z.array(BackupUploadedDocumentSchema).default([]),
@@ -119,10 +126,13 @@ function buildDefaultSettings(overrides: Partial<EmployerSettings> = {}): Employ
         advancedMode: false,
         density: "comfortable",
         googleSyncEnabled: false,
+        autoBackupEnabled: false,
+        lastBackupTimestamp: undefined,
         googleAuthToken: undefined,
         piiObfuscationEnabled: true,
         installationId: "",
         usageHistory: [],
+        customLeaveTypes: [],
         ...overrides,
         proStatus: normalizedPlanId,
         billingCycle: inferredBillingCycle,
@@ -152,6 +162,7 @@ function getEmptyHouseholdScopedSettings(): HouseholdScopedSettings {
         sdlNumber: "",
         phone: "",
         logoData: "",
+        customLeaveTypes: [],
     };
 }
 
@@ -165,6 +176,7 @@ function extractHouseholdScopedSettings(settings: Partial<EmployerSettings> = {}
         sdlNumber: settings.sdlNumber ?? "",
         phone: settings.phone ?? "",
         logoData: settings.logoData ?? "",
+        customLeaveTypes: settings.customLeaveTypes ?? [],
     };
 }
 
@@ -431,13 +443,98 @@ export async function deletePayslip(id: string): Promise<void> {
     await notifyListeners();
 }
 
+async function getLeaveForEmployeeRaw(employeeId: string): Promise<LeaveRecord[]> {
+    const records: LeaveRecord[] = [];
+    await leaveStore.iterate<unknown, void>((value: unknown) => {
+        const decoded = decodeData<LeaveRecord>(value);
+        if (decoded.employeeId === employeeId) {
+            records.push(decoded);
+        }
+    });
+    return records.sort((a, b) => new Date(b.startDate || b.date).getTime() - new Date(a.startDate || a.date).getTime());
+}
+
+async function getLeaveCarryOversForEmployeeRaw(employeeId: string): Promise<LeaveCarryOver[]> {
+    const carryOvers: LeaveCarryOver[] = [];
+    await leaveCarryOverStore.iterate<unknown, void>((value: unknown) => {
+        const parsed = LeaveCarryOverSchema.safeParse(value);
+        if (parsed.success && parsed.data.employeeId === employeeId) {
+            carryOvers.push(parsed.data);
+        }
+    });
+    return carryOvers.sort((a, b) => new Date(a.fromCycleEnd).getTime() - new Date(b.fromCycleEnd).getTime());
+}
+
+function normaliseCustomLeaveTypes(customLeaveTypes: CustomLeaveType[]): CustomLeaveType[] {
+    return customLeaveTypes.map((type) => ({
+        ...type,
+        name: type.name.trim(),
+        note: type.note?.trim() ?? "",
+    }));
+}
+
+function applyLeaveTypeMetadata(record: LeaveRecord, customLeaveTypes: CustomLeaveType[]): LeaveRecord {
+    const label = getLeaveTypeLabel(record.type, customLeaveTypes, record.typeLabel);
+    const customType = customLeaveTypes.find((item) => item.id === record.type);
+    return {
+        ...record,
+        typeLabel: label,
+        isCustomType: customType ? true : record.isCustomType,
+        paid: customType ? customType.isPaid : record.paid,
+    };
+}
+
+async function synchronizeEmployeeLeaveLedger(employeeId: string, providedCustomLeaveTypes?: CustomLeaveType[]): Promise<void> {
+    const [employee, records, contracts, settings, existingCarryOvers] = await Promise.all([
+        getEmployee(employeeId),
+        getLeaveForEmployeeRaw(employeeId),
+        getContractsForEmployee(employeeId),
+        providedCustomLeaveTypes ? Promise.resolve(null) : getSettings(),
+        getLeaveCarryOversForEmployeeRaw(employeeId),
+    ]);
+
+    if (!employee?.startDate) return;
+
+    const customLeaveTypes = normaliseCustomLeaveTypes(providedCustomLeaveTypes ?? settings?.customLeaveTypes ?? []);
+    const updatedRecords = records.map((record) => applyLeaveTypeMetadata(record, customLeaveTypes));
+    const summary = calculateAnnualLeaveSummary(employee.startDate, updatedRecords, contracts, new Date());
+    const syncedRecords = summary.updatedRecords.map((record) => ({
+        ...applyLeaveTypeMetadata(record, customLeaveTypes),
+        householdId: record.householdId || employee.householdId || DEFAULT_HOUSEHOLD_ID,
+    }));
+
+    await Promise.all(syncedRecords.map(async (record) => {
+        await leaveStore.setItem(record.id, await encodeData(record));
+    }));
+
+    const existingIds = new Set(existingCarryOvers.map((carryOver) => carryOver.id));
+    const nextCarryOvers = summary.carryOvers.map((carryOver) => ({
+        ...carryOver,
+        id: `${employeeId}:${carryOver.fromCycleEnd}`,
+        householdId: employee.householdId || DEFAULT_HOUSEHOLD_ID,
+        employeeId,
+    }));
+
+    await Promise.all(nextCarryOvers.map(async (carryOver) => {
+        existingIds.delete(carryOver.id);
+        await leaveCarryOverStore.setItem(carryOver.id, carryOver);
+    }));
+
+    await Promise.all(Array.from(existingIds).map(async (id) => {
+        await leaveCarryOverStore.removeItem(id);
+    }));
+}
+
 export async function saveLeaveRecord(record: LeaveRecord): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
+    const settings = await getSettings();
+    const customLeaveTypes = normaliseCustomLeaveTypes(settings.customLeaveTypes ?? []);
     const normalized: LeaveRecord = {
-        ...record,
+        ...applyLeaveTypeMetadata(record, customLeaveTypes),
         householdId: record.householdId || activeHouseholdId,
     };
     await leaveStore.setItem(normalized.id, await encodeData(normalized));
+    await synchronizeEmployeeLeaveLedger(normalized.employeeId, customLeaveTypes);
     await logAuditEvent("CREATE_LEAVE_RECORD", `Saved leave record: ${normalized.type} for employee ${normalized.employeeId}`, {
         leaveId: normalized.id,
         householdId: normalized.householdId,
@@ -452,6 +549,9 @@ export async function deleteLeaveRecord(id: string): Promise<void> {
     const existing = await leaveStore.getItem<unknown>(id);
     const record = existing ? decodeData<LeaveRecord>(existing) : null;
     await leaveStore.removeItem(id);
+    if (record?.employeeId) {
+        await synchronizeEmployeeLeaveLedger(record.employeeId);
+    }
     await logAuditEvent("DELETE_LEAVE_RECORD", `Deleted leave record ID: ${id}`, {
         leaveId: id,
         employeeId: record?.employeeId,
@@ -461,17 +561,21 @@ export async function deleteLeaveRecord(id: string): Promise<void> {
 }
 
 export async function getLeaveForEmployee(employeeId: string): Promise<LeaveRecord[]> {
-    const records: LeaveRecord[] = [];
-    await leaveStore.iterate<unknown, void>((value: unknown) => {
-        const decoded = decodeData<LeaveRecord>(value);
-        if (decoded.employeeId === employeeId) records.push(decoded);
-    });
-    return records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    await synchronizeEmployeeLeaveLedger(employeeId);
+    return getLeaveForEmployeeRaw(employeeId);
+}
+
+export async function getLeaveCarryOversForEmployee(employeeId: string): Promise<LeaveCarryOver[]> {
+    await synchronizeEmployeeLeaveLedger(employeeId);
+    return getLeaveCarryOversForEmployeeRaw(employeeId);
 }
 
 export async function getAllLeaveRecords(): Promise<LeaveRecord[]> {
     const activeHouseholdId = await getActiveHouseholdId();
     const activeEmployeeIds = new Set((await getEmployees()).map((employee) => employee.id));
+    const settings = await getSettings();
+    const customLeaveTypes = normaliseCustomLeaveTypes(settings.customLeaveTypes ?? []);
+    await Promise.all(Array.from(activeEmployeeIds).map(async (employeeId) => synchronizeEmployeeLeaveLedger(employeeId, customLeaveTypes)));
     const records: LeaveRecord[] = [];
     await leaveStore.iterate<unknown, void>((value: unknown) => {
         const decoded = decodeData<LeaveRecord>(value);
@@ -556,6 +660,9 @@ export async function saveSettings(settings: EmployerSettings): Promise<void> {
 
     await settingsStore.setItem(SETTINGS_KEY, globalSettings);
     await settingsStore.setItem(getHouseholdSettingsKey(activeHouseholdId), householdSettings);
+    const employees = await getEmployees();
+    const customLeaveTypes = normaliseCustomLeaveTypes(normalized.customLeaveTypes ?? []);
+    await Promise.all(employees.map(async (employee) => synchronizeEmployeeLeaveLedger(employee.id, customLeaveTypes)));
     if (typeof window !== "undefined" && typeof window.localStorage?.setItem === "function") {
         window.localStorage.setItem("ll-density", globalSettings.density || "comfortable");
     }
@@ -660,7 +767,18 @@ export async function getInstallationId(): Promise<string> {
     return installationId || "unknown";
 }
 
-export async function exportData(): Promise<string> {
+export interface ExportDataOptions {
+    generatedRecordsSince?: Date | null;
+}
+
+function isWithinGeneratedExportWindow(recordDate: Date | string | number, generatedRecordsSince?: Date | null): boolean {
+    if (!generatedRecordsSince) return true;
+    const date = new Date(recordDate);
+    if (Number.isNaN(date.getTime())) return true;
+    return date >= generatedRecordsSince;
+}
+
+export async function exportData(options: ExportDataOptions = {}): Promise<string> {
     const households = await getHouseholds();
     const data: {
         version: string;
@@ -670,6 +788,7 @@ export async function exportData(): Promise<string> {
         employees: unknown[];
         payslips: unknown[];
         leave: unknown[];
+        leaveCarryOvers: unknown[];
         documents: unknown[];
         contracts: unknown[];
         uploadedDocuments: { id: string; mimeType: string; base64: string }[];
@@ -682,6 +801,7 @@ export async function exportData(): Promise<string> {
         employees: [],
         payslips: [],
         leave: [],
+        leaveCarryOvers: [],
         documents: [],
         contracts: [],
         uploadedDocuments: [],
@@ -689,13 +809,35 @@ export async function exportData(): Promise<string> {
     };
 
     await employeeStore.iterate((value) => { data.employees.push(decodeData(value)); });
-    await payslipStore.iterate((value) => { data.payslips.push(decodeData(value)); });
-    await leaveStore.iterate((value) => { data.leave.push(decodeData(value)); });
-    await documentStore.iterate((value) => { data.documents.push(decodeData(value)); });
-    await contractStore.iterate((value) => { data.contracts.push(decodeData(value)); });
+    await payslipStore.iterate((value) => {
+        const decoded = decodeData<PayslipInput>(value);
+        if (isWithinGeneratedExportWindow(decoded.payPeriodEnd, options.generatedRecordsSince)) {
+            data.payslips.push(decoded);
+        }
+    });
+    await leaveStore.iterate((value) => {
+        const decoded = decodeData<LeaveRecord>(value);
+        if (isWithinGeneratedExportWindow(decoded.endDate || decoded.startDate || decoded.date, options.generatedRecordsSince)) {
+            data.leave.push(decoded);
+        }
+    });
+    await leaveCarryOverStore.iterate((value) => { data.leaveCarryOvers.push(value); });
+    await documentStore.iterate((value) => {
+        const decoded = decodeData<DocumentMeta>(value);
+        if (decoded.source === "uploaded" || isWithinGeneratedExportWindow(decoded.createdAt, options.generatedRecordsSince)) {
+            data.documents.push(decoded);
+        }
+    });
+    await contractStore.iterate((value) => {
+        const decoded = decodeData<Contract>(value);
+        if (isWithinGeneratedExportWindow(decoded.updatedAt || decoded.createdAt, options.generatedRecordsSince)) {
+            data.contracts.push(decoded);
+        }
+    });
 
     for (const document of data.documents as DocumentMeta[]) {
         if (document.source !== "uploaded") continue;
+        if (document.driveFileId) continue;
         const blob = await documentFileStore.getItem<Blob>(document.id);
         if (!blob) continue;
         data.uploadedDocuments.push({
@@ -757,6 +899,7 @@ export async function importData(json: string): Promise<{ success: boolean; erro
         await Promise.all(parsed.data.employees.map(async (employee) => employeeStore.setItem(employee.id, await encodeData(employee))));
         await Promise.all(parsed.data.payslips.map(async (payslip) => payslipStore.setItem(payslip.id, await encodeData(payslip))));
         await Promise.all(parsed.data.leave.map(async (record) => leaveStore.setItem(record.id, await encodeData(record))));
+        await Promise.all(parsed.data.leaveCarryOvers.map(async (carryOver) => leaveCarryOverStore.setItem(carryOver.id, carryOver)));
         await Promise.all(parsed.data.documents.map(async (document) => documentStore.setItem(document.id, await encodeData(document))));
         await Promise.all(parsed.data.contracts.map(async (contract) => contractStore.setItem(contract.id, await encodeData(contract))));
         await Promise.all(parsed.data.uploadedDocuments.map(async (document) =>
@@ -788,6 +931,7 @@ export async function importData(json: string): Promise<{ success: boolean; erro
             employees: parsed.data.employees.length,
             payslips: parsed.data.payslips.length,
             leaveRecords: parsed.data.leave.length,
+            leaveCarryOvers: parsed.data.leaveCarryOvers.length,
             documents: parsed.data.documents.length,
             contracts: parsed.data.contracts.length,
         });
@@ -805,6 +949,7 @@ export async function resetAllData(): Promise<void> {
         employeeStore.clear(),
         payslipStore.clear(),
         leaveStore.clear(),
+        leaveCarryOverStore.clear(),
         settingsStore.clear(),
         payPeriodStore.clear(),
         documentStore.clear(),
@@ -904,6 +1049,11 @@ export async function getDocuments(): Promise<DocumentMeta[]> {
     return documents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
+export async function getDocumentMeta(id: string): Promise<DocumentMeta | null> {
+    const value = await documentStore.getItem<unknown>(id);
+    return value ? decodeData<DocumentMeta>(value) : null;
+}
+
 export async function saveDocumentMeta(doc: DocumentMeta): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
     const normalized = { ...doc, householdId: doc.householdId || activeHouseholdId };
@@ -921,9 +1071,23 @@ export async function saveDocumentFile(id: string, file: Blob): Promise<void> {
     await documentFileStore.setItem(id, file);
 }
 
-export async function getDocumentFile(id: string): Promise<Blob | null> {
+export async function getDocumentFile(id: string, options?: { accessToken?: string | null }): Promise<Blob | null> {
     const file = await documentFileStore.getItem<Blob>(id);
-    return file ?? null;
+    if (file) return file;
+
+    const metadata = await getDocumentMeta(id);
+    if (!metadata?.driveFileId || !options?.accessToken) return null;
+
+    try {
+        const { downloadVaultFileFromDrive } = await import("./google-drive");
+        const remoteFile = await downloadVaultFileFromDrive(options.accessToken, metadata.driveFileId);
+        if (!remoteFile) return null;
+        await saveDocumentFile(id, remoteFile);
+        return remoteFile;
+    } catch (error) {
+        console.error("Failed to fetch document from Google Drive", error);
+        return null;
+    }
 }
 
 export async function getContracts(): Promise<Contract[]> {

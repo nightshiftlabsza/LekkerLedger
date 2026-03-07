@@ -122,9 +122,10 @@ describe("storage safeguards", () => {
         const records = await getAllLeaveRecords();
         const backup = await exportData();
 
-        expect(records).toEqual([leaveRecord]);
+        expect(records).toEqual([{ ...leaveRecord, typeLabel: "Annual leave" }]);
         expect(backup).toContain('"leave"');
         expect(backup).toContain('"type": "annual"');
+        expect(backup).toContain('"typeLabel": "Annual leave"');
         expect(backup).toContain('"householdSettings"');
     });
 });

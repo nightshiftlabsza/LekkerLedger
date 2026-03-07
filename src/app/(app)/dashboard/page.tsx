@@ -17,7 +17,9 @@ import { CardSkeleton, StatSkeleton } from "@/components/ui/loading-skeleton";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getEmployees, getSettings, getCurrentPayPeriod, getDocuments, getLatestPayslip, subscribeToDataChanges } from "@/lib/storage";
+import { filterRecordsForArchiveWindow, isUploadedDocument } from "@/lib/archive";
 import { computeDashboardAlerts } from "@/lib/alerts";
+import { getUserPlan } from "@/lib/entitlements";
 import { Employee, PayPeriod, EmployerSettings, DocumentMeta, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { COMPLIANCE } from "@/lib/compliance-constants";
@@ -59,10 +61,14 @@ export default function DashboardPage() {
             }
 
             if (!active) return;
+            const plan = getUserPlan(s);
+            const visibleRecentDocs = filterRecordsForArchiveWindow(docs, plan, (doc) => doc.createdAt, {
+                alwaysVisible: isUploadedDocument,
+            }).visible;
             setEmployees(emps);
             setSettings(s);
             setCurrentPeriod(period);
-            setRecentDocs(docs.slice(0, 5));
+            setRecentDocs(visibleRecentDocs.slice(0, 5));
             setSummaries(results);
             setLoading(false);
         }

@@ -10,8 +10,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getEmployees, getPayslipsForEmployee, getSettings } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
+import { filterRecordsForArchiveWindow, getArchiveUpgradeHref } from "@/lib/archive";
 import { calculatePayslip } from "@/lib/calculator";
 import { track } from "@/lib/analytics";
+import { getUserPlan } from "@/lib/entitlements";
 
 export default function EmployeeHistoryPage() {
     const { id } = useParams<{ id: string }>();
@@ -62,6 +64,15 @@ export default function EmployeeHistoryPage() {
             active = false;
         };
     }, [id]);
+
+    const archivePlan = settings ? getUserPlan(settings) : null;
+    const archiveResult = React.useMemo(
+        () => archivePlan ? filterRecordsForArchiveWindow(payslips, archivePlan, (record) => record.payPeriodEnd) : { visible: payslips, hidden: [], hiddenCount: 0 },
+        [archivePlan, payslips],
+    );
+    const visiblePayslips = archiveResult.visible;
+    const archiveUpgradeHref = archivePlan ? getArchiveUpgradeHref(archivePlan.id) : "/upgrade";
+    const archiveUpgradeLabel = archivePlan?.id === "free" ? "Upgrade to Standard" : "Upgrade to Pro";
 
     const handleDownload = async (ps: PayslipInput) => {
         if (!employee || !settings) return;
@@ -126,15 +137,19 @@ export default function EmployeeHistoryPage() {
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
-                ) : payslips.length === 0 ? (
+                ) : visiblePayslips.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 animate-fade-in">
                         <div className="h-16 w-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(196,122,28,0.10)" }}>
                             <Clock className="h-8 w-8" style={{ color: "var(--primary)" }} />
                         </div>
                         <div className="space-y-1">
-                            <p className="font-bold text-lg" style={{ color: "var(--text)" }}>No payslips yet</p>
+                            <p className="font-bold text-lg" style={{ color: "var(--text)" }}>
+                                {archiveResult.hiddenCount > 0 ? "Older payslips are hidden on this plan" : "No payslips yet"}
+                            </p>
                             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                                Generate a payslip for {employee?.name} to start building a document archive.
+                                {archiveResult.hiddenCount > 0
+                                    ? "Upgrade to browse the full payslip archive here."
+                                    : `Generate a payslip for ${employee?.name} to start building a document archive.`}
                             </p>
                         </div>
                         {employee && (
@@ -148,9 +163,9 @@ export default function EmployeeHistoryPage() {
                 ) : (
                     <>
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">
-                            {payslips.length} payslip{payslips.length !== 1 ? "s" : ""} on record
+                            {visiblePayslips.length} payslip{visiblePayslips.length !== 1 ? "s" : ""} on record
                         </p>
-                        {payslips.map((ps, i) => {
+                        {visiblePayslips.map((ps, i) => {
                             const breakdown = calculatePayslip(ps);
                             return (
                                 <Card
@@ -208,6 +223,19 @@ export default function EmployeeHistoryPage() {
                                 Keep payslip records for at least 3 years. This archive is stored privately on your device.
                             </AlertDescription>
                         </Alert>
+                        {archiveResult.hiddenCount > 0 && (
+                            <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                        <p className="text-sm font-bold text-[var(--text)]">You have {archiveResult.hiddenCount} older payslip{archiveResult.hiddenCount === 1 ? "" : "s"}.</p>
+                                        <p className="text-sm text-[var(--text-muted)]">Upgrade to browse your full history here.</p>
+                                    </div>
+                                    <Link href={archiveUpgradeHref}>
+                                        <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{archiveUpgradeLabel}</Button>
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
             </main>

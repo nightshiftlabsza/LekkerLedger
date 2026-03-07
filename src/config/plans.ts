@@ -1,6 +1,21 @@
 export type PlanId = "free" | "standard" | "pro";
 export type BillingCycle = "monthly" | "yearly";
 
+export interface PlanFeatures {
+    driveSync: boolean;
+    leaveTracking: boolean;
+    documentsHub: boolean;
+    contractSignedCopyUpload: boolean;
+    vaultUploads: boolean;
+    autoBackup: boolean;
+    yearEndSummary: boolean;
+    fullHistoryExport: boolean;
+    contractGenerator: boolean;
+    ufilingExport: boolean;
+    roeDownloads: boolean;
+    multiHousehold: boolean;
+}
+
 export interface PlanConfig {
     id: PlanId;
     label: string;
@@ -14,18 +29,7 @@ export interface PlanConfig {
     maxActiveEmployees: number;
     maxHouseholds: number;
     archiveMonths: number;
-    driveSync: boolean;
-    leaveTracking: boolean;
-    documentsHub: boolean;
-    contractSignedCopyUpload: boolean;
-    vaultUploads: boolean;
-    autoBackup: boolean;
-    yearEndSummary: boolean;
-    fullHistoryExport: boolean;
-    contractGenerator: boolean;
-    ufilingExport: boolean;
-    roeDownloads: boolean;
-    multiHousehold: boolean;
+    features: PlanFeatures;
     description: string;
     bestFor: string;
     marketingBullets: string[];
@@ -49,18 +53,20 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         maxActiveEmployees: 1,
         maxHouseholds: 1,
         archiveMonths: 3,
-        driveSync: false,
-        leaveTracking: false,
-        documentsHub: true,
-        contractSignedCopyUpload: false,
-        vaultUploads: false,
-        autoBackup: false,
-        yearEndSummary: false,
-        fullHistoryExport: false,
-        contractGenerator: false,
-        ufilingExport: false,
-        roeDownloads: false,
-        multiHousehold: false,
+        features: {
+            driveSync: false,
+            leaveTracking: false,
+            documentsHub: true,
+            contractSignedCopyUpload: false,
+            vaultUploads: false,
+            autoBackup: false,
+            yearEndSummary: false,
+            fullHistoryExport: false,
+            contractGenerator: false,
+            ufilingExport: false,
+            roeDownloads: false,
+            multiHousehold: false,
+        },
         description: "Basic payslips for one worker, with no monthly or yearly billing.",
         bestFor: "Basic payslips for one worker.",
         marketingBullets: [
@@ -83,18 +89,20 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         maxActiveEmployees: 3,
         maxHouseholds: 1,
         archiveMonths: 12,
-        driveSync: true,
-        leaveTracking: true,
-        documentsHub: true,
-        contractSignedCopyUpload: true,
-        vaultUploads: false,
-        autoBackup: false,
-        yearEndSummary: false,
-        fullHistoryExport: false,
-        contractGenerator: true,
-        ufilingExport: true,
-        roeDownloads: true,
-        multiHousehold: false,
+        features: {
+            driveSync: true,
+            leaveTracking: true,
+            documentsHub: true,
+            contractSignedCopyUpload: true,
+            vaultUploads: false,
+            autoBackup: false,
+            yearEndSummary: false,
+            fullHistoryExport: false,
+            contractGenerator: true,
+            ufilingExport: true,
+            roeDownloads: true,
+            multiHousehold: false,
+        },
         description: "Proper records for most households, with paperwork, backup, and room for up to 3 employees.",
         bestFor: "For most households.",
         marketingBullets: [
@@ -118,18 +126,20 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         maxActiveEmployees: Number.POSITIVE_INFINITY,
         maxHouseholds: Number.POSITIVE_INFINITY,
         archiveMonths: 60,
-        driveSync: true,
-        leaveTracking: true,
-        documentsHub: true,
-        contractSignedCopyUpload: true,
-        vaultUploads: true,
-        autoBackup: true,
-        yearEndSummary: true,
-        fullHistoryExport: true,
-        contractGenerator: true,
-        ufilingExport: true,
-        roeDownloads: true,
-        multiHousehold: true,
+        features: {
+            driveSync: true,
+            leaveTracking: true,
+            documentsHub: true,
+            contractSignedCopyUpload: true,
+            vaultUploads: true,
+            autoBackup: true,
+            yearEndSummary: true,
+            fullHistoryExport: true,
+            contractGenerator: true,
+            ufilingExport: true,
+            roeDownloads: true,
+            multiHousehold: true,
+        },
         description: "More headroom and control for larger households, multiple homes, or helping manage records across more than one household.",
         bestFor: "For multiple households or more control.",
         marketingBullets: [
@@ -146,6 +156,15 @@ export const PLANS: Record<PlanId, PlanConfig> = {
 export function getPlanPrice(plan: PlanId | PlanConfig, cycle: BillingCycle): number | null {
     const resolvedPlan = typeof plan === "string" ? PLANS[plan] : plan;
     return resolvedPlan.pricing[cycle] ?? null;
+}
+
+export function getPlanFeatures(plan: PlanId | PlanConfig): PlanFeatures {
+    const resolvedPlan = typeof plan === "string" ? PLANS[plan] : plan;
+    return resolvedPlan.features;
+}
+
+export function hasPlanFeature(plan: PlanId | PlanConfig, feature: keyof PlanFeatures): boolean {
+    return getPlanFeatures(plan)[feature];
 }
 
 export function getPlanPricePresentation(plan: PlanId | PlanConfig, cycle: BillingCycle): PlanPricePresentation {

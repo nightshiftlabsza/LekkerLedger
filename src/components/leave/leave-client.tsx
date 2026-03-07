@@ -9,9 +9,11 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable } from "@/components/ui/data-table";
 import { FeatureGateCard } from "@/components/ui/feature-gate-card";
 import { getAllLeaveRecords, getContractsForEmployee, getCurrentPayPeriod, getEmployees, getSettings, subscribeToDataChanges } from "@/lib/storage";
-import { formatLeaveRange, getLeaveAllowanceForType } from "@/lib/leave";
-import { Contract, Employee, LeaveRecord, PayPeriod } from "@/lib/schema";
-import { canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
+import { filterRecordsForArchiveWindow, getArchiveUpgradeHref } from "@/lib/archive";
+import { formatLeaveRange, formatLeaveValue, getLeaveAllowanceForType, getLeaveTypeLabel } from "@/lib/leave";
+import { Contract, CustomLeaveType, Employee, LeaveRecord, PayPeriod } from "@/lib/schema";
+import { canBrowseLeaveHistory, canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
+import { PLANS, type PlanConfig } from "@/config/plans";
 
 export function LeaveClient() {
     const [isClient, setIsClient] = React.useState(false);
@@ -20,21 +22,22 @@ export function LeaveClient() {
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [currentPeriod, setCurrentPeriod] = React.useState<PayPeriod | null>(null);
     const [contractsByEmployee, setContractsByEmployee] = React.useState<Record<string, Contract[]>>({});
+    const [customLeaveTypes, setCustomLeaveTypes] = React.useState<CustomLeaveType[]>([]);
     const [leaveTrackingEnabled, setLeaveTrackingEnabled] = React.useState(false);
+    const [leaveHistoryEnabled, setLeaveHistoryEnabled] = React.useState(true);
+    const [plan, setPlan] = React.useState<PlanConfig>(PLANS.free);
 
     React.useEffect(() => {
         setIsClient(true);
         async function load() {
             try {
                 const settings = await getSettings();
-                const plan = getUserPlan(settings);
-                const leaveEnabled = canUseLeaveTracking(plan);
+                const resolvedPlan = getUserPlan(settings);
+                const leaveEnabled = canUseLeaveTracking(resolvedPlan);
                 setLeaveTrackingEnabled(leaveEnabled);
-
-                if (!leaveEnabled) {
-                    setLoading(false);
-                    return;
-                }
+                setLeaveHistoryEnabled(canBrowseLeaveHistory(resolvedPlan));
+                setPlan(resolvedPlan);
+                setCustomLeaveTypes(settings.customLeaveTypes ?? []);
 
                 const [recs, emps, cp] = await Promise.all([
                     getAllLeaveRecords(),
@@ -57,11 +60,20 @@ export function LeaveClient() {
     }, []);
 
     const employeeName = (id: string) => employees.find((employee) => employee.id === id)?.name ?? "Unknown";
-    const annualTaken = records.filter((record) => record.type === "annual").reduce((sum, record) => sum + record.days, 0);
+    const visibleRecordsResult = React.useMemo(
+        () => filterRecordsForArchiveWindow(records, plan, (record) => record.endDate || record.startDate || record.date),
+        [plan, records],
+    );
+    const visibleRecords = visibleRecordsResult.visible;
+    const archiveUpgradeHref = getArchiveUpgradeHref(plan.id);
+    const archiveUpgradeLabel = plan.id === "free" ? "Upgrade to Standard" : "Upgrade to Pro";
+    const annualTaken = visibleRecords.filter((record) => record.type === "annual").reduce((sum, record) => sum + record.days, 0);
     const selectedEmployee = employees[0];
-    const selectedEmployeeRecords = selectedEmployee ? records.filter((record) => record.employeeId === selectedEmployee.id) : [];
+    const selectedEmployeeRecords = selectedEmployee ? visibleRecords.filter((record) => record.employeeId === selectedEmployee.id) : [];
     const selectedEmployeeContracts = selectedEmployee ? contractsByEmployee[selectedEmployee.id] || [] : [];
-    const annualBalance = selectedEmployee ? getLeaveAllowanceForType("annual", selectedEmployeeRecords, selectedEmployeeContracts) : null;
+    const annualBalance = selectedEmployee
+        ? getLeaveAllowanceForType("annual", selectedEmployeeRecords, selectedEmployeeContracts, new Date(), customLeaveTypes, selectedEmployee.startDate)
+        : null;
 
     if (!isClient || loading) {
         return (
@@ -75,11 +87,11 @@ export function LeaveClient() {
         );
     }
 
-    if (!leaveTrackingEnabled) {
+    if (!leaveHistoryEnabled) {
         return (
             <FeatureGateCard
-                title="Leave tracking is available on Standard and Pro"
-                description="Free keeps payroll simple for one worker. Upgrade when you want dedicated annual, sick, and family leave records."
+                title="Leave history is not available right now"
+                description="Reconnect your records or upgrade to browse leave history alongside payroll."
             />
         );
     }
@@ -107,7 +119,7 @@ export function LeaveClient() {
                 </Card>
                 <Card className="glass-panel border-none">
                     <CardContent className="p-6">
-                        <p className="text-3xl font-black text-[var(--text)] mb-1">{annualBalance?.remaining ?? 0}</p>
+                        <p className="text-3xl font-black text-[var(--text)] mb-1">{formatLeaveValue(annualBalance?.remaining ?? 0)}</p>
                         <p className="type-overline text-[var(--text-muted)]">
                             {selectedEmployee ? `${selectedEmployee.name.split(" ")[0]}'s annual days left` : "Annual days remaining"}
                         </p>
@@ -115,11 +127,27 @@ export function LeaveClient() {
                 </Card>
                 <Card className="glass-panel border-none">
                     <CardContent className="p-6">
-                        <p className="text-3xl font-black text-[var(--text)] mb-1">{records.length}</p>
+                        <p className="text-3xl font-black text-[var(--text)] mb-1">{visibleRecords.length}</p>
                         <p className="type-overline text-[var(--text-muted)]">Leave records on file</p>
                     </CardContent>
                 </Card>
             </div>
+
+            {!leaveTrackingEnabled && (
+                <Card className="border border-[var(--primary)]/20 bg-[var(--primary)]/8 rounded-2xl">
+                    <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="type-body-bold text-[var(--text)]">Leave browsing is available, but new leave entries start on Standard.</p>
+                            <p className="text-xs text-[var(--text-muted)]">Upgrade when you want dedicated annual, sick, and family leave records.</p>
+                        </div>
+                        <Link href="/upgrade?plan=standard">
+                            <Button size="sm" className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">
+                                Upgrade to Standard
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+            )}
 
             {currentPeriod && (
                 <Card className="border border-[var(--primary)]/20 bg-[var(--primary)]/8 rounded-2xl">
@@ -133,7 +161,7 @@ export function LeaveClient() {
                                     {currentPeriod.name} payroll is still in progress
                                 </p>
                                 <p className="text-xs text-[var(--text-muted)]">
-                                    Leave recorded here will flow into this month&apos;s payroll before you finalise it.
+                                    Leave recorded here will flow into this month's payroll before you finalise it.
                                 </p>
                             </div>
                         </div>
@@ -152,20 +180,30 @@ export function LeaveClient() {
                         <h2 className="type-h3 text-[var(--text)]">Leave history</h2>
                         <p className="text-sm text-[var(--text-muted)]">Keep one clean record of annual, sick, and family leave.</p>
                     </div>
-                    <Link href="/leave/new">
-                        <Button size="sm" className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] h-9">
-                            <Plus className="h-4 w-4" /> Add leave
-                        </Button>
-                    </Link>
+                    {leaveTrackingEnabled ? (
+                        <Link href="/leave/new">
+                            <Button size="sm" className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] h-9">
+                                <Plus className="h-4 w-4" /> Add leave
+                            </Button>
+                        </Link>
+                    ) : (
+                        <Link href="/upgrade?plan=standard">
+                            <Button size="sm" variant="outline" className="gap-2 h-9 font-bold">
+                                <Plus className="h-4 w-4" /> Upgrade to add leave
+                            </Button>
+                        </Link>
+                    )}
                 </div>
 
-                {records.length === 0 ? (
+                {visibleRecords.length === 0 ? (
                     <div className="py-12 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--surface-1)]">
-                        <p className="text-sm font-bold text-[var(--text-muted)]">No leave records yet.</p>
+                        <p className="text-sm font-bold text-[var(--text-muted)]">
+                            {visibleRecordsResult.hiddenCount > 0 ? "Older leave records are hidden on this plan." : "No leave records yet."}
+                        </p>
                     </div>
                 ) : (
                     <DataTable<LeaveRecord>
-                        data={records}
+                        data={visibleRecords}
                         keyField={(row) => row.id}
                         columns={[
                             {
@@ -176,7 +214,7 @@ export function LeaveClient() {
                             {
                                 key: "type",
                                 label: "Type",
-                                render: (row) => <span className="type-body text-[var(--text-muted)]">{row.type === "family" ? "Family responsibility" : `${row.type.charAt(0).toUpperCase()}${row.type.slice(1)} leave`}</span>,
+                                render: (row) => <span className="type-body text-[var(--text-muted)]">{getLeaveTypeLabel(row.type, customLeaveTypes, row.typeLabel)}</span>,
                             },
                             {
                                 key: "range",
@@ -200,6 +238,22 @@ export function LeaveClient() {
                             },
                         ]}
                     />
+                )}
+
+                {visibleRecordsResult.hiddenCount > 0 && (
+                    <Card className="border border-[var(--primary)]/20 bg-[var(--primary)]/8 rounded-2xl">
+                        <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p className="type-body-bold text-[var(--text)]">You have {visibleRecordsResult.hiddenCount} older leave record{visibleRecordsResult.hiddenCount === 1 ? "" : "s"}.</p>
+                                <p className="text-xs text-[var(--text-muted)]">Upgrade to browse your full history in the app.</p>
+                            </div>
+                            <Link href={archiveUpgradeHref}>
+                                <Button size="sm" className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">
+                                    {archiveUpgradeLabel}
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
                 )}
             </div>
         </div>

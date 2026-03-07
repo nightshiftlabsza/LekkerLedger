@@ -15,8 +15,8 @@ interface FeatureGateCardProps {
 export function FeatureGateCard({
     title,
     description,
-    ctaLabel = "Compare plans",
-    href = "/pricing",
+    ctaLabel = "Review plans",
+    href = "/upgrade",
     eyebrow = "Standard and Pro",
     benefits = [
         "Optional Google Drive backup",

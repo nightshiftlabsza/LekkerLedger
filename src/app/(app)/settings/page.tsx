@@ -17,11 +17,12 @@ import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/components/ui/page-header";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
 import { getSettings, saveSettings, resetAllData, exportData, importData, getEmployees } from "@/lib/storage";
-import { EmployerSettings, Employee } from "@/lib/schema";
+import { CustomLeaveType, EmployerSettings, Employee } from "@/lib/schema";
 import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
 import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "@/src/config/plans";
-import { getUserPlan, canUseDriveSync } from "../../../lib/entitlements";
+import { getArchiveCutoffDate, getArchiveUpgradeHref } from "@/lib/archive";
+import { canUseAdvancedLeaveFeatures, canUseAutoBackup, canUseDriveSync, canUseFullHistoryExport, getUserPlan } from "../../../lib/entitlements";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 
@@ -37,6 +38,11 @@ function SettingsContent() {
     const [wipeConfirmOpen, setWipeConfirmOpen] = React.useState(false);
     const [wipeConfirmText, setWipeConfirmText] = React.useState("");
     const [wiping, setWiping] = React.useState(false);
+    const [editingLeaveTypeId, setEditingLeaveTypeId] = React.useState<string | null>(null);
+    const [leaveTypeName, setLeaveTypeName] = React.useState("");
+    const [leaveTypeAllowance, setLeaveTypeAllowance] = React.useState("");
+    const [leaveTypePaid, setLeaveTypePaid] = React.useState(true);
+    const [leaveTypeNote, setLeaveTypeNote] = React.useState("");
     const savedTimerRef = React.useRef<number | null>(null);
     const { theme, setTheme, setDensity } = useUI();
 
@@ -87,6 +93,73 @@ function SettingsContent() {
             savedTimerRef.current = null;
         }, 2000);
     };
+
+    const userPlan = getUserPlan(settings);
+    const advancedLeaveEnabled = canUseAdvancedLeaveFeatures(userPlan);
+    const customLeaveTypes = settings.customLeaveTypes ?? [];
+
+    const resetLeaveTypeForm = React.useCallback(() => {
+        setEditingLeaveTypeId(null);
+        setLeaveTypeName("");
+        setLeaveTypeAllowance("");
+        setLeaveTypePaid(true);
+        setLeaveTypeNote("");
+    }, []);
+
+    const startEditingLeaveType = React.useCallback((leaveType: CustomLeaveType) => {
+        setEditingLeaveTypeId(leaveType.id);
+        setLeaveTypeName(leaveType.name);
+        setLeaveTypeAllowance(leaveType.annualAllowance === undefined ? "" : String(leaveType.annualAllowance));
+        setLeaveTypePaid(leaveType.isPaid);
+        setLeaveTypeNote(leaveType.note ?? "");
+    }, []);
+
+    const handleSaveLeaveType = React.useCallback(async () => {
+        if (!settings || !advancedLeaveEnabled) return;
+
+        const trimmedName = leaveTypeName.trim();
+        if (!trimmedName) return;
+
+        const now = new Date().toISOString();
+        const annualAllowance = leaveTypeAllowance.trim() === "" ? undefined : Number(leaveTypeAllowance);
+        const nextType: CustomLeaveType = {
+            id: editingLeaveTypeId ?? crypto.randomUUID(),
+            name: trimmedName.slice(0, 40),
+            annualAllowance: annualAllowance !== undefined && Number.isFinite(annualAllowance) ? annualAllowance : undefined,
+            isPaid: leaveTypePaid,
+            note: leaveTypeNote.trim().slice(0, 200),
+            createdAt: editingLeaveTypeId
+                ? customLeaveTypes.find((type) => type.id === editingLeaveTypeId)?.createdAt ?? now
+                : now,
+            updatedAt: now,
+        };
+
+        const nextCustomLeaveTypes = editingLeaveTypeId
+            ? customLeaveTypes.map((type) => (type.id === editingLeaveTypeId ? nextType : type))
+            : [...customLeaveTypes, nextType];
+
+        await handleSave({ customLeaveTypes: nextCustomLeaveTypes });
+        resetLeaveTypeForm();
+    }, [
+        advancedLeaveEnabled,
+        customLeaveTypes,
+        editingLeaveTypeId,
+        handleSave,
+        leaveTypeAllowance,
+        leaveTypeName,
+        leaveTypeNote,
+        leaveTypePaid,
+        resetLeaveTypeForm,
+        settings,
+    ]);
+
+    const handleDeleteLeaveType = React.useCallback(async (leaveTypeId: string) => {
+        if (!settings || !advancedLeaveEnabled) return;
+        await handleSave({ customLeaveTypes: customLeaveTypes.filter((type) => type.id !== leaveTypeId) });
+        if (editingLeaveTypeId === leaveTypeId) {
+            resetLeaveTypeForm();
+        }
+    }, [advancedLeaveEnabled, customLeaveTypes, editingLeaveTypeId, handleSave, resetLeaveTypeForm, settings]);
 
     if (loading || !settings) {
         return (
@@ -259,12 +332,149 @@ function SettingsContent() {
                                 </Button>
                             </Card>
                         </section>
+
+                        <section className="space-y-4">
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Leave types</h2>
+                            {advancedLeaveEnabled ? (
+                                <Card className="glass-panel border-none p-5 space-y-5">
+                                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
+                                        <p className="text-sm font-bold text-[var(--text)]">Default leave types</p>
+                                        <div className="mt-3 grid gap-3 md:grid-cols-3">
+                                            {["Annual", "Sick", "Family Responsibility"].map((label) => (
+                                                <div key={label} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3">
+                                                    <p className="text-sm font-bold text-[var(--text)]">{label}</p>
+                                                    <p className="mt-1 text-xs text-[var(--text-muted)]">Default type</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 space-y-4">
+                                        <div>
+                                            <p className="text-sm font-bold text-[var(--text)]">{editingLeaveTypeId ? "Edit custom leave type" : "Add leave type"}</p>
+                                            <p className="mt-1 text-xs text-[var(--text-muted)]">Use this for arrangements like unpaid leave, study leave, or other categories you want to track.</p>
+                                        </div>
+
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="leave-type-name">Name</Label>
+                                                <Input
+                                                    id="leave-type-name"
+                                                    value={leaveTypeName}
+                                                    maxLength={40}
+                                                    onChange={(e) => setLeaveTypeName(e.target.value)}
+                                                    placeholder="e.g. Study leave"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="leave-type-allowance">Annual allowance in days (optional)</Label>
+                                                <Input
+                                                    id="leave-type-allowance"
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.5"
+                                                    value={leaveTypeAllowance}
+                                                    onChange={(e) => setLeaveTypeAllowance(e.target.value)}
+                                                    placeholder="Leave blank for unlimited"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3">
+                                            <div>
+                                                <p className="text-sm font-bold text-[var(--text)]">Paid leave</p>
+                                                <p className="text-xs text-[var(--text-muted)]">This is a label for your records and any later payslip context.</p>
+                                            </div>
+                                            <Switch checked={leaveTypePaid} onCheckedChange={setLeaveTypePaid} />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="leave-type-note">Short note (optional)</Label>
+                                            <textarea
+                                                id="leave-type-note"
+                                                maxLength={200}
+                                                value={leaveTypeNote}
+                                                onChange={(e) => setLeaveTypeNote(e.target.value)}
+                                                className="min-h-[110px] w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 text-sm text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--focus)]/20"
+                                                placeholder="e.g. Agreed 3 days per year for church conference"
+                                            />
+                                        </div>
+
+                                        <div className="flex flex-col gap-3 sm:flex-row">
+                                            <Button
+                                                onClick={() => void handleSaveLeaveType()}
+                                                disabled={!leaveTypeName.trim() || saving}
+                                                className="flex-1 bg-[var(--primary)] text-white font-bold"
+                                            >
+                                                {editingLeaveTypeId ? "Save leave type" : "Add leave type"}
+                                            </Button>
+                                            {editingLeaveTypeId && (
+                                                <Button variant="outline" onClick={resetLeaveTypeForm} className="flex-1 font-bold">
+                                                    Cancel
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <p className="text-sm font-bold text-[var(--text)]">Custom leave types</p>
+                                        {customLeaveTypes.length === 0 ? (
+                                            <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-1)] px-4 py-6 text-sm text-[var(--text-muted)]">
+                                                No custom leave types yet.
+                                            </div>
+                                        ) : (
+                                            customLeaveTypes.map((leaveType) => (
+                                                <div key={leaveType.id} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+                                                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                                        <div className="space-y-1">
+                                                            <p className="text-sm font-bold text-[var(--text)]">{leaveType.name}</p>
+                                                            <p className="text-xs text-[var(--text-muted)]">
+                                                                {leaveType.annualAllowance === undefined ? "Unlimited / uncapped" : `${leaveType.annualAllowance} days per year`} · {leaveType.isPaid ? "Paid" : "Unpaid"}
+                                                            </p>
+                                                            {leaveType.note && (
+                                                                <p className="text-xs text-[var(--text-muted)]">{leaveType.note}</p>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <Button variant="outline" size="sm" onClick={() => startEditingLeaveType(leaveType)} className="font-bold">
+                                                                Edit
+                                                            </Button>
+                                                            <Button variant="outline" size="sm" onClick={() => void handleDeleteLeaveType(leaveType.id)} className="font-bold text-rose-700 border-rose-200 hover:bg-rose-50">
+                                                                Delete
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </Card>
+                            ) : (
+                                <Card className="glass-panel border-none p-5 space-y-4">
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">Pro</p>
+                                        <p className="mt-2 text-lg font-black text-[var(--text)]">Custom leave types</p>
+                                        <p className="mt-1 text-sm text-[var(--text-muted)]">
+                                            Add categories like unpaid leave, study leave, or compassionate leave, while keeping the three default types fixed.
+                                        </p>
+                                    </div>
+                                    <Link href="/upgrade" className="block">
+                                        <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
+                                            Upgrade to Pro
+                                        </Button>
+                                    </Link>
+                                </Card>
+                            )}
+                        </section>
                     </div>
                 )}
 
                 {activeTab === "storage" && (
                     <div className="space-y-6">
-                        <GoogleSync driveSyncAllowed={canUseDriveSync(getUserPlan(settings))} />
+                        <GoogleSync
+                            driveSyncAllowed={canUseDriveSync(getUserPlan(settings))}
+                            autoBackupAllowed={canUseAutoBackup(getUserPlan(settings))}
+                        />
 
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Storage Rules</h2>
@@ -487,6 +697,33 @@ function SettingsContent() {
 
                 {activeTab === "exports" && (
                     <div className="space-y-6">
+                        {(() => {
+                            const plan = getUserPlan(settings);
+                            const fullHistoryExport = canUseFullHistoryExport(plan);
+                            return (
+                                <section className="space-y-4">
+                                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">History Export</h2>
+                                    <Card className="glass-panel border-none p-5 space-y-4">
+                                        <div>
+                                            <p className="text-sm font-bold text-[var(--text)]">
+                                                {fullHistoryExport ? "This export includes your full generated history." : `This export includes the latest ${plan.archiveMonths} months of generated records.`}
+                                            </p>
+                                            <p className="mt-1 text-xs text-[var(--text-muted)]">
+                                                Uploaded files are kept visible in the app on all plans. Pro unlocks the full generated history in one export.
+                                            </p>
+                                        </div>
+                                        {!fullHistoryExport && (
+                                            <Link href={getArchiveUpgradeHref(plan.id)} className="block">
+                                                <Button variant="outline" className="w-full font-bold">
+                                                    Upgrade to Pro for full-history export
+                                                </Button>
+                                            </Link>
+                                        )}
+                                    </Card>
+                                </section>
+                            );
+                        })()}
+
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Raw Data Backup & Restore</h2>
                             <Card className="glass-panel border-none p-5 space-y-4">
@@ -514,7 +751,10 @@ function SettingsContent() {
                                     <Button variant="outline" className="flex-1 gap-2 text-xs h-12 font-black rounded-xl border-[var(--border)]"
                                         onClick={async () => {
                                             try {
-                                                const json = await exportData();
+                                                const plan = getUserPlan(settings);
+                                                const json = await exportData({
+                                                    generatedRecordsSince: canUseFullHistoryExport(plan) ? null : getArchiveCutoffDate(plan),
+                                                });
                                                 const blob = new Blob([json], { type: "application/json" });
                                                 const url = URL.createObjectURL(blob);
                                                 const a = document.createElement("a"); a.href = url;

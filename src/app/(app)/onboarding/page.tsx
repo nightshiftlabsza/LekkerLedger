@@ -34,9 +34,11 @@ export default function OnboardingPage() {
         advancedMode: false,
         density: "comfortable",
         googleSyncEnabled: false,
+        autoBackupEnabled: false,
         piiObfuscationEnabled: true,
         installationId: "",
-        usageHistory: []
+        usageHistory: [],
+        customLeaveTypes: [],
     });
 
     React.useEffect(() => {

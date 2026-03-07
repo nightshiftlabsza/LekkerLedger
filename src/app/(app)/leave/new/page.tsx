@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { getContractsForEmployee, getEmployees, getLeaveForEmployee, saveLeaveRecord } from "@/lib/storage";
-import { estimateLeaveDays, getLeaveAllowanceForType } from "@/lib/leave";
-import { Contract, Employee, LeaveRecord, LeaveType } from "@/lib/schema";
+import { getContractsForEmployee, getEmployees, getLeaveForEmployee, getSettings, saveLeaveRecord } from "@/lib/storage";
+import { calculateAnnualLeaveSummary, estimateLeaveDays, formatLeaveValue, getLeaveAllowanceForType, getLeaveTypeLabel } from "@/lib/leave";
+import { canUseAdvancedLeaveFeatures, getUserPlan } from "@/lib/entitlements";
+import { Contract, CustomLeaveType, Employee, LeaveRecord, LeaveType } from "@/lib/schema";
 
 type LeaveFormData = {
     employeeId: string;
@@ -22,11 +23,11 @@ type LeaveFormData = {
     allowOverrun: boolean;
 };
 
-const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
+const LEAVE_TYPE_LABELS = {
     annual: "Annual leave",
     sick: "Sick leave",
     family: "Family responsibility",
-};
+} as const;
 
 function toIsoDate(date: Date) {
     return format(date, "yyyy-MM-dd");
@@ -123,6 +124,8 @@ function NewLeaveContent() {
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [leaveRecords, setLeaveRecords] = React.useState<Record<string, LeaveRecord[]>>({});
     const [contractsByEmployee, setContractsByEmployee] = React.useState<Record<string, Contract[]>>({});
+    const [customLeaveTypes, setCustomLeaveTypes] = React.useState<CustomLeaveType[]>([]);
+    const [advancedLeaveEnabled, setAdvancedLeaveEnabled] = React.useState(false);
     const [formData, setFormData] = React.useState<LeaveFormData>({
         employeeId: preselectedEmpId || "",
         type: "annual",
@@ -137,15 +140,18 @@ function NewLeaveContent() {
     React.useEffect(() => {
         let active = true;
         async function load() {
-            const emps = await getEmployees();
+            const [emps, settings] = await Promise.all([getEmployees(), getSettings()]);
             const selectedEmployeeId = preselectedEmpId || emps[0]?.id || "";
             const leavePairs = await Promise.all(emps.map(async (employee) => [employee.id, await getLeaveForEmployee(employee.id)] as const));
             const contractPairs = await Promise.all(emps.map(async (employee) => [employee.id, await getContractsForEmployee(employee.id)] as const));
 
             if (!active) return;
+            const plan = getUserPlan(settings);
             setEmployees(emps);
             setLeaveRecords(Object.fromEntries(leavePairs));
             setContractsByEmployee(Object.fromEntries(contractPairs));
+            setCustomLeaveTypes(settings.customLeaveTypes ?? []);
+            setAdvancedLeaveEnabled(canUseAdvancedLeaveFeatures(plan));
             setFormData((current) => ({
                 ...current,
                 employeeId: current.employeeId || selectedEmployeeId,
@@ -170,8 +176,38 @@ function NewLeaveContent() {
     const selectedEmployee = employees.find((employee) => employee.id === formData.employeeId);
     const selectedRecords = leaveRecords[formData.employeeId] || [];
     const selectedContracts = contractsByEmployee[formData.employeeId] || [];
-    const leaveBalance = getLeaveAllowanceForType(formData.type, selectedRecords, selectedContracts, parseISO(formData.startDate));
-    const exceedsAllowance = formData.days > Math.max(leaveBalance.remaining, 0);
+    const availableLeaveTypes = React.useMemo(() => {
+        const baseTypes = [
+            { id: "annual", label: LEAVE_TYPE_LABELS.annual },
+            { id: "sick", label: LEAVE_TYPE_LABELS.sick },
+            { id: "family", label: LEAVE_TYPE_LABELS.family },
+        ];
+
+        if (!advancedLeaveEnabled) {
+            return baseTypes;
+        }
+
+        return [
+            ...baseTypes,
+            ...customLeaveTypes.map((type) => ({
+                id: type.id,
+                label: type.name,
+            })),
+        ];
+    }, [advancedLeaveEnabled, customLeaveTypes]);
+    const annualSummary = selectedEmployee?.startDate
+        ? calculateAnnualLeaveSummary(selectedEmployee.startDate, selectedRecords, selectedContracts, parseISO(formData.startDate))
+        : null;
+    const leaveBalance = getLeaveAllowanceForType(
+        formData.type,
+        selectedRecords,
+        selectedContracts,
+        parseISO(formData.startDate),
+        customLeaveTypes,
+        selectedEmployee?.startDate
+    );
+    const exceedsAllowance = Number.isFinite(leaveBalance.remaining) && formData.days > Math.max(leaveBalance.remaining, 0);
+    const customType = customLeaveTypes.find((type) => type.id === formData.type);
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -190,6 +226,9 @@ function NewLeaveContent() {
                 startDate: formData.startDate,
                 endDate: formData.endDate,
                 exceedsAllowance,
+                typeLabel: getLeaveTypeLabel(formData.type, customLeaveTypes),
+                isCustomType: Boolean(customType),
+                paid: customType?.isPaid,
                 note: formData.note,
             };
             await saveLeaveRecord(record);
@@ -256,15 +295,28 @@ function NewLeaveContent() {
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
                                     required
                                 >
-                                    <option value="annual">Annual leave</option>
-                                    <option value="sick">Sick leave</option>
-                                    <option value="family">Family responsibility</option>
+                                    {availableLeaveTypes.map((type) => (
+                                        <option key={type.id} value={type.id}>
+                                            {type.label}
+                                        </option>
+                                    ))}
                                 </select>
+                                {!advancedLeaveEnabled && (
+                                    <p className="mt-2 text-xs text-[var(--text-muted)]">Custom leave types are available on Pro.</p>
+                                )}
                             </div>
                             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Remaining now</p>
-                                <p className="mt-2 text-2xl font-black text-[var(--text)]">{leaveBalance.remaining}</p>
-                                <p className="text-xs text-[var(--text-muted)]">{LEAVE_TYPE_LABELS[formData.type]} days left before this entry</p>
+                                <p className="mt-2 text-2xl font-black text-[var(--text)]">{formatLeaveValue(leaveBalance.remaining)}</p>
+                                <p className="text-xs text-[var(--text-muted)]">{getLeaveTypeLabel(formData.type, customLeaveTypes)} left before this entry</p>
+                                {formData.type === "annual" && advancedLeaveEnabled && (annualSummary?.remainingCarryOver ?? 0) > 0 && (
+                                    <p className="mt-2 text-xs text-[var(--text-muted)]">
+                                        {formatLeaveValue(annualSummary?.remainingCarryOver ?? 0)} carried-over day{annualSummary?.remainingCarryOver === 1 ? "" : "s"} will be used first.
+                                    </p>
+                                )}
+                                {customType?.note && (
+                                    <p className="mt-2 text-xs text-[var(--text-muted)]">{customType.note}</p>
+                                )}
                             </div>
                         </div>
 
@@ -306,16 +358,16 @@ function NewLeaveContent() {
                                 <div className="mt-3 grid gap-3 sm:grid-cols-3">
                                     <div>
                                         <p className="text-xs text-[var(--text-muted)]">Allowance</p>
-                                        <p className="text-lg font-bold text-[var(--text)]">{leaveBalance.allowance}</p>
+                                        <p className="text-lg font-bold text-[var(--text)]">{formatLeaveValue(leaveBalance.allowance)}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-[var(--text-muted)]">Used</p>
-                                        <p className="text-lg font-bold text-[var(--text)]">{leaveBalance.used}</p>
+                                        <p className="text-lg font-bold text-[var(--text)]">{formatLeaveValue(leaveBalance.used)}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-[var(--text-muted)]">After this entry</p>
-                                        <p className={`text-lg font-bold ${leaveBalance.remaining - formData.days < 0 ? "text-[var(--danger)]" : "text-[var(--text)]"}`}>
-                                            {leaveBalance.remaining - formData.days}
+                                        <p className={`text-lg font-bold ${Number.isFinite(leaveBalance.remaining) && leaveBalance.remaining - formData.days < 0 ? "text-[var(--danger)]" : "text-[var(--text)]"}`}>
+                                            {Number.isFinite(leaveBalance.remaining) ? formatLeaveValue(leaveBalance.remaining - formData.days) : "Unlimited"}
                                         </p>
                                     </div>
                                 </div>

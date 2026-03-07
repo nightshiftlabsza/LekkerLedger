@@ -62,9 +62,11 @@ export default function ExamplesPage() {
             defaultLanguage: "en",
             density: "comfortable",
             googleSyncEnabled: false,
+            autoBackupEnabled: false,
             piiObfuscationEnabled: true,
             advancedMode: false,
-            simpleMode: false
+            simpleMode: false,
+            customLeaveTypes: [],
         };
 
         try {

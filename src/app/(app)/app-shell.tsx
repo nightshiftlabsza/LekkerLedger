@@ -13,10 +13,11 @@ import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { ToastProvider } from "@/components/ui/toast";
 import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
-import { getHouseholds, getSettings, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
+import { getHouseholds, getSettings, saveHousehold, saveSettings, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
-import { canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
+import { canUseAutoBackup, canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
 import { clearStoredGoogleAccessToken, getStoredGoogleAccessToken, getStoredGoogleEmail } from "@/lib/google-session";
+import { syncDataToDrive } from "@/lib/google-drive";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -37,6 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const [addingHousehold, setAddingHousehold] = React.useState(false);
     const [lastLocalSaveAt, setLastLocalSaveAt] = React.useState<number | null>(null);
     const previousNetworkRef = React.useRef(network);
+    const autoBackupInFlightRef = React.useRef(false);
 
     React.useEffect(() => {
         if (network === "offline" && previousNetworkRef.current !== "offline") {
@@ -66,6 +68,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             unsubscribe();
         };
     }, []);
+
+    React.useEffect(() => {
+        if (!settings) return;
+        const plan = getUserPlan(settings);
+        if (!canUseAutoBackup(plan) || !settings.autoBackupEnabled || !settings.googleSyncEnabled) return;
+        if (autoBackupInFlightRef.current) return;
+
+        const lastBackupAt = settings.lastBackupTimestamp ? new Date(settings.lastBackupTimestamp) : null;
+        const isRecent = lastBackupAt && !Number.isNaN(lastBackupAt.getTime()) && (Date.now() - lastBackupAt.getTime()) < 24 * 60 * 60 * 1000;
+        if (isRecent) return;
+
+        const accessToken = getStoredGoogleAccessToken();
+        if (!accessToken) return;
+
+        autoBackupInFlightRef.current = true;
+        void (async () => {
+            const success = await syncDataToDrive(accessToken);
+            if (success) {
+                const timestamp = new Date().toISOString();
+                const latestSettings = await getSettings();
+                await saveSettings({
+                    ...latestSettings,
+                    lastBackupTimestamp: timestamp,
+                });
+                if (typeof window !== "undefined") {
+                    window.localStorage.setItem("ll_last_sync", timestamp);
+                }
+            }
+            autoBackupInFlightRef.current = false;
+        })();
+    }, [settings]);
 
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && sync === "error" && !syncBannerDismissed;

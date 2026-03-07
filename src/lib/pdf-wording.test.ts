@@ -42,10 +42,12 @@ const settings: EmployerSettings = {
   advancedMode: false,
   density: "comfortable",
   googleSyncEnabled: false,
+  autoBackupEnabled: false,
   googleAuthToken: undefined,
   piiObfuscationEnabled: true,
   installationId: "test-installation",
   usageHistory: [],
+  customLeaveTypes: [],
 };
 
 const payslip: PayslipInput = {

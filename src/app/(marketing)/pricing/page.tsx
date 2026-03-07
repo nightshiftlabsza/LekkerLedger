@@ -6,55 +6,13 @@ import { ArrowRight, Check, ChevronRight, ShieldCheck } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { Button } from "@/components/ui/button";
 import { PLAN_ORDER, PLANS, type BillingCycle, getPlanPricePresentation } from "@/src/config/plans";
+import { PRICING_COMPARISON_GROUPS } from "@/src/config/pricing-comparison";
 
 const INCLUDED_IN_EVERY_PLAN = [
     "Monthly payroll workflow",
     "Payslip preview and PDF download",
     "UIF shown clearly on payslips",
     "Built for South African domestic employers",
-] as const;
-
-const COMPARISON_GROUPS = [
-    {
-        title: "Coverage",
-        rows: [
-            { label: "Active employees", values: { free: "1", standard: "Up to 3", pro: "Unlimited" } },
-            { label: "Households you can manage", values: { free: "1", standard: "1", pro: "Multiple" } },
-            { label: "Archive access", values: { free: "3 months", standard: "12 months", pro: "5 years" } },
-        ],
-    },
-    {
-        title: "Core Payroll",
-        rows: [
-            { label: "Monthly payroll workflow", values: { free: true, standard: true, pro: true } },
-            { label: "Payslip preview and PDF download", values: { free: true, standard: true, pro: true } },
-            { label: "Leave tracking", values: { free: false, standard: true, pro: true } },
-            { label: "Annual return (ROE) PDFs and CSVs", values: { free: false, standard: true, pro: true } },
-        ],
-    },
-    {
-        title: "Records & Paperwork",
-        rows: [
-            { label: "Contract drafts", values: { free: false, standard: true, pro: true } },
-            { label: "Documents hub", values: { free: false, standard: true, pro: true } },
-            { label: "uFiling CSV export", values: { free: false, standard: true, pro: true } },
-        ],
-    },
-    {
-        title: "Storage & Backup",
-        rows: [
-            { label: "Stored on this device", values: { free: true, standard: true, pro: true } },
-            { label: "Private Google Drive backup", values: { free: false, standard: true, pro: true } },
-            { label: "Manual document uploads", values: { free: false, standard: true, pro: true } },
-        ],
-    },
-    {
-        title: "Household Control",
-        rows: [
-            { label: "Unlimited employees when you grow", values: { free: false, standard: false, pro: true } },
-            { label: "Multiple households (for example: main home + holiday home)", values: { free: false, standard: false, pro: true } },
-        ],
-    },
 ] as const;
 
 function FeatureValue({ value }: { value: boolean | string }) {
@@ -297,7 +255,7 @@ export default function PricingPage() {
                                 <div className="text-center">Pro</div>
                             </div>
 
-                            {COMPARISON_GROUPS.map((group) => (
+                            {PRICING_COMPARISON_GROUPS.map((group) => (
                                 <div key={group.title} className="border-b border-[var(--border)] last:border-b-0">
                                     <div className="bg-[var(--surface-raised)] px-6 py-4 text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
                                         {group.title}

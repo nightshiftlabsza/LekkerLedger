@@ -92,24 +92,63 @@ export const PayslipSchema = PayslipInputSchema;
 
 export type PayslipInput = z.infer<typeof PayslipInputSchema>;
 
-// Leave Record (Phase 1)
-export type LeaveType = "annual" | "sick" | "family";
+export const DEFAULT_LEAVE_TYPE_IDS = ["annual", "sick", "family"] as const;
+
+export type DefaultLeaveType = typeof DEFAULT_LEAVE_TYPE_IDS[number];
+export type LeaveType = string;
+
+export const LeaveAllocationSchema = z.object({
+    source: z.enum(["carry-over", "current-cycle"]),
+    days: z.number().positive(),
+    fromCycleEnd: z.string().optional(),
+    cycleStart: z.string().optional(),
+    cycleEnd: z.string().optional(),
+});
+
+export type LeaveAllocation = z.infer<typeof LeaveAllocationSchema>;
+
+export const CustomLeaveTypeSchema = z.object({
+    id: z.string(),
+    name: z.string().min(1).max(40),
+    annualAllowance: z.number().min(0).optional(),
+    isPaid: z.boolean().default(true),
+    note: z.string().max(200).default(""),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+});
+
+export type CustomLeaveType = z.infer<typeof CustomLeaveTypeSchema>;
 
 export const LeaveRecordSchema = z.object({
     id: z.string(),
     householdId: z.string().default("default"),
     employeeId: z.string(),
-    type: z.enum(["annual", "sick", "family"]),
+    type: z.string().min(1),
     days: z.number().positive(),
     date: z.string(), // ISO date of leave taken (legacy start date alias)
     startDate: z.string().optional(),
     endDate: z.string().optional(),
     exceedsAllowance: z.boolean().optional(),
     payslipId: z.string().optional(), // link to payslip that logged it
+    typeLabel: z.string().optional(),
+    isCustomType: z.boolean().optional(),
+    paid: z.boolean().optional(),
+    allocations: z.array(LeaveAllocationSchema).optional(),
     note: z.string().optional().default(""),
 });
 
 export type LeaveRecord = z.infer<typeof LeaveRecordSchema>;
+
+export const LeaveCarryOverSchema = z.object({
+    id: z.string(),
+    householdId: z.string().default("default"),
+    employeeId: z.string(),
+    fromCycleEnd: z.string(),
+    daysCarried: z.number().min(0),
+    daysUsedFromCarry: z.number().min(0).default(0),
+});
+
+export type LeaveCarryOver = z.infer<typeof LeaveCarryOverSchema>;
 
 // Employer Settings (Phase 5)
 export const EmployerSettingsSchema = z.object({
@@ -131,10 +170,13 @@ export const EmployerSettingsSchema = z.object({
     advancedMode: z.boolean().default(false),
     density: z.enum(["comfortable", "compact"]).default("comfortable"),
     googleSyncEnabled: z.boolean().default(false),
+    autoBackupEnabled: z.boolean().default(false),
+    lastBackupTimestamp: z.string().optional(),
     googleAuthToken: z.string().optional(),
     piiObfuscationEnabled: z.boolean().default(true),
     installationId: z.string().default(""),
     usageHistory: z.array(z.string()).default([]),
+    customLeaveTypes: z.array(CustomLeaveTypeSchema).default([]),
 });
 
 export type EmployerSettings = z.infer<typeof EmployerSettingsSchema>;
@@ -196,6 +238,7 @@ export const DocumentMetaSchema = z.object({
     fileName: z.string(),
     mimeType: z.string().optional(),
     source: z.enum(["generated", "uploaded"]).optional().default("generated"),
+    vaultCategory: z.enum(["contracts", "employee-docs", "compliance", "other"]).optional(),
     sizeBytes: z.number().optional(),
     createdAt: z.string(), // ISO date
     driveFileId: z.string().optional(),

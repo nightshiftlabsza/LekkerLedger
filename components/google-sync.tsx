@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useGoogleLogin, googleLogout } from "@react-oauth/google";
-import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Folder, FileJson, Database, Shield, History, RefreshCcw, ArrowRight } from "lucide-react";
+import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Folder, FileJson, Database, Shield, History, RefreshCcw, ArrowRight, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MINIMAL_SCOPES, DRIVE_SCOPE, syncDataToDrive, syncDataFromDrive, deleteDataFromDrive } from "@/lib/google-drive";
 import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail, hasStoredGoogleDriveScope, setStoredGoogleDriveScope, storeGoogleAccessToken, storeGoogleIdentity } from "@/lib/google-session";
-import { getSettings, saveSettings, subscribeToDataChanges } from "@/lib/storage";
+import { getSettings, saveSettings } from "@/lib/storage";
+import { Switch } from "@/components/ui/switch";
 
 interface SyncEvent {
     id: string;
@@ -19,6 +20,7 @@ interface SyncEvent {
 
 interface GoogleSyncProps {
     driveSyncAllowed?: boolean;
+    autoBackupAllowed?: boolean;
 }
 
 function getStoredToken(): string | null {
@@ -45,13 +47,14 @@ function GoogleSyncUnavailable() {
     );
 }
 
-function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
+function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false }: GoogleSyncProps) {
     const [token, setToken] = useState<string | null>(() => getStoredToken());
     const [email, setEmail] = useState<string | null>(() => getStoredGoogleEmail());
     const [hasDriveScope, setHasDriveScope] = useState<boolean>(() => hasStoredGoogleDriveScope());
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [statusMessage, setStatusMessage] = useState("");
     const [pendingAction, setPendingAction] = useState<null | "restore" | "delete">(null);
+    const [autoBackupEnabled, setAutoBackupEnabled] = useState(false);
     const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => {
         if (typeof window !== "undefined") return localStorage.getItem("ll_last_sync");
         return null;
@@ -88,6 +91,18 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             localStorage.setItem("ll_last_sync", newLog.timestamp);
         }
     };
+
+    const persistBackupTimestamp = useCallback(async (timestamp: string) => {
+        setLastSyncTime(timestamp);
+        if (typeof window !== "undefined") {
+            localStorage.setItem("ll_last_sync", timestamp);
+        }
+        const settings = await getSettings();
+        await saveSettings({
+            ...settings,
+            lastBackupTimestamp: timestamp,
+        });
+    }, []);
 
     const setTransientStatus = (nextStatus: "success" | "error", message: string, timeout = 4000) => {
         if (!isMountedRef.current) return;
@@ -153,12 +168,14 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
         const success = await syncDataToDrive(currentToken);
         if (success) {
             addLog({ success: true, action: "backup", details: "Uploaded lekkerledger_data.json" });
+            const timestamp = new Date().toISOString();
+            await persistBackupTimestamp(timestamp);
             if (!silent) setTransientStatus("success", "Backup saved to the Google Drive app data area in your Google account.");
         } else if (!silent && isMountedRef.current) {
             addLog({ success: false, action: "backup", details: "Network or permission error during upload" });
             setTransientStatus("error", "Backup failed. Check your Google connection or Drive permission and try again.", 5000);
         }
-    }, [hasDriveScope, token]);
+    }, [hasDriveScope, persistBackupTimestamp, token]);
 
     const runRestore = useCallback(async (silent = false) => {
         const currentToken = token || getStoredToken();
@@ -203,6 +220,8 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             if (!isMountedRef.current) return;
             setLastSyncTime(null);
             localStorage.removeItem("ll_last_sync");
+            const settings = await getSettings();
+            await saveSettings({ ...settings, lastBackupTimestamp: undefined });
             setTransientStatus("success", "Google backup deleted successfully.");
         } else if (isMountedRef.current) {
             addLog({ success: false, action: "delete", details: "Failed to delete backup from Drive" });
@@ -242,6 +261,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             const settings = await getSettings();
             await saveSettings({ ...settings, googleSyncEnabled: true });
             if (!isMountedRef.current) return;
+            setAutoBackupEnabled(Boolean(settings.autoBackupEnabled));
             await runRestore(true);
             setTransientStatus("success", "Private Google Drive backup enabled.");
         },
@@ -253,12 +273,17 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
 
     useEffect(() => {
         isMountedRef.current = true;
-        const unsubscribe = subscribeToDataChanges(() => {
-            const currentToken = getStoredToken();
-            if (currentToken && driveSyncAllowed && hasDriveScope) {
-                void handleBackup(true);
+        void (async () => {
+            const settings = await getSettings();
+            if (!isMountedRef.current) return;
+            setAutoBackupEnabled(Boolean(settings.autoBackupEnabled));
+            if (!lastSyncTime && settings.lastBackupTimestamp) {
+                setLastSyncTime(settings.lastBackupTimestamp);
+                if (typeof window !== "undefined") {
+                    localStorage.setItem("ll_last_sync", settings.lastBackupTimestamp);
+                }
             }
-        });
+        })();
         return () => {
             isMountedRef.current = false;
             if (statusTimerRef.current) {
@@ -267,9 +292,8 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             if (reloadTimerRef.current) {
                 window.clearTimeout(reloadTimerRef.current);
             }
-            unsubscribe();
         };
-    }, [driveSyncAllowed, handleBackup, hasDriveScope]);
+    }, [lastSyncTime]);
 
     if (!driveSyncAllowed) {
         return (
@@ -442,6 +466,52 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                         </CardContent>
                     </Card>
 
+                    <Card className="glass-panel border-none">
+                        <CardHeader className="pb-3 border-b border-[var(--border)]">
+                            <CardTitle className="text-sm font-bold flex items-center gap-2">
+                                <RefreshCcw className="h-4 w-4 text-[var(--primary)]" /> Automatic backup
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-5 space-y-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-semibold text-[var(--text)]">Back up automatically</p>
+                                    <p className="text-xs leading-relaxed text-[var(--text-muted)]">
+                                        Pro can back up on app open when more than 24 hours have passed since the last backup.
+                                    </p>
+                                </div>
+                                <Switch
+                                    checked={autoBackupEnabled}
+                                    disabled={!autoBackupAllowed}
+                                    onCheckedChange={async (checked) => {
+                                        if (!autoBackupAllowed) return;
+                                        setAutoBackupEnabled(checked);
+                                        const settings = await getSettings();
+                                        await saveSettings({ ...settings, autoBackupEnabled: checked });
+                                    }}
+                                />
+                            </div>
+
+                            {!autoBackupAllowed && (
+                                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4 text-xs text-[var(--text-muted)]">
+                                    <div className="flex items-start gap-2">
+                                        <Lock className="mt-0.5 h-4 w-4 text-[var(--primary)]" />
+                                        <div>
+                                            <p className="font-semibold text-[var(--text)]">Automatic backups are available on Pro.</p>
+                                            <p>You can still run a manual backup any time on Standard.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {autoBackupEnabled && (!token || !hasDriveScope || !driveSyncAllowed) && (
+                                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
+                                    Automatic backup is on but Google isn&apos;t connected. Reconnect to resume backups.
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
                     <Card className="glass-panel border-none md:col-span-2">
                         <CardHeader className="pb-3 border-b border-[var(--border)] flex flex-row items-center justify-between">
                             <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -479,12 +549,12 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
     );
 }
 
-export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
+export function GoogleSync({ driveSyncAllowed = false, autoBackupAllowed = false }: GoogleSyncProps) {
     const googleAuthConfigured = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
     if (!googleAuthConfigured) {
         return <GoogleSyncUnavailable />;
     }
 
-    return <GoogleSyncContent driveSyncAllowed={driveSyncAllowed} />;
+    return <GoogleSyncContent driveSyncAllowed={driveSyncAllowed} autoBackupAllowed={autoBackupAllowed} />;
 }
