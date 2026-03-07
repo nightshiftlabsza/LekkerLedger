@@ -161,7 +161,7 @@ export function LeaveClient() {
                                     {currentPeriod.name} payroll is still in progress
                                 </p>
                                 <p className="text-xs text-[var(--text-muted)]">
-                                    Leave recorded here will flow into this month's payroll before you finalise it.
+                                    Leave recorded here will flow into this month&apos;s payroll before you finalise it.
                                 </p>
                             </div>
                         </div>

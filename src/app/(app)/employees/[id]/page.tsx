@@ -110,27 +110,6 @@ function EmployeeDetailContent() {
         setPayslips(prev => prev.filter(p => p.id !== psId));
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
-                <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
-                    <div className="max-w-4xl mx-auto w-full flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
-                        <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
-                        <div className="h-4 w-32 bg-[var(--surface-2)] animate-pulse rounded" />
-                    </div>
-                </div>
-                <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 space-y-4">
-                    <div className="h-16 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse" />
-                    <div className="h-48 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse" />
-                </main>
-            </div>
-        );
-    }
-
-    if (!employee) return null;
-
-    const visibleTabs = TABS.filter((tab) => (tab.id !== "leave" || showLeaveTab) && (tab.id !== "documents" || showDocumentsTab));
     const payslipArchiveResult = React.useMemo(
         () => filterRecordsForArchiveWindow(payslips, currentPlan, (record) => record.payPeriodEnd),
         [currentPlan, payslips],
@@ -152,6 +131,28 @@ function EmployeeDetailContent() {
         ? calculateAnnualLeaveForecast(employee.startDate, visibleLeaveRecords, contracts, new Date())
         : null;
     const carryOverNudge = getCarryOverNudge(leaveCarryOvers, new Date());
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
+                <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
+                    <div className="max-w-4xl mx-auto w-full flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
+                        <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
+                        <div className="h-4 w-32 bg-[var(--surface-2)] animate-pulse rounded" />
+                    </div>
+                </div>
+                <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 space-y-4">
+                    <div className="h-16 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse" />
+                    <div className="h-48 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse" />
+                </main>
+            </div>
+        );
+    }
+
+    if (!employee) return null;
+
+    const visibleTabs = TABS.filter((tab) => (tab.id !== "leave" || showLeaveTab) && (tab.id !== "documents" || showDocumentsTab));
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
