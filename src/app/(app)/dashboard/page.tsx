@@ -89,7 +89,7 @@ export default function DashboardPage() {
     const employeeCount = employees.length;
     const completedEntries = currentPeriod?.entries.filter(e => e.status === "complete").length ?? 0;
     const totalEntries = currentPeriod?.entries.length ?? 0;
-    const needsInfoCount = employees.filter(e => !e.idNumber || !e.startDate).length;
+    const needsInfoCount = employees.filter(e => !e.startDate).length;
     const currentMonth = format(new Date(), "MMMM yyyy");
     const monthlyPayrollHref = currentPeriod
         ? `/payroll/${currentPeriod.id}`
@@ -207,7 +207,7 @@ export default function DashboardPage() {
                                     </Link>
                                     <Link href={employeeCount > 0 ? "/employees/new" : "/help/compliance"} className="sm:w-auto">
                                         <Button variant="outline" className="h-11 w-full gap-2 rounded-xl border-[var(--border)] font-bold text-[var(--text)] hover:bg-[var(--surface-2)] sm:w-auto">
-                                            {employeeCount > 0 ? "Add employee" : "See compliance guide"}
+                                            {employeeCount > 0 ? "Add employee" : "See checklist"}
                                             <ChevronRight className="h-4 w-4" />
                                         </Button>
                                     </Link>
@@ -334,7 +334,7 @@ export default function DashboardPage() {
                                     <ShieldCheck className="h-3 w-3" /> Compensation Fund guide
                                 </Link>
                                 <Link href="/help/compliance" className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
-                                    <BookOpen className="h-3 w-3" /> Compliance Guide
+                                    <BookOpen className="h-3 w-3" /> Household checklist
                                 </Link>
                             </div>
                         </div>
@@ -355,7 +355,7 @@ function ComplianceCard() {
                 </div>
                 <div className="space-y-3">
                     <div>
-                        <h4 className="type-body font-bold text-[var(--text)]">COIDA ROE Pack</h4>
+                        <h4 className="type-body font-bold text-[var(--text)]">Annual return (ROE)</h4>
                         <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                             Gather the yearly totals and supporting records you usually need for the Compensation Fund return.
                         </p>
@@ -422,6 +422,8 @@ function DocumentCard({ recentDocs }: { recentDocs: DocumentMeta[] }) {
 }
 
 function StorageCard({ settings }: { settings: EmployerSettings | null }) {
+    const hasGoogleBackup = !!settings?.googleSyncEnabled;
+
     return (
         <Card className="glass-panel border-none">
             <CardContent className="p-5">
@@ -440,8 +442,20 @@ function StorageCard({ settings }: { settings: EmployerSettings | null }) {
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                         <span className="text-[var(--text-muted)] shrink-0">Backup:</span>
-                        <SyncStatusBadge state={settings?.googleSyncEnabled ? "synced" : "disconnected"} />
+                        <SyncStatusBadge state={hasGoogleBackup ? "synced" : "disconnected"} />
                     </div>
+                    {!hasGoogleBackup && (
+                        <div
+                            className="rounded-2xl border px-4 py-3 text-xs leading-relaxed"
+                            style={{
+                                borderColor: "rgba(196,122,28,0.25)",
+                                backgroundColor: "rgba(196,122,28,0.08)",
+                                color: "var(--text)",
+                            }}
+                        >
+                            Stored in this browser only. If you clear browser data or lose this device, your records are gone unless you export them or turn on backup.
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>

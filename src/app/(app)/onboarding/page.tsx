@@ -97,7 +97,7 @@ export default function OnboardingPage() {
                                     Welcome to LekkerLedger
                                 </h1>
                                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                                    Start locally now. If you move onto a paid plan, Google connection is the recommended setup for restoring records across browsers and devices.
+                                    Start with the quickest first step for your household. You can add employer details later, before you save the first final payslip.
                                 </p>
                             </div>
 
@@ -114,7 +114,7 @@ export default function OnboardingPage() {
                                                     LekkerLedger includes common payroll checks for domestic work, so you do not have to calculate minimum wage or UIF manually.
                                                 </p>
                                                 <Link href="/rules" className="text-xs font-semibold mt-2 inline-block" style={{ color: "var(--primary)" }}>
-                                                    Read the 4 Golden Rules &rarr;
+                                                    Open the household checklist &rarr;
                                                 </Link>
                                             </div>
                                         </div>
@@ -131,6 +131,9 @@ export default function OnboardingPage() {
                                                 <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>Private & Open Source</h3>
                                                 <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                                     Your payroll data stays on your device by default. If you enable Google backup later, the backup lives in your own Google Drive app data area. LekkerLedger does not maintain a central employee database and your payroll records stay private from us.
+                                                </p>
+                                                <p className="text-xs mt-2 font-semibold leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                                    Changing devices later? Paid backup lets you restore your records.
                                                 </p>
                                                 <div className="flex items-center gap-1.5 mt-2">
                                                     <Github className="h-3 w-3" style={{ color: "var(--text-muted)" }} />
@@ -159,9 +162,17 @@ export default function OnboardingPage() {
                                 </Card>
                             </div>
 
-                            <Button className="w-full gap-2 h-12 text-base font-bold" onClick={() => setStep(2)}>
-                                Next: Employer Details <ChevronRight className="h-5 w-5" />
-                            </Button>
+                            <div className="space-y-3">
+                                <Button className="w-full gap-2 h-12 text-base font-bold" onClick={() => router.push("/employees/new?source=onboarding")}>
+                                    Start with your worker (recommended) <ChevronRight className="h-5 w-5" />
+                                </Button>
+                                <Button variant="outline" className="w-full gap-2 h-12 text-base font-bold" onClick={() => setStep(2)}>
+                                    Next: Employer Details <ChevronRight className="h-5 w-5" />
+                                </Button>
+                                <p className="text-center text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                    Worker first gets you into the app faster. Add your name and address later in Settings before you save the first final payslip.
+                                </p>
+                            </div>
 
                             <div className="text-center pt-2 space-y-2">
                                 <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
@@ -183,7 +194,7 @@ export default function OnboardingPage() {
                                     Employer Details
                                 </h1>
                                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                                    By law, your name and address must appear on your employee&apos;s payslip.
+                                    These details appear on the final payslip PDF. Add them now, or come back in Settings before you save the first final payslip.
                                 </p>
                             </div>
 

@@ -197,7 +197,7 @@ export default function CompliancePage() {
             />
 
             <div className="flex flex-wrap gap-2">
-                <Badge>Authoritative in-app guide</Badge>
+                <Badge>In-app checklist</Badge>
                 <Badge variant="outline">Updated 6 Mar 2026</Badge>
             </div>
 

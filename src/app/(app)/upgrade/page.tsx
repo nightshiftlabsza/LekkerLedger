@@ -103,10 +103,16 @@ function UpgradePageContent() {
                 <Card className="border-[var(--primary)] bg-[var(--primary)]/5">
                     <CardContent className="p-5 space-y-3 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                         <p className="font-semibold" style={{ color: "var(--text)" }}>
+                            Try Standard or Pro risk-free for 14 days. Cancel anytime.
+                        </p>
+                        <p className="font-semibold" style={{ color: "var(--text)" }}>
                             Paid access is confirmed through your Google sign-in, not by this browser alone.
                         </p>
                         <p>
                             If you are not signed into Google yet, choosing a paid plan will first take you to Google connect. After that, LekkerLedger starts the Paystack checkout securely from the server.
+                        </p>
+                        <p>
+                            If you cancel, access continues until the end of the billing period you already paid for.
                         </p>
                     </CardContent>
                 </Card>
@@ -196,10 +202,15 @@ function UpgradePageContent() {
                                                 {isCurrent ? "Current plan" : "Free plan"}
                                             </Button>
                                         ) : (
-                                            <Button className="w-full font-bold" disabled={isCurrent || !!checkoutPlanId || !selectedPrice} onClick={() => void startCheckout(plan.id === "standard" ? "standard" : "pro")}>
-                                                {isCurrent ? "Current plan" : isStartingCheckout ? "Opening checkout..." : `Choose ${plan.label}`}
-                                                {isStartingCheckout ? <Loader2 className="h-4 w-4 animate-spin" /> : !isCurrent && <ArrowRight className="h-4 w-4" />}
-                                            </Button>
+                                            <div className="space-y-2">
+                                                <Button className="w-full font-bold" disabled={isCurrent || !!checkoutPlanId || !selectedPrice} onClick={() => void startCheckout(plan.id === "standard" ? "standard" : "pro")}>
+                                                    {isCurrent ? "Current plan" : isStartingCheckout ? "Opening checkout..." : `Choose ${plan.label}`}
+                                                    {isStartingCheckout ? <Loader2 className="h-4 w-4 animate-spin" /> : !isCurrent && <ArrowRight className="h-4 w-4" />}
+                                                </Button>
+                                                <p className="text-center text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>
+                                                    14-day refund. Cancel anytime.
+                                                </p>
+                                            </div>
                                         )}
                                     </div>
                                 </CardContent>
@@ -231,6 +242,9 @@ function UpgradePageContent() {
                             </div>
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 If you request a refund within 14 days of purchase, we&apos;ll refund you in full. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
+                            </p>
+                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                You can also cancel anytime, and access continues until the end of the billing period already paid for.
                             </p>
                             <Link href="/legal/refunds" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)]">
                                 View refund policy <ArrowRight className="h-4 w-4" />

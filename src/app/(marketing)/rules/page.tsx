@@ -17,8 +17,8 @@ export default function RulesPage() {
                         </Button>
                     </Link>
                     <div>
-                        <p className="type-overline text-[var(--text-muted)]">Rules</p>
-                        <h1 className="type-h4 text-[var(--text)]">Compliance guide</h1>
+                        <p className="type-overline text-[var(--text-muted)]">Checklist</p>
+                        <h1 className="type-h4 text-[var(--text)]">Household checklist</h1>
                     </div>
                 </div>
             </header>
@@ -34,16 +34,16 @@ export default function RulesPage() {
                         </div>
 
                         <div className="space-y-3">
-                            <h2 className="type-h2 text-[var(--text)]">The full household employer guide now lives inside LekkerLedger.</h2>
+                            <h2 className="type-h2 text-[var(--text)]">The full household checklist now lives inside LekkerLedger.</h2>
                             <p className="type-body measure-readable text-[var(--text-muted)]">
-                                Use the in-app guide for the full onboarding path, screen-by-screen compliance notes, UIF boundaries, ROE Pack mapping, worked examples, and source log. This marketing page stays short on purpose so the content only needs to be maintained in one place.
+                                Use the in-app checklist for the full onboarding path, monthly and annual tasks, UIF boundaries, ROE Pack mapping, worked examples, and source log. This marketing page stays short on purpose so the content only needs to be maintained in one place.
                             </p>
                         </div>
 
                         <div className="grid gap-3 sm:grid-cols-2">
                             <Link href="/help/compliance">
                                 <Button className="w-full gap-2">
-                                    Open /help/compliance
+                                    Open household checklist
                                     <ExternalLink className="h-4 w-4" />
                                 </Button>
                             </Link>

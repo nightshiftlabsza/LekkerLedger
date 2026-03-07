@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { getNMW } from "./calculator";
 import { getNMWForDate } from "./legal/registry";
+import { getEmployeeIdValidationMessage, normalizeEmployeeIdNumber } from "./employee-id";
 
 export const NMW_DOMESTIC = getNMW(); // SD7 NMW as of current date
 
@@ -8,7 +9,7 @@ export const EmployeeSchema = z.object({
     id: z.string().uuid(),
     householdId: z.string().default("default"),
     name: z.string().min(2, "Full name required (at least 2 characters)"),
-    idNumber: z.string().optional().default(""),
+    idNumber: z.string().optional().default("").transform((value) => normalizeEmployeeIdNumber(value ?? "")),
     role: z.string().min(1, "Role is required").default("Domestic Worker"),
     hourlyRate: z.number().positive("Hourly rate must be greater than 0"),
     phone: z.string().optional().default(""),
@@ -26,6 +27,15 @@ export const EmployeeSchema = z.object({
             code: z.ZodIssueCode.custom,
             path: ["hourlyRate"],
             message: "Hourly rate must be at least the National Minimum Wage for the employee start date.",
+        });
+    }
+
+    const idNumberMessage = getEmployeeIdValidationMessage(employee.idNumber || "");
+    if (idNumberMessage) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["idNumber"],
+            message: idNumberMessage,
         });
     }
 });

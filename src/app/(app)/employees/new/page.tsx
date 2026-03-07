@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2, Save, Sparkles, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +14,12 @@ import { saveEmployee, getEmployees, getSettings } from "@/lib/storage";
 import { getUserPlan, canCreateEmployee } from "@/lib/entitlements";
 import { NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
+import { formatEmployeeIdNumberInput, normalizeEmployeeIdNumber } from "@/src/lib/employee-id";
 
 
 export default function AddEmployeePage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     const [loading, setLoading] = React.useState(false);
     const [formData, setFormData] = React.useState({
@@ -34,6 +36,7 @@ export default function AddEmployeePage() {
     const [errors, setErrors] = React.useState<Record<string, string>>({});
     const [canAdd, setCanAdd] = React.useState(true);
     const [tierLimitReached, setTierLimitReached] = React.useState<string | null>(null);
+    const onboardingSource = searchParams?.get("source") === "onboarding";
 
     React.useEffect(() => {
         async function checkLimit() {
@@ -58,6 +61,7 @@ export default function AddEmployeePage() {
         const submissionData = {
             id: crypto.randomUUID(),
             ...formData,
+            idNumber: normalizeEmployeeIdNumber(formData.idNumber),
             hourlyRate: parseFloat(formData.hourlyRate),
             ordinaryHoursPerDay: Number(formData.ordinaryHoursPerDay) || 8,
         };
@@ -75,6 +79,11 @@ export default function AddEmployeePage() {
         setLoading(true);
         try {
             await saveEmployee(parsed.data as Employee);
+            if (onboardingSource) {
+                toast(`${formData.name} saved. Add your employer details before saving the first final payslip.`);
+                router.push(`/wizard?empId=${parsed.data.id}&source=onboarding`);
+                return;
+            }
             toast(`${formData.name} saved successfully!`);
             router.push("/employees");
         } catch (err) {
@@ -109,13 +118,32 @@ export default function AddEmployeePage() {
                     <Card className="animate-slide-up">
                         <CardContent className="p-6">
                             <form onSubmit={handleSave} className="space-y-5">
+                                {onboardingSource && (
+                                    <Alert variant="default" className="border-[var(--primary)]/30 bg-[var(--surface-2)]">
+                                        <AlertDescription className="text-[var(--text-muted)]">
+                                            Start with your worker now. You can add your employer name and address later in Settings, before you save the first final payslip.
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
                                 {!canAdd && (
                                     <Alert variant="default" className="border-[var(--focus)] bg-[var(--surface-2)]">
                                         <Sparkles className="h-4 w-4 text-[var(--focus)]" />
-                                        <AlertDescription className="text-[var(--text-muted)]">
-                                            <strong>Tier Limit Reached:</strong>
-                                            {tierLimitReached === "standard" ? " You can only have up to 3 active workers in one household." : " You can only have 1 active worker on Free."}
-                                            <Link href="/pricing" className="ml-1 underline font-bold">Compare plans</Link> to raise your limit.
+                                        <AlertDescription className="space-y-2 text-[var(--text-muted)]">
+                                            <p>
+                                                <strong className="text-[var(--text)]">{tierLimitReached === "standard" ? "You are on Standard." : "You are on Free."}</strong>{" "}
+                                                {tierLimitReached === "standard"
+                                                    ? "Standard supports up to 3 active employees in one household."
+                                                    : "Free supports 1 active employee."}
+                                            </p>
+                                            <p>
+                                                {tierLimitReached === "standard"
+                                                    ? "Need more headroom? Pro adds unlimited employees and multi-household support."
+                                                    : "Need to manage more than one worker? Standard supports up to 3 employees."}
+                                            </p>
+                                            <p>
+                                                <Link href="/pricing" className="underline font-bold">View plans</Link>
+                                                <span> and remember: paid upgrades have a 14-day refund.</span>
+                                            </p>
                                         </AlertDescription>
                                     </Alert>
                                 )}
@@ -152,17 +180,17 @@ export default function AddEmployeePage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="idNumber">ID / Passport Number (Optional)</Label>
+                                    <Label htmlFor="idNumber">SA ID number or passport (optional)</Label>
                                     <Input
                                         id="idNumber"
-                                        placeholder="e.g. 9001015009087"
+                                        placeholder="e.g. 900101 5009 087"
                                         value={formData.idNumber}
-                                        onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
+                                        onChange={(e) => setFormData({ ...formData, idNumber: formatEmployeeIdNumberInput(e.target.value) })}
                                         error={errors.idNumber}
                                         disabled={loading}
                                     />
                                     <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        Saved locally. If Drive sync is on, included in your backup. Used on the payslip PDF.
+                                        Not required for a basic payslip. Helpful for UIF, uFiling, and yearly records. Saved locally and included in backup only if you turn backup on.
                                     </p>
                                 </div>
 
@@ -313,7 +341,7 @@ export default function AddEmployeePage() {
                                             </>
                                         ) : (
                                             <>
-                                                <Save className="h-4 w-4" /> Save Employee
+                                                <Save className="h-4 w-4" /> {onboardingSource ? "Save worker and continue" : "Save Employee"}
                                             </>
                                         )}
                                     </Button>

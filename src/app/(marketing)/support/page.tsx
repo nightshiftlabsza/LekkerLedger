@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ChevronLeft, LifeBuoy, Mail, HelpCircle, BookOpen, AlertCircle } from "lucide-react";
+import { ChevronLeft, LifeBuoy, Mail, HelpCircle, BookOpen, AlertCircle, FolderSync, WalletCards } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function SupportPage() {
@@ -21,9 +21,10 @@ export default function SupportPage() {
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Support & Contact</h1>
                     <p className="text-zinc-500 font-medium text-lg">We are here to help you get your household payroll set up correctly and keep the record trail tidy.</p>
+                    <p className="text-sm font-semibold text-[var(--text-muted)]">Email support replies within 1-4 business days.</p>
                 </header>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
                     {/* Legal/Compliance Help */}
                     <Link href="/rules" className="block group">
                         <div className="glass-panel border-2 border-[var(--border)] p-6 rounded-2xl h-full transition-all group-hover:border-[var(--primary)]/50 group-hover:shadow-lg">
@@ -31,10 +32,10 @@ export default function SupportPage() {
                                 <div className="h-10 w-10 rounded-xl bg-[var(--surface-2)] flex items-center justify-center text-[var(--text)]">
                                     <BookOpen className="h-5 w-5" />
                                 </div>
-                                <h3 className="text-xl font-bold text-[var(--text)]">Compliance Guide</h3>
+                                <h3 className="text-xl font-bold text-[var(--text)]">Household checklist</h3>
                             </div>
                             <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                Unsure about the National Minimum Wage, UIF thresholds, or leave entitlements? Check our compliance guide for official sources and plain-English summaries.
+                                Unsure what to check each month or each year? Open the household checklist for plain-language steps, official sources, and calmer guidance.
                             </p>
                         </div>
                     </Link>
@@ -49,11 +50,39 @@ export default function SupportPage() {
                                 <h3 className="text-xl font-bold text-[var(--text)]">Email Support</h3>
                             </div>
                             <p className="text-sm text-[var(--text-muted)] leading-relaxed mb-4">
-                                Found a bug? Confused about how to sync your Google Drive? Our team usually responds within 24 working hours to help you out.
+                                Found a bug? Confused about backup, payslips, or billing? Our team replies within 1-4 business days.
                             </p>
                             <span className="text-[var(--primary)] font-bold text-sm">support@lekkerledger.co.za &rarr;</span>
                         </div>
                     </a>
+
+                    <Link href="/storage" className="block group">
+                        <div className="glass-panel border-2 border-[var(--border)] p-6 rounded-2xl h-full transition-all group-hover:border-[var(--primary)]/50 group-hover:shadow-lg">
+                            <div className="flex items-center gap-4 mb-4">
+                                <div className="h-10 w-10 rounded-xl bg-[var(--surface-2)] flex items-center justify-center text-[var(--text)]">
+                                    <FolderSync className="h-5 w-5" />
+                                </div>
+                                <h3 className="text-xl font-bold text-[var(--text)]">Storage & Backup</h3>
+                            </div>
+                            <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                                Learn how local storage works, when Google Drive backup is used, and what stays on your device.
+                            </p>
+                        </div>
+                    </Link>
+
+                    <Link href="/legal/refunds" className="block group">
+                        <div className="glass-panel border-2 border-[var(--border)] p-6 rounded-2xl h-full transition-all group-hover:border-[var(--primary)]/50 group-hover:shadow-lg">
+                            <div className="flex items-center gap-4 mb-4">
+                                <div className="h-10 w-10 rounded-xl bg-[var(--surface-2)] flex items-center justify-center text-[var(--text)]">
+                                    <WalletCards className="h-5 w-5" />
+                                </div>
+                                <h3 className="text-xl font-bold text-[var(--text)]">Refunds & Billing</h3>
+                            </div>
+                            <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                                Read the 14-day refund policy, billing basics, and what happens when you cancel a paid plan.
+                            </p>
+                        </div>
+                    </Link>
                 </div>
 
                 <div className="prose prose-zinc dark:prose-invert max-w-none space-y-10 text-zinc-400 leading-relaxed font-medium mt-16 pt-12 border-t border-[var(--border)]">
@@ -72,6 +101,13 @@ export default function SupportPage() {
                                 <h3 className="text-lg font-bold text-[var(--text)] mb-2 flex items-center gap-2"><AlertCircle className="h-4 w-4 text-rose-500" /> &quot;It says Google Drive Sync failed&quot;</h3>
                                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
                                     This usually happens if your browser blocks third-party cookies or pop-ups. Make sure you allow pop-ups for lekkerledger.co.za to complete the Google Sign-in flow.
+                                </p>
+                            </div>
+
+                            <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
+                                <h3 className="text-lg font-bold text-[var(--text)] mb-2 flex items-center gap-2"><HelpCircle className="h-4 w-4 text-[var(--text-muted)]" /> &quot;Which browser works best?&quot;</h3>
+                                <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                                    LekkerLedger works best in a recent version of Chrome or Edge on Android or Windows. Avoid Incognito or Private Browsing for normal use. If a screen looks stuck on an older device, reopen the app in Chrome or Edge and try again there.
                                 </p>
                             </div>
 

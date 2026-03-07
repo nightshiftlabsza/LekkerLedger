@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getSettings } from "@/lib/storage";
+import { getEmployees, getSettings } from "@/lib/storage";
 import Link from "next/link";
 
 export function StickyMobileCta() {
@@ -42,8 +42,10 @@ export function StickyMobileCta() {
 
     const handleCta = async () => {
         try {
-            const s = await getSettings();
-            if (!s.employerName) {
+            const [s, employees] = await Promise.all([getSettings(), getEmployees()]);
+            if (employees.length > 0) {
+                router.push("/dashboard");
+            } else if (!s.employerName) {
                 router.push("/onboarding");
             } else {
                 router.push("/dashboard");

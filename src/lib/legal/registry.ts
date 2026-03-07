@@ -28,10 +28,19 @@ export const LEGAL_REGISTRY = {
     }
 };
 
+export function getNMWRecordForDate(date: Date = new Date()) {
+    const applicable = SORTED_NMW.find((rate) => date.getTime() >= new Date(rate.effectiveDate).getTime());
+    const record = applicable ?? SORTED_NMW[SORTED_NMW.length - 1];
+
+    return {
+        ...record,
+        sourceUrl: COMPLIANCE.NMW.SOURCE_URL,
+    };
+}
+
 /**
  * Returns the National Minimum Wage applicable for a specific date.
  */
 export function getNMWForDate(date: Date = new Date()): number {
-    const applicable = SORTED_NMW.find((rate) => date.getTime() >= new Date(rate.effectiveDate).getTime());
-    return applicable ? applicable.rate : SORTED_NMW[SORTED_NMW.length - 1].rate;
+    return getNMWRecordForDate(date).rate;
 }

@@ -21,24 +21,24 @@ export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, 
     const nmw = getNMWForDate(safeDate);
 
     // 1. Wage check
-    const isWageCompliant = employee.hourlyRate >= nmw;
-    const wageStatusText = isWageCompliant
+    const meetsWageCheck = employee.hourlyRate >= nmw;
+    const wageStatusText = meetsWageCheck
         ? `Meets the current minimum-wage check (R${employee.hourlyRate.toFixed(2)}/hr)`
         : `Below the current minimum-wage check (R${employee.hourlyRate.toFixed(2)}/hr vs R${nmw.toFixed(2)}/hr)`;
 
     // 2. UIF check (check if it was applied if hours > 24)
     const totalHours = breakdown.totalHours;
     const expectedUIF = totalHours > UIF_THRESHOLD_HOURS ? Math.min(breakdown.grossPay, 17712) * UIF_RATE : 0;
-    const isUifCompliant = Math.abs(breakdown.deductions.uifEmployee - expectedUIF) < 0.01;
+    const meetsUifCheck = Math.abs(breakdown.deductions.uifEmployee - expectedUIF) < 0.01;
     const uifStatusText = totalHours > UIF_THRESHOLD_HOURS
-        ? (isUifCompliant ? "Matches the 1% deduction check" : "Differs from the 1% deduction check")
+        ? (meetsUifCheck ? "Matches the 1% deduction check" : "Differs from the 1% deduction check")
         : "Not Applicable (≤ 24hrs/month)";
 
     // 3. Accommodation deduction check (Max 10% of gross pay)
     const accommodationValue = breakdown.deductions.accommodation ?? 0;
     const maxAccommodation = breakdown.grossPay * ACCOMMODATION_MAX_PCT;
-    const isAccommodationCompliant = accommodationValue <= maxAccommodation + 0.01; // Allow for tiny float rounding
-    const accommodationStatusText = isAccommodationCompliant
+    const meetsAccommodationCheck = accommodationValue <= maxAccommodation + 0.01; // Allow for tiny float rounding
+    const accommodationStatusText = meetsAccommodationCheck
         ? "Within the 10% accommodation check"
         : "Above the 10% accommodation check";
 
@@ -46,11 +46,11 @@ export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, 
     const sundayRateMultiplier = employee.ordinarilyWorksSundays ? "1.5x" : "2.0x";
 
     return {
-        wageCompliant: isWageCompliant,
+        wageCompliant: meetsWageCheck,
         wageStatusText,
         uifStatusText,
-        uifCompliant: isUifCompliant,
-        accommodationCompliant: isAccommodationCompliant,
+        uifCompliant: meetsUifCheck,
+        accommodationCompliant: meetsAccommodationCheck,
         accommodationStatusText,
         sundayMultiplier: sundayRateMultiplier,
         overtimeRate: "1.5x",

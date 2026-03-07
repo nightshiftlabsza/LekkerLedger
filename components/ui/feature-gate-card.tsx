@@ -9,6 +9,7 @@ interface FeatureGateCardProps {
     ctaLabel?: string;
     href?: string;
     eyebrow?: string;
+    benefits?: string[];
 }
 
 export function FeatureGateCard({
@@ -17,6 +18,11 @@ export function FeatureGateCard({
     ctaLabel = "Compare plans",
     href = "/pricing",
     eyebrow = "Standard and Pro",
+    benefits = [
+        "Optional Google Drive backup",
+        "Documents and exports",
+        "Longer record history",
+    ],
 }: FeatureGateCardProps) {
     return (
         <Card className="border-[var(--primary)] bg-[var(--primary)]/5 shadow-[var(--shadow-1)]">
@@ -34,11 +40,25 @@ export function FeatureGateCard({
                     </div>
                 </div>
 
+                <div className="space-y-2 rounded-2xl border border-[var(--border)]/70 bg-white/60 p-4 dark:bg-white/5">
+                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">
+                        What you get
+                    </p>
+                    <ul className="space-y-1.5 text-sm text-[var(--text-muted)]">
+                        {benefits.map((benefit) => (
+                            <li key={benefit}>- {benefit}</li>
+                        ))}
+                    </ul>
+                </div>
+
                 <Link href={href} className="block">
                     <Button className="w-full justify-center font-bold">
                         {ctaLabel} <ArrowRight className="h-4 w-4" />
                     </Button>
                 </Link>
+                <p className="text-center text-xs text-[var(--text-muted)]">
+                    14-day refund on paid upgrades
+                </p>
             </CardContent>
         </Card>
     );

@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
+import { Button } from "@/components/ui/button";
 import { PayrollClient } from "@/components/payroll/payroll-client";
 
 export default function PayrollPage() {
@@ -7,6 +9,13 @@ export default function PayrollPage() {
             <PageHeader
                 title="Monthly Payroll"
                 subtitle="Work through one month at a time, then finalise it when you are happy"
+                actions={
+                    <Link href="/employees/new">
+                        <Button variant="outline" className="font-bold">
+                            Add employee
+                        </Button>
+                    </Link>
+                }
             />
             <PayrollClient />
         </div>

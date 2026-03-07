@@ -5,6 +5,7 @@ import { getNMWForDate } from "./legal/registry";
 import { loadPdfFonts } from "./pdf-fonts";
 import { drawPdfBrandLockup } from "./pdf-brand";
 import { PDF_COLORS, PDF_LAYOUT } from "./pdf-theme";
+import { CONTRACT_TEMPLATE_META } from "@/src/config/contract-template";
 
 type ResolvedContractDraft = {
     contract: Contract;
@@ -100,7 +101,7 @@ function addPage(pdfDoc: PDFDocument, fonts: PdfFonts) {
         thickness: 1,
         color: PDF_COLORS.BORDER,
     });
-    const footerText = "Prepared from your saved details. Review, update if needed, and keep the signed copy with your records.";
+    const footerText = `Prepared from your saved details. ${CONTRACT_TEMPLATE_META.reviewLabel}, update if needed, and keep the signed copy with your records.`;
     page.drawLine({
         start: { x: MARGIN, y: 38 },
         end: { x: PAGE_W - MARGIN, y: 38 },
@@ -238,6 +239,13 @@ export async function generateEmploymentContract(
         font: fonts.sansRegular,
         color: PDF_COLORS.TEXT_MUTED,
     });
+    pageOne.drawText(`Template version ${CONTRACT_TEMPLATE_META.versionLabel}   | Last updated ${CONTRACT_TEMPLATE_META.updatedAtLabel}`, {
+        x: MARGIN,
+        y: PAGE_H - 122,
+        size: 8,
+        font: fonts.sansRegular,
+        color: PDF_COLORS.TEXT_MUTED,
+    });
 
     pageOne.drawRectangle({
         x: MARGIN,
@@ -251,7 +259,7 @@ export async function generateEmploymentContract(
     drawParagraph(
         pageOne,
         fonts,
-        "Draft for review. Confirm that the pay, hours, duties, leave, and signatures match the real arrangement before signing.",
+        `Draft for review. Confirm that the pay, hours, duties, leave, and signatures match the real arrangement before signing. Source: ${CONTRACT_TEMPLATE_META.sourceLabel}.`,
         PAGE_H - 142,
         BODY_W - 16,
     );

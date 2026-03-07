@@ -14,6 +14,7 @@ export interface EmptyStateProps {
     secondaryActionLabel?: string;
     secondaryActionHref?: string;
     requirements?: string[];
+    highlights?: string[];
 }
 
 export function EmptyState({
@@ -26,6 +27,7 @@ export function EmptyState({
     secondaryActionLabel,
     secondaryActionHref,
     requirements,
+    highlights,
 }: EmptyStateProps) {
     return (
         <Card className="border-dashed border-2 glass-panel hover:border-[var(--primary)] transition-colors duration-300 group overflow-hidden">
@@ -54,6 +56,22 @@ export function EmptyState({
                                         {i + 1}
                                     </div>
                                     <span className="leading-tight pt-0.5">{req}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {highlights && highlights.length > 0 && (
+                    <div className="bg-[var(--surface-2)] rounded-xl p-4 mb-8 text-left w-full max-w-xl">
+                        <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
+                            What shows up here
+                        </p>
+                        <ul className="space-y-3">
+                            {highlights.map((item, index) => (
+                                <li key={index} className="flex items-start gap-3 text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+                                    <div className="mt-1 h-2.5 w-2.5 rounded-full bg-[var(--primary)] shrink-0" />
+                                    <span className="leading-relaxed">{item}</span>
                                 </li>
                             ))}
                         </ul>

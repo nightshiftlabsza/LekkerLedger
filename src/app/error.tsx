@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { AlertTriangle, RefreshCw, Home, ShieldAlert } from "lucide-react";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { resetAllData } from "@/lib/storage";
 
 export default function GlobalError({
     error,
@@ -16,15 +15,6 @@ export default function GlobalError({
         // Log the error to an error reporting service
         console.error("Global UI Crash:", error);
     }, [error]);
-
-    const [confirmReset, setConfirmReset] = React.useState(false);
-
-    const handleHardReset = async () => {
-        if (confirm("This will PERMANENTLY delete all your local employees and payslips. Use this ONLY as a last resort if the app won't open. Proceed?")) {
-            await resetAllData();
-            window.location.href = "/";
-        }
-    };
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 bg-[var(--bg)]">
@@ -58,26 +48,11 @@ export default function GlobalError({
                 </Button>
             </div>
 
-            <div className="pt-12 border-t border-[var(--border)] w-full max-w-xs">
-                <p className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)] mb-4">Master Emergency Tool</p>
-                {!confirmReset ? (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-500 bg-red-500/5 hover:bg-red-500/10 w-full text-xs font-bold gap-2"
-                        onClick={() => setConfirmReset(true)}
-                    >
-                        <ShieldAlert className="h-3 w-3" /> Fix &ldquo;White Screen&rdquo; Loop
-                    </Button>
-                ) : (
-                    <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2">
-                        <p className="text-[11px] font-bold text-red-600">DANGER: This wipes ALL data.</p>
-                        <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="flex-1" onClick={() => setConfirmReset(false)}>Cancel</Button>
-                            <Button size="sm" className="flex-1 bg-red-600 text-white font-bold" onClick={handleHardReset}>Wipe Data</Button>
-                        </div>
-                    </div>
-                )}
+            <div className="pt-12 border-t border-[var(--border)] w-full max-w-xs space-y-3">
+                <p className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">Need a safer next step?</p>
+                <p className="text-xs leading-relaxed text-[var(--text-muted)]">
+                    Local data is not deleted automatically. If the problem keeps happening, reopen the app and use Settings &gt; Storage &amp; backup to export first before using the Danger Zone.
+                </p>
             </div>
 
             <p className="text-[10px] text-[var(--text-muted)] opacity-50">

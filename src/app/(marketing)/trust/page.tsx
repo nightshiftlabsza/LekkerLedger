@@ -1,11 +1,17 @@
 import * as React from "react";
 import Link from "next/link";
-import { Shield, Lock, HardDrive, Scale, ArrowRight, WalletCards, FolderSync } from "lucide-react";
+import { Shield, Lock, HardDrive, Scale, ArrowRight, WalletCards, FolderSync, KeyRound, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getNMWForDate } from "@/lib/legal/registry";
+import { COMPLIANCE } from "@/lib/compliance-constants";
+import { getNMWRecordForDate } from "@/lib/legal/registry";
 
 export default function TrustCenterPage() {
-    const nmw = getNMWForDate(new Date());
+    const nmwRecord = getNMWRecordForDate(new Date());
+    const effectiveDateLabel = new Intl.DateTimeFormat("en-ZA", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    }).format(new Date(nmwRecord.effectiveDate));
 
     return (
         <div className="min-h-screen overflow-x-hidden bg-[var(--bg)]">
@@ -40,8 +46,11 @@ export default function TrustCenterPage() {
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 This model inherently minimizes risk and aligns closely with POPIA data minimization principles. If you enable Google backup, the backup lives in your own Google Drive app data area, and your payroll records remain private from LekkerLedger.
                             </p>
-                            <Link href="/legal/privacy" className="inline-flex items-center text-sm font-bold text-[var(--primary)] hover:underline mt-2">
-                                Read full Privacy Policy <ArrowRight className="h-4 w-4 ml-1" />
+                            <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                Free does not require an account. A Google account is only needed if you choose paid backup and restore across devices.
+                            </p>
+                            <Link href="/storage" className="inline-flex items-center text-sm font-bold text-[var(--primary)] hover:underline mt-2">
+                                Read the storage guide <ArrowRight className="h-4 w-4 ml-1" />
                             </Link>
                         </div>
                         <div className="grid sm:grid-cols-2 gap-4">
@@ -61,7 +70,50 @@ export default function TrustCenterPage() {
 
                 <hr className="border-[var(--border)]" />
 
-                {/* 2. Constants & Compliance */}
+                {/* 2. Security Basics */}
+                <section className="scroll-mt-32" id="security">
+                    <div className="flex items-center gap-3 mb-8">
+                        <Shield className="h-6 w-6 text-[var(--primary)]" />
+                        <h2 className="type-h2" style={{ color: "var(--text)" }}>Security at a glance</h2>
+                    </div>
+                    <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
+                        <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
+                            <HardDrive className="h-5 w-5 text-zinc-500 mb-3" />
+                            <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Local by default</h4>
+                            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                Payroll records stay in your browser storage by default. They are not uploaded to a LekkerLedger employee database unless you choose your own Google backup path.
+                            </p>
+                        </div>
+                        <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
+                            <KeyRound className="h-5 w-5 text-[var(--primary)] mb-3" />
+                            <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Limited Google scopes</h4>
+                            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                Google sign-in starts with basic identity scopes. Drive access is requested separately only if you enable backup, and it uses Google Drive&apos;s private app-data area rather than your normal files.
+                            </p>
+                        </div>
+                        <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
+                            <WalletCards className="h-5 w-5 text-[var(--focus)] mb-3" />
+                            <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Payments handled by Paystack</h4>
+                            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                Card checkout is handled by Paystack. LekkerLedger does not collect or store your card number in this app.
+                            </p>
+                        </div>
+                        <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
+                            <Bug className="h-5 w-5 text-rose-500 mb-3" />
+                            <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Report problems quickly</h4>
+                            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                If you spot a privacy or security issue, email <a href="mailto:support@lekkerledger.co.za" className="font-semibold text-[var(--primary)] hover:underline">support@lekkerledger.co.za</a> with what happened, what device/browser you used, and how to reproduce it.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-5 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                        Google account email, backup-permission state, and similar connection details may be stored locally on your device so reconnect and restore flows can work. Google access tokens are kept for the current browser session rather than written into long-term local backup data. This page is meant to describe the current setup plainly, not to claim enterprise-grade controls that are not in place.
+                    </div>
+                </section>
+
+                <hr className="border-[var(--border)]" />
+
+                {/* 3. Constants & Compliance */}
                 <section className="scroll-mt-32" id="compliance">
                     <div className="flex items-center gap-3 mb-8">
                         <Scale className="h-6 w-6 text-[var(--primary)]" />
@@ -70,31 +122,38 @@ export default function TrustCenterPage() {
                     <div className="grid md:grid-cols-3 gap-6">
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <h4 className="font-bold text-sm uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>Minimum Wage</h4>
-                            <div className="text-3xl font-black mb-1" style={{ color: "var(--text)" }}>R{nmw.toFixed(2)}</div>
-                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Per hour. Always sourced from the latest Dept. of Labour gazette.</p>
+                            <div className="text-3xl font-black mb-1" style={{ color: "var(--text)" }}>R{nmwRecord.rate.toFixed(2)}</div>
+                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Per hour. Effective from {effectiveDateLabel}.</p>
+                            <a href={nmwRecord.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-bold text-[var(--primary)] hover:underline">
+                                Source: National Minimum Wage notice
+                            </a>
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <h4 className="font-bold text-sm uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>UIF Deduction</h4>
                             <div className="text-3xl font-black mb-1" style={{ color: "var(--text)" }}>1% + 1%</div>
                             <p className="text-xs" style={{ color: "var(--text-muted)" }}>1% deducted from employee, 1% contributed by employer.</p>
+                            <a href={COMPLIANCE.UIF.SOURCE_URL} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-bold text-[var(--primary)] hover:underline">
+                                Source: UIF guidance
+                            </a>
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <h4 className="font-bold text-sm uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>Compensation for Occupational Injuries and Diseases Act (COIDA)</h4>
-                            <div className="text-xl font-bold mb-1" style={{ color: "var(--text)" }}>Registration generally required</div>
-                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Domestic employers generally need to register with the Compensation Fund for injury-on-duty cover. This is one of the areas where tidy records matter because the legal expectation is real, even if the goal is calm compliance rather than panic.</p>
+                            <div className="text-xl font-bold mb-1" style={{ color: "var(--text)" }}>Many domestic employers need to register</div>
+                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Many domestic employers need to register with the Compensation Fund for injury-on-duty cover. This is general information only, so check the official guidance for your own situation before relying on it.</p>
+                            <p className="mt-2 text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>Not legal advice.</p>
                             <a href="https://www.labour.gov.za/compensation-for-occupational-injuries-and-diseases-act" target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-bold text-[var(--primary)] hover:underline">Source: Compensation Fund guidance</a>
                         </div>
                     </div>
                     <div className="mt-6">
                         <Link href="/rules" className="inline-flex items-center text-sm font-bold text-[var(--primary)] hover:underline">
-                            View the Compliance Guide <ArrowRight className="h-4 w-4 ml-1" />
+                            View the household checklist <ArrowRight className="h-4 w-4 ml-1" />
                         </Link>
                     </div>
                 </section>
 
                 <hr className="border-[var(--border)]" />
 
-                {/* 3. Pricing, Payments & Refunds */}
+                {/* 4. Pricing, Payments & Refunds */}
                 <section className="scroll-mt-32" id="billing">
                     <div className="flex items-center gap-3 mb-8">
                         <WalletCards className="h-6 w-6 text-[var(--primary)]" />
@@ -106,6 +165,20 @@ export default function TrustCenterPage() {
                                 <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text)" }}>Payment Processing via Paystack</h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     All payments are securely processed by Paystack. We do not collect, process, or store your credit card information on our servers.
+                                </p>
+                                <p className="text-sm leading-relaxed mt-3" style={{ color: "var(--text-muted)" }}>
+                                    Paystack says it is PCI DSS Level 1 certified.{" "}
+                                    <a
+                                        href="https://paystack.com/compliance"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-semibold text-[var(--primary)] hover:underline"
+                                    >
+                                        Learn about Paystack security
+                                    </a>
+                                </p>
+                                <p className="text-sm leading-relaxed mt-3" style={{ color: "var(--text-muted)" }}>
+                                    All prices are in ZAR. No VAT will be added at checkout because LekkerLedger is not currently VAT-registered.
                                 </p>
                             </div>
                             <div>

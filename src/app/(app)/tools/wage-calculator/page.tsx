@@ -21,7 +21,7 @@ export default function WageCalculatorPage() {
     return (
         <>
             <PageHeader
-                title="Wage Calculator"
+                title="Wage & UIF calculator"
                 subtitle="Estimate weekly and monthly pay based on SA minimum wage rules"
             />
 

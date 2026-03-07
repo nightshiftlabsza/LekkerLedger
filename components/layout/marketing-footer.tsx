@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
+import { COMPANY_NAME } from "@/src/config/brand";
 
 export function MarketingFooter() {
     const currentYear = new Date().getFullYear();
@@ -14,8 +15,8 @@ export function MarketingFooter() {
                         <div className="space-y-2">
                             <Link href="/#how-it-works" className="block text-sm text-[var(--text-muted)] hover:text-[var(--primary)]">How it works</Link>
                             <Link href="/pricing" className="block text-sm text-[var(--text-muted)] hover:text-[var(--primary)]">Pricing</Link>
-                            <Link href="/calculator" className="block text-sm text-[var(--text-muted)] hover:text-[var(--primary)]">Wage Calculator</Link>
-                            <Link href="/rules" className="block text-sm text-[var(--text-muted)] hover:text-[var(--primary)]">Compliance Guide</Link>
+                            <Link href="/calculator" className="block text-sm text-[var(--text-muted)] hover:text-[var(--primary)]">Wage & UIF calculator</Link>
+                    <Link href="/rules" className="block text-sm text-[var(--text-muted)] hover:text-[var(--primary)]">Household checklist</Link>
                         </div>
                     </div>
                     <div>
@@ -29,13 +30,21 @@ export function MarketingFooter() {
                     </div>
                     <div>
                         <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Connect</h4>
-                        <a
-                            href="mailto:support@lekkerledger.co.za"
-                            className="flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--primary)]"
-                        >
-                            <Mail className="h-3.5 w-3.5" />
-                            Email Support
-                        </a>
+                        <div className="space-y-2">
+                            <Link href="/support" className="block text-sm font-semibold text-[var(--primary)] hover:underline">
+                                Support Center
+                            </Link>
+                            <a
+                                href="mailto:support@lekkerledger.co.za"
+                                className="flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--primary)]"
+                            >
+                                <Mail className="h-3.5 w-3.5" />
+                                Email support
+                            </a>
+                            <p className="text-xs text-[var(--text-muted)]">
+                                Reply within 1-4 business days.
+                            </p>
+                        </div>
                     </div>
                     <div className="max-w-xs">
                         <Link href="/" className="mb-5 inline-block outline-none transition-opacity hover:opacity-90">
@@ -53,7 +62,7 @@ export function MarketingFooter() {
                 <div className="mt-10 flex flex-col gap-3 border-t border-[var(--border)] pt-6 text-xs text-[var(--text-muted)] sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
                         <p>© {currentYear} LekkerLedger. All rights reserved.</p>
-                        <p>Built by NightShift Labs ZA. Made in South Africa.</p>
+                        <p>Built by {COMPANY_NAME}. Made in South Africa.</p>
                     </div>
                     <p>General information, not legal advice.</p>
                 </div>

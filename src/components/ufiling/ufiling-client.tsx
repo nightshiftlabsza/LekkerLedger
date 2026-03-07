@@ -174,7 +174,7 @@ export function UFilingClient() {
                         <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary-hover)] group-hover:bg-[var(--primary)] group-hover:text-white transition-colors">
                             <Info className="h-4 w-4" />
                         </div>
-                        <span className="text-sm font-bold text-[var(--text)]">Compliance Guide: Submission Steps</span>
+                                <span className="text-sm font-bold text-[var(--text)]">Checklist: submission steps</span>
                     </div>
                     {showGuide ? <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />}
                 </button>
@@ -314,6 +314,14 @@ export function UFilingClient() {
                 >
                     <Download className="h-5 w-5" /> Download Export Bundle (CSV)
                 </Button>
+                <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
+                    <p className="text-[11px] font-semibold text-[var(--text)]">
+                        Review before submitting. This isn&apos;t legal advice.
+                    </p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">
+                        LekkerLedger prepares the file from your records, but you still check it against the official uFiling steps and submit it yourself.
+                    </p>
+                </div>
                 {!settings?.uifRefNumber && (
                     <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-center">
                         <p className="text-[11px] font-bold text-[var(--text)]">

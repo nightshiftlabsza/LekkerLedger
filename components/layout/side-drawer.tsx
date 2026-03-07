@@ -4,48 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
-import {
-    X, Users, Menu, LayoutDashboard,
-    Palmtree, FileSpreadsheet, Settings,
-    BookOpen, Sparkles, Mail, Calculator,
-    FolderOpen, Banknote,
-} from "lucide-react";
-
-// ─── Nav groups — matches IA Blueprint v1 ──────────────────────────────────
-const NAV_GROUPS = [
-    {
-        label: "Work",
-        links: [
-            { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-            { href: "/payroll", label: "Monthly Payroll", icon: Banknote },
-            { href: "/employees", label: "Employees", icon: Users },
-            { href: "/leave", label: "Leave", icon: Palmtree },
-            { href: "/tools/wage-calculator", label: "Wage Calculator", icon: Calculator },
-        ],
-    },
-    {
-        label: "Documents",
-        links: [
-            { href: "/documents", label: "Documents", icon: FolderOpen },
-        ],
-    },
-    {
-        label: "Compliance",
-        links: [
-            { href: "/compliance/coida/roe", label: "Return of Earnings (ROE) Pack", icon: Sparkles },
-            { href: "/ufiling", label: "uFiling Export", icon: FileSpreadsheet },
-            { href: "/help/compliance", label: "Compliance Guide", icon: BookOpen },
-        ],
-    },
-    {
-        label: "Account",
-        links: [
-            { href: "/settings", label: "Settings", icon: Settings },
-            { href: "/upgrade", label: "Billing", icon: Sparkles },
-            { href: "/help/compliance", label: "Help", icon: BookOpen },
-        ],
-    },
-] as const;
+import { Mail, Menu, X } from "lucide-react";
+import { APP_NAV_GROUPS } from "@/src/config/app-nav";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 interface SideDrawerProps {
@@ -138,7 +98,7 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
 
                 {/* ── Navigation ─────────────────────────────────────────── */}
                 <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-5">
-                    {NAV_GROUPS.map((group) => (
+                    {APP_NAV_GROUPS.map((group) => (
                         <div key={group.label}>
                             <p
                                 className="text-[10px] font-bold uppercase tracking-widest px-2 mb-1.5"
@@ -148,7 +108,7 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                             </p>
 
                             <div className="space-y-0.5">
-                                {group.links.map(({ href, label, icon: Icon }) => {
+                                {group.links.map(({ href, label, sublabel, icon: Icon }) => {
                                     const active = isActive(href);
                                     return (
                                         <Link
@@ -183,7 +143,14 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                                                 <Icon className="h-3.5 w-3.5" />
                                             </span>
 
-                                            <span className="flex-1 truncate">{label}</span>
+                                            <span className="min-w-0 flex-1">
+                                                <span className="block truncate">{label}</span>
+                                                {sublabel ? (
+                                                    <span className="mt-0.5 block text-[10px] font-medium leading-4 text-[var(--text-muted)]">
+                                                        {sublabel}
+                                                    </span>
+                                                ) : null}
+                                            </span>
                                         </Link>
                                     );
                                 })}

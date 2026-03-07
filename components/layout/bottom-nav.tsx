@@ -3,14 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Banknote, FolderOpen, MoreHorizontal } from "lucide-react";
-
-const NAV_ITEMS = [
-    { label: "Home", icon: LayoutDashboard, href: "/dashboard" },
-    { label: "Payroll", icon: Banknote, href: "/payroll" },
-    { label: "Employees", icon: Users, href: "/employees" },
-    { label: "Documents", icon: FolderOpen, href: "/documents" },
-];
+import { Menu } from "lucide-react";
+import { MOBILE_NAV_ITEMS } from "@/src/config/app-nav";
 
 interface BottomNavProps {
     onMore?: () => void;
@@ -22,7 +16,7 @@ export function BottomNav({ onMore }: BottomNavProps) {
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden glass-panel border-t border-[var(--border)] pb-safe">
             <div className="flex items-center justify-around h-16">
-                {NAV_ITEMS.map((item) => {
+                {MOBILE_NAV_ITEMS.map((item) => {
                     const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname?.startsWith(item.href));
                     const Icon = item.icon;
 
@@ -30,6 +24,7 @@ export function BottomNav({ onMore }: BottomNavProps) {
                         <Link
                             key={item.href}
                             href={item.href}
+                            aria-label={item.label}
                             data-testid={`bottom-nav-${item.label.toLowerCase()}`}
                             className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors ${isActive ? "text-[var(--primary)]" : "text-[var(--text-muted)]"
                                 }`}
@@ -41,14 +36,15 @@ export function BottomNav({ onMore }: BottomNavProps) {
                         </Link>
                     );
                 })}
-                {/* More button — opens full side drawer */}
+                {/* Menu button — opens full side drawer */}
                 <button
                     onClick={onMore}
+                    aria-label="Menu"
                     data-testid="bottom-nav-more"
                     className="flex flex-col items-center justify-center flex-1 h-full gap-1 text-[var(--text-muted)] transition-colors"
                 >
-                    <MoreHorizontal className="h-5 w-5" />
-                    <span className="text-[11px] font-bold uppercase tracking-tight">More</span>
+                    <Menu className="h-5 w-5" />
+                    <span className="text-[11px] font-bold uppercase tracking-tight">Menu</span>
                 </button>
             </div>
         </nav>

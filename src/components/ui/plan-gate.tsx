@@ -23,6 +23,12 @@ export function PlanLimitGate({
     proFeature = false,
     compact = false,
 }: PlanLimitGateProps) {
+    const upgradeBenefits = [
+        "Optional Google Drive backup",
+        "Documents and exports",
+        "Longer record history",
+    ];
+
     if (!limitReached && !proFeature) {
         return null;
     }
@@ -43,13 +49,21 @@ export function PlanLimitGate({
                                 ? description
                                 : `You've used ${currentCount} of ${maxLimit} available on the Free Plan.`}
                         </p>
+                        <p className="mt-1 text-[11px] font-medium text-[var(--text-muted)] dark:text-[var(--focus)]/70">
+                            Upgrade for backup + documents + longer history.
+                        </p>
                     </div>
                 </div>
-                <Link href="/pricing" className="shrink-0">
-                    <Button size="sm" className="h-8 text-xs font-bold bg-[var(--primary)] hover:brightness-95 text-white w-full sm:w-auto">
-                        Upgrade
-                    </Button>
-                </Link>
+                <div className="shrink-0 space-y-1">
+                    <Link href="/pricing" className="block">
+                        <Button size="sm" className="h-8 text-xs font-bold bg-[var(--primary)] hover:brightness-95 text-white w-full sm:w-auto">
+                            Upgrade
+                        </Button>
+                    </Link>
+                    <p className="text-[10px] text-center text-[var(--text-muted)] dark:text-[var(--focus)]/60">
+                        14-day refund on paid upgrades
+                    </p>
+                </div>
             </div>
         );
     }
@@ -63,7 +77,7 @@ export function PlanLimitGate({
                 <div className="max-w-md">
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--primary)]/10 border border-[var(--focus)]/20 text-[var(--focus)] text-[10px] uppercase font-bold tracking-widest mb-4">
                         <Sparkles className="h-3 w-3" />
-                        {proFeature ? "Lekker Pro" : "Free Tier Limit"}
+                        {proFeature ? "Pro Plan" : "Free Tier Limit"}
                     </div>
 
                     <h3 className="text-xl font-bold mb-2 text-[var(--text)] dark:text-amber-400">
@@ -73,6 +87,17 @@ export function PlanLimitGate({
                     <p className="text-sm leading-relaxed text-[var(--text-muted)] dark:text-[var(--focus)]/80">
                         {description} {!proFeature && `You are currently using ${currentCount} out of ${maxLimit} allowed items.`}
                     </p>
+
+                    <div className="mt-4 space-y-2">
+                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">
+                            What you get
+                        </p>
+                        <ul className="space-y-1.5 text-sm text-[var(--text-muted)] dark:text-[var(--focus)]/80">
+                            {upgradeBenefits.map((benefit) => (
+                                <li key={benefit}>- {benefit}</li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
 
                 <div className="shrink-0 flex flex-col gap-2 w-full md:w-auto">
@@ -82,7 +107,7 @@ export function PlanLimitGate({
                         </Button>
                     </Link>
                     <p className="text-[10px] text-center font-medium text-[var(--focus)]/60 dark:text-[var(--focus)]/50 uppercase tracking-wider">
-                        No hidden fees
+                        14-day refund on paid upgrades
                     </p>
                 </div>
             </CardContent>

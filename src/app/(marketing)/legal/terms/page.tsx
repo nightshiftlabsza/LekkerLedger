@@ -4,76 +4,162 @@ import React from "react";
 import Link from "next/link";
 import { ChevronLeft, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { COMPANY_NAME } from "@/src/config/brand";
+import { SupplierDetails } from "@/components/legal/supplier-details";
+
+const UPDATED_DATE = "7 March 2026";
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+    return (
+        <section className="space-y-4">
+            <h2 className="text-2xl font-black text-white">{title}</h2>
+            {children}
+        </section>
+    );
+}
 
 export default function TermsOfService() {
     const currentYear = new Date().getFullYear();
+
     return (
         <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-            <div className="max-w-4xl mx-auto px-6 py-12 sm:py-20 space-y-12">
+            <div className="mx-auto max-w-4xl space-y-12 px-6 py-12 sm:py-20">
                 <Link href="/">
-                    <Button variant="ghost" className="gap-2 mb-8 -ml-4">
+                    <Button variant="ghost" className="mb-8 -ml-4 gap-2">
                         <ChevronLeft className="h-4 w-4" /> Back to Home
                     </Button>
                 </Link>
 
                 <header className="space-y-4">
-                    <div className="h-12 w-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mb-6 border border-[var(--primary)]/20">
+                    <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/10 text-[var(--primary)]">
                         <Scale className="h-6 w-6" />
                     </div>
-                    <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Terms of Service</h1>
-                    <p className="text-zinc-500 font-medium">Updated periodically</p>
+                    <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Terms of Service</h1>
+                    <p className="font-medium text-zinc-500">Updated {UPDATED_DATE}</p>
                 </header>
 
-                <div className="prose prose-zinc dark:prose-invert max-w-none space-y-8 text-zinc-400 leading-relaxed font-medium">
-                    <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">1. Acceptance of Terms</h2>
-                        <p>
-                            By using LekkerLedger, you agree to be bound by these Terms of Service. If you do not agree, please do not use the application. This service is provided by Nightshift Labs ZA, operating in South Africa.
-                        </p>
-                    </section>
-
-                    <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">2. Nature of Service</h2>
-                        <p>
-                            LekkerLedger is a payroll calculation and record-keeping tool. While we aim to keep rules updated based on current South African labour laws (Basic Conditions of Employment Act (BCEA), Sectoral Determination 7 (SD7)), calculations should always be verified against official sources. We are not a law firm or a substitute for legal advice.
-                        </p>
-                    </section>
-
-                    <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">3. User Responsibilities</h2>
-                        <p>As the employer, you are responsible for:</p>
-                        <ul className="list-disc pl-6 space-y-2">
-                            <li>Ensuring the data entered (hours, rates, names) is accurate.</li>
-                            <li>Paying your employees the correct amount.</li>
-                            <li>Maintaining your own backups (using our built-in export features).</li>
+                <div className="space-y-8 text-zinc-400">
+                    <div className="rounded-2xl border border-[var(--primary)]/10 bg-[var(--primary)]/5 p-6">
+                        <h2 className="text-xl font-black text-white">Plain-language summary</h2>
+                        <ul className="mt-4 list-disc space-y-2 pl-6 text-sm leading-7">
+                            <li>LekkerLedger is a record-keeping and payroll preparation tool, not a managed payroll service and not legal advice.</li>
+                            <li>You are responsible for the accuracy of the information you enter and for checking official requirements before submission or payment.</li>
+                            <li>Paid plans are billed through our payment provider, and refunds are handled under the published refund policy.</li>
+                            <li>We can update, improve, suspend, or stop parts of the service where reasonably necessary.</li>
+                            <li>Our liability is limited to the maximum extent allowed by law.</li>
                         </ul>
-                    </section>
+                    </div>
 
-                    <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">4. Intellectual Property</h2>
-                        <p>
-                            The code and design of LekkerLedger are the property of Nightshift Labs ZA. The open-source portions are governed by the MIT License, which handles code reuse but does not grant rights to the LekkerLedger brand or trademarks.
-                        </p>
-                    </section>
+                    <SupplierDetails />
 
-                    <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">5. Limitation of Liability</h2>
-                        <p>
-                            To the maximum extent permitted by South African law, Nightshift Labs ZA shall not be liable for any labour dispute outcomes, legal fees, or financial losses resulting from the use of this tool. Your use of LekkerLedger is at your own risk.
-                        </p>
-                    </section>
+                    <div className="prose prose-zinc dark:prose-invert max-w-none space-y-8 font-medium leading-relaxed text-zinc-400">
+                        <Section title="1. Acceptance of terms">
+                            <p>
+                                By using LekkerLedger, you agree to these Terms of Service. If you do not agree, do not use the website or app.
+                                LekkerLedger is operated by {COMPANY_NAME} in South Africa.
+                            </p>
+                        </Section>
 
-                    <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">6. Governing Law</h2>
-                        <p>These terms are governed by the laws of the Republic of South Africa.</p>
-                    </section>
+                        <Section title="2. What the service is">
+                            <p>
+                                LekkerLedger is a household employment record-keeping and payroll preparation tool. It helps you organise employee details, create payslips, prepare exports, and keep supporting records together.
+                            </p>
+                            <p>
+                                LekkerLedger is not a law firm, not a payroll bureau, not an accounting service, and not a substitute for checking official rules, notices, or guidance that apply to your situation.
+                            </p>
+                        </Section>
+
+                        <Section title="3. Eligibility and acceptable use">
+                            <p>You may use LekkerLedger only in a lawful way and only for its intended purpose. You agree not to:</p>
+                            <ul className="list-disc space-y-2 pl-6">
+                                <li>use the service to break the law or infringe another person&apos;s rights,</li>
+                                <li>attempt to interfere with the security or operation of the service,</li>
+                                <li>misrepresent your identity, payment status, or entitlement to use paid features, or</li>
+                                <li>use the service in a way that is abusive, fraudulent, or harmful to others.</li>
+                            </ul>
+                        </Section>
+
+                        <Section title="4. Your responsibilities">
+                            <p>As the employer or user, you remain responsible for:</p>
+                            <ul className="list-disc space-y-2 pl-6">
+                                <li>entering accurate names, hours, rates, leave figures, and reference details,</li>
+                                <li>reviewing calculations and documents before relying on them,</li>
+                                <li>checking official guidance before making payments, declarations, or submissions,</li>
+                                <li>keeping your own access credentials, devices, and accounts secure, and</li>
+                                <li>maintaining your own backups where needed.</li>
+                            </ul>
+                        </Section>
+
+                        <Section title="5. Pricing, billing, and refunds">
+                            <p>
+                                Free, Standard, and Pro plan details are described on the pricing pages. Paid access is billed through our payment provider. We do not store your card details ourselves.
+                            </p>
+                            <p>
+                                Refunds are handled according to the published refund policy. If there is a conflict between a brief summary on another page and the formal refund policy, the refund policy should control.
+                            </p>
+                            <p>
+                                We may change pricing, features, or plan packaging in the future. Changes should apply prospectively, not retroactively, unless required for legal, technical, or fraud-prevention reasons.
+                            </p>
+                        </Section>
+
+                        <Section title="6. Availability and changes">
+                            <p>
+                                We aim to keep LekkerLedger available and useful, but we do not promise uninterrupted availability. Maintenance, upgrades, provider outages, or technical incidents may affect access from time to time.
+                            </p>
+                            <p>
+                                We may update, improve, replace, or remove features where reasonably necessary. We may also suspend or limit access if we believe there is misuse, fraud, security risk, or non-payment.
+                            </p>
+                        </Section>
+
+                        <Section title="7. Intellectual property">
+                            <p>
+                                The LekkerLedger product, brand, design, text, and non-open-source materials remain the property of {COMPANY_NAME} or its licensors.
+                            </p>
+                            <p>
+                                Open-source components remain subject to their own licenses. Those licenses do not grant rights to the LekkerLedger name, branding, or product identity.
+                            </p>
+                        </Section>
+
+                        <Section title="8. Disclaimers">
+                            <p>
+                                LekkerLedger provides tools, guidance, and calculations intended to help household employers stay organised. It does not guarantee legal outcomes, tribunal outcomes, regulator acceptance, or the correctness of information you enter.
+                            </p>
+                            <p>
+                                Because laws, notices, filing windows, and official guidance can change, you must verify important details against official sources before relying on them.
+                            </p>
+                        </Section>
+
+                        <Section title="9. Limitation of liability">
+                            <p>
+                                To the maximum extent permitted by applicable law, {COMPANY_NAME} will not be liable for indirect, incidental, special, consequential, or similar losses arising from your use of LekkerLedger.
+                            </p>
+                            <p>
+                                This includes, by way of example, losses connected to incorrect user input, missed submissions, labour disputes, penalties, business interruption, lost records caused by user device issues, or reliance on outdated official rules not yet reflected in the product.
+                            </p>
+                        </Section>
+
+                        <Section title="10. Termination">
+                            <p>
+                                You may stop using the service at any time. We may suspend or terminate access where reasonably necessary for abuse, fraud, legal reasons, or security reasons.
+                            </p>
+                            <p>
+                                Termination does not automatically delete data stored on your own device or in your own Google account. Those storage locations remain under your control.
+                            </p>
+                        </Section>
+
+                        <Section title="11. Governing law and contact">
+                            <p>These terms are governed by the laws of the Republic of South Africa.</p>
+                            <p>
+                                For product or legal-policy questions, contact <a href="mailto:support@lekkerledger.co.za">support@lekkerledger.co.za</a>.
+                            </p>
+                        </Section>
+                    </div>
                 </div>
 
-                <footer className="pt-20 border-t border-zinc-800/50">
+                <footer className="border-t border-zinc-800/50 pt-20">
                     <p className="text-xs text-zinc-600">© {currentYear} LekkerLedger. All rights reserved.</p>
                 </footer>
             </div>
         </div>
     );
 }
-

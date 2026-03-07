@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Cloud, Download, Eye, FileSpreadsheet, FileText, FolderOpen, HardDrive, History, Lock, ScrollText, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { FeatureGateCard } from "@/components/ui/feature-gate-card";
@@ -280,6 +281,15 @@ export default function DocumentsPage() {
                 onChange={handleSignedDocumentSelected}
             />
 
+            {activeTab === "Contracts" && (
+                <Alert variant="warning">
+                    <AlertTitle>Review before signing</AlertTitle>
+                    <AlertDescription>
+                        Contract templates are a starting point only, not legal advice. Check the wording against the real arrangement, verify against official guidance, and keep the signed final version in Documents.
+                    </AlertDescription>
+                </Alert>
+            )}
+
             <div className="ultrawide-grid">
                 <div className="ultrawide-main space-y-6">
                     <div className="flex items-center gap-1 border-b border-[var(--border)] -mx-4 px-4 overflow-x-auto no-scrollbar lg:mx-0 lg:px-0">
@@ -308,12 +318,18 @@ export default function DocumentsPage() {
                     {noContent ? (
                         <EmptyState
                             title="No documents yet"
-                            description="Your payslips, contracts, exports, and archived records will collect here."
+                            description="Your payslips, contracts, exports, and archived records will appear here once you start using the app."
                             icon={FolderOpen}
-                            actionLabel="Start payroll"
-                            actionHref="/payroll/new"
-                            secondaryActionLabel="Add employee"
-                            secondaryActionHref="/employees/new"
+                            highlights={[
+                                "Payslip PDFs after you run a pay period.",
+                                "Contract drafts and uploaded signed copies.",
+                                "Exports such as UIF and annual filing downloads.",
+                                "Older records and supporting documents kept in one place.",
+                            ]}
+                            actionLabel="Add your first employee"
+                            actionHref="/employees/new"
+                            secondaryActionLabel="See example documents"
+                            secondaryActionHref="/examples"
                         />
                     ) : activeTab === "Contracts" ? (
                         filteredContracts.length === 0 ? (

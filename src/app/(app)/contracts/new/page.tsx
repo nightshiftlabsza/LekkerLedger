@@ -12,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getEmployees, saveContract, getSettings } from "@/lib/storage";
 import { Contract, Employee, EmployerSettings } from "@/lib/schema";
 import { canUseContractGenerator, getUserPlan } from "@/lib/entitlements";
+import { CONTRACT_TEMPLATE_META } from "@/src/config/contract-template";
 
 const STEPS = [
     { label: "Employee", description: "Choose the worker" },
@@ -177,6 +178,18 @@ export default function NewContractPage() {
                     This generator follows the Department of Employment and Labour domestic-worker sample structure, but it is still only a draft. Review it with the employee carefully, and if you can, have the final wording checked by a South African labour lawyer before signing.
                         </AlertDescription>
                     </Alert>
+
+            <Card className="glass-panel border-none p-5">
+                <div className="space-y-2 text-sm text-[var(--text-muted)]">
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Template details</p>
+                    <p>
+                        Template version: <strong className="text-[var(--text)]">{CONTRACT_TEMPLATE_META.versionLabel}</strong> · Last updated: <strong className="text-[var(--text)]">{CONTRACT_TEMPLATE_META.updatedAtLabel}</strong>
+                    </p>
+                    <p>
+                        Source: <a href={CONTRACT_TEMPLATE_META.sourceHref} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--primary)] hover:underline">{CONTRACT_TEMPLATE_META.sourceLabel}</a> · <strong className="text-[var(--text)]">{CONTRACT_TEMPLATE_META.reviewLabel}</strong>
+                    </p>
+                </div>
+            </Card>
 
             <Card className="glass-panel border-none shadow-2xl overflow-hidden">
                 <CardContent className="p-0">
@@ -435,6 +448,9 @@ export default function NewContractPage() {
                                     <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">What happens next</p>
                                     <p className="text-sm text-[var(--text)]">
                                         Saving creates a draft contract in Documents. From there, you can preview the PDF, download it, talk through the wording with the employee, and only sign the final version you are happy with.
+                                    </p>
+                                    <p className="text-xs text-[var(--text-muted)]">
+                                        Template version {CONTRACT_TEMPLATE_META.versionLabel} · Last updated {CONTRACT_TEMPLATE_META.updatedAtLabel}
                                     </p>
                                 </div>
                                 <Alert variant="warning">

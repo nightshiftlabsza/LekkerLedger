@@ -6,10 +6,17 @@ import { ArrowLeft } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { CalculatorHero } from "@/components/calculator-hero";
 import { useRouter } from "next/navigation";
+import { getNMWRecordForDate } from "@/lib/legal/registry";
 
 
 export default function CalculatorPage() {
     const router = useRouter();
+    const nmwRecord = getNMWRecordForDate(new Date());
+    const effectiveDate = new Intl.DateTimeFormat("en-ZA", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    }).format(new Date(nmwRecord.effectiveDate));
 
     const handleStart = () => {
         router.push("/payroll/new");
@@ -31,11 +38,18 @@ export default function CalculatorPage() {
 
                     <div className="space-y-3">
                         <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                            Wage & Unemployment Insurance Fund (UIF) Estimator
+                            Wage & UIF calculator
                         </h1>
                         <p className="text-sm leading-relaxed font-medium" style={{ color: "var(--text-muted)" }}>
                             Get a quick estimate of gross pay, UIF deductions, and net pay based on hours worked and hourly rate.
                             This uses the current National Minimum Wage for domestic workers.
+                        </p>
+                        <p className="text-xs font-semibold leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            Minimum wage shown is effective from {effectiveDate}.{" "}
+                            <a href={nmwRecord.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--primary)] transition-colors">
+                                Source
+                            </a>
+                            .
                         </p>
                     </div>
 

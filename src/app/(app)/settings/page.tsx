@@ -28,11 +28,15 @@ type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 function SettingsContent() {
     const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = React.useState<SettingsTab>("general");
+    const [appearanceOpen, setAppearanceOpen] = React.useState(false);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
-    const [, setEmployees] = React.useState<Employee[]>([]);
+    const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [saving, setSaving] = React.useState(false);
     const [saved, setSaved] = React.useState(false);
+    const [wipeConfirmOpen, setWipeConfirmOpen] = React.useState(false);
+    const [wipeConfirmText, setWipeConfirmText] = React.useState("");
+    const [wiping, setWiping] = React.useState(false);
     const savedTimerRef = React.useRef<number | null>(null);
     const { theme, setTheme, setDensity } = useUI();
 
@@ -87,7 +91,7 @@ function SettingsContent() {
     if (loading || !settings) {
         return (
             <>
-                <PageHeader title="Settings" />
+                <PageHeader title="Settings" subtitle="Start with your household details, then open the extra options only if you need them." />
                 <CardSkeleton />
                 <CardSkeleton />
             </>
@@ -96,15 +100,15 @@ function SettingsContent() {
 
     return (
         <div className="mx-auto w-full min-w-0 max-w-4xl pb-20">
-            <PageHeader title="Settings" />
+            <PageHeader title="Settings" subtitle="Start with your household details, then open the extra options only if you need them." />
 
             {/* Tab switcher */}
             <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)]/92 p-2 shadow-[var(--shadow-1)] mb-2">
                 <div className="grid grid-cols-2 gap-1 min-[520px]:grid-cols-3 xl:grid-cols-5">
-                    <TabButton id="general" icon={Building2} label="General" activeTab={activeTab} setActiveTab={setActiveTab} />
-                    <TabButton id="storage" icon={Database} label="Storage & Sync" activeTab={activeTab} setActiveTab={setActiveTab} />
-                    <TabButton id="plan" icon={ShieldCheck} label="Billing" activeTab={activeTab} setActiveTab={setActiveTab} />
-                    <TabButton id="exports" icon={Download} label="Exports" activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabButton id="general" icon={Building2} label="Your details" activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabButton id="storage" icon={Database} label="Storage & backup" activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabButton id="plan" icon={ShieldCheck} label="Plan" activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabButton id="exports" icon={Download} label="Downloads" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="support" icon={HelpCircle} label="Help" activeTab={activeTab} setActiveTab={setActiveTab} />
                 </div>
             </div>
@@ -113,7 +117,7 @@ function SettingsContent() {
                 {activeTab === "general" && (
                     <div className="space-y-6">
                         <section className="space-y-4">
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Employer Information</h2>
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Basic details</h2>
                             <Card className="glass-panel border-none p-5 space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="ename">Employer Name</Label>
@@ -135,14 +139,14 @@ function SettingsContent() {
                         </section>
 
                         <section className="space-y-4">
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">App Experience</h2>
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">App experience</h2>
                             <Card className="glass-panel border-none p-1 overflow-hidden">
                                 <div className="p-4 border-b border-[var(--border)] space-y-3">
                                     <div className="flex items-start gap-3">
                                         <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--focus)]"><Smartphone className="h-4 w-4" /></div>
                                         <div>
-                                            <p className="text-sm font-bold">Experience mode</p>
-                                            <p className="text-[10px] text-[var(--text-muted)]">Pick the simpler guided view or the more detailed view. One mode is always active.</p>
+                                            <p className="text-sm font-bold">View style</p>
+                                            <p className="text-[10px] text-[var(--text-muted)]">Start with the simpler view. Open the detailed view only when you need extra context.</p>
                                         </div>
                                     </div>
                                     <div className="grid gap-3 md:grid-cols-2">
@@ -157,9 +161,9 @@ function SettingsContent() {
                                         >
                                             <div className="flex items-center gap-2">
                                                 <Smartphone className="h-4 w-4 text-[var(--primary)]" />
-                                                <p className="text-sm font-bold text-[var(--text)]">Guided mode</p>
+                                                <p className="text-sm font-bold text-[var(--text)]">Basic view</p>
                                             </div>
-                                            <p className="mt-2 text-xs text-[var(--text-muted)]">Cleaner screens with less legal detail and fewer admin-heavy extras.</p>
+                                            <p className="mt-2 text-xs text-[var(--text-muted)]">Cleaner screens with the main tasks first and less extra detail.</p>
                                         </button>
                                         <button
                                             type="button"
@@ -172,9 +176,9 @@ function SettingsContent() {
                                         >
                                             <div className="flex items-center gap-2">
                                                 <Zap className="h-4 w-4 text-[var(--primary)]" />
-                                                <p className="text-sm font-bold text-[var(--text)]">Detailed mode</p>
+                                                <p className="text-sm font-bold text-[var(--text)]">Detailed view (optional)</p>
                                             </div>
-                                            <p className="mt-2 text-xs text-[var(--text-muted)]">Show fuller checks, references, and more of the underlying record detail.</p>
+                                            <p className="mt-2 text-xs text-[var(--text-muted)]">Show fuller checks, help notes, and more of the record detail when you need it.</p>
                                         </button>
                                     </div>
                                 </div>
@@ -189,31 +193,45 @@ function SettingsContent() {
                                     <Switch checked={settings.density === "compact"} onCheckedChange={(val) => handleSave({ density: val ? "compact" : "comfortable" })} />
                                 </div>
 
-                                <div className="flex flex-col p-4 border-t border-[var(--border)]">
-                                    <p className="text-sm font-bold mb-1">Appearance</p>
-                                    <p className="text-[10px] text-[var(--text-muted)] mb-3">Choose how LekkerLedger looks</p>
-                                    <div className="flex items-center rounded-lg p-1 gap-1" style={{ backgroundColor: "var(--surface-2)" }}>
-                                        {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
-                                            const active = theme === value;
-                                            return (
-                                                <button key={value} onClick={() => setTheme(value)} aria-pressed={active}
-                                                    className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-md text-xs font-medium transition-all duration-200 active-scale"
-                                                    style={{
-                                                        backgroundColor: active ? "var(--surface-1)" : "transparent",
-                                                        color: active ? "var(--primary)" : "var(--text-muted)",
-                                                        boxShadow: active ? "var(--shadow-sm)" : "none",
-                                                    }}>
-                                                    <Icon className="h-4 w-4" />{label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
+                                <div className="border-t border-[var(--border)]">
+                                    <button
+                                        type="button"
+                                        onClick={() => setAppearanceOpen((current) => !current)}
+                                        className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-[var(--surface-2)]"
+                                        aria-expanded={appearanceOpen}
+                                    >
+                                        <div>
+                                            <p className="text-sm font-bold">Appearance (optional)</p>
+                                            <p className="text-[10px] text-[var(--text-muted)]">Auto is the default theme.</p>
+                                        </div>
+                                        <ChevronRight className={`h-4 w-4 text-[var(--text-muted)] transition-transform ${appearanceOpen ? "rotate-90" : ""}`} />
+                                    </button>
+                                    {appearanceOpen && (
+                                        <div className="flex flex-col p-4 pt-0">
+                                            <div className="flex items-center rounded-lg p-1 gap-1" style={{ backgroundColor: "var(--surface-2)" }}>
+                                                {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
+                                                    const active = theme === value;
+                                                    return (
+                                                        <button key={value} onClick={() => setTheme(value)} aria-pressed={active}
+                                                            className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-md text-xs font-medium transition-all duration-200 active-scale"
+                                                            style={{
+                                                                backgroundColor: active ? "var(--surface-1)" : "transparent",
+                                                                color: active ? "var(--primary)" : "var(--text-muted)",
+                                                                boxShadow: active ? "var(--shadow-sm)" : "none",
+                                                            }}>
+                                                            <Icon className="h-4 w-4" />{label}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </Card>
                         </section>
 
                         <section className="space-y-4">
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Registrations</h2>
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">More details</h2>
                             <Card className="glass-panel border-none p-5 space-y-4">
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
@@ -255,25 +273,85 @@ function SettingsContent() {
                                 <p><strong>2. Google-connected backup:</strong> If enabled on a paid plan, a backup is stored in your own Google Drive app data area so you can restore records on another browser or device.</p>
                                 <p><strong>3. Private from LekkerLedger:</strong> We do not keep a central employee payroll database and we cannot browse your normal Google Drive files.</p>
                                 <p><strong>4. PDF generation:</strong> Payslips and contracts do not leave your device unless you explicitly share or export them.</p>
+                                <p><strong>5. Do not clear browser storage without a backup:</strong> If you clear browser data or lose this device before exporting or enabling backup, your records on this device cannot be recovered.</p>
                             </Card>
                         </section>
 
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Danger Zone</h2>
-                            <Card className="border-rose-200 dark:border-rose-900/30 bg-rose-500/5">
-                                <Button variant="ghost" className="w-full justify-between text-rose-500 hover:bg-rose-500/10 h-14 px-4 rounded-xl"
-                                    onClick={async () => {
-                                        if (confirm("This will permanently delete ALL data (employees, payslips, settings) on this device. Continue?")) {
-                                            await resetAllData();
-                                            window.location.href = "/";
-                                        }
-                                    }}>
-                                    <div className="flex items-center gap-3">
-                                        <Database className="h-4 w-4" />
-                                        <span className="font-bold text-sm">Wipe All Local Data</span>
+                            <Card className="border-rose-200 dark:border-rose-900/30 bg-rose-500/5 p-5 space-y-4">
+                                <div className="space-y-2 text-sm leading-relaxed text-[var(--text-muted)]">
+                                    <p className="font-bold text-rose-600">Delete records stored in this browser only.</p>
+                                    <p>
+                                        Export a JSON backup first. This wipe removes employer settings, employees, payslips, and other local records from this device.
+                                    </p>
+                                    <p>
+                                        Current employees on this device: <strong className="text-[var(--text)]">{employees.length}</strong>
+                                    </p>
+                                </div>
+
+                                {!wipeConfirmOpen ? (
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-between text-rose-600 hover:bg-rose-500/10 h-14 px-4 rounded-xl"
+                                        onClick={() => {
+                                            setWipeConfirmOpen(true);
+                                            setWipeConfirmText("");
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Database className="h-4 w-4" />
+                                            <span className="font-bold text-sm">Open delete confirmation</span>
+                                        </div>
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                ) : (
+                                    <div className="space-y-4 rounded-2xl border border-rose-300/60 bg-white/60 p-4 dark:bg-rose-950/10">
+                                        <div className="space-y-2 text-xs leading-relaxed text-[var(--text-muted)]">
+                                            <p><strong className="text-[var(--text)]">Before you continue:</strong></p>
+                                            <p>1. Export a JSON backup if you may need these records again.</p>
+                                            <p>2. Make sure you are deleting the correct browser/device.</p>
+                                            <p>3. Type <strong className="text-[var(--text)]">DELETE</strong> below to confirm.</p>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="wipe-confirm">Type DELETE to continue</Label>
+                                            <Input
+                                                id="wipe-confirm"
+                                                value={wipeConfirmText}
+                                                onChange={(e) => setWipeConfirmText(e.target.value)}
+                                                placeholder="DELETE"
+                                            />
+                                        </div>
+
+                                        <div className="flex gap-3">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="flex-1"
+                                                onClick={() => {
+                                                    setWipeConfirmOpen(false);
+                                                    setWipeConfirmText("");
+                                                }}
+                                                disabled={wiping}
+                                            >
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                className="flex-1 bg-rose-600 text-white hover:bg-rose-700"
+                                                disabled={wiping || wipeConfirmText.trim().toUpperCase() !== "DELETE"}
+                                                onClick={async () => {
+                                                    setWiping(true);
+                                                    await resetAllData();
+                                                    window.location.href = "/";
+                                                }}
+                                            >
+                                                {wiping ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete local data"}
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <ChevronRight className="h-4 w-4" />
-                                </Button>
+                                )}
                             </Card>
                         </section>
                     </div>
@@ -327,11 +405,18 @@ function SettingsContent() {
                                     </ul>
 
                                     <div className="mt-6">
-                                        <Link href="/upgrade" className="block">
-                                            <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold" disabled={currentPlan.id === "pro"}>
-                                                {currentPlan.id === "pro" ? "Highest plan active" : "Review paid options"}
-                                            </Button>
-                                        </Link>
+                                        <div className="space-y-2">
+                                            <Link href="/upgrade" className="block">
+                                                <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold" disabled={currentPlan.id === "pro"}>
+                                                    {currentPlan.id === "pro" ? "Highest plan active" : "Review paid options"}
+                                                </Button>
+                                            </Link>
+                                            {currentPlan.id !== "pro" && (
+                                                <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
+                                                    14-day refund. Cancel anytime.
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 </Card>
                             </section>
@@ -378,11 +463,18 @@ function SettingsContent() {
                                                         ))}
                                                     </ul>
 
-                                                    <Link href="/upgrade" className="block">
-                                                        <Button variant={isCurrent ? "outline" : "default"} className={`w-full font-bold ${isCurrent ? "" : "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"}`} disabled={isCurrent}>
-                                                            {isCurrent ? "Current plan" : `Choose ${plan.label}`}
-                                                        </Button>
-                                                    </Link>
+                                                    <div className="space-y-2">
+                                                        <Link href="/upgrade" className="block">
+                                                            <Button variant={isCurrent ? "outline" : "default"} className={`w-full font-bold ${isCurrent ? "" : "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"}`} disabled={isCurrent}>
+                                                                {isCurrent ? "Current plan" : `Choose ${plan.label}`}
+                                                            </Button>
+                                                        </Link>
+                                                        {!isCurrent && plan.id !== "free" && (
+                                                            <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
+                                                                14-day refund. Cancel anytime.
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </Card>
                                         );
@@ -398,6 +490,26 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Raw Data Backup & Restore</h2>
                             <Card className="glass-panel border-none p-5 space-y-4">
+                                {!settings.googleSyncEnabled && (
+                                    <div
+                                        className="rounded-2xl border px-4 py-3 text-xs leading-relaxed"
+                                        style={{
+                                            borderColor: "rgba(196,122,28,0.25)",
+                                            backgroundColor: "rgba(196,122,28,0.08)",
+                                            color: "var(--text)",
+                                        }}
+                                    >
+                                        Tip: Your records are stored in this browser right now. Download a JSON export regularly, or turn on backup on a paid plan before clearing browser data or changing devices.
+                                    </div>
+                                )}
+                                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-xs leading-relaxed text-[var(--text-muted)]">
+                                    <p className="font-bold text-[var(--text)]">Before you change devices</p>
+                                    <ol className="mt-2 list-decimal space-y-1.5 pl-4">
+                                        <li>Turn on Google backup on a paid plan, or download a JSON export first.</li>
+                                        <li>On the new device, reconnect the same Google account to restore your backup.</li>
+                                        <li>Do not clear browser data on this device until you have confirmed the restore worked.</li>
+                                    </ol>
+                                </div>
                                 <div className="flex flex-col sm:flex-row gap-3">
                                     <Button variant="outline" className="flex-1 gap-2 text-xs h-12 font-black rounded-xl border-[var(--border)]"
                                         onClick={async () => {
@@ -470,8 +582,8 @@ function SettingsContent() {
                                     <div className="flex items-center gap-3">
                                         <BookOpen className="h-5 w-5 text-[var(--blue-500)]" />
                                         <div>
-                                            <p className="text-sm font-bold">BCEA Compliance Guide</p>
-                                            <p className="text-[10px] text-[var(--text-muted)]">Read the minimum wages and rules</p>
+                                            <p className="text-sm font-bold">Household checklist</p>
+                                            <p className="text-[10px] text-[var(--text-muted)]">Monthly and annual tasks, with plain-language checks</p>
                                         </div>
                                     </div>
                                     <ChevronRight className="h-4 w-4 text-[var(--text-muted)]" />
@@ -481,7 +593,7 @@ function SettingsContent() {
                                         <HelpCircle className="h-5 w-5 text-[var(--primary)]" />
                                         <div>
                                             <p className="text-sm font-bold">Contact Support</p>
-                                            <p className="text-[10px] text-[var(--text-muted)]">Email the LekkerLedger team</p>
+                                            <p className="text-[10px] text-[var(--text-muted)]">Email the LekkerLedger team. Reply within 1-4 business days.</p>
                                         </div>
                                     </div>
                                     <ArrowRight className="h-4 w-4 text-[var(--text-muted)]" />
@@ -504,7 +616,7 @@ export default function SettingsPage() {
     return (
         <React.Suspense fallback={
             <>
-                <PageHeader title="Settings" />
+                <PageHeader title="Settings" subtitle="Start with your household details, then open the extra options only if you need them." />
                 <CardSkeleton />
                 <CardSkeleton />
             </>

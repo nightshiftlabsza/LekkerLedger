@@ -97,8 +97,8 @@ export interface FootnoteLink {
 }
 
 export const complianceGuide = {
-    title: "Household Employer Compliance Guide",
-    subtitle: "South Africa, current reference guidance",
+    title: "Household employer checklist",
+    subtitle: "Monthly and annual tasks for South African households",
     disclaimer: "Not legal advice. This guide helps household employers prepare, estimate, and verify common domestic-worker admin tasks in South Africa.",
     intro: "This guide summarizes linked official material that matters for household employers, including the current National Minimum Wage, Return of Earnings (ROE) record expectations, and UIF references. Always verify details on the official source before you rely on them.",
     introFootnotes: [1],

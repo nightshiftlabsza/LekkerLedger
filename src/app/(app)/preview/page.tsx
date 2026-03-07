@@ -235,7 +235,7 @@ function PreviewContent() {
                             <Row label="Gross pay" value={`R ${breakdown.grossPay.toFixed(2)}`} bold />
 
                             <p className="mb-2 mt-6 text-[10px] font-black uppercase tracking-widest text-[var(--focus)]">Deductions</p>
-                            <Row label="UIF (1%)" value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`} red />
+                            <Row label="Employee UIF (1%)" value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`} red />
                             {breakdown.deductions.accommodation ? <Row label="Accommodation" value={`-R ${breakdown.deductions.accommodation.toFixed(2)}`} red /> : null}
                             {breakdown.deductions.other ? <Row label="Other deductions" value={`-R ${breakdown.deductions.other.toFixed(2)}`} red /> : null}
                             <Row label="Total deductions" value={`R ${breakdown.deductions.total.toFixed(2)}`} bold />

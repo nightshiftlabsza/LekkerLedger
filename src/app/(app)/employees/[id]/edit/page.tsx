@@ -13,6 +13,7 @@ import { EmployeeSchema, Employee } from "@/lib/schema";
 import { saveEmployee, getEmployee } from "@/lib/storage";
 import { NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
+import { formatEmployeeIdNumberInput, normalizeEmployeeIdNumber } from "@/src/lib/employee-id";
 
 export default function EditEmployeePage() {
     const router = useRouter();
@@ -44,7 +45,7 @@ export default function EditEmployeePage() {
             }
             setFormData({
                 name: emp.name,
-                idNumber: emp.idNumber || "",
+                idNumber: formatEmployeeIdNumberInput(emp.idNumber || ""),
                 hourlyRate: emp.hourlyRate.toString(),
                 role: emp.role || "Domestic Worker",
                 phone: emp.phone || "",
@@ -67,6 +68,7 @@ export default function EditEmployeePage() {
         const submissionData = {
             id,
             ...formData,
+            idNumber: normalizeEmployeeIdNumber(formData.idNumber),
             hourlyRate: parseFloat(formData.hourlyRate),
             ordinaryHoursPerDay: Number(formData.ordinaryHoursPerDay) || 8,
         };
@@ -155,14 +157,17 @@ export default function EditEmployeePage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="idNumber">ID / Passport Number</Label>
+                                <Label htmlFor="idNumber">SA ID number or passport (optional)</Label>
                                 <Input
                                     id="idNumber"
                                     value={formData.idNumber}
-                                    onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
+                                    onChange={(e) => setFormData({ ...formData, idNumber: formatEmployeeIdNumberInput(e.target.value) })}
                                     error={errors.idNumber}
                                     disabled={saving}
                                 />
+                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                                    Not required for a basic payslip. Helpful for UIF, uFiling, and yearly records.
+                                </p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">

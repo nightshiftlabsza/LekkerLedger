@@ -20,6 +20,7 @@ import {
 } from "./schema";
 import { fetchVerifiedEntitlements } from "./billing-client";
 import { getStoredGoogleAccessToken } from "./google-session";
+import { normalizeEmployeeIdNumber } from "./employee-id";
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
 const payslipStore = localforage.createInstance({ name: "LekkerLedger", storeName: "payslips" });
 const leaveStore = localforage.createInstance({ name: "LekkerLedger", storeName: "leave" });
@@ -313,13 +314,16 @@ export async function saveEmployee(employee: Employee): Promise<void> {
         ...employee,
         householdId: employee.householdId || activeHouseholdId,
         name: employee.name.trim(),
-        idNumber: employee.idNumber?.trim() ?? "",
+        idNumber: normalizeEmployeeIdNumber(employee.idNumber ?? ""),
         phone: employee.phone?.trim() ?? "",
     };
 
     if (normalized.idNumber) {
         const employees = await getEmployees();
-        const duplicate = employees.find((existing) => existing.id !== normalized.id && existing.idNumber?.trim() === normalized.idNumber);
+        const duplicate = employees.find((existing) =>
+            existing.id !== normalized.id &&
+            normalizeEmployeeIdNumber(existing.idNumber ?? "") === normalized.idNumber
+        );
         if (duplicate) {
             throw new Error(`An employee with ID number ${normalized.idNumber} already exists.`);
         }

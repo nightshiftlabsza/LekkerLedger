@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Users, Search, Mail, Phone, ChevronRight } from "lucide-react";
+import { Users, Search, Mail, Phone, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -51,13 +51,30 @@ export function EmployeesClient() {
         return (
             <div className="ultrawide-grid grid-cols-12-desktop gap-6 space-y-6 lg:space-y-0">
                 <div className="ultrawide-main col-span-8-desktop">
-                    <EmptyState
-                        icon={Users}
-                        title="No employees yet"
-                        description="Add your first employee to start managing payroll and leave."
-                        actionLabel="Add Employee"
-                        actionHref="/employees/new"
-                    />
+                    <Card className="glass-panel border-none shadow-[var(--shadow-1)]">
+                        <CardContent className="space-y-5 p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="rounded-2xl bg-[var(--surface-2)] p-3 text-[var(--primary)]">
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h2 className="text-lg font-black text-[var(--text)]">Loading employee records</h2>
+                                    <p className="text-sm leading-6 text-[var(--text-muted)]">
+                                        Your employee list loads in the browser because these records stay on this device by default.
+                                        If this screen does not finish loading, refresh the page or add a worker manually.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-3 sm:flex-row">
+                                <Link href="/employees/new">
+                                    <Button className="font-bold">Add employee</Button>
+                                </Link>
+                                <Link href="/dashboard">
+                                    <Button variant="outline" className="font-bold">Back to dashboard</Button>
+                                </Link>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
                 <div className="ultrawide-panel col-span-4-desktop space-y-6">
                     <CardSkeleton />
@@ -172,7 +189,7 @@ export function EmployeesClient() {
                         </div>
                         <div className="space-y-1">
                             <p className="text-xs font-bold text-[var(--text)]">Compliance Tip</p>
-                            <p className="text-[10px] leading-relaxed text-[var(--text-muted)]">Ensure all employees have a signed contract and valid ID on record for clear payroll records.</p>
+                            <p className="text-[10px] leading-relaxed text-[var(--text-muted)]">Keep contracts and start dates tidy. Add an ID or passport number when you need it for UIF, uFiling, or yearly records.</p>
                         </div>
                     </CardContent>
                 </Card>

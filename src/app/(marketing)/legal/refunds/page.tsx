@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { ChevronLeft, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SupplierDetails } from "@/components/legal/supplier-details";
 
 export default function RefundPolicy() {
     const currentYear = new Date().getFullYear();
@@ -21,10 +22,12 @@ export default function RefundPolicy() {
                         <CreditCard className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Refund & Cancellation</h1>
-        <p className="text-zinc-500 font-medium">Updated 6 March 2026 • Consumer Protection Act aware</p>
+                    <p className="text-zinc-500 font-medium">Updated 7 March 2026 • 14-day no-questions-asked refund</p>
                 </header>
 
                 <div className="prose prose-zinc dark:prose-invert max-w-none space-y-8 text-zinc-400 leading-relaxed font-medium">
+                    <SupplierDetails />
+
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">1. Our Plans</h2>
                         <p>
@@ -48,9 +51,9 @@ export default function RefundPolicy() {
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">3. No Exceptions</h2>
-        <p>
-          Our 14-day refund policy applies to any paid upgrade. If the product is not right for you, request a refund within 14 days of the purchase date and we will process it in full.
-        </p>
+                        <p>
+                            Our 14-day refund policy applies to any paid upgrade. If LekkerLedger is not the right fit, request a refund within 14 days of the purchase date and we will refund you in full.
+                        </p>
                     </section>
 
                     <section className="space-y-4">
@@ -58,13 +61,6 @@ export default function RefundPolicy() {
                         <p>
                             To request a refund, please email support@lekkerledger.co.za with your transaction details. We manually review all requests within 48 hours.
                         </p>
-                    </section>
-
-                    <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">5. Cooling-off Period</h2>
-        <p>
-          In accordance with Section 44 of the Electronic Communications and Transactions Act, you are entitled to a cooling-off period if the transaction was a result of direct marketing. Our 14-day refund policy goes beyond that minimum and applies to all purchases.
-        </p>
                     </section>
                 </div>
 

@@ -7,6 +7,7 @@ import { PwaInstallTracking } from "@/components/PwaInstallTracking";
 import { AppShell } from "./app-shell";
 import { Suspense } from "react";
 import { AnalyticsPageView } from "@/components/AnalyticsPageView";
+import { StartupScripts } from "@/components/layout/startup-scripts";
 
 const ibmPlexSans = IBM_Plex_Sans({
     variable: "--font-sans",
@@ -25,7 +26,7 @@ const ibmPlexSerif = IBM_Plex_Serif({
 export const metadata: Metadata = {
     title: "LekkerLedger | Dashboard",
     description:
-        "Manage your domestic worker payroll, leave, and compliance — all in one place.",
+        "Manage payslips, leave tracking, and household employment records in one place.",
     manifest: "/manifest.webmanifest",
 };
 
@@ -40,58 +41,15 @@ export default function AppRootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    // TODO: remove debug_mode once events are confirmed in GA4 DebugView
     const gaId = process.env.NEXT_PUBLIC_GA_ID;
     const gaDebug = process.env.NEXT_PUBLIC_GA_DEBUG === "true";
 
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
-                {gaId && (
-                    <>
-                        <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
-                        <script
-                            dangerouslySetInnerHTML={{
-                                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  window.gtag = gtag;
-                  gtag('js', new Date());
-                  gtag('config', '${gaId}', { debug_mode: ${gaDebug}, send_page_view: true });
-                `,
-                            }}
-                        />
-                    </>
-                )}
+                <StartupScripts gaId={gaId} gaDebug={gaDebug} />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                {/* Inline script — applies correct theme before first paint to avoid flash */}
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
-              (function(){
-                try{
-                  var stored = localStorage.getItem('ll-theme');
-                  var theme = (stored === 'light' || stored === 'dark' || stored === 'system') ? stored : 'system';
-                  var resolved = theme === 'system'
-                    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-                    : theme;
-                  document.documentElement.setAttribute('data-theme', resolved);
-                  
-                  var storedDensity = localStorage.getItem('ll-density');
-                  if (storedDensity === 'compact') {
-                     document.documentElement.classList.add('density-compact');
-                  } else {
-                     document.documentElement.classList.remove('density-compact');
-                  }
-                }catch(e){
-                  document.documentElement.setAttribute('data-theme', 'light');
-                  document.documentElement.classList.remove('density-compact');
-                }
-              })();
-            `,
-                    }}
-                />
             </head>
             <body className={`${ibmPlexSans.variable} ${ibmPlexSerif.variable} antialiased selection:bg-[#C47A1C]/30 selection:text-[#C47A1C]`} style={{ overscrollBehaviorY: 'contain' }}>
                 <a

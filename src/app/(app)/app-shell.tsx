@@ -8,7 +8,7 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
 import { GlobalCreateFAB } from "@/components/global-create";
-import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, Settings, LifeBuoy, Sparkles, LogOut } from "lucide-react";
+import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, LogOut } from "lucide-react";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { ToastProvider } from "@/components/ui/toast";
 import { Logo } from "@/components/ui/logo";
@@ -17,6 +17,7 @@ import { getHouseholds, getSettings, saveHousehold, setActiveHouseholdId, subscr
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
 import { clearStoredGoogleAccessToken, getStoredGoogleAccessToken, getStoredGoogleEmail } from "@/lib/google-session";
+import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -34,9 +35,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const [newHouseholdName, setNewHouseholdName] = React.useState("");
     const [addHouseholdError, setAddHouseholdError] = React.useState("");
     const [addingHousehold, setAddingHousehold] = React.useState(false);
+    const [lastLocalSaveAt, setLastLocalSaveAt] = React.useState<number | null>(null);
+    const previousNetworkRef = React.useRef(network);
 
     React.useEffect(() => {
-        if (network === "online") setOfflineBannerDismissed(false);
+        if (network === "offline" && previousNetworkRef.current !== "offline") {
+            setOfflineBannerDismissed(false);
+        }
+        previousNetworkRef.current = network;
     }, [network]);
 
     React.useEffect(() => {
@@ -51,7 +57,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
 
         loadShellContext();
-        const unsubscribe = subscribeToDataChanges(loadShellContext);
+        const unsubscribe = subscribeToDataChanges(() => {
+            setLastLocalSaveAt(Date.now());
+            void loadShellContext();
+        });
         return () => {
             active = false;
             unsubscribe();
@@ -62,6 +71,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const showSyncBanner = network === "online" && sync === "error" && !syncBannerDismissed;
     const showPaymentsBanner = network === "online" && payments === "unavailable" && !paymentsBannerDismissed;
     const isMinimalRoute = pathname?.startsWith("/onboarding");
+    const lastLocalSaveLabel = lastLocalSaveAt
+        ? new Intl.DateTimeFormat("en-ZA", {
+            hour: "2-digit",
+            minute: "2-digit",
+        }).format(lastLocalSaveAt)
+        : null;
 
     const handleSwitchHousehold = async (householdId: string) => {
         await setActiveHouseholdId(householdId);
@@ -151,7 +166,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 </span>
                             )}
 
-                            <div className="hidden lg:flex flex-col items-end gap-2">
+                            <div className="flex items-center gap-3">
                                 <AccountMenu settings={settings} />
                                 <HouseholdSwitcher
                                     households={households}
@@ -160,11 +175,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                     onSwitch={handleSwitchHousehold}
                                     onAddHousehold={handleAddHousehold}
                                     variant="account"
+                                    className="hidden lg:block"
                                 />
-                            </div>
-
-                            <div className="lg:hidden">
-                                <AccountMenu settings={settings} />
                             </div>
                         </div>
                     </div>
@@ -175,7 +187,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
                             <div className="flex items-center gap-2">
                                 <CloudOff className="h-4 w-4 shrink-0" />
-                                <span>You&apos;re offline — your changes are saved locally and will sync when reconnected.</span>
+                                <span>
+                                    Saved locally on this device{lastLocalSaveLabel ? ` at ${lastLocalSaveLabel}` : ""}. Backup will resume when you&apos;re online.
+                                </span>
                             </div>
                             <button
                                 onClick={() => setOfflineBannerDismissed(true)}
@@ -331,9 +345,16 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                     </div>
 
                     <div className="mt-3 space-y-1">
-                        <MenuLink href="/settings" icon={Settings} label="Settings" sublabel="Employer details, storage, and app preferences" onNavigate={() => setOpen(false)} />
-                        <MenuLink href="/upgrade" icon={Sparkles} label="Billing" sublabel="Plans, pricing, and Google-connected access" onNavigate={() => setOpen(false)} />
-                        <MenuLink href="/help/compliance" icon={LifeBuoy} label="Help" sublabel="Compliance guide and support resources" onNavigate={() => setOpen(false)} />
+                        {ACCOUNT_MENU_LINKS.map((link) => (
+                            <MenuLink
+                                key={link.href}
+                                href={link.href}
+                                icon={link.icon}
+                                label={link.label}
+                                sublabel={link.sublabel || ""}
+                                onNavigate={() => setOpen(false)}
+                            />
+                        ))}
                     </div>
 
                     {hasGoogleSession && (

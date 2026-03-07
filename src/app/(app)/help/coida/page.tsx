@@ -39,7 +39,7 @@ export default function CoidaHelpPage() {
                             Open the Return of Earnings (ROE) Pack
                         </Link>
                         <Link href="/help/compliance" className="flex items-center gap-2 font-semibold text-[var(--primary)] hover:underline">
-                            Open the general compliance guide
+            Open the household checklist
                         </Link>
                     </div>
                 </div>

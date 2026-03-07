@@ -19,7 +19,7 @@ const COMPARISON_GROUPS = [
         title: "Coverage",
         rows: [
             { label: "Active employees", values: { free: "1", standard: "Up to 3", pro: "Unlimited" } },
-            { label: "Household workspaces", values: { free: "1", standard: "1", pro: "Multiple" } },
+            { label: "Households you can manage", values: { free: "1", standard: "1", pro: "Multiple" } },
             { label: "Archive access", values: { free: "3 months", standard: "12 months", pro: "5 years" } },
         ],
     },
@@ -29,7 +29,7 @@ const COMPARISON_GROUPS = [
             { label: "Monthly payroll workflow", values: { free: true, standard: true, pro: true } },
             { label: "Payslip preview and PDF download", values: { free: true, standard: true, pro: true } },
             { label: "Leave tracking", values: { free: false, standard: true, pro: true } },
-            { label: "ROE PDF and CSV downloads", values: { free: false, standard: true, pro: true } },
+            { label: "Annual return (ROE) PDFs and CSVs", values: { free: false, standard: true, pro: true } },
         ],
     },
     {
@@ -52,7 +52,7 @@ const COMPARISON_GROUPS = [
         title: "Household Control",
         rows: [
             { label: "Unlimited employees when you grow", values: { free: false, standard: false, pro: true } },
-            { label: "Multi-household workspace", values: { free: false, standard: false, pro: true } },
+            { label: "Multiple households (for example: main home + holiday home)", values: { free: false, standard: false, pro: true } },
         ],
     },
 ] as const;
@@ -87,7 +87,10 @@ export default function PricingPage() {
                                 Payslips, paperwork, and household payroll records in one place.
                             </h1>
                             <p className="mx-auto max-w-2xl text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Start free with basic payslips. Standard is the normal paid plan for proper records, private backup, and annual paperwork. Pro adds more headroom for larger or multi-household setups.
+                                Start free with basic payslips. Standard is the normal paid plan for proper records, private backup, and annual paperwork. Pro adds more headroom for larger setups or for managing more than one household, like a main home and a holiday home.
+                            </p>
+                            <p className="mx-auto max-w-2xl text-sm font-semibold leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                Built-in checks cover common household-employer rules. Always review unusual cases against official guidance.
                             </p>
 
                             <div className="space-y-2">
@@ -109,6 +112,9 @@ export default function PricingPage() {
                                 </div>
                                 <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
                                     Yearly lowers the monthly cost on paid plans.
+                                </p>
+                                <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+                                    All prices are in ZAR. No VAT will be added at checkout because LekkerLedger is not currently VAT-registered.
                                 </p>
                             </div>
                         </div>
@@ -184,12 +190,29 @@ export default function PricingPage() {
                                                     <ArrowRight className="h-4 w-4" />
                                                 </Button>
                                             </Link>
+                                            {plan.id === "free" ? (
+                                                <p className="text-[11px] font-semibold text-[var(--text-muted)]">
+                                                    No account needed for Free. Paid backup uses your Google account.
+                                                </p>
+                                            ) : (
+                                                <div className="space-y-1">
+                                                    <p className="text-[11px] font-semibold text-[var(--text-muted)]">
+                                                        14-day refund on paid upgrades.
+                                                    </p>
+                                                    <p className="text-[11px] font-semibold text-[var(--text-muted)]">
+                                                        Cancel anytime. Access continues until the end of your billing period.
+                                                    </p>
+                                                </div>
+                                            )}
+                                            <Link href="/examples" className="inline-flex items-center text-[11px] font-semibold text-[var(--primary)] hover:underline">
+                                                See example PDF
+                                            </Link>
                                             <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                                 {plan.id === "free"
                                                     ? "A simple starting point for one worker and basic monthly payslips."
                                                     : plan.id === "standard"
                                                         ? "The paid plan for most households that want proper records and backup."
-                                                        : "Best when you need multiple households, longer archive access, or more headroom."}
+                                                        : "Best when you need more than one household, like a main home and a holiday home, plus longer archive access and more headroom."}
                                             </p>
                                         </div>
                                     </article>
@@ -230,7 +253,13 @@ export default function PricingPage() {
                                         Free is for basic payslips. Standard is where proper household records start. Pro adds scale, multiple households, and longer-running archive access.
                                     </p>
                                     <p>
+                                        Multiple households simply means separate record spaces when you need them, for example a main home and a holiday home, or helping a family member keep one worker&apos;s records tidy.
+                                    </p>
+                                    <p>
                                         Records stay on this device by default. Paid backup goes into your own private Google Drive app-data area, not a central LekkerLedger employee database.
+                                    </p>
+                                    <p>
+                                        No account is needed for Free. Paid plans are confirmed through your Google sign-in so you can reconnect on another device later.
                                     </p>
                                 </div>
                             </div>
@@ -250,7 +279,7 @@ export default function PricingPage() {
                                 </p>
                             </div>
                             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-5 py-4 text-sm leading-relaxed shadow-[var(--shadow-1)]" style={{ color: "var(--text-muted)" }}>
-                                <strong style={{ color: "var(--text)" }}>Quick read:</strong> Standard is the default paid plan. Pro is mainly for more headroom, multiple households, and deeper archive access.
+                                <strong style={{ color: "var(--text)" }}>Quick read:</strong> Standard is the default paid plan. Pro is mainly for more headroom, deeper archive access, and cases where you need to keep separate records for more than one household.
                             </div>
                         </div>
 
@@ -302,6 +331,9 @@ export default function PricingPage() {
                                         Free has no monthly or yearly billing. Standard and Pro can be paid monthly or yearly, and the yearly view shows the lower effective monthly cost without percentage callouts.
                                     </p>
                                     <p>
+                                        All prices are in ZAR. No VAT will be added at checkout because LekkerLedger is not currently VAT-registered.
+                                    </p>
+                                    <p>
                                         If you request a refund within 14 days of purchase, we&apos;ll refund you in full. That keeps the decision low-risk without turning the page into a hard-sell funnel.
                                     </p>
                                     <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
@@ -312,14 +344,26 @@ export default function PricingPage() {
 
                             <div className="rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] p-7 shadow-[var(--shadow-1)]">
                                 <h3 className="type-h3 mb-4" style={{ color: "var(--text)" }}>
-                                    What changes when you upgrade
+                                    How upgrades work
                                 </h3>
                                 <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Standard adds the records and paperwork most households eventually need: leave tracking, contracts, document storage, backup, exports, and annual ROE downloads.
+                                        1. Choose Standard or Pro and pay securely through Paystack.
                                     </p>
                                     <p>
-                                        Pro does not invent new tools. It mainly adds more room: unlimited employees, multiple households, and a longer archive for households with deeper admin needs.
+                                        2. Free stays local with no account needed. For paid plans, LekkerLedger confirms your paid access through your Google sign-in, not through one browser alone.
+                                    </p>
+                                    <p>
+                                        3. Paid features then unlock on this device, and optional backup uses your own private Google Drive app-data area.
+                                    </p>
+                                    <p>
+                                        4. If you change devices later, reconnect the same Google account to restore your backup and confirm your paid access again.
+                                    </p>
+                                    <p>
+                                        Standard adds the records and paperwork most households eventually need: leave tracking, contracts, document storage, backup, exports, and annual Return of Earnings (ROE) downloads for Compensation Fund preparation. Pro mainly adds more room with multiple households, unlimited employees, and longer archive access.
+                                    </p>
+                                    <p>
+                                        In plain terms, Pro is for cases like a main home plus a holiday home, or helping a family member manage a separate worker record set without mixing everything together.
                                     </p>
                                 </div>
                             </div>

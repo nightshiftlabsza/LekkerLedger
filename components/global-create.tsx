@@ -35,7 +35,7 @@ export function GlobalCreateFAB() {
             {/* Expanded actions */}
             <div className={`fixed bottom-[136px] right-4 flex flex-col items-end gap-3 transition-all z-40 ${open ? 'opacity-100 translate-y-0 visible' : 'opacity-0 translate-y-4 invisible'}`}>
                 <Link
-                    href="/payroll"
+                    href="/payroll/new"
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-3 active:scale-95 transition-transform"
                     data-testid="global-create-start-payroll"
@@ -72,7 +72,7 @@ export function GlobalCreateDesktop() {
             {/* Dropdown Menu */}
             <div className="absolute top-full right-0 mt-1 w-48 bg-[var(--surface-1)] border border-[var(--border)] rounded-xl shadow-xl opacity-0 invisible group-focus-within/create:opacity-100 group-focus-within/create:visible group-hover/create:opacity-100 group-hover/create:visible transition-all z-50 overflow-hidden flex flex-col">
                 <div className="p-1 flex flex-col text-sm font-medium">
-                    <Link href="/payroll" className="px-3 py-2 rounded-lg hover:bg-[var(--surface-2)] transition-colors flex items-center gap-2">
+                    <Link href="/payroll/new" className="px-3 py-2 rounded-lg hover:bg-[var(--surface-2)] transition-colors flex items-center gap-2">
                         Start Pay Period
                     </Link>
                     <Link href="/employees/new" className="px-3 py-2 rounded-lg hover:bg-[var(--surface-2)] transition-colors flex items-center gap-2">

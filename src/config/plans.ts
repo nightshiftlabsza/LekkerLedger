@@ -55,7 +55,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         bestFor: "Basic payslips for one worker.",
         marketingBullets: [
             "1 active employee",
-            "1 household workspace",
+            "1 household",
             "Monthly payroll and payslip flow",
             "Stored on this device",
         ],
@@ -110,11 +110,11 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         ufilingExport: true,
         roeDownloads: true,
         multiHousehold: true,
-        description: "More headroom and control for larger households, multiple homes, and longer-running records.",
-        bestFor: "For larger households or more control.",
+        description: "More headroom and control for larger households, multiple homes, or helping manage records across more than one household.",
+        bestFor: "For multiple households or more control.",
         marketingBullets: [
             "Unlimited employees",
-            "Multi-household workspace",
+            "Multiple households (for example: main home + holiday home)",
             "5-year archive",
             "Everything in Standard",
         ],
