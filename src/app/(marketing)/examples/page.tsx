@@ -1,13 +1,11 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { ChevronLeft, CheckCircle2, ArrowRight, Printer, Download, ShieldCheck, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { COMPLIANCE } from "@/lib/compliance-constants";
-import { generatePayslipPdfBytes } from "@/lib/pdf";
-import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
+import type { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 
 export default function ExamplesPage() {
     const handleDownload = async () => {
@@ -70,6 +68,7 @@ export default function ExamplesPage() {
         };
 
         try {
+            const { generatePayslipPdfBytes } = await import("@/lib/pdf");
             const pdfBytes = await generatePayslipPdfBytes(sampleEmployee, samplePayslip, sampleSettings);
             const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
             const url = URL.createObjectURL(blob);
@@ -115,7 +114,7 @@ export default function ExamplesPage() {
                     </Link>
 
                     <div className="flex items-center gap-3">
-                        <Button variant="outline" className="gap-2 rounded-xl border-[var(--border)] font-bold text-sm h-11 px-5 hover:bg-[var(--surface-2)] shadow-sm">
+                        <Button variant="outline" className="gap-2 rounded-xl border-[var(--border)] font-bold text-sm h-11 px-5 hover:bg-[var(--surface-2)] shadow-sm" onClick={() => window.print()}>
                             <Printer className="h-4 w-4" /> Print
                         </Button>
                         <Button
@@ -259,7 +258,7 @@ export default function ExamplesPage() {
                             <h3 className="text-xl font-bold font-serif">Key record fields</h3>
                             <ul className="space-y-4">
                                 {[
-                                    { title: "ID & Roles", desc: "Identity numbers and job descriptions are mandatory parts of every payslip." },
+                                    { title: "ID & Roles", desc: "Employee names, roles, and any reference details you choose to keep are shown clearly for your records." },
                                     { title: "Hourly Breakdown", desc: "Clearly distinguishing between ordinary time, overtime, and public holidays." },
                                     { title: "Statutory deductions", desc: "UIF calculations are shown clearly so you can review them before use." },
                                     { title: "Leave Summary", desc: "Built-in tracking for annual, sick, and family responsibility leave." }

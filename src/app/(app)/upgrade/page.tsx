@@ -103,7 +103,7 @@ function UpgradePageContent() {
                 <Card className="border-[var(--primary)] bg-[var(--primary)]/5">
                     <CardContent className="p-5 space-y-3 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                         <p className="font-semibold" style={{ color: "var(--text)" }}>
-                            Try Standard or Pro risk-free for 14 days. Cancel anytime.
+                            Try Standard or Pro with a 14-day refund window.
                         </p>
                         <p className="font-semibold" style={{ color: "var(--text)" }}>
                             Paid access is confirmed through your Google sign-in, not by this browser alone.
@@ -112,7 +112,7 @@ function UpgradePageContent() {
                             If you are not signed into Google yet, choosing a paid plan will first take you to Google connect. After that, LekkerLedger starts the Paystack checkout securely from the server.
                         </p>
                         <p>
-                            If you cancel, access continues until the end of the billing period you already paid for.
+                            You can stop renewal before the next billing period, and access continues until the end of the billing period you already paid for.
                         </p>
                     </CardContent>
                 </Card>
@@ -208,7 +208,7 @@ function UpgradePageContent() {
                                                     {isStartingCheckout ? <Loader2 className="h-4 w-4 animate-spin" /> : !isCurrent && <ArrowRight className="h-4 w-4" />}
                                                 </Button>
                                                 <p className="text-center text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>
-                                                    14-day refund. Cancel anytime.
+                                                    14-day refund. Stop renewal before the next billing period.
                                                 </p>
                                             </div>
                                         )}
@@ -241,10 +241,10 @@ function UpgradePageContent() {
                                 <h3 className="type-h3" style={{ color: "var(--text)" }}>Refunds and trust</h3>
                             </div>
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                If you request a refund within 14 days of purchase, we&apos;ll refund you in full. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
+                                If you request a refund within 14 days of purchase, we will usually refund you in full after payment verification. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
                             </p>
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                You can also cancel anytime, and access continues until the end of the billing period already paid for.
+                                You can stop renewal before the next billing period, and access continues until the end of the billing period already paid for.
                             </p>
                             <Link href="/legal/refunds" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)]">
                                 View refund policy <ArrowRight className="h-4 w-4" />

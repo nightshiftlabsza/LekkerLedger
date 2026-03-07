@@ -147,13 +147,13 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
 
         if (!silent) {
             setStatus("loading");
-            setStatusMessage("Backing up to your private Google Drive app data...");
+            setStatusMessage("Backing up to the Google Drive app data area in your own Google account...");
         }
 
         const success = await syncDataToDrive(currentToken);
         if (success) {
             addLog({ success: true, action: "backup", details: "Uploaded lekkerledger_data.json" });
-            if (!silent) setTransientStatus("success", "Backup saved to your Google Drive app data.");
+            if (!silent) setTransientStatus("success", "Backup saved to the Google Drive app data area in your Google account.");
         } else if (!silent && isMountedRef.current) {
             addLog({ success: false, action: "backup", details: "Network or permission error during upload" });
             setTransientStatus("error", "Backup failed. Check your Google connection or Drive permission and try again.", 5000);
@@ -282,7 +282,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                         <div className="min-w-0 flex-1 space-y-1">
                             <h3 className="font-bold text-lg text-amber-950 break-words">Unlock Google-connected access</h3>
                             <p className="text-sm text-[var(--text)]/70 leading-relaxed">
-                                LekkerLedger is local-first. Upgrade to connect Google and keep a private backup in your own Google account so your records can travel with you across devices and browsers.
+                                LekkerLedger is local-first. Upgrade to connect Google and keep a backup in the Google Drive app data area in your own Google account so your records can travel with you across devices and browsers.
                             </p>
                             <Button className="mt-4 h-11 w-full sm:w-auto bg-[var(--primary)] hover:brightness-95 text-white font-bold" onClick={() => window.location.href = "/upgrade"}>
                                 Upgrade for Google-connected access <ArrowRight className="h-4 w-4 ml-2" />
@@ -307,7 +307,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                                 {!token ? "Local only" : !hasDriveScope ? "Google connected" : status === "loading" ? "Working with Google backup..." : status === "error" ? "Google backup issue" : "Google backup active"}
                             </h2>
                             <p className="text-sm text-[var(--text-muted)] mt-1">
-                                {!token ? "Your records currently stay only on this device. Connect Google for cross-device access on paid plans." : !hasDriveScope ? `Google account connected as ${email}. Next, enable private Drive backup so your records can travel with you.` : `Google-connected backup active for ${email}`}
+                                {!token ? "Your records currently stay only on this device. Connect Google for cross-device access on paid plans." : !hasDriveScope ? `Google account connected as ${email}. Next, enable backup in the Google Drive app data area in your own Google account so your records can travel with you.` : `Google-connected backup active for ${email}`}
                             </p>
                             {token && hasDriveScope && lastSyncTime && (
                                 <p className="text-xs text-[var(--text-muted)] mt-1 font-mono">
@@ -324,7 +324,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                     ) : !hasDriveScope ? (
                         <div className="flex flex-col sm:flex-row gap-2">
                             <Button onClick={() => enableDrive()} className="bg-amber-500 hover:bg-amber-600 text-white font-bold whitespace-nowrap h-12 rounded-xl shadow-lg shadow-amber-500/20">
-                                <Cloud className="h-4 w-4 mr-2" /> Enable private Drive backup
+                                <Cloud className="h-4 w-4 mr-2" /> Enable Google backup
                             </Button>
                             <Button variant="ghost" className="text-[var(--text-muted)]" onClick={clearAuth}>Sign out</Button>
                         </div>
@@ -353,8 +353,8 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                             </p>
                             <p className="text-sm text-[var(--text-muted)]">
                                 {pendingAction === "restore"
-                                    ? "This will replace the current local data with the latest private backup from your Google Drive app data area."
-                                    : "This removes the private backup file from your Google Drive app data area."}
+                                    ? "This will replace the current local data with the latest backup from the Google Drive app data area in your own Google account."
+                                    : "This removes the backup file from the Google Drive app data area in your own Google account."}
                             </p>
                         </div>
                         <div className="flex gap-2">
@@ -394,7 +394,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                         </CardHeader>
                         <CardContent className="p-5 space-y-4">
                             <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                                LekkerLedger uses Google Drive AppData. This is a private hidden area for this app inside your own Google account, not a central LekkerLedger database.
+                                LekkerLedger uses the Google Drive app data area in your own Google account. This is a hidden area for this app, not a central LekkerLedger payroll database.
                             </p>
                             <ul className="space-y-2">
                                 <li className="flex items-start gap-2 text-[10px] text-[var(--text-muted)] italic">
@@ -403,7 +403,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                                 </li>
                                 <li className="flex items-start gap-2 text-[10px] text-[var(--text-muted)] italic">
                                     <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
-                                    Your payroll records stay private from LekkerLedger and are not stored in a central company-hosted employee database.
+                                    Payroll records are not uploaded into a central company-hosted employee database as part of this backup flow.
                                 </li>
                                 <li className="flex items-start gap-2 text-[10px] text-[var(--text-muted)] italic">
                                     <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
@@ -413,7 +413,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                             <div className="pt-4 border-t border-[var(--border)]">
                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-2">Delete backup</h4>
                                 <p className="text-[10px] text-[var(--text-muted)] mb-4">
-                                    Use the button below to remove the private Google backup file, or remove hidden app data from your Google account settings.
+                                    Use the button below to remove the Google backup file, or remove hidden app data from your Google account settings.
                                 </p>
                                 <Button variant="outline" size="sm" onClick={() => setPendingAction("delete")} className="h-8 text-[10px] border-rose-200 text-rose-500 hover:bg-rose-50 font-bold">
                                     Delete backup from Google Drive
@@ -436,7 +436,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                                 <div className="mt-4 pt-4 border-t border-[var(--border)] text-[9px] opacity-70">
                                     Google sign-in token: session only
                                     <br />
-                                    Backup storage: your Google Drive app data area
+                                    Backup storage: Google Drive app data area in your own Google account
                                 </div>
                             </div>
                         </CardContent>

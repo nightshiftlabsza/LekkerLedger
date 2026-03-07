@@ -1,11 +1,21 @@
 "use client";
 
-import confetti from "canvas-confetti";
+import type confetti from "canvas-confetti";
+
+let confettiLoader: Promise<typeof confetti> | null = null;
+
+async function loadConfetti() {
+    if (!confettiLoader) {
+        confettiLoader = import("canvas-confetti").then((module) => module.default);
+    }
+    return confettiLoader;
+}
 
 /**
  * Triggers a premium confetti celebration.
  */
-export function triggerCelebration() {
+export async function triggerCelebration() {
+    const confetti = await loadConfetti();
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -38,11 +48,12 @@ export function triggerCelebration() {
 /**
  * Simplified burst of confetti.
  */
-export function triggerBurst() {
+export async function triggerBurst() {
+    const confetti = await loadConfetti();
     confetti({
         particleCount: 150,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#c47a1c', '#f59e0b', '#10b981']
+        colors: ["#c47a1c", "#f59e0b", "#10b981"]
     });
 }

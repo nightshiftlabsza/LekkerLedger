@@ -270,8 +270,8 @@ function SettingsContent() {
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Storage Rules</h2>
                             <Card className="glass-panel border-none p-5 space-y-4 text-sm text-[var(--text-muted)] leading-relaxed">
                                 <p><strong>1. Local first:</strong> All payroll records stay on this browser or device unless you choose to connect Google.</p>
-                                <p><strong>2. Google-connected backup:</strong> If enabled on a paid plan, a backup is stored in your own Google Drive app data area so you can restore records on another browser or device.</p>
-                                <p><strong>3. Private from LekkerLedger:</strong> We do not keep a central employee payroll database and we cannot browse your normal Google Drive files.</p>
+                                <p><strong>2. Google-connected backup:</strong> If enabled on a paid plan, a backup is stored in the Google Drive app data area in your own Google account so you can restore records on another browser or device.</p>
+                                <p><strong>3. What LekkerLedger can access:</strong> We cannot browse your normal Google Drive files, and this backup flow does not create a central company payroll database of employee records.</p>
                                 <p><strong>4. PDF generation:</strong> Payslips and contracts do not leave your device unless you explicitly share or export them.</p>
                                 <p><strong>5. Do not clear browser storage without a backup:</strong> If you clear browser data or lose this device before exporting or enabling backup, your records on this device cannot be recovered.</p>
                             </Card>
@@ -413,7 +413,7 @@ function SettingsContent() {
                                             </Link>
                                             {currentPlan.id !== "pro" && (
                                                 <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
-                                                    14-day refund. Cancel anytime.
+                                                    14-day refund. You can stop renewal before the next billing period.
                                                 </p>
                                             )}
                                         </div>
@@ -471,7 +471,7 @@ function SettingsContent() {
                                                         </Link>
                                                         {!isCurrent && plan.id !== "free" && (
                                                             <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
-                                                                14-day refund. Cancel anytime.
+                                                                14-day refund. You can stop renewal before the next billing period.
                                                             </p>
                                                         )}
                                                     </div>

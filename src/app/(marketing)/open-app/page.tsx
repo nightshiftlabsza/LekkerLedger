@@ -142,7 +142,7 @@ function OpenAppContent() {
                             Open the app locally, or reconnect it through your Google account.
                         </h1>
                         <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            Free can stay simple in one browser or device. Paid plans work best when connected to Google so you can restore your records across the Android app, the website, or another browser, while keeping payroll data private from LekkerLedger.
+                            Free can stay simple in one browser or device. Paid plans work best when connected to Google so you can restore your records across the Android app, the website, or another browser, while keeping backup storage in the Google Drive app data area in your own Google account.
                         </p>
                     </div>
 
@@ -186,7 +186,7 @@ function OpenAppContent() {
                                     </li>
                                     <li className="flex items-start gap-2.5">
                                         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
-                                        <span>No central LekkerLedger employee database is created.</span>
+                                        <span>Employee payroll records stay on this device by default.</span>
                                     </li>
                                     <li className="flex items-start gap-2.5">
                                         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
@@ -224,7 +224,7 @@ function OpenAppContent() {
                                 </div>
 
                                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    Connect your Google account so paid plans can reconnect your records across the Android app, the website, or another browser. Your payroll data remains private from LekkerLedger.
+                                    Connect your Google account so paid plans can reconnect your records across the Android app, the website, or another browser. Backup files then live in the Google Drive app data area in your own Google account.
                                 </p>
 
                                 <ul className="space-y-2.5 text-sm" style={{ color: "var(--text-muted)" }}>
@@ -234,11 +234,11 @@ function OpenAppContent() {
                                     </li>
                                     <li className="flex items-start gap-2.5">
                                         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
-                                        <span>Drive access stores your backup in your own private Google Drive app data area.</span>
+                                        <span>Drive access stores your backup in the Google Drive app data area in your own Google account.</span>
                                     </li>
                                     <li className="flex items-start gap-2.5">
                                         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
-                                        <span>LekkerLedger cannot browse your normal Drive files and does not keep your payroll records in a central company database.</span>
+                                        <span>LekkerLedger cannot browse your normal Drive files and does not use this flow to upload payroll records into a central company database.</span>
                                     </li>
                                 </ul>
 
@@ -301,7 +301,7 @@ function OpenAppContent() {
                                     Privacy, stated plainly
                                 </h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    LekkerLedger does not keep a central database of employee payroll records. If you enable Google backup, the backup file lives in your own Google account, in Google Drive&apos;s private app data area. We cannot browse your normal Drive files, and your payroll records stay private from us.
+                                    LekkerLedger is designed so employee payroll records stay on your device by default. If you enable Google backup, the backup file lives in the Google Drive app data area in your own Google account. We cannot browse your normal Drive files, and payroll records are not uploaded into a central company payroll database as part of this backup flow.
                                 </p>
                                 <Link href="/trust" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)]">
                                     Read the trust details <ArrowRight className="h-4 w-4" />

@@ -200,7 +200,7 @@ export default function PricingPage() {
                                                         14-day refund on paid upgrades.
                                                     </p>
                                                     <p className="text-[11px] font-semibold text-[var(--text-muted)]">
-                                                        Cancel anytime. Access continues until the end of your billing period.
+                                                        You can stop renewal before the next billing period. Access continues for the time already paid.
                                                     </p>
                                                 </div>
                                             )}
@@ -256,7 +256,7 @@ export default function PricingPage() {
                                         Multiple households simply means separate record spaces when you need them, for example a main home and a holiday home, or helping a family member keep one worker&apos;s records tidy.
                                     </p>
                                     <p>
-                                        Records stay on this device by default. Paid backup goes into your own private Google Drive app-data area, not a central LekkerLedger employee database.
+                                        Records stay on this device by default. Paid backup goes into the Google Drive app data area in your own Google account, not a central LekkerLedger payroll database.
                                     </p>
                                     <p>
                                         No account is needed for Free. Paid plans are confirmed through your Google sign-in so you can reconnect on another device later.
@@ -354,7 +354,7 @@ export default function PricingPage() {
                                         2. Free stays local with no account needed. For paid plans, LekkerLedger confirms your paid access through your Google sign-in, not through one browser alone.
                                     </p>
                                     <p>
-                                        3. Paid features then unlock on this device, and optional backup uses your own private Google Drive app-data area.
+                                        3. Paid features then unlock on this device, and optional backup uses the Google Drive app data area in your own Google account.
                                     </p>
                                     <p>
                                         4. If you change devices later, reconnect the same Google account to restore your backup and confirm your paid access again.

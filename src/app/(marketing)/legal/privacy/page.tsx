@@ -36,7 +36,7 @@ export default function PrivacyPolicy() {
                         <ShieldCheck className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Privacy Policy</h1>
-                    <p className="font-medium text-zinc-500">Updated {UPDATED_DATE} • Designed with POPIA principles</p>
+                    <p className="font-medium text-zinc-500">Updated {UPDATED_DATE} • Plain-language privacy summary</p>
                 </header>
 
                 <div className="space-y-8 text-zinc-400">
@@ -44,7 +44,7 @@ export default function PrivacyPolicy() {
                         <h2 className="text-xl font-black text-white">Plain-language summary</h2>
                         <ul className="mt-4 list-disc space-y-2 pl-6 text-sm leading-7">
                             <li>Employee payroll records are stored on your device by default, not in a central LekkerLedger employee database.</li>
-                            <li>If you enable Google backup, the backup is stored in your own Google Drive app data area.</li>
+                            <li>If you enable Google backup, the backup is stored in the Google Drive app data area in your own Google account.</li>
                             <li>We do collect limited product and website analytics so we can operate and improve the service.</li>
                             <li>We use payment and infrastructure providers for paid plans and service delivery, but we do not store your card details ourselves.</li>
                             <li>You remain responsible for checking figures and submissions against official guidance.</li>
@@ -60,7 +60,7 @@ export default function PrivacyPolicy() {
                                 This policy explains what information is processed through the product, where it is stored, which third parties are involved, and what choices you have.
                             </p>
                             <p>
-                                This policy is written to be practical and plain-language. It is designed with POPIA principles in mind, but it should not be read as a promise that every use case is legally identical.
+                                This policy is written to be practical and plain-language. It explains how LekkerLedger currently handles payroll records, backup, billing, and analytics without claiming legal certification.
                             </p>
                         </Section>
 
@@ -84,7 +84,7 @@ export default function PrivacyPolicy() {
                             </p>
                             <ul className="list-disc space-y-2 pl-6">
                                 <li><strong>On your device by default:</strong> payroll records, employee details, payslips, and related records are stored locally in your browser storage.</li>
-                                <li><strong>In your Google account if you enable backup:</strong> backups are stored in Google Drive&apos;s private app data area inside your own Google account.</li>
+                                <li><strong>In your Google account if you enable backup:</strong> backups are stored in the Google Drive app data area in your own Google account.</li>
                                 <li><strong>In our service systems where needed:</strong> analytics, support messages, subscription records, and payment-related references may be processed through service providers used to operate the product.</li>
                             </ul>
                             <p>
@@ -123,7 +123,7 @@ export default function PrivacyPolicy() {
                         <Section title="7. Retention">
                             <ul className="list-disc space-y-2 pl-6">
                                 <li><strong>Local payroll records:</strong> remain on your device until you delete them, clear browser data, or replace them with your own actions.</li>
-                                <li><strong>Google backup data:</strong> remains in your Google Drive app data area until you delete it or revoke access.</li>
+                                <li><strong>Google backup data:</strong> remains in the Google Drive app data area in your own Google account until you delete it or revoke access.</li>
                                 <li><strong>Subscription, analytics, and support records:</strong> may be retained for operational, accounting, fraud-prevention, support, or legal reasons for as long as reasonably necessary.</li>
                             </ul>
                             <p>

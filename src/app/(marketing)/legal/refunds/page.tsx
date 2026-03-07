@@ -22,7 +22,7 @@ export default function RefundPolicy() {
                         <CreditCard className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Refund & Cancellation</h1>
-                    <p className="text-zinc-500 font-medium">Updated 7 March 2026 • 14-day no-questions-asked refund</p>
+                    <p className="text-zinc-500 font-medium">Updated 7 March 2026 • 14-day refund on paid upgrades</p>
                 </header>
 
                 <div className="prose prose-zinc dark:prose-invert max-w-none space-y-8 text-zinc-400 leading-relaxed font-medium">
@@ -38,7 +38,7 @@ export default function RefundPolicy() {
           <li><strong>Pro:</strong> R49/month or R399/year for unlimited employees, multi-household workspaces, and the deepest archive.</li>
                         </ul>
                         <p>
-                            If you are unsatisfied with any purchase for any reason within 14 days of the transaction date, we will issue a full refund — no questions asked.
+                            If you request a refund within 14 days of the transaction date, we will usually refund you in full once we have the payment details needed to verify the purchase.
                         </p>
                     </section>
 
@@ -50,16 +50,16 @@ export default function RefundPolicy() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">3. No Exceptions</h2>
+                        <h2 className="text-2xl font-black text-white">3. Refund requests within 14 days</h2>
                         <p>
-                            Our 14-day refund policy applies to any paid upgrade. If LekkerLedger is not the right fit, request a refund within 14 days of the purchase date and we will refund you in full.
+                            Our 14-day refund policy applies to paid upgrades. If LekkerLedger is not the right fit, request a refund within 14 days of the purchase date and we will usually refund you in full after payment verification.
                         </p>
                     </section>
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">4. How to Request a Refund</h2>
                         <p>
-                            To request a refund, please email support@lekkerledger.co.za with your transaction details. We manually review all requests within 48 hours.
+                            To request a refund, email support@lekkerledger.co.za with your transaction details. We usually review refund requests within 1-4 business days after we receive the information needed to verify the payment.
                         </p>
                     </section>
                 </div>

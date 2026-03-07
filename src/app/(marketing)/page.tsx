@@ -218,7 +218,7 @@ function HeroTrustRail({ className = "" }: { className?: string }) {
                                 How storage works
                             </p>
                             <p className="mt-1 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                                Records stay on this device by default. Paid plans can add optional backup in your own Google Drive app-data area.
+                                Records stay on this device by default. Paid plans can add optional backup in the Google Drive app data area in your own Google account.
                             </p>
                             <p className="mt-2 text-sm font-semibold leading-6" style={{ color: "var(--text-muted)" }}>
                                 Changing devices? Paid backup lets you restore.
@@ -648,7 +648,7 @@ function WhyPeoplePay() {
         },
         {
             title: "Private backup in your own account",
-            body: "Paid plans can back up into your own Google Drive app-data area so you are not relying on one browser or one device.",
+            body: "Paid plans can back up into the Google Drive app data area in your own Google account so you are not relying on one browser or one device.",
         },
         {
             title: "More headroom when the admin grows",

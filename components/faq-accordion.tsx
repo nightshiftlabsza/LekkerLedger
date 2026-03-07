@@ -15,7 +15,7 @@ const FAQ_ITEMS: FaqItem[] = [
     },
     {
         question: "Where is my data stored?",
-        answer: "Your employee data stays on your device by default. If you connect Google on a paid plan, a backup is stored in your own Google Drive app data area so you can restore it on another browser or device. LekkerLedger does not maintain a central employee database and your payroll records stay private from us.",
+        answer: "Your employee data stays on your device by default. If you connect Google on a paid plan, a backup is stored in the Google Drive app data area in your own Google account so you can restore it on another browser or device. That backup flow does not upload payroll records into a central LekkerLedger employee database.",
     },
     {
         question: "Is this legal advice?",

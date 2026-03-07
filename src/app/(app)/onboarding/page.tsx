@@ -109,9 +109,9 @@ export default function OnboardingPage() {
                                                 <BookOpen className="h-5 w-5" style={{ color: "var(--primary)" }} />
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>The Law Made Simple</h3>
+                                                <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>Helpful payroll checks</h3>
                                                 <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-                                                    LekkerLedger includes common payroll checks for domestic work, so you do not have to calculate minimum wage or UIF manually.
+                                                    Built-in payroll checks cover common domestic-work scenarios, so you can review the figures more easily before finalising.
                                                 </p>
                                                 <Link href="/rules" className="text-xs font-semibold mt-2 inline-block" style={{ color: "var(--primary)" }}>
                                                     Open the household checklist &rarr;
@@ -130,7 +130,7 @@ export default function OnboardingPage() {
                                             <div>
                                                 <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>Private & Open Source</h3>
                                                 <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                                    Your payroll data stays on your device by default. If you enable Google backup later, the backup lives in your own Google Drive app data area. LekkerLedger does not maintain a central employee database and your payroll records stay private from us.
+                                                    Your payroll records stay on your device by default. If you enable Google backup later, the backup lives in the Google Drive app data area in your own Google account instead of being uploaded into a central company payroll database.
                                                 </p>
                                                 <p className="text-xs mt-2 font-semibold leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                                     Changing devices later? Paid backup lets you restore your records.
@@ -256,7 +256,7 @@ export default function OnboardingPage() {
                             </div>
 
                             <p className="text-center text-[10px] px-8 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Designed with POPIA principles in mind. Saved locally by default; backed up in your own Google account only if you enable it.
+                                Saved locally by default. Optional backup goes into the Google Drive app data area in your own Google account only if you enable it.
                             </p>
                         </form>
                     )}

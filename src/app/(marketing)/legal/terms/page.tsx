@@ -131,10 +131,10 @@ export default function TermsOfService() {
 
                         <Section title="9. Limitation of liability">
                             <p>
-                                To the maximum extent permitted by applicable law, {COMPANY_NAME} will not be liable for indirect, incidental, special, consequential, or similar losses arising from your use of LekkerLedger.
+                                To the extent permitted by law, LekkerLedger is provided as a tool to assist record-keeping and payroll preparation, not as a guarantee of legal or payroll outcomes.
                             </p>
                             <p>
-                                This includes, by way of example, losses connected to incorrect user input, missed submissions, labour disputes, penalties, business interruption, lost records caused by user device issues, or reliance on outdated official rules not yet reflected in the product.
+                                We are not responsible for losses caused by incorrect information entered by users, missed filings or payments, third-party provider outages, or loss of locally stored data caused by device, browser, or account issues outside our reasonable control. Nothing in these terms excludes liability that cannot legally be excluded.
                             </p>
                         </Section>
 

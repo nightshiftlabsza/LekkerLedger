@@ -41,10 +41,10 @@ export default function TrustCenterPage() {
                     <div className="grid md:grid-cols-2 gap-8">
                         <div className="space-y-4">
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                We take a strict &quot;local-first&quot; approach to your data. There is no central LekkerLedger database containing your employee&apos;s personal details, ID numbers, or salaries.
+                                We take a local-first approach to payroll records. Employee names, wages, and ID details stay on your device by default instead of being uploaded into a central LekkerLedger payroll database.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                This model inherently minimizes risk and aligns closely with POPIA data minimization principles. If you enable Google backup, the backup lives in your own Google Drive app data area, and your payroll records remain private from LekkerLedger.
+                                This architecture reduces how much employee payroll data LekkerLedger needs to handle directly. If you enable Google backup, the backup lives in the Google Drive app data area in your own Google account.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 Free does not require an account. A Google account is only needed if you choose paid backup and restore across devices.
@@ -62,7 +62,7 @@ export default function TrustCenterPage() {
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                                 <FolderSync className="h-5 w-5 text-green-500 mb-3" />
                                 <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Google-connected Backup</h4>
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paid plans can back up records to Google Drive&apos;s private app data area in your own account so you can restore them on another browser or device.</p>
+                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paid plans can back up records to the Google Drive app data area in your own Google account so you can restore them on another browser or device.</p>
                             </div>
                         </div>
                     </div>
@@ -191,7 +191,7 @@ export default function TrustCenterPage() {
                         <div className="p-8 rounded-2xl border border-[var(--primary)] bg-[var(--primary)]/5">
                             <h3 className="text-xl font-black mb-3" style={{ color: "var(--text)" }}>14-Day Refund Policy</h3>
                             <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-muted)" }}>
-                                If you are unsatisfied with your upgrade for any reason within 14 days, email us and we will issue a full refund — no questions asked.
+                                If you request a refund within 14 days of purchase, we will usually refund you in full after payment verification under the refund policy.
                             </p>
                             <Link href="/legal/refunds">
                                 <Button className="w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white">Full Refund Policy</Button>

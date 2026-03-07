@@ -1,26 +1,16 @@
-"use client";
-
-import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { CalculatorHero } from "@/components/calculator-hero";
-import { useRouter } from "next/navigation";
 import { getNMWRecordForDate } from "@/lib/legal/registry";
 
-
 export default function CalculatorPage() {
-    const router = useRouter();
     const nmwRecord = getNMWRecordForDate(new Date());
     const effectiveDate = new Intl.DateTimeFormat("en-ZA", {
         day: "numeric",
         month: "long",
         year: "numeric",
     }).format(new Date(nmwRecord.effectiveDate));
-
-    const handleStart = () => {
-        router.push("/payroll/new");
-    };
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
@@ -53,7 +43,7 @@ export default function CalculatorPage() {
                         </p>
                     </div>
 
-                    <CalculatorHero onStart={handleStart} />
+                    <CalculatorHero startHref="/payroll/new" />
 
                     <p className="text-xs font-medium text-center" style={{ color: "var(--text-muted)" }}>
                         This is an estimate only. For a full payslip with all deductions and allowances,{" "}

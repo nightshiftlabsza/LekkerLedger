@@ -13,7 +13,7 @@ import { roundTo } from "@/lib/money";
 import { COMPLIANCE } from "@/lib/compliance-constants";
 import { triggerBurst } from "./ui/confetti-trigger";
 
-export function CalculatorHero({ onStart }: { onStart: (e: React.MouseEvent<HTMLButtonElement>) => void }) {
+export function CalculatorHero({ onStart, startHref = "/payroll/new" }: { onStart?: () => void | Promise<void>; startHref?: string }) {
     const [hours, setHours] = React.useState("160");
     const [rate, setRate] = React.useState(COMPLIANCE.NMW.RATE_PER_HOUR.toString());
 
@@ -112,9 +112,17 @@ export function CalculatorHero({ onStart }: { onStart: (e: React.MouseEvent<HTML
 
                 <Button
                     className="w-full gap-2 h-14 text-base font-black rounded-2xl active-scale"
-                    onClick={(e) => {
-                        if (preview) triggerBurst();
-                        onStart(e);
+                    onClick={async () => {
+                        if (preview) {
+                            void triggerBurst();
+                        }
+                        if (onStart) {
+                            await onStart();
+                            return;
+                        }
+                        if (typeof window !== "undefined") {
+                            window.location.assign(startHref);
+                        }
                     }}
                 >
                     Create Full Payslip <ChevronRight className="h-4 w-4" />
