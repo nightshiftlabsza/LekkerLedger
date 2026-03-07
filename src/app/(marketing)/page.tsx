@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { calculatePayslip } from "@/lib/calculator";
 import { getNMWForDate } from "@/lib/legal/registry";
 import type { Employee, PayslipInput } from "@/lib/schema";
-import { PLANS, PLAN_ORDER, type BillingCycle, getPlanPricePresentation } from "@/config/plans";
+import { PLANS, PLAN_ORDER, type BillingCycle, getPlanPricePresentation } from "@/src/config/plans";
 import { MarketingHeader } from "../../../components/layout/marketing-header";
 
 const TRUST_SIGNALS = [
@@ -131,10 +131,10 @@ function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
 
                         <div className="max-w-[34rem] space-y-4">
                             <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                                Run household payroll clearly, keep payslips on record, and come back later for annual paperwork.
+                                Household payroll records without the cost and complexity of business payroll software.
                             </h1>
                             <p className="type-body-large max-w-[34rem]" style={{ color: "var(--text-muted)" }}>
-                                LekkerLedger gives South African households one calm place for monthly pay runs, document history, and the records you may need later.
+                                Manage payslips, documents, and domestic worker records in one place, with UIF deductions shown clearly on every payslip.
                             </p>
                         </div>
 
@@ -667,6 +667,8 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         </button>
     );
 }
+
+
 
 
 

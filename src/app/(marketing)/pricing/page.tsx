@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Check, ChevronRight, ShieldCheck } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { Button } from "@/components/ui/button";
-import { PLAN_ORDER, PLANS, type BillingCycle, getPlanPricePresentation } from "@/config/plans";
+import { PLAN_ORDER, PLANS, type BillingCycle, getPlanPricePresentation } from "@/src/config/plans";
 
 const INCLUDED_IN_EVERY_PLAN = [
     "Monthly payroll workflow",

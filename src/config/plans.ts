@@ -126,12 +126,6 @@ export function getPlanPrice(plan: PlanId | PlanConfig, cycle: BillingCycle): nu
     return resolvedPlan.pricing[cycle] ?? null;
 }
 
-export function getPlanDisplayPrice(plan: PlanId | PlanConfig, cycle: BillingCycle): string {
-    const price = getPlanPrice(plan, cycle);
-    if (price === null) return "Free";
-    return `R${price}`;
-}
-
 export function getPlanPricePresentation(plan: PlanId | PlanConfig, cycle: BillingCycle): PlanPricePresentation {
     const resolvedPlan = typeof plan === "string" ? PLANS[plan] : plan;
 
@@ -158,26 +152,7 @@ export function getPlanPricePresentation(plan: PlanId | PlanConfig, cycle: Billi
     };
 }
 
-export function getPlanPeriodLabel(plan: PlanId | PlanConfig, cycle: BillingCycle): string {
-    const resolvedPlan = typeof plan === "string" ? PLANS[plan] : plan;
-    if (!resolvedPlan.pricing[cycle]) return "";
-    return cycle === "monthly" ? "/month" : "/year";
-}
-
-export function getPlanSavingsLabel(plan: PlanId | PlanConfig): string {
-    const resolvedPlan = typeof plan === "string" ? PLANS[plan] : plan;
-    const monthly = resolvedPlan.pricing.monthly;
-    const yearly = resolvedPlan.pricing.yearly;
-
-    if (!monthly || !yearly) return "";
-
-    const yearlyEquivalent = monthly * 12;
-    const amountSaved = yearlyEquivalent - yearly;
-    if (amountSaved <= 0) return "";
-
-    const percentSaved = Math.round((amountSaved / yearlyEquivalent) * 100);
-    return `Save ${percentSaved}% yearly`;
-}
 
 export const REFUND_POLICY_SUMMARY = `If you request a refund within 14 days of purchase, we'll refund you in full. Use the in-app Support link or email support@lekkerledger.co.za with your purchase email and date.`;
+
 

@@ -106,23 +106,28 @@ LekkerLedger should not feel like:
   - billing cadence
   - what changes when you upgrade
   - a clear CTA
+- Homepage pricing is a teaser for fast self-selection, not the full matrix.
+- The dedicated pricing page is the authoritative comparison surface.
 
 ### 5.2 Comparison matrix
 - Paid plans must not be under-described.
 - Important upgrade features must appear in the visible comparison, not be hidden in prose.
 - Group rows into clear buckets:
   - coverage
-  - payroll and documents
+  - core payroll
+  - records and paperwork
   - storage and backup
-  - admin control
+  - household control
 - On mobile, the comparison must still be scannable without becoming a wall of text.
 
 ### 5.3 Pricing language
 - Show monthly and yearly clearly, with easy switching.
-- Annual savings should be visible but understated.
-- Use classy savings language:
-  - "Save 43% yearly"
-  - "Yearly works out cheaper"
+- Do not use percentage savings badges or copy.
+- When yearly is selected, show the effective monthly price as the main number and the billed-yearly total as helper text.
+- Good yearly pattern:
+  - "≈ R20.75 / month"
+  - "Billed yearly at R249/year"
+- Free should show "Free" with no "forever" or permanence claim.
 - Do not make the page sound like a sales funnel.
 
 ### 5.4 Value framing
@@ -262,3 +267,6 @@ Whenever making a UI or copy change:
 
 ## 14. Final Rule
 If a page element is visually louder than the trust it creates, it should be toned down or removed.
+
+
+

@@ -12,7 +12,7 @@ import { getSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
 import { createCheckoutSession } from "@/lib/billing-client";
 import { hasStoredGoogleSession } from "@/lib/google-session";
-import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPrice, getPlanPricePresentation } from "@/config/plans";
+import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPrice, getPlanPricePresentation } from "@/src/config/plans";
 import { EmployerSettings } from "@/lib/schema";
 import { getUserPlan } from "@/lib/entitlements";
 
@@ -242,6 +242,7 @@ function UpgradePageContent() {
         </div>
     );
 }
+
 
 
 

@@ -106,7 +106,7 @@ export default function OnboardingPage() {
                                             <div>
                                                 <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>The Law Made Simple</h3>
                                                 <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-                                                    LekkerLedger includes common payroll checks for domestic work, so you do not have to calculate minimum wage, UIF, or leave days manually.
+                                                    LekkerLedger includes common payroll checks for domestic work, so you do not have to calculate minimum wage or UIF manually.
                                                 </p>
                                                 <Link href="/rules" className="text-xs font-semibold mt-2 inline-block" style={{ color: "var(--primary)" }}>
                                                     Read the 4 Golden Rules &rarr;
@@ -249,6 +249,7 @@ export default function OnboardingPage() {
         </div>
     );
 }
+
 
 
 

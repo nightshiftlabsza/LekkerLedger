@@ -63,7 +63,7 @@ Do not use Tailwind default colors or any other color palette. Use the exact hex
 ### C. Trust, Evidence, and Copy Constraints
 - **Precise Privacy claims:** Never say "Zero servers" or "100% legal". Use precise phrasing: "No LekkerLedger central employee database; data stays on your device and/or in your own Google Drive."
 - **Tone Strategy:** Calm compliance guardrails. Replace all "fear/CCMA-heavy" marketing copy with respectful, neutral education.
-- **Refund/Pricing Consistency:** Align pricing copy across all surfaces. Clear definitions for Free, Annual Support (recurring), and Pro (once-off).
+- **Refund/Pricing Consistency:** Align pricing copy across all surfaces using the live Free / Standard / Pro model. Free is basic payslips for one worker, Standard is the main paid plan, and Pro is the scale-and-control plan. Do not use permanence claims like "forever" or percentage-savings copy unless they are legally and operationally exact.
 - **NMW Constant:** The National Minimum Wage must use the latest verified source (e.g., R30.23/hr from Mar 2026). NEVER hardcode conflicting or outdated wage constants across the app.
 
 ### D. Responsive & Interaction Principles
@@ -72,3 +72,4 @@ Do not use Tailwind default colors or any other color palette. Use the exact hex
 - **Max text line length:** 60-75 characters for readability.
 - **Mobile CTAs:** Use sticky bottom action bars for key workflows to ensure reachability.
 - **Audit-ready Storage:** Surface Google Drive vs Local storage statuses prominently (sync health badge). Every action needs empty, loading, error, and recovery states.
+
