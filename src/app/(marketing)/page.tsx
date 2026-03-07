@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
     ArrowRight,
     Calendar,
-    Check,
     ChevronDown,
     FileText,
     Users,
