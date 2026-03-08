@@ -63,7 +63,7 @@ export function EmployeesClient() {
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 </div>
                                 <div className="space-y-2">
-                                    <h2 className="type-h3 text-[var(--text)]">Loading employee records</h2>
+                                    <h2 className="text-[var(--text)]" style={{ fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)", fontWeight: 600, lineHeight: 1.2 }}>Loading employee records</h2>
                                     <p className="type-body text-[var(--text-muted)] max-w-[60ch]">
                                         Your employee list loads in the browser because these records stay on this device by default.
                                         If this screen does not finish loading, refresh the page or add a worker manually.

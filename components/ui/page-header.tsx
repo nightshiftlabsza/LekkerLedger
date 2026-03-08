@@ -27,7 +27,7 @@ export function PageHeader({ title, subtitle, householdChip, syncBadge, actions,
                 )}
             </div>
             {actions && (
-                <div className="flex items-center gap-2 shrink-0 sm:self-start md:self-center">
+                <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
                     {actions}
                 </div>
             )}

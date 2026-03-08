@@ -66,7 +66,7 @@ export function DataTable<T>({
     return (
         <>
             {/* Desktop table (≥840px) */}
-            <div className={`hidden md:block overflow-x-auto ${className}`}>
+            <div className={`hidden min-840:block overflow-x-auto ${className}`}>
                 <table className="w-full text-sm border-collapse">
                     <thead>
                         <tr className="border-b border-[var(--border)]">
@@ -114,7 +114,7 @@ export function DataTable<T>({
             </div>
 
             {/* Mobile cards (<840px) */}
-            <div className={`md:hidden space-y-2 ${className}`}>
+            <div className={`min-840:hidden space-y-2 ${className}`}>
                 {sorted.map((item, i) => (
                     <React.Fragment key={keyField(item)}>
                         {renderCard ? renderCard(item, i) : (
