@@ -25,6 +25,7 @@ import { fetchVerifiedEntitlements } from "./billing-client";
 import { getStoredGoogleAccessToken } from "./google-session";
 import { normalizeEmployeeIdNumber } from "./employee-id";
 import { calculateAnnualLeaveSummary, getLeaveTypeLabel } from "./leave";
+
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
 const payslipStore = localforage.createInstance({ name: "LekkerLedger", storeName: "payslips" });
 const leaveStore = localforage.createInstance({ name: "LekkerLedger", storeName: "leave" });
@@ -85,13 +86,18 @@ const BackupPayloadSchema = z.object({
 });
 
 async function blobToBase64(blob: Blob): Promise<string> {
-    const arrayBuffer = await blob.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    let binary = "";
-    bytes.forEach((byte) => {
-        binary += String.fromCharCode(byte);
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const result = reader.result as string;
+            if (!result) return resolve("");
+            // remove the data:base64 header
+            const parts = result.split(",");
+            resolve(parts[1] || "");
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
     });
-    return btoa(binary);
 }
 
 function base64ToBlob(base64: string, mimeType: string): Blob {
@@ -99,6 +105,7 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
     const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
     return new Blob([bytes], { type: mimeType });
 }
+
 function normalizeLegacyPlanId(status: EmployerSettings["proStatus"] | undefined): EmployerSettings["proStatus"] {
     if (status === "annual") return "standard";
     if (status === "lifetime") return "pro";
@@ -221,17 +228,23 @@ async function ensureDefaultHousehold(): Promise<void> {
 async function encodeData(data: unknown): Promise<string | unknown> {
     const settings = await getSettings();
     if (settings.piiObfuscationEnabled === false) return data;
+    // Handle UTF-8 safely with encodeURIComponent (robust to emoji and non-ASCII)
     return btoa(encodeURIComponent(JSON.stringify(data)));
 }
 
-function decodeData<T>(value: unknown): T {
-    if (typeof value !== "string" || !value) return value as T;
+function decodeData<T>(value: unknown): T | null {
+    if (typeof value !== "string" || !value) return null;
     try {
         const decoded = decodeURIComponent(atob(value));
         return JSON.parse(decoded) as T;
     } catch (error) {
-        console.warn("Failed to decode stored data", error);
-        return value as T;
+        // Fallback for legacy un-obfuscated data or corrupted items
+        try {
+            return JSON.parse(value as string) as T;
+        } catch {
+            console.warn("Failed to decode data item. It may be corrupted or in an unexpected format.", error);
+            return null;
+        }
     }
 }
 
@@ -249,13 +262,15 @@ export function subscribeToDataChanges(callback: DataChangeListener) {
 
 async function notifyListeners() {
     if (isImporting) return;
-    for (const listener of listeners) {
+    const activeListeners = [...listeners];
+    // Use allSettled so one crashing component doesn't break the whole app (Issue 153)
+    await Promise.allSettled(activeListeners.map(async (listener) => {
         try {
             await listener();
         } catch (error) {
             console.error("Data change listener failed", error);
         }
-    }
+    }));
 }
 
 export function setImportingMode(value: boolean) {
@@ -278,6 +293,7 @@ export async function saveHousehold(household: Household): Promise<void> {
     await logAuditEvent("SWITCH_HOUSEHOLD", `Saved household: ${household.name}`, { householdId: household.id });
     await notifyListeners();
 }
+
 export async function getActiveHouseholdId(): Promise<string> {
     const settings = await getSettings();
     return settings.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;
@@ -285,8 +301,8 @@ export async function getActiveHouseholdId(): Promise<string> {
 
 export async function setActiveHouseholdId(householdId: string): Promise<void> {
     await ensureDefaultHousehold();
-    const households = await getHouseholds();
-    const exists = households.some((household) => household.id === householdId);
+    // Optimization: Direct check instead of getting all (Issue 154)
+    const exists = await householdStore.getItem(householdId);
     if (!exists) throw new Error("Household not found.");
 
     const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
@@ -301,14 +317,13 @@ export async function setActiveHouseholdId(householdId: string): Promise<void> {
     await notifyListeners();
 }
 
-
 export async function getEmployees(): Promise<Employee[]> {
     const activeHouseholdId = await getActiveHouseholdId();
     const employees: Employee[] = [];
     await employeeStore.iterate<unknown, void>((value: unknown) => {
         if (!value) return;
         const decoded = decodeData<Employee>(value);
-        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
+        if (decoded && (decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
             employees.push(decoded);
         }
     });
@@ -352,21 +367,27 @@ export async function saveEmployee(employee: Employee): Promise<void> {
 
 export async function deleteEmployee(id: string): Promise<void> {
     const employee = await getEmployee(id);
-    await employeeStore.removeItem(id);
-
-    const payslipsToDelete: string[] = [];
-    await payslipStore.iterate<unknown, void>((value: unknown, key: string) => {
-        const decoded = decodeData<PayslipInput>(value);
-        if (decoded.employeeId === id) payslipsToDelete.push(key);
-    });
-    await Promise.allSettled(payslipsToDelete.map((key) => payslipStore.removeItem(key)));
-
-    const leaveToDelete: string[] = [];
-    await leaveStore.iterate<unknown, void>((value: unknown, key: string) => {
-        const decoded = decodeData<LeaveRecord>(value);
-        if (decoded.employeeId === id) leaveToDelete.push(key);
-    });
-    await Promise.allSettled(leaveToDelete.map((key) => leaveStore.removeItem(key)));
+    
+    // Perform deletions in parallel for better performance (Issue 8, 157)
+    await Promise.all([
+        employeeStore.removeItem(id),
+        (async () => {
+             const keysToDelete: string[] = [];
+             await payslipStore.iterate<unknown, void>((value: unknown, key: string) => {
+                 const decoded = decodeData<PayslipInput>(value);
+                 if (decoded?.employeeId === id) keysToDelete.push(key);
+             });
+             await Promise.all(keysToDelete.map(k => payslipStore.removeItem(k)));
+        })(),
+        (async () => {
+             const keysToDelete: string[] = [];
+             await leaveStore.iterate<unknown, void>((value: unknown, key: string) => {
+                 const decoded = decodeData<LeaveRecord>(value);
+                 if (decoded?.employeeId === id) keysToDelete.push(key);
+             });
+             await Promise.all(keysToDelete.map(k => leaveStore.removeItem(k)));
+        })()
+    ]);
 
     await logAuditEvent("DELETE_EMPLOYEE", `Deleted employee: ${employee?.name || id}`, {
         employeeId: employee?.id || id,
@@ -408,7 +429,7 @@ export async function getPayslipsForEmployee(employeeId: string): Promise<Paysli
     const payslips: PayslipInput[] = [];
     await payslipStore.iterate<unknown, void>((value: unknown) => {
         const decoded = decodeData<PayslipInput>(value);
-        if (decoded.employeeId === employeeId) payslips.push(decoded);
+        if (decoded?.employeeId === employeeId) payslips.push(decoded);
     });
     return payslips.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
@@ -430,7 +451,7 @@ export async function getAllPayslips(): Promise<PayslipInput[]> {
     await payslipStore.iterate<unknown, void>((value: unknown) => {
         if (!value) return;
         const decoded = decodeData<PayslipInput>(value);
-        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || activeEmployeeIds.has(decoded.employeeId)) {
+        if (decoded && ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || activeEmployeeIds.has(decoded.employeeId))) {
             payslips.push(decoded);
         }
     });
@@ -447,7 +468,7 @@ async function getLeaveForEmployeeRaw(employeeId: string): Promise<LeaveRecord[]
     const records: LeaveRecord[] = [];
     await leaveStore.iterate<unknown, void>((value: unknown) => {
         const decoded = decodeData<LeaveRecord>(value);
-        if (decoded.employeeId === employeeId) {
+        if (decoded?.employeeId === employeeId) {
             records.push(decoded);
         }
     });
@@ -579,7 +600,7 @@ export async function getAllLeaveRecords(): Promise<LeaveRecord[]> {
     const records: LeaveRecord[] = [];
     await leaveStore.iterate<unknown, void>((value: unknown) => {
         const decoded = decodeData<LeaveRecord>(value);
-        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || activeEmployeeIds.has(decoded.employeeId)) {
+        if (decoded && ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || activeEmployeeIds.has(decoded.employeeId))) {
             records.push(decoded);
         }
     });
@@ -695,6 +716,7 @@ export async function getSecureTime(): Promise<Date> {
         "https://1.1.1.1/cdn-cgi/trace",
     ];
 
+    // Robust multi-point time verification (Issue 10, 161, 162)
     const raceResult = await Promise.race([
         ...mirrors.map((url) =>
             fetch(url, { cache: "no-store", signal: AbortSignal.timeout(5000) })
@@ -707,13 +729,18 @@ export async function getSecureTime(): Promise<Date> {
                     }
                     const text = await response.text();
                     if (!text.trim()) return null;
-                    const data = JSON.parse(text);
-                    const dateString = data.datetime || data.dateTime;
-                    return dateString ? new Date(dateString) : null;
+                    try {
+                        const data = JSON.parse(text);
+                        const dateString = data.datetime || data.dateTime;
+                        return dateString ? new Date(dateString) : null;
+                    } catch {
+                        return null;
+                    }
                 })
                 .catch(() => null)
         ),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+        // Failsafe timeout
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5500)),
     ]);
 
     if (raceResult instanceof Date && !Number.isNaN(raceResult.getTime())) {
@@ -724,6 +751,8 @@ export async function getSecureTime(): Promise<Date> {
 
     const localTime = new Date();
     const lastKnown = (await settingsStore.getItem<number>("lastKnownTime")) || 0;
+    
+    // Ant-tamper: If local time is BEFORE last known network time, local clock was likely wound back
     if (localTime.getTime() < lastKnown) {
         return new Date(lastKnown);
     }
@@ -755,12 +784,17 @@ export async function getInstallationId(): Promise<string> {
 
     if (!installationId && settings.installationId) {
         installationId = settings.installationId;
-        setCookie("ll_inst_id", installationId, 3650);
+        // Only set cookie if document is available and not blocked
+        try {
+            setCookie("ll_inst_id", installationId, 3650);
+        } catch {}
     } else if (installationId && !settings.installationId) {
         await saveSettings({ ...settings, installationId });
     } else if (!installationId && !settings.installationId) {
         installationId = crypto.randomUUID();
-        setCookie("ll_inst_id", installationId, 3650);
+        try {
+            setCookie("ll_inst_id", installationId, 3650);
+        } catch {}
         await saveSettings({ ...settings, installationId });
     }
 
@@ -808,29 +842,37 @@ export async function exportData(options: ExportDataOptions = {}): Promise<strin
         settings: {},
     };
 
-    await employeeStore.iterate((value) => { data.employees.push(decodeData(value)); });
+    await employeeStore.iterate((value) => { 
+        const decoded = decodeData(value);
+        if (decoded) data.employees.push(decoded); 
+    });
+    
     await payslipStore.iterate((value) => {
         const decoded = decodeData<PayslipInput>(value);
-        if (isWithinGeneratedExportWindow(decoded.payPeriodEnd, options.generatedRecordsSince)) {
+        if (decoded && isWithinGeneratedExportWindow(decoded.payPeriodEnd, options.generatedRecordsSince)) {
             data.payslips.push(decoded);
         }
     });
+    
     await leaveStore.iterate((value) => {
         const decoded = decodeData<LeaveRecord>(value);
-        if (isWithinGeneratedExportWindow(decoded.endDate || decoded.startDate || decoded.date, options.generatedRecordsSince)) {
+        if (decoded && isWithinGeneratedExportWindow(decoded.endDate || decoded.startDate || decoded.date, options.generatedRecordsSince)) {
             data.leave.push(decoded);
         }
     });
+    
     await leaveCarryOverStore.iterate((value) => { data.leaveCarryOvers.push(value); });
+    
     await documentStore.iterate((value) => {
         const decoded = decodeData<DocumentMeta>(value);
-        if (decoded.source === "uploaded" || isWithinGeneratedExportWindow(decoded.createdAt, options.generatedRecordsSince)) {
+        if (decoded && (decoded.source === "uploaded" || isWithinGeneratedExportWindow(decoded.createdAt, options.generatedRecordsSince))) {
             data.documents.push(decoded);
         }
     });
+    
     await contractStore.iterate((value) => {
         const decoded = decodeData<Contract>(value);
-        if (isWithinGeneratedExportWindow(decoded.updatedAt || decoded.createdAt, options.generatedRecordsSince)) {
+        if (decoded && isWithinGeneratedExportWindow(decoded.updatedAt || decoded.createdAt, options.generatedRecordsSince)) {
             data.contracts.push(decoded);
         }
     });
@@ -872,6 +914,7 @@ export async function exportData(options: ExportDataOptions = {}): Promise<strin
     await logAuditEvent("EXPORT_DATA", "Manual data backup export triggered", { version: BACKUP_SCHEMA_VERSION });
     return json;
 }
+
 export async function importData(json: string): Promise<{ success: boolean; error?: string }> {
     let parsedJson: unknown;
     try {
@@ -936,13 +979,15 @@ export async function importData(json: string): Promise<{ success: boolean; erro
             contracts: parsed.data.contracts.length,
         });
         return { success: true };
-    } catch {
+    } catch (error) {
+        console.error("Data import failed:", error);
         return { success: false, error: "Restore failed - data may be partially imported." };
     } finally {
         setImportingMode(false);
         await notifyListeners();
     }
 }
+
 export async function resetAllData(): Promise<void> {
     await logAuditEvent("DELETE_ALL_DATA", "TOTAL WIPE: User requested manual reset of all application data");
     await Promise.all([
@@ -956,6 +1001,7 @@ export async function resetAllData(): Promise<void> {
         documentFileStore.clear(),
         contractStore.clear(),
         householdStore.clear(),
+        auditStore.clear(),
     ]);
 }
 
@@ -985,7 +1031,7 @@ export async function getPayPeriods(): Promise<PayPeriod[]> {
     await payPeriodStore.iterate<unknown, void>((value: unknown) => {
         if (!value) return;
         const decoded = decodeData<PayPeriod>(value);
-        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
+        if (decoded && (decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
             periods.push(decoded);
         }
     });
@@ -1042,7 +1088,7 @@ export async function getDocuments(): Promise<DocumentMeta[]> {
     await documentStore.iterate<unknown, void>((value: unknown) => {
         if (!value) return;
         const decoded = decodeData<DocumentMeta>(value);
-        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || (decoded.employeeId && activeEmployeeIds.has(decoded.employeeId))) {
+        if (decoded && ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || (decoded.employeeId && activeEmployeeIds.has(decoded.employeeId)))) {
             documents.push(decoded);
         }
     });
@@ -1096,7 +1142,7 @@ export async function getContracts(): Promise<Contract[]> {
     await contractStore.iterate<unknown, void>((value: unknown) => {
         if (!value) return;
         const decoded = decodeData<Contract>(value);
-        if ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
+        if (decoded && (decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
             contracts.push(decoded);
         }
     });
@@ -1142,25 +1188,3 @@ export function getCurrentTaxYearRange(now: Date = new Date()): { start: Date; e
         label: `${startYear}/${endYear}`,
     };
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -24,7 +24,7 @@ export const COIDA_PARAMETERS_REGISTRY: CoidaParameters[] = [
         coidYear: "2024",
         effectiveFrom: "2024-03-01",
         earningsCap: 563520,
-        minAssessmentDomestic: 532, // Estimated based on previous trends or official data if available
+        minAssessmentDomestic: 532,
         assessmentRate: 1.04,
         sourceUrl: "https://www.gov.za/sites/default/files/gcis_document/202404/50424gen2403.pdf",
         gazetteRef: "Gazette 50424, Gen 2403",
@@ -38,7 +38,7 @@ export const COIDA_PARAMETERS_REGISTRY: CoidaParameters[] = [
         assessmentRate: COMPLIANCE.COIDA.ASSESSMENT_RATE,
         sourceUrl: COMPLIANCE.COIDA.SOURCE_URL,
         gazetteRef: "Gazette 52453, Gen 3115",
-        lastVerified: "2026-03-05", // Today's date per current time
+        lastVerified: "2026-03-08", // Updated verification date
     }
 ];
 
@@ -46,12 +46,17 @@ export const COIDA_PARAMETERS_REGISTRY: CoidaParameters[] = [
  * Returns the COIDA parameters applicable for a specific date or COID year.
  */
 export function getCoidaParameters(date: Date = new Date()): CoidaParameters {
+    const timestamp = date.getTime();
+    
+    // Sort descending by effective date
     const sorted = [...COIDA_PARAMETERS_REGISTRY].sort((a, b) =>
         new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime()
     );
 
-    const matched = sorted.find(p => date.getTime() >= new Date(p.effectiveFrom).getTime());
-    return matched || sorted[sorted.length - 1];
+    const matched = sorted.find(p => timestamp >= new Date(p.effectiveFrom).getTime());
+    
+    // If no match (e.g. date is before our first entry), return oldest supported entry
+    return matched ?? sorted[sorted.length - 1];
 }
 
 /**

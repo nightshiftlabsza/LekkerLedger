@@ -168,7 +168,7 @@ export default function DashboardPage() {
                 {/* Main Content Area */}
                 <div className="ultrawide-main col-span-8-desktop space-y-6">
                     <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.85fr)]">
-                        <Card className={`glass-panel overflow-hidden ${currentPeriod ? "border-2 border-[var(--primary)]/20" : "border-none"}`}>
+                        <Card className={`glass-panel overflow-hidden hover-lift shadow-sm ${currentPeriod ? "border-2 border-[var(--primary)]/20" : "border-none"}`}>
                             <CardContent className="space-y-5 p-6">
                                 <div className="flex items-start gap-4">
                                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--primary)] text-white">
@@ -195,9 +195,9 @@ export default function DashboardPage() {
                                             <span>Progress</span>
                                             <span>{completedEntries} of {totalEntries} complete</span>
                                         </div>
-                                        <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-2)]">
+                                        <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-2)] shadow-inner">
                                             <div
-                                                className="h-full rounded-full bg-[var(--primary)] transition-all duration-500"
+                                                className="h-full rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--focus)] transition-all duration-700 ease-out"
                                                 style={{ width: `${progressPercent}%` }}
                                             />
                                         </div>
@@ -266,14 +266,16 @@ export default function DashboardPage() {
                         const color = isUrgent ? "var(--danger)" : isInfo ? "var(--blue-500)" : "var(--primary)";
                         return (
                             <div key={alert.id}
-                                className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border text-sm font-semibold"
+                                className="flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border text-sm font-bold shadow-sm transition-all hover:shadow-md active-scale"
                                 style={{ backgroundColor: bg, borderColor: border, color }}>
                                 <div className="flex items-center gap-3">
-                                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                                    <div className="p-2 rounded-lg" style={{ backgroundColor: border.replace('0.30', '0.1').replace('0.25', '0.1') }}>
+                                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                                    </div>
                                     <span>{alert.message}</span>
                                 </div>
                                 {alert.action && (
-                                    <Link href={alert.action.href} className="text-xs font-bold underline whitespace-nowrap" style={{ color }}>
+                                    <Link href={alert.action.href} className="text-xs font-black uppercase tracking-wider underline-offset-4 hover:underline whitespace-nowrap" style={{ color }}>
                                         {alert.action.label}
                                     </Link>
                                 )}
@@ -380,24 +382,24 @@ function ComplianceCard() {
 
 function SummaryCell({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/50 px-4 py-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</p>
-            <p className="mt-1 text-sm font-semibold text-[var(--text)]">{value}</p>
+        <div className="group rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/50 px-4 py-3 transition-all hover:bg-[var(--surface-1)] hover:shadow-sm">
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] transition-colors group-hover:text-[var(--primary)]">{label}</p>
+            <p className="mt-1 text-sm font-black text-[var(--text)]">{value}</p>
         </div>
     );
 }
 
 function OverviewRow({ label, value }: { label: string; value: string }) {
     return (
-        <div className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/50 px-4 py-3">
-            <span className="text-sm text-[var(--text-muted)]">{label}</span>
-            <span className="text-sm font-semibold text-[var(--text)]">{value}</span>
+        <div className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
+            <span className="text-sm font-bold text-[var(--text-muted)]">{label}</span>
+            <span className="text-sm font-black text-[var(--text)]">{value}</span>
         </div>
     );
 }
 function DocumentCard({ recentDocs }: { recentDocs: DocumentMeta[] }) {
     return (
-        <Card className="glass-panel border-none">
+        <Card className="glass-panel border-none shadow-sm hover-lift">
             <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="type-overline text-[var(--text-muted)]">Recent Documents</h3>
@@ -412,10 +414,12 @@ function DocumentCard({ recentDocs }: { recentDocs: DocumentMeta[] }) {
                 ) : (
                     <div className="space-y-2">
                         {recentDocs.slice(0, 3).map(doc => (
-                            <div key={doc.id} className="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-                                <FileText className="h-4 w-4 text-[var(--primary)] shrink-0" />
-                                <span className="type-body text-[var(--text)] truncate">{doc.fileName}</span>
-                                <span className="type-overline text-[var(--text-muted)] ml-auto shrink-0">
+                            <div key={doc.id} className="group flex items-center gap-3 py-3 border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-2)]/50 px-2 -mx-2 rounded-lg transition-colors cursor-pointer">
+                                <div className="p-2 rounded-lg bg-[var(--primary)]/5 group-hover:bg-white group-hover:shadow-sm transition-all">
+                                    <FileText className="h-4 w-4 text-[var(--primary)] shrink-0" />
+                                </div>
+                                <span className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</span>
+                                <span className="text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)] ml-auto shrink-0">
                                     {format(new Date(doc.createdAt), "d MMM")}
                                 </span>
                             </div>
@@ -431,7 +435,7 @@ function StorageCard({ settings }: { settings: EmployerSettings | null }) {
     const hasGoogleBackup = !!settings?.googleSyncEnabled;
 
     return (
-        <Card className="glass-panel border-none">
+        <Card className="glass-panel border-none shadow-sm hover-lift">
             <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="type-overline text-[var(--text-muted)]">Storage & Sync</h3>

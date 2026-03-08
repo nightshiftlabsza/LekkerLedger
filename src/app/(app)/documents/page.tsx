@@ -692,7 +692,7 @@ export default function DocumentsPage() {
                     )}
 
                     {activeTab === "Vault" && (
-                        <Card className="glass-panel border-none">
+                        <Card className="glass-panel border-none shadow-sm hover-lift">
                             <CardContent className="space-y-4 p-5">
                                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                                     <div>
@@ -738,11 +738,11 @@ export default function DocumentsPage() {
                                 </div>
 
                                 {!vaultUploadsAllowed && (
-                                    <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
-                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                            <div>
-                                                <p className="text-sm font-bold text-[var(--text)]">Store signed contracts, ID copies, and other documents - all in one place.</p>
-                                                <p className="text-sm text-[var(--text-muted)]">Standard keeps signed contract copies on contract pages. Pro unlocks the full document Vault here.</p>
+                                    <div className="rounded-2xl border border-[var(--primary)]/20 bg-gradient-to-br from-[var(--primary)]/5 to-[var(--primary)]/10 px-6 py-6 shadow-inner">
+                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                            <div className="space-y-1">
+                                                <p className="text-sm font-black text-[var(--text)]">Store signed contracts, ID copies, and other documents.</p>
+                                                <p className="text-xs text-[var(--text-muted)]">Standard keeps signed contract copies on contract pages. Pro unlocks the full document Vault hub here.</p>
                                             </div>
                                             <Link href={vaultUpgradeHref}>
                                                 <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">Upgrade to Pro</Button>
@@ -759,7 +759,7 @@ export default function DocumentsPage() {
                     )}
 
                     {activeTab === "Exports" && plan.id !== "free" && (
-                        <Card className="glass-panel border-none">
+                        <Card className="glass-panel border-none shadow-sm hover-lift">
                             <CardContent className="space-y-4 p-5">
                                 <div>
                                     <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Year-end summary</p>

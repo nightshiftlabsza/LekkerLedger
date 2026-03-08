@@ -24,14 +24,21 @@ function authorizedHeaders(accessToken: string): HeadersInit {
 }
 
 async function findBackupFileId(accessToken: string): Promise<string | null> {
-    const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${BACKUP_FILE_NAME}'&fields=files(id,name)`,
-        { headers: authorizedHeaders(accessToken) },
-    );
+    try {
+        const response = await fetch(
+            `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${BACKUP_FILE_NAME}'&fields=files(id,name)&orderBy=modifiedTime desc`,
+            { headers: authorizedHeaders(accessToken) },
+        );
 
-    if (!response.ok) return null;
-    const data = await response.json() as GoogleDriveListResponse;
-    return data.files?.[0]?.id ?? null;
+        if (!response.ok) return null;
+        const data = await response.json() as GoogleDriveListResponse;
+        
+        // Return most recent if multiple exist (Issue 72)
+        return data.files?.[0]?.id ?? null;
+    } catch (error) {
+        console.error("Failed to find backup file on Drive", error);
+        return null;
+    }
 }
 
 async function uploadMultipartFile(
@@ -79,30 +86,35 @@ export async function syncDataToDrive(accessToken: string, options?: { generated
             body: new Blob([dataStr], { type: "application/json" }),
             fileId,
         });
-        return true;
+        return { success: true };
     } catch (error) {
-        console.error("Failed to sync to Drive", error);
-        return false;
+        const message = error instanceof Error ? error.message : "Unknown sync error";
+        console.error("Failed to sync to Drive:", message);
+        return { success: false, error: message };
     }
 }
 
 export async function syncDataFromDrive(accessToken: string) {
     try {
         const fileId = await findBackupFileId(accessToken);
-        if (!fileId) return false;
+        if (!fileId) return { success: false, error: "No backup file found on Google Drive." };
 
         const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
             headers: authorizedHeaders(accessToken),
         });
 
-        if (!response.ok) return false;
+        if (!response.ok) {
+             const errorText = await response.text();
+             return { success: false, error: `Failed to download backup: ${errorText || response.statusText}` };
+        }
 
         const json = await response.text();
         const result = await importData(json);
-        return result.success;
+        return result;
     } catch (error) {
-        console.error("Failed to sync from Drive", error);
-        return false;
+        const message = error instanceof Error ? error.message : "Unknown sync error";
+        console.error("Failed to sync from Drive:", message);
+        return { success: false, error: message };
     }
 }
 
@@ -130,6 +142,10 @@ export async function deleteDataFromDrive(accessToken: string) {
     }
 }
 
+function sanitizeIdentifier(input: string): string {
+    return input.replace(/[^a-z0-9.]/gi, "_");
+}
+
 export async function uploadVaultFileToDrive(
     accessToken: string,
     file: Blob,
@@ -140,9 +156,10 @@ export async function uploadVaultFileToDrive(
     },
 ): Promise<string | null> {
     try {
+        const safeName = sanitizeIdentifier(options.fileName);
         return await uploadMultipartFile(accessToken, {
             metadata: {
-                name: `vault-${options.documentId}-${options.fileName}`,
+                name: `vault-${options.documentId}-${safeName}`,
                 parents: ["appDataFolder"],
                 appProperties: {
                     source: "lekkerledger-vault",

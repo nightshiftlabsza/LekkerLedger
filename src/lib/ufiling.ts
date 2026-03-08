@@ -7,7 +7,7 @@
 
 import { Employee, PayslipInput, EmployerSettings } from "./schema";
 import { calculatePayslip } from "./calculator";
-import { format } from "date-fns";
+import { format, isWithinInterval, startOfMonth, endOfMonth } from "date-fns";
 import { getCurrentTaxYearRange } from "./storage";
 
 export interface UFilingRow {
@@ -28,15 +28,15 @@ export function generateUFilingData(
     year: number
 ): UFilingRow[] {
     const rows: UFilingRow[] = [];
+    const targetMonthStart = startOfMonth(new Date(year, month));
+    const targetMonthEnd = endOfMonth(new Date(year, month));
 
-    // Filter locked payslips for this specific month/year
     for (const emp of employees) {
         const empPayslips = payslips.filter((p) => {
-            const start = new Date(p.payPeriodStart);
+            const endDate = new Date(p.payPeriodEnd);
             return (
                 p.employeeId === emp.id &&
-                start.getMonth() === month &&
-                start.getFullYear() === year
+                isWithinInterval(endDate, { start: targetMonthStart, end: targetMonthEnd })
             );
         });
 
@@ -68,16 +68,14 @@ export function generateUFilingTaxYearData(
 
     for (const emp of employees) {
         const empPayslips = payslips.filter((p) => {
-            const start = new Date(p.payPeriodStart);
+            const endDate = new Date(p.payPeriodEnd);
             return (
                 p.employeeId === emp.id &&
-                start >= taxYear.start &&
-                start <= taxYear.end
+                endDate >= taxYear.start &&
+                endDate <= taxYear.end
             );
         });
 
-        // Group by month to avoid duplicate records per period in aggregate view?
-        // Actually uFiling requires monthly breakdown.
         for (const ps of empPayslips) {
             const breakdown = calculatePayslip(ps);
             rows.push({
@@ -108,16 +106,16 @@ export function rowsToCsv(rows: UFilingRow[], settings: EmployerSettings): strin
         "Employee UIF (1%)",
         "Employer UIF (1%)",
         "Total UIF",
-    ].join(",");
+    ].map(h => `"${h}"`).join(",");
 
     const dataRows = rows.map((r) =>
         [
-            `"${settings.employerName}"`,
-            `"${settings.uifRefNumber}"`,
-            `"${r.employeeName}"`,
-            `"${r.idNumber}"`,
-            r.periodStart,
-            r.periodEnd,
+            `"${settings.employerName.replace(/"/g, '""')}"`,
+            `"${settings.uifRefNumber.replace(/"/g, '""')}"`,
+            `"${r.employeeName.replace(/"/g, '""')}"`,
+            `"${r.idNumber.replace(/"/g, '""')}"`,
+            `"${r.periodStart}"`,
+            `"${r.periodEnd}"`,
             r.grossRemuneration.toFixed(2),
             r.uifEmployee.toFixed(2),
             r.uifEmployer.toFixed(2),
@@ -125,10 +123,11 @@ export function rowsToCsv(rows: UFilingRow[], settings: EmployerSettings): strin
         ].join(",")
     );
 
-    return [header, ...dataRows].join("\n");
+    return [header, ...dataRows].join("\r\n"); // Standard CSV CRLF
 }
 
 export function downloadCsv(csv: string, filename: string): void {
+    if (typeof window === "undefined") return;
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

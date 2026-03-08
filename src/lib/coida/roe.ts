@@ -1,5 +1,6 @@
 import { getAllPayslips } from "../storage";
 import { getCoidaParameters } from "../legal/coida";
+import { calculatePayslip } from "../calculator";
 
 export interface RoeData {
     coidYear: string;
@@ -22,7 +23,8 @@ export async function calculateRoeData(startYear: number): Promise<RoeData> {
     const endDate = new Date(startYear + 1, 1, 28); // 28 Feb
 
     // Handle leap year for Feb
-    if ((startYear + 1) % 4 === 0 && ((startYear + 1) % 100 !== 0 || (startYear + 1) % 400 === 0)) {
+    const isLeapYear = (y: number) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+    if (isLeapYear(startYear + 1)) {
         endDate.setDate(29);
     }
 
@@ -30,26 +32,15 @@ export async function calculateRoeData(startYear: number): Promise<RoeData> {
     const params = getCoidaParameters(startDate);
 
     // Filter payslips within the COID year
-    // We use payPeriodEnd to determine which year a payslip falls into
     const periodPayslips = payslips.filter(ps => {
         const end = new Date(ps.payPeriodEnd);
         return end >= startDate && end <= endDate;
     });
 
-    // Count employees who had at least one payslip in this period
     const activeEmployeeIds = new Set(periodPayslips.map(ps => ps.employeeId));
     const employeeCount = activeEmployeeIds.size;
 
-    // Calculate actual earnings per employee, capped at the statutory limit
     const earningsPerEmployee: Record<string, number> = {};
-
-    // We need to calculate each payslip's gross pay. 
-    // Since getAllPayslips returns PayslipInput, we might need the calculator.
-    // However, it's better if we just sum the gross pay if it was stored, 
-    // but schema.ts doesn't show grossPay in PayslipInput.
-    // It is calculated in calculatePayslip(input).
-
-    const { calculatePayslip } = await import("../calculator");
 
     periodPayslips.forEach(ps => {
         const breakdown = calculatePayslip(ps);
@@ -62,13 +53,16 @@ export async function calculateRoeData(startYear: number): Promise<RoeData> {
         return sum + Math.min(annualGross, params.earningsCap);
     }, 0);
 
+    // Provisional earnings usually include an estimated 5% increase for inflation/raises
+    const PROVISIONAL_INFLATION_BUFFER = 1.05;
+
     return {
         coidYear: startYear.toString(),
         startDate,
         endDate,
         employeeCount,
         actualEarnings: Math.round(actualEarnings),
-        provisionalEarnings: Math.round(actualEarnings), // Default to actuals
+        provisionalEarnings: Math.round(actualEarnings * PROVISIONAL_INFLATION_BUFFER),
         maxCapPerEmployee: params.earningsCap,
         assessmentRate: params.assessmentRate,
         minAssessment: params.minAssessmentDomestic,

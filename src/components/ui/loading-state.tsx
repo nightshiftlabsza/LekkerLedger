@@ -16,16 +16,16 @@ export function LoadingState({
     return (
         <Card className="border-none glass-panel overflow-hidden">
             <CardContent className="flex flex-col items-center justify-center p-8 sm:p-12 text-center">
-                <div className="h-16 w-16 rounded-3xl bg-[var(--bg-subtle)] flex items-center justify-center mb-6">
-                    <Loader2 className="h-8 w-8 text-[var(--primary)] animate-spin" strokeWidth={2} />
+                <div className="h-16 w-16 rounded-3xl bg-[var(--surface-raised)] flex items-center justify-center mb-6 shadow-[var(--shadow-sm)]">
+                    <Loader2 className="h-8 w-8 text-[var(--primary)] animate-spin" strokeWidth={2.5} />
                 </div>
 
-                <h3 className="text-lg font-bold mb-2 text-balance animate-pulse" style={{ color: "var(--text-primary)" }}>
+                <h3 className="type-h3 mb-2 text-balance" style={{ color: "var(--text)" }}>
                     {message}
                 </h3>
 
                 {subtext && (
-                    <p className="max-w-xs text-sm leading-relaxed mb-8 animate-pulse text-balance" style={{ color: "var(--text-secondary)" }}>
+                    <p className="max-w-xs type-body mb-8 text-balance" style={{ color: "var(--text-muted)" }}>
                         {subtext}
                     </p>
                 )}
@@ -36,7 +36,7 @@ export function LoadingState({
                         {Array.from({ length: skeletonLines }).map((_, i) => (
                             <div
                                 key={i}
-                                className="h-4 rounded-full bg-[var(--bg-subtle)] animate-pulse"
+                                className="h-4 rounded-full bg-[var(--surface-raised)] shimmer"
                                 style={{ width: `${Math.max(40, 100 - i * 15)}%`, opacity: 1 - (i * 0.2) }}
                             />
                         ))}

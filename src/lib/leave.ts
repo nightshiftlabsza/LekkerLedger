@@ -18,6 +18,7 @@ import {
     LeaveCarryOver,
     LeaveRecord,
 } from "./schema";
+import { toIsoDate, isValidDate } from "./utils";
 
 export interface LeaveAllowance {
     allowance: number;
@@ -77,14 +78,6 @@ const DEFAULT_ALLOWANCE: Record<DefaultLeaveType, number> = {
     sick: 30,
     family: 3,
 };
-
-function isValidDate(date: Date): boolean {
-    return !Number.isNaN(date.getTime());
-}
-
-function toIsoDate(date: Date): string {
-    return format(date, "yyyy-MM-dd");
-}
 
 function getRecordSortTime(record: LeaveRecord): number {
     return normaliseLeaveDate(record).start.getTime();

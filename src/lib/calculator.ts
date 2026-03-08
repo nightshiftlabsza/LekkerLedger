@@ -17,7 +17,10 @@ export const UIF_RATE = LEGAL_REGISTRY.UIF.RATE;
 export const UIF_THRESHOLD_HOURS = LEGAL_REGISTRY.UIF.THRESHOLD_HOURS;
 const OVERTIME_MULTIPLIER = LEGAL_REGISTRY.SD7.OVERTIME_MULTIPLIER;
 const SUNDAY_PH_MULTIPLIER = LEGAL_REGISTRY.SD7.SUNDAY_PH_MULTIPLIER;
+const SUNDAY_NON_ORDINARY_MULTIPLIER = LEGAL_REGISTRY.SD7.SUNDAY_NON_ORDINARY_MULTIPLIER;
+const SUNDAY_ORDINARY_MULTIPLIER = LEGAL_REGISTRY.SD7.SUNDAY_ORDINARY_MULTIPLIER;
 const MINIMUM_DAILY_HOURS_PAID = LEGAL_REGISTRY.SD7.MINIMUM_DAILY_HOURS_PAID;
+const ANNUAL_LEAVE_ACCRUAL_RATE = LEGAL_REGISTRY.SD7.ANNUAL_LEAVE_ACCRUAL_RATE;
 
 export interface PayBreakdown {
     ordinaryPay: number;
@@ -69,10 +72,11 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
     const ordinaryPay = roundTo(effectiveOrdinaryHours * rate);
     const overtimePay = roundTo(input.overtimeHours * rate * OVERTIME_MULTIPLIER);
 
-    const sundayMultiplier = input.ordinarilyWorksSundays ? 1.5 : 2.0;
+    const sundayMultiplier = input.ordinarilyWorksSundays ? SUNDAY_ORDINARY_MULTIPLIER : SUNDAY_NON_ORDINARY_MULTIPLIER;
     let sundayPay = 0;
     if (input.sundayHours > 0) {
         sundayPay = input.sundayHours * rate * sundayMultiplier;
+        // BCEA/SD7 rule: minimum pay for Sunday is one day's ordinary wage
         const ordinaryDailyWage = (input.ordinaryHoursPerDay ?? 8) * rate;
         if (sundayPay < ordinaryDailyWage) {
             sundayPay = ordinaryDailyWage;
@@ -107,7 +111,8 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
         complianceWarnings.push("Overtime exceeds the BCEA guideline of 10 hours per week for this period.");
     }
 
-    const leaveAccruedDays = Number(((input.daysWorked ?? 1) / 17).toFixed(2));
+    // SD7: 1 day for every 17 days worked
+    const leaveAccruedDays = roundTo((input.daysWorked ?? 0) * ANNUAL_LEAVE_ACCRUAL_RATE, 2);
 
     return {
         ordinaryPay,

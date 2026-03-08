@@ -9,6 +9,7 @@ import {
     SubscriptionRecord,
     VerifiedEntitlements,
 } from "./billing";
+import { env } from "./env";
 
 type QueryParam = string | number | null;
 
@@ -77,26 +78,26 @@ function getRequiredEnv(name: string): string {
 }
 
 function getPaystackSecretKey(): string {
-    return getRequiredEnv("PAYSTACK_SECRET_KEY");
+    return env.PAYSTACK_SECRET_KEY;
 }
 
 function getD1Config() {
     return {
-        accountId: getRequiredEnv("CLOUDFLARE_ACCOUNT_ID"),
-        databaseId: getRequiredEnv("CLOUDFLARE_D1_DATABASE_ID"),
-        apiToken: getRequiredEnv("CLOUDFLARE_D1_API_TOKEN"),
+        accountId: env.CLOUDFLARE_ACCOUNT_ID,
+        databaseId: env.CLOUDFLARE_D1_DATABASE_ID,
+        apiToken: env.CLOUDFLARE_D1_API_TOKEN,
     };
 }
 
 function getPaystackPlanCode(planId: Exclude<PlanId, "free">, billingCycle: BillingCycle): string {
     const envMap = {
         standard: {
-            monthly: process.env.PAYSTACK_PLAN_STANDARD_MONTHLY,
-            yearly: process.env.PAYSTACK_PLAN_STANDARD_YEARLY,
+            monthly: env.PAYSTACK_PLAN_STANDARD_MONTHLY,
+            yearly: env.PAYSTACK_PLAN_STANDARD_YEARLY,
         },
         pro: {
-            monthly: process.env.PAYSTACK_PLAN_PRO_MONTHLY,
-            yearly: process.env.PAYSTACK_PLAN_PRO_YEARLY,
+            monthly: env.PAYSTACK_PLAN_PRO_MONTHLY,
+            yearly: env.PAYSTACK_PLAN_PRO_YEARLY,
         },
     } as const;
 
@@ -110,10 +111,10 @@ function getPaystackPlanCode(planId: Exclude<PlanId, "free">, billingCycle: Bill
 
 function getPaystackPlanLookup() {
     return new Map<string, { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle }>([
-        [process.env.PAYSTACK_PLAN_STANDARD_MONTHLY || "", { planId: "standard", billingCycle: "monthly" }],
-        [process.env.PAYSTACK_PLAN_STANDARD_YEARLY || "", { planId: "standard", billingCycle: "yearly" }],
-        [process.env.PAYSTACK_PLAN_PRO_MONTHLY || "", { planId: "pro", billingCycle: "monthly" }],
-        [process.env.PAYSTACK_PLAN_PRO_YEARLY || "", { planId: "pro", billingCycle: "yearly" }],
+        [env.PAYSTACK_PLAN_STANDARD_MONTHLY || "", { planId: "standard", billingCycle: "monthly" }],
+        [env.PAYSTACK_PLAN_STANDARD_YEARLY || "", { planId: "standard", billingCycle: "yearly" }],
+        [env.PAYSTACK_PLAN_PRO_MONTHLY || "", { planId: "pro", billingCycle: "monthly" }],
+        [env.PAYSTACK_PLAN_PRO_YEARLY || "", { planId: "pro", billingCycle: "yearly" }],
     ]);
 }
 

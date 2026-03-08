@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Employee, PayPeriod } from "@/lib/schema";
-import { getEmployees, saveEmployee, savePayPeriod } from "@/lib/storage";
+import { getEmployees, saveEmployee, savePayPeriod, getActiveHouseholdId } from "@/lib/storage";
 import { NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import Link from "next/link";
@@ -22,6 +22,7 @@ export function NewPayrollWizardClient() {
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [step, setStep] = React.useState(0);
     const [saving, setSaving] = React.useState(false);
+    const [activeHouseholdId, setActiveHouseholdId] = React.useState<string>("default");
 
     // Selections
     const [selectedEmployeeIds, setSelectedEmployeeIds] = React.useState<string[]>([]);
@@ -39,19 +40,20 @@ export function NewPayrollWizardClient() {
         setIsClient(true);
         async function load() {
             try {
-                const emps = await getEmployees();
+                const [emps, hId] = await Promise.all([getEmployees(), getActiveHouseholdId()]);
                 if (!active) return;
                 setEmployees(emps);
+                setActiveHouseholdId(hId);
+                
                 // Pre-select if only one
                 if (emps.length === 1) {
                     setSelectedEmployeeIds([emps[0].id]);
                 } else if (emps.length > 0) {
-                    // pre-select all by default to make it easy for small households
                     setSelectedEmployeeIds(emps.map(e => e.id));
                 }
             } catch (err) {
                 console.error(err);
-                if (active) toast("Failed to load employees");
+                if (active) toast("Failed to load setup data");
             }
         }
         load();
@@ -67,13 +69,13 @@ export function NewPayrollWizardClient() {
             const id = crypto.randomUUID();
             const newEmp: Employee = {
                 id,
-                householdId: "default",
+                householdId: activeHouseholdId,
                 name: newEmpName.trim(),
                 role: "Domestic Worker",
                 hourlyRate: parseFloat(newEmpRate) || NMW_RATE,
                 idNumber: "",
                 phone: "",
-                startDate: new Date().toISOString().slice(0, 10),
+                startDate: new Date().toISOString().split('T')[0],
                 ordinarilyWorksSundays: false,
                 ordinaryHoursPerDay: 8,
                 frequency: "Monthly",
@@ -98,18 +100,26 @@ export function NewPayrollWizardClient() {
             return;
         }
 
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        if (end < start) {
+            toast("End date cannot be before start date");
+            return;
+        }
+
         setSaving(true);
         try {
             const periodId = crypto.randomUUID();
-            const startStr = format(new Date(startDate), "MMM");
-            const endStr = format(new Date(endDate), "yyyy");
+            const startStr = format(start, "MMM");
+            const endStr = format(end, "yyyy");
 
             const newPeriod: PayPeriod = {
                 id: periodId,
-                householdId: "default",
+                householdId: activeHouseholdId,
                 name: `${startStr} ${endStr} Pay Run`,
-                startDate: new Date(startDate).toISOString(),
-                endDate: new Date(endDate).toISOString(),
+                startDate: start.toISOString(),
+                endDate: end.toISOString(),
                 status: "draft",
                 entries: selectedEmployeeIds.map(empId => ({
                     employeeId: empId,
@@ -128,8 +138,6 @@ export function NewPayrollWizardClient() {
             };
 
             await savePayPeriod(newPeriod);
-
-            // Redirect to the workspace to Enter Hours
             router.push(`/payroll/${periodId}`);
         } catch (err) {
             console.error(err);

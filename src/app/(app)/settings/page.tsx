@@ -96,7 +96,7 @@ function SettingsContent() {
 
     const userPlan = getUserPlan(settings);
     const advancedLeaveEnabled = canUseAdvancedLeaveFeatures(userPlan);
-    const customLeaveTypes = settings.customLeaveTypes ?? [];
+    const customLeaveTypes = settings?.customLeaveTypes ?? [];
 
     const resetLeaveTypeForm = React.useCallback(() => {
         setEditingLeaveTypeId(null);
@@ -191,7 +191,7 @@ function SettingsContent() {
                     <div className="space-y-6">
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Basic details</h2>
-                            <Card className="glass-panel border-none p-5 space-y-4">
+                            <Card className="glass-panel border-none p-6 space-y-6 shadow-sm">
                                 <div className="space-y-2">
                                     <Label htmlFor="ename">Employer Name</Label>
                                     <Input id="ename" value={settings.employerName} onChange={(e) => setSettings({ ...settings, employerName: e.target.value })} placeholder="e.g. John Doe" />
@@ -213,7 +213,7 @@ function SettingsContent() {
 
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">App experience</h2>
-                            <Card className="glass-panel border-none p-1 overflow-hidden">
+                            <Card className="glass-panel border-none p-1 overflow-hidden shadow-sm">
                                 <div className="p-4 border-b border-[var(--border)] space-y-3">
                                     <div className="flex items-start gap-3">
                                         <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--focus)]"><Smartphone className="h-4 w-4" /></div>
@@ -450,16 +450,19 @@ function SettingsContent() {
                                     </div>
                                 </Card>
                             ) : (
-                                <Card className="glass-panel border-none p-5 space-y-4">
-                                    <div>
-                                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">Pro</p>
-                                        <p className="mt-2 text-lg font-black text-[var(--text)]">Custom leave types</p>
-                                        <p className="mt-1 text-sm text-[var(--text-muted)]">
+                                <Card className="glass-panel border-none p-6 space-y-5 shadow-sm relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                        <Zap className="h-12 w-12 text-[var(--primary)]" />
+                                    </div>
+                                    <div className="relative z-10">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">Pro Feature</p>
+                                        <p className="mt-2 text-xl font-black text-[var(--text)]">Custom leave types</p>
+                                        <p className="mt-1 text-sm text-[var(--text-muted)] leading-relaxed">
                                             Add categories like unpaid leave, study leave, or compassionate leave, while keeping the three default types fixed.
                                         </p>
                                     </div>
-                                    <Link href="/upgrade" className="block">
-                                        <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
+                                    <Link href="/upgrade" className="block relative z-10">
+                                        <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-black h-12 shadow-lg shadow-[var(--primary)]/20 active-scale">
                                             Upgrade to Pro
                                         </Button>
                                     </Link>
