@@ -62,7 +62,7 @@ export default function OnboardingPage() {
         setSaving(false);
         const selectedPlan = getUserPlan(form);
         if (selectedPlan.id !== "free" && !form.googleSyncEnabled) {
-            router.push("/open-app?source=onboarding&recommended=google&next=/dashboard");
+            router.push("/dashboard?paidLogin=1");
             return;
         }
         router.push("/dashboard");
@@ -181,7 +181,7 @@ export default function OnboardingPage() {
                                     Join South African households organising their payroll records.
                                 </p>
                                 <div className="pt-2">
-                                    <Link href="/open-app" className="text-[10px] font-bold uppercase tracking-widest text-[var(--primary)] hover:underline">
+                                    <Link href="/dashboard?paidLogin=1" className="text-[10px] font-bold uppercase tracking-widest text-[var(--primary)] hover:underline">
                                         Returning user? Open the app
                                     </Link>
                                 </div>
@@ -267,7 +267,4 @@ export default function OnboardingPage() {
         </div>
     );
 }
-
-
-
 

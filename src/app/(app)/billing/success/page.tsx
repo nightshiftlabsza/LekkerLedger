@@ -6,6 +6,7 @@ import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fetchVerifiedEntitlements } from "@/lib/billing-client";
 import { hasStoredGoogleSession } from "@/lib/google-session";
+import { PaidLoginButton } from "@/components/paid-login-button";
 
 export default function BillingSuccessPage() {
     const [status, setStatus] = React.useState<"checking" | "active" | "pending" | "auth">("checking");
@@ -74,11 +75,12 @@ export default function BillingSuccessPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
                 {status === "auth" ? (
-                    <Link href="/open-app?source=billing&recommended=google&next=/dashboard" className="w-full">
-                        <Button className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl">
-                            Connect Google Access <ArrowRight className="h-4 w-4" />
-                        </Button>
-                    </Link>
+                    <PaidLoginButton
+                        label="Paid login"
+                        className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl"
+                        nextPath="/dashboard"
+                        showInlineError
+                    />
                 ) : (
                     <Link href="/dashboard" className="w-full">
                         <Button className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl">

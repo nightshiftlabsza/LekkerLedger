@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
     ArrowRight, AlertTriangle, Users,
     FileText, FolderOpen,
@@ -23,6 +24,7 @@ import { getUserPlan } from "@/lib/entitlements";
 import { Employee, PayPeriod, EmployerSettings, DocumentMeta, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { COMPLIANCE } from "@/lib/compliance-constants";
+import { PaidLoginGate } from "@/components/paid-login-button";
 
 interface EmployeeSummary {
     employee: Employee;
@@ -30,15 +32,23 @@ interface EmployeeSummary {
     netPay: number | null;
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
     const [loading, setLoading] = React.useState(true);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [currentPeriod, setCurrentPeriod] = React.useState<PayPeriod | null>(null);
     const [recentDocs, setRecentDocs] = React.useState<DocumentMeta[]>([]);
     const [summaries, setSummaries] = React.useState<EmployeeSummary[]>([]);
+    const searchParams = useSearchParams();
+    const paidLoginRequested = searchParams.get("paidLogin") === "1";
+    const paidLoginNext = searchParams.get("next");
+    const skipPaidChecks = !!paidLoginNext && paidLoginNext.startsWith("/upgrade");
+    const activationSuccess = searchParams.get("activation") === "paid-login-success";
+    const activationSync = searchParams.get("sync");
 
     React.useEffect(() => {
+        if (paidLoginRequested) return;
+
         let active = true;
         async function load() {
             if (active) {
@@ -79,7 +89,16 @@ export default function DashboardPage() {
             active = false;
             unsubscribe();
         };
-    }, []);
+    }, [paidLoginRequested]);
+
+    if (paidLoginRequested) {
+        return (
+            <>
+                <PageHeader title="Dashboard" subtitle="Completing your paid login and backup setup." />
+                <PaidLoginGate nextPath={paidLoginNext} skipPaidChecks={skipPaidChecks} />
+            </>
+        );
+    }
 
     if (loading) {
         return (
@@ -159,10 +178,28 @@ export default function DashboardPage() {
     // Alert engine
     const now = new Date();
     const alerts = computeDashboardAlerts({ employees, summaries, settings, now });
+    const lastBackupTime = settings?.lastBackupTimestamp ? new Date(settings.lastBackupTimestamp) : null;
+    const backupJustNow = !!lastBackupTime && (Date.now() - lastBackupTime.getTime()) < 120000;
+    const backupLabel = lastBackupTime
+        ? (backupJustNow ? "just now" : lastBackupTime.toLocaleString("en-ZA"))
+        : "not yet";
 
     return (
         <>
             <PageHeader title="Dashboard" subtitle="See this month's payroll status and what to do next." />
+
+            {activationSuccess && (
+                <Card className="mb-6 border-emerald-200 bg-emerald-50/60">
+                    <CardContent className="p-4 text-sm text-emerald-900">
+                        <p className="font-bold">Google backup active.</p>
+                        <p>
+                            {activationSync === "none"
+                                ? "Paid login is complete. No data snapshot was required yet on this device."
+                                : `Last backup: ${backupLabel}.`}
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
 
             <div className="ultrawide-grid grid-cols-12-desktop gap-6 space-y-6 lg:space-y-0">
                 {/* Main Content Area */}
@@ -353,6 +390,14 @@ export default function DashboardPage() {
     );
 }
 
+export default function DashboardPage() {
+    return (
+        <React.Suspense fallback={<><PageHeader title="Dashboard" subtitle="See this month's payroll status and what to do next." /><CardSkeleton /><div className="grid grid-cols-2 gap-3"><StatSkeleton /><StatSkeleton /></div><CardSkeleton /></>}>
+            <DashboardContent />
+        </React.Suspense>
+    );
+}
+
 function ComplianceCard() {
     return (
         <Card className="glass-panel border-none overflow-hidden group">
@@ -439,7 +484,7 @@ function StorageCard({ settings }: { settings: EmployerSettings | null }) {
             <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="type-overline text-[var(--text-muted)]">Storage & Sync</h3>
-                    <Link href="/settings?tab=sync">
+                    <Link href="/settings?tab=storage">
                         <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] gap-1">
                             Manage <ChevronRight className="h-3 w-3" />
                         </Button>
@@ -471,8 +516,4 @@ function StorageCard({ settings }: { settings: EmployerSettings | null }) {
         </Card>
     );
 }
-
-
-
-
 

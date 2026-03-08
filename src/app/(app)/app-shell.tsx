@@ -362,7 +362,7 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
         googleLogout();
         clearStoredGoogleSession();
         setOpen(false);
-        router.push("/open-app?source=logout");
+        router.push("/dashboard?signedOut=1");
     };
 
     return (
@@ -453,12 +453,4 @@ function MenuLink({
         </Link>
     );
 }
-
-
-
-
-
-
-
-
 

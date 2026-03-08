@@ -25,13 +25,12 @@ export default function UpgradePage() {
     );
 }
 
-function buildGoogleConnectHref(planId: "standard" | "pro", billingCycle: BillingCycle): string {
+function buildPaidLoginHref(planId: "standard" | "pro", billingCycle: BillingCycle): string {
     const params = new URLSearchParams({
-        recommended: "google",
+        paidLogin: "1",
         next: `/upgrade?plan=${planId}&billing=${billingCycle}&pay=1`,
-        source: "billing",
     });
-    return `/open-app?${params.toString()}`;
+    return `/dashboard?${params.toString()}`;
 }
 
 function UpgradePageContent() {
@@ -58,7 +57,7 @@ function UpgradePageContent() {
         setCheckoutError("");
 
         if (!hasStoredGoogleSession()) {
-            router.push(buildGoogleConnectHref(planId, billingCycle));
+            router.push(buildPaidLoginHref(planId, billingCycle));
             return;
         }
 
@@ -110,7 +109,7 @@ function UpgradePageContent() {
                             Paid access is confirmed through your Google sign-in, not by this browser alone.
                         </p>
                         <p>
-                            If you are not signed into Google yet, choosing a paid plan will first take you to Google connect. After that, LekkerLedger starts the Paystack checkout securely from the server.
+                            If you are not signed into Google yet, choosing a paid plan starts paid login immediately, then LekkerLedger starts the Paystack checkout securely from the server.
                         </p>
                         <p>
                             You can stop renewal before the next billing period, and access continues until the end of the billing period you already paid for.
@@ -180,9 +179,4 @@ function UpgradePageContent() {
         </div>
     );
 }
-
-
-
-
-
 
