@@ -12,7 +12,7 @@ import { getSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
 import { createCheckoutSession } from "@/lib/billing-client";
 import { hasStoredGoogleSession } from "@/lib/google-session";
-import { type BillingCycle, PLANS } from "@/src/config/plans";
+import { type BillingCycle, PLANS, type PlanId } from "@/src/config/plans";
 import { EmployerSettings } from "@/lib/schema";
 import { getUserPlan } from "@/lib/entitlements";
 import { MarketingBillingToggle, MarketingPlanCards } from "@/components/marketing/pricing";
@@ -133,7 +133,7 @@ function UpgradePageContent() {
 
                     <MarketingPlanCards 
                         billingCycle={billingCycle} 
-                        currentPlanId={currentPlan.id as any}
+                        currentPlanId={currentPlan.id as PlanId}
                         onSelect={(planId) => {
                             if (planId === "standard" || planId === "pro") {
                                 void startCheckout(planId);
