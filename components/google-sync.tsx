@@ -288,6 +288,7 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
             }
             if (!isMountedRef.current) return;
             persistAuth(accessToken);
+            await runDiscovery(accessToken);
             setTransientStatus("success", "Google account connected.");
         },
         onError: () => setTransientStatus("error", "Google sign-in failed.", 5000),

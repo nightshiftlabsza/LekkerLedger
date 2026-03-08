@@ -16,7 +16,7 @@ import { AddHouseholdDialog } from "@/components/household/add-household-dialog"
 import { getHouseholds, getSettings, saveHousehold, saveSettings, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseAutoBackup, canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
-import { clearStoredGoogleAccessToken, getStoredGoogleAccessToken, getStoredGoogleEmail } from "@/lib/google-session";
+import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail } from "@/lib/google-session";
 import { syncDataToDrive } from "@/lib/google-drive";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 
@@ -348,26 +348,19 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
     }, []);
 
     const hasGoogleSession = typeof window !== "undefined" && !!getStoredGoogleAccessToken();
-    const hasGoogleBackupSetup = !!googleEmail && !!settings?.googleSyncEnabled;
     const googleState = hasGoogleSession
         ? settings?.googleSyncEnabled
             ? "Google backup on"
             : "Google connected"
-        : hasGoogleBackupSetup
-            ? "Reconnect Google backup"
-            : "Local only";
+        : "Local only";
 
     const accountSummary = hasGoogleSession && googleEmail
         ? `Signed in as ${googleEmail}.`
-        : hasGoogleBackupSetup && googleEmail
-            ? `Previously connected as ${googleEmail}. Sign in again to back up or restore from your Google Drive.`
-            : googleEmail
-                ? `Previously connected as ${googleEmail}. Sign in again if you want Google features on this device.`
-                : "Your records are currently only on this device until you connect Google.";
+        : "Your records are currently only on this device until you connect Google.";
 
     const handleSignOut = () => {
         googleLogout();
-        clearStoredGoogleAccessToken();
+        clearStoredGoogleSession();
         setOpen(false);
         router.push("/open-app?source=logout");
     };
