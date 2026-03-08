@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Users, Search, Mail, Phone, ChevronRight, Loader2 } from "lucide-react";
+import { Users, Search, Phone, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import { Employee } from "@/lib/schema";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
 
 export function EmployeesClient() {
+    const SEARCH_VISIBILITY_THRESHOLD = 10;
     const [isClient, setIsClient] = React.useState(false);
     const [loading, setLoading] = React.useState(true);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
@@ -41,10 +42,14 @@ export function EmployeesClient() {
         };
     }, []);
 
-    const filteredEmployees = employees.filter(emp =>
-        emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const showSearch = employees.length > SEARCH_VISIBILITY_THRESHOLD;
+    const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+    const filteredEmployees = !showSearch || normalizedSearchQuery.length === 0
+        ? employees
+        : employees.filter(emp =>
+            emp.name.toLowerCase().includes(normalizedSearchQuery) ||
+            emp.role?.toLowerCase().includes(normalizedSearchQuery)
+        );
 
     // Initial server render and pre-hydration: Show real Empty State as the default shell design
     if (!isClient || loading) {
@@ -156,40 +161,26 @@ export function EmployeesClient() {
             <div className="ultrawide-panel col-span-4-desktop space-y-6">
                 <Card className="glass-panel border-none sticky top-24">
                     <CardContent className="p-6 space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">Search & Filter</label>
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
-                                <Input
-                                    placeholder="Find employee..."
-                                    className="pl-10"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
+                        {showSearch ? (
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">Search & Filter</label>
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                                    <Input
+                                        placeholder="Find employee..."
+                                        className="pl-10"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        ) : null}
 
-                        <div className="pt-4 border-t border-[var(--border)] space-y-4">
+                        <div className={`${showSearch ? "pt-4 border-t" : ""} border-[var(--border)] space-y-4`}>
                             <div className="flex items-center justify-between text-xs">
                                 <span className="text-[var(--text-muted)] font-medium">Total Active</span>
                                 <span className="font-bold text-[var(--text)]">{employees.length}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-xs">
-                                <span className="text-[var(--text-muted)] font-medium">Compliance Check</span>
-                                <StatusChip variant="complete" label="ALL GOOD" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="glass-panel border-none opacity-80">
-                    <CardContent className="p-5 flex items-start gap-4">
-                        <div className="h-10 w-10 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
-                            <Mail className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs font-bold text-[var(--text)]">Compliance Tip</p>
-                            <p className="text-[10px] leading-relaxed text-[var(--text-muted)]">Keep contracts and start dates tidy. Add an ID or passport number when you need it for UIF, uFiling, or yearly records.</p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -197,3 +188,4 @@ export function EmployeesClient() {
         </div>
     );
 }
+
