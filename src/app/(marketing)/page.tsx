@@ -116,7 +116,7 @@ function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
         <section className="relative overflow-hidden border-b border-[var(--border)]" style={{ backgroundColor: "var(--bg)" }}>
             <div className="absolute inset-x-0 top-24 h-px bg-[var(--border)]" />
 
-            <div className="relative content-container-wide px-4 py-12 sm:px-6 md:py-16 lg:px-8 lg:py-20">
+            <div className="relative content-container-wide px-4 py-8 sm:px-6 md:py-10 lg:px-8 lg:py-14">
                 <div className="grid gap-10 xl:grid-cols-[minmax(0,38rem)_minmax(0,1fr)] xl:items-center 2xl:gap-16">
                     <div className="max-w-[38rem] space-y-6">
                         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em]">
@@ -227,10 +227,10 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
                     </p>
                 </div>
 
-                <div className="p-5 sm:p-6">
-                    <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-5">
+                <div className="p-4 sm:p-5">
+                    <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-4">
                         <div>
-                            <h2 className="font-[family:var(--font-serif)] text-2xl font-semibold" style={{ color: "var(--text)" }}>
+                            <h2 className="font-[family:var(--font-serif)] text-xl font-semibold" style={{ color: "var(--text)" }}>
                                 PAYSLIP
                             </h2>
                             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
@@ -247,7 +247,7 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
                         </div>
                     </div>
 
-                    <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
                         <SamplePartyBlock
                             label="Employer"
                             value={sample.employer.name}
@@ -276,10 +276,10 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
                     </div>
 
                     <div
-                        className="mt-6 rounded-[22px] border border-[var(--border)] p-4"
+                        className="mt-4 rounded-[22px] border border-[var(--border)] p-4"
                         style={{ background: "linear-gradient(180deg, rgba(255, 252, 248, 0.96) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
                     >
-                        <div className={`${SAMPLE_FIGURE_GRID} border-b border-[var(--border)] pb-3 text-[10px] font-black uppercase tracking-[0.16em]`} style={{ color: "var(--text-muted)" }}>
+                        <div className={`${SAMPLE_FIGURE_GRID} border-b border-[var(--border)] pb-2 text-[10px] font-black uppercase tracking-[0.16em]`} style={{ color: "var(--text-muted)" }}>
                             <span>Description</span>
                             <span className="text-right">Hours</span>
                             <span className="text-right">Rate</span>
@@ -300,7 +300,7 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
                     </div>
 
                     <div
-                        className="mt-4 rounded-[22px] border border-[var(--focus)]/20 p-4"
+                        className="mt-3 rounded-[22px] border border-[var(--focus)]/20 p-4"
                         style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.08) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
                     >
                         <div className="flex items-end justify-between gap-4">
@@ -312,7 +312,7 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
                                     Based on the payroll details above.
                                 </p>
                             </div>
-                            <p className="font-[family:var(--font-serif)] text-3xl font-semibold tabular-nums" style={{ color: "var(--primary-pressed)" }}>
+                            <p className="font-[family:var(--font-serif)] text-2xl font-semibold tabular-nums" style={{ color: "var(--primary-pressed)" }}>
                                 {formatRand(sample.breakdown.netPay)}
                             </p>
                         </div>
@@ -469,6 +469,12 @@ function HowItWorks() {
                             </div>
                         );
                     })}
+                </div>
+
+                <div className="mt-10 flex justify-center">
+                    <Link href="/rules" className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-6 py-3 text-sm font-bold text-[var(--primary)] transition-all hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)]">
+                        View the complete household checklist <ArrowRight className="h-4 w-4" />
+                    </Link>
                 </div>
             </div>
         </section>

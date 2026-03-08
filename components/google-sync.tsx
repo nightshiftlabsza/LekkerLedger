@@ -7,9 +7,9 @@ import { useGoogleLogin, googleLogout } from "@react-oauth/google";
 import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Folder, FileJson, Database, Shield, History, RefreshCcw, ArrowRight, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MINIMAL_SCOPES, DRIVE_SCOPE, syncDataToDrive, syncDataFromDrive, deleteDataFromDrive } from "@/lib/google-drive";
+import { MINIMAL_SCOPES, DRIVE_SCOPE, syncDataToDrive, syncDataFromDrive, deleteDataFromDrive, getBackupMetadata, type BackupMetadata } from "@/lib/google-drive";
 import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail, hasStoredGoogleDriveScope, setStoredGoogleDriveScope, storeGoogleAccessToken, storeGoogleIdentity } from "@/lib/google-session";
-import { getSettings, saveSettings } from "@/lib/storage";
+import { getSettings, saveSettings, hasMeaningfulLocalData, getLocalBackupPreview, resetAllData, type LocalBackupPreview } from "@/lib/storage";
 import { Switch } from "@/components/ui/switch";
 
 interface SyncEvent {
@@ -61,6 +61,11 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
         if (typeof window !== "undefined") return localStorage.getItem("ll_last_sync");
         return null;
     });
+
+    const [discoveryStatus, setDiscoveryStatus] = useState<"idle" | "discovering" | "decision_required" | "no_backup" | "local_empty_remote_exists">("idle");
+    const [remoteMetadata, setRemoteMetadata] = useState<BackupMetadata | null>(null);
+    const [localPreview, setLocalPreview] = useState<LocalBackupPreview | null>(null);
+
     const isMountedRef = useState(() => ({ current: true }))[0];
     const statusTimerRef = useState(() => ({ current: null as number | null }))[0];
     const reloadTimerRef = useState(() => ({ current: null as number | null }))[0];
@@ -154,9 +159,50 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
         await saveSettings({ ...settings, googleSyncEnabled: false });
         if (!isMountedRef.current) return;
         setPendingAction(null);
+        setDiscoveryStatus("idle");
         setStatus("idle");
         setStatusMessage("");
     }, []);
+
+    const handleLogoutAndWipe = useCallback(async () => {
+        if (!confirm("This will log you out AND permanently remove all payroll records from this device. Remote backups in Google Drive remain. Proceed?")) return;
+        await resetAllData();
+        await clearAuth();
+        window.location.reload();
+    }, [clearAuth]);
+
+    const runDiscovery = useCallback(async (accessToken: string) => {
+        setDiscoveryStatus("discovering");
+        try {
+            const [remote, local, hasMeaningful] = await Promise.all([
+                getBackupMetadata(accessToken),
+                getLocalBackupPreview(),
+                hasMeaningfulLocalData()
+            ]);
+
+            if (!isMountedRef.current) return;
+
+            setRemoteMetadata(remote);
+            setLocalPreview(local);
+
+            if (!remote.exists) {
+                if (hasMeaningful) {
+                    setDiscoveryStatus("no_backup");
+                } else {
+                    setDiscoveryStatus("idle");
+                }
+            } else {
+                if (!hasMeaningful) {
+                    setDiscoveryStatus("local_empty_remote_exists");
+                } else {
+                    setDiscoveryStatus("decision_required");
+                }
+            }
+        } catch (error) {
+            console.error("Discovery failed", error);
+            setDiscoveryStatus("idle");
+        }
+    }, [isMountedRef]);
 
     const handleBackup = useCallback(async (silent = false) => {
         const currentToken = token || getStoredToken();
@@ -264,7 +310,7 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
             await saveSettings({ ...settings, googleSyncEnabled: true });
             if (!isMountedRef.current) return;
             setAutoBackupEnabled(Boolean(settings.autoBackupEnabled));
-            await runRestore(true);
+            await runDiscovery(accessToken);
             setTransientStatus("success", "Private Google Drive backup enabled.");
         },
         onError: () => {
@@ -333,7 +379,7 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
                                 {!token ? "Local only" : !hasDriveScope ? "Google connected" : status === "loading" ? "Working with Google backup..." : status === "error" ? "Google backup issue" : "Google backup active"}
                             </h2>
                             <p className="text-sm text-[var(--text-muted)] mt-1">
-                                {!token ? "Your records currently stay only on this device. Connect Google for cross-device access on paid plans." : !hasDriveScope ? `Google account connected as ${email}. Next, enable backup in the Google Drive app data area in your own Google account so your records can travel with you.` : `Google-connected backup active for ${email}`}
+                                {!token ? "Your records remain on this device. Connect Google to restore paid access and optional backup." : !hasDriveScope ? `Google account connected as ${email}. Next, enable backup in the Google Drive app data area in your own Google account so your records can travel with you.` : `Google-connected backup active for ${email}`}
                             </p>
                             {token && hasDriveScope && lastSyncTime && (
                                 <p className="text-xs text-[var(--text-muted)] mt-1 font-mono">
@@ -344,9 +390,11 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
                     </div>
 
                     {!token ? (
-                        <Button onClick={() => login()} className="bg-[#4285F4] hover:bg-[#3367d6] text-white font-bold whitespace-nowrap">
-                            Connect Google account
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                             <Button onClick={() => login()} className="bg-[#4285F4] hover:bg-[#3367d6] text-white font-bold whitespace-nowrap">
+                                Connect Google account
+                            </Button>
+                        </div>
                     ) : !hasDriveScope ? (
                         <div className="flex flex-col sm:flex-row gap-2">
                             <Button onClick={() => enableDrive()} className="bg-amber-500 hover:bg-amber-600 text-white font-bold whitespace-nowrap h-12 rounded-xl shadow-lg shadow-amber-500/20">
@@ -369,6 +417,99 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
                     )}
                 </CardContent>
             </Card>
+
+            {discoveryStatus === "discovering" && (
+                <div className="p-8 text-center bg-[var(--surface-2)]/50 rounded-2xl border-2 border-dashed border-[var(--border)]">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-[var(--primary)] mb-3" />
+                    <p className="text-sm font-medium text-[var(--text)]">Checking for existing backups...</p>
+                </div>
+            )}
+
+            {discoveryStatus === "local_empty_remote_exists" && remoteMetadata && (
+                 <Card className="border-2 border-emerald-500/30 bg-emerald-50/50">
+                     <CardContent className="p-6">
+                         <div className="flex flex-col sm:flex-row gap-6 items-center justify-between text-center sm:text-left">
+                             <div className="space-y-2">
+                                 <h3 className="text-lg font-bold text-emerald-900">Restore your backup?</h3>
+                                 <p className="text-sm text-emerald-700/80">We found a backup from <b>{new Date(remoteMetadata.modifiedTime!).toLocaleString()}</b>. Would you like to restore it to this device?</p>
+                             </div>
+                             <div className="flex gap-3 shrink-0">
+                                 <Button variant="ghost" onClick={() => setDiscoveryStatus("idle")}>Later</Button>
+                                 <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold" onClick={async () => {
+                                     setDiscoveryStatus("idle");
+                                     await runRestore(false);
+                                 }}>Restore now</Button>
+                             </div>
+                         </div>
+                     </CardContent>
+                 </Card>
+            )}
+
+            {discoveryStatus === "no_backup" && (
+                <Card className="border-[var(--border)] bg-[var(--surface-2)]/40">
+                    <CardContent className="p-6">
+                         <div className="flex flex-col sm:flex-row gap-6 items-center justify-between text-center sm:text-left">
+                             <div className="space-y-2">
+                                 <h3 className="text-lg font-bold text-[var(--text)]">No backup found yet</h3>
+                                 <p className="text-sm text-[var(--text-muted)]">You can create your first private Google Drive backup from this device.</p>
+                             </div>
+                             <div className="flex gap-3 shrink-0">
+                                 <Button variant="ghost" onClick={() => setDiscoveryStatus("idle")}>Dismiss</Button>
+                                 <Button className="bg-[var(--primary)] hover:brightness-95 text-white font-bold" onClick={async () => {
+                                     setDiscoveryStatus("idle");
+                                     await handleBackup(false);
+                                 }}>Backup this device</Button>
+                             </div>
+                         </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {discoveryStatus === "decision_required" && remoteMetadata && localPreview && (
+                <Card className="border-2 border-amber-500/30 bg-amber-50/50">
+                    <CardHeader>
+                        <CardTitle className="text-lg font-bold text-amber-900 flex items-center gap-2">
+                            <RefreshCcw className="h-5 w-5" /> Sync decision required
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="p-4 rounded-xl bg-white border border-amber-200">
+                                <p className="text-xs font-black uppercase tracking-wider text-amber-600 mb-2">This Device</p>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-bold text-amber-950">{localPreview.employeeCount} employees, {localPreview.payslipCount} payslips</p>
+                                    <p className="text-[10px] text-amber-700">Local snapshot on this browser</p>
+                                </div>
+                            </div>
+                            <div className="p-4 rounded-xl bg-white border border-emerald-200">
+                                <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-2">Google Backup</p>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-bold text-emerald-950">{new Date(remoteMetadata.modifiedTime!).toLocaleString()}</p>
+                                    <p className="text-[10px] text-emerald-700">Remote snapshot in your private Drive area</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12" onClick={async () => {
+                                setDiscoveryStatus("idle");
+                                await runRestore(false);
+                            }}>
+                                <Download className="h-4 w-4 mr-2" /> Restore Google backup to this device
+                            </Button>
+                            <Button variant="outline" className="flex-1 border-amber-200 text-amber-900 hover:bg-amber-100 font-bold h-12" onClick={async () => {
+                                setDiscoveryStatus("idle");
+                                await handleBackup(false);
+                            }}>
+                                <Upload className="h-4 w-4 mr-2" /> Keep this device and upload to Google
+                            </Button>
+                            <Button variant="ghost" className="sm:w-24" onClick={() => setDiscoveryStatus("idle")}>
+                                Cancel
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {pendingAction && (
                 <Card className="border-[var(--border)] bg-[var(--surface-2)]/70">
@@ -443,6 +584,16 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
                                 </p>
                                 <Button variant="outline" size="sm" onClick={() => setPendingAction("delete")} className="h-8 text-[10px] border-rose-200 text-rose-500 hover:bg-rose-50 font-bold">
                                     Delete backup from Google Drive
+                                </Button>
+                            </div>
+
+                            <div className="pt-4 border-t border-[var(--border)]">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-2">Privacy & Device Reset</h4>
+                                <p className="text-[10px] text-[var(--text-muted)] mb-4">
+                                     Standard logout keeps your records on this device. Use the option below to clear everything from this browser.
+                                </p>
+                                <Button variant="ghost" size="sm" onClick={handleLogoutAndWipe} className="h-8 text-[10px] text-rose-500 hover:bg-rose-50 font-bold">
+                                    Log out and clear records from this device
                                 </Button>
                             </div>
                         </CardContent>

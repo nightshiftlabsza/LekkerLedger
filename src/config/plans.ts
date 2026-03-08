@@ -194,7 +194,7 @@ export function getPlanPricePresentation(plan: PlanId | PlanConfig, cycle: Billi
         return {
             primaryPrice: "R29",
             periodLabel: "/month",
-            helperText: "Billed monthly, cancel anytime",
+            helperText: "Billed monthly, cancel before your next renewal",
         };
     }
 
@@ -209,7 +209,7 @@ export function getPlanPricePresentation(plan: PlanId | PlanConfig, cycle: Billi
     return {
         primaryPrice: "R49",
         periodLabel: "/month",
-        helperText: "Billed monthly, cancel anytime",
+        helperText: "Billed monthly, cancel before your next renewal",
     };
 }
 

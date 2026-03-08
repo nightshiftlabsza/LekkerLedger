@@ -59,7 +59,7 @@ export default function RefundPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-white">4. How to Request a Refund</h2>
                         <p>
-                            To request a refund, email support@lekkerledger.co.za with your transaction details. We usually review refund requests within 1-4 business days after we receive the information needed to verify the payment.
+                            To request a refund, email support@lekkerledger.co.za with your transaction details. We review refund requests within 1-4 business days after we receive the information needed to verify the payment.
                         </p>
                     </section>
                 </div>

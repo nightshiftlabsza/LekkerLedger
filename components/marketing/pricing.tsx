@@ -233,10 +233,10 @@ export function MarketingPlanCard({
 export function PricingComparisonTable() {
     return (
         <div className="overflow-x-auto rounded-[30px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-1)]">
-            <table className="min-w-[720px] w-full border-collapse">
+            <table className="min-w-[850px] w-full border-collapse">
                 <thead>
                     <tr className="border-b border-[var(--border)] bg-[var(--surface-raised)] text-left text-[10px] font-black uppercase tracking-[0.18em]">
-                        <th className="px-6 py-5" style={{ color: "var(--text-muted)" }}>Feature</th>
+                        <th className="sticky left-0 z-10 px-6 py-5 bg-[var(--surface-raised)] shadow-[1px_0_0_0_var(--border)]" style={{ color: "var(--text-muted)" }}>Feature</th>
                         <th className="px-6 py-5 text-center" style={{ color: "var(--text-muted)" }}>Free</th>
                         <th className="border-x border-[var(--border)] bg-[var(--primary)]/5 px-6 py-5 text-center" style={{ color: "var(--text-muted)" }}>Standard</th>
                         <th className="px-6 py-5 text-center" style={{ color: "var(--text-muted)" }}>Pro</th>
@@ -248,7 +248,7 @@ export function PricingComparisonTable() {
                             <tr key={`${group.title}-header`}>
                                 <td
                                     colSpan={4}
-                                    className="border-y border-[var(--border)] bg-[var(--surface-raised)] px-6 py-4 text-[10px] font-black uppercase tracking-[0.18em]"
+                                    className="sticky left-0 z-10 border-y border-[var(--border)] bg-[var(--surface-raised)] px-6 py-4 text-[10px] font-black uppercase tracking-[0.18em]"
                                     style={{ color: "var(--text)" }}
                                 >
                                     {group.title}
@@ -261,7 +261,12 @@ export function PricingComparisonTable() {
                                         index % 2 === 0 ? "bg-transparent" : "bg-[var(--surface-raised)]/30"
                                     }`}
                                 >
-                                    <td className="px-6 py-4 text-sm font-semibold" style={{ color: "var(--text)" }}>
+                                    <td 
+                                        className={`sticky left-0 z-10 px-6 py-4 text-sm font-semibold shadow-[1px_0_0_0_var(--border)] ${
+                                            index % 2 === 0 ? "bg-[var(--surface-1)]" : "bg-[var(--surface-raised)]"
+                                        }`}
+                                        style={{ color: "var(--text)" }}
+                                    >
                                         {row.label}
                                     </td>
                                     <td className="px-6 py-4 text-center text-sm" style={{ color: "var(--text-muted)" }}>

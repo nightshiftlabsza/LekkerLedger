@@ -38,6 +38,16 @@ const documentFileStore = localforage.createInstance({ name: "LekkerLedger", sto
 const contractStore = localforage.createInstance({ name: "LekkerLedger", storeName: "contracts" });
 const householdStore = localforage.createInstance({ name: "LekkerLedger", storeName: "households" });
 
+export interface LocalBackupPreview {
+    employeeCount: number;
+    payslipCount: number;
+    leaveCount: number;
+    documentCount: number;
+    contractCount: number;
+    lastBackupTimestamp?: string;
+}
+
+
 export const DEFAULT_HOUSEHOLD_ID = "default";
 const DEFAULT_HOUSEHOLD_NAME = "Main household";
 const BACKUP_SCHEMA_VERSION = "2.4";
@@ -805,7 +815,42 @@ export interface ExportDataOptions {
     generatedRecordsSince?: Date | null;
 }
 
+export async function hasMeaningfulLocalData(): Promise<boolean> {
+    let hasData = false;
+    const stores = [employeeStore, payslipStore, leaveStore, documentStore, contractStore];
+    for (const store of stores) {
+        await store.iterate(() => {
+            hasData = true;
+            return true; // Stop iteration early
+        });
+        if (hasData) break;
+    }
+    return hasData;
+}
+
+export async function getLocalBackupPreview(): Promise<LocalBackupPreview> {
+    const counts = { employees: 0, payslips: 0, leave: 0, documents: 0, contracts: 0 };
+    
+    await employeeStore.iterate(() => { counts.employees++; });
+    await payslipStore.iterate(() => { counts.payslips++; });
+    await leaveStore.iterate(() => { counts.leave++; });
+    await documentStore.iterate(() => { counts.documents++; });
+    await contractStore.iterate(() => { counts.contracts++; });
+    
+    const settings = await getSettings();
+
+    return {
+        employeeCount: counts.employees,
+        payslipCount: counts.payslips,
+        leaveCount: counts.leave,
+        documentCount: counts.documents,
+        contractCount: counts.contracts,
+        lastBackupTimestamp: settings.lastBackupTimestamp,
+    };
+}
+
 function isWithinGeneratedExportWindow(recordDate: Date | string | number, generatedRecordsSince?: Date | null): boolean {
+
     if (!generatedRecordsSince) return true;
     const date = new Date(recordDate);
     if (Number.isNaN(date.getTime())) return true;

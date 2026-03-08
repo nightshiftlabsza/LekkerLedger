@@ -51,7 +51,7 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Stored on this device",
         ],
         ctaLabel: "Start free",
-        ctaSubtext: "Upgrade anytime for backup and more features",
+        ctaSubtext: "Upgrade anytime / cancel before renewal",
         prices: {
             monthly: {
                 primary: "Free",
@@ -88,7 +88,7 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             monthly: {
                 primary: "R29",
                 periodLabel: "/month",
-                helperText: "Billed monthly, cancel anytime",
+                helperText: "Billed monthly, cancel before renewal",
             },
             yearly: {
                 primary: "R20.75",
@@ -119,7 +119,7 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             monthly: {
                 primary: "R49",
                 periodLabel: "/month",
-                helperText: "Billed monthly, cancel anytime",
+                helperText: "Billed monthly, cancel before renewal",
             },
             yearly: {
                 primary: "R33.25",

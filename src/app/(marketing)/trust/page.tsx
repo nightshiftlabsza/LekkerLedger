@@ -17,16 +17,13 @@ export default function TrustCenterPage() {
         <div className="min-h-screen overflow-x-hidden bg-[var(--bg)]">
             {/* Header section */}
             <header className="relative py-20 md:py-32 border-b border-[var(--border)] overflow-hidden" style={{ backgroundColor: "var(--surface-2)" }}>
-                <div className="absolute inset-0 z-0 overflow-hidden">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--primary)]/10 rounded-full blur-3xl -mr-32 -mt-32" />
-                </div>
                 <div className="content-container-wide px-6 lg:px-8 relative z-10 text-center max-w-3xl mx-auto space-y-6">
                     <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-[var(--primary)]/10 mb-4 border border-[var(--primary)]/20 shadow-inner">
                         <Shield className="h-8 w-8 text-[var(--primary)]" />
                     </div>
                     <h1 className="type-h1" style={{ color: "var(--text)" }}>Trust Center</h1>
                     <p className="type-body-large" style={{ color: "var(--text-muted)" }}>
-                        How we process your data, compute your payroll, and protect your privacy. Everything laid out clearly, so compliance can feel calm rather than intimidating.
+                        How we process your data, compute your payroll, and protect your privacy. Everything laid out clearly, so your payroll records can feel calm rather than intimidating.
                     </p>
                 </div>
             </header>
@@ -117,7 +114,7 @@ export default function TrustCenterPage() {
                 <section className="scroll-mt-32" id="compliance">
                     <div className="flex items-center gap-3 mb-8">
                         <Scale className="h-6 w-6 text-[var(--primary)]" />
-                        <h2 className="type-h2" style={{ color: "var(--text)" }}>Compliance Constants</h2>
+                        <h2 className="type-h2" style={{ color: "var(--text)" }}>Payroll & Admin Constants</h2>
                     </div>
                     <div className="grid md:grid-cols-3 gap-6">
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">

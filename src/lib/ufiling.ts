@@ -110,10 +110,10 @@ export function rowsToCsv(rows: UFilingRow[], settings: EmployerSettings): strin
 
     const dataRows = rows.map((r) =>
         [
-            `"${settings.employerName.replace(/"/g, '""')}"`,
-            `"${settings.uifRefNumber.replace(/"/g, '""')}"`,
-            `"${r.employeeName.replace(/"/g, '""')}"`,
-            `"${r.idNumber.replace(/"/g, '""')}"`,
+            `"${(settings?.employerName || "").replace(/"/g, '""')}"`,
+            `"${(settings?.uifRefNumber || "").replace(/"/g, '""')}"`,
+            `"${(r.employeeName || "").replace(/"/g, '""')}"`,
+            `"${(r.idNumber || "").replace(/"/g, '""')}"`,
             `"${r.periodStart}"`,
             `"${r.periodEnd}"`,
             r.grossRemuneration.toFixed(2),

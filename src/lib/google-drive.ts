@@ -9,6 +9,7 @@ const BACKUP_FILE_NAME = "lekkerledger_data.json";
 interface GoogleDriveFile {
     id: string;
     name?: string;
+    modifiedTime?: string;
 }
 
 interface GoogleDriveListResponse {
@@ -19,6 +20,13 @@ interface GoogleDriveCreateResponse {
     id?: string;
 }
 
+export interface BackupMetadata {
+    exists: boolean;
+    fileId?: string;
+    modifiedTime?: string;
+    name?: string;
+}
+
 function authorizedHeaders(accessToken: string): HeadersInit {
     return { Authorization: `Bearer ${accessToken}` };
 }
@@ -26,7 +34,7 @@ function authorizedHeaders(accessToken: string): HeadersInit {
 async function findBackupFileId(accessToken: string): Promise<string | null> {
     try {
         const response = await fetch(
-            `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${BACKUP_FILE_NAME}'&fields=files(id,name)&orderBy=modifiedTime desc`,
+            `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${BACKUP_FILE_NAME}'&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc`,
             { headers: authorizedHeaders(accessToken) },
         );
 
@@ -38,6 +46,31 @@ async function findBackupFileId(accessToken: string): Promise<string | null> {
     } catch (error) {
         console.error("Failed to find backup file on Drive", error);
         return null;
+    }
+}
+
+export async function getBackupMetadata(accessToken: string): Promise<BackupMetadata> {
+    try {
+        const response = await fetch(
+            `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${BACKUP_FILE_NAME}'&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc`,
+            { headers: authorizedHeaders(accessToken) },
+        );
+
+        if (!response.ok) return { exists: false };
+        const data = await response.json() as GoogleDriveListResponse;
+        const file = data.files?.[0];
+
+        if (!file) return { exists: false };
+
+        return {
+            exists: true,
+            fileId: file.id,
+            modifiedTime: file.modifiedTime,
+            name: file.name,
+        };
+    } catch (error) {
+        console.error("Failed to fetch backup metadata from Drive", error);
+        return { exists: false };
     }
 }
 

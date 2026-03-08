@@ -60,8 +60,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             setHouseholds(loadedHouseholds);
             setSettingsState(settings);
-            setActiveHouseholdState(settings.activeHouseholdId || "default");
-            setMultiHouseholdEnabled(canUseMultipleHouseholds(getUserPlan(settings)));
+            if (settings) {
+                setActiveHouseholdState(settings.activeHouseholdId || "default");
+                setMultiHouseholdEnabled(canUseMultipleHouseholds(getUserPlan(settings)));
+            }
         }
 
         loadShellContext();

@@ -165,7 +165,7 @@ function UpgradePageContent() {
                                 <h3 className="type-h3" style={{ color: "var(--text)" }}>Refunds and trust</h3>
                             </div>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                If you request a refund within 14 days of purchase, we will usually refund you in full after payment verification. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
+                                If you request a refund within 14 days of purchase, we will refund you in full once we have verified the payment. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 You can stop renewal before the next billing period, and access continues until the end of the billing period already paid for.

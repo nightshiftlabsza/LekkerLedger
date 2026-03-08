@@ -41,7 +41,7 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
         links: [{ href: "/documents", label: "Documents", icon: FolderOpen }],
     },
     {
-        label: "Compliance",
+        label: "Admin",
         links: [
             {
                 href: "/compliance/coida/roe",
@@ -50,7 +50,7 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
                 icon: ShieldCheck,
             },
             { href: "/ufiling", label: "uFiling export", icon: Sparkles },
-            { href: "/help/compliance", label: "Household checklist", icon: BookOpen },
+            { href: "/help/admin", label: "Employer checklist", icon: BookOpen },
         ],
     },
     {
@@ -58,7 +58,7 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
         links: [
             { href: "/settings", label: "Settings", icon: Settings },
             { href: "/upgrade", label: "Plans & billing", icon: Sparkles },
-            { href: "/help/compliance", label: "Help & support", icon: LifeBuoy },
+            { href: "/help/admin", label: "Help & support", icon: LifeBuoy },
         ],
     },
 ];
@@ -77,7 +77,7 @@ export const ACCOUNT_MENU_LINKS: AppNavLink[] = [
         icon: Sparkles,
     },
     {
-        href: "/help/compliance",
+        href: "/help/admin",
         label: "Help & support",
         sublabel: "Checklist and support resources",
         icon: LifeBuoy,

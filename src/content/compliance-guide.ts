@@ -168,7 +168,7 @@ export const complianceGuide = {
         {
             id: "start-roe",
             title: "6) ROE Pack (annual)",
-            screenLabel: "COIDA / ROE Pack wizard",
+            screenLabel: "Premium / Annual Pack wizard",
             screenHref: "/compliance/coida/roe",
             seeAlsoId: "roe-pack",
             whatToDo: "When the Compensation Fund filing window opens, prepare the **Return of Earnings (ROE)** using actual earnings for the completed period and provisional earnings for the next period, then submit on the official portal.",
@@ -511,8 +511,8 @@ export const complianceGuide = {
         },
         {
             id: "roe-pack",
-            title: "7) COIDA / Compensation Fund: Annual Return of Earnings (ROE)",
-            screenLabel: "COIDA / ROE Pack wizard",
+            title: "7) Annual Return of Earnings (ROE)",
+            screenLabel: "Annual Pack wizard",
             screenHref: "/compliance/coida/roe",
             intro: [
                 {

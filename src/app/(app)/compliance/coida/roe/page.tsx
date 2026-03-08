@@ -71,7 +71,7 @@ export default function RoePackPage() {
             setPayslips(pss);
             setSettings(s);
             const plan = getUserPlan(s);
-            setIsPaid(canDownloadRoePack(plan));
+            setIsPaid(!!s && canDownloadRoePack(plan));
         }
         load();
     }, []);

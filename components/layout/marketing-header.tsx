@@ -9,7 +9,8 @@ import { Logo } from "@/components/ui/logo";
 const NAV_LINKS = [
     { href: "/pricing", label: "Pricing" },
     { href: "/#how-it-works", label: "How it works" },
-    { href: "/#faq", label: "FAQ" },
+    { href: "/calculator", label: "Calculator" },
+    { href: "/trust", label: "Trust & Support" },
 ] as const;
 
 export function MarketingHeader() {

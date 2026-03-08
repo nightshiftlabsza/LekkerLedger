@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";

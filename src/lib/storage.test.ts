@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
     exportData,
     getAllLeaveRecords,
+    getLocalBackupPreview,
     getSettings,
+    hasMeaningfulLocalData,
     resetAllData,
     saveEmployee,
     saveHousehold,
@@ -127,5 +129,33 @@ describe("storage safeguards", () => {
         expect(backup).toContain('"type": "annual"');
         expect(backup).toContain('"typeLabel": "Annual leave"');
         expect(backup).toContain('"householdSettings"');
+    });
+
+    it("identifies meaningful local data correctly", async () => {
+        expect(await hasMeaningfulLocalData()).toBe(false);
+        
+        await saveEmployee(baseEmployee);
+        expect(await hasMeaningfulLocalData()).toBe(true);
+        
+        await resetAllData();
+        expect(await hasMeaningfulLocalData()).toBe(false);
+    });
+
+    it("provides accurate local backup previews", async () => {
+        let preview = await getLocalBackupPreview();
+        expect(preview.employeeCount).toBe(0);
+        expect(preview.lastBackupTimestamp).toBeUndefined();
+
+        await saveEmployee(baseEmployee);
+        await savePayslip(basePayslip);
+        
+        const timestamp = new Date().toISOString();
+        const settings = await getSettings();
+        await saveSettings({ ...settings, lastBackupTimestamp: timestamp });
+
+        preview = await getLocalBackupPreview();
+        expect(preview.employeeCount).toBe(1);
+        expect(preview.payslipCount).toBe(1);
+        expect(preview.lastBackupTimestamp).toBe(timestamp);
     });
 });
