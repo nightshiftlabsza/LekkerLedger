@@ -36,6 +36,7 @@ function EmployeeDetailContent() {
     const params = useParams<{ id: string }>();
     const searchParams = useSearchParams();
     const id = params?.id ?? "";
+    const profileSectionRef = React.useRef<HTMLDivElement | null>(null);
 
     const [activeTab, setActiveTab] = React.useState<Tab>("profile");
     const [employee, setEmployee] = React.useState<Employee | null>(null);
@@ -51,6 +52,7 @@ function EmployeeDetailContent() {
     const [advancedLeaveEnabled, setAdvancedLeaveEnabled] = React.useState(false);
     const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+    const [showProfileEditCta, setShowProfileEditCta] = React.useState(false);
 
     const handleDeleteEmployee = async () => {
         if (!id) return;
@@ -104,6 +106,32 @@ function EmployeeDetailContent() {
         load();
     }, [id, router, searchParams]);
 
+    React.useEffect(() => {
+        if (activeTab !== "profile") {
+            setShowProfileEditCta(false);
+            return;
+        }
+
+        const node = profileSectionRef.current;
+        if (!node || typeof IntersectionObserver === "undefined") {
+            setShowProfileEditCta(true);
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setShowProfileEditCta(entry.isIntersecting);
+            },
+            {
+                threshold: 0.35,
+                rootMargin: "0px 0px -18% 0px",
+            },
+        );
+
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, [activeTab]);
+
     const handleDeletePayslip = async (psId: string) => {
         await deletePayslip(psId);
         setDeleteConfirmId(null);
@@ -153,56 +181,61 @@ function EmployeeDetailContent() {
     if (!employee) return null;
 
     const visibleTabs = TABS.filter((tab) => (tab.id !== "leave" || showLeaveTab) && (tab.id !== "documents" || showDocumentsTab));
+    const formattedStartDate = employee.startDate ? format(new Date(employee.startDate), "dd MMM yyyy") : "Not set";
+    const employeeRole = employee.role || "Domestic Worker";
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
-                <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Link href="/employees">
-                            <button
-                                aria-label="Back to employees"
-                                className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-2)]"
-                                style={{ color: "var(--text-muted)" }}
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                            </button>
-                        </Link>
-                        <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-                                <Link href="/employees" className="hover:underline">Employees</Link>
-                                {" › "}
-                                <span style={{ color: "var(--text-muted)" }}>{employee.name}</span>
-                            </p>
-                            <h1 className="font-extrabold text-sm tracking-tight" style={{ color: "var(--text)" }}>
-                                {employee.name}
-                            </h1>
-                        </div>
-                    </div>
-                    <Link href={`/employees/${id}/edit`}>
-                        <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs font-bold">
-                            <Pencil className="h-3.5 w-3.5" /> Edit
-                        </Button>
+            <div className="border-b border-[var(--border)] bg-[var(--surface-1)]/95 px-4 py-4 backdrop-blur-sm">
+                <div className="mx-auto flex max-w-4xl items-start gap-3">
+                    <Link href="/employees">
+                        <button
+                            aria-label="Back to employees"
+                            className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-2)]"
+                            style={{ color: "var(--text-muted)" }}
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                        </button>
                     </Link>
-                </div>
-            </div>
-
-            <main className="flex-1 px-4 py-6 pb-8 max-w-4xl mx-auto w-full space-y-5">
-                {/* Hero */}
-                <div className="flex items-center gap-4 animate-fade-in">
-                    <div className="h-16 w-16 rounded-2xl flex items-center justify-center text-white font-black text-2xl shrink-0"
-                        style={{ backgroundColor: "var(--primary)" }}>
-                        {employee.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-extrabold" style={{ color: "var(--text)" }}>{employee.name}</h2>
-                        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                            {employee.role} · R{employee.hourlyRate.toFixed(2)}/hr
+                    <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                            <Link href="/employees" className="hover:underline">Employees</Link>
+                        </p>
+                        <h1 className="mt-1 text-xl font-black tracking-tight" style={{ color: "var(--text)" }}>
+                            {employee.name}
+                        </h1>
+                        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                            Employment record
                         </p>
                     </div>
                 </div>
+            </div>
 
+            <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col space-y-5 px-4 py-6 pb-24">
+                {/* Summary */}
+                <div className="animate-fade-in rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-sm)]">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+                        <div
+                            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-2xl font-black text-white"
+                            style={{ backgroundColor: "var(--primary)" }}
+                        >
+                            {employee.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 space-y-4">
+                            <div className="flex flex-wrap gap-2">
+                                <SummaryPill>{employeeRole}</SummaryPill>
+                                <SummaryPill>R{employee.hourlyRate.toFixed(2)}/hr</SummaryPill>
+                                <SummaryPill>{employee.frequency}</SummaryPill>
+                            </div>
+                            <div className="grid gap-3 sm:grid-cols-3">
+                                <SummaryStat label="Started" value={formattedStartDate} />
+                                <SummaryStat label="Hours / day" value={`${employee.ordinaryHoursPerDay}h`} />
+                                <SummaryStat label="Phone" value={employee.phone || "Not added"} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 {/* Tab bar — pill style matching settings page */}
                 <div className="flex gap-1 p-1.5 rounded-2xl border border-[var(--border)]"
                     style={{ backgroundColor: "var(--surface-1)" }}>
@@ -231,63 +264,74 @@ function EmployeeDetailContent() {
                 <div className="animate-fade-in">
                     {/* PROFILE TAB */}
                     {activeTab === "profile" && (
-                        <Card className="glass-panel border-none">
-                            <CardContent className="p-5 space-y-4">
-                                <h3 className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>
-                                    Employment Details
-                                </h3>
-                                <div className="grid gap-3">
-                                    <ProfileRow icon={Briefcase} label="Role" value={employee.role} />
-                                    <ProfileRow icon={Banknote} label="Hourly Rate" value={`R${employee.hourlyRate.toFixed(2)}/hr`} />
-                                    <ProfileRow icon={CalendarDays} label="Start Date" value={employee.startDate ? format(new Date(employee.startDate), "dd MMM yyyy") : "Not set"} />
-                                    <ProfileRow icon={Clock} label="Hours / Day" value={`${employee.ordinaryHoursPerDay}h`} />
-                                    <ProfileRow icon={CalendarDays} label="Pay Frequency" value={employee.frequency} />
-                                    {employee.phone && <ProfileRow icon={Phone} label="Phone" value={employee.phone} />}
-                                    {employee.idNumber && <ProfileRow icon={User} label="ID Number" value={employee.idNumber} />}
-                                    <ProfileRow
-                                        icon={CheckCircle2}
-                                        label="Works Sundays ordinarily"
-                                        value={employee.ordinarilyWorksSundays ? "Yes (1.5× rate)" : "No (2× rate)"}
-                                    />
-                                </div>
-                                <div className="pt-4 border-t border-[var(--border)] space-y-2">
-                                    <Link href={`/employees/${id}/edit`}>
-                                        <Button className="w-full bg-[var(--primary)] text-white font-bold hover:brightness-95 h-11">
-                                            <Pencil className="h-4 w-4 mr-2" /> Edit Employee
-                                        </Button>
-                                    </Link>
-
-                                    {!showDeleteConfirm ? (
-                                        <Button
-                                            variant="ghost"
-                                            onClick={() => setShowDeleteConfirm(true)}
-                                            className="w-full rounded-2xl border border-red-200 bg-red-50 text-red-700 hover:text-red-800 hover:bg-red-100 font-bold h-11"
-                                        >
-                                            <Trash2 className="h-4 w-4 mr-2" /> Delete employee
-                                        </Button>
-                                    ) : (
-                                        <div className="p-4 rounded-xl border border-red-200 bg-red-50 space-y-3 mt-4">
-                                            <p className="text-sm font-bold text-red-800 text-center">Are you sure? This will delete all payslips and leave records for this employee.</p>
-                                            <div className="flex gap-2">
+                        <div ref={profileSectionRef}>
+                            <Card className="border border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-sm)]">
+                                <CardContent className="p-0">
+                                    <div className="border-b border-[var(--border)] px-5 py-4">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                                            Employment details
+                                        </p>
+                                        <p className="mt-2 max-w-[62ch] text-sm leading-6 text-[var(--text-muted)]">
+                                            Review the main employment details here. When this section is on screen, an edit action appears at the bottom so updates stay close to the information they change.
+                                        </p>
+                                    </div>
+                                    <div className="p-5">
+                                        <div className="grid gap-3">
+                                            <ProfileRow icon={Briefcase} label="Role" value={employeeRole} />
+                                            <ProfileRow icon={Banknote} label="Hourly Rate" value={`R${employee.hourlyRate.toFixed(2)}/hr`} />
+                                            <ProfileRow icon={CalendarDays} label="Start Date" value={formattedStartDate} />
+                                            <ProfileRow icon={Clock} label="Hours / Day" value={`${employee.ordinaryHoursPerDay}h`} />
+                                            <ProfileRow icon={CalendarDays} label="Pay Frequency" value={employee.frequency} />
+                                            {employee.phone ? <ProfileRow icon={Phone} label="Phone" value={employee.phone} /> : null}
+                                            {employee.idNumber ? <ProfileRow icon={User} label="ID Number" value={employee.idNumber} /> : null}
+                                            <ProfileRow
+                                                icon={CheckCircle2}
+                                                label="Works Sundays ordinarily"
+                                                value={employee.ordinarilyWorksSundays ? "Yes (1.5× rate)" : "No (2× rate)"}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="border-t border-[var(--border)] px-5 py-4">
+                                        {!showDeleteConfirm ? (
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-red-700">Remove record</p>
+                                                    <p className="mt-2 max-w-[62ch] text-sm leading-6 text-[var(--text-muted)]">
+                                                        Delete this employee and remove related payslips and leave records from this device.
+                                                    </p>
+                                                </div>
                                                 <Button
-                                                    variant="outline"
-                                                    onClick={() => setShowDeleteConfirm(false)}
-                                                    className="flex-1 font-bold"
+                                                    variant="ghost"
+                                                    onClick={() => setShowDeleteConfirm(true)}
+                                                    className="w-full rounded-2xl border border-red-200 bg-red-50 font-bold text-red-700 hover:bg-red-100 hover:text-red-800 sm:w-auto"
                                                 >
-                                                    Cancel
-                                                </Button>
-                                                <Button
-                                                    onClick={handleDeleteEmployee}
-                                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold"
-                                                >
-                                                    Yes, Delete
+                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete employee
                                                 </Button>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
+                                        ) : (
+                                            <div className="mt-1 space-y-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+                                                <p className="text-sm font-bold text-red-800">Are you sure? This will delete all payslips and leave records for this employee.</p>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => setShowDeleteConfirm(false)}
+                                                        className="flex-1 font-bold"
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                    <Button
+                                                        onClick={handleDeleteEmployee}
+                                                        className="flex-1 bg-red-600 font-bold text-white hover:bg-red-700"
+                                                    >
+                                                        Yes, Delete
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
                     )}
 
                     {/* PAY HISTORY TAB */}
@@ -579,10 +623,43 @@ function EmployeeDetailContent() {
                     )}
                 </div>
             </main>
+
+            {activeTab === "profile" && showProfileEditCta ? (
+                <div className="pointer-events-none fixed inset-x-0 bottom-4 z-30 px-4">
+                    <div className="mx-auto flex max-w-4xl justify-end">
+                        <div className="pointer-events-auto flex w-full max-w-md items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)]/95 p-2 shadow-[var(--shadow-md)] backdrop-blur-sm sm:w-auto sm:max-w-none">
+                            <p className="pl-2 text-xs font-medium text-[var(--text-muted)]">
+                                Update role, pay, phone, or start date.
+                            </p>
+                            <Link href={`/employees/${id}/edit`}>
+                                <Button className="h-11 rounded-xl bg-[var(--primary)] px-4 font-bold text-white hover:bg-[var(--primary-hover)]">
+                                    <Pencil className="mr-2 h-4 w-4" /> Edit details
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
         </div>
     );
 }
 
+function SummaryPill({ children }: { children: React.ReactNode }) {
+    return (
+        <span className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--text)]">
+            {children}
+        </span>
+    );
+}
+
+function SummaryStat({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/55 p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</p>
+            <p className="mt-2 text-sm font-bold text-[var(--text)]">{value}</p>
+        </div>
+    );
+}
 function ProfileRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
     return (
         <div className="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
