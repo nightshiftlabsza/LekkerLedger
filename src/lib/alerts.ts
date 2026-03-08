@@ -100,7 +100,7 @@ export function computeDashboardAlerts({ employees, summaries, settings, now, le
                 id: `leave-overaccrual-${ctx.employee.id}`,
                 severity: "warning",
                 message: `${ctx.employee.name} has ${balances.annual.remaining} leave days — encourage taking leave before year-end`,
-                action: { label: "View leave →", href: `/leave?employeeId=${ctx.employee.id}` },
+                action: { label: "View leave →", href: `/employees/${ctx.employee.id}?tab=leave` },
             });
         }
     }
@@ -125,3 +125,4 @@ export function computeDashboardAlerts({ employees, summaries, settings, now, le
 
     return alerts;
 }
+

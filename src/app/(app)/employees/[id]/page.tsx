@@ -5,11 +5,12 @@ import Link from "next/link";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import {
     ArrowLeft, User, Clock, FileText, Palmtree,
-    Pencil, Trash2, Loader2, Lock,
+    Pencil, Trash2, Loader2,
     CalendarDays, Banknote, Phone, Briefcase, CheckCircle2, FolderOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmployeeLeaveTab } from "@/components/employees/employee-leave-tab";
 import {
     getContractsForEmployee, getEmployee, getLeaveCarryOversForEmployee, getPayslipsForEmployee, getLeaveForEmployee, getSettings,
     deletePayslip
@@ -17,9 +18,8 @@ import {
 import { Employee, LeaveCarryOver, PayslipInput, LeaveRecord, Contract, CustomLeaveType } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { format } from "date-fns";
-import { calculateAnnualLeaveForecast, calculateAnnualLeaveSummary, formatLeaveRange, formatLeaveValue, getCarryOverNudge, getLeaveTypeLabel } from "@/lib/leave";
 import { filterRecordsForArchiveWindow, getArchiveUpgradeHref, getArchiveUpgradeLabel, getArchiveUpgradeMessage } from "@/lib/archive";
-import { canBrowseLeaveHistory, canUseAdvancedLeaveFeatures, canUseDocumentsHub, canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
+import { canBrowseLeaveHistory, canUseAdvancedLeaveFeatures, canUseDocumentsHub, getUserPlan } from "@/lib/entitlements";
 import { PLANS, type PlanConfig } from "@/config/plans";
 
 type Tab = "profile" | "history" | "leave" | "documents";
@@ -142,23 +142,9 @@ function EmployeeDetailContent() {
         () => filterRecordsForArchiveWindow(payslips, currentPlan, (record) => record.payPeriodEnd),
         [currentPlan, payslips],
     );
-    const leaveArchiveResult = React.useMemo(
-        () => filterRecordsForArchiveWindow(leaveRecords, currentPlan, (record) => record.endDate || record.startDate || record.date),
-        [currentPlan, leaveRecords],
-    );
     const visiblePayslips = payslipArchiveResult.visible;
-    const visibleLeaveRecords = leaveArchiveResult.visible;
     const archiveUpgradeHref = getArchiveUpgradeHref(currentPlan.id);
     const archiveUpgradeLabel = getArchiveUpgradeLabel(currentPlan.id);
-    const annualLeaveDays = visibleLeaveRecords.filter(r => r.type === "annual").reduce((s, r) => s + r.days, 0);
-    const sickLeaveDays = visibleLeaveRecords.filter(r => r.type === "sick").reduce((s, r) => s + r.days, 0);
-    const annualSummary = employee?.startDate
-        ? calculateAnnualLeaveSummary(employee.startDate, visibleLeaveRecords, contracts, new Date())
-        : null;
-    const forecast = employee?.startDate
-        ? calculateAnnualLeaveForecast(employee.startDate, visibleLeaveRecords, contracts, new Date())
-        : null;
-    const carryOverNudge = getCarryOverNudge(leaveCarryOvers, new Date());
 
     if (loading) {
         return (
@@ -415,186 +401,17 @@ function EmployeeDetailContent() {
                         </div>
                     )}
 
-                    {/* LEAVE TAB */}
+                                        {/* LEAVE TAB */}
                     {activeTab === "leave" && (
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                                <Card className="glass-panel border-none">
-                                    <CardContent className="p-4 text-center">
-                                        <p className="text-2xl font-black" style={{ color: "var(--text)" }}>{annualLeaveDays}</p>
-                                        <p className="text-[10px] uppercase font-bold" style={{ color: "var(--text-muted)" }}>Annual Days Taken</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="glass-panel border-none">
-                                    <CardContent className="p-4 text-center">
-                                        <p className="text-2xl font-black" style={{ color: "var(--text)" }}>{sickLeaveDays}</p>
-                                        <p className="text-[10px] uppercase font-bold" style={{ color: "var(--text-muted)" }}>Sick Days Taken</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="glass-panel border-none">
-                                    <CardContent className="p-4 text-center">
-                                        <p className="text-2xl font-black" style={{ color: "var(--text)" }}>{formatLeaveValue(annualSummary?.currentCycleAllowance ?? 0)}</p>
-                                        <p className="text-[10px] uppercase font-bold" style={{ color: "var(--text-muted)" }}>Current Cycle Entitlement</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="glass-panel border-none">
-                                    <CardContent className="p-4 text-center">
-                                        <p className="text-2xl font-black" style={{ color: "var(--text)" }}>{formatLeaveValue(annualSummary?.totalRemainingAvailable ?? 0)}</p>
-                                        <p className="text-[10px] uppercase font-bold" style={{ color: "var(--text-muted)" }}>Annual Balance Available</p>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            <Card className="glass-panel border-none">
-                                <CardContent className="p-5 space-y-4">
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Annual Leave Detail</p>
-                                            <h3 className="mt-2 text-lg font-black text-[var(--text)]">Current cycle and carry-over</h3>
-                                        </div>
-                                        {annualSummary?.currentCycle ? (
-                                            <p className="text-xs font-semibold text-[var(--text-muted)]">
-                                                {format(annualSummary.currentCycle.start, "dd MMM yyyy")} to {format(annualSummary.currentCycle.end, "dd MMM yyyy")}
-                                            </p>
-                                        ) : null}
-                                    </div>
-
-                                    <div className="grid gap-3 md:grid-cols-3">
-                                        <InfoMetric label="Entitlement this cycle" value={formatLeaveValue(annualSummary?.currentCycleAllowance ?? 0)} />
-                                        <InfoMetric label="Used from this cycle" value={formatLeaveValue(annualSummary?.usedInCurrentCycle ?? 0)} />
-                                        <InfoMetric label="Still available now" value={formatLeaveValue(annualSummary?.totalRemainingAvailable ?? 0)} />
-                                    </div>
-
-                                    {advancedLeaveEnabled ? (
-                                        <div className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
-                                            {(leaveCarryOvers.length > 0 ? leaveCarryOvers : annualSummary?.carryOvers ?? []).map((carryOver) => {
-                                                const remaining = Math.max(carryOver.daysCarried - carryOver.daysUsedFromCarry, 0);
-                                                if (remaining <= 0) return null;
-                                                return (
-                                                    <div key={carryOver.fromCycleEnd} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/55 px-4 py-3">
-                                                        <div>
-                                                            <p className="text-sm font-bold text-[var(--text)]">
-                                                                Carried over from cycle ending {format(new Date(carryOver.fromCycleEnd), "dd MMM yyyy")}
-                                                            </p>
-                                                            <p className="text-xs text-[var(--text-muted)]">Used first when annual leave is recorded later on.</p>
-                                                        </div>
-                                                        <p className="text-lg font-black text-[var(--text)]">{formatLeaveValue(remaining)} days</p>
-                                                    </div>
-                                                );
-                                            })}
-                                            {!((leaveCarryOvers.length > 0 ? leaveCarryOvers : annualSummary?.carryOvers ?? []).some((carryOver) => Math.max(carryOver.daysCarried - carryOver.daysUsedFromCarry, 0) > 0)) && (
-                                                <p className="text-sm text-[var(--text-muted)]">No carried-over annual leave is being tracked right now.</p>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <LockedLeaveFeature
-                                            title="Carry-over tracking"
-                                            description="See unused annual leave from earlier cycles in a separate line, with a gentle note when it may be worth reviewing."
-                                        />
-                                    )}
-
-                                    {advancedLeaveEnabled && carryOverNudge ? (
-                                        <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-                                            <p className="font-bold">There are {formatLeaveValue(carryOverNudge.remainingDays)} days of unused annual leave from the cycle ending {format(new Date(carryOverNudge.carryOver.fromCycleEnd), "dd MMM yyyy")}.</p>
-                                            <p className="mt-2">
-                                                You may want to review this. The BCEA provides guidance on when earned leave should be granted. See the{" "}
-                                                <a href="https://www.labour.gov.za" target="_blank" rel="noreferrer" className="font-bold underline">
-                                                    Department of Employment and Labour website
-                                                </a>{" "}
-                                                for details.
-                                            </p>
-                                        </div>
-                                    ) : null}
-                                </CardContent>
-                            </Card>
-
-                            <Card className="glass-panel border-none">
-                                <CardContent className="p-5 space-y-3">
-                                    <div>
-                                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Annual Leave Forecast</p>
-                                        <h3 className="mt-2 text-lg font-black text-[var(--text)]">Usage at the current rate</h3>
-                                    </div>
-
-                                    {advancedLeaveEnabled ? (
-                                        <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-                                            {forecast?.status === "not-enough-data" && (
-                                                <p>Leave forecast will appear after a few months of tracking.</p>
-                                            )}
-                                            {forecast?.status === "may-run-out" && forecast.projectedDate && (
-                                                <p>At the current rate, {employee.name}&apos;s annual leave balance may run out around {format(forecast.projectedDate, "MMMM yyyy")}.</p>
-                                            )}
-                                            {forecast?.status === "on-track" && (
-                                                <p>
-                                                    At the current rate, {employee.name} is on track to have about {formatLeaveValue(forecast.projectedRemainingAtCycleEnd ?? 0)} days remaining at the end of this cycle ({forecast.currentCycle ? format(forecast.currentCycle.end, "MMMM yyyy") : "later this cycle"}).
-                                                </p>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <LockedLeaveFeature
-                                            title="Leave forecasting"
-                                            description="See when leave balances are likely to run low. Available on Pro."
-                                        />
-                                    )}
-                                </CardContent>
-                            </Card>
-                            {visibleLeaveRecords.length > 0 ? (
-                                <div className="space-y-2">
-                                    {visibleLeaveRecords.slice(0, 5).map(lr => (
-                                        <Card key={lr.id} className="glass-panel border-none">
-                                            <CardContent className="p-4 flex items-center justify-between">
-                                                <div>
-                                                    <p className="font-bold text-sm" style={{ color: "var(--text)" }}>
-                                                        {getLeaveTypeLabel(lr.type, customLeaveTypes, lr.typeLabel)} — {lr.days} day{lr.days !== 1 ? "s" : ""}
-                                                    </p>
-                                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                                        {formatLeaveRange(lr)}
-                                                        {lr.note ? ` · ${lr.note}` : ""}
-                                                    </p>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
-                            ) : (
-                                <Card className="glass-panel border-dashed border-2 p-8 text-center">
-                                    <Palmtree className="h-10 w-10 mx-auto mb-3 text-[var(--text-muted)]" strokeWidth={1.5} />
-                                    <p className="font-bold text-sm mb-1" style={{ color: "var(--text)" }}>
-                                        {leaveArchiveResult.hiddenCount > 0 ? "Older leave records are hidden on this plan" : "No leave records"}
-                                    </p>
-                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        {leaveArchiveResult.hiddenCount > 0 ? "Upgrade to browse the full leave history here." : "Track leave taken per pay period."}
-                                    </p>
-                                </Card>
-                            )}
-                            {canUseLeaveTracking(currentPlan) ? (
-                                <Link href={`/leave?employeeId=${id}`}>
-                                    <Button variant="outline" className="w-full font-bold gap-2">
-                                        <Palmtree className="h-4 w-4" /> Manage Leave Records
-                                    </Button>
-                                </Link>
-                            ) : (
-                                <Link href="/upgrade?plan=standard">
-                                    <Button variant="outline" className="w-full font-bold gap-2">
-                                        <Lock className="h-4 w-4" /> Upgrade To Track Leave
-                                    </Button>
-                                </Link>
-                            )}
-                            {leaveArchiveResult.hiddenCount > 0 && (
-                                <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
-                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                        <div>
-                                            <p className="text-sm font-bold text-[var(--text)]">{getArchiveUpgradeMessage(currentPlan.id, leaveArchiveResult.hiddenCount, "leave record")}</p>
-                                        </div>
-                                        <Link href={archiveUpgradeHref}>
-                                            <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{archiveUpgradeLabel}</Button>
-                                        </Link>
-                                    </div>
-                                </div>
-                            )}
-                            <p className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-xs leading-relaxed text-[var(--text-muted)]">
-                                LekkerLedger helps you keep track of leave. It does not provide legal advice. For questions about leave entitlements, contact the Department of Employment and Labour or a professional adviser.
-                            </p>
-                        </div>
+                        <EmployeeLeaveTab
+                            employee={employee}
+                            leaveRecords={leaveRecords}
+                            leaveCarryOvers={leaveCarryOvers}
+                            contracts={contracts}
+                            customLeaveTypes={customLeaveTypes}
+                            currentPlan={currentPlan}
+                            advancedLeaveEnabled={advancedLeaveEnabled}
+                        />
                     )}
 
                     {/* DOCUMENTS TAB */}
@@ -674,30 +491,6 @@ function ProfileRow({ icon: Icon, label, value }: { icon: React.ElementType; lab
     );
 }
 
-function InfoMetric({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/55 p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</p>
-            <p className="mt-2 text-xl font-black text-[var(--text)]">{value}</p>
-        </div>
-    );
-}
-
-function LockedLeaveFeature({ title, description }: { title: string; description: string }) {
-    return (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">Pro</p>
-            <p className="mt-2 text-sm font-bold text-[var(--text)]">{title}</p>
-            <p className="mt-1 text-sm text-[var(--text-muted)]">{description}</p>
-            <Link href="/upgrade" className="mt-4 inline-flex">
-                <Button size="sm" className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">
-                    Upgrade to Pro
-                </Button>
-            </Link>
-        </div>
-    );
-}
-
 export default function EmployeeDetailPage() {
     return (
         <React.Suspense
@@ -711,6 +504,12 @@ export default function EmployeeDetailPage() {
         </React.Suspense>
     );
 }
+
+
+
+
+
+
 
 
 

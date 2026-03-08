@@ -137,6 +137,7 @@ export default function DocumentsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const initialTab = (searchParams.get("tab") || "").toLowerCase();
+    const requestedEmployeeId = searchParams.get("employeeId") || "";
     const defaultTab = initialTab === "contracts"
         ? "Contracts"
         : initialTab === "vault"
@@ -168,6 +169,7 @@ export default function DocumentsPage() {
     const [deletingDocumentId, setDeletingDocumentId] = React.useState<string | null>(null);
     const uploadInputRef = React.useRef<HTMLInputElement | null>(null);
     const [uploadTargetContract, setUploadTargetContract] = React.useState<Contract | null>(null);
+    const hasAppliedInitialEmployeeFilter = React.useRef(false);
 
     React.useEffect(() => {
         setActiveTab(defaultTab as Tab);
@@ -228,6 +230,7 @@ export default function DocumentsPage() {
         () => Object.fromEntries(employees.map((employee) => [employee.id, employee.name])),
         [employees],
     );
+    const activeEmployeeName = empFilter ? employeeNameById[empFilter] ?? "" : "";
 
     const employeeFilters: FilterChip[] = employees.map((employee) => ({
         key: employee.id,
@@ -595,7 +598,7 @@ export default function DocumentsPage() {
     if (loading) {
         return (
             <>
-                <PageHeader title="Documents" subtitle="Payslips, contracts, exports, and vault history" />
+                <PageHeader title="Documents" subtitle={activeEmployeeName ? `Showing records for ${activeEmployeeName}` : "Payslips, contracts, exports, and vault history"} />
                 <EmptyState
                     title="Loading documents"
                     description="Pulling together your payslips, contracts, exports, and stored records."
@@ -608,7 +611,7 @@ export default function DocumentsPage() {
     if (!canUseDocumentsHub(plan)) {
         return (
             <>
-                <PageHeader title="Documents" subtitle="Payslips, contracts, exports, and vault history" />
+                <PageHeader title="Documents" subtitle={activeEmployeeName ? `Showing records for ${activeEmployeeName}` : "Payslips, contracts, exports, and vault history"} />
                 <FeatureGateCard
                     title="Documents hub is available on Standard and Pro"
                     description="Upgrade when you need payslips, contracts, exports, and organised records in one place."
@@ -621,7 +624,7 @@ export default function DocumentsPage() {
         <>
             <PageHeader
                 title="Documents"
-                subtitle="Payslips, contracts, exports, and vault history in one place"
+                subtitle={activeEmployeeName ? `Showing records for ${activeEmployeeName}` : "Payslips, contracts, exports, and vault history in one place"}
                 actions={activeTab === "Contracts" ? (
                     <div className="flex items-center gap-2">
                         <Link href="/contracts/new">
@@ -1254,3 +1257,5 @@ export default function DocumentsPage() {
         </>
     );
 }
+
+
