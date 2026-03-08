@@ -210,17 +210,7 @@ function WizardContent() {
                 console.error('GA4 tracking failed:', e);
             }
 
-            toast("Payslip generated successfully!");
-            if (typeof window !== 'undefined') {
-                import('canvas-confetti').then(confetti => {
-                    confetti.default({
-                        particleCount: 150,
-                        spread: 70,
-                        origin: { y: 0.6 },
-                        colors: ['#f59e0b', '#fbbf24', '#ffffff']
-                    });
-                });
-            }
+            toast("Payslip generated successfully!");
             router.push(`/preview?payslipId=${payslipInput.id}&empId=${employee.id}`);
         } catch (err) {
             console.error(err);

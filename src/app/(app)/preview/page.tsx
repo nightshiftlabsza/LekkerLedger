@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Download, Loader2, CheckCircle2, MessageCircle, AlertCircle, Mail, ShieldCheck, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
-import { triggerCelebration } from "@/components/ui/confetti-trigger";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -84,7 +83,6 @@ function PreviewContent() {
                     setEmployee(foundEmployee);
                     setPayslip(foundPayslip);
                     setSettings(loadedSettings);
-                    triggerCelebration();
                 }
             } catch (loadError) {
                 console.error(loadError);
@@ -121,7 +119,15 @@ function PreviewContent() {
 
             if (nextAction === "whatsapp") {
                 const result = await shareViaWhatsApp(bytes, employee.name, employee.phone ?? "", periodLabel);
-                toast(result === "shared" ? "WhatsApp share opened." : "Payslip downloaded. Attach it from Downloads in WhatsApp.", "info");
+                const hasEmployeePhone = Boolean(employee.phone?.trim());
+
+                if (result === "shared") {
+                    toast("Share sheet opened. Choose WhatsApp and then pick the chat.", "info");
+                } else if (hasEmployeePhone) {
+                    toast("WhatsApp opened for this employee. Attach the downloaded PDF before sending.", "info");
+                } else {
+                    toast("Payslip downloaded. Add a phone number on the employee record to open their WhatsApp chat automatically.", "info");
+                }
                 return;
             }
 
@@ -162,6 +168,7 @@ function PreviewContent() {
     const breakdown = calculatePayslip(payslip);
     const audit = getComplianceAudit(employee, breakdown, payslip.payPeriodEnd);
     const periodLabel = `${format(new Date(payslip.payPeriodStart), "d MMM")} - ${format(new Date(payslip.payPeriodEnd), "d MMM yyyy")}`;
+    const employeeRole = employee.role || "Domestic Worker";
 
     return (
         <div className="min-h-screen bg-[var(--bg)]">
@@ -177,9 +184,10 @@ function PreviewContent() {
                             <div>
                                 <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
                                     <Link href="/employees" className="hover:underline">Employees</Link> {" › "}
-                                    <Link href={`/employees/${employee.id}?tab=history`} className="hover:underline">{employee.name}</Link>
+                                    <Link href={`/employees/${employee.id}?tab=history`} className="hover:underline">Payslips</Link>
                                 </p>
                                 <h1 className="text-lg font-black text-[var(--text)]">Payslip record</h1>
+                                <p className="text-sm text-[var(--text-muted)]">{employee.name} · {periodLabel}</p>
                             </div>
                         </div>
                         <div className="hidden sm:flex items-center gap-2">
@@ -199,11 +207,9 @@ function PreviewContent() {
                     </div>
                 </div>
 
-
-
                 <Alert className="border-emerald-500/20 bg-emerald-500/10 text-emerald-700">
                     <CheckCircle2 className="h-4 w-4" />
-                    <AlertDescription>Payslip ready for {employee.name}.</AlertDescription>
+                    <AlertDescription>Payslip ready to review, download, and share.</AlertDescription>
                 </Alert>
 
                 <Card className="glass-panel border-none">
@@ -213,8 +219,8 @@ function PreviewContent() {
                                 {employee.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <p className="text-lg font-black text-[var(--text)]">{employee.name}</p>
-                                <p className="text-sm text-[var(--text-muted)]">{employee.role}</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Worker</p>
+                                <p className="text-lg font-black text-[var(--text)]">{employeeRole}</p>
                             </div>
                         </div>
                         <div className="text-right">

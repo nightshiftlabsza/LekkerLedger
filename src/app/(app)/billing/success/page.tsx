@@ -2,18 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { CheckCircle2, ArrowRight, Loader2, PartyPopper } from "lucide-react";
+import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fetchVerifiedEntitlements } from "@/lib/billing-client";
 import { hasStoredGoogleSession } from "@/lib/google-session";
-import { triggerCelebration } from "@/components/ui/confetti-trigger";
 
 export default function BillingSuccessPage() {
     const [status, setStatus] = React.useState<"checking" | "active" | "pending" | "auth">("checking");
-
-    React.useEffect(() => {
-        triggerCelebration();
-    }, []);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -96,11 +91,6 @@ export default function BillingSuccessPage() {
                         Back to Billing
                     </Button>
                 </Link>
-            </div>
-
-            <div className="mt-12 flex items-center gap-2 text-[var(--text-muted)] text-sm font-medium">
-                <PartyPopper className="h-4 w-4 text-[var(--focus)]" />
-                <span>Happy payroll processing!</span>
             </div>
         </div>
     );

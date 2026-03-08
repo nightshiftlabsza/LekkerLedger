@@ -13,19 +13,21 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, householdChip, syncBadge, actions, className = "" }: PageHeaderProps) {
     return (
-        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 ${className}`}>
-            <div className="min-w-0 flex-1">
+        <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 ${className}`}>
+            <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex items-center gap-3 flex-wrap">
-                    <h1 className="type-h2 text-[var(--text)] truncate">{title}</h1>
-                    {householdChip}
-                    {syncBadge}
+                    <h1 className="type-h2 text-[var(--text)]">{title}</h1>
+                    <div className="flex items-center gap-2">
+                        {householdChip}
+                        {syncBadge}
+                    </div>
                 </div>
                 {subtitle && (
-                    <p className="type-label text-[var(--text-muted)] mt-0.5">{subtitle}</p>
+                    <p className="type-label text-[var(--text-muted)] max-w-[60ch]">{subtitle}</p>
                 )}
             </div>
             {actions && (
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 sm:self-start md:self-center">
                     {actions}
                 </div>
             )}

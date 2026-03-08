@@ -54,34 +54,34 @@ export function EmployeesClient() {
     // Initial server render and pre-hydration: Show real Empty State as the default shell design
     if (!isClient || loading) {
         return (
-            <div className="ultrawide-grid grid-cols-12-desktop gap-6 space-y-6 lg:space-y-0">
-                <div className="ultrawide-main col-span-8-desktop">
+            <div className="adaptive-app-grid">
+                <div className="adaptive-main">
                     <Card className="glass-panel border-none shadow-[var(--shadow-1)]">
-                        <CardContent className="space-y-5 p-6">
+                        <CardContent className="space-y-5 p-6 md:p-8">
                             <div className="flex items-start gap-4">
                                 <div className="rounded-2xl bg-[var(--surface-2)] p-3 text-[var(--primary)]">
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 </div>
                                 <div className="space-y-2">
-                                    <h2 className="text-lg font-black text-[var(--text)]">Loading employee records</h2>
-                                    <p className="text-sm leading-6 text-[var(--text-muted)]">
+                                    <h2 className="type-h3 text-[var(--text)]">Loading employee records</h2>
+                                    <p className="type-body text-[var(--text-muted)] max-w-[60ch]">
                                         Your employee list loads in the browser because these records stay on this device by default.
                                         If this screen does not finish loading, refresh the page or add a worker manually.
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex flex-col gap-3 sm:flex-row">
+                            <div className="flex flex-col gap-3 sm:flex-row pt-2">
                                 <Link href="/employees/new">
-                                    <Button className="font-bold">Add employee</Button>
+                                    <Button className="font-bold px-6">Add employee</Button>
                                 </Link>
                                 <Link href="/dashboard">
-                                    <Button variant="outline" className="font-bold">Back to dashboard</Button>
+                                    <Button variant="outline" className="font-bold px-6">Back to dashboard</Button>
                                 </Link>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
-                <div className="ultrawide-panel col-span-4-desktop space-y-6">
+                <div className="adaptive-rail">
                     <CardSkeleton />
                 </div>
             </div>
@@ -89,9 +89,9 @@ export function EmployeesClient() {
     }
 
     return (
-        <div className="ultrawide-grid grid-cols-12-desktop gap-6 space-y-6 lg:space-y-0">
+        <div className="adaptive-app-grid">
             {/* Main Content Area */}
-            <div className="ultrawide-main col-span-8-desktop">
+            <div className="adaptive-main">
                 {employees.length === 0 ? (
                     <EmptyState
                         icon={Users}
@@ -101,91 +101,163 @@ export function EmployeesClient() {
                         actionHref="/employees/new"
                     />
                 ) : (
-                    <DataTable<Employee>
-                        data={filteredEmployees}
-                        keyField={(emp) => emp.id}
-                        columns={[
-                            {
-                                key: "name",
-                                label: "Name",
-                                render: (emp) => (
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-full bg-[var(--amber-100)] flex items-center justify-center text-xs font-black text-[var(--amber-700)]">
-                                            {emp.name.substring(0, 2).toUpperCase()}
-                                        </div>
-                                        <div className="flex flex-col text-left">
-                                            <div className="type-body-bold text-[var(--text)] leading-tight block">{emp.name}</div>
-                                            <div className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider mt-0.5 block">{emp.role || "Domestic Worker"}</div>
-                                        </div>
-                                    </div>
-                                )
-                            },
-                            {
-                                key: "contact",
-                                label: "Contact",
-                                render: (emp) => (
-                                    <div className="space-y-1">
-                                        {emp.phone && (
-                                            <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-                                                <Phone className="h-3 w-3" /> {emp.phone}
-                                            </div>
-                                        )}
-                                    </div>
-                                )
-                            },
-                            {
-                                key: "status",
-                                label: "Status",
-                                render: () => <StatusChip variant="complete" label="ACTIVE" />
-                            },
-                            {
-                                key: "actions",
-                                label: "",
-                                align: "right",
-                                render: (emp) => (
-                                    <div className="flex items-center justify-end gap-2">
-                                        <Link href={`/employees/${emp.id}`}>
-                                            <Button variant="ghost" size="icon" className="h-9 w-9 text-[var(--text-muted)] hover:text-[var(--primary-hover)]">
-                                                <ChevronRight className="h-5 w-5" />
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                )
-                            }
-                        ]}
-                    />
-                )}
-            </div>
-
-            {/* Sidebar Panel - Ultrawide optimized */}
-            <div className="ultrawide-panel col-span-4-desktop space-y-6">
-                <Card className="glass-panel border-none sticky top-24">
-                    <CardContent className="p-6 space-y-6">
-                        {showSearch ? (
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">Search & Filter</label>
+                    <div className="space-y-6">
+                        {/* Mobile-only Search (if needed) */}
+                        {showSearch && (
+                            <div className="block lg:hidden">
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
                                     <Input
-                                        placeholder="Find employee..."
-                                        className="pl-10"
+                                        placeholder="Search employees..."
+                                        className="pl-10 h-12 bg-[var(--surface-1)]"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                     />
                                 </div>
                             </div>
-                        ) : null}
+                        )}
 
-                        <div className={`${showSearch ? "pt-4 border-t" : ""} border-[var(--border)] space-y-4`}>
-                            <div className="flex items-center justify-between text-xs">
-                                <span className="text-[var(--text-muted)] font-medium">Total Active</span>
-                                <span className="font-bold text-[var(--text)]">{employees.length}</span>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        <DataTable<Employee>
+                            data={filteredEmployees}
+                            keyField={(emp) => emp.id}
+                            columns={[
+                                {
+                                    key: "name",
+                                    label: "Name",
+                                    render: (emp) => (
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-10 w-10 shrink-0 rounded-full bg-[var(--accent-subtle)] flex items-center justify-center text-xs font-black text-[var(--primary)] border border-[var(--primary)]/10">
+                                                {emp.name.substring(0, 2).toUpperCase()}
+                                            </div>
+                                            <div className="flex flex-col text-left min-w-0">
+                                                <span className="type-body-bold text-[var(--text)] truncate">{emp.name}</span>
+                                                <span className="type-overline text-[var(--text-muted)] text-[9px] mt-0.5">{emp.role || "Domestic Worker"}</span>
+                                            </div>
+                                        </div>
+                                    )
+                                },
+                                {
+                                    key: "contact",
+                                    label: "Contact",
+                                    render: (emp) => (
+                                        <div className="space-y-1">
+                                            {emp.phone && (
+                                                <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                                                    <Phone className="h-3.5 w-3.5" />
+                                                    <span className="font-medium">{emp.phone}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                },
+                                {
+                                    key: "status",
+                                    label: "Status",
+                                    render: () => <StatusChip variant="complete" label="ACTIVE" />
+                                },
+                                {
+                                    key: "actions",
+                                    label: "",
+                                    align: "right",
+                                    render: (emp) => (
+                                        <div className="flex items-center justify-end">
+                                            <Link href={`/employees/${emp.id}`}>
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--accent-subtle)] transition-colors">
+                                                    <ChevronRight className="h-5 w-5" />
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    )
+                                }
+                            ]}
+                            renderCard={(emp) => (
+                                <Link href={`/employees/${emp.id}`} className="block">
+                                    <Card className="glass-panel hover-lift border-none overflow-hidden transition-all duration-200">
+                                        <CardContent className="p-5">
+                                            <div className="flex items-center justify-between gap-4">
+                                                <div className="flex items-center gap-4 min-w-0">
+                                                    <div className="h-12 w-12 shrink-0 rounded-full bg-[var(--accent-subtle)] flex items-center justify-center text-sm font-black text-[var(--primary)] border border-[var(--primary)]/10">
+                                                        {emp.name.substring(0, 2).toUpperCase()}
+                                                    </div>
+                                                    <div className="flex flex-col min-w-0">
+                                                        <span className="type-body-bold text-[var(--text)] truncate text-base">{emp.name}</span>
+                                                        <span className="type-overline text-[var(--text-muted)] text-[10px] mt-1">{emp.role || "Domestic Worker"}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <StatusChip variant="complete" label="ACTIVE" className="scale-90" />
+                                                    <ChevronRight className="h-5 w-5 text-[var(--text-muted)]" />
+                                                </div>
+                                            </div>
+                                            {emp.phone && (
+                                                <div className="mt-4 pt-4 border-t border-[var(--border)]/30 flex items-center gap-2 text-sm text-[var(--text-muted)]">
+                                                    <Phone className="h-4 w-4" />
+                                                    <span>{emp.phone}</span>
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+                            )}
+                        />
+                    </div>
+                )}
+            </div>
+
+            {/* Sidebar Panel - Adaptive Rails */}
+            <div className="adaptive-rail">
+                <div className="space-y-6">
+                    <Card className="glass-panel border-none shadow-[var(--shadow-sm)]">
+                        <CardContent className="p-6 space-y-6">
+                            {showSearch && (
+                                <div className="space-y-3">
+                                    <label className="type-overline text-[var(--text-muted)] px-1">Search Employees</label>
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                                        <Input
+                                            placeholder="Find by name..."
+                                            className="pl-10 h-11 bg-[var(--surface-2)] border-[var(--border)] focus:ring-[var(--focus)] transition-all"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className={`${showSearch ? "pt-6 border-t border-[var(--border)]/50" : ""} space-y-4`}>
+                                <div className="flex items-center justify-between">
+                                    <span className="type-label text-[var(--text-muted)]">Active Employees</span>
+                                    <span className="type-body-bold text-[var(--text)] text-lg">{employees.length}</span>
+                                </div>
+                                
+                                <div className="p-4 rounded-xl bg-[var(--accent-subtle)] border border-[var(--primary)]/10">
+                                    <p className="type-caption text-[var(--primary)] font-semibold leading-relaxed">
+                                        Compliance Tip: Ensure all employees have a signed contract and valid South African identification on file.
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="glass-panel border-none shadow-[var(--shadow-sm)] bg-[white] dark:bg-[var(--surface-2)]">
+                         <CardContent className="p-6">
+                            <h3 className="type-overline text-[var(--text-muted)] mb-4">Quick Actions</h3>
+                            <div className="space-y-2">
+                                <Link href="/employees/new" className="block">
+                                    <Button className="w-full justify-start font-bold" variant="ghost">
+                                        Add New Employee
+                                    </Button>
+                                </Link>
+                                <Link href="/leave" className="block">
+                                    <Button className="w-full justify-start font-bold" variant="ghost">
+                                        Manage Leave
+                                    </Button>
+                                </Link>
+                            </div>
+                         </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     );
 }
-

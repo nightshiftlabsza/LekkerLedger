@@ -11,7 +11,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getNMW, UIF_MONTHLY_CAP, UIF_RATE } from "@/lib/calculator";
 import { roundTo } from "@/lib/money";
 import { COMPLIANCE } from "@/lib/compliance-constants";
-import { triggerBurst } from "./ui/confetti-trigger";
 
 export function CalculatorHero({ onStart, startHref = "/payroll/new" }: { onStart?: () => void | Promise<void>; startHref?: string }) {
     const [hours, setHours] = React.useState("160");
@@ -113,9 +112,6 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: { onStar
                 <Button
                     className="w-full gap-2 h-14 text-base font-black rounded-2xl active-scale"
                     onClick={async () => {
-                        if (preview) {
-                            void triggerBurst();
-                        }
                         if (onStart) {
                             await onStart();
                             return;

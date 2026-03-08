@@ -10,10 +10,17 @@ function buildPdfFile(pdfBytes: Uint8Array, fileName: string): File {
     return new File([pdfBytes.slice(0)], fileName, { type: "application/pdf" });
 }
 
-function openWhatsAppChat(phone?: string): void {
+function openWhatsAppChat(phone?: string, text?: string): void {
     const intlPhone = normalisePhone(phone || "");
-    const base = intlPhone ? `https://wa.me/${intlPhone}` : "https://web.whatsapp.com/";
-    window.open(base, "_blank", "noopener,noreferrer");
+    const message = text?.trim() ?? "";
+
+    if (intlPhone) {
+        const query = message ? `?text=${encodeURIComponent(message)}` : "";
+        window.open(`https://wa.me/${intlPhone}${query}`, "_blank", "noopener,noreferrer");
+        return;
+    }
+
+    window.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
 }
 
 export function downloadPdf(pdfBytes: Uint8Array, fileName: string): void {
@@ -40,8 +47,11 @@ export async function sharePdfFile(
     },
 ): Promise<"shared" | "downloaded" | "cancelled"> {
     const file = buildPdfFile(pdfBytes, fileName);
+    const canUseNativeFileShare = navigator.share && navigator.canShare?.({ files: [file] });
 
-    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+    // For WhatsApp, prefer opening the employee's chat when we have a phone number.
+    // Native file share can attach the PDF on some devices, but it cannot target a specific chat.
+    if (channel !== "whatsapp" && canUseNativeFileShare) {
         try {
             await navigator.share({
                 title: options.title,
@@ -59,7 +69,7 @@ export async function sharePdfFile(
     downloadPdf(pdfBytes, fileName);
 
     if (channel === "whatsapp") {
-        openWhatsAppChat(options.employeePhone);
+        openWhatsAppChat(options.employeePhone, options.text);
     }
 
     if (channel === "email") {

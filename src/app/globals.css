@@ -544,6 +544,52 @@ p,
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADAPTIVE APP GRID — Fluid Main Content + Contextual Rail
+   This replaces brittle 1024px snaps with a fluid strategy.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.adaptive-app-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (min-width: 840px) {
+  .adaptive-app-grid {
+    grid-template-columns: 1fr 280px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .adaptive-app-grid {
+    grid-template-columns: 1fr 320px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .adaptive-app-grid {
+    grid-template-columns: 1fr 360px;
+    gap: var(--space-8);
+  }
+}
+
+.adaptive-main {
+  min-width: 0; /* Prevents overflow in flex/grid items */
+}
+
+.adaptive-rail {
+  display: none;
+}
+
+@media (min-width: 840px) {
+  .adaptive-rail {
+    display: block;
+    position: sticky;
+    top: var(--space-6);
+  }
+}
+
 /* Wider container for ultrawide layouts with multi-column panels */
 .content-container-wide {
   max-width: 1680px;
@@ -587,20 +633,23 @@ p,
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ULTRAWIDE LAYOUT (≥1600px context panel)
+   Refined to use the adaptive-app-grid patterns for consistency
    ═══════════════════════════════════════════════════════════════════════════ */
 @media (min-width: 1600px) {
   .ultrawide-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 320px;
-    gap: 1.5rem;
+    grid-template-columns: 1fr minmax(320px, 400px);
+    gap: var(--space-7);
+    max-width: 1680px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .ultrawide-main {
-    grid-column: 1 / 3;
+    min-width: 0;
   }
 
   .ultrawide-panel {
-    grid-column: 3;
     position: sticky;
     top: 5rem;
     max-height: calc(100vh - 6rem);
