@@ -126,10 +126,10 @@ function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
 
                         <div className="space-y-4">
                             <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                                Household payroll records without the cost and complexity of business payroll software.
+                                Payslips and household employment records in one place.
                             </h1>
                             <p className="max-w-[34rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                                Run the month clearly, show UIF in the same record, and keep payslips ready when you need them later.
+                                Track monthly pay, show UIF deductions clearly on payslips, and keep records available when you need them.
                             </p>
                         </div>
 
@@ -146,17 +146,6 @@ function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
                     </div>
 
                     <div className="w-full max-w-[46rem] xl:justify-self-end">
-                        <div className="mb-4 space-y-3 xl:max-w-[22rem] 2xl:max-w-[24rem]">
-                            <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                                Sample payslip
-                            </p>
-                            <h2 className="type-h2 max-w-[14ch] text-balance" style={{ color: "var(--text)" }}>
-                                See what the monthly record looks like.
-                            </h2>
-                            <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                                A real household run produces a clear monthly payslip with UIF shown in the same document, ready to review or download.
-                            </p>
-                        </div>
 
                         <SamplePayslipCard sample={sample} />
                     </div>
@@ -426,33 +415,32 @@ function HowItWorks() {
     const steps = [
         {
             icon: Users,
-            title: "Add your worker once",
-            body: "Save the household worker details and pay basics you want to reuse each month.",
+            title: "Add your worker",
+            body: "Save the worker’s details and pay setup so it can be reused each month.",
         },
         {
             icon: Calendar,
-            title: "Run the month clearly",
-            body: "Check hours, leave, deductions, and UIF before you generate the payslip.",
+            title: "Generate the payslip",
+            body: "Review hours worked, leave, deductions, and UIF amounts before creating the payslip.",
         },
         {
             icon: FileText,
-            title: "Keep the paperwork ready",
-            body: "Return later for older periods, document history, contracts, and annual paperwork.",
+            title: "Keep the record trail",
+            body: "Payslips and related documents stay organised so they’re easy to retrieve later when needed for UIF submissions or other employment paperwork.",
         },
     ];
 
     return (
-        <section id="how-it-works" style={{ backgroundColor: "var(--surface-2)" }}>
-            <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-                <div className="max-w-3xl space-y-3">
+        <section id="how-it-works" style={{ backgroundColor: "var(--bg)" }}>
+            <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8 lg:py-20">                <div className="max-w-3xl space-y-3">
                     <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                         How it works
                     </p>
-                    <h2 className="type-h2 max-w-[18ch]" style={{ color: "var(--text)" }}>
-                        Keep the month clear, then keep the records ready.
+                    <h2 className="type-h2 max-w-[28ch]" style={{ color: "var(--text)" }}>
+                        Set up once. Generate payslips. Keep the records together.
                     </h2>
-                    <p className="max-w-[40rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                        LekkerLedger is built to help a household employer set things up once, run payroll calmly, and keep the record trail tidy.
+                    <p className="max-w-[44rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
+                        LekkerLedger helps household employers record pay, generate payslips, and keep the employment documents that may be needed later for UIF submissions or other household employment administration.
                     </p>
                 </div>
 
@@ -491,19 +479,19 @@ function WhatYouKeep() {
     const recordTypes = [
         {
             title: "Payslips",
-            body: "Monthly pay records with UIF shown clearly and ready to download when you need them again.",
+            body: "Monthly pay records showing wages, deductions, and UIF amounts.",
         },
         {
             title: "Contracts",
-            body: "Starter templates and saved contract files so the employment paperwork stays in one place.",
+            body: "Starter templates and saved employment agreements so the employment paperwork stays together.",
         },
         {
             title: "Exports",
-            body: "UIF and annual paperwork exports when you need to prepare submissions or keep a clean handover file.",
+            body: "Downloadable records when you need to prepare UIF paperwork or other documentation.",
         },
         {
             title: "History",
-            body: "Older periods, document trail, and archive access so you can answer questions later without rebuilding records.",
+            body: "Access older periods and documents without rebuilding records.",
         },
     ];
 
@@ -516,10 +504,10 @@ function WhatYouKeep() {
                             What you keep
                         </p>
                         <h2 className="type-h2 max-w-[14ch]" style={{ color: "var(--text)" }}>
-                            Not just a payslip. Your household employment record trail.
+                            Not just a payslip. Your household record trail.
                         </h2>
                         <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            LekkerLedger is for households that want the monthly payslip and the supporting record trail to stay together over time.
+                            LekkerLedger ensures your monthly payslips and supporting documents stay together, organized, and ready for any future requirement.
                         </p>
                     </div>
 
