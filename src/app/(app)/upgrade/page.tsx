@@ -4,7 +4,7 @@ import * as React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Check, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -12,9 +12,10 @@ import { getSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
 import { createCheckoutSession } from "@/lib/billing-client";
 import { hasStoredGoogleSession } from "@/lib/google-session";
-import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPrice, getPlanPricePresentation } from "@/src/config/plans";
+import { type BillingCycle, PLANS } from "@/src/config/plans";
 import { EmployerSettings } from "@/lib/schema";
 import { getUserPlan } from "@/lib/entitlements";
+import { MarketingBillingToggle, MarketingPlanCards } from "@/components/marketing/pricing";
 
 export default function UpgradePage() {
     return (
@@ -99,9 +100,9 @@ function UpgradePageContent() {
                 subtitle="Choose the level of Google-connected backup, archive depth, and household control you need."
             />
 
-            <div className="mx-auto max-w-6xl space-y-8">
+            <div className="mx-auto max-w-6xl space-y-10">
                 <Card className="border-[var(--primary)] bg-[var(--primary)]/5">
-                    <CardContent className="p-5 space-y-3 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                    <CardContent className="space-y-3 p-5 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                         <p className="font-semibold" style={{ color: "var(--text)" }}>
                             Try Standard or Pro with a 14-day refund window.
                         </p>
@@ -123,130 +124,53 @@ function UpgradePageContent() {
                     </div>
                 )}
 
-                <div className="space-y-2">
-                    <div className="flex justify-center">
-                    <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-1)]">
-                        {(["monthly", "yearly"] as BillingCycle[]).map((cycle) => (
-                            <button
-                                key={cycle}
-                                type="button"
-                                onClick={() => setBillingCycle(cycle)}
-                                className="rounded-full px-5 py-2.5 text-sm font-bold transition-all"
-                                style={{
-                                    backgroundColor: billingCycle === cycle ? "var(--primary)" : "transparent",
-                                    color: billingCycle === cycle ? "#ffffff" : "var(--text-muted)",
-                                }}
-                            >
-                                {cycle === "monthly" ? "Monthly" : "Yearly"}
-                            </button>
-                        ))}
-                    </div>
-                    </div>
-                    <p className="text-center text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-                        Yearly lowers the monthly cost on paid plans.
-                    </p>
-                </div>
+                <div className="flex flex-col items-center gap-10">
+                    <MarketingBillingToggle 
+                        billingCycle={billingCycle} 
+                        onChange={setBillingCycle} 
+                        align="center" 
+                    />
 
-                <div className="grid gap-6 xl:grid-cols-3">
-                    {PLAN_ORDER.map((planId) => {
-                        const plan = PLANS[planId];
-                        const featured = plan.id === "standard";
-                        const cycle = plan.id === "free" ? "monthly" : billingCycle;
-                        const isCurrent = currentPlan.id === plan.id;
-                        const isStartingCheckout = checkoutPlanId === plan.id;
-                        const selectedPrice = plan.id === "free" ? null : getPlanPrice(plan.id, billingCycle);
-                        const pricePresentation = getPlanPricePresentation(plan, cycle);
-                        return (
-                            <Card key={plan.id} className={`overflow-hidden border ${featured ? "border-[var(--primary)] shadow-[var(--shadow-2)]" : "border-[var(--border)]"}`}>
-                                <CardContent className="p-7 space-y-5">
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div>
-                                            <p className="text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>{plan.label}</p>
-                                            <h2 className="mt-2 text-2xl font-black" style={{ color: "var(--text)" }}>{plan.bestFor}</h2>
-                                        </div>
-                                        {plan.badge && (
-                                            <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${featured ? "bg-[var(--primary)] text-white" : "bg-[var(--accent-subtle)] text-[var(--primary)]"}`}>
-                                                {plan.badge}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-                                        <div className="flex items-end gap-2">
-                                            <span className="text-4xl font-semibold type-mono" style={{ color: "var(--text)" }}>
-                                                {pricePresentation.primaryPrice}
-                                            </span>
-                                            {pricePresentation.periodLabel ? (
-                                                <span className="pb-1 text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                                                    {pricePresentation.periodLabel}
-                                                </span>
-                                            ) : null}
-                                        </div>
-                                        <p className="mt-2 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
-                                            {pricePresentation.helperText}
-                                        </p>
-                                    </div>
-
-                                    <ul className="space-y-3">
-                                        {plan.marketingBullets.map((bullet) => (
-                                            <li key={bullet} className="flex items-start gap-3 text-sm" style={{ color: "var(--text-muted)" }}>
-                                                <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
-                                                <span>{bullet}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    <div className="border-t border-[var(--border)] pt-5">
-                                        {plan.id === "free" ? (
-                                            <Button variant="outline" className="w-full font-bold" disabled={isCurrent}>
-                                                {isCurrent ? "Current plan" : "Free plan"}
-                                            </Button>
-                                        ) : (
-                                            <div className="space-y-2">
-                                                <Button className="w-full font-bold" disabled={isCurrent || !!checkoutPlanId || !selectedPrice} onClick={() => void startCheckout(plan.id === "standard" ? "standard" : "pro")}>
-                                                    {isCurrent ? "Current plan" : isStartingCheckout ? "Opening checkout..." : `Choose ${plan.label}`}
-                                                    {isStartingCheckout ? <Loader2 className="h-4 w-4 animate-spin" /> : !isCurrent && <ArrowRight className="h-4 w-4" />}
-                                                </Button>
-                                                <p className="text-center text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>
-                                                    14-day refund. Stop renewal before the next billing period.
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        );
-                    })}
+                    <MarketingPlanCards 
+                        billingCycle={billingCycle} 
+                        currentPlanId={currentPlan.id as any}
+                        onSelect={(planId) => {
+                            if (planId === "standard" || planId === "pro") {
+                                void startCheckout(planId);
+                            }
+                        }}
+                        isLoadingPlanId={checkoutPlanId}
+                    />
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                     <Card className="border-[var(--border)]">
-                        <CardContent className="p-6 space-y-4">
+                        <CardContent className="space-y-4 p-6 text-sm">
                             <h3 className="type-h3" style={{ color: "var(--text)" }}>What changes on paid plans</h3>
-                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 Paid plans are for households that want less repeated admin: Google-connected backup across browsers and devices, exports, deeper archives, and cleaner annual paperwork. They are meant to cost less than the time or outside help it usually takes to reconstruct records later.
                             </p>
-                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 Standard is the paid plan for most households that want organised records, Google-connected backup, and annual paperwork. Pro is for households that want deeper history and more control, with multi-household support and unlimited employees when you need more headroom.
                             </p>
                         </CardContent>
                     </Card>
 
                     <Card className="border-[var(--primary)] bg-[var(--primary)]/5">
-                        <CardContent className="p-6 space-y-4">
+                        <CardContent className="space-y-4 p-6 text-sm">
                             <div className="flex items-center gap-3">
                                 <div className="rounded-2xl bg-[var(--primary)] p-3 text-white">
                                     <ShieldCheck className="h-5 w-5" />
                                 </div>
                                 <h3 className="type-h3" style={{ color: "var(--text)" }}>Refunds and trust</h3>
                             </div>
-                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 If you request a refund within 14 days of purchase, we will usually refund you in full after payment verification. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
                             </p>
-                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 You can stop renewal before the next billing period, and access continues until the end of the billing period already paid for.
                             </p>
-                            <Link href="/legal/refunds" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)]">
+                            <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
                                 View refund policy <ArrowRight className="h-4 w-4" />
                             </Link>
                         </CardContent>
@@ -256,6 +180,7 @@ function UpgradePageContent() {
         </div>
     );
 }
+
 
 
 
