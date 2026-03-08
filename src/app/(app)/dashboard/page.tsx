@@ -179,9 +179,8 @@ function DashboardContent() {
     const now = new Date();
     const alerts = computeDashboardAlerts({ employees, summaries, settings, now });
     const lastBackupTime = settings?.lastBackupTimestamp ? new Date(settings.lastBackupTimestamp) : null;
-    const backupJustNow = !!lastBackupTime && (Date.now() - lastBackupTime.getTime()) < 120000;
     const backupLabel = lastBackupTime
-        ? (backupJustNow ? "just now" : lastBackupTime.toLocaleString("en-ZA"))
+        ? ((activationSuccess && activationSync !== "none") ? "just now" : lastBackupTime.toLocaleString("en-ZA"))
         : "not yet";
 
     return (
@@ -189,10 +188,15 @@ function DashboardContent() {
             <PageHeader title="Dashboard" subtitle="See this month's payroll status and what to do next." />
 
             {activationSuccess && (
-                <Card className="mb-6 border-emerald-200 bg-emerald-50/60">
-                    <CardContent className="p-4 text-sm text-emerald-900">
-                        <p className="font-bold">Google backup active.</p>
-                        <p>
+                <Card className="mb-6 overflow-hidden border-2 border-[var(--primary)] bg-[var(--surface-raised)] shadow-lg">
+                    <CardContent className="space-y-3 p-6">
+                        <div className="flex items-center gap-3 text-[var(--primary)]">
+                            <div className="rounded-full bg-[var(--primary)]/10 p-2">
+                                <ShieldCheck className="h-5 w-5" />
+                            </div>
+                            <h3 className="text-lg font-black italic tracking-tight">Paid login activated</h3>
+                        </div>
+                        <p className="text-sm font-medium leading-relaxed text-[var(--text-muted)]">
                             {activationSync === "none"
                                 ? "Paid login is complete. No data snapshot was required yet on this device."
                                 : `Last backup: ${backupLabel}.`}
@@ -516,4 +520,5 @@ function StorageCard({ settings }: { settings: EmployerSettings | null }) {
         </Card>
     );
 }
+
 
