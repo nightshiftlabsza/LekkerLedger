@@ -67,7 +67,7 @@ import type { Contract, DocumentMeta, Employee, LeaveRecord, PayPeriod, PayslipI
 
 const TABS = ["Payslips", "Contracts", "Exports", "Vault"] as const;
 type Tab = typeof TABS[number];
-type VaultCategory = "contracts" | "employee-docs" | "compliance" | "other";
+type VaultCategory = "contracts" | "employee-docs" | "admin" | "other";
 
 const TAB_TYPE_MAP: Record<Exclude<Tab, "Contracts">, DocumentMeta["type"]> = {
     Payslips: "payslip",
@@ -78,7 +78,7 @@ const TAB_TYPE_MAP: Record<Exclude<Tab, "Contracts">, DocumentMeta["type"]> = {
 const VAULT_CATEGORIES: Array<{ value: VaultCategory; label: string }> = [
     { value: "contracts", label: "Contracts" },
     { value: "employee-docs", label: "Employee docs" },
-    { value: "compliance", label: "Compliance" },
+    { value: "admin", label: "Admin" },
     { value: "other", label: "Other" },
 ];
 

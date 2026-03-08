@@ -236,7 +236,7 @@ export function PricingComparisonTable() {
             <table className="min-w-[850px] w-full border-collapse">
                 <thead>
                     <tr className="border-b border-[var(--border)] bg-[var(--surface-raised)] text-left text-[10px] font-black uppercase tracking-[0.18em]">
-                        <th className="sticky left-0 z-10 px-6 py-5 bg-[var(--surface-raised)] shadow-[1px_0_0_0_var(--border)]" style={{ color: "var(--text-muted)" }}>Feature</th>
+                        <th className="sticky left-0 z-10 px-6 py-5 bg-[var(--surface-raised)] shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1),1px_0_0_0_var(--border)]" style={{ color: "var(--text-muted)" }}>Feature</th>
                         <th className="px-6 py-5 text-center" style={{ color: "var(--text-muted)" }}>Free</th>
                         <th className="border-x border-[var(--border)] bg-[var(--primary)]/5 px-6 py-5 text-center" style={{ color: "var(--text-muted)" }}>Standard</th>
                         <th className="px-6 py-5 text-center" style={{ color: "var(--text-muted)" }}>Pro</th>
@@ -262,7 +262,7 @@ export function PricingComparisonTable() {
                                     }`}
                                 >
                                     <td 
-                                        className={`sticky left-0 z-10 px-6 py-4 text-sm font-semibold shadow-[1px_0_0_0_var(--border)] ${
+                                        className={`sticky left-0 z-10 px-6 py-4 text-sm font-semibold shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1),1px_0_0_0_var(--border)] ${
                                             index % 2 === 0 ? "bg-[var(--surface-1)]" : "bg-[var(--surface-raised)]"
                                         }`}
                                         style={{ color: "var(--text)" }}

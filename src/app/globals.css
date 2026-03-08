@@ -694,4 +694,14 @@ p,
   border-radius: var(--radius-2);
 }
 
+/* FAQ Chevron Rotation */
+details[open] summary svg {
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+}
+
+summary svg {
+  transition: transform 0.2s ease;
+}
+
 

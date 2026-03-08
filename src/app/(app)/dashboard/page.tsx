@@ -211,7 +211,7 @@ export default function DashboardPage() {
                                             <ArrowRight className="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <Link href={employeeCount > 0 ? "/employees/new" : "/help/compliance"} className="sm:w-auto">
+                                    <Link href={employeeCount > 0 ? "/employees/new" : "/help/admin"} className="sm:w-auto">
                                         <Button variant="outline" className="h-11 w-full gap-2 rounded-xl border-[var(--border)] font-bold text-[var(--text)] hover:bg-[var(--surface-2)] sm:w-auto">
                                             {employeeCount > 0 ? "Add employee" : "See checklist"}
                                             <ChevronRight className="h-4 w-4" />
@@ -286,7 +286,7 @@ export default function DashboardPage() {
                     {employeeCount === 0 ? (
                         <EmptyState
                             title="Welcome to LekkerLedger"
-                            description="Add your first employee to start tracking leave, generating payslips, and managing compliance."
+                            description="Add your first employee to start tracking leave, generating payslips, and managing your household records."
                             icon={Users}
                             actionLabel="Add Employee"
                             actionHref="/employees/new"
@@ -341,7 +341,7 @@ export default function DashboardPage() {
                                 <Link href="/help/coida" prefetch={false} className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
                                     <ShieldCheck className="h-3 w-3" /> Compensation Fund guide
                                 </Link>
-                                <Link href="/help/compliance" className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
+                                <Link href="/help/admin" className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
                                     <BookOpen className="h-3 w-3" /> Household checklist
                                 </Link>
                             </div>
@@ -358,7 +358,7 @@ function ComplianceCard() {
         <Card className="glass-panel border-none overflow-hidden group">
             <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
-                    <h3 className="type-overline text-[var(--text-muted)]">Annual Compliance</h3>
+                    <h3 className="type-overline text-[var(--text-muted)]">Annual Paperwork</h3>
                     <ShieldCheck className="h-4 w-4 text-[var(--primary)]" />
                 </div>
                 <div className="space-y-3">

@@ -8,7 +8,7 @@ export default function EmployeesPage() {
         <div className="space-y-6 pb-20">
             <PageHeader
                 title="Employees"
-                subtitle="Manage your household team and compliance records"
+                subtitle="Manage your household team and employment records"
                 actions={
                     <Link href="/employees/new">
                         <Button className="bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]">

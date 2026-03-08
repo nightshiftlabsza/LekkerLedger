@@ -96,7 +96,7 @@ export interface FootnoteLink {
     needsVerification?: boolean;
 }
 
-export const complianceGuide = {
+export const adminGuide = {
     title: "Household employer checklist",
     subtitle: "Monthly and annual tasks for South African households",
     disclaimer: "Not legal advice. This guide helps household employers prepare, estimate, and verify common domestic-worker admin tasks in South Africa.",

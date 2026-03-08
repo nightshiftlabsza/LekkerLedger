@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { complianceGuide, type GuideBlock, type GuideListItem } from "@/src/content/compliance-guide";
+import { adminGuide, type GuideBlock, type GuideListItem } from "@/src/content/admin-guide";
 
 
 function renderRichText(text: string) {
@@ -146,7 +146,7 @@ function ExpandableSection({
     );
 }
 
-export default function CompliancePage() {
+export default function AdminHelpPage() {
     const [copiedId, setCopiedId] = React.useState<string | null>(null);
     const copyTimerRef = React.useRef<number | null>(null);
 
@@ -184,8 +184,8 @@ export default function CompliancePage() {
     return (
         <div id="top" className="space-y-6 pb-8">
             <PageHeader
-                title={complianceGuide.title}
-                subtitle={complianceGuide.subtitle}
+                title={adminGuide.title}
+                subtitle={adminGuide.subtitle}
                 actions={
                     <Link href="/compliance/coida/roe">
                         <Button variant="outline" className="min-h-11 gap-2">
@@ -204,7 +204,7 @@ export default function CompliancePage() {
             <Alert variant="warning">
                 <AlertTitle>Not legal advice</AlertTitle>
                 <AlertDescription>
-                    {complianceGuide.disclaimer} The goal here is to help you stay organised early, because routine payroll clean-up is usually much harder than keeping records tidy month by month.
+                    {adminGuide.disclaimer} The goal here is to help you stay organised early, because routine payroll clean-up is usually much harder than keeping records tidy month by month.
                 </AlertDescription>
             </Alert>
 
@@ -218,7 +218,7 @@ export default function CompliancePage() {
                         Most households do not need to study labour law every week. In practice, you usually want 5 things under control: correct employee details, a clean monthly payroll record, payslips kept in Documents, UIF where it applies, and annual ROE paperwork when required.
                     </p>
                     <div className="grid gap-4 lg:grid-cols-2">
-                        {complianceGuide.startHereSteps.slice(0, 4).map((step) => (
+                        {adminGuide.startHereSteps.slice(0, 4).map((step) => (
                             <Card key={step.id} className="border border-[var(--border)] bg-[var(--surface-raised)] shadow-none">
                                 <CardContent className="space-y-3 p-5">
                                     <div className="flex items-center justify-between gap-3">
@@ -247,7 +247,7 @@ export default function CompliancePage() {
                         <CopyHeading id="start-here" title="Start Here (onboarding path)" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <p className="type-body leading-7 text-[var(--text-muted)]">5–10 minutes. Follow this path first if you are setting up the household for the first time.</p>
                         <div className="grid gap-4 lg:grid-cols-2">
-                            {complianceGuide.startHereSteps.map((step) => (
+                            {adminGuide.startHereSteps.map((step) => (
                                 <Card key={step.id} className="glass-panel border-none">
                                     <CardContent className="space-y-4 p-5">
                                         <div className="flex flex-wrap items-center gap-2">
@@ -283,7 +283,7 @@ export default function CompliancePage() {
                     <section className="space-y-5 scroll-mt-20">
                         <CopyHeading id="full-guide" title="Full Guide (by screens)" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <div className="space-y-6">
-                            {complianceGuide.guideSections.map((section) => (
+                            {adminGuide.guideSections.map((section) => (
                                 <Card key={section.id} className="glass-panel border-none">
                                     <CardContent className="space-y-5 p-6">
                                         <CopyHeading
@@ -354,7 +354,7 @@ export default function CompliancePage() {
                     <section className="space-y-5 scroll-mt-20">
                         <CopyHeading id="screen-callouts" title="Screen callout boxes" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <div className="grid gap-4 lg:grid-cols-2">
-                            {complianceGuide.screenCallouts.map((callout) => (
+                            {adminGuide.screenCallouts.map((callout) => (
                                 <Card key={callout.id} id={callout.id} className="border-[var(--primary)]/20 bg-[var(--surface-raised)] shadow-none scroll-mt-20">
                                     <CardContent className="space-y-4 p-5">
                                         <div className="flex items-center justify-between gap-3">
@@ -393,7 +393,7 @@ export default function CompliancePage() {
                     <section className="space-y-5 scroll-mt-20">
                         <CopyHeading id="microcopy" title="Microcopy/tooltips" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <div className="space-y-3">
-                            {complianceGuide.microcopyGroups.map((group) => (
+                            {adminGuide.microcopyGroups.map((group) => (
                                 <Card key={group.id} className="glass-panel border-none overflow-hidden">
                                     <details className="group">
                                         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5">
@@ -430,7 +430,7 @@ export default function CompliancePage() {
                     <section className="space-y-5 scroll-mt-20">
                         <CopyHeading id="worked-examples" title="Worked examples" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <div className="grid gap-4 lg:grid-cols-2">
-                            {complianceGuide.workedExamples.map((example) => (
+                            {adminGuide.workedExamples.map((example) => (
                                 <Card key={example.id} id={example.id} className="glass-panel border-none scroll-mt-20">
                                     <CardContent className="space-y-4 p-5">
                                         <h3 className="type-h4 text-[var(--text)]">{example.title}</h3>
@@ -467,10 +467,10 @@ export default function CompliancePage() {
                         <CopyHeading id="source-log" title="Source log" level="h2" copiedId={copiedId} onCopy={handleCopy} />
                         <Alert>
                             <AlertTitle>Source note</AlertTitle>
-                            <AlertDescription>{complianceGuide.sourceVerificationNote}</AlertDescription>
+                            <AlertDescription>{adminGuide.sourceVerificationNote}</AlertDescription>
                         </Alert>
                         <div className="space-y-3">
-                            {complianceGuide.sourceLog.map((section) => (
+                            {adminGuide.sourceLog.map((section) => (
                                 <Card key={section.id} className="glass-panel border-none overflow-hidden">
                                     <details className="group" open={section.id === "source-dashboard"}>
                                         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5">
@@ -500,7 +500,7 @@ export default function CompliancePage() {
                                 <CardTitle className="type-h4">Footnotes</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-3 pt-0">
-                                {complianceGuide.footnotes.map((footnote) => (
+                                {adminGuide.footnotes.map((footnote) => (
                                     <div key={footnote.id} id={`footnote-${footnote.id}`} className="rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 scroll-mt-20">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <Badge variant="outline">[{footnote.id}]</Badge>
@@ -526,6 +526,3 @@ export default function CompliancePage() {
         </div>
     );
 }
-
-
-

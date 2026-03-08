@@ -173,9 +173,9 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
             {
                 label: "Email support",
                 values: {
-                    free: "1-4 business days",
-                    standard: "1-4 business days",
-                    pro: "1 business day",
+                    free: "1-4 business days (Mon-Fri, SAST)",
+                    standard: "1-4 business days (Mon-Fri, SAST)",
+                    pro: "1 business day (Mon-Fri, SAST)",
                 },
             },
         ],
