@@ -1,5 +1,7 @@
 "use client";
 
+import { env } from "@/lib/env";
+
 import { useState, useEffect, useCallback } from "react";
 import { useGoogleLogin, googleLogout } from "@react-oauth/google";
 import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Folder, FileJson, Database, Shield, History, RefreshCcw, ArrowRight, Lock } from "lucide-react";
@@ -165,15 +167,15 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
             setStatusMessage("Backing up to the Google Drive app data area in your own Google account...");
         }
 
-        const success = await syncDataToDrive(currentToken);
-        if (success) {
+        const result = await syncDataToDrive(currentToken);
+        if (result.success) {
             addLog({ success: true, action: "backup", details: "Uploaded lekkerledger_data.json" });
             const timestamp = new Date().toISOString();
             await persistBackupTimestamp(timestamp);
             if (!silent) setTransientStatus("success", "Backup saved to the Google Drive app data area in your Google account.");
         } else if (!silent && isMountedRef.current) {
-            addLog({ success: false, action: "backup", details: "Network or permission error during upload" });
-            setTransientStatus("error", "Backup failed. Check your Google connection or Drive permission and try again.", 5000);
+            addLog({ success: false, action: "backup", details: result.error || "Network or permission error during upload" });
+            setTransientStatus("error", result.error || "Backup failed. Check your Google connection or Drive permission and try again.", 5000);
         }
     }, [hasDriveScope, persistBackupTimestamp, token]);
 
@@ -186,8 +188,8 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
             setStatusMessage("Restoring from your Google backup...");
         }
 
-        const success = await syncDataFromDrive(currentToken);
-        if (success) {
+        const result = await syncDataFromDrive(currentToken);
+        if (result.success) {
             addLog({ success: true, action: "restore", details: "Downloaded remote data snapshot" });
             if (!silent && isMountedRef.current) {
                 setStatus("success");
@@ -202,8 +204,8 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
                 }, 1500);
             }
         } else if (!silent && isMountedRef.current) {
-            addLog({ success: false, action: "restore", details: "Failed to download snapshot" });
-            setTransientStatus("error", "Restore failed or no Google backup was found.", 5000);
+            addLog({ success: false, action: "restore", details: result.error || "Failed to download snapshot" });
+            setTransientStatus("error", result.error || "Restore failed or no Google backup was found.", 5000);
         }
     }, [token]);
 
@@ -550,7 +552,7 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
 }
 
 export function GoogleSync({ driveSyncAllowed = false, autoBackupAllowed = false }: GoogleSyncProps) {
-    const googleAuthConfigured = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+    const googleAuthConfigured = Boolean(env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
     if (!googleAuthConfigured) {
         return <GoogleSyncUnavailable />;

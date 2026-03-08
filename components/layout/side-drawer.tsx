@@ -68,9 +68,9 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                 aria-modal="true"
                 aria-label="Navigation"
                 className={[
-                    "fixed top-0 left-0 h-full w-72 lg:w-64 z-50 flex flex-col glass-panel",
+                    "fixed top-0 left-0 h-full w-80 lg:w-64 z-50 flex flex-col glass-panel",
                     "lg:border-r lg:border-[var(--border)] lg:shadow-none",
-                    "shadow-[var(--shadow-2)] transition-transform duration-300",
+                    "shadow-[var(--shadow-xl)] transition-transform duration-300",
                     open ? "translate-x-0 animate-drawer-in" : "-translate-x-full lg:translate-x-0",
                 ].join(" ")}
                 style={{ backgroundColor: "var(--bg)" }}
@@ -101,7 +101,7 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                     {APP_NAV_GROUPS.map((group) => (
                         <div key={group.label}>
                             <p
-                                className="text-[10px] font-bold uppercase tracking-widest px-2 mb-1.5"
+                                className="text-[10px] font-black uppercase tracking-[0.16em] px-3 mb-2"
                                 style={{ color: "var(--text-muted)" }}
                             >
                                 {group.label}
@@ -134,13 +134,13 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
 
                                             {/* Icon chip */}
                                             <span
-                                                className="h-7 w-7 flex items-center justify-center rounded-md transition-colors shrink-0"
+                                                className="h-8 w-8 flex items-center justify-center rounded-xl transition-all duration-200 shrink-0 shadow-[var(--shadow-sm)]"
                                                 style={{
-                                                    backgroundColor: active ? "var(--primary)" : "var(--surface-2)",
+                                                    backgroundColor: active ? "var(--primary)" : "var(--surface-raised)",
                                                     color: active ? "#ffffff" : "var(--primary)",
                                                 }}
                                             >
-                                                <Icon className="h-3.5 w-3.5" />
+                                                <Icon className="h-4 w-4" />
                                             </span>
 
                                             <span className="min-w-0 flex-1">
@@ -181,4 +181,3 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
         </>
     );
 }
-

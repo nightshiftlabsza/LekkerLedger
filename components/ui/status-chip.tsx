@@ -20,6 +20,12 @@ interface StatusChipProps {
     variant: ChipVariant;
     label?: string;
     className?: string;
+};
+
+interface StatusChipProps {
+    variant: ChipVariant;
+    label?: string;
+    className?: string;
 }
 
 export function StatusChip({ variant, label, className = "" }: StatusChipProps) {
@@ -28,12 +34,15 @@ export function StatusChip({ variant, label, className = "" }: StatusChipProps) 
     const Icon = v.icon || Circle;
     return (
         <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${className}`}
-            style={{ backgroundColor: v.bg, color: v.text }}
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 active-scale select-none ${className}`}
+            style={{ 
+                backgroundColor: v.bg, 
+                color: v.text,
+                border: `1px solid ${v.text.replace(')', ', 0.2)')}` // Dynamic soft border
+            }}
         >
             <Icon className={`h-3 w-3 shrink-0 ${variant === "in-progress" ? "animate-spin" : ""}`} />
             {label ?? v.label}
         </span>
     );
 }
-

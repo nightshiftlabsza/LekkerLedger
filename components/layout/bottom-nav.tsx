@@ -14,7 +14,7 @@ export function BottomNav({ onMore }: BottomNavProps) {
     const pathname = usePathname();
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden glass-panel border-t border-[var(--border)] pb-safe">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden glass-panel border-t border-[var(--border)] safe-area-pb shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
             <div className="flex items-center justify-around h-16">
                 {MOBILE_NAV_ITEMS.map((item) => {
                     const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname?.startsWith(item.href));
@@ -26,11 +26,11 @@ export function BottomNav({ onMore }: BottomNavProps) {
                             href={item.href}
                             aria-label={item.label}
                             data-testid={`bottom-nav-${item.label.toLowerCase()}`}
-                            className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors ${isActive ? "text-[var(--primary)]" : "text-[var(--text-muted)]"
+                            className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all active-scale ${isActive ? "text-[var(--primary)]" : "text-[var(--text-muted)]"
                                 }`}
                         >
-                            <Icon className={`h-5 w-5 ${isActive ? "fill-[var(--primary)]/20" : ""}`} />
-                            <span className="text-[11px] font-bold uppercase tracking-tight">
+                            <Icon className={`h-5 w-5 transition-transform ${isActive ? "fill-[var(--primary)]/20 scale-110" : "hover:scale-105"}`} />
+                            <span className="text-[9px] font-black uppercase tracking-[0.12em]">
                                 {item.label}
                             </span>
                         </Link>
@@ -41,10 +41,10 @@ export function BottomNav({ onMore }: BottomNavProps) {
                     onClick={onMore}
                     aria-label="Menu"
                     data-testid="bottom-nav-more"
-                    className="flex flex-col items-center justify-center flex-1 h-full gap-1 text-[var(--text-muted)] transition-colors"
+                    className="flex flex-col items-center justify-center flex-1 h-full gap-1 text-[var(--text-muted)] transition-all active-scale"
                 >
-                    <Menu className="h-5 w-5" />
-                    <span className="text-[11px] font-bold uppercase tracking-tight">Menu</span>
+                    <Menu className="h-5 w-5 transition-transform hover:scale-105" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.12em]">Menu</span>
                 </button>
             </div>
         </nav>

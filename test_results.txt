@@ -1,0 +1,1172 @@
+
+> lekkerledger@0.1.0 test
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1[39m
+
+ [32mΓ£ô[39m __tests__/calculator.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32mΓ£ô[39m src/lib/compliance.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32mΓ£ô[39m src/lib/calculator.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32mΓ£ô[39m src/lib/schema.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32mΓ£ô[39m src/config/pricing-comparison.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32mΓ£ô[39m src/lib/entitlements.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+(node:25696) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32mΓ£ô[39m src/lib/storage.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [31mΓ¥»[39m __tests__/home.test.tsx [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1163[2mms[22m[39m
+[31m     [31m├ù[31m renders the rebuilt homepage flow[39m[33m 1161[2mms[22m[39m
+ [32mΓ£ô[39m src/lib/pdf-wording.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 953[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  __tests__/home.test.tsx > Home page > renders the rebuilt homepage flow
+TestingLibraryElementError: Unable to find an accessible element with the role "heading" and name `/keep the month clear, then keep the records ready/i`
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "":
+  <header
+    class="sticky top-0 z-30 bg-[var(--bg)] shadow-[var(--shadow-1)]"
+    style="border-bottom: 1px solid var(--border);"
+  />
+
+  --------------------------------------------------
+  link:
+
+  Name "LekkerLedger ledger-file logoLekkerLedger":
+  <a
+    class="rounded-lg py-1"
+    href="/"
+  />
+
+  Name "Pricing":
+  <a
+    class="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]"
+    href="/pricing"
+  />
+
+  Name "How it works":
+  <a
+    class="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]"
+    href="/#how-it-works"
+  />
+
+  Name "FAQ":
+  <a
+    class="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]"
+    href="/#faq"
+  />
+
+  Name "Open app":
+  <a
+    href="/open-app"
+  />
+
+  Name "Start free":
+  <a
+    href="/onboarding"
+  />
+
+  Name "Start free":
+  <a
+    href="/onboarding"
+  />
+
+  Name "Start free":
+  <a
+    href="/onboarding"
+  />
+
+  Name "Choose Standard":
+  <a
+    href="/upgrade?plan=standard&billing=yearly"
+  />
+
+  Name "Choose Pro":
+  <a
+    href="/upgrade?plan=pro&billing=yearly"
+  />
+
+  Name "Compare plans in detail":
+  <a
+    class="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:underline"
+    href="/pricing"
+  />
+
+  --------------------------------------------------
+  img:
+
+  Name "LekkerLedger ledger-file logo":
+  <img
+    alt="LekkerLedger ledger-file logo"
+    class="object-contain h-12 w-12 sm:h-[3.25rem] sm:w-[3.25rem]"
+    data-nimg="1"
+    decoding="async"
+    height="88"
+    src="/brand/logo-mark-vector.svg"
+    style="color: transparent;"
+    width="88"
+  />
+
+  --------------------------------------------------
+  navigation:
+
+  Name "":
+  <nav
+    class="hidden lg:flex items-center gap-8"
+  />
+
+  --------------------------------------------------
+  button:
+
+  Name "Open app":
+  <button
+    aria-busy="false"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 disabled:pointer-events-none disabled:opacity-55 active-scale select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 min-h-[44px] px-4 py-2.5 type-label rounded-[12px] hover:bg-[var(--surface-raised)] hover:text-[var(--text)] h-11 rounded-xl px-4 font-bold"
+    style="background-color: transparent; color: var(--text-muted); border: 1px solid transparent;"
+  />
+
+  Name "Start free":
+  <button
+    aria-busy="false"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 disabled:pointer-events-none disabled:opacity-55 active-scale select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 min-h-[44px] px-4 py-2.5 type-label rounded-[12px] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] hover:shadow-[var(--shadow-1)] h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-1)]"
+    style="background-color: var(--primary); color: var(--on-primary); border: 1px solid transparent;"
+  />
+
+  Name "Open menu":
+  <button
+    aria-label="Open menu"
+    class="lg:hidden flex h-10 w-10 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-raised)]"
+  />
+
+  Name "Start free":
+  <button
+    aria-busy="false"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 disabled:pointer-events-none disabled:opacity-55 active-scale select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 min-h-[44px] px-4 py-2.5 type-label rounded-[12px] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] hover:shadow-[var(--shadow-1)] h-12 rounded-xl bg-[var(--primary)] px-7 text-base font-bold text-white shadow-[var(--shadow-2)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]"
+    style="background-color: var(--primary); color: var(--on-primary); border: 1px solid transparent;"
+  />
+
+  Name "Monthly":
+  <button
+    class="rounded-full px-5 py-2.5 text-sm font-bold transition-all focus-visible:outline-none"
+    style="background-color: transparent; color: var(--text-muted);"
+    type="button"
+  />
+
+  Name "Yearly":
+  <button
+    class="rounded-full px-5 py-2.5 text-sm font-bold transition-all focus-visible:outline-none"
+    style="background-color: var(--primary); color: rgb(255, 255, 255);"
+    type="button"
+  />
+
+  Name "Start free":
+  <button
+    aria-busy="false"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 disabled:pointer-events-none disabled:opacity-55 active-scale select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 min-h-[44px] px-4 py-2.5 type-label rounded-[12px] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] hover:shadow-[var(--shadow-1)] w-full justify-center font-bold bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
+    style="background-color: var(--primary); color: var(--on-primary); border: 1px solid transparent;"
+  />
+
+  Name "Choose Standard":
+  <button
+    aria-busy="false"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 disabled:pointer-events-none disabled:opacity-55 active-scale select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 min-h-[44px] px-4 py-2.5 type-label rounded-[12px] hover:bg-[var(--surface-raised)] w-full justify-center font-bold "
+    style="border: 1px solid var(--border-strong); background-color: transparent; color: var(--text);"
+  />
+
+  Name "Choose Pro":
+  <button
+    aria-busy="false"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 disabled:pointer-events-none disabled:opacity-55 active-scale select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 min-h-[44px] px-4 py-2.5 type-label rounded-[12px] hover:bg-[var(--surface-raised)] w-full justify-center font-bold "
+    style="border: 1px solid var(--border-strong); background-color: transparent; color: var(--text);"
+  />
+
+  --------------------------------------------------
+  main:
+
+  Name "":
+  <main
+    class="flex-1"
+    id="main-content"
+  />
+
+  --------------------------------------------------
+  heading:
+
+  Name "Household payroll records without the cost and complexity of business payroll software.":
+  <h1
+    class="type-h1"
+    style="color: var(--text);"
+  />
+
+  Name "See what the monthly record looks like.":
+  <h2
+    class="type-h2 max-w-[14ch] text-balance"
+    style="color: var(--text);"
+  />
+
+  Name "PAYSLIP":
+  <h2
+    class="font-[family:var(--font-serif)] text-2xl font-semibold"
+    style="color: var(--text);"
+  />
+
+  Name "Set up once. Generate payslips. Keep the records together.":
+  <h2
+    class="type-h2 max-w-[28ch]"
+    style="color: var(--text);"
+  />
+
+  Name "Add your worker":
+  <h3
+    class="text-lg font-black"
+    style="color: var(--text);"
+  />
+
+  Name "Generate the payslip":
+  <h3
+    class="text-lg font-black"
+    style="color: var(--text);"
+  />
+
+  Name "Keep the record trail":
+  <h3
+    class="text-lg font-black"
+    style="color: var(--text);"
+  />
+
+  Name "Not just a payslip. Your household record trail.":
+  <h2
+    class="type-h2 max-w-[14ch]"
+    style="color: var(--text);"
+  />
+
+  Name "Payslips":
+  <h3
+    class="text-lg font-black"
+    style="color: var(--text);"
+  />
+
+  Name "Contracts":
+  <h3
+    class="text-lg font-black"
+    style="color: var(--text);"
+  />
+
+  Name "Exports":
+  <h3
+    class="text-lg font-black"
+    style="color: var(--text);"
+  />
+
+  Name "History":
+  <h3
+    class="text-lg font-black"
+    style="color: var(--text);"
+  />
+
+  Name "Pick the plan that fits your household.":
+  <h2
+    class="type-h2 max-w-[18ch]"
+    style="color: var(--text);"
+  />
+
+  Name "Try it out, or keep it simple.":
+  <h2
+    class="mt-1.5 text-xl font-black"
+    style="color: var(--text);"
+  />
+
+  Name "Do it properly.":
+  <h2
+    class="mt-1.5 text-xl font-black"
+    style="color: var(--text);"
+  />
+
+  Name "Complete peace of mind.":
+  <h2
+    class="mt-1.5 text-xl font-black"
+    style="color: var(--text);"
+  />
+
+  Name "Questions households ask before they start.":
+  <h2
+    class="type-h2"
+    style="color: var(--text);"
+  />
+
+  Name "Will this help me know what to do each month?":
+  <h3
+    class="text-sm font-bold"
+    style="color: var(--text);"
+  />
+
+  Name "What if I am not sure about the rules or worried about making a mistake?":
+  <h3
+    class="text-sm font-bold"
+    style="color: var(--text);"
+  />
+
+  Name "Are employee records stored on LekkerLedger servers?":
+  <h3
+    class="text-sm font-bold"
+    style="color: var(--text);"
+  />
+
+  Name "Can I start with one employee, and what changes when I upgrade?":
+  <h3
+    class="text-sm font-bold"
+    style="color: var(--text);"
+  />
+
+  Name "What happens if I change devices later?":
+  <h3
+    class="text-sm font-bold"
+    style="color: var(--text);"
+  />
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  <p
+    class="max-w-[34rem] text-base leading-7"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-xs font-medium leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-xs font-black uppercase tracking-[0.18em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-base leading-7"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-xs font-black uppercase tracking-[0.18em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="mt-1 text-sm font-semibold"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="rounded-full border border-[var(--focus)]/20 bg-white/70 px-3 py-1.5 text-sm font-semibold shadow-sm"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 max-w-[28ch] text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-xs font-black uppercase tracking-[0.16em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="mt-2 text-base font-semibold leading-6"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="mt-1 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-xs font-black uppercase tracking-[0.16em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="mt-2 text-base font-semibold leading-6"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="mt-1 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-xs font-black uppercase tracking-[0.16em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="mt-2 text-base font-semibold leading-6"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="mt-1 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-xs font-black uppercase tracking-[0.16em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-sm font-semibold"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-right font-[family:var(--font-serif)] text-lg font-semibold tabular-nums "
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="text-sm font-semibold"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="text-right font-[family:var(--font-serif)] text-lg font-semibold tabular-nums "
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="text-sm font-semibold"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-right font-[family:var(--font-serif)] text-lg font-semibold tabular-nums "
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="text-sm font-semibold"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="text-right font-[family:var(--font-serif)] text-lg font-semibold tabular-nums text-[var(--primary-pressed)]"
+    style="color: var(--primary-pressed);"
+  />
+
+  Name "":
+  <p
+    class="text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.18em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="rounded-full border border-[var(--focus)]/20 bg-white/70 px-3 py-1.5 text-xs font-semibold shadow-sm"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="mt-2 text-xs font-semibold uppercase tracking-[0.16em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.18em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-2 rounded-full bg-[var(--accent-subtle)] px-3 py-1.5 text-sm font-semibold"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.16em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="mt-2 text-sm font-semibold"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.16em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="mt-2 text-sm font-semibold"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p />
+
+  Name "":
+  <p
+    class="tabular-nums"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.16em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="mt-2 text-sm font-semibold"
+    style="color: var(--text);"
+  />
+
+  Name "":
+  <p />
+
+  Name "":
+  <p
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.18em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-1 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="font-[family:var(--font-serif)] text-3xl font-semibold tabular-nums"
+    style="color: var(--primary-pressed);"
+  />
+
+  Name "":
+  <p
+    class="mt-4 text-xs leading-5"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-xs font-black uppercase tracking-[0.18em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="max-w-[44rem] text-base leading-7"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.18em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.18em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.18em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-xs font-black uppercase tracking-[0.18em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-base leading-7"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-xs font-black uppercase tracking-[0.18em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-base leading-7"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-[11px] font-semibold uppercase tracking-wider"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.2em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm font-semibold"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.2em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm font-semibold"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.16em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.2em]"
+    style="color: var(--primary);"
+  />
+
+  Name "":
+  <p
+    class="text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm font-semibold"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-[10px] font-black uppercase tracking-[0.16em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]"
+  />
+
+  Name "":
+  <p
+    class="text-xs font-black uppercase tracking-[0.18em]"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="text-base leading-7"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <p
+    class="mt-3 text-sm leading-6"
+    style="color: var(--text-muted);"
+  />
+
+  --------------------------------------------------
+  article:
+
+  Name "":
+  <article
+    class="flex h-full flex-col overflow-hidden rounded-[30px] border bg-[var(--surface-1)] transition-all border-[var(--border)] shadow-[var(--shadow-1)] "
+  />
+
+  Name "":
+  <article
+    class="flex h-full flex-col overflow-hidden rounded-[30px] border bg-[var(--surface-1)] transition-all border-2 border-[var(--primary)] shadow-[0_20px_50px_rgba(0,122,77,0.12)] "
+  />
+
+  Name "":
+  <article
+    class="flex h-full flex-col overflow-hidden rounded-[30px] border bg-[var(--surface-1)] transition-all border-[var(--border)] shadow-[var(--shadow-1)] "
+  />
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  <ul
+    class="space-y-3.5"
+  />
+
+  Name "":
+  <ul
+    class="space-y-3.5"
+  />
+
+  Name "":
+  <ul
+    class="space-y-3.5"
+  />
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  Name "":
+  <li
+    class="flex items-start gap-3 text-sm"
+    style="color: var(--text-muted);"
+  />
+
+  --------------------------------------------------
+  group:
+
+  Name "":
+  <details
+    class="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5 transition-all hover:border-[var(--primary)]/30"
+    style="background-color: var(--surface-1);"
+  />
+
+  Name "":
+  <details
+    class="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5 transition-all hover:border-[var(--primary)]/30"
+    style="background-color: var(--surface-1);"
+  />
+
+  Name "":
+  <details
+    class="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5 transition-all hover:border-[var(--primary)]/30"
+    style="background-color: var(--surface-1);"
+  />
+
+  Name "":
+  <details
+    class="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5 transition-all hover:border-[var(--primary)]/30"
+    style="background-color: var(--surface-1);"
+  />
+
+  Name "":
+  <details
+    class="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5 transition-all hover:border-[var(--primary)]/30"
+    style="background-color: var(--surface-1);"
+  />
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen flex flex-col selection:bg-amber-200"
+      style="background-color: var(--bg);"
+    >
+      <header
+        class="sticky top-0 z-30 bg-[var(--bg)] shadow-[var(--shadow-1)]"
+        style="border-bottom: 1px solid var(--border);"
+      >
+        <div
+          class="content-container-wide flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8"
+        >
+          <a
+            class="rounded-lg py-1"
+            href="/"
+          >
+            <div
+              class="flex items-center gap-3 shrink-0 select-none"
+            >
+              <span
+                class="relative flex shrink-0 items-center justify-center"
+              >
+                <img
+                  alt="LekkerLedger ledger-file logo"
+                  class="object-contain h-12 w-12 sm:h-[3.25rem] sm:w-[3.25rem]"
+                  data-nimg="1"
+                  decoding="async"
+                  height="88"
+                  src="/brand/logo-mark-vector.svg"
+                  style="color: transparent;"
+                  width="88"
+                />
+              </span>
+              <span
+                class="flex min-w-0 flex-col"
+              >
+                <span
+                  class="font-serif text-[1.35rem] font-semibold leading-none tracking-[-0.03em] text-[var(--text)] sm:text-[1.5rem]"
+                >
+                  LekkerLedger
+                </span>
+                <span
+                  class="mt-2 h-[2px] w-16 rounded-full bg-[linear-gradient(90deg,#C47A1C,#007A4D)]"
+                />
+              </span>
+            </div>
+          </a>
+          <nav
+            class="hidden lg:flex items-center gap-8"
+          >
+            <a
+              class="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]"
+              href="/pricing"
+            >
+              Pricing
+            </a>
+            <a
+              class="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]"
+              href="/#how-it-works"
+            >
+              How it works
+            </a>
+            <a
+              class="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]"
+              href="/#faq"
+            >
+              FAQ
+            </a>
+          </nav>
+          <div
+            class="hidden lg:flex items-center gap-3"
+          >
+            <a
+              href="/open-app"
+            >
+              <button
+                aria-busy="false"
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 disabled:pointer-events-none disabled:opacity-55 active-scale select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 min-h-[44px] px-4 py-2.5 type-label rounded-[12px] hover:bg-[var(--surface-raised)] hover:text-[var(--text)] h-11 rounded-xl px-4 font-bold"
+                style="background-color: transparent; color: var(--text-muted); border: 1px solid transparent;"
+              >
+                Open app
+              </button>
+            </a>
+            <a
+              href="/onboarding"
+            >
+              <button
+                aria-busy="false"
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 disabled:pointer-events-none disabled:opacity-55 active-scale select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 min-h-[44px] px-4 py-2.5 type-label rounded-[12px] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] hover:shadow-[var(--shadow-1)] h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-1)]"
+                style="background-color: var(--primary); color: var(--on-primary); border: 1px solid transparent;"
+              >
+                Start free 
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-arrow-right h-4 w-4"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M5 12h14"
+                  />
+                  <path
+                    d="m12 5 7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </a>
+          </div>
+          <button
+            aria-label="Open menu"
+            class="lg:hidden flex h-10 w-10 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-raised)]"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-menu h-5 w-5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              ...
+ Γ¥» Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ Γ¥» __tests__/home.test.tsx:19:23
+     17|         expect(screen.queryByText(/live preview/i)).toBeNull();
+     18|         expect(screen.queryByText(/the homepage now shows the flow oncΓÇª
+     19|         expect(screen.getByRole("heading", { name: /keep the month cleΓÇª
+       |                       ^
+     20|         expect(screen.getByRole("heading", { name: /pick the plan thatΓÇª
+     21|         expect(screen.getByRole("heading", { name: /questions householΓÇª
+
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m33 passed[39m[22m[90m (34)[39m
+[2m   Start at [22m 04:02:33
+[2m   Duration [22m 6.14s[2m (transform 547ms, setup 2.45s, import 3.93s, tests 2.16s, environment 16.27s)[22m
+

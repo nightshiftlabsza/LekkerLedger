@@ -15,7 +15,7 @@ import { getUserPlan, canCreateEmployee } from "@/lib/entitlements";
 import { NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import { formatEmployeeIdNumberInput, normalizeEmployeeIdNumber } from "@/src/lib/employee-id";
-
+import { useUnsavedChanges } from "@/app/hooks/use-unsaved-changes";
 
 export default function AddEmployeePage() {
     const router = useRouter();
@@ -33,10 +33,18 @@ export default function AddEmployeePage() {
         ordinaryHoursPerDay: "8",
         frequency: "Monthly",
     });
+    const [isDirty, setIsDirty] = React.useState(false);
     const [errors, setErrors] = React.useState<Record<string, string>>({});
     const [canAdd, setCanAdd] = React.useState(true);
     const [tierLimitReached, setTierLimitReached] = React.useState<string | null>(null);
     const onboardingSource = searchParams?.get("source") === "onboarding";
+
+    useUnsavedChanges(isDirty);
+
+    const updateForm = (updates: Partial<typeof formData>) => {
+        setFormData(prev => ({ ...prev, ...updates }));
+        setIsDirty(true);
+    };
 
     React.useEffect(() => {
         async function checkLimit() {
@@ -79,6 +87,7 @@ export default function AddEmployeePage() {
         setLoading(true);
         try {
             await saveEmployee(parsed.data as Employee);
+            setIsDirty(false);
             if (onboardingSource) {
                 toast(`${formData.name} saved. Add your employer details before saving the first final payslip.`);
                 router.push(`/wizard?empId=${parsed.data.id}&source=onboarding`);
@@ -96,28 +105,26 @@ export default function AddEmployeePage() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <div className="max-w-xl mx-auto mb-6 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
-                <div className="max-w-xl mx-auto flex items-center gap-3">
-                    <Link href="/employees">
-                        <button
-                            aria-label="Back"
-                            className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-2)]"
-                            style={{ color: "var(--text-muted)" }}
-                        >
-                            <ArrowLeft className="h-4 w-4" />
-                        </button>
-                    </Link>
-                    <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text)" }}>
-                        Add Employee
-                    </h1>
-                </div>
+            <div className="max-w-xl mx-auto mb-6 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 shadow-[var(--shadow-sm)] w-full">
+                <Link href="/employees">
+                    <button
+                        aria-label="Back"
+                        className="h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-[var(--surface-2)] active-scale"
+                        style={{ color: "var(--text-muted)" }}
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </button>
+                </Link>
+                <h1 className="font-bold text-lg tracking-tight" style={{ color: "var(--text)" }}>
+                    Add Employee
+                </h1>
             </div>
 
             <main className="flex-1 w-full px-4 py-6">
                 <div className="max-w-xl mx-auto">
-                    <Card className="animate-slide-up">
-                        <CardContent className="p-6">
-                            <form onSubmit={handleSave} className="space-y-5">
+                    <Card className="animate-slide-up hover-lift shadow-[var(--shadow-md)]">
+                        <CardContent className="p-8">
+                            <form onSubmit={handleSave} className="space-y-6">
                                 {onboardingSource && (
                                     <Alert variant="default" className="border-[var(--primary)]/30 bg-[var(--surface-2)]">
                                         <AlertDescription className="text-[var(--text-muted)]">
@@ -160,7 +167,7 @@ export default function AddEmployeePage() {
                                         id="name"
                                         placeholder="e.g. Thandi Dlamini"
                                         value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        onChange={(e) => updateForm({ name: e.target.value })}
                                         error={errors.name}
                                         disabled={loading}
                                         autoFocus
@@ -173,7 +180,7 @@ export default function AddEmployeePage() {
                                         id="role"
                                         placeholder="e.g. Domestic Worker, Gardener"
                                         value={formData.role}
-                                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                        onChange={(e) => updateForm({ role: e.target.value })}
                                         error={errors.role}
                                         disabled={loading}
                                     />
@@ -185,29 +192,26 @@ export default function AddEmployeePage() {
                                         id="idNumber"
                                         placeholder="e.g. 900101 5009 087"
                                         value={formData.idNumber}
-                                        onChange={(e) => setFormData({ ...formData, idNumber: formatEmployeeIdNumberInput(e.target.value) })}
+                                        onChange={(e) => updateForm({ idNumber: formatEmployeeIdNumberInput(e.target.value) })}
                                         error={errors.idNumber}
                                         disabled={loading}
                                     />
                                     <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        Not required for a basic payslip. Helpful for UIF, uFiling, and yearly records. Saved locally and included in backup only if you turn backup on.
+                                        Not required for a basic payslip. Helpful for UIF, uFiling, and yearly records.
                                     </p>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="phone">Phone Number</Label>
                                         <Input
                                             id="phone"
                                             type="tel"
-                                            placeholder="e.g. 071 234 5678"
+                                            placeholder="071 234 5678"
                                             value={formData.phone}
-                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            onChange={(e) => updateForm({ phone: e.target.value })}
                                             disabled={loading}
                                         />
-                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                            For WhatsApp sharing of payslips.
-                                        </p>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="startDate">Employment Start</Label>
@@ -215,12 +219,9 @@ export default function AddEmployeePage() {
                                             id="startDate"
                                             type="date"
                                             value={formData.startDate}
-                                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                            onChange={(e) => updateForm({ startDate: e.target.value })}
                                             disabled={loading}
                                         />
-                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                            Used to calculate leave.
-                                        </p>
                                     </div>
                                 </div>
 
@@ -240,7 +241,7 @@ export default function AddEmployeePage() {
                                             step="0.01"
                                             placeholder={NMW_RATE.toString()}
                                             value={formData.hourlyRate}
-                                            onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
+                                            onChange={(e) => updateForm({ hourlyRate: e.target.value })}
                                             onFocus={(e) => e.target.select()}
                                             error={errors.hourlyRate}
                                             disabled={loading}
@@ -249,15 +250,9 @@ export default function AddEmployeePage() {
                                     {belowNMW && (
                                         <Alert variant="error">
                                             <AlertDescription>
-                                                National Minimum Wage is <strong>R{NMW_RATE}/hr</strong> for Domestic
-                                                Workers (SD7). You cannot legally pay below this.
+                                                National Minimum Wage is <strong>R{NMW_RATE}/hr</strong>.
                                             </AlertDescription>
                                         </Alert>
-                                    )}
-                                    {!belowNMW && hourlyRateNum >= NMW_RATE && (
-                                        <p className="text-xs" style={{ color: "var(--primary)" }}>
-                                            ✓ Above National Minimum Wage
-                                        </p>
                                     )}
                                 </div>
 
@@ -269,27 +264,19 @@ export default function AddEmployeePage() {
                                         min="1"
                                         max="24"
                                         value={formData.ordinaryHoursPerDay}
-                                        onChange={(e) => setFormData({ ...formData, ordinaryHoursPerDay: e.target.value })}
+                                        onChange={(e) => updateForm({ ordinaryHoursPerDay: e.target.value })}
                                         onFocus={(e) => e.target.select()}
                                         disabled={loading}
                                     />
-                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                        Default 8 hrs. Used to calculate Minimum Sunday Shift Pay (BCEA).
-                                    </p>
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="frequency">Pay Frequency</Label>
                                     <select
                                         id="frequency"
-                                        className="w-full h-10 px-3 rounded-md text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-0 disabled:opacity-50"
-                                        style={{
-                                            border: "1px solid var(--border)",
-                                            backgroundColor: "var(--surface-1)",
-                                            color: "var(--text)",
-                                        }}
+                                        className="w-full h-11 px-4 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[var(--focus)] border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] disabled:opacity-50"
                                         value={formData.frequency}
-                                        onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                                        onChange={(e) => updateForm({ frequency: e.target.value })}
                                         disabled={loading}
                                     >
                                         <option value="Weekly">Weekly</option>
@@ -300,39 +287,36 @@ export default function AddEmployeePage() {
 
                                 <button
                                     type="button"
-                                    onClick={() => setFormData({ ...formData, ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
-                                    className="w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all duration-200 active:scale-[0.99] hover:bg-[var(--surface-2)]"
+                                    onClick={() => updateForm({ ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
+                                    className="w-full flex items-start gap-4 p-5 rounded-2xl text-left transition-all duration-200 active-scale hover:bg-[var(--surface-2)] shadow-[var(--shadow-sm)] border border-[var(--border)]"
                                     style={{
-                                        border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
-                                        backgroundColor: formData.ordinarilyWorksSundays ? "rgba(196,122,28,0.04)" : "transparent",
+                                        backgroundColor: formData.ordinarilyWorksSundays ? "var(--accent-subtle)" : "var(--surface-1)",
+                                        borderColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)",
                                     }}
                                 >
                                     <div
-                                        className="h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200"
+                                        className="h-6 w-6 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200"
                                         style={{
                                             backgroundColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "transparent",
                                             border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
                                         }}
                                     >
-                                        {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />}
+                                        {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-sm" style={{ color: "var(--text)" }}>
+                                        <p className="font-bold text-sm" style={{ color: "var(--text)" }}>
                                             Ordinarily works on Sundays
                                         </p>
-                                        <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                                            If toggled ON, Sunday pay is calculated at 1.5× normal rate. If OFF, Sunday pay is calculated at 2.0× normal rate (BCEA Sect. 16).
+                                        <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                            Adjusts calculation between 1.5× and 2.0× normal rate (BCEA).
                                         </p>
                                     </div>
                                 </button>
 
-                                <div
-                                    className="pt-4"
-                                    style={{ borderTop: "1px solid var(--border)" }}
-                                >
+                                <div className="pt-6 border-t border-[var(--border)]">
                                     <Button
                                         type="submit"
-                                        className="w-full gap-2 h-12 text-base"
+                                        className="w-full gap-2.5 h-14 text-base font-bold rounded-2xl shadow-[var(--shadow-md)] active-scale transition-all"
                                         disabled={loading || belowNMW || !canAdd}
                                     >
                                         {loading ? (
@@ -341,7 +325,7 @@ export default function AddEmployeePage() {
                                             </>
                                         ) : (
                                             <>
-                                                <Save className="h-4 w-4" /> {onboardingSource ? "Save worker and continue" : "Save Employee"}
+                                                <Save className="h-5 w-5" /> {onboardingSource ? "Save worker and continue" : "Save Employee"}
                                             </>
                                         )}
                                     </Button>
@@ -354,5 +338,3 @@ export default function AddEmployeePage() {
         </div>
     );
 }
-
-

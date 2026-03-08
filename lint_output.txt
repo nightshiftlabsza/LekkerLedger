@@ -4,76 +4,46 @@
 
 
 C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\google-sync.tsx
-  5:140  warning  'Smartphone' is defined but never used     @typescript-eslint/no-unused-vars
-  8:39   warning  'GOOGLE_SCOPES' is defined but never used  @typescript-eslint/no-unused-vars
+  137:8  warning  React Hook useCallback has a missing dependency: 'isMountedRef'. Either include it or remove the dependency array                                                          react-hooks/exhaustive-deps
+  157:8  warning  React Hook useCallback has a missing dependency: 'isMountedRef'. Either include it or remove the dependency array                                                          react-hooks/exhaustive-deps
+  178:8  warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', and 'setTransientStatus'. Either include them or remove the dependency array                    react-hooks/exhaustive-deps
+  208:8  warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', 'reloadTimerRef', and 'setTransientStatus'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  230:8  warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', and 'setTransientStatus'. Either include them or remove the dependency array                    react-hooks/exhaustive-deps
+  296:8  warning  React Hook useEffect has missing dependencies: 'isMountedRef', 'reloadTimerRef', and 'statusTimerRef'. Either include them or remove the dependency array                  react-hooks/exhaustive-deps
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\layout\marketing-header.tsx
-  5:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\layout\startup-scripts.tsx
+  6:13  warning  `next/script`'s `beforeInteractive` strategy should not be used outside of `pages/_document.js`. See: https://nextjs.org/docs/messages/no-before-interactive-script-outside-document  @next/next/no-before-interactive-script-outside-document
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\layout\page-shell.tsx
-  5:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\audit\helpers.ts
+  475:15  warning  'textBearingElements' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\layout\side-drawer.tsx
-  5:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
-
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\layout\splash-screen.tsx
-  4:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
-
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\splash-portal.tsx
-  4:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\public\theme-init.js
+  21:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
 
 C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\app-shell.tsx
-  5:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
-
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\compliance\coida\roe\page.tsx
-   36:37  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  362:51  warning  'help' is defined but never used          @typescript-eslint/no-unused-vars
-  362:65  warning  'isEstimate' is defined but never used    @typescript-eslint/no-unused-vars
-  362:79  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  391:66  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\documents\page.tsx
-  11:10  warning  'CardSkeleton' is defined but never used  @typescript-eslint/no-unused-vars
-
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\payroll\[periodId]\page.tsx
-  194:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
 C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\settings\page.tsx
-  24:10  warning  'PLANS' is defined but never used   @typescript-eslint/no-unused-vars
-  24:17  warning  'PlanId' is defined but never used  @typescript-eslint/no-unused-vars
+  79:11  warning  The 'handleSave' function makes the dependencies of useCallback Hook (at line 143) change on every render. To fix this, wrap the definition of 'handleSave' in its own useCallback() Hook                             react-hooks/exhaustive-deps
+  79:11  warning  The 'handleSave' function makes the dependencies of useCallback Hook (at line 162) change on every render. To fix this, wrap the definition of 'handleSave' in its own useCallback() Hook                             react-hooks/exhaustive-deps
+  99:11  warning  The 'customLeaveTypes' logical expression could make the dependencies of useCallback Hook (at line 143) change on every render. To fix this, wrap the initialization of 'customLeaveTypes' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  99:11  warning  The 'customLeaveTypes' logical expression could make the dependencies of useCallback Hook (at line 162) change on every render. To fix this, wrap the initialization of 'customLeaveTypes' in its own useMemo() Hook  react-hooks/exhaustive-deps
 
 C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\upgrade\page.tsx
-  14:10  warning  'getUserPlan' is defined but never used  @typescript-eslint/no-unused-vars
+  7:22  warning  'Loader2' is defined but never used  @typescript-eslint/no-unused-vars
+  8:10  warning  'Button' is defined but never used   @typescript-eslint/no-unused-vars
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\calculator\page.tsx
-  9:10  warning  'getSettings' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\wizard\page.tsx
+  231:8  warning  React Hook React.useCallback has a missing dependency: 'leaveTrackingEnabled'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\page.tsx
-  5:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\entitlements.ts
+  50:39  warning  '_plan' is defined but never used  @typescript-eslint/no-unused-vars
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\pricing\page.tsx
-  5:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\pdf.ts
+  154:5  warning  'isLimited' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\trust\page.tsx
-  3:35  warning  'DollarSign' is defined but never used  @typescript-eslint/no-unused-vars
-  6:10  warning  'PLANS' is defined but never used       @typescript-eslint/no-unused-vars
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\year-end-summary.ts
+  10:7  warning  'LINE_HEIGHT' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\components\payroll\new-payroll-wizard-client.tsx
-  23:12  warning  'loadingData' is assigned a value but never used  @typescript-eslint/no-unused-vars
-
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\components\payroll\payroll-client.tsx
-   7:18  warning  'startOfMonth' is defined but never used   @typescript-eslint/no-unused-vars
-   7:32  warning  'endOfMonth' is defined but never used     @typescript-eslint/no-unused-vars
-  12:10  warning  'CardSkeleton' is defined but never used   @typescript-eslint/no-unused-vars
-  13:25  warning  'savePayPeriod' is defined but never used  @typescript-eslint/no-unused-vars
-
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\coida\coida-pdf.ts
-    1:23  warning  'rgb' is defined but never used           @typescript-eslint/no-unused-vars
-   25:58  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  134:58  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\coida\roe.ts
-  39:11  warning  'employees' is assigned a value but never used  @typescript-eslint/no-unused-vars
-
-Γ£û 32 problems (6 errors, 26 warnings)
+Γ£û 20 problems (1 error, 19 warnings)
 

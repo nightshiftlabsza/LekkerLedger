@@ -19,7 +19,11 @@
       "Bash(echo \"EXIT_CODE: $?\")",
       "Bash(grep -v \"//.*#\")",
       "Bash(git add src/app/globals.css src/app/dashboard/page.tsx src/app/employees/page.tsx src/app/history/page.tsx src/app/page.tsx src/app/pricing/page.tsx components/ui/stepper.tsx)",
-      "Bash(start http://localhost:3002)"
+      "Bash(start http://localhost:3002)",
+      "Bash(grep -v \"//.*Verified\\\\|//.*certified\\\\|//.*official\")",
+      "Bash(find . -path \"*/\\(marketing\\)/*\" -name \"*.tsx\" -not -path \"*/node_modules/*\" -not -path \"*/.next/*\")",
+      "Bash(ls /c/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/\\\\\\(marketing\\\\\\)/)",
+      "Bash(grep -v \"node_modules\\\\|//\")"
     ]
   }
 }

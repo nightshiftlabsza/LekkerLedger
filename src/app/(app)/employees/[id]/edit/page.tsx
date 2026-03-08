@@ -14,6 +14,7 @@ import { saveEmployee, getEmployee } from "@/lib/storage";
 import { NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import { formatEmployeeIdNumberInput, normalizeEmployeeIdNumber } from "@/src/lib/employee-id";
+import { useUnsavedChanges } from "@/app/hooks/use-unsaved-changes";
 
 export default function EditEmployeePage() {
     const router = useRouter();
@@ -33,7 +34,15 @@ export default function EditEmployeePage() {
         ordinarilyWorksSundays: false,
         ordinaryHoursPerDay: "8",
     });
+    const [isDirty, setIsDirty] = React.useState(false);
     const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+    useUnsavedChanges(isDirty);
+
+    const updateForm = (updates: Partial<typeof formData>) => {
+        setFormData(prev => ({ ...prev, ...updates }));
+        setIsDirty(true);
+    };
 
     React.useEffect(() => {
         async function load() {
@@ -86,6 +95,7 @@ export default function EditEmployeePage() {
         setSaving(true);
         try {
             await saveEmployee(parsed.data as Employee);
+            setIsDirty(false);
             toast("Changes saved successfully!");
             router.push("/employees");
         } catch (err) {
@@ -98,7 +108,7 @@ export default function EditEmployeePage() {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
-                <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
+                <Loader2 className="h-10 w-10 animate-spin text-[var(--primary)]" />
             </div>
         );
     }
@@ -106,28 +116,29 @@ export default function EditEmployeePage() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
-                <div className="max-w-xl mx-auto flex items-center gap-3">
-                    <Link href="/employees">
-                        <button aria-label="Back" className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-2)] text-[var(--text-muted)]">
-                            <ArrowLeft className="h-4 w-4" />
-                        </button>
-                    </Link>
-                    <div>
-                        <p className="text-[10px] leading-none mb-0.5" style={{ color: "var(--text-muted)" }}>
-                            <Link href="/employees" className="hover:underline">Employees</Link> › Edit
-                        </p>
-                        <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text)" }}>
-                            Edit Employee
-                        </h1>
-                    </div>
+            <div className="max-w-xl mx-auto mb-6 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 shadow-[var(--shadow-sm)] w-full">
+                <Link href="/employees">
+                    <button
+                        aria-label="Back"
+                        className="h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-[var(--surface-2)] active-scale text-[var(--text-muted)]"
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </button>
+                </Link>
+                <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] mb-0.5 opacity-60" style={{ color: "var(--text-muted)" }}>
+                        <Link href="/employees" className="hover:text-[var(--primary)] transition-colors">Employees</Link> › Edit
+                    </p>
+                    <h1 className="font-bold text-lg tracking-tight" style={{ color: "var(--text)" }}>
+                        {formData.name || "Edit Employee"}
+                    </h1>
                 </div>
             </div>
 
             <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6">
-                <Card className="animate-slide-up">
-                    <CardContent className="p-6">
-                        <form onSubmit={handleSave} className="space-y-5">
+                <Card className="animate-slide-up hover-lift shadow-[var(--shadow-md)]">
+                    <CardContent className="p-8">
+                        <form onSubmit={handleSave} className="space-y-6">
                             {errors.form && (
                                 <Alert variant="error">
                                     <AlertDescription>{errors.form}</AlertDescription>
@@ -139,7 +150,7 @@ export default function EditEmployeePage() {
                                 <Input
                                     id="name"
                                     value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    onChange={(e) => updateForm({ name: e.target.value })}
                                     error={errors.name}
                                     disabled={saving}
                                 />
@@ -150,7 +161,7 @@ export default function EditEmployeePage() {
                                 <Input
                                     id="role"
                                     value={formData.role}
-                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                    onChange={(e) => updateForm({ role: e.target.value })}
                                     error={errors.role}
                                     disabled={saving}
                                 />
@@ -161,23 +172,20 @@ export default function EditEmployeePage() {
                                 <Input
                                     id="idNumber"
                                     value={formData.idNumber}
-                                    onChange={(e) => setFormData({ ...formData, idNumber: formatEmployeeIdNumberInput(e.target.value) })}
+                                    onChange={(e) => updateForm({ idNumber: formatEmployeeIdNumberInput(e.target.value) })}
                                     error={errors.idNumber}
                                     disabled={saving}
                                 />
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                    Not required for a basic payslip. Helpful for UIF, uFiling, and yearly records.
-                                </p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="phone">Phone Number</Label>
                                     <Input
                                         id="phone"
                                         type="tel"
                                         value={formData.phone}
-                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                        onChange={(e) => updateForm({ phone: e.target.value })}
                                         disabled={saving}
                                     />
                                 </div>
@@ -187,7 +195,7 @@ export default function EditEmployeePage() {
                                         id="startDate"
                                         type="date"
                                         value={formData.startDate}
-                                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                        onChange={(e) => updateForm({ startDate: e.target.value })}
                                         disabled={saving}
                                     />
                                 </div>
@@ -203,7 +211,7 @@ export default function EditEmployeePage() {
                                         type="number"
                                         step="0.01"
                                         value={formData.hourlyRate}
-                                        onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
+                                        onChange={(e) => updateForm({ hourlyRate: e.target.value })}
                                         error={errors.hourlyRate}
                                         disabled={saving}
                                     />
@@ -211,7 +219,7 @@ export default function EditEmployeePage() {
                                 {belowNMW && (
                                     <Alert variant="error">
                                         <AlertDescription>
-                                            National Minimum Wage is <strong>R{NMW_RATE}/hr</strong>. You cannot legally pay below this.
+                                            National Minimum Wage is <strong>R{NMW_RATE}/hr</strong>.
                                         </AlertDescription>
                                     </Alert>
                                 )}
@@ -225,42 +233,42 @@ export default function EditEmployeePage() {
                                     min="1"
                                     max="24"
                                     value={formData.ordinaryHoursPerDay}
-                                    onChange={(e) => setFormData({ ...formData, ordinaryHoursPerDay: e.target.value })}
+                                    onChange={(e) => updateForm({ ordinaryHoursPerDay: e.target.value })}
                                     disabled={saving}
                                 />
                             </div>
 
                             <button
                                 type="button"
-                                onClick={() => setFormData({ ...formData, ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
-                                className="w-full flex items-start gap-4 p-4 rounded-xl text-left transition-all hover:bg-[var(--surface-2)]"
+                                onClick={() => updateForm({ ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
+                                className="w-full flex items-start gap-4 p-5 rounded-2xl text-left transition-all duration-200 active-scale hover:bg-[var(--surface-2)] shadow-[var(--shadow-sm)] border border-[var(--border)]"
                                 style={{
-                                    border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
-                                    backgroundColor: formData.ordinarilyWorksSundays ? "rgba(196,122,28,0.04)" : "transparent",
+                                    backgroundColor: formData.ordinarilyWorksSundays ? "var(--accent-subtle)" : "var(--surface-1)",
+                                    borderColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)",
                                 }}
                             >
                                 <div
-                                    className="h-6 w-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+                                    className="h-6 w-6 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200"
                                     style={{
                                         backgroundColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "transparent",
                                         border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
                                     }}
                                 >
-                                    {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />}
+                                    {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
                                 </div>
                                 <div className="flex-1">
-                                    <p className="font-semibold text-sm">Ordinarily works on Sundays</p>
-                                    <p className="text-xs mt-0.5 opacity-70">Toggled on = 1.5x Sunday rate. Off = 2.0x (BCEA Section 16).</p>
+                                    <p className="font-bold text-sm" style={{ color: "var(--text)" }}>Ordinarily works on Sundays</p>
+                                    <p className="text-xs mt-1 leading-relaxed opacity-70">Adjusts calculation between 1.5× and 2.0× normal rate (BCEA).</p>
                                 </div>
                             </button>
 
-                            <div className="pt-4">
+                            <div className="pt-6 border-t border-[var(--border)]">
                                 <Button
                                     type="submit"
-                                    className="w-full h-12 text-base font-bold"
+                                    className="w-full h-14 text-base font-bold rounded-2xl shadow-[var(--shadow-md)] active-scale transition-all"
                                     disabled={saving || belowNMW}
                                 >
-                                    {saving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                    {saving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
                                     {saving ? "Saving Changes..." : "Save Changes"}
                                 </Button>
                             </div>
@@ -271,4 +279,3 @@ export default function EditEmployeePage() {
         </div>
     );
 }
-

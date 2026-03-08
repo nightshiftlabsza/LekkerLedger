@@ -3,7 +3,7 @@
 import * as React from "react";
 import { format, parseISO } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Save, ArrowLeft, Loader2, CalendarRange, AlertTriangle } from "lucide-react";
+import { Save, ArrowLeft, Loader2, CalendarRange, AlertTriangle, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -12,6 +12,8 @@ import { getContractsForEmployee, getEmployees, getLeaveForEmployee, getSettings
 import { calculateAnnualLeaveSummary, estimateLeaveDays, formatLeaveValue, getLeaveAllowanceForType, getLeaveTypeLabel } from "@/lib/leave";
 import { canUseAdvancedLeaveFeatures, getUserPlan } from "@/lib/entitlements";
 import { Contract, CustomLeaveType, Employee, LeaveRecord, LeaveType } from "@/lib/schema";
+import { useToast } from "@/components/ui/toast";
+import { useUnsavedChanges } from "@/app/hooks/use-unsaved-changes";
 
 type LeaveFormData = {
     employeeId: string;
@@ -72,13 +74,13 @@ function DateSelectField({
     };
 
     return (
-        <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</label>
-            <div className="grid grid-cols-3 gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-2">
+        <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--text-muted)] ml-1">{label}</label>
+            <div className="grid grid-cols-3 gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-2 shadow-[var(--shadow-sm)]">
                 <select
                     value={day}
                     onChange={(event) => updateValue(year, month, Number(event.target.value))}
-                    className="h-11 rounded-xl border border-[var(--border)] bg-white px-3 text-sm font-medium text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--focus)]/25"
+                    className="h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] px-3 text-sm font-bold text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--focus)] transition-all"
                 >
                     {Array.from({ length: daysInMonth }, (_, index) => index + 1).map((valueOption) => (
                         <option key={valueOption} value={valueOption}>
@@ -89,7 +91,7 @@ function DateSelectField({
                 <select
                     value={month}
                     onChange={(event) => updateValue(year, Number(event.target.value), day)}
-                    className="h-11 rounded-xl border border-[var(--border)] bg-white px-3 text-sm font-medium text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--focus)]/25"
+                    className="h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] px-3 text-sm font-bold text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--focus)] transition-all"
                 >
                     {months.map((monthOption) => (
                         <option key={monthOption.value} value={monthOption.value}>
@@ -100,7 +102,7 @@ function DateSelectField({
                 <select
                     value={year}
                     onChange={(event) => updateValue(Number(event.target.value), month, day)}
-                    className="h-11 rounded-xl border border-[var(--border)] bg-white px-3 text-sm font-medium text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--focus)]/25"
+                    className="h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] px-3 text-sm font-bold text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--focus)] transition-all"
                 >
                     {years.map((valueOption) => (
                         <option key={valueOption} value={valueOption}>
@@ -116,6 +118,7 @@ function DateSelectField({
 function NewLeaveContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { toast } = useToast();
     const preselectedEmpId = searchParams.get("employeeId");
     const today = React.useMemo(() => new Date(), []);
 
@@ -135,7 +138,15 @@ function NewLeaveContent() {
         note: "",
         allowOverrun: false,
     });
+    const [isDirty, setIsDirty] = React.useState(false);
     const [daysTouched, setDaysTouched] = React.useState(false);
+
+    useUnsavedChanges(isDirty);
+
+    const updateForm = (updates: Partial<typeof formData>) => {
+        setFormData(prev => ({ ...prev, ...updates }));
+        setIsDirty(true);
+    };
 
     React.useEffect(() => {
         let active = true;
@@ -195,9 +206,11 @@ function NewLeaveContent() {
             })),
         ];
     }, [advancedLeaveEnabled, customLeaveTypes]);
+
     const annualSummary = selectedEmployee?.startDate
         ? calculateAnnualLeaveSummary(selectedEmployee.startDate, selectedRecords, selectedContracts, parseISO(formData.startDate))
         : null;
+    
     const leaveBalance = getLeaveAllowanceForType(
         formData.type,
         selectedRecords,
@@ -232,6 +245,8 @@ function NewLeaveContent() {
                 note: formData.note,
             };
             await saveLeaveRecord(record);
+            setIsDirty(false);
+            toast("Leave record saved successfully!");
             router.push("/leave");
         } catch (error) {
             console.error("Failed to save leave record", error);
@@ -240,106 +255,92 @@ function NewLeaveContent() {
     };
 
     if (loading) {
-        return <div className="p-8 flex justify-center"><Loader2 className="animate-spin h-8 w-8 text-[var(--primary)]" /></div>;
+        return (
+            <div className="p-12 flex justify-center">
+                <Loader2 className="animate-spin h-10 w-10 text-[var(--primary)]" />
+            </div>
+        );
     }
 
     return (
         <div className="max-w-3xl mx-auto space-y-6">
-            <button
-                onClick={() => router.back()}
-                className="flex items-center gap-2 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
-            >
-                <ArrowLeft className="h-4 w-4" /> Back
-            </button>
+            <div className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 shadow-[var(--shadow-sm)] w-full">
+                <button
+                    onClick={() => router.back()}
+                    className="h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-[var(--surface-2)] active-scale text-[var(--text-muted)]"
+                >
+                    <ArrowLeft className="h-5 w-5" />
+                </button>
+                <h1 className="font-bold text-lg tracking-tight" style={{ color: "var(--text)" }}>
+                    Record Leave
+                </h1>
+            </div>
 
-            <PageHeader
-                title="Record leave"
-                subtitle="Choose a start and end date, check the remaining balance, and override only if you want to allow extra leave."
-            />
-
-            <Card className="glass-panel border-none shadow-xl">
-                <CardContent className="p-6 space-y-6">
-                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/65 p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--primary)] text-white">
-                                <CalendarRange className="h-5 w-5" />
+            <Card className="animate-slide-up hover-lift shadow-[var(--shadow-md)] overflow-hidden">
+                <CardContent className="p-0">
+                    <div className="p-8 bg-[var(--accent-subtle)] border-b border-[var(--border)]">
+                        <div className="flex items-center gap-4">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--primary)] text-white shadow-[var(--shadow-sm)]">
+                                <CalendarRange className="h-6 w-6" />
                             </div>
                             <div>
-                                <p className="text-sm font-bold text-[var(--text)]">Leave days are estimated from the date range</p>
-                                <p className="text-xs text-[var(--text-muted)]">Weekdays are counted by default. You can adjust the total if this employee works a different pattern.</p>
+                                <h2 className="text-base font-bold text-[var(--text)]">Leave days estimation</h2>
+                                <p className="text-xs text-[var(--text-muted)] leading-relaxed max-w-md">Weekdays are counted automatically. Feel free to adjust the total manually if your worker follows a different pattern.</p>
                             </div>
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Employee</label>
-                            <select
-                                value={formData.employeeId}
-                                onChange={(event) => setFormData((current) => ({ ...current, employeeId: event.target.value, allowOverrun: false }))}
-                                className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
-                                required
-                            >
-                                {employees.map((employee) => (
-                                    <option key={employee.id} value={employee.id}>{employee.name}</option>
-                                ))}
-                            </select>
-                        </div>
+                    <form onSubmit={handleSubmit} className="p-8 space-y-8">
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--text-muted)] ml-1">Employee</label>
+                                <select
+                                    value={formData.employeeId}
+                                    onChange={(event) => updateForm({ employeeId: event.target.value, allowOverrun: false })}
+                                    className="w-full h-12 px-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)] outline-none transition-all shadow-[var(--shadow-sm)]"
+                                    required
+                                >
+                                    {employees.map((employee) => (
+                                        <option key={employee.id} value={employee.id}>{employee.name}</option>
+                                    ))}
+                                </select>
+                            </div>
 
-                        <div className="grid gap-4 md:grid-cols-[1fr,220px]">
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Leave type</label>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--text-muted)] ml-1">Leave type</label>
                                 <select
                                     value={formData.type}
-                                    onChange={(event) => setFormData((current) => ({ ...current, type: event.target.value as LeaveType, allowOverrun: false }))}
-                                    className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
+                                    onChange={(event) => updateForm({ type: event.target.value as LeaveType, allowOverrun: false })}
+                                    className="w-full h-12 px-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)] outline-none transition-all shadow-[var(--shadow-sm)]"
                                     required
                                 >
                                     {availableLeaveTypes.map((type) => (
-                                        <option key={type.id} value={type.id}>
-                                            {type.label}
-                                        </option>
+                                        <option key={type.id} value={type.id}>{type.label}</option>
                                     ))}
                                 </select>
-                                {!advancedLeaveEnabled && (
-                                    <p className="mt-2 text-xs text-[var(--text-muted)]">Custom leave types are available on Pro.</p>
-                                )}
-                            </div>
-                            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Remaining now</p>
-                                <p className="mt-2 text-2xl font-black text-[var(--text)]">{formatLeaveValue(leaveBalance.remaining)}</p>
-                                <p className="text-xs text-[var(--text-muted)]">{getLeaveTypeLabel(formData.type, customLeaveTypes)} left before this entry</p>
-                                {formData.type === "annual" && advancedLeaveEnabled && (annualSummary?.remainingCarryOver ?? 0) > 0 && (
-                                    <p className="mt-2 text-xs text-[var(--text-muted)]">
-                                        {formatLeaveValue(annualSummary?.remainingCarryOver ?? 0)} carried-over day{annualSummary?.remainingCarryOver === 1 ? "" : "s"} will be used first.
-                                    </p>
-                                )}
-                                {customType?.note && (
-                                    <p className="mt-2 text-xs text-[var(--text-muted)]">{customType.note}</p>
-                                )}
                             </div>
                         </div>
 
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-6 md:grid-cols-2">
                             <DateSelectField
                                 label="Start date"
                                 value={formData.startDate}
-                                onChange={(value) => setFormData((current) => {
-                                    const safeEndDate = current.endDate < value ? value : current.endDate;
-                                    return { ...current, startDate: value, endDate: safeEndDate, allowOverrun: false };
-                                })}
+                                onChange={(value) => {
+                                    const safeEndDate = formData.endDate < value ? value : formData.endDate;
+                                    updateForm({ startDate: value, endDate: safeEndDate, allowOverrun: false });
+                                }}
                             />
                             <DateSelectField
                                 label="End date"
                                 value={formData.endDate}
                                 min={formData.startDate}
-                                onChange={(value) => setFormData((current) => ({ ...current, endDate: value, allowOverrun: false }))}
+                                onChange={(value) => updateForm({ endDate: value, allowOverrun: false })}
                             />
                         </div>
 
-                        <div className="grid gap-4 md:grid-cols-[220px,1fr]">
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Days to record</label>
+                        <div className="grid gap-6 md:grid-cols-[180px,1fr]">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--text-muted)] ml-1">Days to record</label>
                                 <input
                                     type="number"
                                     min="0.5"
@@ -347,75 +348,86 @@ function NewLeaveContent() {
                                     value={formData.days}
                                     onChange={(event) => {
                                         setDaysTouched(true);
-                                        setFormData((current) => ({ ...current, days: parseFloat(event.target.value) || 0, allowOverrun: false }));
+                                        updateForm({ days: parseFloat(event.target.value) || 0, allowOverrun: false });
                                     }}
-                                    className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none font-mono"
+                                    className="w-full h-12 px-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-black text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)] outline-none shadow-[var(--shadow-sm)]"
                                     required
                                 />
                             </div>
-                            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/55 p-4">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Allowance guide</p>
-                                <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                                    <div>
-                                        <p className="text-xs text-[var(--text-muted)]">Allowance</p>
-                                        <p className="text-lg font-bold text-[var(--text)]">{formatLeaveValue(leaveBalance.allowance)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-[var(--text-muted)]">Used</p>
-                                        <p className="text-lg font-bold text-[var(--text)]">{formatLeaveValue(leaveBalance.used)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-[var(--text-muted)]">After this entry</p>
-                                        <p className={`text-lg font-bold ${Number.isFinite(leaveBalance.remaining) && leaveBalance.remaining - formData.days < 0 ? "text-[var(--danger)]" : "text-[var(--text)]"}`}>
-                                            {Number.isFinite(leaveBalance.remaining) ? formatLeaveValue(leaveBalance.remaining - formData.days) : "Unlimited"}
-                                        </p>
-                                    </div>
+                            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-5 shadow-[var(--shadow-sm)] flex flex-col justify-center">
+                                <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--text-muted)]">Remaining Balance</p>
+                                <div className="mt-2 flex items-baseline gap-3">
+                                    <span className="text-3xl font-black text-[var(--text)] tracking-tighter">
+                                        {formatLeaveValue(leaveBalance.remaining)}
+                                    </span>
+                                    <span className="text-xs font-bold text-[var(--text-muted)]">
+                                        {getLeaveTypeLabel(formData.type, customLeaveTypes)} remaining
+                                    </span>
                                 </div>
+                                {formData.type === "annual" && advancedLeaveEnabled && (annualSummary?.remainingCarryOver ?? 0) > 0 && (
+                                    <p className="mt-2 text-xs font-semibold text-[var(--primary)] px-2 py-1 bg-[var(--accent-subtle)] rounded-lg w-fit">
+                                        Using {formatLeaveValue(annualSummary?.remainingCarryOver ?? 0)} carried-over days first
+                                    </p>
+                                )}
                             </div>
                         </div>
 
                         {exceedsAllowance && (
-                            <Alert variant="warning">
-                                <AlertTitle>More leave than the remaining balance</AlertTitle>
-                                <AlertDescription>
-                                    This entry is {formData.days - Math.max(leaveBalance.remaining, 0)} day{formData.days - Math.max(leaveBalance.remaining, 0) === 1 ? "" : "s"} over the current balance. You can still save it if you want to allow additional paid or unpaid leave.
-                                </AlertDescription>
-                            </Alert>
+                            <div className="space-y-4">
+                                <Alert variant="warning" className="rounded-2xl border-[var(--focus)] bg-[var(--surface-raised)] shadow-[var(--shadow-sm)]">
+                                    <AlertTriangle className="h-5 w-5 text-[var(--focus)]" />
+                                    <AlertTitle className="font-bold text-[var(--text)]">Exceeds available balance</AlertTitle>
+                                    <AlertDescription className="text-sm text-[var(--text-muted)]">
+                                        This entry is {formData.days - Math.max(leaveBalance.remaining, 0)} day{formData.days - Math.max(leaveBalance.remaining, 0) === 1 ? "" : "s"} over the current balance.
+                                    </AlertDescription>
+                                </Alert>
+
+                                <button
+                                    type="button"
+                                    onClick={() => updateForm({ allowOverrun: !formData.allowOverrun })}
+                                    className="w-full flex items-center gap-4 p-5 rounded-2xl text-left transition-all duration-200 active-scale hover:bg-[var(--surface-2)] shadow-[var(--shadow-sm)] border border-[var(--border)]"
+                                    style={{
+                                        backgroundColor: formData.allowOverrun ? "var(--accent-subtle)" : "var(--surface-1)",
+                                        borderColor: formData.allowOverrun ? "var(--primary)" : "var(--border)",
+                                    }}
+                                >
+                                    <div
+                                        className="h-6 w-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                                        style={{
+                                            backgroundColor: formData.allowOverrun ? "var(--primary)" : "transparent",
+                                            border: `1.5px solid ${formData.allowOverrun ? "var(--primary)" : "var(--border)"}`,
+                                        }}
+                                    >
+                                        {formData.allowOverrun && <Check className="h-4 w-4 text-white" strokeWidth={4} />}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-sm" style={{ color: "var(--text)" }}>Grant extra leave</p>
+                                        <p className="text-xs mt-1 text-[var(--text-muted)]">Allows saving this record even though it exceeds the balance.</p>
+                                    </div>
+                                </button>
+                            </div>
                         )}
 
-                        {exceedsAllowance && (
-                            <label className="flex items-start gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.allowOverrun}
-                                    onChange={(event) => setFormData((current) => ({ ...current, allowOverrun: event.target.checked }))}
-                                    className="mt-1 h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--focus)]"
-                                />
-                                <div>
-                                    <p className="text-sm font-bold text-[var(--text)]">Allow this leave anyway</p>
-                                    <p className="text-xs text-[var(--text-muted)]">Use this if you are granting extra days beyond the usual balance.</p>
-                                </div>
-                            </label>
-                        )}
-
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Notes</label>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--text-muted)] ml-1">Notes</label>
                             <textarea
                                 value={formData.note}
-                                onChange={(event) => setFormData((current) => ({ ...current, note: event.target.value }))}
-                                className="w-full min-h-[110px] rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 text-sm text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--focus)]/20"
-                                placeholder="Optional note for your records"
+                                onChange={(event) => updateForm({ note: event.target.value })}
+                                className="w-full min-h-[120px] rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-5 text-sm font-medium text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--focus)] transition-all shadow-[var(--shadow-sm)]"
+                                placeholder="Add an optional note..."
                             />
                         </div>
 
-                        <Button
-                            type="submit"
-                            disabled={saving || (exceedsAllowance && !formData.allowOverrun)}
-                            className="w-full h-12 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] transition-all gap-2"
-                        >
-                            {saving ? <Loader2 className="animate-spin h-4 w-4" /> : exceedsAllowance ? <AlertTriangle className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-                            {saving ? "Saving..." : "Save leave record"}
-                        </Button>
+                        <div className="pt-6 border-t border-[var(--border)]">
+                            <Button
+                                type="submit"
+                                disabled={saving || (exceedsAllowance && !formData.allowOverrun)}
+                                className="w-full h-14 text-base font-black rounded-2xl shadow-[var(--shadow-md)] active-scale transition-all gap-3"
+                            >
+                                {saving ? <Loader2 className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />}
+                                {saving ? "Saving Record..." : "Save Leave Record"}
+                            </Button>
+                        </div>
                     </form>
                 </CardContent>
             </Card>
@@ -425,7 +437,12 @@ function NewLeaveContent() {
 
 export default function NewLeavePage() {
     return (
-        <React.Suspense fallback={<div className="p-8 flex justify-center"><Loader2 className="animate-spin h-8 w-8 text-[var(--primary)]" /></div>}>
+        <React.Suspense fallback={
+            <div className="p-12 flex flex-col items-center gap-4">
+                <Loader2 className="animate-spin h-10 w-10 text-[var(--primary)]" />
+                <p className="text-sm font-bold text-[var(--text-muted)] animate-pulse">Loading leave data...</p>
+            </div>
+        }>
             <NewLeaveContent />
         </React.Suspense>
     );

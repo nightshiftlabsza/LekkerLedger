@@ -49,9 +49,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     React.useEffect(() => {
         let active = true;
+        let lastLoadPromise: Promise<unknown> | null = null;
+
         async function loadShellContext() {
-            const [loadedHouseholds, settings] = await Promise.all([getHouseholds(), getSettings()]);
-            if (!active) return;
+            const thisPromise = Promise.all([getHouseholds(), getSettings()]);
+            lastLoadPromise = thisPromise;
+            
+            const [loadedHouseholds, settings] = await thisPromise;
+            if (!active || lastLoadPromise !== thisPromise) return;
+
             setHouseholds(loadedHouseholds);
             setSettingsState(settings);
             setActiveHouseholdState(settings.activeHouseholdId || "default");
@@ -83,20 +89,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         if (!accessToken) return;
 
         autoBackupInFlightRef.current = true;
-        void (async () => {
-            const success = await syncDataToDrive(accessToken);
-            if (success) {
-                const timestamp = new Date().toISOString();
-                const latestSettings = await getSettings();
-                await saveSettings({
-                    ...latestSettings,
-                    lastBackupTimestamp: timestamp,
-                });
-                if (typeof window !== "undefined") {
-                    window.localStorage.setItem("ll_last_sync", timestamp);
-                }
+        const syncTimeout = setTimeout(() => {
+            if (autoBackupInFlightRef.current) {
+                console.warn("Auto-backup timed out");
+                autoBackupInFlightRef.current = false;
             }
-            autoBackupInFlightRef.current = false;
+        }, 30000); // 30s timeout
+
+        void (async () => {
+            try {
+                const success = await syncDataToDrive(accessToken);
+                if (success) {
+                    const timestamp = new Date().toISOString();
+                    const latestSettings = await getSettings();
+                    await saveSettings({
+                        ...latestSettings,
+                        lastBackupTimestamp: timestamp,
+                    });
+                    if (typeof window !== "undefined") {
+                        window.localStorage.setItem("ll_last_sync", timestamp);
+                    }
+                }
+            } catch (err) {
+                console.error("Auto-backup failed", err);
+            } finally {
+                clearTimeout(syncTimeout);
+                autoBackupInFlightRef.current = false;
+            }
         })();
     }, [settings]);
 
@@ -179,7 +198,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return (
         <ToastProvider>
             <div className="min-h-screen flex flex-col lg:pl-64" style={{ backgroundColor: "var(--bg)" }}>
-                <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)]">
+                <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)] shadow-[var(--shadow-sm)]">
                     <div className="content-container-wide flex w-full items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-3">
                             <SideDrawer open={moreOpen} onOpenChange={setMoreOpen} showButton={true} />
@@ -215,8 +234,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </div>
                 </header>
                 {showOfflineBanner && (
-                    <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold"
-                        style={{ backgroundColor: "rgba(196,122,28,0.10)", borderBottom: "1px solid rgba(196,122,28,0.25)", color: "var(--primary)" }}>
+                    <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold"
+                        style={{ backgroundColor: "var(--accent-subtle)", borderBottom: "1px solid var(--border)", color: "var(--primary)" }}>
                         <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
                             <div className="flex items-center gap-2">
                                 <CloudOff className="h-4 w-4 shrink-0" />
@@ -236,7 +255,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 )}
 
                 {showSyncBanner && (
-                    <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold" style={{ backgroundColor: "rgba(180,35,24,0.08)", color: "var(--danger)", borderBottom: "1px solid rgba(180,35,24,0.22)" }}>
+                    <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold" style={{ backgroundColor: "rgba(180,35,24,0.06)", color: "var(--danger)", borderBottom: "1px solid var(--border)" }}>
                         <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
                             <div className="flex items-center gap-2">
                                 <AlertOctagon className="h-4 w-4 shrink-0" />
@@ -271,7 +290,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </div>
                 )}
 
-                <main id="main-content" className="flex-1 py-8 content-container-wide w-full flex flex-col gap-8 pb-24 lg:pb-8 px-4 sm:px-6 lg:px-8">
+                <main id="main-content" className="flex-1 py-8 content-container-wide w-full flex flex-col gap-8 pb-32 lg:pb-12 px-4 sm:px-6 lg:px-8 safe-area-pb">
                     {children}
                 </main>
 
@@ -357,7 +376,7 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                 type="button"
                 onClick={() => setOpen((current) => !current)}
                 data-testid="account-menu-toggle"
-                className="hidden items-center gap-2 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-3 py-2 shadow-[0_6px_18px_rgba(16,24,40,0.04)] transition-colors hover:border-[var(--primary)]/25 sm:flex"
+                className="hidden items-center gap-2 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-3 py-2 shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25 sm:flex"
             >
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">
                     <CircleUserRound className="h-4 w-4" />

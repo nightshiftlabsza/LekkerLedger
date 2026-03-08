@@ -7,6 +7,12 @@ const withSerwist = withSerwistInit({
   swSrc: "src/app/sw.ts",
   swDest: "public/sw.js",
   disable: isDev, // Disable SW build in dev — prevents file-lock crashes on Windows
+  manifestTransforms: [
+    async (entries) => ({
+      manifest: entries.filter((entry) => entry.url !== "/sample-payslip.pdf"),
+      warnings: [],
+    }),
+  ],
 });
 
 const nextConfig: NextConfig = {

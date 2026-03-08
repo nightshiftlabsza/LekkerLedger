@@ -1,0 +1,5 @@
+npm error Missing script: "tsc"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: C:\Users\mzaka.ZAK-PC\AppData\Local\npm-cache\_logs\2026-03-08T02_33_55_527Z-debug-0.log

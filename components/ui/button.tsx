@@ -77,12 +77,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         const baseClasses = "inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 disabled:pointer-events-none disabled:opacity-55 active-scale select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2";
 
         const hoverMap: Record<string, string> = {
-            default: "hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] hover:shadow-[var(--shadow-1)]",
-            secondary: "hover:bg-[var(--surface-1)] hover:shadow-[var(--shadow-1)]",
-            outline: "hover:bg-[var(--surface-raised)]",
+            default: "hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] hover:shadow-[var(--shadow-md)]",
+            secondary: "hover:bg-[var(--surface-1)] hover:shadow-[var(--shadow-sm)]",
+            outline: "hover:bg-[var(--surface-raised)] hover:border-[var(--border)]",
             ghost: "hover:bg-[var(--surface-raised)] hover:text-[var(--text)]",
             link: "hover:opacity-85",
-            danger: "hover:brightness-95",
+            danger: "hover:brightness-95 hover:shadow-[var(--shadow-md)]",
         };
 
         const finalClassName = [baseClasses, sizeClasses, hoverMap[variant] ?? "", className]
