@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Users, Search, Phone, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { Employee } from "@/lib/schema";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
 
 export function EmployeesClient() {
+    const router = useRouter();
     const SEARCH_VISIBILITY_THRESHOLD = 10;
     const [isClient, setIsClient] = React.useState(false);
     const [loading, setLoading] = React.useState(true);
@@ -140,15 +142,13 @@ export function EmployeesClient() {
                             <DataTable<Employee>
                                 data={filteredEmployees}
                                 keyField={(emp) => emp.id}
+                                onRowClick={(emp) => router.push(`/employees/${emp.id}`)}
                                 columns={[
                                     {
                                         key: "name",
                                         label: "Name",
                                         render: (emp) => (
                                             <div className="flex items-center gap-4">
-                                                <div className="h-10 w-10 shrink-0 rounded-full bg-[var(--accent-subtle)] flex items-center justify-center text-xs font-black text-[var(--primary)] border border-[var(--primary)]/10">
-                                                    {emp.name.substring(0, 2).toUpperCase()}
-                                                </div>
                                                 <div className="flex flex-col text-left min-w-0">
                                                     <span className="type-body-bold text-[var(--text)] truncate">{emp.name}</span>
                                                     <span className="type-overline text-[var(--text-muted)] text-[9px] mt-0.5">{emp.role || "Domestic Worker"}</span>
@@ -196,9 +196,6 @@ export function EmployeesClient() {
                                             <CardContent className="p-5">
                                                 <div className="flex items-center justify-between gap-4">
                                                     <div className="flex items-center gap-4 min-w-0">
-                                                        <div className="h-12 w-12 shrink-0 rounded-full bg-[var(--accent-subtle)] flex items-center justify-center text-sm font-black text-[var(--primary)] border border-[var(--primary)]/10">
-                                                            {emp.name.substring(0, 2).toUpperCase()}
-                                                        </div>
                                                         <div className="flex flex-col min-w-0">
                                                             <span className="type-body-bold text-[var(--text)] truncate text-base">{emp.name}</span>
                                                             <span className="type-overline text-[var(--text-muted)] text-[10px] mt-1">{emp.role || "Domestic Worker"}</span>
@@ -223,15 +220,7 @@ export function EmployeesClient() {
                         </div>
                     )}
                 </div>
-                {employees.length > 0 && (
-                    <div className="adaptive-rail">
-                        <Link href="/employees/new" className="block">
-                            <Button className="w-full bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]">
-                                Add employee
-                            </Button>
-                        </Link>
-                    </div>
-                )}
+
 
             </div>
         </div>

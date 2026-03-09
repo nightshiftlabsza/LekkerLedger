@@ -8,6 +8,7 @@ import {
     Pencil, Trash2, Loader2, FolderOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmployeeLeaveTab } from "@/components/employees/employee-leave-tab";
 import {
@@ -47,7 +48,6 @@ function EmployeeDetailContent() {
     const params = useParams<{ id: string }>();
     const searchParams = useSearchParams();
     const id = params?.id ?? "";
-    const profileSectionRef = React.useRef<HTMLDivElement | null>(null);
 
     const [activeTab, setActiveTab] = React.useState<Tab>("profile");
     const [employee, setEmployee] = React.useState<Employee | null>(null);
@@ -64,7 +64,7 @@ function EmployeeDetailContent() {
     const [advancedLeaveEnabled, setAdvancedLeaveEnabled] = React.useState(false);
     const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
-    const [showProfileEditCta, setShowProfileEditCta] = React.useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = React.useState("");
 
     const handleDeleteEmployee = async () => {
         if (!id) return;
@@ -119,31 +119,7 @@ function EmployeeDetailContent() {
         load();
     }, [id, router, searchParams]);
 
-    React.useEffect(() => {
-        if (activeTab !== "profile") {
-            setShowProfileEditCta(false);
-            return;
-        }
 
-        const node = profileSectionRef.current;
-        if (!node || typeof IntersectionObserver === "undefined") {
-            setShowProfileEditCta(true);
-            return;
-        }
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                setShowProfileEditCta(entry.isIntersecting);
-            },
-            {
-                threshold: 0.35,
-                rootMargin: "0px 0px -18% 0px",
-            },
-        );
-
-        observer.observe(node);
-        return () => observer.disconnect();
-    }, [activeTab]);
 
     const handleDeletePayslip = async (psId: string) => {
         await deletePayslip(psId);
@@ -235,16 +211,15 @@ function EmployeeDetailContent() {
                     >
                         <div className="flex items-center justify-between gap-3">
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
-                                    LekkerLedger
-                                </p>
-                                <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                                    Employee payroll profile
+                                <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                                    Employee Record
                                 </p>
                             </div>
-                            <p className="rounded-full border border-[var(--focus)]/20 bg-white/70 px-3 py-1.5 text-xs font-semibold shadow-sm" style={{ color: "var(--text)" }}>
-                                {monthLabel}
-                            </p>
+                            {latestPayslip && (
+                                <p className="rounded-full border border-[var(--focus)]/20 bg-white/70 px-3 py-1.5 text-xs font-semibold shadow-sm" style={{ color: "var(--text)" }}>
+                                    Latest: {monthLabel}
+                                </p>
+                            )}
                         </div>
 
                         <div className="mt-4 flex gap-1 rounded-2xl border border-[var(--border)] bg-white/55 p-1">
@@ -273,23 +248,27 @@ function EmployeeDetailContent() {
                     <div className="animate-fade-in p-4 sm:p-5">
                         {/* PROFILE TAB */}
                         {activeTab === "profile" && (
-                            <section ref={profileSectionRef}>
+                            <section>
                                 <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-4">
-                                    <div>
-                                        <h2 className="font-[family:var(--font-serif)] text-xl font-semibold" style={{ color: "var(--text)" }}>
-                                            EMPLOYEE RECORD
-                                        </h2>
-                                        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
-                                            Household payroll profile
-                                        </p>
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--surface-2)] text-[var(--primary)] uppercase font-black text-xl border border-[var(--border)]">
+                                            {employee.name.substring(0, 2)}
+                                        </div>
+                                        <div>
+                                            <h2 className="font-[family:var(--font-serif)] text-xl font-semibold" style={{ color: "var(--text)" }}>
+                                                {employee.name}
+                                            </h2>
+                                            <p className="mt-1 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
+                                                {employeeRole}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                                            Pay period
-                                        </p>
-                                        <p className="mt-2 rounded-full bg-[var(--accent-subtle)] px-3 py-1.5 text-sm font-semibold" style={{ color: "var(--text)" }}>
-                                            {periodLabel}
-                                        </p>
+                                    <div>
+                                        <Link href={`/employees/${id}/edit`}>
+                                            <Button variant="outline" size="sm" className="h-9 gap-2 font-bold px-3">
+                                                <Pencil className="h-3.5 w-3.5" /> Edit details
+                                            </Button>
+                                        </Link>
                                     </div>
                                 </div>
 
@@ -403,17 +382,31 @@ function EmployeeDetailContent() {
                                     ) : (
                                         <div className="mt-1 space-y-3 rounded-2xl border border-red-200 bg-red-50 p-4">
                                             <p className="text-sm font-bold text-red-800">Are you sure? This will delete all payslips and leave records for this employee.</p>
-                                            <div className="flex gap-2">
+                                            <div className="space-y-2">
+                                                <p className="text-xs font-semibold text-red-700">Type DELETE to confirm:</p>
+                                                <Input
+                                                    type="text"
+                                                    value={deleteConfirmText}
+                                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                                    placeholder="DELETE"
+                                                    className="bg-white border-red-200 focus-visible:ring-red-500 uppercase"
+                                                />
+                                            </div>
+                                            <div className="flex gap-2 pt-1">
                                                 <Button
                                                     variant="outline"
-                                                    onClick={() => setShowDeleteConfirm(false)}
+                                                    onClick={() => {
+                                                        setShowDeleteConfirm(false);
+                                                        setDeleteConfirmText("");
+                                                    }}
                                                     className="flex-1 font-bold"
                                                 >
                                                     Cancel
                                                 </Button>
                                                 <Button
+                                                    disabled={deleteConfirmText !== "DELETE"}
                                                     onClick={handleDeleteEmployee}
-                                                    className="flex-1 bg-red-600 font-bold text-white hover:bg-red-700"
+                                                    className="flex-1 bg-red-600 font-bold text-white hover:bg-red-700 disabled:opacity-50"
                                                 >
                                                     Yes, Delete
                                                 </Button>
@@ -548,23 +541,6 @@ function EmployeeDetailContent() {
                     </div>
                 </section>
             </main>
-
-            {activeTab === "profile" && showProfileEditCta ? (
-                <div className="pointer-events-none fixed inset-x-0 bottom-4 z-30 px-4">
-                    <div className="mx-auto flex max-w-4xl justify-end">
-                        <div className="pointer-events-auto flex w-full max-w-md items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)]/95 p-2 shadow-[var(--shadow-md)] backdrop-blur-sm sm:w-auto sm:max-w-none">
-                            <p className="pl-2 text-xs font-medium text-[var(--text-muted)]">
-                                Update role, pay, phone, or start date.
-                            </p>
-                            <Link href={`/employees/${id}/edit`}>
-                                <Button className="h-11 rounded-xl bg-[var(--primary)] px-4 font-bold text-white hover:bg-[var(--primary-hover)]">
-                                    <Pencil className="mr-2 h-4 w-4" /> Edit details
-                                </Button>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            ) : null}
         </div>
     );
 }

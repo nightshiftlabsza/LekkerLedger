@@ -7,7 +7,6 @@ import { Plus, ChevronDown, UserPlus, Banknote } from "lucide-react";
 import { Button } from "./ui/button";
 
 export function GlobalCreateFAB() {
-    const [open, setOpen] = React.useState(false);
     const pathname = usePathname();
     const shouldHideFab = pathname?.startsWith("/onboarding") || 
         pathname?.startsWith("/settings") || 
@@ -20,48 +19,14 @@ export function GlobalCreateFAB() {
 
     return (
         <div className="relative lg:hidden">
-            {/* Overlay for closing when open */}
-            {open && (
-                <div
-                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 animate-fade-in"
-                    onClick={() => setOpen(false)}
-                />
-            )}
-
-            <Button
-                onClick={() => setOpen(!open)}
-                className={`fixed bottom-24 right-6 h-[60px] w-[60px] justify-center rounded-3xl bg-[var(--primary)] p-0 text-white shadow-[var(--shadow-lg)] transition-all active-scale z-40 flex flex-col items-center hover-lift ${open ? 'rotate-[135deg] bg-[var(--text)]' : ''}`}
-                aria-label="Create new"
+            <Link
+                href="/employees/new"
+                className="fixed bottom-24 right-6 h-[60px] w-[60px] flex items-center justify-center rounded-3xl bg-[var(--primary)] p-0 text-white shadow-[var(--shadow-lg)] transition-all active-scale z-40 hover-lift"
+                aria-label="Add Employee"
                 data-testid="global-create-fab"
             >
                 <Plus className="h-7 w-7 transition-transform" />
-            </Button>
-
-            {/* Expanded actions */}
-            <div className={`fixed bottom-[170px] right-6 flex flex-col items-end gap-4 transition-all z-40 ${open ? 'opacity-100 translate-y-0 visible' : 'opacity-0 translate-y-8 invisible'}`}>
-                <Link
-                    href="/payroll/new"
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 active-scale transition-all"
-                    data-testid="global-create-start-payroll"
-                >
-                    <span className="bg-[var(--surface-raised)] text-[var(--text)] text-[10px] font-black uppercase tracking-[0.16em] px-4 py-2.5 rounded-2xl shadow-[var(--shadow-md)] border border-[var(--border)]">Start Pay Period</span>
-                    <div className="h-14 w-14 bg-[var(--surface-raised)] rounded-2xl shadow-[var(--shadow-md)] flex items-center justify-center text-[var(--primary)] border border-[var(--border)] hover-lift">
-                        <Banknote className="h-6 w-6" />
-                    </div>
-                </Link>
-                <Link
-                    href="/employees/new"
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 active-scale transition-all"
-                    data-testid="global-create-add-employee"
-                >
-                    <span className="bg-[var(--surface-raised)] text-[var(--text)] text-[10px] font-black uppercase tracking-[0.16em] px-4 py-2.5 rounded-2xl shadow-[var(--shadow-md)] border border-[var(--border)]">Add Employee</span>
-                    <div className="h-14 w-14 bg-[var(--surface-raised)] rounded-2xl shadow-[var(--shadow-md)] flex items-center justify-center text-[var(--primary)] border border-[var(--border)] hover-lift">
-                        <UserPlus className="h-6 w-6" />
-                    </div>
-                </Link>
-            </div>
+            </Link>
         </div>
     );
 }
