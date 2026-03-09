@@ -447,7 +447,7 @@ export default function PayPeriodWorkspacePage() {
                                 <h3 className="type-h3 text-[var(--text)]">Finalise this month?</h3>
                             </div>
                             <p className="type-body text-[var(--text-muted)]">
-                                Finalising ensures your payslips, tax records (UIF), and ledger stay consistent. This "freezes" the month to prevent accidental changes to historical data.
+                                Finalising ensures your payslips, tax records (UIF), and ledger stay consistent. This &quot;freezes&quot; the month to prevent accidental changes to historical data.
                             </p>
                             <p className="type-body text-[var(--text-muted)]">
                                 If you need to make corrections later, you can record them as an <strong>adjustment</strong> in the next month.

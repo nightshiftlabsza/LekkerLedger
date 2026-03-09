@@ -3,37 +3,111 @@
 > eslint
 
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\calculator\page.tsx
-  9:10  warning  'getSettings' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\google-sync.tsx
+  142:8   warning  React Hook useCallback has a missing dependency: 'isMountedRef'. Either include it or remove the dependency array                                                          react-hooks/exhaustive-deps
+  163:8   warning  React Hook useCallback has a missing dependency: 'isMountedRef'. Either include it or remove the dependency array                                                          react-hooks/exhaustive-deps
+  217:19  warning  'timestamp' is assigned a value but never used                                                                                                                             @typescript-eslint/no-unused-vars
+  224:8   warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', and 'setTransientStatus'. Either include them or remove the dependency array                    react-hooks/exhaustive-deps
+  254:8   warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', 'reloadTimerRef', and 'setTransientStatus'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  276:8   warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', and 'setTransientStatus'. Either include them or remove the dependency array                    react-hooks/exhaustive-deps
+  343:8   warning  React Hook useEffect has missing dependencies: 'isMountedRef', 'reloadTimerRef', and 'statusTimerRef'. Either include them or remove the dependency array                  react-hooks/exhaustive-deps
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\legal\privacy\page.tsx
-  62:94   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
-  62:116  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\layout\startup-scripts.tsx
+  43:13  warning  `next/script`'s `beforeInteractive` strategy should not be used outside of `pages/_document.js`. See: https://nextjs.org/docs/messages/no-before-interactive-script-outside-document  @next/next/no-before-interactive-script-outside-document
+  44:13  warning  `next/script`'s `beforeInteractive` strategy should not be used outside of `pages/_document.js`. See: https://nextjs.org/docs/messages/no-before-interactive-script-outside-document  @next/next/no-before-interactive-script-outside-document
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\page.tsx
-  425:79  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\paid-login-button.tsx
+  18:23  warning  'hasMeaningfulLocalData' is defined but never used  @typescript-eslint/no-unused-vars
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\trust\page.tsx
-   3:35   warning  'DollarSign' is defined but never used                           @typescript-eslint/no-unused-vars
-  39:50   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
-  39:62   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
-  39:153  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-  52:139  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\audit\helpers.ts
+  475:15  warning  'textBearingElements' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\components\contracts\contracts-client.tsx
-  12:10  warning  'CardSkeleton' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\public\theme-init.js
+  21:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\components\payroll\payroll-client.tsx
-   7:18  warning  'startOfMonth' is defined but never used   @typescript-eslint/no-unused-vars
-   7:32  warning  'endOfMonth' is defined but never used     @typescript-eslint/no-unused-vars
-  12:10  warning  'CardSkeleton' is defined but never used   @typescript-eslint/no-unused-vars
-  13:25  warning  'savePayPeriod' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\app-shell.tsx
+  16:77  warning  'saveSettings' is defined but never used       @typescript-eslint/no-unused-vars
+  25:11  warning  'pathname' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\components\ufiling\ufiling-client.tsx
-  16:10  warning  'CardSkeleton' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\contracts\new\page.tsx
+    5:21   warning  'ArrowRight' is defined but never used               @typescript-eslint/no-unused-vars
+    5:33   warning  'Save' is defined but never used                     @typescript-eslint/no-unused-vars
+    5:39   warning  'Loader2' is defined but never used                  @typescript-eslint/no-unused-vars
+    5:48   warning  'FileText' is defined but never used                 @typescript-eslint/no-unused-vars
+    5:58   warning  'Clock' is defined but never used                    @typescript-eslint/no-unused-vars
+    5:65   warning  'Banknote' is defined but never used                 @typescript-eslint/no-unused-vars
+    5:75   warning  'Calendar' is defined but never used                 @typescript-eslint/no-unused-vars
+    5:85   warning  'Home' is defined but never used                     @typescript-eslint/no-unused-vars
+    5:91   warning  'ShieldAlert' is defined but never used              @typescript-eslint/no-unused-vars
+    5:104  warning  'CheckCircle2' is defined but never used             @typescript-eslint/no-unused-vars
+    5:118  warning  'BriefcaseBusiness' is defined but never used        @typescript-eslint/no-unused-vars
+    5:137  warning  'FileSignature' is defined but never used            @typescript-eslint/no-unused-vars
+    6:10   warning  'Button' is defined but never used                   @typescript-eslint/no-unused-vars
+    7:16   warning  'CardContent' is defined but never used              @typescript-eslint/no-unused-vars
+   11:10   warning  'Alert' is defined but never used                    @typescript-eslint/no-unused-vars
+   11:17   warning  'AlertDescription' is defined but never used         @typescript-eslint/no-unused-vars
+   11:35   warning  'AlertTitle' is defined but never used               @typescript-eslint/no-unused-vars
+   29:12   warning  'dutiesInput' is assigned a value but never used     @typescript-eslint/no-unused-vars
+   29:25   warning  'setDutiesInput' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   80:22   warning  'e' is defined but never used                        @typescript-eslint/no-unused-vars
+  112:11   warning  'handleNext' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\documents\page.tsx
+    8:5   warning  'Download' is defined but never used                 @typescript-eslint/no-unused-vars
+   16:5   warning  'ScrollText' is defined but never used               @typescript-eslint/no-unused-vars
+   22:10  warning  'Alert' is defined but never used                    @typescript-eslint/no-unused-vars
+   22:17  warning  'AlertDescription' is defined but never used         @typescript-eslint/no-unused-vars
+   22:35  warning  'AlertTitle' is defined but never used               @typescript-eslint/no-unused-vars
+   30:10  warning  'ContractRow' is defined but never used              @typescript-eslint/no-unused-vars
+   50:10  warning  'generatePayslipPdfBytes' is defined but never used  @typescript-eslint/no-unused-vars
+   60:5   warning  'getPayslipsForEmployee' is defined but never used   @typescript-eslint/no-unused-vars
+  416:18  warning  'error' is defined but never used                    @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\employees\[id]\page.tsx
+    8:30  warning  'FolderOpen' is defined but never used            @typescript-eslint/no-unused-vars
+  173:11  warning  'periodLabel' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\payroll\[periodId]\page.tsx
+  450:119  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  450:127  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\settings\page.tsx
+   81:11  warning  The 'handleSave' function makes the dependencies of useCallback Hook (at line 146) change on every render. To fix this, wrap the definition of 'handleSave' in its own useCallback() Hook                             react-hooks/exhaustive-deps
+   81:11  warning  The 'handleSave' function makes the dependencies of useCallback Hook (at line 165) change on every render. To fix this, wrap the definition of 'handleSave' in its own useCallback() Hook                             react-hooks/exhaustive-deps
+  102:11  warning  The 'customLeaveTypes' logical expression could make the dependencies of useCallback Hook (at line 146) change on every render. To fix this, wrap the initialization of 'customLeaveTypes' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  102:11  warning  The 'customLeaveTypes' logical expression could make the dependencies of useCallback Hook (at line 165) change on every render. To fix this, wrap the initialization of 'customLeaveTypes' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\upgrade\page.tsx
+  7:22  warning  'Loader2' is defined but never used  @typescript-eslint/no-unused-vars
+  8:10  warning  'Button' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\wizard\page.tsx
+  222:8  warning  React Hook React.useCallback has a missing dependency: 'leaveTrackingEnabled'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\components\contracts\ContractFormWizard.tsx
+   4:10  warning  'ArrowLeft' is defined but never used  @typescript-eslint/no-unused-vars
+  47:5   warning  'settings' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\components\employees\employee-documents-tab.tsx
+    6:55  warning  'Lock' is defined but never used   @typescript-eslint/no-unused-vars
+  187:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\contracts\pdfGenerator.ts
+  235:11  warning  'nmwDateStr' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  236:11  warning  'hours' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  237:11  warning  'duties' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\entitlements.ts
+  50:39  warning  '_plan' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\google-drive.ts
+  19:11  warning  'GoogleDriveCreateResponse' is defined but never used  @typescript-eslint/no-unused-vars
 
 C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\pdf.ts
-  152:5  warning  'isLimited' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  154:5  warning  'isLimited' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
-Γ£û 16 problems (7 errors, 9 warnings)
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\year-end-summary.ts
+  10:7  warning  'LINE_HEIGHT' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 66 problems (2 errors, 64 warnings)
 
