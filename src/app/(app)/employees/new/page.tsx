@@ -26,8 +26,9 @@ export default function AddEmployeePage() {
         name: "",
         idNumber: "",
         hourlyRate: NMW_RATE.toString(),
-        role: "Domestic Worker",
+        role: "",
         phone: "",
+        email: "",
         startDate: new Date().toISOString().slice(0, 10),
         ordinarilyWorksSundays: false,
         ordinaryHoursPerDay: "8",
@@ -214,15 +215,27 @@ export default function AddEmployeePage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="startDate">Employment Start</Label>
+                                        <Label htmlFor="email">Email Address</Label>
                                         <Input
-                                            id="startDate"
-                                            type="date"
-                                            value={formData.startDate}
-                                            onChange={(e) => updateForm({ startDate: e.target.value })}
+                                            id="email"
+                                            type="email"
+                                            placeholder="worker@example.com"
+                                            value={formData.email}
+                                            onChange={(e) => updateForm({ email: e.target.value })}
+                                            error={errors.email}
                                             disabled={loading}
                                         />
                                     </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="startDate">Employment Start</Label>
+                                    <Input
+                                        id="startDate"
+                                        type="date"
+                                        value={formData.startDate}
+                                        onChange={(e) => updateForm({ startDate: e.target.value })}
+                                        disabled={loading}
+                                    />
                                 </div>
 
                                 <div className="space-y-2">

@@ -13,6 +13,7 @@ export const EmployeeSchema = z.object({
     role: z.string().min(1, "Role is required").default("Domestic Worker"),
     hourlyRate: z.number().positive("Hourly rate must be greater than 0"),
     phone: z.string().optional().default(""),
+    email: z.string().email("Invalid email address").optional().or(z.literal("")).default(""),
     address: z.string().optional().default(""),
     startDate: z.string().optional().default(""), // ISO date string - when employment began
     ordinarilyWorksSundays: z.boolean().default(false),
@@ -58,6 +59,7 @@ export const PayslipInputSchema = z.object({
     hourlyRate: z.number().positive("Hourly rate must be greater than 0"),
     includeAccommodation: z.boolean().default(false),
     accommodationCost: z.number().min(0).optional(),
+    advanceAmount: z.number().min(0).default(0),
     otherDeductions: z.number().min(0).default(0),
     createdAt: z.date(),
     ordinarilyWorksSundays: z.boolean().default(false),
@@ -160,6 +162,7 @@ export const EmployerSettingsSchema = z.object({
     cfNumber: z.string().default(""), // COIDA reference number
     sdlNumber: z.string().default(""),
     phone: z.string().default(""), // Employer contact phone
+    employerEmail: z.string().email("Invalid email address").optional().or(z.literal("")).default(""),
     proStatus: z.enum(["free", "standard", "pro", "trial", "annual", "lifetime"]).optional().default("free"),
     paidUntil: z.string().optional(),
     trialExpiry: z.string().optional(),
@@ -201,6 +204,7 @@ export const EmployeeEntrySchema = z.object({
     sundayHours: z.number().min(0).default(0),
     publicHolidayHours: z.number().min(0).default(0),
     leaveDays: z.number().min(0).default(0),
+    shortFallHours: z.number().min(0).default(0),
     advanceAmount: z.number().min(0).default(0),
     otherDeductions: z.number().min(0).default(0),
     rateOverride: z.number().optional(),

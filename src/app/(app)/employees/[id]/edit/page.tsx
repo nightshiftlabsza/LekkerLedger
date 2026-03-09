@@ -30,6 +30,7 @@ export default function EditEmployeePage() {
         hourlyRate: NMW_RATE.toString(),
         role: "Domestic Worker",
         phone: "",
+        email: "",
         startDate: "",
         ordinarilyWorksSundays: false,
         ordinaryHoursPerDay: "8",
@@ -58,6 +59,7 @@ export default function EditEmployeePage() {
                 hourlyRate: emp.hourlyRate.toString(),
                 role: emp.role || "Domestic Worker",
                 phone: emp.phone || "",
+                email: emp.email || "",
                 startDate: emp.startDate || "",
                 ordinarilyWorksSundays: emp.ordinarilyWorksSundays ?? false,
                 ordinaryHoursPerDay: (emp.ordinaryHoursPerDay ?? 8).toString(),
@@ -190,15 +192,26 @@ export default function EditEmployeePage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="startDate">Employment Start</Label>
+                                    <Label htmlFor="email">Email Address</Label>
                                     <Input
-                                        id="startDate"
-                                        type="date"
-                                        value={formData.startDate}
-                                        onChange={(e) => updateForm({ startDate: e.target.value })}
+                                        id="email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => updateForm({ email: e.target.value })}
+                                        error={errors.email}
                                         disabled={saving}
                                     />
                                 </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="startDate">Employment Start</Label>
+                                <Input
+                                    id="startDate"
+                                    type="date"
+                                    value={formData.startDate}
+                                    onChange={(e) => updateForm({ startDate: e.target.value })}
+                                    disabled={saving}
+                                />
                             </div>
 
                             <div className="space-y-2">

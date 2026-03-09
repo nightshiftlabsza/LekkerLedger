@@ -15,7 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { CardSkeleton, StatSkeleton } from "@/components/ui/loading-skeleton";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
-import { getEmployees, getSettings, getCurrentPayPeriod, getDocuments, getLatestPayslip, subscribeToDataChanges } from "@/lib/storage";
+import { getEmployees, getSettings, getCurrentPayPeriod, getDocuments, getLatestPayslip, subscribeToDataChanges, getPayPeriods } from "@/lib/storage";
 import { filterRecordsForArchiveWindow, isUploadedDocument } from "@/lib/archive";
 import { computeDashboardAlerts, type DashboardAlert as DashboardAlertData } from "@/lib/alerts";
 import { getUserPlan } from "@/lib/entitlements";
@@ -36,6 +36,7 @@ function DashboardContent() {
     const [currentPeriod, setCurrentPeriod] = React.useState<PayPeriod | null>(null);
     const [recentDocs, setRecentDocs] = React.useState<DocumentMeta[]>([]);
     const [summaries, setSummaries] = React.useState<EmployeeSummary[]>([]);
+    const [allPeriods, setAllPeriods] = React.useState<PayPeriod[]>([]);
     const searchParams = useSearchParams();
     const paidLoginRequested = searchParams.get("paidLogin") === "1";
     const paidLoginNext = searchParams.get("next");
@@ -51,11 +52,12 @@ function DashboardContent() {
             if (active) {
                 setLoading(true);
             }
-            const [emps, s, period, docs] = await Promise.all([
+            const [emps, s, period, docs, allP] = await Promise.all([
                 getEmployees(),
                 getSettings(),
                 getCurrentPayPeriod(),
                 getDocuments(),
+                getPayPeriods(),
             ]);
 
             // Build employee summaries for alert engine
@@ -75,6 +77,7 @@ function DashboardContent() {
             setEmployees(emps);
             setSettings(s);
             setCurrentPeriod(period);
+            setAllPeriods(allP);
             setRecentDocs(visibleRecentDocs.slice(0, 5));
             setSummaries(results);
             setLoading(false);
@@ -150,6 +153,7 @@ function DashboardContent() {
                         completedEntries={completedEntries}
                         totalEntries={totalEntries}
                         currentMonth={currentMonth}
+                        allPeriods={allPeriods}
                     />
 
                     {/* 3. Next-Steps Checklist (Only if setup is incomplete or no payroll) */}
@@ -254,7 +258,8 @@ function PrimaryTaskHero({
     progressPercent,
     completedEntries,
     totalEntries,
-    currentMonth
+    currentMonth,
+    allPeriods,
 }: {
     currentPeriod: PayPeriod | null;
     isSetupIncomplete: boolean;
@@ -263,32 +268,45 @@ function PrimaryTaskHero({
     completedEntries: number;
     totalEntries: number;
     currentMonth: string;
+    allPeriods: PayPeriod[];
 }) {
+    const latestPeriod = allPeriods[0];
+    const isLatestLocked = latestPeriod?.status === "locked";
+    const isLatestCurrentMonth = latestPeriod?.name === currentMonth;
+
     const title = currentPeriod
         ? isPayrollReady
             ? `${currentPeriod.name} is ready`
             : `${currentPeriod.name} in progress`
-        : isSetupIncomplete
-            ? "Welcome to LekkerLedger"
-            : `Set up ${currentMonth}`;
+        : isLatestLocked && isLatestCurrentMonth
+            ? `${currentMonth} finalised`
+            : isSetupIncomplete
+                ? "Welcome to LekkerLedger"
+                : `Set up ${currentMonth}`;
 
     const subtitle = currentPeriod
         ? isPayrollReady
             ? "All employee entries are complete. You can now finalise this month and generate payslips."
             : `You have completed ${completedEntries} of ${totalEntries} entries. Finish the rest to finalise payroll.`
-        : isSetupIncomplete
-            ? "Welcome to LekkerLedger. Let's get your household payroll set up—starting with your employer details and first employee."
-            : `Start the ${currentMonth} pay period to track hours and generate payslips for your household.`;
+        : isLatestLocked && isLatestCurrentMonth
+            ? `Payroll for ${currentMonth} is complete and locked. You can view all generated records in the Documents Hub.`
+            : isSetupIncomplete
+                ? "Welcome to LekkerLedger. Let's get your household payroll set up—starting with your employer details and first employee."
+                : `Start the ${currentMonth} pay period to track hours and generate payslips for your household.`;
 
     const primaryActionHref = currentPeriod
         ? `/payroll/${currentPeriod.id}`
-        : isSetupIncomplete
-            ? "#" // The checklist will guide them
-            : "/payroll/new";
+        : isLatestLocked && isLatestCurrentMonth
+            ? "/documents"
+            : isSetupIncomplete
+                ? "/settings"
+                : "/payroll/new";
 
     const primaryActionLabel = currentPeriod
         ? isPayrollReady ? "Review & Finalise" : "Continue Payroll"
-        : isSetupIncomplete ? "Start Setup" : `Start ${currentMonth}`;
+        : isLatestLocked && isLatestCurrentMonth
+            ? "View Documents"
+            : isSetupIncomplete ? "Start Setup" : `Start ${currentMonth}`;
 
     return (
         <Card className="relative overflow-hidden border-none shadow-premium bg-[var(--surface-raised)] group">

@@ -182,9 +182,10 @@ export default function PayPeriodWorkspacePage() {
             sundayHours: entry.sundayHours,
             publicHolidayHours: entry.publicHolidayHours,
             daysWorked: Math.ceil(entry.ordinaryHours / (emp.ordinaryHoursPerDay || 8)),
-            shortFallHours: 0,
+            shortFallHours: entry.shortFallHours || 0,
             hourlyRate: entry.rateOverride ?? emp.hourlyRate,
             includeAccommodation: false,
+            advanceAmount: entry.advanceAmount || 0,
             otherDeductions: entry.otherDeductions,
             createdAt: new Date(),
             ordinarilyWorksSundays: emp.ordinarilyWorksSundays ?? false,
@@ -375,6 +376,8 @@ export default function PayPeriodWorkspacePage() {
                                         items: [
                                             { label: "Ordinary Pay", value: `R${calc.ordinaryPay.toFixed(2)}` },
                                             { label: "Total Gross", value: `R${calc.grossPay.toFixed(2)}`, highlight: true },
+                                            ...(calc.deductions.shortfall > 0 ? [{ label: "Shortfall Deduction", value: `R${calc.deductions.shortfall.toFixed(2)}` }] : []),
+                                            ...(calc.deductions.other > 0 ? [{ label: "Other Deductions", value: `R${calc.deductions.other.toFixed(2)}` }] : []),
                                             { label: "Total Deductions", value: `R${calc.deductions.total.toFixed(2)}` },
                                             { label: "Net Pay", value: `R${calc.netPay.toFixed(2)}`, isError: calc.grossPay < calc.deductions.total, highlight: true },
                                             { label: "Hourly Rate", value: calc.hourlyRate }
@@ -534,7 +537,18 @@ export default function PayPeriodWorkspacePage() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Deductions</label>
+                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Shortfall hrs</label>
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        value={entry.shortFallHours || ""}
+                                                        onChange={e => updateEntry(entry.employeeId, "shortFallHours", parseFloat(e.target.value) || 0)}
+                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
+                                                        placeholder="0"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Other Deduc.</label>
                                                     <input
                                                         type="number"
                                                         min={0}
@@ -563,7 +577,11 @@ export default function PayPeriodWorkspacePage() {
                                                     <p className="font-mono text-sm text-[var(--text)]">{entry.sundayHours}h</p>
                                                 </div>
                                                 <div>
-                                                    <p className="type-overline text-[var(--text-muted)]">Deductions</p>
+                                                    <p className="type-overline text-[var(--text-muted)]">Shortfall</p>
+                                                    <p className="font-mono text-sm text-[var(--text)]">{entry.shortFallHours}h</p>
+                                                </div>
+                                                <div>
+                                                    <p className="type-overline text-[var(--text-muted)]">Other Ded.</p>
                                                     <p className="font-mono text-sm text-[var(--text)]">R{entry.otherDeductions}</p>
                                                 </div>
                                                 <div>

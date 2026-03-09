@@ -362,17 +362,7 @@ export default function DocumentsPage() {
 
         try {
             if (doc.type === "payslip" && doc.employeeId) {
-                const [payslips, latestSettings] = await Promise.all([getPayslipsForEmployee(doc.employeeId), getSettings()]);
-                const employee = employees.find((entry) => entry.id === doc.employeeId);
-                const payslip = payslips.find((entry) => entry.id === doc.id);
-                if (!payslip || !employee || !latestSettings) {
-                    throw new Error("Could not find that payslip.");
-                }
-                const pdfBytes = await generatePayslipPdfBytes(employee, payslip, latestSettings);
-                const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
-                const url = URL.createObjectURL(blob);
-                pdfCache.current[doc.id] = url;
-                setPreviewUrl(url);
+                router.push(`/preview?payslipId=${doc.id}&empId=${doc.employeeId}`);
                 return;
             }
 

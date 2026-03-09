@@ -78,10 +78,13 @@ export function PayrollClient() {
         );
     }
 
+    const isCurrentMonthFinalized = periods.some(p => p.status === "locked" && p.name === format(new Date(), "MMMM yyyy"));
+    const showAddButton = !currentPeriod && !isCurrentMonthFinalized;
+
     return (
         <div className="space-y-6">
             <div className="flex justify-end">
-                {!currentPeriod && (
+                {showAddButton && (
                     <Link href="/payroll/new">
                         <Button
                             className="gap-1.5 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]"

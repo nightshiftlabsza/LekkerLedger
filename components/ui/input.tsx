@@ -20,6 +20,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         "min-h-[44px]",
                         className
                     ].filter(Boolean).join(" ")}
+                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
                     style={style}
                     {...props}
                 />

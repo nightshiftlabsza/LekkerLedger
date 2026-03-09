@@ -34,6 +34,8 @@ export interface PayBreakdown {
     deductions: {
         uifEmployee: number;
         accommodation: number | undefined;
+        shortfall: number;
+        advance: number;
         other: number;
         total: number;
     };
@@ -126,8 +128,10 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
         deductions: {
             uifEmployee: uifContribution,
             accommodation,
+            shortfall: roundTo((input.shortFallHours ?? 0) * rate),
+            advance: roundTo(input.advanceAmount ?? 0),
             other: otherDeductions,
-            total: totalDeductions,
+            total: roundTo(uifContribution + (accommodation ?? 0) + roundTo((input.shortFallHours ?? 0) * rate) + roundTo(input.advanceAmount ?? 0) + otherDeductions),
         },
         employerContributions: {
             uifEmployer: uifContribution,

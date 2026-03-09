@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/components/ui/toast";
 import { PageHeader } from "@/components/ui/page-header";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
 import { getSettings, saveSettings, resetAllData, exportData, importData, getEmployees } from "@/lib/storage";
@@ -44,6 +45,7 @@ function SettingsContent() {
     const [leaveTypePaid, setLeaveTypePaid] = React.useState(true);
     const [leaveTypeNote, setLeaveTypeNote] = React.useState("");
     const savedTimerRef = React.useRef<number | null>(null);
+    const { toast } = useToast();
     const { theme, setTheme, setDensity } = useUI();
 
     const THEME_OPTIONS = [
@@ -92,6 +94,7 @@ function SettingsContent() {
             setSaved(false);
             savedTimerRef.current = null;
         }, 2000);
+        toast("Settings saved successfully!", "success");
     };
 
     const userPlan = getUserPlan(settings);
@@ -203,6 +206,10 @@ function SettingsContent() {
                                 <div className="space-y-2">
                                     <Label htmlFor="ephone">Contact Phone</Label>
                                     <Input id="ephone" value={settings.phone} onChange={(e) => setSettings({ ...settings, phone: e.target.value })} placeholder="e.g. 021 123 4567" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="eemail">Employer Email</Label>
+                                    <Input id="eemail" type="email" value={settings.employerEmail} onChange={(e) => setSettings({ ...settings, employerEmail: e.target.value })} placeholder="e.g. sarah@example.com" />
                                 </div>
                                 <Button onClick={() => handleSave({})} disabled={saving} className="w-full bg-[var(--primary)] text-white font-bold h-11">
                                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
