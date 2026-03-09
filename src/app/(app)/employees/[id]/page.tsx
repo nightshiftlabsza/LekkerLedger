@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import {
     ArrowLeft, User, Clock, FileText, Palmtree,
-    Pencil, Trash2, Loader2,
-    CalendarDays, Banknote, Phone, Briefcase, CheckCircle2, FolderOpen
+    Pencil, Trash2, Loader2, FolderOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +14,7 @@ import {
     getContractsForEmployee, getEmployee, getLeaveCarryOversForEmployee, getPayslipsForEmployee, getLeaveForEmployee, getSettings,
     deletePayslip
 } from "@/lib/storage";
-import { Employee, LeaveCarryOver, PayslipInput, LeaveRecord, Contract, CustomLeaveType } from "@/lib/schema";
+import { Employee, LeaveCarryOver, PayslipInput, LeaveRecord, Contract, CustomLeaveType, EmployerSettings } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { format } from "date-fns";
 import { filterRecordsForArchiveWindow, getArchiveUpgradeHref, getArchiveUpgradeLabel, getArchiveUpgradeMessage } from "@/lib/archive";
@@ -31,6 +30,17 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: "documents", label: "Documents", icon: FileText },
 ];
 
+const PROFILE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_4.25rem_6rem_6rem] gap-x-3 sm:grid-cols-[minmax(0,1fr)_5rem_6.75rem_7rem]";
+
+function formatRand(value: number) {
+    return `R ${value.toFixed(2)}`;
+}
+
+function formatIdNumber(idNumber: string) {
+    if (idNumber.length !== 13) return idNumber;
+    return `${idNumber.slice(0, 6)} ${idNumber.slice(6, 10)} ${idNumber.slice(10)}`;
+}
+
 function EmployeeDetailContent() {
     const router = useRouter();
     const params = useParams<{ id: string }>();
@@ -45,6 +55,7 @@ function EmployeeDetailContent() {
     const [leaveCarryOvers, setLeaveCarryOvers] = React.useState<LeaveCarryOver[]>([]);
     const [contracts, setContracts] = React.useState<Contract[]>([]);
     const [customLeaveTypes, setCustomLeaveTypes] = React.useState<CustomLeaveType[]>([]);
+    const [employerSettings, setEmployerSettings] = React.useState<EmployerSettings | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [currentPlan, setCurrentPlan] = React.useState<PlanConfig>(PLANS.free);
     const [showLeaveTab, setShowLeaveTab] = React.useState(false);
@@ -82,12 +93,13 @@ function EmployeeDetailContent() {
             if (!emp) { router.push("/employees"); return; }
             setEmployee(emp);
             setPayslips([...ps].sort(
-                (a, b) => new Date(b.payPeriodStart).getTime() - new Date(a.payPeriodStart).getTime()
+                (a, b) => new Date(b.payPeriodEnd).getTime() - new Date(a.payPeriodEnd).getTime()
             ));
             setLeaveRecords(leave);
             setLeaveCarryOvers(carryOvers);
             setContracts(employeeContracts);
             setCustomLeaveTypes(settings.customLeaveTypes ?? []);
+            setEmployerSettings(settings);
             const plan = getUserPlan(settings);
             const allowLeave = canBrowseLeaveHistory(plan);
             const allowDocuments = canUseDocumentsHub(plan);
@@ -169,6 +181,22 @@ function EmployeeDetailContent() {
     const visibleTabs = TABS.filter((tab) => (tab.id !== "leave" || showLeaveTab) && (tab.id !== "documents" || showDocumentsTab));
     const formattedStartDate = employee.startDate ? format(new Date(employee.startDate), "dd MMM yyyy") : "Not set";
     const employeeRole = employee.role || "Domestic Worker";
+    const latestPayslip = payslips[0] ?? null;
+    const latestBreakdown = latestPayslip ? calculatePayslip(latestPayslip) : null;
+    const now = new Date();
+    const defaultPeriodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const defaultPeriodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const periodStart = latestPayslip ? new Date(latestPayslip.payPeriodStart) : defaultPeriodStart;
+    const periodEnd = latestPayslip ? new Date(latestPayslip.payPeriodEnd) : defaultPeriodEnd;
+    const monthLabel = new Intl.DateTimeFormat("en-ZA", { month: "long", year: "numeric" }).format(periodEnd);
+    const periodLabel = `${periodStart.toLocaleDateString("en-ZA", { day: "2-digit", month: "short" })} - ${periodEnd.toLocaleDateString("en-ZA", { day: "2-digit", month: "short", year: "numeric" })}`;
+    const employerName = employerSettings?.employerName?.trim() || "Employer details not added";
+    const employerAddress = employerSettings?.employerAddress?.trim() || "Add employer details in Settings";
+    const employerPhone = employerSettings?.phone?.trim();
+    const employeePhone = employee.phone?.trim() || "Phone not added";
+    const employeeId = employee.idNumber?.trim() ? `ID ${formatIdNumber(employee.idNumber)}` : "ID not added";
+    const monthPrimaryLine = latestPayslip ? `${latestPayslip.daysWorked} days worked` : "No payslip created yet";
+    const monthSecondaryLine = latestPayslip ? `${latestPayslip.ordinaryHours} ordinary hours` : "Create a payslip to show totals";
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
@@ -199,29 +227,6 @@ function EmployeeDetailContent() {
             </div>
 
             <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col space-y-5 px-4 py-6 pb-24">
-                {/* Summary */}
-                <div className="animate-fade-in rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-sm)]">
-                    <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-                        <div
-                            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-2xl font-black text-white"
-                            style={{ backgroundColor: "var(--primary)" }}
-                        >
-                            {employee.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="flex-1 space-y-4">
-                            <div className="flex flex-wrap gap-2">
-                                <SummaryPill>{employeeRole}</SummaryPill>
-                                <SummaryPill>R{employee.hourlyRate.toFixed(2)}/hr</SummaryPill>
-                                <SummaryPill>{employee.frequency}</SummaryPill>
-                            </div>
-                            <div className="grid gap-3 sm:grid-cols-3">
-                                <SummaryStat label="Started" value={formattedStartDate} />
-                                <SummaryStat label="Hours / day" value={`${employee.ordinaryHoursPerDay}h`} />
-                                <SummaryStat label="Phone" value={employee.phone || "Not added"} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 {/* Tab bar — pill style matching settings page */}
                 <div className="flex gap-1 p-1.5 rounded-2xl border border-[var(--border)]"
                     style={{ backgroundColor: "var(--surface-1)" }}>
@@ -248,75 +253,184 @@ function EmployeeDetailContent() {
 
                 {/* Tab content */}
                 <div className="animate-fade-in">
-                    {/* PROFILE TAB */}
+                                        {/* PROFILE TAB */}
                     {activeTab === "profile" && (
-                        <div ref={profileSectionRef}>
-                            <Card className="border border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-sm)]">
-                                <CardContent className="p-0">
-                                    <div className="border-b border-[var(--border)] px-5 py-4">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                                            Employment details
-                                        </p>
-                                        <p className="mt-2 max-w-[62ch] text-sm leading-6 text-[var(--text-muted)]">
-                                            Review the main employment details here. When this section is on screen, an edit action appears at the bottom so updates stay close to the information they change.
+                        <div ref={profileSectionRef} className="overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]">
+                            <div
+                                className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4"
+                                style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.10) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
+                            >
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
+                                        LekkerLedger
+                                    </p>
+                                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+                                        Employee payroll profile
+                                    </p>
+                                </div>
+                                <p
+                                    className="rounded-full border border-[var(--focus)]/20 bg-white/70 px-3 py-1.5 text-xs font-semibold shadow-sm"
+                                    style={{ color: "var(--text)" }}
+                                >
+                                    {monthLabel}
+                                </p>
+                            </div>
+
+                            <div className="p-4 sm:p-5">
+                                <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-4">
+                                    <div>
+                                        <h2 className="font-[family:var(--font-serif)] text-xl font-semibold" style={{ color: "var(--text)" }}>
+                                            EMPLOYEE RECORD
+                                        </h2>
+                                        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
+                                            Household payroll profile
                                         </p>
                                     </div>
-                                    <div className="p-5">
-                                        <div className="grid gap-3">
-                                            <ProfileRow icon={Briefcase} label="Role" value={employeeRole} />
-                                            <ProfileRow icon={Banknote} label="Hourly Rate" value={`R${employee.hourlyRate.toFixed(2)}/hr`} />
-                                            <ProfileRow icon={CalendarDays} label="Start Date" value={formattedStartDate} />
-                                            <ProfileRow icon={Clock} label="Hours / Day" value={`${employee.ordinaryHoursPerDay}h`} />
-                                            <ProfileRow icon={CalendarDays} label="Pay Frequency" value={employee.frequency} />
-                                            {employee.phone ? <ProfileRow icon={Phone} label="Phone" value={employee.phone} /> : null}
-                                            {employee.idNumber ? <ProfileRow icon={User} label="ID Number" value={employee.idNumber} /> : null}
-                                            <ProfileRow
-                                                icon={CheckCircle2}
-                                                label="Works Sundays ordinarily"
-                                                value={employee.ordinarilyWorksSundays ? "Yes (1.5× rate)" : "No (2× rate)"}
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                                            Pay period
+                                        </p>
+                                        <p className="mt-2 rounded-full bg-[var(--accent-subtle)] px-3 py-1.5 text-sm font-semibold" style={{ color: "var(--text)" }}>
+                                            {periodLabel}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                                    <ProfileInfoBlock
+                                        label="Employer"
+                                        value={employerName}
+                                        detail={
+                                            <>
+                                                <p>{employerAddress}</p>
+                                                {employerPhone ? <p>{employerPhone}</p> : null}
+                                            </>
+                                        }
+                                    />
+                                    <ProfileInfoBlock
+                                        label="Employee"
+                                        value={employee.name}
+                                        detail={
+                                            <>
+                                                <p>{employeeRole}</p>
+                                                <p>{employeeId}</p>
+                                                <p>{employeePhone}</p>
+                                                <p>Started {formattedStartDate}</p>
+                                                <p>{employee.frequency} pay schedule</p>
+                                            </>
+                                        }
+                                    />
+                                    <ProfileInfoBlock
+                                        label="Month"
+                                        value={monthLabel}
+                                        detail={
+                                            <>
+                                                <p>{monthPrimaryLine}</p>
+                                                <p>{monthSecondaryLine}</p>
+                                                <p>{`${employee.ordinaryHoursPerDay} hours/day · R${employee.hourlyRate.toFixed(2)}/hr`}</p>
+                                            </>
+                                        }
+                                    />
+                                </div>
+
+                                <div
+                                    className="mt-4 rounded-[22px] border border-[var(--border)] p-4"
+                                    style={{ background: "linear-gradient(180deg, rgba(255, 252, 248, 0.96) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
+                                >
+                                    <div className={`${PROFILE_FIGURE_GRID} border-b border-[var(--border)] pb-2 text-[10px] font-black uppercase tracking-[0.16em]`} style={{ color: "var(--text-muted)" }}>
+                                        <span>Description</span>
+                                        <span className="text-right">Hours</span>
+                                        <span className="text-right">Rate</span>
+                                        <span className="text-right">Total</span>
+                                    </div>
+
+                                    {latestPayslip && latestBreakdown ? (
+                                        <div className="space-y-1 pt-2">
+                                            <ProfileFigureRow
+                                                label="Ordinary Hours"
+                                                hours={`${latestPayslip.ordinaryHours}h`}
+                                                rate={`${formatRand(latestBreakdown.hourlyRate)}/hr`}
+                                                total={formatRand(latestBreakdown.ordinaryPay)}
                                             />
+                                            <ProfileFigureRow label="Gross Earnings" hours="" rate="" total={formatRand(latestBreakdown.grossPay)} bold />
+                                            <ProfileFigureRow label="UIF (Employee 1%)" hours="" rate="" total={`- ${formatRand(latestBreakdown.deductions.uifEmployee)}`} />
+                                            <ProfileFigureRow label="Total Deductions" hours="" rate="" total={formatRand(latestBreakdown.deductions.total)} bold />
                                         </div>
+                                    ) : (
+                                        <div className="pt-3">
+                                            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+                                                No payslip yet for this employee.
+                                            </p>
+                                            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                                                Create the first payslip to show gross pay, UIF deductions, and net amount here.
+                                            </p>
+                                            <Link href={`/wizard?empId=${id}`} className="mt-3 inline-flex">
+                                                <Button className="bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]">
+                                                    Create Payslip
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div
+                                    className="mt-3 rounded-[22px] border border-[var(--focus)]/20 p-4"
+                                    style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.08) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
+                                >
+                                    <div className="flex items-end justify-between gap-4">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                                                Net amount paid
+                                            </p>
+                                            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                                                {latestPayslip ? "Based on the latest payslip above." : "Will appear after the first payslip is created."}
+                                            </p>
+                                        </div>
+                                        <p className="font-[family:var(--font-serif)] text-2xl font-semibold tabular-nums" style={{ color: "var(--primary-pressed)" }}>
+                                            {latestBreakdown ? formatRand(latestBreakdown.netPay) : "R 0.00"}
+                                        </p>
                                     </div>
-                                    <div className="border-t border-[var(--border)] px-5 py-4">
-                                        {!showDeleteConfirm ? (
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-red-700">Remove record</p>
-                                                    <p className="mt-2 max-w-[62ch] text-sm leading-6 text-[var(--text-muted)]">
-                                                        Delete this employee and remove related payslips and leave records from this device.
-                                                    </p>
-                                                </div>
+                                </div>
+
+                                <div className="mt-4 border-t border-[var(--border)] pt-4">
+                                    {!showDeleteConfirm ? (
+                                        <div className="space-y-3">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-red-700">Remove record</p>
+                                                <p className="mt-2 max-w-[62ch] text-sm leading-6 text-[var(--text-muted)]">
+                                                    Delete this employee and remove related payslips and leave records from this device.
+                                                </p>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                onClick={() => setShowDeleteConfirm(true)}
+                                                className="w-full rounded-2xl border border-red-200 bg-red-50 font-bold text-red-700 hover:bg-red-100 hover:text-red-800 sm:w-auto"
+                                            >
+                                                <Trash2 className="mr-2 h-4 w-4" /> Delete employee
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="mt-1 space-y-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+                                            <p className="text-sm font-bold text-red-800">Are you sure? This will delete all payslips and leave records for this employee.</p>
+                                            <div className="flex gap-2">
                                                 <Button
-                                                    variant="ghost"
-                                                    onClick={() => setShowDeleteConfirm(true)}
-                                                    className="w-full rounded-2xl border border-red-200 bg-red-50 font-bold text-red-700 hover:bg-red-100 hover:text-red-800 sm:w-auto"
+                                                    variant="outline"
+                                                    onClick={() => setShowDeleteConfirm(false)}
+                                                    className="flex-1 font-bold"
                                                 >
-                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete employee
+                                                    Cancel
+                                                </Button>
+                                                <Button
+                                                    onClick={handleDeleteEmployee}
+                                                    className="flex-1 bg-red-600 font-bold text-white hover:bg-red-700"
+                                                >
+                                                    Yes, Delete
                                                 </Button>
                                             </div>
-                                        ) : (
-                                            <div className="mt-1 space-y-3 rounded-2xl border border-red-200 bg-red-50 p-4">
-                                                <p className="text-sm font-bold text-red-800">Are you sure? This will delete all payslips and leave records for this employee.</p>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        onClick={() => setShowDeleteConfirm(false)}
-                                                        className="flex-1 font-bold"
-                                                    >
-                                                        Cancel
-                                                    </Button>
-                                                    <Button
-                                                        onClick={handleDeleteEmployee}
-                                                        className="flex-1 bg-red-600 font-bold text-white hover:bg-red-700"
-                                                    >
-                                                        Yes, Delete
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -461,36 +575,45 @@ function EmployeeDetailContent() {
     );
 }
 
-function SummaryPill({ children }: { children: React.ReactNode }) {
+function ProfileInfoBlock({ label, value, detail }: { label: string; value: string; detail?: React.ReactNode }) {
     return (
-        <span className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--text)]">
-            {children}
-        </span>
-    );
-}
-
-function SummaryStat({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/55 p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</p>
-            <p className="mt-2 text-sm font-bold text-[var(--text)]">{value}</p>
-        </div>
-    );
-}
-function ProfileRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
-    return (
-        <div className="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-            <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-                <Icon className="h-4 w-4 text-[var(--focus)]" />
-            </div>
-            <div className="flex-1 flex items-center justify-between gap-2 min-w-0">
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{label}</span>
-                <span className="text-sm font-semibold text-right" style={{ color: "var(--text)" }}>{value}</span>
-            </div>
+        <div
+            className="rounded-[18px] border border-[var(--border)] px-4 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+            style={{ background: "linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
+        >
+            <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
+                {label}
+            </p>
+            <p className="mt-2 text-sm font-semibold" style={{ color: "var(--text)" }}>
+                {value}
+            </p>
+            {detail ? (
+                <div className="mt-2 space-y-1 text-xs" style={{ color: "var(--text-muted)" }}>
+                    {detail}
+                </div>
+            ) : null}
         </div>
     );
 }
 
+function ProfileFigureRow({ label, hours, rate, total, bold = false }: { label: string; hours: string; rate: string; total: string; bold?: boolean }) {
+    return (
+        <div className={`${PROFILE_FIGURE_GRID} items-baseline py-2 text-[13px] sm:text-sm`}>
+            <span className={`pr-2 ${bold ? "font-semibold" : ""}`} style={{ color: bold ? "var(--text)" : "var(--text-muted)" }}>
+                {label}
+            </span>
+            <span className="text-right tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
+                {hours}
+            </span>
+            <span className="text-right tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
+                {rate}
+            </span>
+            <span className={`text-right tabular-nums whitespace-nowrap ${bold ? "font-semibold" : ""}`} style={{ color: "var(--text)" }}>
+                {total}
+            </span>
+        </div>
+    );
+}
 export default function EmployeeDetailPage() {
     return (
         <React.Suspense
@@ -504,6 +627,12 @@ export default function EmployeeDetailPage() {
         </React.Suspense>
     );
 }
+
+
+
+
+
+
 
 
 
