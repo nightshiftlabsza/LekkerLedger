@@ -21,8 +21,7 @@ export default function ExamplesPage() {
             ordinarilyWorksSundays: false,
             ordinaryHoursPerDay: 8,
             frequency: "Monthly",
-            startDate: "2024-01-01",
-            address: ""
+            startDate: "2024-01-01"
         };
 
         const samplePayslip: PayslipInput = {

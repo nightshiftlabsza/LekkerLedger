@@ -49,8 +49,7 @@ function buildHomepageSample(referenceDate: Date) {
         startDate: payPeriodStart.toISOString(),
         ordinarilyWorksSundays: false,
         ordinaryHoursPerDay: 8,
-        frequency: "Monthly",
-        address: ""
+        frequency: "Monthly"
     };
 
     const payslip: PayslipInput = {

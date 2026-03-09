@@ -79,8 +79,7 @@ export function NewPayrollWizardClient() {
                 startDate: new Date().toISOString().split('T')[0],
                 ordinarilyWorksSundays: false,
                 ordinaryHoursPerDay: 8,
-                frequency: "Monthly",
-                address: ""
+                frequency: "Monthly"
             };
             await saveEmployee(newEmp);
 
