@@ -13,6 +13,7 @@ import { Contract, CustomLeaveType, Employee, LeaveCarryOver, LeaveRecord } from
 import type { PlanConfig } from "@/config/plans";
 
 type EmployeeLeaveTabProps = {
+    variant?: "default" | "embedded";
     employee: Employee;
     leaveRecords: LeaveRecord[];
     leaveCarryOvers: LeaveCarryOver[];
@@ -22,9 +23,9 @@ type EmployeeLeaveTabProps = {
     advancedLeaveEnabled: boolean;
 };
 
-function SupportingMetric({ label, value }: { label: string; value: string }) {
+function SupportingMetric({ label, value, cardClass }: { label: string; value: string; cardClass: string }) {
     return (
-        <Card className="border border-[var(--border)] bg-[var(--surface-1)]">
+        <Card className={cardClass}>
             <CardContent className="p-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--text-muted)]">{label}</p>
                 <p className="mt-2 text-2xl font-black text-[var(--text)]">{value}</p>
@@ -41,6 +42,7 @@ export function EmployeeLeaveTab({
     customLeaveTypes,
     currentPlan,
     advancedLeaveEnabled,
+    variant = "default",
 }: EmployeeLeaveTabProps) {
     const leaveArchiveResult = React.useMemo(
         () => filterRecordsForArchiveWindow(leaveRecords, currentPlan, (record) => record.endDate || record.startDate || record.date),
@@ -67,11 +69,14 @@ export function EmployeeLeaveTab({
     const carryOverNudge = getCarryOverNudge(carryOverBuckets, new Date());
 
     const archiveUpgradeHref = getArchiveUpgradeHref(currentPlan.id);
+    const cardClass = variant === "embedded"
+        ? "rounded-[22px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+        : "border border-[var(--border)] bg-[var(--surface-1)]";
     const archiveUpgradeLabel = getArchiveUpgradeLabel(currentPlan.id);
 
     return (
         <div className="space-y-4">
-            <Card className="border border-[var(--border)] bg-[var(--surface-1)]">
+            <Card className={cardClass}>
                 <CardContent className="space-y-4 p-5">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                         <div>
@@ -108,15 +113,15 @@ export function EmployeeLeaveTab({
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-3">
-                        <SupportingMetric label="Entitlement this cycle" value={formatLeaveValue(entitlementThisCycle)} />
-                        <SupportingMetric label="Used this cycle" value={formatLeaveValue(usedThisCycle)} />
-                        <SupportingMetric label="Carry-over" value={formatLeaveValue(carryOverRemaining)} />
+                        <SupportingMetric label="Entitlement this cycle" value={formatLeaveValue(entitlementThisCycle)} cardClass={cardClass} />
+                        <SupportingMetric label="Used this cycle" value={formatLeaveValue(usedThisCycle)} cardClass={cardClass} />
+                        <SupportingMetric label="Carry-over" value={formatLeaveValue(carryOverRemaining)} cardClass={cardClass} />
                     </div>
                 </CardContent>
             </Card>
 
             {advancedLeaveEnabled ? (
-                <Card className="border border-[var(--border)] bg-[var(--surface-1)]">
+                <Card className={cardClass}>
                     <CardContent className="space-y-3 p-5">
                         <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--text-muted)]">Carry-over detail</p>
                         {visibleCarryOvers.length > 0 ? (
@@ -144,7 +149,7 @@ export function EmployeeLeaveTab({
                 </Card>
             ) : null}
 
-            <Card className="border border-[var(--border)] bg-[var(--surface-1)]">
+            <Card className={cardClass}>
                 <CardContent className="space-y-4 p-5">
                     <div className="flex items-center justify-between gap-3">
                         <div>
@@ -210,3 +215,6 @@ export function EmployeeLeaveTab({
         </div>
     );
 }
+
+
+

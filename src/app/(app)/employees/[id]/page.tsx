@@ -31,6 +31,7 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 ];
 
 const PROFILE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_4.25rem_6rem_6rem] gap-x-3 sm:grid-cols-[minmax(0,1fr)_5rem_6.75rem_7rem]";
+const SHELL_PANEL_CLASS = "rounded-[22px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_1px_2px_rgba(16,24,40,0.04)]";
 
 function formatRand(value: number) {
     return `R ${value.toFixed(2)}`;
@@ -227,56 +228,52 @@ function EmployeeDetailContent() {
             </div>
 
             <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col space-y-5 px-4 py-6 pb-24">
-                {/* Tab bar — pill style matching settings page */}
-                <div className="flex gap-1 p-1.5 rounded-2xl border border-[var(--border)]"
-                    style={{ backgroundColor: "var(--surface-1)" }}>
-                    {visibleTabs.map(({ id: tabId, label, icon: Icon }) => {
-                        const active = activeTab === tabId;
-                        return (
-                            <button
-                                key={tabId}
-                                onClick={() => setActiveTab(tabId)}
-                                aria-pressed={active}
-                                className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200"
-                                style={{
-                                    backgroundColor: active ? "var(--primary)" : "transparent",
-                                    color: active ? "#ffffff" : "var(--text-muted)",
-                                    boxShadow: active ? "var(--shadow-sm)" : "none",
-                                }}
-                            >
-                                <Icon className="h-4 w-4" />
-                                {label}
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {/* Tab content */}
-                <div className="animate-fade-in">
-                                        {/* PROFILE TAB */}
-                    {activeTab === "profile" && (
-                        <div ref={profileSectionRef} className="overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]">
-                            <div
-                                className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4"
-                                style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.10) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
-                            >
-                                <div>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
-                                        LekkerLedger
-                                    </p>
-                                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                                        Employee payroll profile
-                                    </p>
-                                </div>
-                                <p
-                                    className="rounded-full border border-[var(--focus)]/20 bg-white/70 px-3 py-1.5 text-xs font-semibold shadow-sm"
-                                    style={{ color: "var(--text)" }}
-                                >
-                                    {monthLabel}
+                <section className="overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]">
+                    <div
+                        className="border-b border-[var(--border)] px-5 py-4"
+                        style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.10) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
+                    >
+                        <div className="flex items-center justify-between gap-3">
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
+                                    LekkerLedger
+                                </p>
+                                <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+                                    Employee payroll profile
                                 </p>
                             </div>
+                            <p className="rounded-full border border-[var(--focus)]/20 bg-white/70 px-3 py-1.5 text-xs font-semibold shadow-sm" style={{ color: "var(--text)" }}>
+                                {monthLabel}
+                            </p>
+                        </div>
 
-                            <div className="p-4 sm:p-5">
+                        <div className="mt-4 flex gap-1 rounded-2xl border border-[var(--border)] bg-white/55 p-1">
+                            {visibleTabs.map(({ id: tabId, label, icon: Icon }) => {
+                                const active = activeTab === tabId;
+                                return (
+                                    <button
+                                        key={tabId}
+                                        onClick={() => setActiveTab(tabId)}
+                                        aria-pressed={active}
+                                        className="flex-1 flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] transition-all duration-200"
+                                        style={{
+                                            backgroundColor: active ? "var(--primary)" : "transparent",
+                                            color: active ? "#ffffff" : "var(--text-muted)",
+                                            boxShadow: active ? "var(--shadow-sm)" : "none",
+                                        }}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="animate-fade-in p-4 sm:p-5">
+                        {/* PROFILE TAB */}
+                        {activeTab === "profile" && (
+                            <section ref={profileSectionRef}>
                                 <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-4">
                                     <div>
                                         <h2 className="font-[family:var(--font-serif)] text-xl font-semibold" style={{ color: "var(--text)" }}>
@@ -333,10 +330,7 @@ function EmployeeDetailContent() {
                                     />
                                 </div>
 
-                                <div
-                                    className="mt-4 rounded-[22px] border border-[var(--border)] p-4"
-                                    style={{ background: "linear-gradient(180deg, rgba(255, 252, 248, 0.96) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
-                                >
+                                <div className="mt-4 rounded-[22px] border border-[var(--border)] p-4" style={{ background: "linear-gradient(180deg, rgba(255, 252, 248, 0.96) 0%, rgba(0, 122, 77, 0.03) 100%)" }}>
                                     <div className={`${PROFILE_FIGURE_GRID} border-b border-[var(--border)] pb-2 text-[10px] font-black uppercase tracking-[0.16em]`} style={{ color: "var(--text-muted)" }}>
                                         <span>Description</span>
                                         <span className="text-right">Hours</span>
@@ -373,10 +367,7 @@ function EmployeeDetailContent() {
                                     )}
                                 </div>
 
-                                <div
-                                    className="mt-3 rounded-[22px] border border-[var(--focus)]/20 p-4"
-                                    style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.08) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
-                                >
+                                <div className="mt-3 rounded-[22px] border border-[var(--focus)]/20 p-4" style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.08) 0%, rgba(196, 122, 28, 0.08) 100%)" }}>
                                     <div className="flex items-end justify-between gap-4">
                                         <div>
                                             <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
@@ -430,129 +421,132 @@ function EmployeeDetailContent() {
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        </div>
-                    )}
+                            </section>
+                        )}
 
-                    {/* PAY HISTORY TAB */}
-                    {activeTab === "history" && (
-                        <div className="space-y-3">
-                            {visiblePayslips.length === 0 ? (
-                                <Card className="glass-panel border-dashed border-2 p-10 text-center">
-                                    <Clock className="h-10 w-10 mx-auto mb-3 text-[var(--text-muted)]" strokeWidth={1.5} />
-                                    <p className="font-bold text-sm mb-1" style={{ color: "var(--text)" }}>
-                                        {payslipArchiveResult.hiddenCount > 0 ? "Older payslips are hidden on this plan" : "No payslips yet"}
-                                    </p>
-                                    <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
-                                        {payslipArchiveResult.hiddenCount > 0
-                                            ? "Upgrade to browse the full payslip history here."
-                                            : `Generate the first payslip for ${employee.name}.`}
-                                    </p>
+                        {/* PAY HISTORY TAB */}
+                        {activeTab === "history" && (
+                            <div className="space-y-3">
+                                {visiblePayslips.length === 0 ? (
+                                    <Card className={`${SHELL_PANEL_CLASS} border-dashed border-2`}>
+                                        <CardContent className="p-10 text-center">
+                                            <Clock className="h-10 w-10 mx-auto mb-3 text-[var(--text-muted)]" strokeWidth={1.5} />
+                                            <p className="font-bold text-sm mb-1" style={{ color: "var(--text)" }}>
+                                                {payslipArchiveResult.hiddenCount > 0 ? "Older payslips are hidden on this plan" : "No payslips yet"}
+                                            </p>
+                                            <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
+                                                {payslipArchiveResult.hiddenCount > 0
+                                                    ? "Upgrade to browse the full payslip history here."
+                                                    : `Generate the first payslip for ${employee.name}.`}
+                                            </p>
+                                            <Link href={`/wizard?empId=${id}`}>
+                                                <Button className="bg-[var(--primary)] text-white font-bold hover:brightness-95">Create Payslip</Button>
+                                            </Link>
+                                        </CardContent>
+                                    </Card>
+                                ) : (
+                                    visiblePayslips.map((ps, i) => {
+                                        const calc = calculatePayslip(ps);
+                                        return (
+                                            <Card key={ps.id} className={`${SHELL_PANEL_CLASS} cursor-pointer animate-slide-up`} style={{ animationDelay: `${i * 50}ms` }}>
+                                                <CardContent className="p-4" onClick={() => router.push(`/preview?payslipId=${ps.id}&empId=${id}`)}>
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div>
+                                                            <p className="font-bold text-sm" style={{ color: "var(--text)" }}>
+                                                                {format(new Date(ps.payPeriodStart), "MMM d")} – {format(new Date(ps.payPeriodEnd), "MMM d, yyyy")}
+                                                            </p>
+                                                            <p className="text-xs tabular-nums" style={{ color: "var(--text-muted)" }}>
+                                                                Net: <strong>R{calc.netPay.toFixed(2)}</strong> · Gross: R{calc.grossPay.toFixed(2)}
+                                                            </p>
+                                                            <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-[var(--primary)]">
+                                                                Open payslip
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 shrink-0">
+                                                            {deleteConfirmId === ps.id ? (
+                                                                <>
+                                                                    <span className="text-xs font-bold text-red-500">Delete?</span>
+                                                                    <Button size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold text-red-500 hover:bg-red-50"
+                                                                        onClick={(event) => { event.stopPropagation(); handleDeletePayslip(ps.id); }}>Yes</Button>
+                                                                    <Button size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold"
+                                                                        onClick={(event) => { event.stopPropagation(); setDeleteConfirmId(null); }}>No</Button>
+                                                                </>
+                                                            ) : (
+                                                                <Button variant="outline" size="sm" className="h-10 px-3 text-xs font-bold text-red-700 border-red-200 hover:text-red-800 hover:bg-red-50"
+                                                                        onClick={(event) => { event.stopPropagation(); setDeleteConfirmId(ps.id); }}>
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                        <span className="ml-1">Delete</span>
+                                                                    </Button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })
+                                )}
+                                {visiblePayslips.length > 0 && (
                                     <Link href={`/wizard?empId=${id}`}>
-                                        <Button className="bg-[var(--primary)] text-white font-bold hover:brightness-95">Create Payslip</Button>
+                                        <Button className="w-full bg-[var(--primary)] text-white font-bold hover:brightness-95 mt-2">
+                                            + New Payslip
+                                        </Button>
                                     </Link>
-                                </Card>
-                            ) : (
-                                visiblePayslips.map((ps, i) => {
-                                    const calc = calculatePayslip(ps);
-                                    return (
-                                        <Card key={ps.id} className="glass-panel border-none animate-slide-up hover-lift cursor-pointer" style={{ animationDelay: `${i * 50}ms` }}>
-                                            <CardContent className="p-4" onClick={() => router.push(`/preview?payslipId=${ps.id}&empId=${id}`)}>
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div>
-                                                        <p className="font-bold text-sm" style={{ color: "var(--text)" }}>
-                                                            {format(new Date(ps.payPeriodStart), "MMM d")} – {format(new Date(ps.payPeriodEnd), "MMM d, yyyy")}
-                                                        </p>
-                                                        <p className="text-xs tabular-nums" style={{ color: "var(--text-muted)" }}>
-                                                            Net: <strong>R{calc.netPay.toFixed(2)}</strong> · Gross: R{calc.grossPay.toFixed(2)}
-                                                        </p>
-                                                        <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-[var(--primary)]">
-                                                            Open payslip
-                                                        </p>
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5 shrink-0">
-                                                        {deleteConfirmId === ps.id ? (
-                                                            <>
-                                                                <span className="text-xs font-bold text-red-500">Delete?</span>
-                                                                <Button size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold text-red-500 hover:bg-red-50"
-                                                                    onClick={(event) => { event.stopPropagation(); handleDeletePayslip(ps.id); }}>Yes</Button>
-                                                                <Button size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold"
-                                                                    onClick={(event) => { event.stopPropagation(); setDeleteConfirmId(null); }}>No</Button>
-                                                            </>
-                                                        ) : (
-                                                            <Button variant="outline" size="sm" className="h-10 px-3 text-xs font-bold text-red-700 border-red-200 hover:text-red-800 hover:bg-red-50"
-                                                                    onClick={(event) => { event.stopPropagation(); setDeleteConfirmId(ps.id); }}>
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                    <span className="ml-1">Delete</span>
-                                                                </Button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    );
-                                })
-                            )}
-                            {visiblePayslips.length > 0 && (
-                                <Link href={`/wizard?empId=${id}`}>
-                                    <Button className="w-full bg-[var(--primary)] text-white font-bold hover:brightness-95 mt-2">
-                                        + New Payslip
-                                    </Button>
-                                </Link>
-                            )}
-                            {payslipArchiveResult.hiddenCount > 0 && (
-                                <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
-                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                        <div>
-                                            <p className="text-sm font-bold text-[var(--text)]">{getArchiveUpgradeMessage(currentPlan.id, payslipArchiveResult.hiddenCount, "payslip")}</p>
+                                )}
+                                {payslipArchiveResult.hiddenCount > 0 && (
+                                    <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <div>
+                                                <p className="text-sm font-bold text-[var(--text)]">{getArchiveUpgradeMessage(currentPlan.id, payslipArchiveResult.hiddenCount, "payslip")}</p>
+                                            </div>
+                                            <Link href={archiveUpgradeHref}>
+                                                <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{archiveUpgradeLabel}</Button>
+                                            </Link>
                                         </div>
-                                        <Link href={archiveUpgradeHref}>
-                                            <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{archiveUpgradeLabel}</Button>
-                                        </Link>
                                     </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                                )}
+                            </div>
+                        )}
 
-                                        {/* LEAVE TAB */}
-                    {activeTab === "leave" && (
-                        <EmployeeLeaveTab
-                            employee={employee}
-                            leaveRecords={leaveRecords}
-                            leaveCarryOvers={leaveCarryOvers}
-                            contracts={contracts}
-                            customLeaveTypes={customLeaveTypes}
-                            currentPlan={currentPlan}
-                            advancedLeaveEnabled={advancedLeaveEnabled}
-                        />
-                    )}
+                        {/* LEAVE TAB */}
+                        {activeTab === "leave" && (
+                            <EmployeeLeaveTab
+                                employee={employee}
+                                leaveRecords={leaveRecords}
+                                leaveCarryOvers={leaveCarryOvers}
+                                contracts={contracts}
+                                customLeaveTypes={customLeaveTypes}
+                                currentPlan={currentPlan}
+                                advancedLeaveEnabled={advancedLeaveEnabled}
+                                variant="embedded"
+                            />
+                        )}
 
-                    {/* DOCUMENTS TAB */}
-                    {activeTab === "documents" && (
-                        <Card className="glass-panel border-none">
-                            <CardContent className="p-5 space-y-3">
-                                <h3 className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>
-                                    Employee documents
-                                </h3>
-                                <Link href={`/documents?tab=contracts`}>
-                                    <Button className="w-full h-12 justify-start gap-3 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
-                                        <FolderOpen className="h-4 w-4" />
-                                        Open the documents hub
-                                    </Button>
-                                </Link>
-                                <p className="text-sm text-[var(--text-muted)]">
-                                    Contracts, certificates, exports, and older records should live in one documents area instead of being scattered through employee pages.
-                                </p>
-                                <Link href={`/contracts/new?employeeId=${id}`}>
-                                    <Button variant="outline" className="w-full h-11 font-bold">
-                                        Start a contract draft
-                                    </Button>
-                                </Link>
-                            </CardContent>
-                        </Card>
-                    )}
-                </div>
+                        {/* DOCUMENTS TAB */}
+                        {activeTab === "documents" && (
+                            <Card className={SHELL_PANEL_CLASS}>
+                                <CardContent className="p-5 space-y-3">
+                                    <h3 className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>
+                                        Employee documents
+                                    </h3>
+                                    <Link href={`/documents?tab=contracts`}>
+                                        <Button className="w-full h-12 justify-start gap-3 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
+                                            <FolderOpen className="h-4 w-4" />
+                                            Open the documents hub
+                                        </Button>
+                                    </Link>
+                                    <p className="text-sm text-[var(--text-muted)]">
+                                        Contracts, certificates, exports, and older records should live in one documents area instead of being scattered through employee pages.
+                                    </p>
+                                    <Link href={`/contracts/new?employeeId=${id}`}>
+                                        <Button variant="outline" className="w-full h-11 font-bold">
+                                            Start a contract draft
+                                        </Button>
+                                    </Link>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                </section>
             </main>
 
             {activeTab === "profile" && showProfileEditCta ? (
@@ -627,6 +621,9 @@ export default function EmployeeDetailPage() {
         </React.Suspense>
     );
 }
+
+
+
 
 
 
