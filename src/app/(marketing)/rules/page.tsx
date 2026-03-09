@@ -41,7 +41,7 @@ export default function RulesPage() {
                         </div>
 
                         <div className="grid gap-3 sm:grid-cols-2">
-                            <Link href="/help/compliance">
+                            <Link href="/help/admin">
                                 <Button className="w-full gap-2">
                                     Open household checklist
                                     <ExternalLink className="h-4 w-4" />
