@@ -222,7 +222,6 @@ export default function RoePackPage() {
                             </Card>
 
                             <Alert className="bg-[var(--surface-2)] border-none">
-                                <Info className="h-4 w-4 text-[var(--primary)]" />
                                 <AlertDescription className="text-xs text-[var(--text-muted)]">
                                     We use your saved payslips to calculate these totals. If you are missing months, your totals will be lower than reality.
                                 </AlertDescription>
