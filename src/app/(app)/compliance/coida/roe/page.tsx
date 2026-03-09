@@ -253,13 +253,13 @@ export default function RoePackPage() {
                                 </div>
                                 <div className="prose prose-sm max-w-none text-[var(--text-muted)] space-y-3 text-xs leading-relaxed">
                                     <p>
-                                        The <strong>Return of Earnings (ROE)</strong> is a mandatory annual declaration that every registered South African employer must submit to the <strong>Compensation Fund</strong>. It's how the government calculates how much your business owes to cover workers if they get injured or fall ill on the job.
+                                        The <strong>Return of Earnings (ROE)</strong> is a mandatory annual declaration that every registered South African employer must submit to the <strong>Compensation Fund</strong>. It&apos;s how the government calculates how much your business owes to cover workers if they get injured or fall ill on the job.
                                     </p>
                                     <div className="bg-[var(--surface-2)] p-4 rounded-xl space-y-2 border border-[var(--border)]">
-                                        <p className="font-bold text-[var(--text)]">What You're Declaring:</p>
+                                        <p className="font-bold text-[var(--text)]">What You&apos;re Declaring:</p>
                                         <ul className="list-disc pl-4 space-y-1">
                                             <li><strong>Actual earnings:</strong> Total wages paid in the previous assessment year (1 March to 28 February).</li>
-                                            <li><strong>Provisional earnings:</strong> Your estimate of what you'll pay in the coming year.</li>
+                                            <li><strong>Provisional earnings:</strong> Your estimate of what you&apos;ll pay in the coming year.</li>
                                         </ul>
                                     </div>
                                     <div className="flex items-start gap-3 p-3 bg-[var(--primary)]/5 rounded-xl border border-[var(--primary)]/10">
@@ -349,7 +349,6 @@ export default function RoePackPage() {
                                     icon={Calendar}
                                     help="Estimate for next year. CF default is (Actual + 5%). We use Actual as a baseline."
                                     onCopy={() => copyToClipboard(roeData.provisionalEarnings.toString(), "Provisional earnings")}
-                                    isEstimate
                                 />
                             </div>
 
@@ -470,13 +469,12 @@ export default function RoePackPage() {
     );
 }
 
-function RoeValueCard({ label, value, icon: Icon, help, onCopy, isEstimate }: {
+function RoeValueCard({ label, value, icon: Icon, help, onCopy }: {
     label: string,
     value: string,
     icon: React.ElementType,
     help: string,
-    onCopy: () => void,
-    isEstimate?: boolean
+    onCopy: () => void
 }) {
     return (
         <Card className="border border-[var(--border)] glass-panel hover:shadow-md transition-all group">
