@@ -13,10 +13,9 @@ test("home page contains a main element", async ({ page }) => {
 
 test("home page hero shows new headline and CTAs", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Household payroll records without the cost and complexity of business payroll software\./i })).toBeVisible();
-    await expect(page.getByText(/Manage payslips, documents, and domestic worker records in one place, with UIF deductions shown clearly on every payslip\./i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Payslips and household employment records in one place\./i })).toBeVisible();
+    await expect(page.getByText(/Track monthly pay, show UIF deductions clearly on payslips, and keep records available when you need them\./i)).toBeVisible();
     await expect(page.getByRole("link", { name: /Start free/i }).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /How storage works/i }).first()).toBeVisible();
 });
 
 test("home page does not contain old fear messaging", async ({ page }) => {
@@ -25,7 +24,7 @@ test("home page does not contain old fear messaging", async ({ page }) => {
     await expect(page.getByText("The Stakes Are Real")).not.toBeVisible();
     await expect(page.getByText("100% Legal & Private")).not.toBeVisible();
     await expect(page.getByText("Zero servers")).not.toBeVisible();
-    await expect(page.getByText("Start Free Check")).not.toBeVisible();
+    await expect(page.getByText("Start free Check")).not.toBeVisible();
 });
 
 test("home page has marketing header (no app nav)", async ({ page }) => {

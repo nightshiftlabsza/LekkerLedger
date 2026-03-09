@@ -214,7 +214,7 @@ function usePaidLoginActivation() {
         } catch (activationError) {
             const message = activationError instanceof Error
                 ? activationError.message
-                : "Paid login could not be completed.";
+                : "Sign in could not be completed.";
             const missingConfig = /(CLOUDFLARE_|PAYSTACK_).+is missing/i.test(message);
             if (missingConfig) {
                 routeToPricing(router, "config");
@@ -244,7 +244,7 @@ function PaidLoginButtonConfigured(props: PaidLoginButtonProps) {
                 }}
             >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {loading ? (statusMessage || "Working...") : (props.label || "Paid login")}
+                {loading ? (statusMessage || "Working...") : (props.label || "Sign in")}
             </Button>
             {props.showInlineError && error && (
                 <p className="text-xs font-medium text-rose-600">{error}</p>
@@ -264,7 +264,7 @@ export function PaidLoginButton(props: PaidLoginButtonProps) {
                 disabled
                 title="Google login is not configured for this build."
             >
-                {props.label || "Paid login"}
+                {props.label || "Sign in"}
             </Button>
         );
     }
@@ -285,7 +285,7 @@ function PaidLoginGateConfigured({ nextPath, skipPaidChecks = false }: { nextPat
     return (
         <div className="glass-panel border-none rounded-2xl border border-[var(--border)] bg-[var(--surface-1)]">
             <div className="space-y-4 p-6">
-                <h2 className="text-xl font-black text-[var(--text)]">Completing paid login</h2>
+                <h2 className="text-xl font-black text-[var(--text)]">Completing sign in</h2>
                 <p className="text-sm text-[var(--text-muted)]">
                     This flow will finish Google auth, verify your paid access, enable private Drive backup, and resolve first sync before opening the app.
                 </p>
@@ -297,7 +297,7 @@ function PaidLoginGateConfigured({ nextPath, skipPaidChecks = false }: { nextPat
                     disabled={loading}
                 >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    {loading ? (statusMessage || "Working...") : "Continue paid login"}
+                    {loading ? (statusMessage || "Working...") : "Continue sign in"}
                 </Button>
                 {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
             </div>

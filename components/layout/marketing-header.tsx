@@ -53,8 +53,8 @@ export function MarketingHeader() {
 
                 <div className="hidden lg:flex items-center gap-3">
                     <PaidLoginButton
-                        label="Paid login"
-                        variant="ghost"
+                        label="Sign in"
+                        variant="outline"
                         className="h-11 rounded-xl px-4 font-bold"
                         nextPath="/dashboard"
                         showInlineError
@@ -105,8 +105,8 @@ export function MarketingHeader() {
                             ))}
                             <div className="grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-4">
                                 <PaidLoginButton
-                                    label="Paid login"
-                                    variant="ghost"
+                                    label="Sign in"
+                                    variant="outline"
                                     className="w-full justify-center font-bold"
                                     nextPath="/dashboard"
                                     showInlineError
