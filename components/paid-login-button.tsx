@@ -41,6 +41,14 @@ function withActivationState(path: string, sync: SyncOutcome): string {
     return `/dashboard?${params.toString()}`;
 }
 
+function routeToPricing(router: ReturnType<typeof useRouter>, reason: "free" | "config" | "billing") {
+    const params = new URLSearchParams({
+        source: "paid-login",
+        reason,
+    });
+    router.push(`/pricing?${params.toString()}`);
+}
+
 function buildConflictPrompt(): boolean {
     return window.confirm(
         "We found payroll data on this device and in your Google backup.\n\nOK: Restore Google backup to this device.\nCancel: Keep this device data and upload it to Google now.",
@@ -182,9 +190,17 @@ function usePaidLoginActivation() {
             }
 
             setStatusMessage("Verifying paid access...");
-            const entitlements = await fetchVerifiedEntitlements(accessToken, true);
+            let entitlements: Awaited<ReturnType<typeof fetchVerifiedEntitlements>> = null;
+            try {
+                entitlements = await fetchVerifiedEntitlements(accessToken, true);
+            } catch (billingError) {
+                const message = billingError instanceof Error ? billingError.message : "";
+                const missingConfig = /(CLOUDFLARE_|PAYSTACK_).+is missing/i.test(message);
+                routeToPricing(router, missingConfig ? "config" : "billing");
+                return;
+            }
             if (!entitlements?.isActive || entitlements.planId === "free") {
-                router.push("/upgrade");
+                routeToPricing(router, "free");
                 return;
             }
 
@@ -199,6 +215,11 @@ function usePaidLoginActivation() {
             const message = activationError instanceof Error
                 ? activationError.message
                 : "Paid login could not be completed.";
+            const missingConfig = /(CLOUDFLARE_|PAYSTACK_).+is missing/i.test(message);
+            if (missingConfig) {
+                routeToPricing(router, "config");
+                return;
+            }
             setError(message);
         } finally {
             setLoading(false);
@@ -301,3 +322,4 @@ export function PaidLoginGate({ nextPath, skipPaidChecks = false }: { nextPath?:
 
     return <PaidLoginGateConfigured nextPath={nextPath} skipPaidChecks={skipPaidChecks} />;
 }
+
