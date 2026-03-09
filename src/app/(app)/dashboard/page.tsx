@@ -396,7 +396,7 @@ function DashboardContent() {
 
 export default function DashboardPage() {
     return (
-        <React.Suspense fallback={<><PageHeader title="Dashboard" subtitle="See this month's payroll status and what to do next." /><CardSkeleton /><div className="grid grid-cols-2 gap-3"><StatSkeleton /><StatSkeleton /></div><CardSkeleton /></>}>
+        <React.Suspense fallback={<CardSkeleton />}>
             <DashboardContent />
         </React.Suspense>
     );
