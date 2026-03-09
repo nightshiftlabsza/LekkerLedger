@@ -137,9 +137,11 @@ export default function PayPeriodWorkspacePage() {
             setShowLockConfirm(false);
             setShowReview(false);
         } catch (err) {
-            console.error(err);
+            console.error("handleLock error:", err);
+            toast(err instanceof Error ? err.message : "Failed to finalise pay period", "error");
+        } finally {
+            setSaving(false);
         }
-        setSaving(false);
     };
 
     /** Convert an EmployeeEntry + Employee → PayslipInput for PDF generation */
