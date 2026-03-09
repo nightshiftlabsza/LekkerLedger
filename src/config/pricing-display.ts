@@ -187,7 +187,7 @@ export function getMarketingPlanHref(planId: PlanId, billingCycle: BillingCycle)
         return "/onboarding";
     }
 
-    return `/upgrade?plan=${planId}&billing=${billingCycle}`;
+    return `/upgrade?plan=${planId}&billing=${billingCycle}&pay=1`;
 }
 
 export function getMarketingPriceDisplay(planId: PlanId, billingCycle: BillingCycle): PriceDisplay {

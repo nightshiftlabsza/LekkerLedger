@@ -9,7 +9,12 @@ import { Button } from "./ui/button";
 export function GlobalCreateFAB() {
     const [open, setOpen] = React.useState(false);
     const pathname = usePathname();
-    const shouldHideFab = pathname?.startsWith("/onboarding") || pathname?.startsWith("/settings");
+    const shouldHideFab = pathname?.startsWith("/onboarding") || 
+        pathname?.startsWith("/settings") || 
+        pathname?.startsWith("/upgrade") ||
+        pathname?.startsWith("/compliance") ||
+        pathname?.startsWith("/help") ||
+        pathname?.startsWith("/legal");
 
     if (shouldHideFab) return null;
 

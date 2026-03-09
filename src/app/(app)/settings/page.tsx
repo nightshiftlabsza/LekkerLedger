@@ -461,7 +461,7 @@ function SettingsContent() {
                                             Add categories like unpaid leave, study leave, or compassionate leave, while keeping the three default types fixed.
                                         </p>
                                     </div>
-                                    <Link href="/upgrade" className="block relative z-10">
+                                    <Link href="/upgrade?plan=pro&pay=1" className="block relative z-10">
                                         <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-black h-12 shadow-lg shadow-[var(--primary)]/20 active-scale">
                                             Upgrade to Pro
                                         </Button>
@@ -619,7 +619,7 @@ function SettingsContent() {
 
                                     <div className="mt-6">
                                         <div className="space-y-2">
-                                            <Link href="/upgrade" className="block">
+                                            <Link href={`/upgrade?plan=${currentPlan.id === "free" ? "standard" : "pro"}&pay=1`} className="block">
                                                 <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold" disabled={currentPlan.id === "pro"}>
                                                     {currentPlan.id === "pro" ? "Highest plan active" : "Review paid options"}
                                                 </Button>
@@ -677,7 +677,7 @@ function SettingsContent() {
                                                     </ul>
 
                                                     <div className="space-y-2">
-                                                        <Link href="/upgrade" className="block">
+                                                        <Link href={`/upgrade?plan=${plan.id}&billing=${comparisonCycle}&pay=1`} className="block">
                                                             <Button variant={isCurrent ? "outline" : "default"} className={`w-full font-bold ${isCurrent ? "" : "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"}`} disabled={isCurrent}>
                                                                 {isCurrent ? "Current plan" : `Choose ${plan.label}`}
                                                             </Button>

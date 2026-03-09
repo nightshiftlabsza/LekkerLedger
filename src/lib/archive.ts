@@ -15,7 +15,7 @@ export function getUpgradePlanForArchive(planId: PlanId): Exclude<PlanId, "free"
 
 export function getArchiveUpgradeHref(planId: PlanId): string {
     const target = getUpgradePlanForArchive(planId);
-    return target ? `/upgrade?plan=${target}` : "/upgrade";
+    return target ? `/upgrade?plan=${target}&pay=1` : "/upgrade";
 }
 
 export function getArchiveUpgradeLabel(planId: PlanId): string {
