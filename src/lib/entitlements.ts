@@ -4,7 +4,7 @@ import { EmployerSettings } from "./schema";
 
 function normalizePlanId(planId: string | undefined | null): PlanId {
     if (!planId || planId === "free") return "free";
-    if (planId === "standard" || planId === "annual") return "standard";
+    if (planId === "standard" || planId === "annual" || planId === "trial") return "standard";
     if (planId === "pro" || planId === "lifetime") return "pro";
     return "free";
 }

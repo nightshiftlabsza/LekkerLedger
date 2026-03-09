@@ -609,12 +609,19 @@ export default function DocumentsPage() {
     }
 
     if (!canUseDocumentsHub(plan)) {
+        const isSignedOut = !getStoredGoogleAccessToken();
+
         return (
             <>
                 <PageHeader title="Documents" subtitle={activeEmployeeName ? `Showing records for ${activeEmployeeName}` : "Payslips, contracts, exports, and vault history"} />
                 <FeatureGateCard
-                    title="Documents hub is available on Standard and Pro"
-                    description="Upgrade when you need payslips, contracts, exports, and organised records in one place."
+                    title={isSignedOut ? "Sign-in required to verify subscription" : "Documents hub is available on Standard and Pro"}
+                    description={isSignedOut
+                        ? "We can't check your subscription status while you're signed out. If you've already paid for Standard or Pro, please sign in to Google to unlock your features."
+                        : "Upgrade when you need payslips, contracts, exports, and organised records in one place."
+                    }
+                    ctaLabel={isSignedOut ? "Sign in to Google" : "Review plans"}
+                    href={isSignedOut ? "/settings" : "/upgrade"}
                 />
             </>
         );

@@ -633,6 +633,14 @@ function applyVerifiedEntitlementsToSettings(settings: EmployerSettings, entitle
 async function overlayVerifiedEntitlements(settings: EmployerSettings): Promise<EmployerSettings> {
     if (typeof window === "undefined") return settings;
 
+    if (process.env.NEXT_PUBLIC_DEBUG_PRO_PLAN === "true") {
+        return {
+            ...settings,
+            proStatus: "pro",
+            paidUntil: new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString(),
+        };
+    }
+
     const accessToken = getStoredGoogleAccessToken();
     const localPlan = settings.proStatus === "standard" || settings.proStatus === "pro" ? settings.proStatus : "free";
     if (!accessToken) {

@@ -7,16 +7,14 @@ import {
     ArrowRight, AlertTriangle, Users,
     FileText, FolderOpen,
     BookOpen, ChevronRight, Banknote,
-    ShieldCheck, UserPlus,
+    ShieldCheck, UserPlus, Settings,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { TaskList, type TaskItem } from "@/components/ui/task-list";
 import { CardSkeleton, StatSkeleton } from "@/components/ui/loading-skeleton";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
-import { EmptyState } from "@/components/ui/empty-state";
 import { getEmployees, getSettings, getCurrentPayPeriod, getDocuments, getLatestPayslip, subscribeToDataChanges } from "@/lib/storage";
 import { filterRecordsForArchiveWindow, isUploadedDocument } from "@/lib/archive";
 import { computeDashboardAlerts } from "@/lib/alerts";
@@ -94,7 +92,7 @@ function DashboardContent() {
     if (paidLoginRequested) {
         return (
             <>
-                <PageHeader title="Dashboard" subtitle="Completing your paid login and backup setup." />
+                <PageHeader title="Dashboard" subtitle="Completing your setup." />
                 <PaidLoginGate nextPath={paidLoginNext} skipPaidChecks={skipPaidChecks} />
             </>
         );
@@ -102,295 +100,443 @@ function DashboardContent() {
 
     if (loading) {
         return (
-            <>
-                <PageHeader title="Dashboard" subtitle="See this month's payroll status and what to do next." />
-                <CardSkeleton />
-                <div className="grid grid-cols-2 gap-3"><StatSkeleton /><StatSkeleton /></div>
-                <CardSkeleton />
-            </>
+            <div className="space-y-6">
+                <PageHeader title="Dashboard" subtitle="Loading your household overview..." />
+                <div className="grid gap-6 lg:grid-cols-12">
+                    <div className="lg:col-span-8 space-y-6">
+                        <CardSkeleton />
+                        <CardSkeleton />
+                    </div>
+                    <div className="lg:col-span-4 space-y-6">
+                        <StatSkeleton />
+                        <CardSkeleton />
+                    </div>
+                </div>
+            </div>
         );
     }
 
     const employeeCount = employees.length;
     const completedEntries = currentPeriod?.entries.filter(e => e.status === "complete").length ?? 0;
     const totalEntries = currentPeriod?.entries.length ?? 0;
-    const needsInfoCount = employees.filter(e => !e.startDate).length;
-    const currentMonth = format(new Date(), "MMMM yyyy");
-    const monthlyPayrollHref = currentPeriod
-        ? `/payroll/${currentPeriod.id}`
-        : employeeCount > 0
-            ? "/payroll/new"
-            : "/employees/new";
     const progressPercent = totalEntries > 0 ? (completedEntries / totalEntries) * 100 : 0;
-    const payrollHeadline = currentPeriod
-        ? currentPeriod.status === "review"
-            ? `${currentPeriod.name} is ready for review.`
-            : completedEntries === totalEntries && totalEntries > 0
-                ? `${currentPeriod.name} is ready to finalise.`
-                : `${completedEntries} of ${totalEntries} employees complete for ${currentPeriod.name}.`
-        : employeeCount > 0
-            ? `${currentMonth} has not been started yet.`
-            : "Add your first employee to begin monthly payroll.";
-    const payrollBody = currentPeriod
-        ? "Open this month, finish any remaining entries, check the totals, and then generate the payslips."
-        : employeeCount > 0
-            ? "Start this month's pay period and work through each employee one by one."
-            : "Add one employee to unlock payroll, documents, and leave tracking.";
-
-    // Build next actions for task list
-    const nextActions: TaskItem[] = [];
-    if (currentPeriod) {
-        const missing = currentPeriod.entries.filter(e => e.status === "empty" || e.status === "partial");
-        missing.slice(0, 2).forEach(entry => {
-            const emp = employees.find(e => e.id === entry.employeeId);
-            nextActions.push({
-                id: `hours-${entry.employeeId}`,
-                label: `Add this month's hours for ${emp?.name ?? "employee"}`,
-                status: "needs-info",
-                href: `/payroll/${currentPeriod.id}`,
-            });
-        });
-        if (completedEntries === totalEntries && totalEntries > 0) {
-            nextActions.push({
-                id: "review",
-                label: `Check ${currentPeriod.name} before finalising`,
-                status: "in-progress",
-                href: `/payroll/${currentPeriod.id}`,
-            });
-        }
-    } else if (employeeCount > 0) {
-        nextActions.push({
-            id: "start-period",
-            label: `Add ${format(new Date(), "MMMM yyyy")} payroll`,
-            status: "draft",
-            href: "/payroll/new",
-        });
-    }
-    if (needsInfoCount > 0) {
-        nextActions.push({
-            id: "needs-info",
-            label: `${needsInfoCount} employee${needsInfoCount > 1 ? "s" : ""} missing info`,
-            status: "needs-info",
-            href: "/employees",
-        });
-    }
+    const currentMonth = format(new Date(), "MMMM yyyy");
 
     // Alert engine
     const now = new Date();
     const alerts = computeDashboardAlerts({ employees, summaries, settings, now });
-    const lastBackupTime = settings?.lastBackupTimestamp ? new Date(settings.lastBackupTimestamp) : null;
-    const backupLabel = lastBackupTime
-        ? ((activationSuccess && activationSync !== "none") ? "just now" : lastBackupTime.toLocaleString("en-ZA"))
-        : "not yet";
+
+    const isSetupIncomplete = employeeCount === 0;
+    const isPayrollStarted = !!currentPeriod;
+    const isPayrollReady = completedEntries === totalEntries && totalEntries > 0;
 
     return (
-        <>
-            <PageHeader title="Dashboard" subtitle="See this month's payroll status and what to do next." />
+        <div className="pb-8 space-y-6">
+            <PageHeader
+                title="Dashboard"
+                subtitle={isSetupIncomplete ? "Let's get your household payroll set up." : "Manage your monthly payroll and records."}
+            />
 
-            {activationSuccess && (
-                <Card className="mb-6 overflow-hidden border-2 border-[var(--primary)] bg-[var(--surface-raised)] shadow-lg">
-                    <CardContent className="space-y-3 p-6">
-                        <div className="flex items-center gap-3 text-[var(--primary)]">
-                            <div className="rounded-full bg-[var(--primary)]/10 p-2">
-                                <ShieldCheck className="h-5 w-5" />
-                            </div>
-                            <h3 className="text-lg font-black italic tracking-tight">Paid login activated</h3>
-                        </div>
-                        <p className="text-sm font-medium leading-relaxed text-[var(--text-muted)]">
-                            {activationSync === "none"
-                                ? "Paid login is complete. No data snapshot was required yet on this device."
-                                : `Last backup: ${backupLabel}.`}
-                        </p>
-                    </CardContent>
-                </Card>
-            )}
+            {activationSuccess && <ActivationAlert syncState={activationSync} settings={settings} />}
 
-            <div className="ultrawide-grid grid-cols-12-desktop gap-6 space-y-6 lg:space-y-0">
-                {/* Main Content Area */}
-                <div className="ultrawide-main col-span-8-desktop space-y-6">
-                    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.85fr)]">
-                        <Card className={`glass-panel overflow-hidden hover-lift shadow-sm ${currentPeriod ? "border-2 border-[var(--primary)]/20" : "border-none"}`}>
-                            <CardContent className="space-y-5 p-6">
-                                <div className="flex items-start gap-4">
-                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--primary)] text-white">
-                                        <Banknote className="h-6 w-6" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Monthly payroll</p>
-                                        <div>
-                                            <h2 className="type-h3 text-[var(--text)]">{payrollHeadline}</h2>
-                                            <p className="mt-1 text-sm leading-relaxed text-[var(--text-muted)]">{payrollBody}</p>
-                                        </div>
-                                    </div>
-                                </div>
+            <div className="grid gap-6 lg:grid-cols-12 items-start">
+                {/* Left Column: Primary Focus */}
+                <div className="lg:col-span-8 space-y-6">
+                    {/* 1. Primary Task Hero */}
+                    <PrimaryTaskHero
+                        currentPeriod={currentPeriod}
+                        employeeCount={employeeCount}
+                        isSetupIncomplete={isSetupIncomplete}
+                        isPayrollReady={isPayrollReady}
+                        progressPercent={progressPercent}
+                        completedEntries={completedEntries}
+                        totalEntries={totalEntries}
+                        currentMonth={currentMonth}
+                    />
 
-                                <div className="grid gap-3 sm:grid-cols-3">
-                                    <SummaryCell label="This month" value={currentPeriod?.name ?? currentMonth} />
-                                    <SummaryCell label="Employees" value={employeeCount === 0 ? "None yet" : `${employeeCount} active`} />
-                                    <SummaryCell label="Needs info" value={needsInfoCount === 0 ? "All set" : `${needsInfoCount} to fix`} />
-                                </div>
-
-                                {currentPeriod && (
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-muted)]">
-                                            <span>Progress</span>
-                                            <span>{completedEntries} of {totalEntries} complete</span>
-                                        </div>
-                                        <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-2)] shadow-inner">
-                                            <div
-                                                className="h-full rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--focus)] transition-all duration-700 ease-out"
-                                                style={{ width: `${progressPercent}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="flex flex-col gap-3 sm:flex-row">
-                                    <Link href={monthlyPayrollHref} className="flex-1">
-                                        <Button className="h-11 w-full gap-2 rounded-xl bg-[var(--primary)] font-bold text-white hover:bg-[var(--primary-hover)]">
-                                            {currentPeriod ? `Open ${currentPeriod.name}` : employeeCount > 0 ? `Add ${currentMonth} Payroll` : "Add First Employee"}
-                                            <ArrowRight className="h-4 w-4" />
-                                        </Button>
-                                    </Link>
-                                    <Link href={employeeCount > 0 ? "/employees/new" : "/help/admin"} className="sm:w-auto">
-                                        <Button variant="outline" className="h-11 w-full gap-2 rounded-xl border-[var(--border)] font-bold text-[var(--text)] hover:bg-[var(--surface-2)] sm:w-auto">
-                                            {employeeCount > 0 ? "Add employee" : "See checklist"}
-                                            <ChevronRight className="h-4 w-4" />
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="glass-panel border-none">
-                            <CardContent className="space-y-4 p-5">
-                                <div>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">At a glance</p>
-                                    <h2 className="type-h3 text-[var(--text)]">Household snapshot</h2>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <OverviewRow label="Active employees" value={employeeCount === 0 ? "None yet" : `${employeeCount}`} />
-                                    <OverviewRow label="Recent documents" value={recentDocs.length === 0 ? "None yet" : `${recentDocs.length}`} />
-                                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/50 px-4 py-3">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <div>
-                                                <p className="text-sm font-semibold text-[var(--text)]">Backup status</p>
-                                                <p className="text-xs text-[var(--text-muted)]">Google backup or local-only storage</p>
-                                            </div>
-                                            <SyncStatusBadge state={settings?.googleSyncEnabled ? "synced" : "disconnected"} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-                                    <Link href="/employees/new">
-                                        <Button variant="outline" className="h-11 w-full gap-2 rounded-xl border-[var(--border)] font-bold hover:bg-[var(--surface-2)]">
-                                            <UserPlus className="h-4 w-4" /> Add employee
-                                        </Button>
-                                    </Link>
-                                    <Link href="/documents">
-                                        <Button variant="ghost" className="h-11 w-full gap-2 rounded-xl font-bold text-[var(--primary)] hover:bg-[var(--surface-2)]">
-                                            <FolderOpen className="h-4 w-4" /> Open documents
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    {/* Alert banners */}
-                    {alerts.map(alert => {
-                        const isUrgent = alert.severity === "urgent";
-                        const isInfo = alert.severity === "info";
-                        const bg = isUrgent ? "rgba(239,68,68,0.08)" : isInfo ? "rgba(59,130,246,0.08)" : "rgba(217,119,6,0.08)";
-                        const border = isUrgent ? "rgba(239,68,68,0.30)" : isInfo ? "rgba(59,130,246,0.30)" : "rgba(217,119,6,0.25)";
-                        const color = isUrgent ? "var(--danger)" : isInfo ? "var(--blue-500)" : "var(--primary)";
-                        return (
-                            <div key={alert.id}
-                                className="flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border text-sm font-bold shadow-sm transition-all hover:shadow-md active-scale"
-                                style={{ backgroundColor: bg, borderColor: border, color }}>
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-lg" style={{ backgroundColor: border.replace('0.30', '0.1').replace('0.25', '0.1') }}>
-                                        <AlertTriangle className="h-4 w-4 shrink-0" />
-                                    </div>
-                                    <span>{alert.message}</span>
-                                </div>
-                                {alert.action && (
-                                    <Link href={alert.action.href} className="text-xs font-black uppercase tracking-wider underline-offset-4 hover:underline whitespace-nowrap" style={{ color }}>
-                                        {alert.action.label}
-                                    </Link>
-                                )}
-                            </div>
-                        );
-                    })}
-
-                    {employeeCount === 0 ? (
-                        <EmptyState
-                            title="Welcome to LekkerLedger"
-                            description="Add your first employee to start tracking leave, generating payslips, and managing your household records."
-                            icon={Users}
-                            actionLabel="Add Employee"
-                            actionHref="/employees/new"
-                            requirements={[
-                                "Employee's full name",
-                                `Their hourly rate (minimum R${COMPLIANCE.NMW.RATE_PER_HOUR.toFixed(2)}/hr)`,
-                                "Expected weekly or monthly hours",
-                            ]}
+                    {/* 3. Next-Steps Checklist (Only if setup is incomplete or no payroll) */}
+                    {(isSetupIncomplete || !isPayrollStarted) && (
+                        <OnboardingChecklist
+                            employeeCount={employeeCount}
+                            isPayrollStarted={isPayrollStarted}
                         />
-                    ) : nextActions.length > 0 ? (
-                        <TaskList title="What to do next" items={nextActions} />
-                    ) : (
-                        <Card className="glass-panel border-none">
-                            <CardContent className="space-y-3 p-5">
-                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">What to do next</p>
-                                <h2 className="type-h3 text-[var(--text)]">Everything urgent is up to date.</h2>
-                                <p className="text-sm leading-relaxed text-[var(--text-muted)]">Use Documents to review recent files, or open Monthly Payroll when you are ready for the next cycle.</p>
-                                <div className="flex flex-col gap-3 sm:flex-row">
-                                    <Link href="/payroll" className="flex-1">
-                                        <Button className="h-11 w-full gap-2 rounded-xl bg-[var(--primary)] font-bold text-white hover:bg-[var(--primary-hover)]">
-                                            Open Monthly Payroll <ArrowRight className="h-4 w-4" />
-                                        </Button>
-                                    </Link>
-                                    <Link href="/documents" className="flex-1">
-                                        <Button variant="outline" className="h-11 w-full gap-2 rounded-xl border-[var(--border)] font-bold hover:bg-[var(--surface-2)]">
-                                            View Documents <ChevronRight className="h-4 w-4" />
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </CardContent>
-                        </Card>
                     )}
-                    {/* Mobile-only view for the side panels */}
-                    <div className="lg:hidden space-y-6">
-                        <DocumentCard recentDocs={recentDocs} />
-                        <StorageCard settings={settings} />
-                        <ComplianceCard />
+
+                    {/* 2. Compact Household Snapshot (Mobile only, stacks below hero) */}
+                    <div className="lg:hidden">
+                        <HouseholdSnapshot
+                            employeeCount={employeeCount}
+                            documentCount={recentDocs.length}
+                            settings={settings}
+                        />
                     </div>
+
+                    {/* Alert banners */}
+                    <div className="space-y-3">
+                        {alerts.map(alert => (
+                            <DashboardAlert key={alert.id} alert={alert} />
+                        ))}
+                    </div>
+
+                    {/* 5. Recent Records Area */}
+                    <RecentRecordsArea recentDocs={recentDocs} hasEmployees={employeeCount > 0} />
                 </div>
 
-                {/* Desktop Side Panel / Ultrawide Context Area */}
-                <div className="hidden lg:block col-span-4-desktop space-y-6">
-                    <DocumentCard recentDocs={recentDocs} />
-                    <StorageCard settings={settings} />
-                    <ComplianceCard />
+                {/* Right Column: Supporting Info */}
+                <div className="lg:col-span-4 space-y-6">
+                    {/* 2. Compact Household Snapshot (Desktop) */}
+                    <div className="hidden lg:block">
+                        <HouseholdSnapshot
+                            employeeCount={employeeCount}
+                            documentCount={recentDocs.length}
+                            settings={settings}
+                        />
+                    </div>
 
-                    {/* Help & Compliance (small) */}
-                    <div className="flex flex-col gap-2 pt-2 border-t border-[var(--border)]">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-[var(--text-muted)] px-1 gap-2">
-                            <span className="type-overline">Reference Guides</span>
-                            <div className="flex gap-4 flex-wrap">
-                                <Link href="/help/coida" prefetch={false} className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
-                                    <ShieldCheck className="h-3 w-3" /> Compensation Fund guide
-                                </Link>
-                                <Link href="/help/admin" className="font-bold hover:text-[var(--primary)] flex items-center gap-1">
-                                    <BookOpen className="h-3 w-3" /> Household checklist
-                                </Link>
-                            </div>
+                    {/* 4. Quick Access Block */}
+                    <QuickActions hasEmployees={employeeCount > 0} />
+
+                    {/* 6. Advanced/Annual (Quiet) */}
+                    <div className="pt-2">
+                        <ComplianceCard />
+                    </div>
+
+                    {/* Resource Links */}
+                    <div className="pt-4 border-t border-[var(--border)]">
+                        <h4 className="type-overline mb-3 text-[var(--text-muted)]">Reference Guides</h4>
+                        <div className="space-y-4">
+                            <Link href="/help/coida" className="group flex items-center gap-3 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
+                                <div className="p-1.5 rounded-lg bg-[var(--surface-2)] group-hover:bg-[var(--primary)]/10 transition-colors">
+                                    <ShieldCheck className="h-4 w-4" />
+                                </div>
+                                Compensation Fund guide
+                            </Link>
+                            <Link href="/help/admin" className="group flex items-center gap-3 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
+                                <div className="p-1.5 rounded-lg bg-[var(--surface-2)] group-hover:bg-[var(--primary)]/10 transition-colors">
+                                    <BookOpen className="h-4 w-4" />
+                                </div>
+                                Household checklist
+                            </Link>
                         </div>
                     </div>
                 </div>
             </div>
-        </>
+        </div>
+    );
+}
+
+function ActivationAlert({ syncState, settings }: { syncState: string | null; settings: EmployerSettings | null }) {
+    const lastBackupTime = settings?.lastBackupTimestamp ? new Date(settings.lastBackupTimestamp) : null;
+    const backupLabel = lastBackupTime ? "just now" : "not yet";
+
+    return (
+        <Card className="overflow-hidden border-2 border-[var(--primary)] bg-[var(--surface-raised)] shadow-lg">
+            <CardContent className="space-y-3 p-6">
+                <div className="flex items-center gap-3 text-[var(--primary)]">
+                    <div className="rounded-full bg-[var(--primary)]/10 p-2">
+                        <ShieldCheck className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-lg font-black italic tracking-tight">Paid login activated</h3>
+                </div>
+                <p className="text-sm font-medium leading-relaxed text-[var(--text-muted)]">
+                    {syncState === "none"
+                        ? "Paid login is complete. No data snapshot was required yet on this device."
+                        : `Last backup: ${backupLabel}.`}
+                </p>
+            </CardContent>
+        </Card>
+    );
+}
+
+function PrimaryTaskHero({
+    currentPeriod,
+    employeeCount,
+    isSetupIncomplete,
+    isPayrollReady,
+    progressPercent,
+    completedEntries,
+    totalEntries,
+    currentMonth
+}: {
+    currentPeriod: PayPeriod | null;
+    employeeCount: number;
+    isSetupIncomplete: boolean;
+    isPayrollReady: boolean;
+    progressPercent: number;
+    completedEntries: number;
+    totalEntries: number;
+    currentMonth: string;
+}) {
+    const title = currentPeriod
+        ? isPayrollReady
+            ? `${currentPeriod.name} is ready`
+            : `${currentPeriod.name} in progress`
+        : isSetupIncomplete
+            ? "Welcome to LekkerLedger"
+            : `Set up ${currentMonth}`;
+
+    const subtitle = currentPeriod
+        ? isPayrollReady
+            ? "All employee entries are complete. You can now finalise this month and generate payslips."
+            : `You have completed ${completedEntries} of ${totalEntries} entries. Finish the rest to finalise payroll.`
+        : isSetupIncomplete
+            ? "Let's add your first employee to unlock monthly payroll, leave tracking, and document storage."
+            : `Start the ${currentMonth} pay period to track hours and generate payslips for your household.`;
+
+    const primaryActionHref = currentPeriod
+        ? `/payroll/${currentPeriod.id}`
+        : isSetupIncomplete
+            ? "/employees/new"
+            : "/payroll/new";
+
+    const primaryActionLabel = currentPeriod
+        ? isPayrollReady ? "Review & Finalise" : "Continue Payroll"
+        : isSetupIncomplete ? "Add First Employee" : `Start ${currentMonth}`;
+
+    return (
+        <Card className="relative overflow-hidden border-none shadow-premium bg-[var(--surface-raised)] group">
+            {/* Subtle background pattern/gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-transparent opacity-50" />
+
+            <CardContent className="relative space-y-6 p-8">
+                <div className="space-y-3">
+                    <p className="type-overline text-[var(--primary)] flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
+                        {currentPeriod ? "Current Pay Period" : "Getting Started"}
+                    </p>
+                    <div className="max-w-2xl">
+                        <h2 className="text-3xl font-black tracking-tight text-[var(--text)] mb-2 leading-tight">
+                            {title}
+                        </h2>
+                        <p className="text-base text-[var(--text-muted)] leading-relaxed font-medium">
+                            {subtitle}
+                        </p>
+                    </div>
+                </div>
+
+                {currentPeriod && (
+                    <div className="max-w-md space-y-2">
+                        <div className="flex items-center justify-between text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                            <span>Progress</span>
+                            <span>{Math.round(progressPercent)}%</span>
+                        </div>
+                        <div className="h-2.5 overflow-hidden rounded-full bg-[var(--surface-2)] shadow-inner">
+                            <div
+                                className="h-full rounded-full bg-[var(--primary)] transition-all duration-700 ease-out"
+                                style={{ width: `${progressPercent}%` }}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                <div className="flex flex-wrap gap-4 pt-2">
+                    <Link href={primaryActionHref}>
+                        <Button className="h-12 px-6 gap-2 rounded-xl bg-[var(--primary)] font-bold text-white hover:bg-[var(--primary-hover)] shadow-lg shadow-[var(--primary)]/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                            {primaryActionLabel}
+                            <ArrowRight className="h-5 w-5" />
+                        </Button>
+                    </Link>
+                    {!isSetupIncomplete && (
+                        <Link href="/employees">
+                            <Button variant="outline" className="h-12 px-6 gap-2 rounded-xl border-[var(--border)] font-bold text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors">
+                                View Employees
+                            </Button>
+                        </Link>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function OnboardingChecklist({ employeeCount, isPayrollStarted }: { employeeCount: number; isPayrollStarted: boolean }) {
+    const steps = [
+        {
+            label: "Add your first employee",
+            description: "Full name and basic contact details.",
+            completed: employeeCount > 0,
+            href: "/employees/new"
+        },
+        {
+            label: "Set hourly rates & schedule",
+            description: "Required for legal payslip calculations.",
+            completed: employeeCount > 0, // Simplified check
+            href: "/employees"
+        },
+        {
+            label: "Start your first pay period",
+            description: "Record actual hours worked this month.",
+            completed: isPayrollStarted,
+            href: "/payroll/new"
+        }
+    ];
+
+    return (
+        <Card className="glass-panel border-none">
+            <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="type-h3 text-[var(--text)]">Next Steps</h3>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Setup Progress</p>
+                </div>
+                <div className="space-y-3">
+                    {steps.map((step, i) => (
+                        <Link key={i} href={step.completed ? "#" : step.href}>
+                            <div className={`group flex items-center gap-4 p-4 rounded-xl border transition-all ${step.completed ? "bg-[var(--surface-2)]/30 border-transparent opacity-60" : "bg-[var(--surface-1)] border-[var(--border)] hover:border-[var(--primary)]/30 hover:shadow-md cursor-pointer"}`}>
+                                <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${step.completed ? "bg-[var(--success)] border-[var(--success)] text-white" : "border-[var(--border)] group-hover:border-[var(--primary)]"}`}>
+                                    {step.completed ? <ShieldCheck className="h-4 w-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-[var(--text)]">{step.label}</p>
+                                    <p className="text-xs text-[var(--text-muted)] font-medium">{step.description}</p>
+                                </div>
+                                {!step.completed && <ChevronRight className="h-4 w-4 ml-auto text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors" />}
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function HouseholdSnapshot({ employeeCount, documentCount, settings }: { employeeCount: number; documentCount: number; settings: EmployerSettings | null }) {
+    return (
+        <Card className="glass-panel border-none shadow-sm outline outline-1 outline-[var(--border)]">
+            <CardContent className="p-6 space-y-6">
+                <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1">Snapshot</p>
+                    <h3 className="type-h3 text-[var(--text)]">Household Metrics</h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Active Employees</p>
+                        <p className="text-2xl font-black text-[var(--text)]">{employeeCount}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Documents</p>
+                        <p className="text-2xl font-black text-[var(--text)]">{documentCount}</p>
+                    </div>
+                </div>
+
+                <div className="pt-4 border-t border-[var(--border)]">
+                    <div className="flex items-center justify-between gap-3 text-xs">
+                        <span className="font-bold text-[var(--text-muted)]">Storage & Sync</span>
+                        <SyncStatusBadge state={settings?.googleSyncEnabled ? "synced" : "disconnected"} />
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function QuickActions({ hasEmployees }: { hasEmployees: boolean }) {
+    const actions = [
+        { label: "Add Employee", icon: UserPlus, href: "/employees/new", primary: true },
+        { label: "Monthly Payroll", icon: Banknote, href: "/payroll" },
+        { label: "Documents Hub", icon: FolderOpen, href: "/documents" },
+        { label: "Account Settings", icon: Settings, href: "/settings" }
+    ];
+
+    return (
+        <div className="space-y-4">
+            <h3 className="type-overline text-[var(--text-muted)] px-1">Quick Access</h3>
+            <div className="grid gap-2">
+                {actions.map((action, i) => (
+                    <Link key={i} href={action.href}>
+                        <Button
+                            variant="ghost"
+                            className="w-full h-12 justify-start gap-4 px-4 rounded-xl font-bold bg-[var(--surface-1)] border border-[var(--border)] hover:bg-[var(--surface-2)] hover:border-[var(--primary)]/20 transition-all group"
+                        >
+                            <div className="p-1.5 rounded-lg bg-[var(--surface-2)] group-hover:bg-[var(--primary)]/10 transition-colors">
+                                <action.icon className="h-4 w-4 text-[var(--text-muted)] group-hover:text-[var(--primary)]" />
+                            </div>
+                            <span className="text-[13px] text-[var(--text)]">{action.label}</span>
+                        </Button>
+                    </Link>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function RecentRecordsArea({ recentDocs, hasEmployees }: { recentDocs: DocumentMeta[]; hasEmployees: boolean }) {
+    if (!hasEmployees) return null;
+
+    return (
+        <Card className="glass-panel border-none">
+            <CardContent className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1">Recent Activity</p>
+                        <h3 className="type-h3 text-[var(--text)]">Recent Records</h3>
+                    </div>
+                    {recentDocs.length > 0 && (
+                        <Link href="/documents">
+                            <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] hover:bg-[var(--primary)]/5 h-8 rounded-lg">
+                                View all
+                            </Button>
+                        </Link>
+                    )}
+                </div>
+
+                {recentDocs.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-center space-y-3 bg-[var(--surface-2)]/30 rounded-2xl border border-dashed border-[var(--border)]">
+                        <div className="h-10 w-10 rounded-full bg-[var(--surface-2)] flex items-center justify-center">
+                            <FileText className="h-5 w-5 text-[var(--text-muted)]" />
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-sm font-bold text-[var(--text)]">No records yet</p>
+                            <p className="text-xs text-[var(--text-muted)] max-w-[200px] font-medium leading-relaxed">
+                                Complete a pay period to generate payslips and UI records.
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="divide-y divide-[var(--border)]">
+                        {recentDocs.slice(0, 3).map(doc => (
+                            <Link key={doc.id} href="/documents" className="group flex items-center gap-4 py-4 first:pt-0 last:pb-0 transition-all">
+                                <div className="p-2 rounded-xl bg-[var(--surface-2)] group-hover:bg-[var(--primary)]/10 transition-colors">
+                                    <FileText className="h-5 w-5 text-[var(--primary)]" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</p>
+                                    <p className="text-xs text-[var(--text-muted)] font-medium">
+                                        {format(new Date(doc.createdAt), "d MMMM yyyy")}
+                                    </p>
+                                </div>
+                                <ChevronRight className="h-4 w-4 text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors" />
+                            </Link>
+                        ))}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+function DashboardAlert({ alert }: { alert: any }) {
+    const isUrgent = alert.severity === "urgent";
+    const isInfo = alert.severity === "info";
+    const bg = isUrgent ? "rgba(239,68,68,0.08)" : isInfo ? "rgba(59,130,246,0.08)" : "rgba(217,119,6,0.08)";
+    const border = isUrgent ? "rgba(239,68,68,0.30)" : isInfo ? "rgba(59,130,246,0.30)" : "rgba(217,119,6,0.25)";
+    const color = isUrgent ? "var(--danger)" : isInfo ? "var(--blue-500)" : "var(--primary)";
+
+    return (
+        <div className="flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border text-sm font-bold shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
+            style={{ backgroundColor: bg, borderColor: border, color }}>
+            <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg" style={{ backgroundColor: border.replace('0.30', '0.1').replace('0.25', '0.1') }}>
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                </div>
+                <span>{alert.message}</span>
+            </div>
+            {alert.action && (
+                <Link href={alert.action.href} className="text-xs font-black uppercase tracking-wider underline-offset-4 hover:underline whitespace-nowrap" style={{ color }}>
+                    {alert.action.label}
+                </Link>
+            )}
+        </div>
     );
 }
 
@@ -429,96 +575,6 @@ function ComplianceCard() {
     );
 }
 
-function SummaryCell({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="group rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/50 px-4 py-3 transition-all hover:bg-[var(--surface-1)] hover:shadow-sm">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] transition-colors group-hover:text-[var(--primary)]">{label}</p>
-            <p className="mt-1 text-sm font-black text-[var(--text)]">{value}</p>
-        </div>
-    );
-}
 
-function OverviewRow({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
-            <span className="text-sm font-bold text-[var(--text-muted)]">{label}</span>
-            <span className="text-sm font-black text-[var(--text)]">{value}</span>
-        </div>
-    );
-}
-function DocumentCard({ recentDocs }: { recentDocs: DocumentMeta[] }) {
-    return (
-        <Card className="glass-panel border-none shadow-sm hover-lift">
-            <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="type-overline text-[var(--text-muted)]">Recent Documents</h3>
-                    <Link href="/documents">
-                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] gap-1">
-                            View all <ChevronRight className="h-3 w-3" />
-                        </Button>
-                    </Link>
-                </div>
-                {recentDocs.length === 0 ? (
-                    <p className="type-body text-[var(--text-muted)]">No documents yet. Generate payslips from a pay period.</p>
-                ) : (
-                    <div className="space-y-2">
-                        {recentDocs.slice(0, 3).map(doc => (
-                            <div key={doc.id} className="group flex items-center gap-3 py-3 border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-2)]/50 px-2 -mx-2 rounded-lg transition-colors cursor-pointer">
-                                <div className="p-2 rounded-lg bg-[var(--primary)]/5 group-hover:bg-white group-hover:shadow-sm transition-all">
-                                    <FileText className="h-4 w-4 text-[var(--primary)] shrink-0" />
-                                </div>
-                                <span className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</span>
-                                <span className="text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)] ml-auto shrink-0">
-                                    {format(new Date(doc.createdAt), "d MMM")}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </CardContent>
-        </Card>
-    );
-}
-
-function StorageCard({ settings }: { settings: EmployerSettings | null }) {
-    const hasGoogleBackup = !!settings?.googleSyncEnabled;
-
-    return (
-        <Card className="glass-panel border-none shadow-sm hover-lift">
-            <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="type-overline text-[var(--text-muted)]">Storage & Sync</h3>
-                    <Link href="/settings?tab=storage">
-                        <Button variant="ghost" size="sm" className="text-xs font-bold text-[var(--primary)] gap-1">
-                            Manage <ChevronRight className="h-3 w-3" />
-                        </Button>
-                    </Link>
-                </div>
-                <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2 text-sm">
-                        <span className="text-[var(--text-muted)] shrink-0">Storage:</span>
-                        <span className="font-bold text-[var(--text)] truncate">This device</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                        <span className="text-[var(--text-muted)] shrink-0">Backup:</span>
-                        <SyncStatusBadge state={hasGoogleBackup ? "synced" : "disconnected"} />
-                    </div>
-                    {!hasGoogleBackup && (
-                        <div
-                            className="rounded-2xl border px-4 py-3 text-xs leading-relaxed"
-                            style={{
-                                borderColor: "rgba(196,122,28,0.25)",
-                                backgroundColor: "rgba(196,122,28,0.08)",
-                                color: "var(--text)",
-                            }}
-                        >
-                            Stored in this browser only. If you clear browser data or lose this device, your records are gone unless you export them or turn on backup.
-                        </div>
-                    )}
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
 
 
