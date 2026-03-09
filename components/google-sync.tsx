@@ -99,16 +99,14 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
         }
     };
 
-    const persistBackupTimestamp = useCallback(async (timestamp: string) => {
-        setLastSyncTime(timestamp);
-        if (typeof window !== "undefined") {
-            localStorage.setItem("ll_last_sync", timestamp);
-        }
+    const refreshLocalTimestamp = useCallback(async () => {
         const settings = await getSettings();
-        await saveSettings({
-            ...settings,
-            lastBackupTimestamp: timestamp,
-        });
+        if (settings.lastBackupTimestamp) {
+            setLastSyncTime(settings.lastBackupTimestamp);
+            if (typeof window !== "undefined") {
+                localStorage.setItem("ll_last_sync", settings.lastBackupTimestamp);
+            }
+        }
     }, []);
 
     const setTransientStatus = (nextStatus: "success" | "error", message: string, timeout = 4000) => {
@@ -217,13 +215,13 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
         if (result.success) {
             addLog({ success: true, action: "backup", details: "Uploaded lekkerledger_data.json" });
             const timestamp = new Date().toISOString();
-            await persistBackupTimestamp(timestamp);
+            await refreshLocalTimestamp();
             if (!silent) setTransientStatus("success", "Backup saved to the Google Drive app data area in your Google account.");
         } else if (!silent && isMountedRef.current) {
             addLog({ success: false, action: "backup", details: result.error || "Network or permission error during upload" });
             setTransientStatus("error", result.error || "Backup failed. Check your Google connection or Drive permission and try again.", 5000);
         }
-    }, [hasDriveScope, persistBackupTimestamp, token]);
+    }, [hasDriveScope, refreshLocalTimestamp, token]);
 
     const runRestore = useCallback(async (silent = false) => {
         const currentToken = token || getStoredToken();
@@ -631,7 +629,7 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
                                 <div className="space-y-1">
                                     <p className="text-sm font-semibold text-[var(--text)]">Back up automatically</p>
                                     <p className="text-xs leading-relaxed text-[var(--text-muted)]">
-                                        Pro can back up on app open when more than 24 hours have passed since the last backup.
+                                        Pro keeps your data in sync automatically after changes and at 5-minute intervals.
                                     </p>
                                 </div>
                                 <Switch

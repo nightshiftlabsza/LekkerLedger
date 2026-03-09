@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { env } from "@/lib/env";
 import { fetchVerifiedEntitlements } from "@/lib/billing-client";
-import { GOOGLE_SCOPES, getBackupMetadata, syncDataFromDrive, syncDataToDrive } from "@/lib/google-drive";
+import { GOOGLE_SCOPES, performSmartSyncCheck, syncDataFromDrive, syncDataToDrive } from "@/lib/google-drive";
 import {
     getStoredGoogleAccessToken,
     hasStoredGoogleDriveScope,
@@ -100,51 +100,32 @@ function usePaidLoginActivation() {
         return data;
     }, []);
 
-    const persistBackupTimestamp = React.useCallback(async () => {
-        const timestamp = new Date().toISOString();
-        const settings = await getSettings();
-        await saveSettings({
-            ...settings,
-            googleSyncEnabled: true,
-            lastBackupTimestamp: timestamp,
-        });
-        if (typeof window !== "undefined") {
-            window.localStorage.setItem("ll_last_sync", timestamp);
-        }
-    }, []);
-
     const resolveFirstSync = React.useCallback(async (accessToken: string): Promise<SyncOutcome> => {
-        const [remote, hasLocal] = await Promise.all([
-            getBackupMetadata(accessToken),
-            hasMeaningfulLocalData(),
-        ]);
+        const check = await performSmartSyncCheck(accessToken);
 
-        if (hasLocal && !remote.exists) {
+        if (check.recommendation === "BACKUP") {
             const backup = await syncDataToDrive(accessToken);
             if (!backup.success) {
                 throw new Error(backup.error || "Backup failed while activating paid login.");
             }
-            await persistBackupTimestamp();
             return "backup";
         }
 
-        if (!hasLocal && remote.exists) {
+        if (check.recommendation === "RESTORE") {
             const restore = await syncDataFromDrive(accessToken);
             if (!restore.success) {
                 throw new Error(restore.error || "Restore failed while activating paid login.");
             }
-            await persistBackupTimestamp();
             return "restore";
         }
 
-        if (hasLocal && remote.exists) {
+        if (check.recommendation === "CONFLICT") {
             const restoreRemote = buildConflictPrompt();
             if (restoreRemote) {
                 const restore = await syncDataFromDrive(accessToken);
                 if (!restore.success) {
                     throw new Error(restore.error || "Restore failed while activating paid login.");
                 }
-                await persistBackupTimestamp();
                 return "restore";
             }
 
@@ -152,14 +133,16 @@ function usePaidLoginActivation() {
             if (!backup.success) {
                 throw new Error(backup.error || "Backup failed while activating paid login.");
             }
-            await persistBackupTimestamp();
             return "backup";
         }
 
+        // UP_TO_DATE or UNKNOWN
         const settings = await getSettings();
-        await saveSettings({ ...settings, googleSyncEnabled: true });
+        if (!settings.googleSyncEnabled) {
+            await saveSettings({ ...settings, googleSyncEnabled: true });
+        }
         return "none";
-    }, [persistBackupTimestamp]);
+    }, []);
 
     const start = React.useCallback(async (nextPath?: string | null, options?: { skipPaidChecks?: boolean }) => {
         setLoading(true);

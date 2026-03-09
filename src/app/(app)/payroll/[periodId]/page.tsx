@@ -16,7 +16,7 @@ import { ActionBar } from "@/components/ui/action-bar";
 import { ReviewSummary, type ReviewSection } from "@/components/ui/review-summary";
 import { useToast } from "@/components/ui/toast";
 import {
-    getPayPeriod, savePayPeriod, lockPayPeriod as doLockPayPeriod,
+    getPayPeriod, savePayPeriod, lockPayPeriod as doLockPayPeriod, unlockPayPeriod as doUnlockPayPeriod,
     getEmployees, getSettings, getLeaveForEmployee,
     savePayslip, saveDocumentMeta
 } from "@/lib/storage";
@@ -136,9 +136,29 @@ export default function PayPeriodWorkspacePage() {
             setPeriod(locked);
             setShowLockConfirm(false);
             setShowReview(false);
+            toast("Payroll finalised successfully", "success");
         } catch (err) {
             console.error("handleLock error:", err);
             toast(err instanceof Error ? err.message : "Failed to finalise pay period", "error");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleUnlock = async () => {
+        if (!period) return;
+        if (!confirm("Unlocking will delete the generated payslips from your documents so you can fix errors and re-finalise. Are you sure?")) return;
+        
+        setSaving(true);
+        try {
+            await doUnlockPayPeriod(period.id);
+            const unlocked = await getPayPeriod(period.id);
+            setPeriod(unlocked);
+            setShowReview(true); // Take them back to review mode
+            toast("Payroll unlocked for editing", "success");
+        } catch (err) {
+            console.error("handleUnlock error:", err);
+            toast(err instanceof Error ? err.message : "Failed to unlock pay period", "error");
         } finally {
             setSaving(false);
         }
@@ -424,7 +444,10 @@ export default function PayPeriodWorkspacePage() {
                                 <h3 className="type-h3 text-[var(--text)]">Finalise this month?</h3>
                             </div>
                             <p className="type-body text-[var(--text-muted)]">
-                                Finalising freezes these figures so your payslips and records stay consistent. If you need to fix something later, do it in a new month or adjustment.
+                                Finalising ensures your payslips, tax records (UIF), and ledger stay consistent. This "freezes" the month to prevent accidental changes to historical data.
+                            </p>
+                            <p className="type-body text-[var(--text-muted)]">
+                                If you need to make corrections later, you can record them as an <strong>adjustment</strong> in the next month.
                             </p>
                             <div className="flex gap-3">
                                 <Button variant="outline" onClick={() => setShowLockConfirm(false)} className="flex-1 font-bold">
@@ -629,6 +652,17 @@ export default function PayPeriodWorkspacePage() {
                                 className="h-12 gap-2 font-bold"
                             >
                                 <MessageCircle className="h-4 w-4" /> WhatsApp
+                            </Button>
+                        </div>
+                        <div className="pt-4 border-t border-[var(--border)]">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleUnlock}
+                                disabled={saving}
+                                className="text-xs text-[var(--text-muted)] hover:text-red-500 font-bold gap-1.5"
+                            >
+                                <AlertTriangle className="h-3.5 w-3.5" /> Made a mistake? Undo Finalise
                             </Button>
                         </div>
                         <p className="text-xs text-[var(--text-muted)]">

@@ -13,11 +13,11 @@ import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { ToastProvider } from "@/components/ui/toast";
 import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
-import { getHouseholds, getSettings, saveHousehold, saveSettings, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
+import { getHouseholds, getSettings, hasMeaningfulLocalData, saveHousehold, saveSettings, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseAutoBackup, canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
 import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail } from "@/lib/google-session";
-import { syncDataToDrive } from "@/lib/google-drive";
+import { syncDataToDrive, performSmartSyncCheck, syncDataFromDrive } from "@/lib/google-drive";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -26,6 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const { network, sync, payments } = useAppConnectivity();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
+    const [syncConflict, setSyncConflict] = React.useState(false);
     const [paymentsBannerDismissed, setPaymentsBannerDismissed] = React.useState(false);
     const [moreOpen, setMoreOpen] = React.useState(false);
     const [households, setHouseholds] = React.useState<Household[]>([{ id: "default", name: "Main household", createdAt: new Date(0).toISOString() }]);
@@ -39,6 +40,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const [lastLocalSaveAt, setLastLocalSaveAt] = React.useState<number | null>(null);
     const previousNetworkRef = React.useRef(network);
     const autoBackupInFlightRef = React.useRef(false);
+    const sessionSyncPerformedRef = React.useRef(false);
+    const lastSyncAttemptRef = React.useRef<number>(0);
+    const pendingSyncTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
     React.useEffect(() => {
         if (network === "offline" && previousNetworkRef.current !== "offline") {
@@ -77,52 +81,90 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
+    // High-Frequency & Event-Driven Auto-Sync (Issue 175)
     React.useEffect(() => {
-        if (!settings) return;
+        if (!settings || network !== "online") return;
+        
         const plan = getUserPlan(settings);
         if (!canUseAutoBackup(plan) || !settings.autoBackupEnabled || !settings.googleSyncEnabled) return;
-        if (autoBackupInFlightRef.current) return;
-
-        const lastBackupAt = settings.lastBackupTimestamp ? new Date(settings.lastBackupTimestamp) : null;
-        const isRecent = lastBackupAt && !Number.isNaN(lastBackupAt.getTime()) && (Date.now() - lastBackupAt.getTime()) < 24 * 60 * 60 * 1000;
-        if (isRecent) return;
 
         const accessToken = getStoredGoogleAccessToken();
         if (!accessToken) return;
 
-        autoBackupInFlightRef.current = true;
-        const syncTimeout = setTimeout(() => {
-            if (autoBackupInFlightRef.current) {
-                console.warn("Auto-backup timed out");
-                autoBackupInFlightRef.current = false;
+        const performSync = async (reason: string) => {
+            if (autoBackupInFlightRef.current) return;
+            
+            // Throttle to once every 5 minutes unless it's the very first session sync
+            const now = Date.now();
+            const minInterval = 5 * 60 * 1000;
+            if (sessionSyncPerformedRef.current && (now - lastSyncAttemptRef.current < minInterval)) {
+                return;
             }
-        }, 30000); // 30s timeout
 
-        void (async () => {
+            autoBackupInFlightRef.current = true;
+            lastSyncAttemptRef.current = now;
+            console.log(`Auto-sync: Triggering sync (${reason})`);
+
             try {
-                const success = await syncDataToDrive(accessToken);
-                if (success) {
-                    const timestamp = new Date().toISOString();
-                    const latestSettings = await getSettings();
-                    await saveSettings({
-                        ...latestSettings,
-                        lastBackupTimestamp: timestamp,
-                    });
-                    if (typeof window !== "undefined") {
-                        window.localStorage.setItem("ll_last_sync", timestamp);
+                if (!sessionSyncPerformedRef.current) {
+                    // Initial check for this session
+                    const check = await performSmartSyncCheck(accessToken);
+                    sessionSyncPerformedRef.current = true;
+
+                    if (check.recommendation === "RESTORE") {
+                        const hasLocal = await hasMeaningfulLocalData();
+                        if (!hasLocal) {
+                            console.log("Auto-sync: Restoring data for new device");
+                            await syncDataFromDrive(accessToken);
+                            return;
+                        } else {
+                            // Conflict or older local: show banner
+                            setSyncConflict(true);
+                            setSyncBannerDismissed(false);
+                            return; 
+                        }
+                    } else if (check.recommendation === "BACKUP") {
+                        await syncDataToDrive(accessToken);
+                        return;
                     }
                 }
+
+                // Regular incremental backup
+                await syncDataToDrive(accessToken);
             } catch (err) {
-                console.error("Auto-backup failed", err);
+                console.error("Auto-sync failed", err);
             } finally {
-                clearTimeout(syncTimeout);
                 autoBackupInFlightRef.current = false;
             }
-        })();
-    }, [settings]);
+        };
+
+        // 1. Session start sync
+        if (!sessionSyncPerformedRef.current) {
+            void performSync("session-start");
+        }
+
+        // 2. Event-driven sync (debounced 30s after a change)
+        const unsubscribe = subscribeToDataChanges(() => {
+            if (pendingSyncTimeoutRef.current) clearTimeout(pendingSyncTimeoutRef.current);
+            pendingSyncTimeoutRef.current = setTimeout(() => {
+                void performSync("data-change");
+            }, 30000); // 30s debounce
+        });
+
+        // 3. Periodic sync (every 5 minutes)
+        const interval = setInterval(() => {
+            void performSync("periodic-interval");
+        }, 5 * 60 * 1000);
+
+        return () => {
+            unsubscribe();
+            clearInterval(interval);
+            if (pendingSyncTimeoutRef.current) clearTimeout(pendingSyncTimeoutRef.current);
+        };
+    }, [settings, network]);
 
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
-    const showSyncBanner = network === "online" && sync === "error" && !syncBannerDismissed;
+    const showSyncBanner = network === "online" && (sync === "error" || syncConflict) && !syncBannerDismissed;
     const showPaymentsBanner = network === "online" && payments === "unavailable" && !paymentsBannerDismissed;
     const lastLocalSaveLabel = lastLocalSaveAt
         ? new Intl.DateTimeFormat("en-ZA", {
@@ -249,7 +291,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
                             <div className="flex items-center gap-2">
                                 <AlertOctagon className="h-4 w-4 shrink-0" />
-                                <span>Google backup needs attention. Reconnect your Google account or Drive access in Settings.</span>
+                                <span>
+                                    {syncConflict 
+                                        ? "Sync conflict: Your Google backup and this device both have new data. Decide which to keep in Settings > Google Sync."
+                                        : "Google backup needs attention. Reconnect your Google account or Drive access in Settings."}
+                                </span>
                             </div>
                             <button
                                 onClick={() => setSyncBannerDismissed(true)}

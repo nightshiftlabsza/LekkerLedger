@@ -1,4 +1,4 @@
-import { exportData, importData } from "./storage";
+import { exportData, importData, getSettings, saveSettings, hasMeaningfulLocalData } from "./storage";
 
 export const MINIMAL_SCOPES = "openid email profile";
 export const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.appdata";
@@ -26,6 +26,8 @@ export interface BackupMetadata {
     modifiedTime?: string;
     name?: string;
 }
+
+export type SmartSyncRecommendation = "BACKUP" | "RESTORE" | "UP_TO_DATE" | "CONFLICT" | "UNKNOWN";
 
 function authorizedHeaders(accessToken: string): HeadersInit {
     return { Authorization: `Bearer ${accessToken}` };
@@ -88,8 +90,8 @@ async function uploadMultipartFile(
 
     const response = await fetch(
         options.fileId
-            ? `https://www.googleapis.com/upload/drive/v3/files/${options.fileId}?uploadType=multipart&fields=id`
-            : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
+            ? `https://www.googleapis.com/upload/drive/v3/files/${options.fileId}?uploadType=multipart&fields=id,modifiedTime`
+            : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime",
         {
             method: options.fileId ? "PATCH" : "POST",
             headers: authorizedHeaders(accessToken),
@@ -102,7 +104,25 @@ async function uploadMultipartFile(
         throw new Error(errorText || "Google Drive upload failed.");
     }
 
-    const data = await response.json() as GoogleDriveCreateResponse;
+    const data = await response.json() as { id: string; modifiedTime?: string };
+    
+    // If modifiedTime isn't in response, we might need to fetch it (Issue 170)
+    if (!data.modifiedTime) {
+        const meta = await getBackupMetadata(accessToken);
+        return meta.fileId || data.id;
+    }
+
+    // Store the modification time locally so we know we are in sync (Issue 171)
+    try {
+        const settings = await getSettings();
+        await saveSettings({
+            ...settings,
+            lastBackupTimestamp: data.modifiedTime
+        });
+    } catch (e) {
+        console.warn("Failed to update lastBackupTimestamp after upload", e);
+    }
+
     return data.id ?? null;
 }
 
@@ -129,10 +149,12 @@ export async function syncDataToDrive(accessToken: string, options?: { generated
 
 export async function syncDataFromDrive(accessToken: string) {
     try {
-        const fileId = await findBackupFileId(accessToken);
-        if (!fileId) return { success: false, error: "No backup file found on Google Drive." };
+        const remoteMeta = await getBackupMetadata(accessToken);
+        if (!remoteMeta.exists || !remoteMeta.fileId) {
+            return { success: false, error: "No backup file found on Google Drive." };
+        }
 
-        const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        const response = await fetch(`https://www.googleapis.com/drive/v3/files/${remoteMeta.fileId}?alt=media`, {
             headers: authorizedHeaders(accessToken),
         });
 
@@ -143,12 +165,86 @@ export async function syncDataFromDrive(accessToken: string) {
 
         const json = await response.text();
         const result = await importData(json);
+
+        if (result.success && remoteMeta.modifiedTime) {
+            // Ensure local timestamp reflects the remote file we just restored (Issue 172)
+            try {
+                const settings = await getSettings();
+                await saveSettings({
+                    ...settings,
+                    lastBackupTimestamp: remoteMeta.modifiedTime
+                });
+            } catch (e) {
+                console.warn("Failed to update lastBackupTimestamp after restore", e);
+            }
+        }
+
         return result;
     } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown sync error";
         console.error("Failed to sync from Drive:", message);
         return { success: false, error: message };
     }
+}
+
+export async function performSmartSyncCheck(accessToken: string): Promise<{
+    recommendation: SmartSyncRecommendation;
+    remoteMetadata?: BackupMetadata;
+    localMetadata?: { lastBackupTimestamp?: string };
+}> {
+    const [remoteMetadata, settings, hasData] = await Promise.all([
+        getBackupMetadata(accessToken),
+        getSettings(),
+        hasMeaningfulLocalData(),
+    ]);
+
+    const localTimestamp = settings.lastBackupTimestamp;
+    const remoteTimestamp = remoteMetadata.modifiedTime;
+
+    if (!remoteMetadata.exists) {
+        // No remote backup. If we have local data, we should backup.
+        return { 
+            recommendation: hasData ? "BACKUP" : "UP_TO_DATE", 
+            remoteMetadata,
+            localMetadata: { lastBackupTimestamp: localTimestamp }
+        };
+    }
+
+    if (!localTimestamp) {
+        // Remote exists, but local has no record of sync. 
+        // If local is empty, RESTORE.
+        // If local has data, CONFLICT (or decision needed).
+        return { 
+            recommendation: hasData ? "CONFLICT" : "RESTORE",
+            remoteMetadata,
+            localMetadata: { lastBackupTimestamp: localTimestamp }
+        };
+    }
+
+    const localDate = new Date(localTimestamp);
+    const remoteDate = new Date(remoteTimestamp!);
+
+    // Threshold for comparison (Google Drive modifiedTime might have slight delays or precision differences)
+    const DIFF_THRESHOLD_MS = 2000; 
+
+    if (remoteDate.getTime() > localDate.getTime() + DIFF_THRESHOLD_MS) {
+        return { 
+            recommendation: "RESTORE", 
+            remoteMetadata,
+            localMetadata: { lastBackupTimestamp: localTimestamp }
+        };
+    }
+
+    // Since we don't track a local "lastModified" for the whole DB, 
+    // we can't easily tell if local is newer than localTimestamp without checking all stores.
+    // For now, if remote is not newer, we assume we are up to date or might need a backup 
+    // if the user just made changes (which auto-backup handles via timer).
+    
+    return { 
+        recommendation: "UP_TO_DATE",
+        remoteMetadata,
+        localMetadata: { lastBackupTimestamp: localTimestamp }
+    };
 }
 
 export async function deleteDriveFile(accessToken: string, fileId: string) {

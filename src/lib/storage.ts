@@ -1121,6 +1121,37 @@ export async function lockPayPeriod(id: string): Promise<void> {
     await notifyListeners();
 }
 
+export async function unlockPayPeriod(id: string): Promise<void> {
+    const period = await getPayPeriod(id);
+    if (!period) throw new Error("Pay period not found");
+    if (period.status !== "locked") throw new Error("Pay period is not locked");
+
+    // Revert status to review (or draft)
+    const unlocked: PayPeriod = {
+        ...period,
+        status: "review",
+        lockedAt: undefined,
+        updatedAt: new Date().toISOString(),
+    };
+
+    await payPeriodStore.setItem(id, await encodeData(unlocked));
+
+    // Cleanup generated payslips and document metadata
+    const payslips = await getAllPayslips();
+    const periodPayslips = payslips.filter(p => {
+        // ID format is `${periodId}-${employeeId}` in page.tsx
+        return p.id.startsWith(`${id}-`);
+    });
+
+    await Promise.all(periodPayslips.map(async p => {
+        await deletePayslip(p.id);
+        await deleteDocumentMeta(p.id);
+    }));
+
+    await logAuditEvent("LOCK_PAY_PERIOD", `Unlocked pay period: ${period.name}`, { periodId: id, action: "unlocked" });
+    await notifyListeners();
+}
+
 export async function deletePayPeriod(id: string): Promise<void> {
     const period = await getPayPeriod(id);
     if (period?.status === "locked") throw new Error("Cannot delete a locked pay period");
