@@ -75,6 +75,7 @@ export function NewPayrollWizardClient() {
                 hourlyRate: parseFloat(newEmpRate) || NMW_RATE,
                 idNumber: "",
                 phone: "",
+                address: "",
                 startDate: new Date().toISOString().split('T')[0],
                 ordinarilyWorksSundays: false,
                 ordinaryHoursPerDay: 8,

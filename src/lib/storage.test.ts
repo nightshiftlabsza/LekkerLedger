@@ -23,6 +23,7 @@ const baseEmployee: Employee = {
     role: "Domestic Worker",
     hourlyRate: 30.23,
     phone: "0821234567",
+    address: "",
     startDate: "2026-03-01",
     ordinarilyWorksSundays: false,
     ordinaryHoursPerDay: 8,

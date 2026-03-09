@@ -50,8 +50,8 @@ export function ContractFormWizard({
     onBackToTop,
 }: ContractFormWizardProps) {
     const selectedEmployee = employees.find((employee) => employee.id === formData.employeeId);
-    const dutiesInputRef = React.useRef(formData.duties?.join("\n") || "General cleaning\nLaundry\nBasic household support");
-    const [dutiesInput, setDutiesInput] = React.useState(dutiesInputRef.current);
+    const initialDuties = formData.duties?.join("\n") || "General cleaning\nLaundry\nBasic household support";
+    const [dutiesInput, setDutiesInput] = React.useState(initialDuties);
 
     // Save to session storage on change to preserve state if navigating away
     React.useEffect(() => {
@@ -327,7 +327,7 @@ export function ContractFormWizard({
                             <Alert variant="warning">
                                 <AlertTitle>Deduction Limit</AlertTitle>
                                 <AlertDescription>
-                                    Under Sectoral Determination 7, any accommodation deduction is capped at <strong>10%</strong> of the employee's wage.
+                                    Under Sectoral Determination 7, any accommodation deduction is capped at <strong>10%</strong> of the employee&apos;s wage.
                                 </AlertDescription>
                             </Alert>
                         )}

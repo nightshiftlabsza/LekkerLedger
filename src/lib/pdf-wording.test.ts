@@ -17,6 +17,7 @@ const employee: Employee = {
   role: "Domestic Worker",
   hourlyRate: 30.23,
   phone: "0123456789",
+  address: "",
   startDate: "2026-01-01",
   ordinarilyWorksSundays: false,
   ordinaryHoursPerDay: 8,

@@ -239,7 +239,7 @@ export const DocumentMetaSchema = z.object({
     fileName: z.string(),
     mimeType: z.string().optional(),
     source: z.enum(["generated", "uploaded"]).optional().default("generated"),
-    vaultCategory: z.enum(["contracts", "employee-docs", "admin", "other"]).optional(),
+    vaultCategory: z.enum(["contracts", "employee-docs", "compliance", "other"]).optional(),
     sizeBytes: z.number().optional(),
     createdAt: z.string(), // ISO date
     driveFileId: z.string().optional(),

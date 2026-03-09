@@ -109,7 +109,7 @@ export default function NewContractPage() {
 
     const selectedEmployee = employees.find((employee) => employee.id === formData.employeeId);
 
-    const handleNext = () => setCurrentStep((step) => Math.min(step + 1, STEPS.length - 1));
+    const handleNext = () => setCurrentStep((step) => Math.min(step + 1, WIZARD_STEPS.length - 1));
     const handleBack = () => setCurrentStep((step) => Math.max(step - 1, 0));
 
     const handleSave = async () => {

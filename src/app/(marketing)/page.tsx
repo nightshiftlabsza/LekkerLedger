@@ -45,6 +45,7 @@ function buildHomepageSample(referenceDate: Date) {
         role: "Domestic Worker",
         hourlyRate,
         phone: "",
+        address: "",
         startDate: payPeriodStart.toISOString(),
         ordinarilyWorksSundays: false,
         ordinaryHoursPerDay: 8,

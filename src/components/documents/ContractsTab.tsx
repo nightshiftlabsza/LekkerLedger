@@ -14,7 +14,7 @@ interface ContractsTabProps {
     archiveUpgradeHref: string;
     archiveUpgradeLabel: string;
     contractStateFilter: string;
-    setContractStateFilter: (filter: any) => void;
+    setContractStateFilter: (filter: "All" | "draft" | "final" | "awaiting_signed_copy" | "needs_action") => void;
     openContractPreview: (contract: Contract) => void;
     downloadContract: (contract: Contract) => void;
     handleContractUploadClick: (contract: Contract) => void;

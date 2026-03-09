@@ -12,6 +12,7 @@ describe("Compliance Logic (SD7 & NMW)", () => {
         role: "Domestic Worker",
         hourlyRate: 30.23,
         phone: "",
+        address: "",
         startDate: "2026-01-01",
         ordinarilyWorksSundays: false,
         ordinaryHoursPerDay: 8,
