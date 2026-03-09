@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fetchVerifiedEntitlements } from "@/lib/billing-client";
@@ -9,6 +10,7 @@ import { hasStoredGoogleSession } from "@/lib/google-session";
 import { PaidLoginButton } from "@/components/paid-login-button";
 
 export default function BillingSuccessPage() {
+    const router = useRouter();
     const [status, setStatus] = React.useState<"checking" | "active" | "pending" | "auth">("checking");
 
     React.useEffect(() => {
@@ -43,8 +45,18 @@ export default function BillingSuccessPage() {
         };
     }, []);
 
+    // Automatic redirect when active
+    React.useEffect(() => {
+        if (status === "active") {
+            const timer = setTimeout(() => {
+                router.push("/dashboard");
+            }, 2500);
+            return () => clearTimeout(timer);
+        }
+    }, [status, router]);
+
     const title = status === "active"
-        ? "Payment confirmed"
+        ? "Thank you!"
         : status === "auth"
             ? "Google sign-in needed"
             : status === "pending"
@@ -52,11 +64,11 @@ export default function BillingSuccessPage() {
                 : "Confirming payment";
 
     const message = status === "active"
-        ? "Your paid features are now active. Open the dashboard to keep working."
+        ? "Your payment was successful and your features are now active. We're redirecting you to your dashboard..."
         : status === "auth"
             ? "Sign back into Google so LekkerLedger can confirm the subscription against your account."
             : status === "pending"
-                ? "Paystack has sent the payment back. LekkerLedger is still waiting for the final confirmation from the billing webhook."
+                ? "Success! We've received your payment. We're just waiting for the final confirmation from the billing webhook, which usually takes a few seconds."
                 : "LekkerLedger is checking Paystack and your billing status now. This usually takes a few seconds.";
 
     return (
