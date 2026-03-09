@@ -50,6 +50,7 @@ function buildHomepageSample(referenceDate: Date) {
         ordinarilyWorksSundays: false,
         ordinaryHoursPerDay: 8,
         frequency: "Monthly",
+        address: ""
     };
 
     const payslip: PayslipInput = {
@@ -434,16 +435,16 @@ function HowItWorks() {
     return (
         <section id="how-it-works" style={{ backgroundColor: "var(--bg)" }}>
             <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8 lg:py-20">                <div className="max-w-3xl space-y-3">
-                    <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                        How it works
-                    </p>
-                    <h2 className="type-h2 max-w-[28ch]" style={{ color: "var(--text)" }}>
-                        Set up once. Generate payslips. Keep the records together.
-                    </h2>
-                    <p className="max-w-[44rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                        LekkerLedger helps household employers record pay, generate payslips, and keep the employment documents that may be needed later for UIF submissions or other household employment administration.
-                    </p>
-                </div>
+                <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                    How it works
+                </p>
+                <h2 className="type-h2 max-w-[28ch]" style={{ color: "var(--text)" }}>
+                    Set up once. Generate payslips. Keep the records together.
+                </h2>
+                <p className="max-w-[44rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
+                    LekkerLedger helps household employers record pay, generate payslips, and keep the employment documents that may be needed later for UIF submissions or other household employment administration.
+                </p>
+            </div>
 
                 <div className="mt-8 grid gap-4 lg:grid-cols-3">
                     {steps.map((step, index) => {

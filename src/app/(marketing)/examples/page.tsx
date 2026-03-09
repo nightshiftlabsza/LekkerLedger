@@ -21,7 +21,8 @@ export default function ExamplesPage() {
             ordinarilyWorksSundays: false,
             ordinaryHoursPerDay: 8,
             frequency: "Monthly",
-            startDate: "2024-01-01"
+            startDate: "2024-01-01",
+            address: ""
         };
 
         const samplePayslip: PayslipInput = {
@@ -184,33 +185,33 @@ export default function ExamplesPage() {
 
                             <div className="relative z-10 mb-8 overflow-x-auto sm:mb-12">
                                 <table className="w-full min-w-0 text-sm">
-                                <thead>
-                                    <tr className="border-b-2 border-[var(--border)] pb-2 text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest text-left">
-                                        <th className="pb-3 px-1">Description</th>
-                                        <th className="pb-3 text-right">Hours</th>
-                                        <th className="pb-3 text-right">Rate</th>
-                                        <th className="pb-3 text-right px-1">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-[var(--text)]">
-                                    <tr>
-                                        <td className="py-4 px-1 font-medium border-b border-[var(--border)]/50">Ordinary Hours worked</td>
-                                        <td className="py-4 text-right border-b border-[var(--border)]/50 font-mono text-xs">{ordinaryHours}h</td>
-                                        <td className="py-4 text-right border-b border-[var(--border)]/50 font-mono text-xs">R {ordinaryRate.toFixed(2)}</td>
-                                        <td className="py-4 text-right px-1 font-bold border-b border-[var(--border)]/50">R {ordinaryTotal.toFixed(2)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td className="py-4 px-1 font-medium border-b border-[var(--border)]/50">Overtime hours (1.5x)</td>
-                                        <td className="py-4 text-right border-b border-[var(--border)]/50 font-mono text-xs">{overtimeHours}h</td>
-                                        <td className="py-4 text-right border-b border-[var(--border)]/50 font-mono text-xs">R {overtimeRate.toFixed(2)}</td>
-                                        <td className="py-4 text-right px-1 font-bold border-b border-[var(--border)]/50">R {overtimeTotal.toFixed(2)}</td>
-                                    </tr>
-                                    <tr className="bg-[var(--bg)]/10">
-                                        <td className="py-4 px-1 font-black text-[var(--text-muted)] uppercase text-[10px] tracking-widest">Gross Earnings</td>
-                                        <td colSpan={2}></td>
-                                        <td className="py-4 text-right px-1 font-black text-lg border-t-2 border-[var(--text)]">R {grossPay.toFixed(2)}</td>
-                                    </tr>
-                                </tbody>
+                                    <thead>
+                                        <tr className="border-b-2 border-[var(--border)] pb-2 text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest text-left">
+                                            <th className="pb-3 px-1">Description</th>
+                                            <th className="pb-3 text-right">Hours</th>
+                                            <th className="pb-3 text-right">Rate</th>
+                                            <th className="pb-3 text-right px-1">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-[var(--text)]">
+                                        <tr>
+                                            <td className="py-4 px-1 font-medium border-b border-[var(--border)]/50">Ordinary Hours worked</td>
+                                            <td className="py-4 text-right border-b border-[var(--border)]/50 font-mono text-xs">{ordinaryHours}h</td>
+                                            <td className="py-4 text-right border-b border-[var(--border)]/50 font-mono text-xs">R {ordinaryRate.toFixed(2)}</td>
+                                            <td className="py-4 text-right px-1 font-bold border-b border-[var(--border)]/50">R {ordinaryTotal.toFixed(2)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="py-4 px-1 font-medium border-b border-[var(--border)]/50">Overtime hours (1.5x)</td>
+                                            <td className="py-4 text-right border-b border-[var(--border)]/50 font-mono text-xs">{overtimeHours}h</td>
+                                            <td className="py-4 text-right border-b border-[var(--border)]/50 font-mono text-xs">R {overtimeRate.toFixed(2)}</td>
+                                            <td className="py-4 text-right px-1 font-bold border-b border-[var(--border)]/50">R {overtimeTotal.toFixed(2)}</td>
+                                        </tr>
+                                        <tr className="bg-[var(--bg)]/10">
+                                            <td className="py-4 px-1 font-black text-[var(--text-muted)] uppercase text-[10px] tracking-widest">Gross Earnings</td>
+                                            <td colSpan={2}></td>
+                                            <td className="py-4 text-right px-1 font-black text-lg border-t-2 border-[var(--text)]">R {grossPay.toFixed(2)}</td>
+                                        </tr>
+                                    </tbody>
                                 </table>
                             </div>
 

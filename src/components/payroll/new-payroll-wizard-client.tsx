@@ -44,7 +44,7 @@ export function NewPayrollWizardClient() {
                 if (!active) return;
                 setEmployees(emps);
                 setActiveHouseholdId(hId);
-                
+
                 // Pre-select if only one
                 if (emps.length === 1) {
                     setSelectedEmployeeIds([emps[0].id]);
@@ -80,6 +80,7 @@ export function NewPayrollWizardClient() {
                 ordinarilyWorksSundays: false,
                 ordinaryHoursPerDay: 8,
                 frequency: "Monthly",
+                address: ""
             };
             await saveEmployee(newEmp);
 

@@ -91,7 +91,7 @@ function prettifyLeaveType(type: string): string {
 
 function getReferenceContract(contracts: Contract[], referenceDate: Date): Contract | null {
     const activeContracts = contracts
-        .filter((contract) => contract.status === "final" || contract.status === "signed_copy_stored" || contract.status === "draft");
+        .filter((contract) => ["final", "signed_copy_stored", "awaiting_signed_copy", "draft"].includes(contract.status as any));
 
     if (activeContracts.length === 0) return null;
 
