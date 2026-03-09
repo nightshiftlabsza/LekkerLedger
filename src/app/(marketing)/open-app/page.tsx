@@ -14,7 +14,7 @@ function OpenAppCompatibilityContent() {
         const next = searchParams.get("next");
         const safeNext = next && next.startsWith("/") ? next : null;
 
-        const shouldRunPaidLogin = recommendedGoogle || source === "billing" || source === "onboarding";
+        const shouldRunPaidLogin = recommendedGoogle || source === "billing" || source === "onboarding" || source === "dashboard";
 
         if (shouldRunPaidLogin) {
             const params = new URLSearchParams({ paidLogin: "1" });

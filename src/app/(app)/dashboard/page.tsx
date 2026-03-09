@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
-    ArrowRight, AlertTriangle, Users,
+    ArrowRight, AlertTriangle,
     FileText, FolderOpen,
     BookOpen, ChevronRight, Banknote,
     ShieldCheck, UserPlus, Settings,
@@ -17,11 +17,10 @@ import { CardSkeleton, StatSkeleton } from "@/components/ui/loading-skeleton";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { getEmployees, getSettings, getCurrentPayPeriod, getDocuments, getLatestPayslip, subscribeToDataChanges } from "@/lib/storage";
 import { filterRecordsForArchiveWindow, isUploadedDocument } from "@/lib/archive";
-import { computeDashboardAlerts } from "@/lib/alerts";
+import { computeDashboardAlerts, type DashboardAlert as DashboardAlertData } from "@/lib/alerts";
 import { getUserPlan } from "@/lib/entitlements";
 import { Employee, PayPeriod, EmployerSettings, DocumentMeta, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
-import { COMPLIANCE } from "@/lib/compliance-constants";
 import { PaidLoginGate } from "@/components/paid-login-button";
 
 interface EmployeeSummary {
@@ -145,7 +144,6 @@ function DashboardContent() {
                     {/* 1. Primary Task Hero */}
                     <PrimaryTaskHero
                         currentPeriod={currentPeriod}
-                        employeeCount={employeeCount}
                         isSetupIncomplete={isSetupIncomplete}
                         isPayrollReady={isPayrollReady}
                         progressPercent={progressPercent}
@@ -159,6 +157,7 @@ function DashboardContent() {
                         <OnboardingChecklist
                             employeeCount={employeeCount}
                             isPayrollStarted={isPayrollStarted}
+                            settings={settings}
                         />
                     )}
 
@@ -194,7 +193,7 @@ function DashboardContent() {
                     </div>
 
                     {/* 4. Quick Access Block */}
-                    <QuickActions hasEmployees={employeeCount > 0} />
+                    <QuickActions />
 
                     {/* 6. Advanced/Annual (Quiet) */}
                     <div className="pt-2">
@@ -250,7 +249,6 @@ function ActivationAlert({ syncState, settings }: { syncState: string | null; se
 
 function PrimaryTaskHero({
     currentPeriod,
-    employeeCount,
     isSetupIncomplete,
     isPayrollReady,
     progressPercent,
@@ -259,7 +257,6 @@ function PrimaryTaskHero({
     currentMonth
 }: {
     currentPeriod: PayPeriod | null;
-    employeeCount: number;
     isSetupIncomplete: boolean;
     isPayrollReady: boolean;
     progressPercent: number;
@@ -280,18 +277,18 @@ function PrimaryTaskHero({
             ? "All employee entries are complete. You can now finalise this month and generate payslips."
             : `You have completed ${completedEntries} of ${totalEntries} entries. Finish the rest to finalise payroll.`
         : isSetupIncomplete
-            ? "Let's add your first employee to unlock monthly payroll, leave tracking, and document storage."
+            ? "Welcome to LekkerLedger. Let's get your household payroll set up—starting with your employer details and first employee."
             : `Start the ${currentMonth} pay period to track hours and generate payslips for your household.`;
 
     const primaryActionHref = currentPeriod
         ? `/payroll/${currentPeriod.id}`
         : isSetupIncomplete
-            ? "/employees/new"
+            ? "#" // The checklist will guide them
             : "/payroll/new";
 
     const primaryActionLabel = currentPeriod
         ? isPayrollReady ? "Review & Finalise" : "Continue Payroll"
-        : isSetupIncomplete ? "Add First Employee" : `Start ${currentMonth}`;
+        : isSetupIncomplete ? "Start Setup" : `Start ${currentMonth}`;
 
     return (
         <Card className="relative overflow-hidden border-none shadow-premium bg-[var(--surface-raised)] group">
@@ -349,8 +346,16 @@ function PrimaryTaskHero({
     );
 }
 
-function OnboardingChecklist({ employeeCount, isPayrollStarted }: { employeeCount: number; isPayrollStarted: boolean }) {
+function OnboardingChecklist({ employeeCount, isPayrollStarted, settings }: { employeeCount: number; isPayrollStarted: boolean; settings: EmployerSettings | null }) {
+    const employerDetailsCompleted = !!settings?.employerName;
+    
     const steps = [
+        {
+            label: "Add employer details",
+            description: "Your name, address, and contact info for payslips.",
+            completed: employerDetailsCompleted,
+            href: "/settings?tab=general"
+        },
         {
             label: "Add your first employee",
             description: "Full name and basic contact details.",
@@ -430,7 +435,7 @@ function HouseholdSnapshot({ employeeCount, documentCount, settings }: { employe
     );
 }
 
-function QuickActions({ hasEmployees }: { hasEmployees: boolean }) {
+function QuickActions() {
     const actions = [
         { label: "Add Employee", icon: UserPlus, href: "/employees/new", primary: true },
         { label: "Monthly Payroll", icon: Banknote, href: "/payroll" },
@@ -515,7 +520,7 @@ function RecentRecordsArea({ recentDocs, hasEmployees }: { recentDocs: DocumentM
     );
 }
 
-function DashboardAlert({ alert }: { alert: any }) {
+function DashboardAlert({ alert }: { alert: DashboardAlertData }) {
     const isUrgent = alert.severity === "urgent";
     const isInfo = alert.severity === "info";
     const bg = isUrgent ? "rgba(239,68,68,0.08)" : isInfo ? "rgba(59,130,246,0.08)" : "rgba(217,119,6,0.08)";

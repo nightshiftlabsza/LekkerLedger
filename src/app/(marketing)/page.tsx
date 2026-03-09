@@ -134,7 +134,7 @@ function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
                         </div>
 
                         <div className="space-y-3">
-                            <Link href="/onboarding">
+                            <Link href="/dashboard">
                                 <Button className="h-12 rounded-xl bg-[var(--primary)] px-7 text-base font-bold text-white shadow-[var(--shadow-2)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]">
                                     Start free <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>

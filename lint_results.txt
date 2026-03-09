@@ -1,4 +1,17 @@
 
-> lekkerledger@0.1.0 lint
-> eslint
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\dashboard\page.tsx
+    7:32  warning  'Users' is defined but never used          @typescript-eslint/no-unused-vars
+   24:10  warning  'COMPLIANCE' is defined but never used     @typescript-eslint/no-unused-vars
+  253:5   warning  'employeeCount' is defined but never used  @typescript-eslint/no-unused-vars
+  433:25  warning  'hasEmployees' is defined but never used   @typescript-eslint/no-unused-vars
+  518:45  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\documents\page.tsx
+  140:11  warning  'requestedEmployeeId' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  172:11  warning  'hasAppliedInitialEmployeeFilter' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\entitlements.ts
+  50:39  warning  '_plan' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 8 problems (1 error, 7 warnings)
 

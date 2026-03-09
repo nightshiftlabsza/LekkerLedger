@@ -184,7 +184,7 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
 
 export function getMarketingPlanHref(planId: PlanId, billingCycle: BillingCycle): string {
     if (planId === "free") {
-        return "/onboarding";
+        return "/dashboard";
     }
 
     return `/upgrade?plan=${planId}&billing=${billingCycle}&pay=1`;

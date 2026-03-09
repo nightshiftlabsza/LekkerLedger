@@ -124,7 +124,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && sync === "error" && !syncBannerDismissed;
     const showPaymentsBanner = network === "online" && payments === "unavailable" && !paymentsBannerDismissed;
-    const isMinimalRoute = pathname?.startsWith("/onboarding");
     const lastLocalSaveLabel = lastLocalSaveAt
         ? new Intl.DateTimeFormat("en-ZA", {
             hour: "2-digit",
@@ -185,17 +184,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
     };
 
-    if (isMinimalRoute) {
-        return (
-            <ToastProvider>
-                <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
-                    <main id="main-content" className="min-h-screen">
-                        {children}
-                    </main>
-                </div>
-            </ToastProvider>
-        );
-    }
 
     return (
         <ToastProvider>

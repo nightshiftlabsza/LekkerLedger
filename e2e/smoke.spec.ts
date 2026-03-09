@@ -15,7 +15,7 @@ test('examples page renders in the browser', async ({ page }) => {
 
 test('pricing page loads', async ({ page }) => {
     await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('h1')).toContainText('Payslips, paperwork, and household payroll records in one place.');
+    await expect(page.locator('h1')).toContainText('Pick the plan that fits your household.');
 });
 
 test('calculator page loads in the browser', async ({ page }) => {
@@ -23,13 +23,22 @@ test('calculator page loads in the browser', async ({ page }) => {
     await expect(page.locator('h1')).toContainText('Wage & UIF calculator');
 });
 
-test('homepage pricing CTA sends paid plans to onboarding', async ({ page }) => {
+test('homepage pricing CTA sends paid plans to upgrade flow', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await Promise.all([
-        page.waitForURL('**/onboarding'),
+        page.waitForURL('**/upgrade**'),
         page.getByRole('link', { name: 'Choose Standard' }).click(),
     ]);
-    await expect(page).toHaveURL(/\/onboarding$/);
+    await expect(page).toHaveURL(/\/upgrade/);
+});
+
+test('homepage "Start free" CTA sends to dashboard', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await Promise.all([
+        page.waitForURL('**/dashboard'),
+        page.getByRole('link', { name: 'Start free' }).first().click(),
+    ]);
+    await expect(page).toHaveURL(/\/dashboard$/);
 });
 
 test('support page loads', async ({ page }) => {

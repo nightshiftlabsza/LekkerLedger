@@ -223,64 +223,18 @@ export function EmployeesClient() {
                         </div>
                     )}
                 </div>
-
-                {/* Sidebar Panel - Adaptive Rails */}
                 {employees.length > 0 && (
                     <div className="adaptive-rail">
-                        <div className="space-y-6">
-                            <Card className="glass-panel border-none shadow-[var(--shadow-sm)]">
-                                <CardContent className="p-6 space-y-6">
-                                    {showSearch && (
-                                        <div className="space-y-3">
-                                            <label className="type-overline text-[var(--text-muted)] px-1">Search Employees</label>
-                                            <div className="relative">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
-                                                <Input
-                                                    placeholder="Find by name..."
-                                                    className="pl-10 h-11 bg-[var(--surface-2)] border-[var(--border)] focus:ring-[var(--focus)] transition-all"
-                                                    value={searchQuery}
-                                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className={`${showSearch ? "pt-6 border-t border-[var(--border)]/50" : ""} space-y-4`}>
-                                        <div className="flex items-center justify-between">
-                                            <span className="type-label text-[var(--text-muted)]">Active Employees</span>
-                                            <span className="type-body-bold text-[var(--text)] text-lg">{employees.length}</span>
-                                        </div>
-                                        
-                                        <div className="p-4 rounded-xl bg-[var(--accent-subtle)] border border-[var(--primary)]/10">
-                                            <p className="type-caption text-[var(--primary)] font-semibold leading-relaxed">
-                                                Compliance Tip: Ensure all employees have a signed contract and valid South African identification on file.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="glass-panel border-none shadow-[var(--shadow-sm)] bg-[white] dark:bg-[var(--surface-2)]">
-                                <CardContent className="p-6">
-                                    <h3 className="type-overline text-[var(--text-muted)] mb-4">Quick Actions</h3>
-                                    <div className="space-y-2">
-                                        <Link href="/employees/new" className="block">
-                                            <Button className="w-full justify-start font-bold" variant="ghost">
-                                                Add New Employee
-                                            </Button>
-                                        </Link>
-                                        <Link href="/leave" className="block">
-                                            <Button className="w-full justify-start font-bold" variant="ghost">
-                                                Manage Leave
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
+                        <Link href="/employees/new" className="block">
+                            <Button className="w-full bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]">
+                                Add employee
+                            </Button>
+                        </Link>
                     </div>
                 )}
+
             </div>
         </div>
     );
 }
+
