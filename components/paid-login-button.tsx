@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { env } from "@/lib/env";
 import { fetchVerifiedEntitlements } from "@/lib/billing-client";
-import { DRIVE_SCOPE, MINIMAL_SCOPES, getBackupMetadata, syncDataFromDrive, syncDataToDrive } from "@/lib/google-drive";
+import { GOOGLE_SCOPES, getBackupMetadata, syncDataFromDrive, syncDataToDrive } from "@/lib/google-drive";
 import {
     getStoredGoogleAccessToken,
     hasStoredGoogleDriveScope,
@@ -53,46 +53,34 @@ function usePaidLoginActivation() {
     const [statusMessage, setStatusMessage] = React.useState("");
     const [error, setError] = React.useState("");
 
-    const minimalPendingRef = React.useRef<{ resolve: (token: string) => void; reject: (error: Error) => void } | null>(null);
-    const drivePendingRef = React.useRef<{ resolve: (token: string) => void; reject: (error: Error) => void } | null>(null);
+    const oauthPendingRef = React.useRef<{ resolve: (token: string) => void; reject: (error: Error) => void } | null>(null);
 
-    const minimalLogin = useGoogleLogin({
-        scope: MINIMAL_SCOPES,
+    const googleLogin = useGoogleLogin({
+        scope: GOOGLE_SCOPES,
         onSuccess: (tokenResponse) => {
-            minimalPendingRef.current?.resolve(tokenResponse.access_token);
-            minimalPendingRef.current = null;
+            oauthPendingRef.current?.resolve(tokenResponse.access_token);
+            oauthPendingRef.current = null;
         },
         onError: () => {
-            minimalPendingRef.current?.reject(new Error("Google sign-in was cancelled or blocked."));
-            minimalPendingRef.current = null;
+            oauthPendingRef.current?.reject(new Error("Google sign-in was cancelled or blocked."));
+            oauthPendingRef.current = null;
+        },
+        onNonOAuthError: (nonOAuthError) => {
+            const blocked = nonOAuthError?.type === "popup_failed_to_open";
+            const message = blocked
+                ? "Google popup was blocked. Please allow popups and try Paid login again."
+                : "Google sign-in did not complete. Please try again.";
+            oauthPendingRef.current?.reject(new Error(message));
+            oauthPendingRef.current = null;
         },
     });
 
-    const driveLogin = useGoogleLogin({
-        scope: DRIVE_SCOPE,
-        onSuccess: (tokenResponse) => {
-            drivePendingRef.current?.resolve(tokenResponse.access_token);
-            drivePendingRef.current = null;
-        },
-        onError: () => {
-            drivePendingRef.current?.reject(new Error("Google Drive permission was not granted."));
-            drivePendingRef.current = null;
-        },
-    });
-
-    const requestMinimalToken = React.useCallback(() => {
+    const requestGoogleToken = React.useCallback(() => {
         return new Promise<string>((resolve, reject) => {
-            minimalPendingRef.current = { resolve, reject };
-            minimalLogin();
+            oauthPendingRef.current = { resolve, reject };
+            googleLogin();
         });
-    }, [minimalLogin]);
-
-    const requestDriveToken = React.useCallback(() => {
-        return new Promise<string>((resolve, reject) => {
-            drivePendingRef.current = { resolve, reject };
-            driveLogin();
-        });
-    }, [driveLogin]);
+    }, [googleLogin]);
 
     const fetchUserInfo = React.useCallback(async (accessToken: string) => {
         const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -172,10 +160,11 @@ function usePaidLoginActivation() {
 
         try {
             let accessToken = getStoredGoogleAccessToken();
-            let identity = accessToken ? await fetchUserInfo(accessToken) : null;
+            const hasDriveScope = hasStoredGoogleDriveScope();
+            let identity = accessToken && hasDriveScope ? await fetchUserInfo(accessToken) : null;
 
             if (!identity) {
-                accessToken = await requestMinimalToken();
+                accessToken = await requestGoogleToken();
                 identity = await fetchUserInfo(accessToken);
             }
 
@@ -185,6 +174,7 @@ function usePaidLoginActivation() {
 
             storeGoogleAccessToken(accessToken);
             storeGoogleIdentity({ email: identity.email, sub: identity.sub });
+            setStoredGoogleDriveScope(true);
 
             if (options?.skipPaidChecks) {
                 router.push(normalizeDestination(nextPath));
@@ -198,24 +188,11 @@ function usePaidLoginActivation() {
                 return;
             }
 
-            let driveToken = accessToken;
-            if (!hasStoredGoogleDriveScope()) {
-                setStatusMessage("Granting private Drive backup access...");
-                driveToken = await requestDriveToken();
-                storeGoogleAccessToken(driveToken);
-                setStoredGoogleDriveScope(true);
-            }
-
-            const driveIdentity = await fetchUserInfo(driveToken);
-            if (driveIdentity?.email) {
-                storeGoogleIdentity({ email: driveIdentity.email, sub: driveIdentity.sub });
-            }
-
             const settings = await getSettings();
             await saveSettings({ ...settings, googleSyncEnabled: true });
 
             setStatusMessage("Finalising first backup sync...");
-            const sync = await resolveFirstSync(driveToken);
+            const sync = await resolveFirstSync(accessToken);
             const target = withActivationState(normalizeDestination(nextPath), sync);
             router.push(target);
         } catch (activationError) {
@@ -227,7 +204,7 @@ function usePaidLoginActivation() {
             setLoading(false);
             setStatusMessage("");
         }
-    }, [fetchUserInfo, requestDriveToken, requestMinimalToken, resolveFirstSync, router]);
+    }, [fetchUserInfo, requestGoogleToken, resolveFirstSync, router]);
 
     return { start, loading, statusMessage, error };
 }
@@ -324,4 +301,3 @@ export function PaidLoginGate({ nextPath, skipPaidChecks = false }: { nextPath?:
 
     return <PaidLoginGateConfigured nextPath={nextPath} skipPaidChecks={skipPaidChecks} />;
 }
-

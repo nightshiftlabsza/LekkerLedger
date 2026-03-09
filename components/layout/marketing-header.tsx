@@ -56,8 +56,7 @@ export function MarketingHeader() {
                         label="Paid login"
                         variant="ghost"
                         className="h-11 rounded-xl px-4 font-bold"
-                        nextPath="/dashboard"
-                    />
+                        nextPath="/dashboard"`r`n                        showInlineError`r`n                    />
                     <Link href="/dashboard">
                         <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-1)]">
                             Start free <ArrowRight className="h-4 w-4" />
@@ -107,8 +106,7 @@ export function MarketingHeader() {
                                     label="Paid login"
                                     variant="ghost"
                                     className="w-full justify-center font-bold"
-                                    nextPath="/dashboard"
-                                />
+                                    nextPath="/dashboard"`r`n                        showInlineError`r`n                    />
                                 <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
                                     <Button className="w-full justify-center font-bold">
                                         Start free <ArrowRight className="h-4 w-4" />
@@ -122,3 +120,4 @@ export function MarketingHeader() {
         </header>
     );
 }
+
