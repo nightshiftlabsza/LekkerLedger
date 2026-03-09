@@ -70,22 +70,22 @@ interface WebhookResolution {
 let schemaPromise: Promise<void> | null = null;
 
 function getRequiredEnv(name: string): string {
-    const value = process.env[name];
-    if (!value) {
+    const value = process.env[name]?.trim();
+    if (!value || value === "undefined" || value === "null") {
         throw new BillingConfigError(`${name} is missing.`);
     }
     return value;
 }
 
 function getPaystackSecretKey(): string {
-    return env.PAYSTACK_SECRET_KEY;
+    return getRequiredEnv("PAYSTACK_SECRET_KEY");
 }
 
 function getD1Config() {
     return {
-        accountId: env.CLOUDFLARE_ACCOUNT_ID,
-        databaseId: env.CLOUDFLARE_D1_DATABASE_ID,
-        apiToken: env.CLOUDFLARE_D1_API_TOKEN,
+        accountId: getRequiredEnv("CLOUDFLARE_ACCOUNT_ID"),
+        databaseId: getRequiredEnv("CLOUDFLARE_D1_DATABASE_ID"),
+        apiToken: getRequiredEnv("CLOUDFLARE_D1_API_TOKEN"),
     };
 }
 
@@ -586,3 +586,5 @@ export function toErrorResponse(error: unknown): { status: number; message: stri
         message: "Billing request failed.",
     };
 }
+
+
