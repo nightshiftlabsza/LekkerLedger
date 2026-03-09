@@ -8,7 +8,7 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
 import { GlobalCreateFAB } from "@/components/global-create";
-import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, LogOut } from "lucide-react";
+import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, LogOut, Loader2 } from "lucide-react";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { ToastProvider } from "@/components/ui/toast";
 import { Logo } from "@/components/ui/logo";
@@ -19,6 +19,7 @@ import { canUseAutoBackup, canUseMultipleHouseholds, getUserPlan } from "@/lib/e
 import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail } from "@/lib/google-session";
 import { syncDataToDrive, performSmartSyncCheck, syncDataFromDrive } from "@/lib/google-drive";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
+import { usePaidLoginActivation } from "@/components/paid-login-button";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -358,6 +359,7 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
     const [open, setOpen] = React.useState(false);
     const [googleEmail, setGoogleEmail] = React.useState<string | null>(null);
     const menuRef = React.useRef<HTMLDivElement | null>(null);
+    const { start, loading, statusMessage } = usePaidLoginActivation();
 
     React.useEffect(() => {
         if (typeof window === "undefined") return;
@@ -438,7 +440,7 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                         ))}
                     </div>
 
-                    {hasGoogleSession && (
+                    {hasGoogleSession ? (
                         <button
                             type="button"
                             onClick={handleSignOut}
@@ -450,6 +452,23 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                             <div>
                                 <p className="text-sm font-semibold text-[var(--text)]">Sign out of this session</p>
                                 <p className="text-xs text-[var(--text-muted)]">Stop Google access on this device without deleting your Drive backup.</p>
+                            </div>
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => void start()}
+                            disabled={loading}
+                            className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/5 px-4 py-3 text-left transition-all hover:bg-[var(--primary)]/10 disabled:opacity-50"
+                        >
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CircleUserRound className="h-4 w-4" />}
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold text-[var(--text)]">
+                                    {loading ? (statusMessage || "Signing in...") : "Sign in as a member"}
+                                </p>
+                                <p className="text-xs text-[var(--text-muted)]">Connect Google to sync your data and unlock paid features.</p>
                             </div>
                         </button>
                     )}

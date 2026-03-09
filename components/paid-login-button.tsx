@@ -55,7 +55,7 @@ function buildConflictPrompt(): boolean {
     );
 }
 
-function usePaidLoginActivation() {
+export function usePaidLoginActivation() {
     const router = useRouter();
     const [loading, setLoading] = React.useState(false);
     const [statusMessage, setStatusMessage] = React.useState("");

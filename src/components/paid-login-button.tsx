@@ -1,2 +1,2 @@
-export { PaidLoginButton, PaidLoginGate } from "../../components/paid-login-button";
+export { PaidLoginButton, PaidLoginGate, usePaidLoginActivation } from "../../components/paid-login-button";
 

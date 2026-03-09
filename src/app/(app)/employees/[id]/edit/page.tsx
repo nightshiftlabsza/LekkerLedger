@@ -192,7 +192,7 @@ export default function EditEmployeePage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">Email Address</Label>
+                                    <Label htmlFor="email">Email Address (optional)</Label>
                                     <Input
                                         id="email"
                                         type="email"
