@@ -34,8 +34,8 @@ export interface PayBreakdown {
     deductions: {
         uifEmployee: number;
         accommodation: number | undefined;
-        shortfall: number;
-        advance: number;
+        shortfall?: number;
+        advance?: number;
         other: number;
         total: number;
     };
