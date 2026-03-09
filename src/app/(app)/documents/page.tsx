@@ -615,7 +615,7 @@ export default function DocumentsPage() {
         setPreviewUrl(null);
     }, [previewUrl]);
 
-    const noContent = documents.length === 0 && contracts.length === 0;
+    const hasAnyContent = documents.length > 0 || contracts.length > 0;
 
     if (loading) {
         return (
@@ -695,7 +695,7 @@ export default function DocumentsPage() {
                         </div>
                     )}
 
-                    {!noContent && (
+                    {hasAnyContent && (
                         <FiltersBar
                             searchPlaceholder={`Search ${activeTab.toLowerCase()}...`}
                             searchValue={search}
@@ -842,155 +842,156 @@ export default function DocumentsPage() {
                         </Card>
                     )}
 
-                    {noContent ? (
-                        <>
-                            <EmptyState
-                                title="No documents yet"
-                                description="Your payslips, contracts, exports, and archived records will appear here once you start using the app."
-                                icon={FolderOpen}
-                                highlights={[
-                                    "Payslip PDFs after you run a pay period.",
-                                    "Contract drafts and uploaded signed copies.",
-                                    "Exports such as UIF and annual filing downloads.",
-                                    "Older records and supporting documents kept in one place.",
-                                ]}
-                                actionLabel="Add your first employee"
-                                actionHref="/employees/new"
-                                secondaryActionLabel="See example documents"
-                                secondaryActionHref="/examples"
-                            />
-                            <ContractsTab
-                                contracts={filteredContracts}
-                                employees={employees}
-                                documents={documents}
-                                hiddenCount={contractsArchiveResult.hiddenCount}
-                                archiveUpgradeHref={archiveUpgradeHref}
-                                archiveUpgradeLabel={archiveUpgradeLabel}
-                                contractStateFilter={contractStateFilter}
-                                setContractStateFilter={setContractStateFilter}
-                                openContractPreview={openContractPreview}
-                                downloadContract={downloadContract}
-                                handleContractUploadClick={handleContractUploadClick}
-                                handlePreview={handlePreview}
-                                handleMarkFinal={handleMarkFinal}
-                                toast={toast}
-                            />
-                        </>
+                    {activeTab === "Contracts" ? (
+                        <ContractsTab
+                            contracts={filteredContracts}
+                            employees={employees}
+                            documents={documents}
+                            hiddenCount={contractsArchiveResult.hiddenCount}
+                            archiveUpgradeHref={archiveUpgradeHref}
+                            archiveUpgradeLabel={archiveUpgradeLabel}
+                            contractStateFilter={contractStateFilter}
+                            setContractStateFilter={setContractStateFilter}
+                            openContractPreview={openContractPreview}
+                            downloadContract={downloadContract}
+                            handleContractUploadClick={handleContractUploadClick}
+                            handlePreview={handlePreview}
+                            handleMarkFinal={handleMarkFinal}
+                            toast={toast}
+                        />
                     ) : activeTab === "Payslips" ? (
-                        <>
-                            <DataTable<DocumentMeta>
-                                data={filteredPayslipDocuments}
-                                keyField={(doc) => doc.id}
-                                emptyMessage="No payslips match your filters."
-                                columns={[
-                                    {
-                                        key: "fileName",
-                                        label: "File",
-                                        render: (doc) => (
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
-                                                    <FileText className="h-4 w-4 text-[var(--primary)]" />
-                                                </div>
-                                                <span className="type-body-bold text-[var(--text)]">{doc.fileName}</span>
-                                            </div>
-                                        ),
-                                    },
-                                    {
-                                        key: "employee",
-                                        label: "Employee",
-                                        render: (doc) => <span className="type-body text-[var(--text-muted)]">{doc.employeeId ? employeeNameById[doc.employeeId] ?? "Unknown" : "-"}</span>,
-                                    },
-                                    {
-                                        key: "storage",
-                                        label: "Storage",
-                                        render: (doc) => (
-                                            <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
-                                                {doc.driveFileId ? <Cloud className="h-3 w-3 text-[var(--primary)]" /> : <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />}
-                                                <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">{doc.driveFileId ? "Drive backup" : "This device"}</span>
-                                            </div>
-                                        ),
-                                    },
-                                    {
-                                        key: "date",
-                                        label: "Added",
-                                        render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
-                                    },
-                                    {
-                                        key: "actions",
-                                        label: "",
-                                        align: "right",
-                                        render: (doc) => (
-                                            <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => void handlePreview(doc)}>
-                                                <Eye className="h-4 w-4 text-[var(--primary)]" />
-                                            </Button>
-                                        ),
-                                    },
-                                ]}
+                        filteredPayslipDocuments.length === 0 ? (
+                            <EmptyState
+                                title="No payslips yet"
+                                description="Payslip PDFs will appear here automatically after you finalise your first pay period."
+                                icon={FileText}
+                                actionLabel={employees.length === 0 ? "Add your first employee" : "Run payroll"}
+                                actionHref={employees.length === 0 ? "/employees/new" : "/payroll"}
                             />
-                            <ArchiveBanner hiddenCount={payslipArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
-                        </>
+                        ) : (
+                            <>
+                                <DataTable<DocumentMeta>
+                                    data={filteredPayslipDocuments}
+                                    keyField={(doc) => doc.id}
+                                    emptyMessage="No payslips match your filters."
+                                    columns={[
+                                        {
+                                            key: "fileName",
+                                            label: "File",
+                                            render: (doc) => (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                                        <FileText className="h-4 w-4 text-[var(--primary)]" />
+                                                    </div>
+                                                    <span className="type-body-bold text-[var(--text)]">{doc.fileName}</span>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            key: "employee",
+                                            label: "Employee",
+                                            render: (doc) => <span className="type-body text-[var(--text-muted)]">{doc.employeeId ? employeeNameById[doc.employeeId] ?? "Unknown" : "-"}</span>,
+                                        },
+                                        {
+                                            key: "storage",
+                                            label: "Storage",
+                                            render: (doc) => (
+                                                <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
+                                                    {doc.driveFileId ? <Cloud className="h-3 w-3 text-[var(--primary)]" /> : <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />}
+                                                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">{doc.driveFileId ? "Drive backup" : "This device"}</span>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            key: "date",
+                                            label: "Added",
+                                            render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
+                                        },
+                                        {
+                                            key: "actions",
+                                            label: "",
+                                            align: "right",
+                                            render: (doc) => (
+                                                <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => void handlePreview(doc)}>
+                                                    <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                </Button>
+                                            ),
+                                        },
+                                    ]}
+                                />
+                                <ArchiveBanner hiddenCount={payslipArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
+                            </>
+                        )
                     ) : activeTab === "Exports" ? (
-                        <>
-                            <DataTable<DocumentMeta>
-                                data={filteredExportDocuments}
-                                keyField={(doc) => doc.id}
-                                emptyMessage="No exports match your filters."
-                                columns={[
-                                    {
-                                        key: "fileName",
-                                        label: "File",
-                                        render: (doc) => (
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
-                                                    <FileSpreadsheet className="h-4 w-4 text-[var(--primary)]" />
-                                                </div>
-                                                <span className="type-body-bold text-[var(--text)]">{doc.fileName}</span>
-                                            </div>
-                                        ),
-                                    },
-                                    {
-                                        key: "storage",
-                                        label: "Storage",
-                                        render: (doc) => (
-                                            <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
-                                                {doc.driveFileId ? <Cloud className="h-3 w-3 text-[var(--primary)]" /> : <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />}
-                                                <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">{doc.driveFileId ? "Drive backup" : "This device"}</span>
-                                            </div>
-                                        ),
-                                    },
-                                    {
-                                        key: "date",
-                                        label: "Added",
-                                        render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
-                                    },
-                                    {
-                                        key: "actions",
-                                        label: "",
-                                        align: "right",
-                                        render: (doc) => (
-                                            <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => void handlePreview(doc)}>
-                                                <Eye className="h-4 w-4 text-[var(--primary)]" />
-                                            </Button>
-                                        ),
-                                    },
-                                ]}
+                        filteredExportDocuments.length === 0 ? (
+                            <EmptyState
+                                title="No exports available"
+                                description="Official documents like Year-End Summaries and UIF declarations will be generated here. Finalise a payroll month to unlock your first export."
+                                icon={FileSpreadsheet}
                             />
-                            <ArchiveBanner hiddenCount={exportArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
-                        </>
+                        ) : (
+                            <>
+                                <DataTable<DocumentMeta>
+                                    data={filteredExportDocuments}
+                                    keyField={(doc) => doc.id}
+                                    emptyMessage="No exports match your filters."
+                                    columns={[
+                                        {
+                                            key: "fileName",
+                                            label: "File",
+                                            render: (doc) => (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                                        <FileSpreadsheet className="h-4 w-4 text-[var(--primary)]" />
+                                                    </div>
+                                                    <span className="type-body-bold text-[var(--text)]">{doc.fileName}</span>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            key: "storage",
+                                            label: "Storage",
+                                            render: (doc) => (
+                                                <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
+                                                    {doc.driveFileId ? <Cloud className="h-3 w-3 text-[var(--primary)]" /> : <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />}
+                                                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">{doc.driveFileId ? "Drive backup" : "This device"}</span>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            key: "date",
+                                            label: "Added",
+                                            render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
+                                        },
+                                        {
+                                            key: "actions",
+                                            label: "",
+                                            align: "right",
+                                            render: (doc) => (
+                                                <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => void handlePreview(doc)}>
+                                                    <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                </Button>
+                                            ),
+                                        },
+                                    ]}
+                                />
+                                <ArchiveBanner hiddenCount={exportArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
+                            </>
+                        )
                     ) : filteredVaultDocuments.length === 0 ? (
                         vaultUploadsAllowed ? (
                             <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-1)] p-10 text-center">
                                 <FolderOpen className="mx-auto mb-3 h-10 w-10 text-[var(--text-muted)]" strokeWidth={1.5} />
-                                <p className="text-sm font-bold text-[var(--text)]">No Vault files yet</p>
-                                <p className="mt-1 text-sm text-[var(--text-muted)]">Upload contracts, employee documents, or compliance paperwork and keep them in one place.</p>
+                                <p className="text-sm font-bold text-[var(--text)]">Secure Document Vault</p>
+                                <p className="mt-1 text-sm text-[var(--text-muted)]">A safe place to upload and store external employee records. Keep ID copies, sick notes, and compliance forms organised here.</p>
                                 <Button className="mt-4 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={handleVaultUploadClick}>
                                     Upload document
                                 </Button>
                             </div>
                         ) : (
                             <FeatureGateCard
-                                title="Store signed contracts, ID copies, and other documents"
-                                description="Vault uploads are available on Pro. Your existing uploaded files still stay visible here."
+                                title="Secure Document Vault"
+                                description="Vault uploads are available on Pro. A safe place to upload and store external employee records. Keep ID copies, sick notes, and compliance forms organised here."
                                 ctaLabel="Upgrade to Pro"
                                 href={vaultUpgradeHref}
                                 eyebrow="Pro"
@@ -1069,7 +1070,7 @@ export default function DocumentsPage() {
                         />
                     )}
                 </div>
-                {!noContent && (
+                {hasAnyContent && (
                     <aside className="ultrawide-panel hidden 2xl:block">
                         <Card className="glass-panel sticky top-0 border-none p-5">
                             <div className="space-y-4">

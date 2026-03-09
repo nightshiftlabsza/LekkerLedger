@@ -11,11 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmployeeLeaveTab } from "@/components/employees/employee-leave-tab";
+import { EmployeeDocumentsTab } from "@/components/employees/employee-documents-tab";
 import {
     getContractsForEmployee, getEmployee, getLeaveCarryOversForEmployee, getPayslipsForEmployee, getLeaveForEmployee, getSettings,
-    deletePayslip
+    deletePayslip, getDocuments
 } from "@/lib/storage";
-import { Employee, LeaveCarryOver, PayslipInput, LeaveRecord, Contract, CustomLeaveType, EmployerSettings } from "@/lib/schema";
+import { Employee, LeaveCarryOver, PayslipInput, LeaveRecord, Contract, CustomLeaveType, EmployerSettings, DocumentMeta } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { format } from "date-fns";
 import { filterRecordsForArchiveWindow, getArchiveUpgradeHref, getArchiveUpgradeLabel, getArchiveUpgradeMessage } from "@/lib/archive";
@@ -55,6 +56,7 @@ function EmployeeDetailContent() {
     const [leaveRecords, setLeaveRecords] = React.useState<LeaveRecord[]>([]);
     const [leaveCarryOvers, setLeaveCarryOvers] = React.useState<LeaveCarryOver[]>([]);
     const [contracts, setContracts] = React.useState<Contract[]>([]);
+    const [documents, setDocuments] = React.useState<DocumentMeta[]>([]);
     const [customLeaveTypes, setCustomLeaveTypes] = React.useState<CustomLeaveType[]>([]);
     const [employerSettings, setEmployerSettings] = React.useState<EmployerSettings | null>(null);
     const [loading, setLoading] = React.useState(true);
@@ -83,16 +85,18 @@ function EmployeeDetailContent() {
     React.useEffect(() => {
         async function load() {
             if (!id) return;
-            const [emp, ps, leave, carryOvers, employeeContracts, settings] = await Promise.all([
+            const [emp, ps, leave, carryOvers, employeeContracts, settings, docs] = await Promise.all([
                 getEmployee(id),
                 getPayslipsForEmployee(id),
                 getLeaveForEmployee(id),
                 getLeaveCarryOversForEmployee(id),
                 getContractsForEmployee(id),
                 getSettings(),
+                getDocuments(),
             ]);
             if (!emp) { router.push("/employees"); return; }
             setEmployee(emp);
+            setDocuments(docs);
             setPayslips([...ps].sort(
                 (a, b) => new Date(b.payPeriodEnd).getTime() - new Date(a.payPeriodEnd).getTime()
             ));
@@ -511,28 +515,18 @@ function EmployeeDetailContent() {
                         )}
 
                         {/* DOCUMENTS TAB */}
-                        {activeTab === "documents" && (
-                            <Card className={SHELL_PANEL_CLASS}>
-                                <CardContent className="p-5 space-y-3">
-                                    <h3 className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>
-                                        Employee documents
-                                    </h3>
-                                    <Link href={`/documents?tab=contracts`}>
-                                        <Button className="w-full h-12 justify-start gap-3 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
-                                            <FolderOpen className="h-4 w-4" />
-                                            Open the documents hub
-                                        </Button>
-                                    </Link>
-                                    <p className="text-sm text-[var(--text-muted)]">
-                                        Contracts, certificates, exports, and older records should live in one documents area instead of being scattered through employee pages.
-                                    </p>
-                                    <Link href={`/contracts/new?employeeId=${id}`}>
-                                        <Button variant="outline" className="w-full h-11 font-bold">
-                                            Start a contract draft
-                                        </Button>
-                                    </Link>
-                                </CardContent>
-                            </Card>
+                        {activeTab === "documents" && employerSettings && (
+                            <EmployeeDocumentsTab
+                                employee={employee}
+                                contracts={contracts}
+                                documents={documents}
+                                settings={employerSettings}
+                                currentPlan={currentPlan}
+                                onDocumentsChange={() => {
+                                    getDocuments().then(setDocuments);
+                                    getContractsForEmployee(id).then(setContracts);
+                                }}
+                            />
                         )}
                     </div>
                 </section>
