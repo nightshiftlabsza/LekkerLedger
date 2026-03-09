@@ -151,7 +151,7 @@ export default function RoePackPage() {
                     </button>
                     <div>
                         <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text)" }}>
-                            {step === 1 ? "Return of Earnings (ROE) Pack" : `ROE Pack for ${selectedYear}/${selectedYear + 1}`}
+                            {step === 1 ? "Compensation Fund Return" : `CF Return — ${selectedYear}/${selectedYear + 1}`}
                         </h1>
                         {step > 1 && <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold">Assessment Year</p>}
                     </div>
@@ -186,120 +186,140 @@ export default function RoePackPage() {
                     </div>
 
                     {step === 1 && (
-                        <div className="animate-slide-up space-y-6">
-                            <div className="space-y-2">
-                                <h2 className="type-h3 text-[var(--text)]">Select Assessment Year</h2>
-                                <p className="type-body text-[var(--text-muted)]">
-                                    The Compensation Fund year runs from <strong>1 March</strong> to <strong>28 February</strong>.
-                                </p>
+                        <div className="animate-slide-up space-y-5">
+
+                            {/* Disclaimer — shown first so user sees it before acting */}
+                            <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">
+                                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                                <div className="space-y-0.5">
+                                    <p className="text-xs font-bold text-amber-700">Compliance support tool — not a filing service</p>
+                                    <p className="text-[11px] text-amber-600 leading-relaxed">
+                                        LekkerLedger calculates your figures and generates supporting documents. You are responsible for the accuracy of your submission to the Compensation Fund.
+                                    </p>
+                                </div>
                             </div>
 
-                            <Card className="border-none glass-panel">
-                                <CardContent className="p-6 space-y-6">
-                                    <div className="space-y-4">
-                                        {availableYears.map((year) => {
-                                            const endDay = ((year + 1) % 4 === 0 && ((year + 1) % 100 !== 0 || (year + 1) % 400 === 0)) ? 29 : 28;
-                                            return (
-                                                <div
-                                                    key={year}
-                                                    onClick={() => {
-                                                        if (selectedYear !== year && step > 1) {
-                                                            if (confirm("Changing the assessment year will reset your current ROE calculations. Continue?")) {
-                                                                setSelectedYear(year);
-                                                                setStep(1);
-                                                                setRoeData(null);
-                                                            }
-                                                        } else {
-                                                            setSelectedYear(year);
-                                                        }
-                                                    }}
-                                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedYear === year ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)] hover:border-[var(--primary)]/30"}`}
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <p className="font-bold text-[var(--text)]">{year}/{year + 1} Year</p>
-                                                            <p className="text-xs text-[var(--text-muted)]">1 Mar {year} – {endDay} Feb {year + 1}</p>
-                                                        </div>
-                                                        {selectedYear === year && <div className="h-5 w-5 rounded-full bg-[var(--primary)] flex items-center justify-center"><Check className="h-3 w-3 text-white" /></div>}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                            {/* Two-column layout on large screens */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
-                                    <Button
-                                        onClick={handleCalculate}
-                                        disabled={loading}
-                                        className="w-full h-12 gap-2 text-base"
-                                    >
-                                        {loading ? "Calculating..." : "Calculate My Numbers"}
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                </CardContent>
-                            </Card>
-
-                            <Alert className="bg-[var(--surface-2)] border-none">
-                                <Info className="h-4 w-4 text-[var(--primary)]" />
-                                <AlertDescription className="text-xs text-[var(--text-muted)] ml-2">
-                                    We use your saved payslips to calculate these totals. If you are missing months, your totals will be lower than reality.
-                                </AlertDescription>
-                            </Alert>
-
-                            {/* ROE Explanation Section */}
-                            <div className="space-y-4 pt-4 border-t border-[var(--border)]">
-                                <div className="flex items-center gap-2">
-                                    <HelpCircle className="h-4 w-4 text-[var(--primary)]" />
-                                    <h3 className="text-sm font-bold text-[var(--text)]">What is Return of Earnings (ROE)?</h3>
-                                </div>
-                                <div className="prose prose-sm max-w-none text-[var(--text-muted)] space-y-3 text-xs leading-relaxed">
-                                    <p>
-                                        The <strong>Return of Earnings (ROE)</strong> is a mandatory annual declaration that every registered South African employer must submit to the <strong>Compensation Fund</strong>. It&apos;s how the government calculates how much your business owes to cover workers if they get injured or fall ill on the job.
-                                    </p>
-                                    <div className="bg-[var(--surface-2)] p-4 rounded-xl space-y-2 border border-[var(--border)]">
-                                        <p className="font-bold text-[var(--text)]">What You&apos;re Declaring:</p>
-                                        <ul className="list-disc pl-4 space-y-1">
-                                            <li><strong>Actual earnings:</strong> Total wages paid in the previous assessment year (1 March to 28 February).</li>
-                                            <li><strong>Provisional earnings:</strong> Your estimate of what you&apos;ll pay in the coming year.</li>
-                                        </ul>
-                                    </div>
-                                    <div className="flex items-start gap-3 p-3 bg-[var(--primary)]/5 rounded-xl border border-[var(--primary)]/10">
-                                        <ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
-                                        <p>
-                                            Submitting ROE is the gateway to getting a <strong>Letter of Good Standing (LOGS)</strong> — required for tenders, contracts, and government work.
+                                {/* Left: Year picker */}
+                                <div className="space-y-4">
+                                    <div className="space-y-1">
+                                        <h2 className="type-h3 text-[var(--text)]">Select Assessment Year</h2>
+                                        <p className="type-body text-[var(--text-muted)] text-sm">
+                                            The Compensation Fund year runs from <strong>1 March</strong> to <strong>28 February</strong>.
                                         </p>
                                     </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left border-collapse">
-                                            <thead>
-                                                <tr className="border-b border-[var(--border)]">
-                                                    <th className="py-2 font-bold text-[var(--text)]">Period</th>
-                                                    <th className="py-2 font-bold text-[var(--text)]">Max Earnings Cap</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr className="border-b border-[var(--border)]/50">
-                                                    <td className="py-2">2024/2025 (actual)</td>
-                                                    <td className="py-2 font-mono">R597,328</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-2">2025/2026 (provisional)</td>
-                                                    <td className="py-2 font-mono">R633,168</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <p className="italic text-[10px]">
-                                        *If an employee earns more than the cap, you only report up to the capped amount. LekkerLedger handles this calculation for you automatically.
-                                    </p>
-                                    <a 
-                                        href="https://roe.labour.gov.za" 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 text-[var(--primary)] font-bold hover:underline"
-                                    >
-                                        Official ROE Online Portal <ExternalLink className="h-3 w-3" />
-                                    </a>
+
+                                    <Card className="border-none glass-panel">
+                                        <CardContent className="p-6 space-y-6">
+                                            <div className="space-y-4">
+                                                {availableYears.map((year) => {
+                                                    const endDay = ((year + 1) % 4 === 0 && ((year + 1) % 100 !== 0 || (year + 1) % 400 === 0)) ? 29 : 28;
+                                                    return (
+                                                        <div
+                                                            key={year}
+                                                            onClick={() => {
+                                                                if (selectedYear !== year && step > 1) {
+                                                                    if (confirm("Changing the assessment year will reset your current ROE calculations. Continue?")) {
+                                                                        setSelectedYear(year);
+                                                                        setStep(1);
+                                                                        setRoeData(null);
+                                                                    }
+                                                                } else {
+                                                                    setSelectedYear(year);
+                                                                }
+                                                            }}
+                                                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedYear === year ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)] hover:border-[var(--primary)]/30"}`}
+                                                        >
+                                                            <div className="flex items-center justify-between">
+                                                                <div>
+                                                                    <p className="font-bold text-[var(--text)]">{year}/{year + 1} Year</p>
+                                                                    <p className="text-xs text-[var(--text-muted)]">1 Mar {year} – {endDay} Feb {year + 1}</p>
+                                                                </div>
+                                                                {selectedYear === year && <div className="h-5 w-5 rounded-full bg-[var(--primary)] flex items-center justify-center"><Check className="h-3 w-3 text-white" /></div>}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            <Button
+                                                onClick={handleCalculate}
+                                                disabled={loading}
+                                                className="w-full h-12 gap-2 text-base"
+                                            >
+                                                {loading ? "Calculating..." : "Calculate My Numbers"}
+                                                <ChevronRight className="h-4 w-4" />
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Alert className="bg-[var(--surface-2)] border-none">
+                                        <Info className="h-4 w-4 text-[var(--primary)]" />
+                                        <AlertDescription className="text-xs text-[var(--text-muted)] ml-2">
+                                            We use your saved payslips to calculate these totals. Missing months will lower your totals.
+                                        </AlertDescription>
+                                    </Alert>
                                 </div>
+
+                                {/* Right: ROE explainer */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2">
+                                        <HelpCircle className="h-4 w-4 text-[var(--primary)]" />
+                                        <h3 className="text-sm font-bold text-[var(--text)]">What is the ROE?</h3>
+                                    </div>
+                                    <div className="prose prose-sm max-w-none text-[var(--text-muted)] space-y-3 text-xs leading-relaxed">
+                                        <p>
+                                            The <strong>Return of Earnings (ROE)</strong> is a mandatory annual declaration that every registered South African employer must submit to the <strong>Compensation Fund</strong>. It&apos;s how the government calculates how much your business owes to cover injured or ill workers.
+                                        </p>
+                                        <div className="bg-[var(--surface-2)] p-4 rounded-xl space-y-2 border border-[var(--border)]">
+                                            <p className="font-bold text-[var(--text)]">What You&apos;re Declaring:</p>
+                                            <ul className="list-disc pl-4 space-y-1">
+                                                <li><strong>Actual earnings:</strong> Total wages paid last year (1 March – 28 February).</li>
+                                                <li><strong>Provisional earnings:</strong> Estimated wages for the coming year.</li>
+                                            </ul>
+                                        </div>
+                                        <div className="flex items-start gap-3 p-3 bg-[var(--primary)]/5 rounded-xl border border-[var(--primary)]/10">
+                                            <ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
+                                            <p>
+                                                Submitting ROE is the gateway to a <strong>Letter of Good Standing (LOGS)</strong> — required for tenders, contracts, and government work.
+                                            </p>
+                                        </div>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr className="border-b border-[var(--border)]">
+                                                        <th className="py-2 font-bold text-[var(--text)]">Period</th>
+                                                        <th className="py-2 font-bold text-[var(--text)]">Max Earnings Cap</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr className="border-b border-[var(--border)]/50">
+                                                        <td className="py-2">2024/2025 (actual)</td>
+                                                        <td className="py-2 font-mono">R597,328</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-2">2025/2026 (provisional)</td>
+                                                        <td className="py-2 font-mono">R633,168</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <p className="italic text-[10px]">
+                                            *Earnings above the cap are excluded. LekkerLedger applies this automatically.
+                                        </p>
+                                        <a
+                                            href="https://roe.labour.gov.za"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1.5 text-[var(--primary)] font-bold hover:underline"
+                                        >
+                                            Official ROE Online Portal <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                     )}
@@ -453,14 +473,9 @@ export default function RoePackPage() {
                         </div>
                     )}
 
-                    {/* Legal Footer */}
-                    <div className="flex flex-col items-center gap-2 py-4">
-                        <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)] type-overline">
-                            <ShieldCheck className="h-3 w-3" /> Compliance Support Tool
-                        </div>
-                        <p className="text-[10px] text-center text-[var(--text-muted)] leading-relaxed max-w-[280px]">
-                            LekkerLedger is a calculation aid. You are responsible for the truthfulness of your submission to the Compensation Fund.
-                        </p>
+                    {/* Subtle compliance footer — disclaimer now lives at step 1 top */}
+                    <div className="flex items-center justify-center gap-1.5 py-4 text-[10px] text-[var(--text-muted)] type-overline">
+                        <ShieldCheck className="h-3 w-3" /> Compliance Support Tool
                     </div>
 
                 </div>

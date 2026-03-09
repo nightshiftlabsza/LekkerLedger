@@ -130,7 +130,8 @@ function DashboardContent() {
 
     const isSetupIncomplete = employeeCount === 0;
     const isPayrollStarted = !!currentPeriod;
-    const isPayrollReady = completedEntries === totalEntries && totalEntries > 0;
+    const isPayrollReady = completedEntries === totalEntries && totalEntries > 0 && currentPeriod?.status !== "review";
+    const isPayrollInReview = currentPeriod?.status === "review";
 
     return (
         <div className="pb-8 space-y-6">
@@ -149,6 +150,7 @@ function DashboardContent() {
                         currentPeriod={currentPeriod}
                         isSetupIncomplete={isSetupIncomplete}
                         isPayrollReady={isPayrollReady}
+                        isPayrollInReview={isPayrollInReview}
                         progressPercent={progressPercent}
                         completedEntries={completedEntries}
                         totalEntries={totalEntries}
@@ -255,6 +257,7 @@ function PrimaryTaskHero({
     currentPeriod,
     isSetupIncomplete,
     isPayrollReady,
+    isPayrollInReview,
     progressPercent,
     completedEntries,
     totalEntries,
@@ -264,6 +267,7 @@ function PrimaryTaskHero({
     currentPeriod: PayPeriod | null;
     isSetupIncomplete: boolean;
     isPayrollReady: boolean;
+    isPayrollInReview: boolean;
     progressPercent: number;
     completedEntries: number;
     totalEntries: number;
@@ -275,9 +279,11 @@ function PrimaryTaskHero({
     const isLatestCurrentMonth = latestPeriod?.name === currentMonth;
 
     const title = currentPeriod
-        ? isPayrollReady
-            ? `${currentPeriod.name} is ready`
-            : `${currentPeriod.name} in progress`
+        ? isPayrollInReview
+            ? `${currentPeriod.name} — Review in progress`
+            : isPayrollReady
+                ? `${currentPeriod.name} is ready`
+                : `${currentPeriod.name} in progress`
         : isLatestLocked && isLatestCurrentMonth
             ? `${currentMonth} finalised`
             : isSetupIncomplete
@@ -285,9 +291,11 @@ function PrimaryTaskHero({
                 : `Set up ${currentMonth}`;
 
     const subtitle = currentPeriod
-        ? isPayrollReady
-            ? "All employee entries are complete. You can now finalise this month and generate payslips."
-            : `You have completed ${completedEntries} of ${totalEntries} entries. Finish the rest to finalise payroll.`
+        ? isPayrollInReview
+            ? "This pay run is in the review stage. Open it to finalise and generate payslips."
+            : isPayrollReady
+                ? "All employee entries are complete. You can now finalise this month and generate payslips."
+                : `You have completed ${completedEntries} of ${totalEntries} entries. Finish the rest to finalise payroll.`
         : isLatestLocked && isLatestCurrentMonth
             ? `Payroll for ${currentMonth} is complete and locked. You can view all generated records in the Documents Hub.`
             : isSetupIncomplete
@@ -303,7 +311,7 @@ function PrimaryTaskHero({
                 : "/payroll/new";
 
     const primaryActionLabel = currentPeriod
-        ? isPayrollReady ? "Review & Finalise" : "Continue Payroll"
+        ? isPayrollInReview ? "Review & Finalise" : isPayrollReady ? "Review & Finalise" : "Continue Payroll"
         : isLatestLocked && isLatestCurrentMonth
             ? "View Documents"
             : isSetupIncomplete ? "Start Setup" : `Start ${currentMonth}`;
@@ -581,9 +589,9 @@ function ComplianceCard() {
                 </div>
                 <div className="space-y-3">
                     <div>
-                        <h4 className="type-body font-bold text-[var(--text)]">Annual return (ROE)</h4>
+                        <h4 className="type-body font-bold text-[var(--text)]">Compensation Fund return</h4>
                         <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                            Gather the yearly totals and supporting records you usually need for the Compensation Fund return.
+                            Gather your yearly wage totals and supporting records for the annual ROE submission.
                         </p>
                     </div>
                     <Link href="/compliance/coida/roe">
