@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { generatePayslipPdfBytes } from "./pdf";
-import { generateEmploymentContract } from "./contract-pdf";
+import { generateEmploymentContract } from "./contracts/pdfGenerator";
 import { generateCertificateOfService } from "./certificate-pdf";
 import { generateBCEASummaryPdf } from "./compliance-pdf";
 import { generateRoePayrollPdfBytes } from "./coida/coida-pdf";

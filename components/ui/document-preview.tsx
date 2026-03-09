@@ -77,12 +77,12 @@ export function DocumentPreview({ url, fileName, onClose, onDownload }: Document
                 </div>
 
                 {/* Preview content */}
-                <div className="flex-1 overflow-hidden bg-[var(--surface-2)]">
+                <div className="flex-1 overflow-hidden relative">
                     <iframe
                         src={url}
                         title={fileName ?? "Document preview"}
-                        className="w-full h-full border-0"
-                        sandbox="allow-same-origin"
+                        className="w-full h-full border-0 bg-white"
+                        sandbox="allow-same-origin allow-scripts"
                     />
                 </div>
 
@@ -91,7 +91,7 @@ export function DocumentPreview({ url, fileName, onClose, onDownload }: Document
                     <Button variant="ghost" size="sm" onClick={onClose} className="text-xs font-bold gap-1">
                         Close
                     </Button>
-                    <a href={url} target="_blank" rel="noopener noreferrer">
+                    <a href={url} target="_blank" rel="noopener noreferrer" title="Open document in new tab">
                         <Button variant="ghost" size="sm" className="text-xs font-bold gap-1 text-[var(--primary)]">
                             <ExternalLink className="h-3 w-3" /> Open in new tab
                         </Button>

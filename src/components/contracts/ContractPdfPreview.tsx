@@ -1,0 +1,112 @@
+"use client";
+
+import { useMemo } from "react";
+import type { Contract, Employee, EmployerSettings } from "@/lib/schema";
+import { buildContractClauses } from "@/lib/contracts/contractTemplate";
+
+type ContractPdfPreviewProps = {
+    contract: Contract;
+    employee: Employee;
+    settings: EmployerSettings;
+};
+
+export function ContractPdfPreview({ contract, employee, settings }: ContractPdfPreviewProps) {
+    const clauses = useMemo(() => {
+        try {
+            return buildContractClauses(contract, employee, settings);
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
+    }, [contract, employee, settings]);
+
+    if (!clauses.length) {
+        return (
+            <div className="flex h-full items-center justify-center p-8 text-center text-sm text-[var(--text-muted)] bg-[var(--surface-1)]">
+                Could not generate preview content.
+            </div>
+        );
+    }
+
+    return (
+        <div className="mx-auto my-8 max-w-[595px] bg-white p-10 shadow-lg sm:p-12 print:m-0 print:max-w-none print:shadow-none min-h-[842px]">
+            <header className="mb-10 text-center">
+                <h1 className="mb-2 font-serif text-2xl font-bold text-gray-900">Employment Contract</h1>
+                <p className="text-xs text-gray-500">
+                    Prepared using LekkerLedger · Based on the DEL domestic-worker sample structure · Review before signing
+                </p>
+                <div className="mt-4 border-b border-gray-200" />
+            </header>
+
+            <main className="space-y-8 text-[13px] leading-relaxed text-gray-800">
+                {clauses.map((clause, index) => {
+                    const number = index + 1;
+
+                    if (clause.type === "signatures") {
+                        return (
+                            <section key={clause.title} className="mt-12 break-inside-avoid">
+                                <h2 className="mb-8 font-sans text-[11px] font-bold uppercase tracking-wider text-gray-900">
+                                    {number}. {clause.title}
+                                </h2>
+                                <div className="grid grid-cols-2 gap-8">
+                                    <div>
+                                        <div className="border-t border-gray-400 pt-2">
+                                            <p className="font-bold text-gray-500 text-[10px] uppercase">Employer signature</p>
+                                            <p className="mt-1 text-gray-900">{settings.employerName || "Employer"}</p>
+                                            <p className="mt-4 text-gray-500 text-[10px]">Date: ____________________</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="border-t border-gray-400 pt-2">
+                                            <p className="font-bold text-gray-500 text-[10px] uppercase">Employee signature</p>
+                                            <p className="mt-1 text-gray-900">{employee.name}</p>
+                                            <p className="mt-4 text-gray-500 text-[10px]">Date: ____________________</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        );
+                    }
+
+                    return (
+                        <section key={clause.title}>
+                            <h2 className="mb-3 font-sans text-[11px] font-bold uppercase tracking-wider text-gray-900 border-b border-gray-100 pb-1">
+                                {number}. {clause.title}
+                            </h2>
+
+                            {clause.type === "rows" && clause.rows && (
+                                <div className="grid grid-cols-[1fr_2fr] gap-x-4 gap-y-2">
+                                    {clause.rows.map((row, i) => (
+                                        <div key={i} className="contents border-b border-gray-50 last:border-0 pb-1">
+                                            <div className="font-bold text-gray-500">{row.label}:</div>
+                                            <div className="text-gray-900 font-medium">{row.value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {clause.type === "paragraphs" && clause.paragraphs && (
+                                <div className="space-y-2">
+                                    {clause.paragraphs.map((p, i) => (
+                                        <p key={i}>{p}</p>
+                                    ))}
+                                </div>
+                            )}
+
+                            {clause.type === "bullets" && clause.bullets && (
+                                <ul className="list-inside space-y-1">
+                                    {clause.bullets.map((b, i) => (
+                                        <li key={i} className="flex gap-2">
+                                            <span className="text-[var(--primary)] font-bold mt-[-1px]">&bull;</span>
+                                            <span>{b}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </section>
+                    );
+                })}
+            </main>
+        </div>
+    );
+}

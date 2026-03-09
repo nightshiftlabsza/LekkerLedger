@@ -27,13 +27,14 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable } from "@/components/ui/data-table";
 import { FiltersBar, type FilterChip } from "@/components/ui/filters-bar";
 import { DocumentPreview } from "@/components/ui/document-preview";
+import { ContractRow } from "@/components/documents/ContractRow";
+import { ContractsTab } from "@/components/documents/ContractsTab";
 import { useToast } from "@/components/ui/toast";
 import { PLANS, type PlanConfig } from "@/config/plans";
 import {
     filterRecordsForArchiveWindow,
     getArchiveUpgradeHref,
-    getArchiveUpgradeLabel,
-    getArchiveUpgradeMessage,
+    getUpgradePlanForArchive,
     isUploadedDocument,
 } from "@/lib/archive";
 import {
@@ -45,7 +46,7 @@ import {
 } from "@/lib/entitlements";
 import { deleteDriveFile, uploadVaultFileToDrive } from "@/lib/google-drive";
 import { getStoredGoogleAccessToken } from "@/lib/google-session";
-import { generateEmploymentContract } from "@/lib/contract-pdf";
+import { generateEmploymentContract, buildContractFileName } from "@/lib/contracts/pdfGenerator";
 import { generatePayslipPdfBytes } from "@/lib/pdf";
 import {
     deleteDocumentMeta,
@@ -61,13 +62,14 @@ import {
     saveDocumentFile,
     saveDocumentMeta,
     subscribeToDataChanges,
+    updateContractStatus,
 } from "@/lib/storage";
 import { generateYearEndSummaryPdf, getYearEndSummaryStatus } from "@/lib/year-end-summary";
 import type { Contract, DocumentMeta, Employee, LeaveRecord, PayPeriod, PayslipInput } from "@/lib/schema";
 
 const TABS = ["Payslips", "Contracts", "Exports", "Vault"] as const;
 type Tab = typeof TABS[number];
-type VaultCategory = "contracts" | "employee-docs" | "admin" | "other";
+type VaultCategory = "contracts" | "employee-docs" | "compliance" | "other";
 
 const TAB_TYPE_MAP: Record<Exclude<Tab, "Contracts">, DocumentMeta["type"]> = {
     Payslips: "payslip",
@@ -78,7 +80,7 @@ const TAB_TYPE_MAP: Record<Exclude<Tab, "Contracts">, DocumentMeta["type"]> = {
 const VAULT_CATEGORIES: Array<{ value: VaultCategory; label: string }> = [
     { value: "contracts", label: "Contracts" },
     { value: "employee-docs", label: "Employee docs" },
-    { value: "admin", label: "Admin" },
+    { value: "compliance", label: "Compliance" },
     { value: "other", label: "Other" },
 ];
 
@@ -106,23 +108,22 @@ function downloadBlob(blob: Blob, fileName: string) {
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function buildContractFileName(contract: Contract, employee: Employee | undefined) {
-    const safeName = (employee?.name || "employee").replace(/\s+/g, "_");
-    return `Contract_${safeName}_v${contract.version}.pdf`;
-}
 
 function buildYearEndSummaryFileName(year: number, householdName?: string) {
     const safeName = (householdName?.trim() || "Employment_Summary").replace(/\s+/g, "_");
     return `${safeName}_${year}.pdf`;
 }
 
-function ArchiveBanner({ hiddenCount, href, label, message }: { hiddenCount: number; href: string; label: string; message: string }) {
+function ArchiveBanner({ hiddenCount, href, label }: { hiddenCount: number; href: string; label: string }) {
     if (hiddenCount <= 0) return null;
     return (
         <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <p className="text-sm text-[var(--text)]">{message}</p>
+                    <p className="text-sm font-bold text-[var(--text)]">
+                        You have {hiddenCount} older record{hiddenCount === 1 ? "" : "s"}.
+                    </p>
+                    <p className="text-sm text-[var(--text-muted)]">Upgrade to browse your full history in the app.</p>
                 </div>
                 <Link href={href}>
                     <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{label}</Button>
@@ -137,7 +138,6 @@ export default function DocumentsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const initialTab = (searchParams.get("tab") || "").toLowerCase();
-    const requestedEmployeeId = searchParams.get("employeeId") || "";
     const defaultTab = initialTab === "contracts"
         ? "Contracts"
         : initialTab === "vault"
@@ -158,6 +158,7 @@ export default function DocumentsPage() {
     const [settings, setSettings] = React.useState<Awaited<ReturnType<typeof getSettings>> | null>(null);
     const [search, setSearch] = React.useState("");
     const [empFilter, setEmpFilter] = React.useState<string>("");
+    const [contractStateFilter, setContractStateFilter] = React.useState<Contract["status"] | "needs_action" | "All">("All");
     const [vaultCategoryFilter, setVaultCategoryFilter] = React.useState<string>("");
     const [nextVaultCategory, setNextVaultCategory] = React.useState<VaultCategory>("other");
     const [summaryYear, setSummaryYear] = React.useState<number | "">("");
@@ -168,8 +169,8 @@ export default function DocumentsPage() {
     const [isGeneratingSummary, setIsGeneratingSummary] = React.useState(false);
     const [deletingDocumentId, setDeletingDocumentId] = React.useState<string | null>(null);
     const uploadInputRef = React.useRef<HTMLInputElement | null>(null);
+    const pdfCache = React.useRef<Record<string, string>>({});
     const [uploadTargetContract, setUploadTargetContract] = React.useState<Contract | null>(null);
-    const hasAppliedInitialEmployeeFilter = React.useRef(false);
 
     React.useEffect(() => {
         setActiveTab(defaultTab as Tab);
@@ -230,7 +231,6 @@ export default function DocumentsPage() {
         () => Object.fromEntries(employees.map((employee) => [employee.id, employee.name])),
         [employees],
     );
-    const activeEmployeeName = empFilter ? employeeNameById[empFilter] ?? "" : "";
 
     const employeeFilters: FilterChip[] = employees.map((employee) => ({
         key: employee.id,
@@ -238,8 +238,9 @@ export default function DocumentsPage() {
         active: empFilter === employee.id,
     }));
 
+    const archiveUpgradePlanId = getUpgradePlanForArchive(plan.id);
     const archiveUpgradeHref = getArchiveUpgradeHref(plan.id);
-    const archiveUpgradeLabel = getArchiveUpgradeLabel(plan.id);
+    const archiveUpgradeLabel = archiveUpgradePlanId ? `Upgrade to ${PLANS[archiveUpgradePlanId].label}` : "Upgrade";
     const vaultUpgradeHref = "/upgrade?plan=pro";
     const vaultUploadsAllowed = canUseVaultUploads(plan);
     const contractSignedCopyUploadAllowed = canUseContractSignedCopyUpload(plan);
@@ -308,11 +309,18 @@ export default function DocumentsPage() {
     const filteredContracts = React.useMemo(() => {
         const query = search.trim().toLowerCase();
         return contractsArchiveResult.visible.filter((contract) => {
+            if (contractStateFilter !== "All") {
+                if (contractStateFilter === "needs_action") {
+                    if (contract.status !== "draft" && contract.status !== "awaiting_signed_copy") return false;
+                } else if (contract.status !== contractStateFilter) {
+                    return false;
+                }
+            }
             if (!query) return true;
             const employeeName = employeeNameById[contract.employeeId]?.toLowerCase() ?? "";
             return contract.jobTitle.toLowerCase().includes(query) || employeeName.includes(query);
         });
-    }, [contractsArchiveResult.visible, employeeNameById, search]);
+    }, [contractsArchiveResult.visible, employeeNameById, search, contractStateFilter]);
 
     const filteredVaultDocuments = React.useMemo(() => {
         const query = search.trim().toLowerCase();
@@ -344,6 +352,12 @@ export default function DocumentsPage() {
     const handlePreview = async (doc: DocumentMeta) => {
         setPreviewDoc(doc);
         setPreviewFileName(doc.fileName);
+
+        if (pdfCache.current[doc.id]) {
+            setPreviewUrl(pdfCache.current[doc.id]);
+            return;
+        }
+
         setIsGeneratingPreview(true);
 
         try {
@@ -356,7 +370,9 @@ export default function DocumentsPage() {
                 }
                 const pdfBytes = await generatePayslipPdfBytes(employee, payslip, latestSettings);
                 const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
-                setPreviewUrl(URL.createObjectURL(blob));
+                const url = URL.createObjectURL(blob);
+                pdfCache.current[doc.id] = url;
+                setPreviewUrl(url);
                 return;
             }
 
@@ -368,7 +384,9 @@ export default function DocumentsPage() {
 
             const mimeType = blob.type || doc.mimeType || "application/octet-stream";
             if (isPreviewableMimeType(mimeType)) {
-                setPreviewUrl(URL.createObjectURL(blob));
+                const url = URL.createObjectURL(blob);
+                pdfCache.current[doc.id] = url;
+                setPreviewUrl(url);
                 return;
             }
 
@@ -384,21 +402,8 @@ export default function DocumentsPage() {
         }
     };
 
-    const openContractPreview = async (contract: Contract) => {
-        if (!settings) return;
-        const employee = employees.find((entry) => entry.id === contract.employeeId);
-        if (!employee) return;
-        setPreviewDoc(null);
-        setPreviewFileName(buildContractFileName(contract, employee));
-        setIsGeneratingPreview(true);
-
-        try {
-            const pdfBytes = await generateEmploymentContract(contract, employee, settings);
-            const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
-            setPreviewUrl(URL.createObjectURL(blob));
-        } finally {
-            setIsGeneratingPreview(false);
-        }
+    const openContractPreview = (contract: Contract) => {
+        router.push(`/contracts/${contract.id}/preview`);
     };
 
     const downloadContract = async (contract: Contract) => {
@@ -408,6 +413,19 @@ export default function DocumentsPage() {
         const pdfBytes = await generateEmploymentContract(contract, employee, settings);
         const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
         downloadBlob(blob, buildContractFileName(contract, employee));
+
+        if (contract.status === "draft") {
+            await updateContractStatus(contract.id, "awaiting_signed_copy");
+        }
+    };
+
+    const handleMarkFinal = async (contract: Contract) => {
+        try {
+            await updateContractStatus(contract.id, "final", { finalizedAt: new Date().toISOString() });
+            toast("Contract marked as final.", "success");
+        } catch (error) {
+            toast("Could not update contract status.", "error");
+        }
     };
 
     const handleContractUploadClick = (contract: Contract) => {
@@ -432,7 +450,10 @@ export default function DocumentsPage() {
 
         if (!file) return;
 
-        if (!matchesAllowedUpload(file)) {
+        if (targetContract && file.type !== "application/pdf") {
+            toast("Signed contracts must be uploaded as PDF files.", "error");
+            return;
+        } else if (!targetContract && !matchesAllowedUpload(file)) {
             toast("Upload a PDF, JPG, PNG, or DOCX file.", "error");
             return;
         }
@@ -469,6 +490,7 @@ export default function DocumentsPage() {
 
                 await saveDocumentFile(id, file);
                 await saveDocumentMeta(nextDocument);
+                await updateContractStatus(targetContract.id, "signed_copy_stored", { signedDocumentId: id });
                 setDocuments((current) => [nextDocument, ...current]);
                 toast("Signed copy saved to Documents.", "success");
                 return;
@@ -598,7 +620,7 @@ export default function DocumentsPage() {
     if (loading) {
         return (
             <>
-                <PageHeader title="Documents" subtitle={activeEmployeeName ? `Showing records for ${activeEmployeeName}` : "Payslips, contracts, exports, and vault history"} />
+                <PageHeader title="Documents" subtitle="Payslips, contracts, exports, and vault history" />
                 <EmptyState
                     title="Loading documents"
                     description="Pulling together your payslips, contracts, exports, and stored records."
@@ -609,19 +631,12 @@ export default function DocumentsPage() {
     }
 
     if (!canUseDocumentsHub(plan)) {
-        const isSignedOut = !getStoredGoogleAccessToken();
-
         return (
             <>
-                <PageHeader title="Documents" subtitle={activeEmployeeName ? `Showing records for ${activeEmployeeName}` : "Payslips, contracts, exports, and vault history"} />
+                <PageHeader title="Documents" subtitle="Payslips, contracts, exports, and vault history" />
                 <FeatureGateCard
-                    title={isSignedOut ? "Sign-in required to verify subscription" : "Documents hub is available on Standard and Pro"}
-                    description={isSignedOut
-                        ? "We can't check your subscription status while you're signed out. If you've already paid for Standard or Pro, please sign in to Google to unlock your features."
-                        : "Upgrade when you need payslips, contracts, exports, and organised records in one place."
-                    }
-                    ctaLabel={isSignedOut ? "Sign in to Google" : "Review plans"}
-                    href={isSignedOut ? "/settings" : "/upgrade"}
+                    title="Documents hub is available on Standard and Pro"
+                    description="Free keeps payroll and payslips simple for one worker. Upgrade for contracts, document uploads, exports, and longer record access."
                 />
             </>
         );
@@ -631,16 +646,8 @@ export default function DocumentsPage() {
         <>
             <PageHeader
                 title="Documents"
-                subtitle={activeEmployeeName ? `Showing records for ${activeEmployeeName}` : "Payslips, contracts, exports, and vault history in one place"}
-                actions={activeTab === "Contracts" ? (
-                    <div className="flex items-center gap-2">
-                        <Link href="/contracts/new">
-                            <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
-                                <ScrollText className="h-4 w-4" /> New Contract
-                            </Button>
-                        </Link>
-                    </div>
-                ) : activeTab === "Vault" ? (
+                subtitle="Payslips, contracts, exports, and vault history in one place"
+                actions={activeTab === "Vault" ? (
                     vaultUploadsAllowed ? (
                         <Button
                             type="button"
@@ -667,15 +674,6 @@ export default function DocumentsPage() {
                 onChange={handleSignedDocumentSelected}
             />
 
-            {activeTab === "Contracts" && (
-                <Alert variant="warning">
-                    <AlertTitle>Review before signing</AlertTitle>
-                    <AlertDescription>
-                        Contract templates are a starting point only, not legal advice. Check the wording against the real arrangement, verify against official guidance, and keep the signed final version in Documents.
-                    </AlertDescription>
-                </Alert>
-            )}
-
             <div className="ultrawide-grid">
                 <div className="ultrawide-main space-y-6">
                     <div className="flex items-center gap-1 border-b border-[var(--border)] -mx-4 overflow-x-auto px-4 no-scrollbar lg:mx-0 lg:px-0">
@@ -691,6 +689,12 @@ export default function DocumentsPage() {
                         ))}
                     </div>
 
+                    {activeTab === "Contracts" && filteredContracts.length > 0 && (
+                        <div className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs text-orange-800">
+                            <strong>Review before signing:</strong>&nbsp;Templates are starting points. Verify with a labour lawyer if unsure.
+                        </div>
+                    )}
+
                     {!noContent && (
                         <FiltersBar
                             searchPlaceholder={`Search ${activeTab.toLowerCase()}...`}
@@ -701,8 +705,14 @@ export default function DocumentsPage() {
                         />
                     )}
 
+                    {activeTab === "Contracts" && filteredContracts.length > 0 && (
+                        <div className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs text-orange-800 mb-4">
+                            <strong>Review before signing:</strong>&nbsp;Templates are starting points. Verify with a labour lawyer if unsure.
+                        </div>
+                    )}
+
                     {activeTab === "Vault" && (
-                        <Card className="glass-panel border-none shadow-sm hover-lift">
+                        <Card className="glass-panel border-none">
                             <CardContent className="space-y-4 p-5">
                                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                                     <div>
@@ -748,11 +758,11 @@ export default function DocumentsPage() {
                                 </div>
 
                                 {!vaultUploadsAllowed && (
-                                    <div className="rounded-2xl border border-[var(--primary)]/20 bg-gradient-to-br from-[var(--primary)]/5 to-[var(--primary)]/10 px-6 py-6 shadow-inner">
-                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                            <div className="space-y-1">
-                                                <p className="text-sm font-black text-[var(--text)]">Store signed contracts, ID copies, and other documents.</p>
-                                                <p className="text-xs text-[var(--text-muted)]">Standard keeps signed contract copies on contract pages. Pro unlocks the full document Vault hub here.</p>
+                                    <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <div>
+                                                <p className="text-sm font-bold text-[var(--text)]">Upload anything to the Vault on Pro</p>
+                                                <p className="text-sm text-[var(--text-muted)]">Standard keeps signed contract copies active on contract pages. Pro unlocks general document uploads here.</p>
                                             </div>
                                             <Link href={vaultUpgradeHref}>
                                                 <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">Upgrade to Pro</Button>
@@ -769,7 +779,7 @@ export default function DocumentsPage() {
                     )}
 
                     {activeTab === "Exports" && plan.id !== "free" && (
-                        <Card className="glass-panel border-none shadow-sm hover-lift">
+                        <Card className="glass-panel border-none">
                             <CardContent className="space-y-4 p-5">
                                 <div>
                                     <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Year-end summary</p>
@@ -819,8 +829,8 @@ export default function DocumentsPage() {
                                     <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-4">
                                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                             <div>
-                                                <p className="text-sm font-bold text-[var(--text)]">Year-end summaries are available on Pro.</p>
-                                                <p className="text-sm text-[var(--text-muted)]">Keep one ready-to-share PDF with yearly pay totals and leave taken.</p>
+                                                <p className="text-sm font-bold text-[var(--text)]">Year-end summaries are available on Pro</p>
+                                                <p className="text-sm text-[var(--text-muted)]">Keep one ready-to-share PDF for your records or your tax practitioner.</p>
                                             </div>
                                             <Link href={vaultUpgradeHref}>
                                                 <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">Upgrade to Pro</Button>
@@ -833,171 +843,39 @@ export default function DocumentsPage() {
                     )}
 
                     {noContent ? (
-                        <EmptyState
-                            title="No documents yet"
-                            description="Your payslips, contracts, exports, and archived records will appear here once you start using the app."
-                            icon={FolderOpen}
-                            highlights={[
-                                "Payslip PDFs after you run a pay period.",
-                                "Contract drafts and uploaded signed copies.",
-                                "Exports such as UIF and annual filing downloads.",
-                                "Older records and supporting documents kept in one place.",
-                            ]}
-                            actionLabel="Add your first employee"
-                            actionHref="/employees/new"
-                            secondaryActionLabel="See example documents"
-                            secondaryActionHref="/examples"
-                        />
-                    ) : activeTab === "Contracts" ? (
-                        filteredContracts.length === 0 ? (
-                            <>
-                                <EmptyState
-                                    title="No contracts yet"
-                                    description="Contracts now live here with the rest of your employee documents."
-                                    icon={ScrollText}
-                                    actionLabel="Create contract"
-                                    actionHref="/contracts/new"
-                                />
-                                <ArchiveBanner
-                                    hiddenCount={contractsArchiveResult.hiddenCount}
-                                    href={archiveUpgradeHref}
-                                    label={archiveUpgradeLabel}
-                                    message={getArchiveUpgradeMessage(plan.id, contractsArchiveResult.hiddenCount)}
-                                />
-                            </>
-                        ) : (
-                            <>
-                                <DataTable<Contract>
-                                    data={filteredContracts}
-                                    keyField={(contract) => contract.id}
-                                    onRowClick={openContractPreview}
-                                    columns={[
-                                        {
-                                            key: "employee",
-                                            label: "Employee",
-                                            render: (contract) => <span className="type-body-bold text-[var(--text)]">{employeeNameById[contract.employeeId] ?? "Unknown"}</span>,
-                                        },
-                                        {
-                                            key: "jobTitle",
-                                            label: "Job title",
-                                            render: (contract) => <span className="type-body text-[var(--text-muted)]">{contract.jobTitle}</span>,
-                                        },
-                                        {
-                                            key: "status",
-                                            label: "Status",
-                                            render: (contract) => <span className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-[11px] font-bold text-[var(--text-muted)]">{contract.status === "draft" ? "Draft" : contract.status}</span>,
-                                        },
-                                        {
-                                            key: "updatedAt",
-                                            label: "Updated",
-                                            render: (contract) => <span className="type-body text-[var(--text-muted)]">{format(new Date(contract.updatedAt), "d MMM yyyy")}</span>,
-                                        },
-                                        {
-                                            key: "actions",
-                                            label: "",
-                                            align: "right",
-                                            render: (contract) => (
-                                                <div className="flex items-center justify-end gap-1">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-9 w-9 p-0"
-                                                        onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            void openContractPreview(contract);
-                                                        }}
-                                                    >
-                                                        <Eye className="h-4 w-4 text-[var(--primary)]" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-9 w-9 p-0"
-                                                        onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            void downloadContract(contract);
-                                                        }}
-                                                    >
-                                                        <Download className="h-4 w-4 text-[var(--text-muted)]" />
-                                                    </Button>
-                                                    {contractSignedCopyUploadAllowed ? (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-9 w-9 p-0"
-                                                            onClick={(event) => {
-                                                                event.stopPropagation();
-                                                                handleContractUploadClick(contract);
-                                                            }}
-                                                        >
-                                                            <Upload className="h-4 w-4 text-[var(--text-muted)]" />
-                                                        </Button>
-                                                    ) : null}
-                                                </div>
-                                            ),
-                                        },
-                                    ]}
-                                    renderCard={(contract) => {
-                                        const employee = employees.find((entry) => entry.id === contract.employeeId);
-                                        return (
-                                            <button
-                                                type="button"
-                                                onClick={() => void openContractPreview(contract)}
-                                                className="glass-panel w-full rounded-xl p-4 text-left space-y-3"
-                                            >
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div>
-                                                        <p className="text-sm font-bold text-[var(--text)]">{employee?.name ?? "Unknown"}</p>
-                                                        <p className="text-xs text-[var(--text-muted)]">{contract.jobTitle}</p>
-                                                    </div>
-                                                    <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-[10px] font-black uppercase tracking-wide text-[var(--text-muted)]">
-                                                        {contract.status}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
-                                                    <span>Updated {format(new Date(contract.updatedAt), "d MMM yyyy")}</span>
-                                                    <span>Open draft</span>
-                                                </div>
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-9 px-3"
-                                                        onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            void downloadContract(contract);
-                                                        }}
-                                                    >
-                                                        <Download className="mr-2 h-4 w-4" /> Download
-                                                    </Button>
-                                                    {contractSignedCopyUploadAllowed ? (
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-9 px-3"
-                                                            onClick={(event) => {
-                                                                event.stopPropagation();
-                                                                handleContractUploadClick(contract);
-                                                            }}
-                                                        >
-                                                            <Upload className="mr-2 h-4 w-4" /> Upload signed copy
-                                                        </Button>
-                                                    ) : null}
-                                                </div>
-                                            </button>
-                                        );
-                                    }}
-                                />
-                                <ArchiveBanner
-                                    hiddenCount={contractsArchiveResult.hiddenCount}
-                                    href={archiveUpgradeHref}
-                                    label={archiveUpgradeLabel}
-                                    message={getArchiveUpgradeMessage(plan.id, contractsArchiveResult.hiddenCount)}
-                                />
-                            </>
-                        )
+                        <>
+                            <EmptyState
+                                title="No documents yet"
+                                description="Your payslips, contracts, exports, and archived records will appear here once you start using the app."
+                                icon={FolderOpen}
+                                highlights={[
+                                    "Payslip PDFs after you run a pay period.",
+                                    "Contract drafts and uploaded signed copies.",
+                                    "Exports such as UIF and annual filing downloads.",
+                                    "Older records and supporting documents kept in one place.",
+                                ]}
+                                actionLabel="Add your first employee"
+                                actionHref="/employees/new"
+                                secondaryActionLabel="See example documents"
+                                secondaryActionHref="/examples"
+                            />
+                            <ContractsTab
+                                contracts={filteredContracts}
+                                employees={employees}
+                                documents={documents}
+                                hiddenCount={contractsArchiveResult.hiddenCount}
+                                archiveUpgradeHref={archiveUpgradeHref}
+                                archiveUpgradeLabel={archiveUpgradeLabel}
+                                contractStateFilter={contractStateFilter}
+                                setContractStateFilter={setContractStateFilter}
+                                openContractPreview={openContractPreview}
+                                downloadContract={downloadContract}
+                                handleContractUploadClick={handleContractUploadClick}
+                                handlePreview={handlePreview}
+                                handleMarkFinal={handleMarkFinal}
+                                toast={toast}
+                            />
+                        </>
                     ) : activeTab === "Payslips" ? (
                         <>
                             <DataTable<DocumentMeta>
@@ -1049,12 +927,7 @@ export default function DocumentsPage() {
                                     },
                                 ]}
                             />
-                            <ArchiveBanner
-                                hiddenCount={payslipArchiveResult.hiddenCount}
-                                href={archiveUpgradeHref}
-                                label={archiveUpgradeLabel}
-                                message={getArchiveUpgradeMessage(plan.id, payslipArchiveResult.hiddenCount)}
-                            />
+                            <ArchiveBanner hiddenCount={payslipArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
                         </>
                     ) : activeTab === "Exports" ? (
                         <>
@@ -1102,19 +975,14 @@ export default function DocumentsPage() {
                                     },
                                 ]}
                             />
-                            <ArchiveBanner
-                                hiddenCount={exportArchiveResult.hiddenCount}
-                                href={archiveUpgradeHref}
-                                label={archiveUpgradeLabel}
-                                message={getArchiveUpgradeMessage(plan.id, exportArchiveResult.hiddenCount)}
-                            />
+                            <ArchiveBanner hiddenCount={exportArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
                         </>
                     ) : filteredVaultDocuments.length === 0 ? (
                         vaultUploadsAllowed ? (
                             <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-1)] p-10 text-center">
                                 <FolderOpen className="mx-auto mb-3 h-10 w-10 text-[var(--text-muted)]" strokeWidth={1.5} />
                                 <p className="text-sm font-bold text-[var(--text)]">No Vault files yet</p>
-                                <p className="mt-1 text-sm text-[var(--text-muted)]">Upload contracts, employee documents, or other household paperwork and keep them in one place.</p>
+                                <p className="mt-1 text-sm text-[var(--text-muted)]">Upload contracts, employee documents, or compliance paperwork and keep them in one place.</p>
                                 <Button className="mt-4 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={handleVaultUploadClick}>
                                     Upload document
                                 </Button>
@@ -1122,14 +990,14 @@ export default function DocumentsPage() {
                         ) : (
                             <FeatureGateCard
                                 title="Store signed contracts, ID copies, and other documents"
-                                description="Store signed contracts, ID copies, and other documents - all in one place."
+                                description="Vault uploads are available on Pro. Your existing uploaded files still stay visible here."
                                 ctaLabel="Upgrade to Pro"
                                 href={vaultUpgradeHref}
                                 eyebrow="Pro"
                                 benefits={[
                                     "Private document vault in your Google account",
+                                    "All uploaded files stay in one place",
                                     "Upload general household employment paperwork",
-                                    "Keep everything easy to find later",
                                 ]}
                             />
                         )
@@ -1230,7 +1098,7 @@ export default function DocumentsPage() {
                                             Vault storage
                                         </div>
                                         <p className="text-sm text-[var(--text-muted)]">
-                                            Existing uploaded files always stay visible here. Pro unlocks new uploads for contracts, employee paperwork, and other household records.
+                                            Existing uploaded files always stay visible here. Pro unlocks new uploads for contracts, employee paperwork, and compliance records.
                                         </p>
                                     </div>
                                 )}
@@ -1264,5 +1132,3 @@ export default function DocumentsPage() {
         </>
     );
 }
-
-

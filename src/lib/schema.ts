@@ -13,6 +13,7 @@ export const EmployeeSchema = z.object({
     role: z.string().min(1, "Role is required").default("Domestic Worker"),
     hourlyRate: z.number().positive("Hourly rate must be greater than 0"),
     phone: z.string().optional().default(""),
+    address: z.string().optional().default(""),
     startDate: z.string().optional().default(""), // ISO date string - when employment began
     ordinarilyWorksSundays: z.boolean().default(false),
     ordinaryHoursPerDay: z.number().min(1).max(24).default(8),
@@ -251,11 +252,12 @@ export const ContractSchema = z.object({
     id: z.string().uuid(),
     householdId: z.string().default("default"),
     employeeId: z.string().uuid(),
-    status: z.enum(["draft", "active", "replaced"]).default("draft"),
+    status: z.enum(["draft", "awaiting_signed_copy", "signed_copy_stored", "final"]).default("draft"),
     version: z.number().default(1),
     signedAt: z.string().optional(), // ISO date
     effectiveDate: z.string(), // ISO date
     jobTitle: z.string(),
+    employeeAddress: z.string().optional(),
     placeOfWork: z.string().default(""),
     duties: z.array(z.string()).default([]),
     workingHours: z.object({
@@ -277,16 +279,18 @@ export const ContractSchema = z.object({
         accommodationDetails: z.string().default(""),
         overtimeAgreement: z.string().default("Overtime must be agreed in advance and paid according to the BCEA."),
         sundayHolidayAgreement: z.string().default("Sunday and public-holiday work must be agreed and paid at the correct rate."),
-        noticeClause: z.string().default("Notice periods follow the BCEA and should be given in writing."),
+        noticeClause: z.string().default("Notice periods follow the BCEA and must be given in writing."),
         lawyerReviewAcknowledged: z.boolean().default(false),
     }).default({
         accommodationProvided: false,
         accommodationDetails: "",
         overtimeAgreement: "Overtime must be agreed in advance and paid according to the BCEA.",
         sundayHolidayAgreement: "Sunday and public-holiday work must be agreed and paid at the correct rate.",
-        noticeClause: "Notice periods follow the BCEA and should be given in writing.",
+        noticeClause: "Notice periods follow the BCEA and must be given in writing.",
         lawyerReviewAcknowledged: false,
     }),
+    signedDocumentId: z.string().optional(),
+    finalizedAt: z.string().optional(),
     createdAt: z.string(), // ISO date
     updatedAt: z.string(), // ISO date
 });

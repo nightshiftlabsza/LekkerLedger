@@ -1221,6 +1221,31 @@ export async function deleteContract(id: string): Promise<void> {
     await notifyListeners();
 }
 
+export async function updateContractStatus(
+    id: string,
+    status: Contract["status"],
+    meta?: {
+        signedDocumentId?: string;
+        finalizedAt?: string;
+    }
+): Promise<void> {
+    const existing = await contractStore.getItem<unknown>(id);
+    if (!existing) return;
+    const contract = decodeData<Contract>(existing);
+
+    const updated = {
+        ...contract,
+        status,
+        ...(meta?.signedDocumentId ? { signedDocumentId: meta.signedDocumentId } : {}),
+        ...(meta?.finalizedAt ? { finalizedAt: meta.finalizedAt } : {}),
+        updatedAt: new Date().toISOString(),
+    };
+
+    await contractStore.setItem(id, await encodeData(updated));
+    await logAuditEvent("UPDATE_CONTRACT", `Contract ${id} status changed to ${status}`, { contractId: id, status });
+    await notifyListeners();
+}
+
 export function getCurrentTaxYearRange(now: Date = new Date()): { start: Date; end: Date; label: string } {
     const year = now.getFullYear();
     const month = now.getMonth();

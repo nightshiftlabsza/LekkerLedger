@@ -8,6 +8,8 @@ import { Logo } from "@/components/ui/logo";
 import { PaidLoginButton } from "@/components/paid-login-button";
 
 const NAV_LINKS = [
+    { href: "/#how-it-works", label: "How it works" },
+    { href: "/uif-calculator", label: "UIF calculator" },
     { href: "/pricing", label: "Pricing" },
     { href: "/#how-it-works", label: "How it works" },
     { href: "/calculator", label: "Calculator" },
@@ -124,3 +126,4 @@ export function MarketingHeader() {
         </header>
     );
 }
+

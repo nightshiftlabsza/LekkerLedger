@@ -153,6 +153,12 @@ LekkerLedger should not feel like:
 - They should identify the page, current context, and next action.
 - They should not try to act like a hero section inside the app.
 
+### 6.4 Contract Workflow Pattern
+- **Wizard over giant form:** Break complex document generation (like Contracts) into bite-sized steps: "Employee", "Parties", "Hours", "Pay", "Terms".
+- **State Preservation:** Always preserve the user's progress in `sessionStorage` or local state so they don't lose data if they accidentally navigate away.
+- **Preview before download:** Users should see an in-app HTML/React preview of the generated document before they commit to downloading and signing.
+- **Actionable empty states:** If no documents exist, provide a clear "Create your first contract" CTA with an explanation of the feature.
+
 ## 7. Visual Cohesion Rules
 
 ### 7.1 Card language

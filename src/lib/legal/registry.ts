@@ -1,6 +1,9 @@
 /**
  * Statutory constants and rates for South African Labor Law (BCEA / SD7).
  * Centralized here to avoid logic drift and ensure historical accuracy.
+ *
+ * MAINTENANCE REMINDER: NMW generally updates annually in March.
+ * Check government gazettes annually and update COMPLIANCE.NMW.HISTORICAL.
  */
 
 import { COMPLIANCE } from "../compliance-constants";

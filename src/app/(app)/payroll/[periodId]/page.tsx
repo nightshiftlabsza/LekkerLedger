@@ -24,6 +24,7 @@ import { calculatePayslip } from "@/lib/calculator";
 import { PayPeriod, Employee, EmployeeEntry, PayslipInput, EmployerSettings, LeaveRecord } from "@/lib/schema";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
 import { getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
+import { track } from "@/lib/analytics";
 import { PLANS, PlanConfig } from "../../../../config/plans";
 
 function openWhatsAppDesktop(): void {
@@ -219,6 +220,11 @@ export default function PayPeriodWorkspacePage() {
         try {
             const files = await buildPayslipFiles();
             await downloadFiles(files);
+            track("payslip_export", {
+                method: "bulk_download_pdf",
+                payslip_count: files.length,
+                period_status: period?.status ?? "unknown",
+            });
             toast("Payslips downloaded", "success");
         } catch (error) {
             console.error("Batch PDF generation failed:", error);
@@ -632,6 +638,3 @@ export default function PayPeriodWorkspacePage() {
         </div>
     );
 }
-
-
-
