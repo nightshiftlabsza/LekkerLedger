@@ -15,7 +15,9 @@ import {
     Info,
     Calendar,
     Users,
-    Banknote
+    Banknote,
+    ExternalLink,
+    AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -147,9 +149,12 @@ export default function RoePackPage() {
                     >
                         <ArrowLeft className="h-4 w-4" />
                     </button>
-                    <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text)" }}>
-                        Return of Earnings (ROE) Pack
-                    </h1>
+                    <div>
+                        <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text)" }}>
+                            {step === 1 ? "Return of Earnings (ROE) Pack" : `ROE Pack for ${selectedYear}/${selectedYear + 1}`}
+                        </h1>
+                        {step > 1 && <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold">Assessment Year</p>}
+                    </div>
                 </div>
             </div>
 
@@ -160,20 +165,22 @@ export default function RoePackPage() {
                     <div className="flex items-center justify-between px-2">
                         {[1, 2, 3].map((s) => (
                             <div key={s} className="flex items-center">
-                                <div
-                                    className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${step === s ? "bg-[var(--primary)] text-white scale-110" :
-                                        step > s ? "bg-[var(--primary)]/20 text-[var(--primary)]" :
-                                            "bg-[var(--surface-2)] text-[var(--text-muted)]"
+                                <button
+                                    onClick={() => (step > s || (step === 2 && s === 1) || (step === 3 && (s === 1 || s === 2))) && setStep(s)}
+                                    disabled={step < s}
+                                    className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${step === s ? "bg-[var(--primary)] text-white scale-110 shadow-lg shadow-[var(--primary)]/20" :
+                                        step > s ? "bg-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/30 cursor-pointer" :
+                                            "bg-[var(--surface-2)] text-[var(--text-muted)] cursor-default"
                                         }`}
                                 >
                                     {step > s ? <Check className="h-4 w-4" /> : s}
-                                </div>
+                                </button>
                                 {s < 3 && (
                                     <div className={`w-12 h-0.5 mx-2 ${step > s ? "bg-[var(--primary)]/20" : "bg-[var(--surface-2)]"}`} />
                                 )}
                             </div>
                         ))}
-                        <span className="text-[10px] type-overline text-[var(--text-muted)] ml-auto">
+                        <span className="text-[10px] type-overline text-[var(--text-muted)] ml-auto font-bold">
                             Step {step} of 3
                         </span>
                     </div>
@@ -195,7 +202,17 @@ export default function RoePackPage() {
                                             return (
                                                 <div
                                                     key={year}
-                                                    onClick={() => setSelectedYear(year)}
+                                                    onClick={() => {
+                                                        if (selectedYear !== year && step > 1) {
+                                                            if (confirm("Changing the assessment year will reset your current ROE calculations. Continue?")) {
+                                                                setSelectedYear(year);
+                                                                setStep(1);
+                                                                setRoeData(null);
+                                                            }
+                                                        } else {
+                                                            setSelectedYear(year);
+                                                        }
+                                                    }}
                                                     className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedYear === year ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)] hover:border-[var(--primary)]/30"}`}
                                                 >
                                                     <div className="flex items-center justify-between">
@@ -222,10 +239,68 @@ export default function RoePackPage() {
                             </Card>
 
                             <Alert className="bg-[var(--surface-2)] border-none">
-                                <AlertDescription className="text-xs text-[var(--text-muted)]">
+                                <Info className="h-4 w-4 text-[var(--primary)]" />
+                                <AlertDescription className="text-xs text-[var(--text-muted)] ml-2">
                                     We use your saved payslips to calculate these totals. If you are missing months, your totals will be lower than reality.
                                 </AlertDescription>
                             </Alert>
+
+                            {/* ROE Explanation Section */}
+                            <div className="space-y-4 pt-4 border-t border-[var(--border)]">
+                                <div className="flex items-center gap-2">
+                                    <HelpCircle className="h-4 w-4 text-[var(--primary)]" />
+                                    <h3 className="text-sm font-bold text-[var(--text)]">What is Return of Earnings (ROE)?</h3>
+                                </div>
+                                <div className="prose prose-sm max-w-none text-[var(--text-muted)] space-y-3 text-xs leading-relaxed">
+                                    <p>
+                                        The <strong>Return of Earnings (ROE)</strong> is a mandatory annual declaration that every registered South African employer must submit to the <strong>Compensation Fund</strong>. It's how the government calculates how much your business owes to cover workers if they get injured or fall ill on the job.
+                                    </p>
+                                    <div className="bg-[var(--surface-2)] p-4 rounded-xl space-y-2 border border-[var(--border)]">
+                                        <p className="font-bold text-[var(--text)]">What You're Declaring:</p>
+                                        <ul className="list-disc pl-4 space-y-1">
+                                            <li><strong>Actual earnings:</strong> Total wages paid in the previous assessment year (1 March to 28 February).</li>
+                                            <li><strong>Provisional earnings:</strong> Your estimate of what you'll pay in the coming year.</li>
+                                        </ul>
+                                    </div>
+                                    <div className="flex items-start gap-3 p-3 bg-[var(--primary)]/5 rounded-xl border border-[var(--primary)]/10">
+                                        <ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
+                                        <p>
+                                            Submitting ROE is the gateway to getting a <strong>Letter of Good Standing (LOGS)</strong> — required for tenders, contracts, and government work.
+                                        </p>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="border-b border-[var(--border)]">
+                                                    <th className="py-2 font-bold text-[var(--text)]">Period</th>
+                                                    <th className="py-2 font-bold text-[var(--text)]">Max Earnings Cap</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr className="border-b border-[var(--border)]/50">
+                                                    <td className="py-2">2024/2025 (actual)</td>
+                                                    <td className="py-2 font-mono">R597,328</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="py-2">2025/2026 (provisional)</td>
+                                                    <td className="py-2 font-mono">R633,168</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p className="italic text-[10px]">
+                                        *If an employee earns more than the cap, you only report up to the capped amount. LekkerLedger handles this calculation for you automatically.
+                                    </p>
+                                    <a 
+                                        href="https://roe.labour.gov.za" 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-[var(--primary)] font-bold hover:underline"
+                                    >
+                                        Official ROE Online Portal <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -233,10 +308,25 @@ export default function RoePackPage() {
                         <div className="animate-slide-up space-y-6">
                             <div className="space-y-2">
                                 <h2 className="type-h3 text-[var(--text)]">Your ROE Numbers</h2>
-                                <p className="type-body text-[var(--text-muted)]">
-                                    Copy these 3 numbers into the Compensation Fund (CF) portal.
-                                </p>
+                                <div className="flex items-start gap-3 p-4 bg-amber-500/5 rounded-xl border border-amber-500/10">
+                                    <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-bold text-amber-600">Next Step: Enter these into the CF Portal</p>
+                                        <p className="text-[10px] text-amber-700 leading-relaxed">
+                                            1. Visit <strong>roe.labour.gov.za</strong> · 2. Copy each value using the buttons below · 3. Paste into your ROE submission form.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
+
+                            {roeData.employeeCount === 0 && roeData.actualEarnings === 0 && (
+                                <Alert className="bg-red-500/5 border border-red-500/10">
+                                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                                    <AlertDescription className="text-xs text-red-700 ml-2">
+                                        ⚠️ <strong>No payroll data found for {selectedYear}/{selectedYear + 1}</strong>. Add payroll records to generate your ROE numbers.
+                                    </AlertDescription>
+                                </Alert>
+                            )}
 
                             <div className="grid grid-cols-1 gap-4">
                                 <RoeValueCard
@@ -250,7 +340,7 @@ export default function RoePackPage() {
                                     label="Actual Earnings"
                                     value={`R ${roeData.actualEarnings.toLocaleString()}`}
                                     icon={Banknote}
-                                    help="Total gross pay (capped at R177,000 per worker per year)."
+                                    help={`Total gross pay (capped at R${(roeData.maxCapPerEmployee || 0).toLocaleString()} per worker annually).`}
                                     onCopy={() => copyToClipboard(roeData.actualEarnings.toString(), "Actual earnings")}
                                 />
                                 <RoeValueCard
@@ -276,11 +366,29 @@ export default function RoePackPage() {
                     {step === 3 && (
                         <div className="animate-slide-up space-y-6">
                             <div className="space-y-2">
-                                <h2 className="type-h3 text-[var(--text)]">Final Step: Documents</h2>
-                                <p className="type-body text-[var(--text-muted)]">
+                                <h2 className="type-h3 text-[var(--text)]">Final Step: Download & Archive</h2>
+                                <p className="type-body text-[var(--text-muted)] text-sm">
                                     Keep these support records together with your yearly Compensation Fund paperwork.
                                 </p>
                             </div>
+
+                            {/* Summary Recap Card */}
+                            <Card className="border border-[var(--border)] bg-[var(--surface-1)] shadow-sm">
+                                <CardContent className="p-4 grid grid-cols-3 gap-2">
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] uppercase tracking-wider font-bold text-[var(--text-muted)]">Employees</p>
+                                        <p className="text-sm font-bold text-[var(--text)]">{roeData?.employeeCount || 0}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] uppercase tracking-wider font-bold text-[var(--text-muted)]">Actual</p>
+                                        <p className="text-sm font-bold text-[var(--text)]">R {(roeData?.actualEarnings || 0).toLocaleString()}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] uppercase tracking-wider font-bold text-[var(--text-muted)]">Provisional</p>
+                                        <p className="text-sm font-bold text-[var(--text)]">R {(roeData?.provisionalEarnings || 0).toLocaleString()}</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
 
                             <Card className="border-none glass-panel overflow-hidden">
                                 <CardContent className="p-0">
@@ -298,19 +406,19 @@ export default function RoePackPage() {
                                         <div className="space-y-3">
                                             <DocDownloadRow
                                                 label="Detailed payroll record (PDF)"
-                                                description="Yearly employee and wage summary for your Compensation Fund records."
+                                                description="Yearly employee and wage summary. PDF (~250 KB)"
                                                 isPaid={isPaid}
                                                 onClick={() => handleDownloadReport("pdf")}
                                             />
                                             <DocDownloadRow
                                                 label="Employer details record (PDF)"
-                                                description="Printable employer details page for supporting paperwork."
+                                                description="Official employer profile page. PDF (~150 KB)"
                                                 isPaid={isPaid}
                                                 onClick={handleDownloadConfirmation}
                                             />
                                             <DocDownloadRow
                                                 label="Raw Data Export (CSV)"
-                                                description="For advanced record keeping or accountants."
+                                                description="Excel-ready detailed ledger. CSV (~50 KB)"
                                                 isPaid={isPaid}
                                                 onClick={() => handleDownloadReport("csv")}
                                             />
@@ -370,29 +478,33 @@ function RoeValueCard({ label, value, icon: Icon, help, onCopy, isEstimate }: {
     onCopy: () => void,
     isEstimate?: boolean
 }) {
-    // Suppress unused warning if actually needed for visual logic
-    void isEstimate;
-    void help;
     return (
-        <Card className="border-none glass-panel hover:shadow-md transition-shadow">
+        <Card className="border border-[var(--border)] glass-panel hover:shadow-md transition-all group">
             <CardContent className="p-5 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 overflow-hidden">
-                    <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-[var(--surface-2)] shrink-0">
+                    <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-[var(--surface-2)] shrink-0 group-hover:bg-[var(--primary)]/10 transition-colors">
                         <Icon className="h-5 w-5 text-[var(--primary)]" />
                     </div>
                     <div className="overflow-hidden">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5 group/info relative">
                             <p className="type-overline text-[var(--text-muted)] truncate">{label}</p>
-                            <HelpCircle className="h-3 w-3 text-[var(--text-muted)]/50 cursor-help" />
+                            <div className="relative cursor-help">
+                                <HelpCircle className="h-3 w-3 text-[var(--text-muted)]/40 hover:text-[var(--primary)] transition-colors" />
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[var(--surface-1)] border border-[var(--border)] rounded-lg shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-10 text-[10px] text-[var(--text-muted)] leading-relaxed">
+                                    {help}
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[var(--surface-1)]"></div>
+                                </div>
+                            </div>
                         </div>
-                        <p className="type-h3 text-[var(--text)] truncate">{value}</p>
+                        <p className="type-h3 text-[var(--text)] truncate font-mono">{value}</p>
                     </div>
                 </div>
                 <Button
                     variant="ghost"
                     size="sm"
                     onClick={onCopy}
-                    className="h-10 w-10 rounded-xl hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]"
+                    className="h-10 w-10 rounded-xl hover:bg-[var(--primary)] hover:text-white transition-all shadow-sm active:scale-95"
+                    title={`Copy ${label}`}
                 >
                     <Copy className="h-4 w-4" />
                 </Button>
