@@ -42,6 +42,11 @@ function withActivationState(path: string, sync: SyncOutcome): string {
 }
 
 function routeToPricing(router: ReturnType<typeof useRouter>, reason: "free" | "config" | "billing") {
+    if (reason === "free") {
+        // Token is already stored — upgrade page can start Paystack directly after plan selection
+        router.push("/upgrade");
+        return;
+    }
     const params = new URLSearchParams({
         source: "paid-login",
         reason,
