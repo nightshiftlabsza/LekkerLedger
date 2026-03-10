@@ -225,7 +225,7 @@ function DashboardContent() {
 
                     {/* Help & Support */}
                     <div className="pt-4 border-t border-[var(--border)]">
-                        <Link href="/settings?tab=support" className="group flex items-center gap-3 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
+                        <Link href="/help/admin" className="group flex items-center gap-3 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
                             <div className="p-1.5 rounded-lg bg-[var(--surface-2)] group-hover:bg-[var(--primary)]/10 transition-colors">
                                 <BookOpen className="h-4 w-4" />
                             </div>

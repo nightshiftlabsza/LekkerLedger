@@ -1,6 +1,5 @@
 import {
     Banknote,
-    BookOpen,
     Calculator,
     FolderOpen,
     LayoutDashboard,
@@ -50,7 +49,6 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
                 icon: ShieldCheck,
             },
             { href: "/ufiling", label: "uFiling export", icon: Sparkles },
-            { href: "/help/admin", label: "Employer checklist", icon: BookOpen },
         ],
     },
     {
@@ -58,7 +56,7 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
         links: [
             { href: "/settings", label: "Settings", icon: Settings },
             { href: "/upgrade", label: "Plans & billing", icon: Sparkles },
-            { href: "/help/admin", label: "Help & support", icon: LifeBuoy },
+            { href: "/help/admin", label: "Help & Support", icon: LifeBuoy },
         ],
     },
 ];
@@ -78,8 +76,8 @@ export const ACCOUNT_MENU_LINKS: AppNavLink[] = [
     },
     {
         href: "/help/admin",
-        label: "Help & support",
-        sublabel: "Checklist and support resources",
+        label: "Help & Support",
+        sublabel: "Guides, support resources, and official references",
         icon: LifeBuoy,
     },
 ];
