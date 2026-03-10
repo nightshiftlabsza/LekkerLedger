@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { WizardStepper, type Step } from "@/components/ui/wizard-stepper";
-import { StatusChip, type ChipVariant } from "@/components/ui/status-chip";
+import { StatusChip } from "@/components/ui/status-chip";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
 import { ActionBar } from "@/components/ui/action-bar";
@@ -523,26 +523,23 @@ export default function PayPeriodWorkspacePage() {
 
                             return (
                                 <Card key={entry.employeeId} className="border border-[var(--border)] bg-[var(--surface-1)] shadow-sm">
-                                    <CardContent className="p-5 space-y-4">
+                                    <CardContent className="p-6 space-y-4">
                                         {/* Employee header */}
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-10 w-10 rounded-xl bg-[var(--primary)] flex items-center justify-center text-white font-black text-lg">
-                                                    {emp.name.charAt(0).toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <p className="type-body-bold text-[var(--text)]">{emp.name}</p>
-                                                    <p className="type-overline text-[var(--text-muted)]">R{emp.hourlyRate.toFixed(2)}/hr</p>
-                                                </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-10 w-10 rounded-xl bg-[var(--primary)] flex items-center justify-center text-white font-black text-lg shrink-0">
+                                                {emp.name.charAt(0).toUpperCase()}
                                             </div>
-                                            <StatusChip variant={entry.status as ChipVariant} />
+                                            <div>
+                                                <p className="type-body-bold text-[var(--text)]">{emp.name}</p>
+                                                <p className="type-overline text-[var(--text-muted)]">R{emp.hourlyRate.toFixed(2)}/hr</p>
+                                            </div>
                                         </div>
 
                                         {/* Input fields */}
                                         {!isLocked && (
                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Ordinary hrs</label>
+                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Ordinary hours</label>
                                                     <input
                                                         type="number"
                                                         min={0}
@@ -553,7 +550,7 @@ export default function PayPeriodWorkspacePage() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Overtime hrs</label>
+                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Overtime hours</label>
                                                     <input
                                                         type="number"
                                                         min={0}
@@ -564,7 +561,7 @@ export default function PayPeriodWorkspacePage() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Sunday hrs</label>
+                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Sunday hours</label>
                                                     <input
                                                         type="number"
                                                         min={0}
@@ -574,7 +571,7 @@ export default function PayPeriodWorkspacePage() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Pub. Hol. hrs</label>
+                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Public holiday hours</label>
                                                     <input
                                                         type="number"
                                                         min={0}
@@ -584,7 +581,7 @@ export default function PayPeriodWorkspacePage() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Shortfall hrs</label>
+                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Shortfall hours</label>
                                                     <input
                                                         type="number"
                                                         min={0}
@@ -594,7 +591,7 @@ export default function PayPeriodWorkspacePage() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Other Deduc.</label>
+                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Other deductions</label>
                                                     <input
                                                         type="number"
                                                         min={0}
@@ -626,7 +623,7 @@ export default function PayPeriodWorkspacePage() {
                                                     <p className="font-mono text-sm text-[var(--text)]">{entry.shortFallHours}h</p>
                                                 </div>
                                                 <div>
-                                                    <p className="type-overline text-[var(--text-muted)]">Other Ded.</p>
+                                                    <p className="type-overline text-[var(--text-muted)]">Other deductions</p>
                                                     <p className="font-mono text-sm text-[var(--text)]">R{entry.otherDeductions}</p>
                                                 </div>
                                                 <div>
@@ -659,7 +656,7 @@ export default function PayPeriodWorkspacePage() {
                         <ActionBar
                             variant="paper"
                             secondaryAction={
-                                <Button onClick={handleSave} disabled={saving} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold">
+                                <Button onClick={handleSave} disabled={saving} variant="outline" className="flex-1 sm:flex-none gap-3 px-5 font-bold">
                                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saveAcknowledged ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
                                     {saving ? "Saving..." : saveAcknowledged ? "Changes Saved" : "Save Progress"}
                                 </Button>
@@ -668,7 +665,7 @@ export default function PayPeriodWorkspacePage() {
                                 <Button
                                     onClick={handleMoveToReview}
                                     disabled={!allComplete}
-                                    className="flex-1 sm:flex-none gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] disabled:opacity-50"
+                                    className="flex-1 sm:flex-none gap-3 px-5 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] disabled:opacity-50"
                                 >
                                     <FileText className="h-4 w-4" /> Review & Generate
                                 </Button>

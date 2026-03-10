@@ -30,7 +30,7 @@ export function ActionBar({ primaryAction, secondaryAction, hint, variant = "gla
             className={`
                 fixed bottom-16 left-0 right-0 z-30 lg:static lg:bottom-auto
                 ${barStyles}
-                px-4 py-3 lg:px-0 lg:py-0
+                px-5 py-4 lg:px-0 lg:py-0
                 ${className}
             `}
         >
