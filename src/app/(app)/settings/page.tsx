@@ -707,12 +707,12 @@ function SettingsContent() {
                                         <div className="space-y-2">
                                             <Link href={`/upgrade?plan=${currentPlan.id === "free" ? "standard" : "pro"}&pay=1`} className="block">
                                                 <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold" disabled={currentPlan.id === "pro"}>
-                                                    {currentPlan.id === "pro" ? "Highest plan active" : currentPlan.id === "free" ? "Start 14-day trial" : "Change paid plan"}
+                                                    {currentPlan.id === "pro" ? "Highest plan active" : currentPlan.id === "free" ? "14 days for R1" : "Change paid plan"}
                                                 </Button>
                                             </Link>
                                             {currentPlan.id !== "pro" && (
                                                 <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
-                                                    R1 card check today. Cancel before the first real charge.
+                                                    Cancel before day 14 and pay nothing more.
                                                 </p>
                                             )}
                                         </div>
@@ -856,12 +856,12 @@ function SettingsContent() {
                                                     <div className="space-y-2">
                                                         <Link href={`/upgrade?plan=${plan.id}&billing=${comparisonCycle}&pay=1`} className="block">
                                                             <Button variant={isCurrent ? "outline" : "default"} className={`w-full font-bold ${isCurrent ? "" : "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"}`} disabled={isCurrent}>
-                                                                {isCurrent ? "Current plan" : plan.id === "free" ? "Stay on Free" : "Start 14-day trial"}
+                                                                {isCurrent ? "Current plan" : plan.id === "free" ? "Stay on Free" : "14 days for R1"}
                                                             </Button>
                                                         </Link>
                                                         {!isCurrent && plan.id !== "free" && (
                                                             <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
-                                                                R1 card check today. Cancel before the first real charge.
+                                                                Cancel before day 14 and pay nothing more.
                                                             </p>
                                                         )}
                                                     </div>

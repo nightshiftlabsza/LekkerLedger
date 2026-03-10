@@ -35,7 +35,7 @@ export const MARKETING_YEARLY_BADGE = "Save up to 32%";
 export const HOMEPAGE_PRICING_LINK_LABEL = "Compare plans in detail";
 
 export const PRICING_PAGE_TITLE = "Pick the plan that fits your household.";
-export const PRICING_PAGE_SUBTITLE = "Start free with basic payslips, or begin a 14-day trial on Standard or Pro with a saved card for automatic billing later.";
+export const PRICING_PAGE_SUBTITLE = "Start free with basic payslips, or pay R1 for your first 14 days on Standard or Pro.";
 export const PRICING_PAGE_NUDGE_TITLE = "Standard to Pro is less than R13/month extra.";
 export const PRICING_PAGE_NUDGE_BODY = "That's the price of a cup of coffee for full document storage, year-end summaries, and 5 years of searchable history.";
 
@@ -82,8 +82,8 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Google Drive backup",
             "12 months of browsable history",
         ],
-        ctaLabel: "Start 14-day trial",
-        ctaSubtext: "R1 card check today",
+        ctaLabel: "14 days for R1",
+        ctaSubtext: "then your plan rate",
         prices: {
             monthly: {
                 primary: "R29",
@@ -113,8 +113,8 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Faster support — reply within 1 business day",
             "Multiple households (main home + holiday home)",
         ],
-        ctaLabel: "Start 14-day trial",
-        ctaSubtext: "R1 card check today",
+        ctaLabel: "14 days for R1",
+        ctaSubtext: "then your plan rate",
         prices: {
             monthly: {
                 primary: "R49",

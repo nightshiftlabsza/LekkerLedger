@@ -84,7 +84,7 @@ export default function PricingPage() {
                                 </h3>
                                 <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Free has no billing. Standard and Pro start with a 14-day trial, require a saved card with a small R1 verification charge today, and then renew monthly or yearly unless you cancel first.
+                                        Free has no billing. Standard and Pro cost R1 for your first 14 days — cancel before then and pay nothing more. After that, they renew monthly or yearly.
                                     </p>
                                     <p>
                                         {REFUND_POLICY_SUMMARY}
