@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { env } from "@/lib/env";
 import { fetchVerifiedEntitlements } from "@/lib/billing-client";
-import { getBackupMetadata, GOOGLE_SCOPES, performSmartSyncCheck, syncDataFromDrive, syncDataToDrive } from "@/lib/google-drive";
+import { GOOGLE_SCOPES, performSmartSyncCheck, syncDataFromDrive, syncDataToDrive } from "@/lib/google-drive";
 import {
     getStoredGoogleAccessToken,
     hasStoredGoogleDriveScope,
@@ -15,7 +15,7 @@ import {
     storeGoogleAccessToken,
     storeGoogleIdentity,
 } from "@/lib/google-session";
-import { getSettings, hasMeaningfulLocalData, saveSettings } from "@/lib/storage"; // hasMeaningfulLocalData used for fresh-device restore
+import { getSettings, saveSettings } from "@/lib/storage";
 
 type SyncOutcome = "backup" | "restore" | "none";
 
@@ -196,19 +196,8 @@ export function usePaidLoginActivation() {
                 // Plain sign-in from the marketing header always targets "/dashboard".
                 // In that case just take them to their dashboard — no upgrade gate.
                 // Only redirect to /upgrade when they're trying to unlock a paid feature.
+                // Drive sync/restore is a paid feature — free/expired users get device-local only.
                 if (normalizeDestination(nextPath) === "/dashboard") {
-                    // On a fresh device with no local data, restore from Drive if a backup
-                    // exists — even if the plan is expired. We don't enable ongoing sync
-                    // (paid feature), but we do give users their data back on any device.
-                    const localHasData = await hasMeaningfulLocalData();
-                    if (!localHasData) {
-                        setStatusMessage("Checking for your backup...");
-                        const remoteMeta = await getBackupMetadata(accessToken);
-                        if (remoteMeta.exists) {
-                            setStatusMessage("Restoring your data...");
-                            await syncDataFromDrive(accessToken);
-                        }
-                    }
                     router.push("/dashboard");
                 } else {
                     routeToPricing(router, "free");
