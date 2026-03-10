@@ -29,7 +29,7 @@ export default function EditContractPage() {
     const [formData, setFormData] = React.useState<Partial<Contract>>({});
 
     React.useEffect(() => {
-        let active = true;
+        const active = true;
 
         async function load() {
             try {
