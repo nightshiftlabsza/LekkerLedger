@@ -124,7 +124,7 @@ function TimeInput({ value, onChange }: { value: string; onChange: (v: string) =
     );
 }
 
-// Label with optional ⓘ tooltip — hover or click to show SA labour-law hints
+// Label with optional ⓘ tooltip — compact icon with hover/click hint
 function FieldLabel({ label, tooltip }: { label: string; tooltip?: string }) {
     const [open, setOpen] = React.useState(false);
     const hoverTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -164,8 +164,8 @@ function FieldLabel({ label, tooltip }: { label: string; tooltip?: string }) {
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
-                className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold cursor-help select-none shrink-0 focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-1"
-                style={{ color: "var(--primary)", border: "1.5px solid var(--primary)", lineHeight: 1 }}
+                className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-bold cursor-pointer select-none shrink-0 focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-1"
+                style={{ color: "var(--primary)", border: "1px solid var(--primary)", lineHeight: 1 }}
                 aria-label={`Info about ${label}`}
                 aria-expanded={open}
             >
@@ -217,7 +217,13 @@ export function ContractFormWizard({
     const monthsPerYear = 12;
 
     let hourlyRate = 0;
-    if (formData.salary?.amount && formData.workingHours?.daysPerWeek && formData.workingHours?.startAt && formData.workingHours?.endAt) {
+    if (
+        formData.salary?.amount &&
+        formData.salary.frequency &&
+        formData.workingHours?.daysPerWeek &&
+        formData.workingHours?.startAt &&
+        formData.workingHours?.endAt
+    ) {
         const start = formData.workingHours.startAt.split(":").map(Number);
         const end = formData.workingHours.endAt.split(":").map(Number);
         let hoursPerDay = (end[0] + end[1] / 60) - (start[0] + start[1] / 60);
@@ -231,16 +237,14 @@ export function ContractFormWizard({
                 hourlyRate = weeklyPay / weeklyHours;
             } else if (isFortnightly) {
                 hourlyRate = (formData.salary.amount / 2) / weeklyHours;
-            } else {
+            } else if (formData.salary.frequency === "Weekly") {
                 hourlyRate = formData.salary.amount / weeklyHours;
             }
         }
     }
 
-    const payFrequencyLabel = formData.salary?.frequency === "Monthly" ? "month"
-        : formData.salary?.frequency === "Fortnightly" ? "fortnight"
-        : formData.salary?.frequency === "Weekly" ? "week"
-        : "period";
+    // Display label copy stays generic ("per period") so it never lies
+    // when the user changes frequency.
     const clearError = React.useCallback((field: keyof StepErrorMap) => {
         setStepErrors((current) => {
             if (!current[field]) return current;
@@ -496,7 +500,7 @@ export function ContractFormWizard({
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
-                                    Pay amount (R / {payFrequencyLabel})
+                                    Pay amount (R / period)
                                 </label>
                                 <input
                                     type="number"
@@ -510,8 +514,11 @@ export function ContractFormWizard({
                                     min={0}
                                 />
                                 {stepErrors.salaryAmount ? <FieldError message={stepErrors.salaryAmount} /> : null}
-                                {hourlyRate > 0 && (
-                                    <p className="text-[11px] text-[var(--text-muted)]">≈ R{hourlyRate.toFixed(2)}/hr based on hours entered</p>
+                                {hourlyRate > 0 && formData.salary?.frequency && (
+                                    <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-[var(--surface-2)] px-2.5 py-1 text-[11px] font-semibold text-[var(--primary)]">
+                                        <span>≈ R{hourlyRate.toFixed(2)}/hr</span>
+                                        <span className="text-[10px] font-medium text-[var(--text-muted)]">based on hours entered</span>
+                                    </p>
                                 )}
                             </div>
                             <Field label="Pay frequency">
@@ -525,7 +532,6 @@ export function ContractFormWizard({
                                             salary: {
                                                 ...current.salary!,
                                                 frequency: event.target.value as Contract["salary"]["frequency"],
-                                                amount: 0,
                                             },
                                         }));
                                     }}
@@ -734,7 +740,7 @@ export function ContractFormWizard({
                                 <SummaryRow icon={FileText} label="Employee" value={selectedEmployee?.name ?? "Not selected"} />
                                 <SummaryRow icon={Calendar} label="Effective date" value={formData.effectiveDate ?? ""} />
                                 <SummaryRow icon={Home} label="Place of work" value={formData.placeOfWork || "Not set"} />
-                                <SummaryRow icon={Banknote} label="Pay" value={`R${formData.salary?.amount?.toFixed(2) ?? "0.00"} / ${payFrequencyLabel}`} />
+                                <SummaryRow icon={Banknote} label="Pay" value={`R${formData.salary?.amount?.toFixed(2) ?? "0.00"} / ${formData.salary?.frequency ?? "period"}`} />
                                 {formData.terms?.paymentDetails?.trim() && (
                                     <SummaryRow icon={Banknote} label="Payment notes" value={formData.terms.paymentDetails.trim()} />
                                 )}

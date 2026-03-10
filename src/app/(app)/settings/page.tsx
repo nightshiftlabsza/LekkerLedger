@@ -40,6 +40,7 @@ function SettingsContent() {
     const [billingAccount, setBillingAccount] = React.useState<BillingAccountPayload | null>(null);
     const [billingLoading, setBillingLoading] = React.useState(true);
     const [cancelingRenewal, setCancelingRenewal] = React.useState(false);
+    const [downgradingTo, setDowngradingTo] = React.useState<string | null>(null);
     const [wipeConfirmOpen, setWipeConfirmOpen] = React.useState(false);
     const [wipeConfirmText, setWipeConfirmText] = React.useState("");
     const [wiping, setWiping] = React.useState(false);
@@ -813,10 +814,43 @@ function SettingsContent() {
 
                             <section className="space-y-4">
                                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Compare Plans</h2>
+                                {downgradingTo && (
+                                    <div className="rounded-2xl border border-amber-300/60 bg-amber-50/80 p-5 space-y-4 dark:bg-amber-950/20 dark:border-amber-500/30">
+                                        <div className="space-y-2">
+                                            <p className="font-bold text-amber-900 dark:text-amber-200">
+                                                Downgrade to {PLANS[downgradingTo as keyof typeof PLANS]?.label ?? downgradingTo}?
+                                            </p>
+                                            <p className="text-sm text-amber-800 dark:text-amber-300">
+                                                This cancels your {currentPlan.label} renewal. You keep {currentPlan.label} access until your current billing period ends
+                                                {trialEndsLabel ? ` (${trialEndsLabel})` : nextChargeLabel ? ` (${nextChargeLabel})` : ""}, then move to the Free plan.
+                                            </p>
+                                            {downgradingTo !== "free" && (
+                                                <p className="text-sm text-amber-800 dark:text-amber-300">
+                                                    After your {currentPlan.label} expires you can start a fresh {PLANS[downgradingTo as keyof typeof PLANS]?.label} trial from Free.
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <Button variant="outline" onClick={() => setDowngradingTo(null)} disabled={cancelingRenewal} className="flex-1">
+                                                Keep {currentPlan.label}
+                                            </Button>
+                                            <Button
+                                                onClick={() => void handleCancelRenewal().then(() => setDowngradingTo(null))}
+                                                disabled={cancelingRenewal}
+                                                className="flex-1 bg-amber-600 text-white hover:bg-amber-700 font-bold"
+                                            >
+                                                {cancelingRenewal ? "Canceling..." : "Confirm downgrade"}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="grid gap-4 xl:grid-cols-3">
                                     {PLAN_ORDER.map((planId) => {
                                         const plan = PLANS[planId];
                                         const isCurrent = currentPlan.id === plan.id;
+                                        const planRank = { free: 0, standard: 1, pro: 2 } as Record<string, number>;
+                                        const isDowngrade = !isCurrent && planRank[planId] < (planRank[currentPlan.id] ?? 0);
+                                        const isUpgrade = !isCurrent && planRank[planId] > (planRank[currentPlan.id] ?? 0);
                                         const cycle: BillingCycle = plan.id === "free" ? "monthly" : comparisonCycle;
                                         const pricePresentation = getPlanPricePresentation(plan, cycle);
                                         return (
@@ -854,12 +888,26 @@ function SettingsContent() {
                                                     </ul>
 
                                                     <div className="space-y-2">
-                                                        <Link href={`/upgrade?plan=${plan.id}&billing=${comparisonCycle}&pay=1`} className="block">
-                                                            <Button variant={isCurrent ? "outline" : "default"} className={`w-full font-bold ${isCurrent ? "" : "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"}`} disabled={isCurrent}>
-                                                                {isCurrent ? "Current plan" : plan.id === "free" ? "Stay on Free" : "14 days for R1"}
+                                                        {isDowngrade ? (
+                                                            <Button
+                                                                variant="outline"
+                                                                className="w-full font-bold"
+                                                                onClick={() => setDowngradingTo(plan.id)}
+                                                            >
+                                                                Downgrade
                                                             </Button>
-                                                        </Link>
-                                                        {!isCurrent && plan.id !== "free" && (
+                                                        ) : isUpgrade ? (
+                                                            <Link href={`/upgrade?plan=${plan.id}&billing=${comparisonCycle}&pay=1`} className="block">
+                                                                <Button className="w-full font-bold bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">
+                                                                    Upgrade
+                                                                </Button>
+                                                            </Link>
+                                                        ) : (
+                                                            <Button variant="outline" className="w-full font-bold" disabled>
+                                                                Current plan
+                                                            </Button>
+                                                        )}
+                                                        {isUpgrade && (
                                                             <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
                                                                 Cancel before day 14 and pay nothing more.
                                                             </p>

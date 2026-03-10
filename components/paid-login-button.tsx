@@ -187,7 +187,12 @@ export function usePaidLoginActivation() {
                 routeToPricing(router, missingConfig ? "config" : "billing");
                 return;
             }
-            if (!entitlements?.isActive || entitlements.planId === "free") {
+            if (entitlements === null) {
+                // 401 — server couldn't verify the token; let the user retry
+                throw new Error("Google session could not be verified. Please try signing in again.");
+            }
+
+            if (!entitlements.isActive || entitlements.planId === "free") {
                 routeToPricing(router, "free");
                 return;
             }

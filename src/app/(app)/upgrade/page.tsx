@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { getSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
-import { startTrialCheckout } from "@/lib/billing-client";
+import { cancelSubscriptionRenewal, startTrialCheckout } from "@/lib/billing-client";
 import { hasStoredGoogleSession } from "@/lib/google-session";
 import { type BillingCycle, PLANS, type PlanId } from "@/src/config/plans";
 import { EmployerSettings } from "@/lib/schema";
@@ -55,6 +55,8 @@ function UpgradePageContent() {
     const [checkoutError, setCheckoutError] = React.useState("");
     const [referralCode, setReferralCode] = React.useState("");
     const hasAutoStartedCheckout = React.useRef(false);
+    const [downgradingTo, setDowngradingTo] = React.useState<PlanId | null>(null);
+    const [cancelingForDowngrade, setCancelingForDowngrade] = React.useState(false);
 
     React.useEffect(() => {
         async function load() {
@@ -108,6 +110,35 @@ function UpgradePageContent() {
 
     const currentPlan = settings ? getUserPlan(settings) : PLANS.free;
 
+    const PLAN_RANK: Record<PlanId, number> = { free: 0, standard: 1, pro: 2 };
+
+    const handlePlanSelect = React.useCallback((planId: PlanId) => {
+        const currentRank = PLAN_RANK[currentPlan.id as PlanId] ?? 0;
+        const targetRank = PLAN_RANK[planId] ?? 0;
+        if (targetRank < currentRank) {
+            setDowngradingTo(planId);
+            return;
+        }
+        if (planId === "standard" || planId === "pro") {
+            void startCheckout(planId);
+        }
+    }, [currentPlan.id, startCheckout]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleConfirmDowngrade = React.useCallback(async () => {
+        setCancelingForDowngrade(true);
+        try {
+            await cancelSubscriptionRenewal();
+            setDowngradingTo(null);
+            toast("Subscription renewal canceled. You'll keep your current plan until your billing period ends.");
+            const updated = await getSettings();
+            setSettings(updated as EmployerSettings);
+        } catch (err) {
+            toast(err instanceof Error ? err.message : "Could not cancel subscription.");
+        } finally {
+            setCancelingForDowngrade(false);
+        }
+    }, [toast]);
+
     if (!settings) {
         return null;
     }
@@ -155,23 +186,55 @@ function UpgradePageContent() {
                 </Card>
 
                 <div className="flex flex-col items-center gap-10">
-                    <MarketingBillingToggle 
-                        billingCycle={billingCycle} 
-                        onChange={setBillingCycle} 
-                        align="center" 
+                    <MarketingBillingToggle
+                        billingCycle={billingCycle}
+                        onChange={setBillingCycle}
+                        align="center"
                     />
 
-                    <MarketingPlanCards 
-                        billingCycle={billingCycle} 
+                    <MarketingPlanCards
+                        billingCycle={billingCycle}
                         currentPlanId={currentPlan.id as PlanId}
-                        onSelect={(planId) => {
-                            if (planId === "standard" || planId === "pro") {
-                                void startCheckout(planId);
-                            }
-                        }}
+                        onSelect={handlePlanSelect}
                         isLoadingPlanId={checkoutPlanId}
                     />
                 </div>
+
+                {downgradingTo !== null && (
+                    <div className="rounded-2xl border border-amber-300/60 bg-amber-50/80 p-5 space-y-4 dark:bg-amber-950/20 dark:border-amber-500/30">
+                        <div className="space-y-2">
+                            <p className="font-bold text-amber-900 dark:text-amber-200">
+                                Downgrade to {PLANS[downgradingTo].label}?
+                            </p>
+                            <p className="text-sm text-amber-800 dark:text-amber-300">
+                                This cancels your {currentPlan.label} renewal. You keep {currentPlan.label} until your current billing period ends, then move to the Free plan.
+                            </p>
+                            {downgradingTo !== "free" && (
+                                <p className="text-sm text-amber-800 dark:text-amber-300">
+                                    After your {currentPlan.label} expires you can start a fresh {PLANS[downgradingTo].label} trial from Free.
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setDowngradingTo(null)}
+                                disabled={cancelingForDowngrade}
+                                className="flex-1 rounded-xl border border-amber-300 bg-white px-4 py-2.5 text-sm font-bold text-amber-900 hover:bg-amber-50 disabled:opacity-50 dark:bg-transparent dark:text-amber-200 dark:border-amber-500/40"
+                            >
+                                Keep {currentPlan.label}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => void handleConfirmDowngrade()}
+                                disabled={cancelingForDowngrade}
+                                className="flex-1 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-amber-700 disabled:opacity-50"
+                            >
+                                {cancelingForDowngrade ? "Canceling..." : "Confirm downgrade"}
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                     <Card className="border-[var(--border)]">

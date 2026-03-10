@@ -97,12 +97,13 @@ export function MarketingPlanCards({
     return (
         <div className={`grid gap-5 md:gap-6 ${compact ? "lg:grid-cols-3" : "xl:grid-cols-3"}`}>
             {PLAN_ORDER.map((planId) => (
-                <MarketingPlanCard 
-                    key={planId} 
-                    planId={planId} 
-                    billingCycle={billingCycle} 
+                <MarketingPlanCard
+                    key={planId}
+                    planId={planId}
+                    billingCycle={billingCycle}
                     compact={compact}
                     isCurrent={currentPlanId === planId}
+                    currentPlanId={currentPlanId}
                     onSelect={onSelect}
                     isLoading={isLoadingPlanId === planId}
                     isDisabled={!!isLoadingPlanId && isLoadingPlanId !== planId}
@@ -112,11 +113,14 @@ export function MarketingPlanCards({
     );
 }
 
+const PLAN_RANK: Record<PlanId, number> = { free: 0, standard: 1, pro: 2 };
+
 export function MarketingPlanCard({
     planId,
     billingCycle,
     compact = false,
     isCurrent = false,
+    currentPlanId,
     onSelect,
     isLoading = false,
     isDisabled = false,
@@ -125,6 +129,7 @@ export function MarketingPlanCard({
     billingCycle: BillingCycle;
     compact?: boolean;
     isCurrent?: boolean;
+    currentPlanId?: PlanId;
     onSelect?: (planId: PlanId) => void;
     isLoading?: boolean;
     isDisabled?: boolean;
@@ -132,6 +137,8 @@ export function MarketingPlanCard({
     const plan = MARKETING_PLAN_DISPLAY[planId];
     const featured = planId === "standard";
     const priceDisplay = getMarketingPriceDisplay(planId, billingCycle);
+    const isDowngrade = !isCurrent && !!currentPlanId && PLAN_RANK[planId] < PLAN_RANK[currentPlanId];
+    const isUpgrade = !isCurrent && !!currentPlanId && PLAN_RANK[planId] > PLAN_RANK[currentPlanId];
     const referralCode = typeof window === "undefined"
         ? null
         : new URLSearchParams(window.location.search).get("ref");
@@ -221,10 +228,10 @@ export function MarketingPlanCard({
                         className="w-full justify-center font-bold"
                         onClick={handleAction}
                         disabled={isCurrent || isDisabled || isLoading}
-                        variant={featured ? "default" : "outline"}
-                        style={featured && !isCurrent ? { backgroundColor: "var(--primary)" } : {}}
+                        variant={isDowngrade ? "outline" : featured ? "default" : "outline"}
+                        style={!isCurrent && !isDowngrade && featured ? { backgroundColor: "var(--primary)" } : {}}
                     >
-                        {isCurrent ? "Current plan" : isLoading ? "Opening..." : plan.ctaLabel}
+                        {isCurrent ? "Current plan" : isLoading ? "Opening..." : isDowngrade ? "Downgrade" : isUpgrade ? "Upgrade" : plan.ctaLabel}
                     </Button>
                 ) : (
                     <Link href={href}>
