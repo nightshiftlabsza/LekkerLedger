@@ -594,7 +594,29 @@ p,
 
 /* Safe area padding for mobile sticky bars */
 .safe-area-pb {
-  padding-bottom: max(0px, env(safe-area-inset-bottom));
+  padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
+}
+
+.safe-area-pl {
+  padding-left: max(var(--space-4), env(safe-area-inset-left));
+}
+
+.safe-area-pr {
+  padding-right: max(var(--space-4), env(safe-area-inset-right));
+}
+
+/* Mobile notch support for header */
+@supports (padding: max(0px)) {
+  .safe-area-pt {
+    padding-top: max(var(--space-3), env(safe-area-inset-top));
+  }
+}
+
+/* Ensure bottom nav accounts for home indicator on mobile */
+@media (max-height: 700px) {
+  nav[role="navigation"] {
+    height: auto;
+  }
 }
 
 /* Scale-in animation for hero preview cards */
@@ -739,6 +761,47 @@ details[open] summary svg {
 
 summary svg {
   transition: transform 0.2s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE-SPECIFIC OPTIMIZATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Prevent zoom on input focus (iOS) */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+/* Optimize touch targets for mobile */
+@media (max-width: 768px) {
+  button:not(.size-sm),
+  a[role="button"],
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Reduce motion for mobile performance */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Prevent horizontal scroll on mobile */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+    width: 100vw;
+    max-width: 100%;
+  }
 }
 
 

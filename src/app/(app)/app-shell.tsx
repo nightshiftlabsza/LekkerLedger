@@ -232,27 +232,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return (
         <ToastProvider>
             <div className="min-h-screen flex flex-col lg:pl-64 min-[1600px]:lg:pl-72" style={{ backgroundColor: "var(--bg)" }}>
-                <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)] shadow-[var(--shadow-sm)]">
-                    <div className="content-container-wide flex w-full items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-                        <div className="flex items-center gap-3">
+                <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)] shadow-[var(--shadow-sm)] safe-area-pt">
+                    <div className="content-container-wide flex w-full items-center justify-between px-3 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
                             <SideDrawer open={moreOpen} onOpenChange={setMoreOpen} showButton={true} />
-                            <Link href="/dashboard" className="flex items-center gap-2 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-2.5 py-2 outline-none shadow-[0_6px_18px_rgba(16,24,40,0.05)] transition-all hover:border-[var(--primary)]/20 lg:hidden">
+                            <Link href="/dashboard" className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-1.5 sm:px-2.5 py-1.5 sm:py-2 outline-none shadow-[0_6px_18px_rgba(16,24,40,0.05)] transition-all hover:border-[var(--primary)]/20 lg:hidden">
                                 <Logo
-                                    iconClassName="h-9 w-9"
-                                    textClassName="text-[1.12rem]"
-                                    className="gap-2.5"
+                                    iconClassName="h-6 sm:h-9 w-6 sm:w-9"
+                                    textClassName="text-[0.85rem] sm:text-[1.12rem]"
+                                    className="gap-1.5 sm:gap-2.5"
                                 />
                             </Link>
                         </div>
 
-                        <div className="ml-auto flex items-center gap-3">
+                        <div className="ml-auto flex items-center gap-1.5 sm:gap-2 lg:gap-3">
                             {network === "offline" && (
-                                <span className="flex items-center gap-1.5 rounded-full border border-[var(--focus)]/20 bg-[var(--primary)]/10 px-2 py-0.5 text-[10px] font-bold text-[var(--focus)]">
-                                    <CloudOff className="h-3 w-3" /> Offline
+                                <span className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--focus)]/20 bg-[var(--primary)]/10 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold text-[var(--focus)]">
+                                    <CloudOff className="h-2.5 sm:h-3 w-2.5 sm:w-3" /> <span className="hidden sm:inline">Offline</span>
                                 </span>
                             )}
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
                                 <GoogleOAuthProvider clientId={env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "placeholder"}>
                                     <AccountMenu settings={settings} />
                                 </GoogleOAuthProvider>
@@ -330,7 +330,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </div>
                 )}
 
-                <main id="main-content" className="flex-1 py-8 content-container-wide w-full flex flex-col gap-8 pb-32 lg:pb-12 px-4 sm:px-6 lg:px-8 safe-area-pb">
+                <main id="main-content" className="flex-1 py-4 sm:py-6 lg:py-8 content-container-wide w-full flex flex-col gap-4 sm:gap-6 lg:gap-8 pb-24 sm:pb-28 lg:pb-12 px-3 sm:px-6 lg:px-8 safe-area-pb">
                     {children}
                 </main>
 
@@ -410,16 +410,16 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                 type="button"
                 onClick={() => setOpen((current) => !current)}
                 data-testid="account-menu-toggle"
-                className="hidden items-center gap-2 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-3 py-2 shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25 sm:flex"
+                className="hidden items-center gap-1 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-2 sm:px-3 py-1.5 sm:py-2 shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25 sm:flex"
             >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">
-                    <CircleUserRound className="h-4 w-4" />
+                <div className="flex h-7 sm:h-9 w-7 sm:w-9 items-center justify-center rounded-lg sm:rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">
+                    <CircleUserRound className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 </div>
-                <div className="text-left">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Account</p>
-                    <p className="text-sm font-semibold text-[var(--text)]">{hasGoogleSession && googleEmail ? googleEmail : googleState}</p>
+                <div className="text-left hidden sm:block">
+                    <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Account</p>
+                    <p className="text-xs sm:text-sm font-semibold text-[var(--text)] truncate max-w-[120px]">{hasGoogleSession && googleEmail ? googleEmail : googleState}</p>
                 </div>
-                <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />
+                <ChevronDown className="h-3 sm:h-4 w-3 sm:w-4 text-[var(--text-muted)] shrink-0" />
             </button>
 
             {open && (

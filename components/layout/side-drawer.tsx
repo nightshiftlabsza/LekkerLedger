@@ -48,9 +48,9 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                 <button
                     onClick={() => setOpen(true)}
                     aria-label="Open menu"
-                    className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-200 hover:bg-[var(--surface-2)] active-scale text-[var(--text-muted)]"
+                    className="lg:hidden h-9 sm:h-10 w-9 sm:w-10 flex items-center justify-center rounded-lg sm:rounded-xl transition-all duration-200 hover:bg-[var(--surface-2)] active-scale text-[var(--text-muted)]"
                 >
-                    <Menu className="h-5 w-5" />
+                    <Menu className="h-4 sm:h-5 w-4 sm:w-5" />
                 </button>
             )}
 
@@ -77,7 +77,7 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
             >
                 {/* ── Header ─────────────────────────────────────────────── */}
                 <div
-                    className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0"
+                    className="flex items-center justify-between px-3 sm:px-5 pt-3 sm:pt-5 pb-3 sm:pb-4 shrink-0 safe-area-pt"
                     style={{ borderBottom: "1px solid var(--border)" }}
                 >
                     <div>
@@ -88,11 +88,10 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                     <button
                         onClick={() => setOpen(false)}
                         aria-label="Close menu"
-
-                        className="lg:hidden h-8 w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--surface-2)] active-scale"
+                        className="lg:hidden h-7 sm:h-8 w-7 sm:w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--surface-2)] active-scale"
                         style={{ color: "var(--text-muted)" }}
                     >
-                        <X className="h-4 w-4" />
+                        <X className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     </button>
                 </div>
 
