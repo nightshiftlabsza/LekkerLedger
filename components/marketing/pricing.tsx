@@ -245,7 +245,13 @@ export function MarketingPlanCard({
                         </Button>
                     </Link>
                 )}
-                <p className="text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">{plan.ctaSubtext}</p>
+                {/* Only show billing subtext on upgrade CTAs — never on Downgrade or Current plan */}
+                {!isCurrent && !isDowngrade && (() => {
+                    const subtext = plan.ctaSubtextByCycle?.[billingCycle] ?? plan.ctaSubtext;
+                    return subtext ? (
+                        <p className="text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">{subtext}</p>
+                    ) : null;
+                })()}
             </div>
         </article>
     );

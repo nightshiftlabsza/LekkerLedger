@@ -16,6 +16,8 @@ export interface MarketingPlanDisplay {
     features: string[];
     ctaLabel: string;
     ctaSubtext: string;
+    /** Per-billing-cycle subtext shown only on upgrade CTAs (overrides ctaSubtext). */
+    ctaSubtextByCycle?: Record<BillingCycle, string>;
     prices: Record<BillingCycle, PriceDisplay>;
 }
 
@@ -83,17 +85,21 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "12 months of browsable history",
         ],
         ctaLabel: "14 days for R1",
-        ctaSubtext: "then your plan rate",
+        ctaSubtext: "then R29/month",
+        ctaSubtextByCycle: {
+            monthly: "then R29/month",
+            yearly: "then R249/year",
+        },
         prices: {
             monthly: {
                 primary: "R29",
                 periodLabel: "/month",
-                helperText: "14-day trial, then billed monthly",
+                helperText: "R1 today, then R29/month",
             },
             yearly: {
                 primary: "R20.75",
                 periodLabel: "/month",
-                helperText: "14-day trial, then R249/year",
+                helperText: "R1 today, then R249/year",
             },
         },
     },
@@ -114,17 +120,21 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Multiple households (main home + holiday home)",
         ],
         ctaLabel: "14 days for R1",
-        ctaSubtext: "then your plan rate",
+        ctaSubtext: "then R49/month",
+        ctaSubtextByCycle: {
+            monthly: "then R49/month",
+            yearly: "then R399/year",
+        },
         prices: {
             monthly: {
                 primary: "R49",
                 periodLabel: "/month",
-                helperText: "14-day trial, then billed monthly",
+                helperText: "R1 today, then R49/month",
             },
             yearly: {
                 primary: "R33.25",
                 periodLabel: "/month",
-                helperText: "14-day trial, then R399/year",
+                helperText: "R1 today, then R399/year",
             },
         },
     },

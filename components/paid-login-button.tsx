@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { env } from "@/lib/env";
 import { fetchVerifiedEntitlements } from "@/lib/billing-client";
-import { GOOGLE_SCOPES, performSmartSyncCheck, syncDataFromDrive, syncDataToDrive } from "@/lib/google-drive";
+import { getBackupMetadata, GOOGLE_SCOPES, performSmartSyncCheck, syncDataFromDrive, syncDataToDrive } from "@/lib/google-drive";
 import {
     getStoredGoogleAccessToken,
     hasStoredGoogleDriveScope,
@@ -15,7 +15,7 @@ import {
     storeGoogleAccessToken,
     storeGoogleIdentity,
 } from "@/lib/google-session";
-import { getSettings, hasMeaningfulLocalData, saveSettings } from "@/lib/storage";
+import { getSettings, hasMeaningfulLocalData, saveSettings } from "@/lib/storage"; // hasMeaningfulLocalData used for fresh-device restore
 
 type SyncOutcome = "backup" | "restore" | "none";
 
@@ -194,11 +194,21 @@ export function usePaidLoginActivation() {
 
             if (!entitlements.isActive || entitlements.planId === "free") {
                 // Plain sign-in from the marketing header always targets "/dashboard".
-                // In that case the user is already authenticated — just drop them on the
-                // dashboard (free tier) instead of forcing them through the upgrade flow.
-                // Only redirect to /upgrade when the user is trying to unlock a specific
-                // paid feature (nextPath !== "/dashboard").
+                // In that case just take them to their dashboard — no upgrade gate.
+                // Only redirect to /upgrade when they're trying to unlock a paid feature.
                 if (normalizeDestination(nextPath) === "/dashboard") {
+                    // On a fresh device with no local data, restore from Drive if a backup
+                    // exists — even if the plan is expired. We don't enable ongoing sync
+                    // (paid feature), but we do give users their data back on any device.
+                    const localHasData = await hasMeaningfulLocalData();
+                    if (!localHasData) {
+                        setStatusMessage("Checking for your backup...");
+                        const remoteMeta = await getBackupMetadata(accessToken);
+                        if (remoteMeta.exists) {
+                            setStatusMessage("Restoring your data...");
+                            await syncDataFromDrive(accessToken);
+                        }
+                    }
                     router.push("/dashboard");
                 } else {
                     routeToPricing(router, "free");

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { getSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
-import { cancelSubscriptionRenewal, startTrialCheckout } from "@/lib/billing-client";
+import { cancelSubscriptionRenewal, startTrialCheckout, fetchBillingAccount } from "@/lib/billing-client";
 import { hasStoredGoogleSession } from "@/lib/google-session";
 import { type BillingCycle, PLANS, type PlanId } from "@/src/config/plans";
 import { EmployerSettings } from "@/lib/schema";
@@ -57,6 +57,7 @@ function UpgradePageContent() {
     const hasAutoStartedCheckout = React.useRef(false);
     const [downgradingTo, setDowngradingTo] = React.useState<PlanId | null>(null);
     const [cancelingForDowngrade, setCancelingForDowngrade] = React.useState(false);
+    const [ownReferralCode, setOwnReferralCode] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         async function load() {
@@ -66,6 +67,17 @@ function UpgradePageContent() {
             const requestedReferral = searchParams.get("ref");
             setBillingCycle(requestedBilling === "monthly" ? "monthly" : requestedBilling === "yearly" ? "yearly" : currentSettings.billingCycle === "monthly" ? "monthly" : "yearly");
             setReferralCode(requestedReferral ? requestedReferral.toUpperCase() : "");
+            // Load the logged-in user's own referral code so they can share it
+            if (hasStoredGoogleSession()) {
+                try {
+                    const account = await fetchBillingAccount();
+                    if (account?.account.referralCode) {
+                        setOwnReferralCode(account.account.referralCode);
+                    }
+                } catch {
+                    // Non-critical — referral code display is optional
+                }
+            }
         }
         void load();
     }, [searchParams]);
@@ -88,7 +100,7 @@ function UpgradePageContent() {
             });
             window.location.href = checkout.authorizationUrl;
         } catch (error) {
-            const message = error instanceof Error ? error.message : "The free trial could not be started.";
+            const message = error instanceof Error ? error.message : "Checkout could not be started.";
             setCheckoutError(message);
             toast(message);
             setCheckoutPlanId(null);
@@ -124,6 +136,16 @@ function UpgradePageContent() {
         }
     }, [currentPlan.id, startCheckout]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    const handleCopyOwnCode = React.useCallback(async () => {
+        if (!ownReferralCode) return;
+        try {
+            await navigator.clipboard.writeText(ownReferralCode);
+            toast("Referral code copied.");
+        } catch {
+            toast("Could not copy the code.");
+        }
+    }, [ownReferralCode, toast]);
+
     const handleConfirmDowngrade = React.useCallback(async () => {
         setCancelingForDowngrade(true);
         try {
@@ -157,7 +179,7 @@ function UpgradePageContent() {
                             R1 for your first 14 days.
                         </p>
                         <p>
-                            Pick a plan below. You&apos;ll sign in with Google and save a card for R1 today. Your full subscription only starts after 14 days — cancel before then and you pay nothing more.
+                            You&apos;ll be charged R1 today, securely via Paystack. Your normal billing rate only starts after 14 days — cancel before then and you pay nothing more.
                         </p>
                     </CardContent>
                 </Card>
@@ -169,19 +191,45 @@ function UpgradePageContent() {
                 )}
 
                 <Card className="border-[var(--border)]">
-                    <CardContent className="space-y-3 p-5">
-                        <div className="space-y-1">
-                            <p className="text-sm font-bold text-[var(--text)]">Referral code</p>
-                            <p className="text-sm text-[var(--text-muted)]">
-                                Add a referral code before you start the trial. You earn 1 free month when the referred person completes their trial and makes their first payment. Up to 12 free months per account. The referred person still gets the normal 14-day trial.
-                            </p>
+                    <CardContent className="divide-y divide-[var(--border)] p-0">
+                        {/* ── Your own referral code to share ── */}
+                        {ownReferralCode && (
+                            <div className="space-y-3 p-5">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-bold text-[var(--text)]">Your referral code</p>
+                                    <p className="text-sm text-[var(--text-muted)]">
+                                        Share this with anyone. You earn 1 free month every time someone subscribes using your code. Up to 12 free months per account.
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
+                                        <span className="font-black tracking-[0.18em] text-[var(--text)]">{ownReferralCode}</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => void handleCopyOwnCode()}
+                                        className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-sm font-bold text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        {/* ── Enter a friend's referral code ── */}
+                        <div className="space-y-3 p-5">
+                            <div className="space-y-1">
+                                <p className="text-sm font-bold text-[var(--text)]">Have a referral code?</p>
+                                <p className="text-sm text-[var(--text-muted)]">
+                                    Enter a friend&apos;s code before subscribing. They earn 1 free month when you make your first full payment.
+                                </p>
+                            </div>
+                            <Input
+                                value={referralCode}
+                                onChange={(event) => setReferralCode(event.target.value.toUpperCase())}
+                                placeholder="Enter referral code"
+                                className="h-12 font-semibold uppercase tracking-[0.08em]"
+                            />
                         </div>
-                        <Input
-                            value={referralCode}
-                            onChange={(event) => setReferralCode(event.target.value.toUpperCase())}
-                            placeholder="Optional referral code"
-                            className="h-12 font-semibold uppercase tracking-[0.08em]"
-                        />
                     </CardContent>
                 </Card>
 
@@ -211,7 +259,7 @@ function UpgradePageContent() {
                             </p>
                             {downgradingTo !== "free" && (
                                 <p className="text-sm text-amber-800 dark:text-amber-300">
-                                    After your {currentPlan.label} expires you can start a fresh {PLANS[downgradingTo].label} trial from Free.
+                                    After your {currentPlan.label} expires you can start a fresh {PLANS[downgradingTo].label} period from Free.
                                 </p>
                             )}
                         </div>
@@ -261,7 +309,7 @@ function UpgradePageContent() {
                             If you request a refund within 14 days of the first real subscription charge, we will refund you in full once we have verified the payment. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
                         </p>
                         <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            You can cancel during the trial and keep access until the trial ends. No real plan charge happens until the saved charge date shown after setup.
+                            You can cancel any time in the first 14 days and keep access until day 14. Your normal billing rate only kicks in after that.
                         </p>
                         <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
                             View refund policy <ArrowRight className="h-4 w-4" />
