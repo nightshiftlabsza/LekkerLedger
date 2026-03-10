@@ -27,6 +27,7 @@ export default function EditContractPage() {
     const [loading, setLoading] = React.useState(true);
     const [saving, setSaving] = React.useState(false);
     const [formData, setFormData] = React.useState<Partial<Contract>>({});
+    const [saveError, setSaveError] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         const active = true;
@@ -71,6 +72,25 @@ export default function EditContractPage() {
 
     const handleSave = async () => {
         if (!selectedEmployee || !settings || !contractId || !formData.id) return;
+
+        const missing: string[] = [];
+        if (!settings.employerName?.trim()) missing.push("employer name");
+        if (!settings.employerAddress?.trim()) missing.push("employer address");
+        if (!settings.employerIdNumber?.trim()) missing.push("employer ID / registration number");
+
+        const resolvedEmployeeAddress = (formData.employeeAddress || selectedEmployee.address || "").trim();
+        if (!resolvedEmployeeAddress) missing.push("employee residential address");
+
+        if (missing.length > 0) {
+            const last = missing.pop()!;
+            const listText = missing.length ? `${missing.join(", ")} and ${last}` : last;
+            setSaveError(
+                `Please add the ${listText} before updating this draft. You can update employer details under Settings and the employee's address on the Parties step.`,
+            );
+            return;
+        }
+
+        setSaveError(null);
         setSaving(true);
         try {
             const nextVersion = (formData.version ?? 1) + 1;
@@ -79,6 +99,7 @@ export default function EditContractPage() {
                 id: contractId,
                 householdId: formData.householdId ?? selectedEmployee.householdId ?? "default",
                 employeeId: selectedEmployee.id,
+                employeeAddress: resolvedEmployeeAddress,
                 status: formData.status ?? "draft",
                 version: nextVersion,
                 effectiveDate: formData.effectiveDate!,
@@ -97,6 +118,7 @@ export default function EditContractPage() {
                     overtimeAgreement: formData.terms?.overtimeAgreement?.trim() ?? "",
                     sundayHolidayAgreement: formData.terms?.sundayHolidayAgreement?.trim() ?? "",
                     noticeClause: formData.terms?.noticeClause?.trim() ?? "",
+                    paymentDetails: formData.terms?.paymentDetails?.trim() ?? "",
                     lawyerReviewAcknowledged: formData.terms?.lawyerReviewAcknowledged ?? false,
                 },
                 createdAt: formData.createdAt!,
@@ -162,6 +184,12 @@ export default function EditContractPage() {
                     <p>Version: <strong className="text-[var(--text)]">{CONTRACT_TEMPLATE_META.versionLabel}</strong></p>
                 </div>
             </Card>
+
+            {saveError && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
+                    {saveError}
+                </div>
+            )}
 
             <ContractFormWizard
                 currentStep={wizardStepIndex}

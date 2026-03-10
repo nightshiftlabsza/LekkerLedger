@@ -267,7 +267,7 @@ function EmployeeDetailContent() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex flex-col items-end gap-2 shrink-0">
+                                        <div className="flex flex-col items-end gap-2 shrink-0">
                                         {!showDeleteConfirm ? (
                                             <>
                                                 <Link href={`/employees/${id}/edit`}>
@@ -279,9 +279,9 @@ function EmployeeDetailContent() {
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => setShowDeleteConfirm(true)}
-                                                    className="w-[140px] h-9 gap-2 rounded-[10px] border border-red-200 bg-red-50 text-xs font-bold text-red-700 hover:bg-red-100 hover:text-red-800 justify-start px-3"
+                                                    className="mt-1 h-6 gap-2 px-0 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-transparent justify-start"
                                                 >
-                                                    <Trash2 className="h-3.5 w-3.5" /> Delete employee
+                                                    <Trash2 className="h-4 w-4" /> Delete employee
                                                 </Button>
                                             </>
                                         ) : (

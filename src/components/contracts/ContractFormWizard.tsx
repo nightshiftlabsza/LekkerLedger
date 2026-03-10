@@ -24,6 +24,7 @@ type StepErrorMap = Partial<Record<
     | "jobTitle"
     | "effectiveDate"
     | "placeOfWork"
+    | "employeeAddress"
     | "duties"
     | "daysPerWeek"
     | "startAt"
@@ -31,7 +32,12 @@ type StepErrorMap = Partial<Record<
     | "workdayRange"
     | "salaryAmount"
     | "salaryFrequency"
-    | "accommodationDetails",
+    | "annualDays"
+    | "sickDays"
+    | "accommodationDetails"
+    | "overtimeAgreement"
+    | "sundayHolidayAgreement"
+    | "noticeClause",
     string
 >>;
 
@@ -268,6 +274,10 @@ export function ContractFormWizard({
             if (!formData.effectiveDate?.trim()) nextErrors.effectiveDate = "Choose the date this draft should start from.";
             if (!formData.placeOfWork?.trim()) nextErrors.placeOfWork = "Add the place of work so the draft stays clear.";
             if (textList(dutiesInput).length === 0) nextErrors.duties = "Add at least one duty for the employee.";
+            const resolvedEmployeeAddress = (formData.employeeAddress || selectedEmployee?.address || "").trim();
+            if (!resolvedEmployeeAddress) {
+                nextErrors.employeeAddress = "Add the employee's residential address so notices have a clear place to go.";
+            }
         }
 
         if (currentStep === 2) {
@@ -286,10 +296,29 @@ export function ContractFormWizard({
             const amount = Number(formData.salary?.amount ?? 0);
             if (!Number.isFinite(amount) || amount <= 0) nextErrors.salaryAmount = "Enter the agreed pay amount before you continue.";
             if (!formData.salary?.frequency) nextErrors.salaryFrequency = "Choose how often this pay amount applies.";
+            const annualDays = Number(formData.leave?.annualDays ?? 0);
+            if (!Number.isFinite(annualDays) || annualDays <= 0) {
+                nextErrors.annualDays = "Add the agreed annual leave days (at least the BCEA minimum).";
+            }
+            const sickDays = Number(formData.leave?.sickDays ?? 0);
+            if (!Number.isFinite(sickDays) || sickDays <= 0) {
+                nextErrors.sickDays = "Add the sick leave days for the 36‑month cycle.";
+            }
         }
 
-        if (currentStep === 4 && formData.terms?.accommodationProvided && !formData.terms.accommodationDetails?.trim()) {
-            nextErrors.accommodationDetails = "Add the accommodation details or switch this off.";
+        if (currentStep === 4) {
+            if (formData.terms?.accommodationProvided && !formData.terms.accommodationDetails?.trim()) {
+                nextErrors.accommodationDetails = "Add the accommodation details or switch this off.";
+            }
+            if (!formData.terms?.overtimeAgreement?.trim()) {
+                nextErrors.overtimeAgreement = "Keep a short note here about how overtime will be handled.";
+            }
+            if (!formData.terms?.sundayHolidayAgreement?.trim()) {
+                nextErrors.sundayHolidayAgreement = "Add a line about how Sunday and public‑holiday work will be paid.";
+            }
+            if (!formData.terms?.noticeClause?.trim()) {
+                nextErrors.noticeClause = "Add a short notice and termination clause so expectations are clear.";
+            }
         }
 
         setStepErrors(nextErrors);
@@ -361,10 +390,14 @@ export function ContractFormWizard({
                             <input
                                 type="text"
                                 value={formData.employeeAddress || selectedEmployee?.address || ""}
-                                onChange={(event) => setFormData((current) => ({ ...current, employeeAddress: event.target.value }))}
+                                onChange={(event) => {
+                                    clearError("employeeAddress");
+                                    setFormData((current) => ({ ...current, employeeAddress: event.target.value }));
+                                }}
                                 className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                 placeholder="Employee residential address"
                             />
+                            {stepErrors.employeeAddress ? <FieldError message={stepErrors.employeeAddress} /> : null}
                         </Field>
                         <Field label="Place of work">
                             <input
@@ -524,11 +557,18 @@ export function ContractFormWizard({
                                 <input
                                     type="number"
                                     value={formData.leave?.annualDays ?? ""}
-                                    onChange={(event) => setFormData((current) => ({ ...current, leave: { ...current.leave!, annualDays: parseInt(event.target.value, 10) || (undefined as unknown as number) } }))}
+                                    onChange={(event) => {
+                                        clearError("annualDays");
+                                        setFormData((current) => ({
+                                            ...current,
+                                            leave: { ...current.leave!, annualDays: parseInt(event.target.value, 10) || (undefined as unknown as number) },
+                                        }));
+                                    }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                     placeholder="e.g. 21"
                                     min={0}
                                 />
+                                {stepErrors.annualDays ? <FieldError message={stepErrors.annualDays} /> : null}
                             </div>
                             <div className="space-y-1.5">
                                 <FieldLabel
@@ -538,12 +578,37 @@ export function ContractFormWizard({
                                 <input
                                     type="number"
                                     value={formData.leave?.sickDays ?? ""}
-                                    onChange={(event) => setFormData((current) => ({ ...current, leave: { ...current.leave!, sickDays: parseInt(event.target.value, 10) || (undefined as unknown as number) } }))}
+                                    onChange={(event) => {
+                                        clearError("sickDays");
+                                        setFormData((current) => ({
+                                            ...current,
+                                            leave: { ...current.leave!, sickDays: parseInt(event.target.value, 10) || (undefined as unknown as number) },
+                                        }));
+                                    }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                     placeholder="e.g. 30"
                                     min={0}
                                 />
+                                {stepErrors.sickDays ? <FieldError message={stepErrors.sickDays} /> : null}
                             </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <FieldLabel
+                                label="Payment notes (optional)"
+                                tooltip="You can note here when and how wages are normally paid, for example: 'Paid on the last working day of the month by EFT.'"
+                            />
+                            <input
+                                type="text"
+                                value={formData.terms?.paymentDetails ?? ""}
+                                onChange={(event) =>
+                                    setFormData((current) => ({
+                                        ...current,
+                                        terms: { ...current.terms!, paymentDetails: event.target.value },
+                                    }))
+                                }
+                                className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
+                                placeholder="e.g. Paid on the last working day of each month by EFT"
+                            />
                         </div>
                         <Alert>
                             <Banknote className="h-4 w-4" />
@@ -598,32 +663,44 @@ export function ContractFormWizard({
                         <Field label="Overtime wording">
                             <textarea
                                 value={formData.terms?.overtimeAgreement}
-                                onChange={(event) => updateTermsText("overtimeAgreement", event.target.value)}
+                                onChange={(event) => {
+                                    clearError("overtimeAgreement");
+                                    updateTermsText("overtimeAgreement", event.target.value);
+                                }}
                                 onPaste={(event) => insertPlainTextAtCursor(event, formData.terms?.overtimeAgreement ?? "", (nextValue) => updateTermsText("overtimeAgreement", nextValue), TERMS_TEXT_LIMIT)}
                                 maxLength={TERMS_TEXT_LIMIT}
                                 className="min-h-[100px] w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] p-4 focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                             />
                             <p className="text-[11px] text-[var(--text-muted)]">{TERMS_TEXT_LIMIT - (formData.terms?.overtimeAgreement?.length ?? 0)} characters left</p>
+                            {stepErrors.overtimeAgreement ? <FieldError message={stepErrors.overtimeAgreement} /> : null}
                         </Field>
                         <Field label="Sunday / public holiday wording">
                             <textarea
                                 value={formData.terms?.sundayHolidayAgreement}
-                                onChange={(event) => updateTermsText("sundayHolidayAgreement", event.target.value)}
+                                onChange={(event) => {
+                                    clearError("sundayHolidayAgreement");
+                                    updateTermsText("sundayHolidayAgreement", event.target.value);
+                                }}
                                 onPaste={(event) => insertPlainTextAtCursor(event, formData.terms?.sundayHolidayAgreement ?? "", (nextValue) => updateTermsText("sundayHolidayAgreement", nextValue), TERMS_TEXT_LIMIT)}
                                 maxLength={TERMS_TEXT_LIMIT}
                                 className="min-h-[100px] w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] p-4 focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                             />
                             <p className="text-[11px] text-[var(--text-muted)]">{TERMS_TEXT_LIMIT - (formData.terms?.sundayHolidayAgreement?.length ?? 0)} characters left</p>
+                            {stepErrors.sundayHolidayAgreement ? <FieldError message={stepErrors.sundayHolidayAgreement} /> : null}
                         </Field>
                         <Field label="Notice wording">
                             <textarea
                                 value={formData.terms?.noticeClause}
-                                onChange={(event) => updateTermsText("noticeClause", event.target.value)}
+                                onChange={(event) => {
+                                    clearError("noticeClause");
+                                    updateTermsText("noticeClause", event.target.value);
+                                }}
                                 onPaste={(event) => insertPlainTextAtCursor(event, formData.terms?.noticeClause ?? "", (nextValue) => updateTermsText("noticeClause", nextValue), TERMS_TEXT_LIMIT)}
                                 maxLength={TERMS_TEXT_LIMIT}
                                 className="min-h-[100px] w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] p-4 focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                             />
                             <p className="text-[11px] text-[var(--text-muted)]">{TERMS_TEXT_LIMIT - (formData.terms?.noticeClause?.length ?? 0)} characters left</p>
+                            {stepErrors.noticeClause ? <FieldError message={stepErrors.noticeClause} /> : null}
                         </Field>
 
                         {/* Single unified acknowledgement — replaces the two separate disclaimers */}
@@ -654,6 +731,9 @@ export function ContractFormWizard({
                                 <SummaryRow icon={Calendar} label="Effective date" value={formData.effectiveDate ?? ""} />
                                 <SummaryRow icon={Home} label="Place of work" value={formData.placeOfWork || "Not set"} />
                                 <SummaryRow icon={Banknote} label="Pay" value={`R${formData.salary?.amount?.toFixed(2) ?? "0.00"} / ${payFrequencyLabel}`} />
+                                {formData.terms?.paymentDetails?.trim() && (
+                                    <SummaryRow icon={Banknote} label="Payment notes" value={formData.terms.paymentDetails.trim()} />
+                                )}
                                 <SummaryRow icon={Clock} label="Schedule" value={`${formData.workingHours?.daysPerWeek} days/week, ${formData.workingHours?.startAt} to ${formData.workingHours?.endAt}`} />
                                 <SummaryRow icon={CheckCircle2} label="Review acknowledgement" value={formData.terms?.lawyerReviewAcknowledged ? "Confirmed" : "Not yet confirmed"} />
                             </div>

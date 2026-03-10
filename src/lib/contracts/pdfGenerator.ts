@@ -27,6 +27,7 @@ function createLegacyContract(employee: Employee, settings: EmployerSettings): C
         id: crypto.randomUUID(),
         householdId: employee.householdId ?? "default",
         employeeId: employee.id,
+        employeeAddress: employee.address || "",
         status: "draft",
         version: 1,
         effectiveDate: employee.startDate || new Date().toISOString().split("T")[0],
@@ -50,11 +51,14 @@ function createLegacyContract(employee: Employee, settings: EmployerSettings): C
         terms: {
             accommodationProvided: false,
             accommodationDetails: "",
-            overtimeAgreement: "Any overtime must be agreed in advance and paid according to the BCEA.",
+            overtimeAgreement:
+                "Any overtime must be agreed in advance. Overtime is limited to a maximum of 3 hours per day and 10 hours per week (no more than 55 total hours including ordinary hours) and is paid at 1.5 times the ordinary hourly wage, in line with the BCEA and Sectoral Determination 7 for domestic workers.",
             sundayHolidayAgreement: employee.ordinarilyWorksSundays
-                ? "Sunday work forms part of the normal schedule and must still be paid at the correct statutory rate."
-                : "Sunday or public-holiday work must be agreed in advance and paid at the correct statutory rate.",
-            noticeClause: "Notice periods must follow the BCEA and must be given in writing.",
+                ? "Sunday work forms part of the normal schedule and must still be paid at not less than 1.5 times the ordinary wage for those hours. Work on public holidays is paid at twice (2x) the ordinary daily wage, in line with the BCEA and Sectoral Determination 7."
+                : "Sunday or public-holiday work must be agreed in advance. If Sunday is not part of the employee's ordinary hours, work on Sunday is paid at twice (2x) the ordinary wage; if Sunday is part of the ordinary hours, it is paid at 1.5 times the ordinary wage. Work on public holidays is paid at twice (2x) the ordinary daily wage, in line with the BCEA and Sectoral Determination 7.",
+            noticeClause:
+                "Either party may terminate employment by giving written notice. If the employee has been employed for 6 months or less, at least 1 week's written notice is required; after 6 months, at least 4 weeks' written notice is required, in line with Sectoral Determination 7 for domestic workers. Notice may not be given during any period of leave except as allowed by the BCEA. If employment ends for operational requirements, the employee will receive severance pay of at least 1 week's remuneration for each completed year of continuous service, and any outstanding wages and accrued annual leave will be paid out.",
+            paymentDetails: "",
             lawyerReviewAcknowledged: false,
         },
         createdAt: new Date().toISOString(),

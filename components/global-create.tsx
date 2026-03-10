@@ -11,6 +11,7 @@ export function GlobalCreateFAB() {
     const shouldHideFab = pathname?.startsWith("/onboarding") || 
         pathname?.startsWith("/settings") || 
         pathname?.startsWith("/upgrade") ||
+        pathname?.startsWith("/tools") ||
         pathname?.startsWith("/compliance") ||
         pathname?.startsWith("/help") ||
         pathname?.startsWith("/legal");

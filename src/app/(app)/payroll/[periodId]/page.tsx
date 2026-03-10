@@ -23,7 +23,7 @@ import {
 import { calculatePayslip } from "@/lib/calculator";
 import { PayPeriod, Employee, EmployeeEntry, PayslipInput, EmployerSettings, LeaveRecord } from "@/lib/schema";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
-import { getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
+import { getUserPlan, isRecordWithinArchive, canUseAutoBackup } from "@/lib/entitlements";
 import { track } from "@/lib/analytics";
 import { PLANS, PlanConfig } from "../../../../config/plans";
 
@@ -453,6 +453,7 @@ export default function PayPeriodWorkspacePage() {
                     </Card>
 
                     <ActionBar
+                        variant="paper"
                         secondaryAction={
                             <Button
                                 variant="outline"
@@ -506,23 +507,22 @@ export default function PayPeriodWorkspacePage() {
                 </div>
             )}
 
-            {/* Employee entry grid — only when not in review mode */}
+            {/* Employee entry grid — only when not in review mode. Wrapped in paper panel for Civic Ledger integration. */}
             {!showReview && (
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between px-1">
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] shadow-sm overflow-hidden">
+                    <div className="px-5 pt-5 pb-1">
                         <h3 className="type-overline text-[var(--text-muted)]">
                             Employees ({completedCount}/{totalCount} done)
                         </h3>
                     </div>
-
-                    <div className="space-y-3">
+                    <div className="p-5 pt-3 space-y-3">
                         {period.entries.map(entry => {
                             const emp = employees.find(e => e.id === entry.employeeId);
                             if (!emp) return null;
                             const entryBreakdown = calculatePayslip(entryToPayslipInput(entry, emp));
 
                             return (
-                                <Card key={entry.employeeId} className="glass-panel border-none">
+                                <Card key={entry.employeeId} className="border border-[var(--border)] bg-[var(--surface-1)] shadow-sm">
                                     <CardContent className="p-5 space-y-4">
                                         {/* Employee header */}
                                         <div className="flex items-center justify-between">
@@ -655,28 +655,32 @@ export default function PayPeriodWorkspacePage() {
                             );
                         })}
                     </div>
+                    {!isLocked && (
+                        <ActionBar
+                            variant="paper"
+                            secondaryAction={
+                                <Button onClick={handleSave} disabled={saving} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold">
+                                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saveAcknowledged ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+                                    {saving ? "Saving..." : saveAcknowledged ? "Changes Saved" : "Save Progress"}
+                                </Button>
+                            }
+                            primaryAction={
+                                <Button
+                                    onClick={handleMoveToReview}
+                                    disabled={!allComplete}
+                                    className="flex-1 sm:flex-none gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] disabled:opacity-50"
+                                >
+                                    <FileText className="h-4 w-4" /> Review & Generate
+                                </Button>
+                            }
+                            hint={
+                                settings && canUseAutoBackup(plan) && settings.autoBackupEnabled && settings.googleSyncEnabled
+                                    ? "Saves to this device; auto-syncs to your Google Drive shortly."
+                                    : undefined
+                            }
+                        />
+                    )}
                 </div>
-            )}
-
-            {/* Action bar — save + review */}
-            {!isLocked && !showReview && (
-                <ActionBar
-                    secondaryAction={
-                        <Button onClick={handleSave} disabled={saving} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold">
-                            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saveAcknowledged ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-                            {saving ? "Saving..." : saveAcknowledged ? "Changes Saved" : "Save Progress"}
-                        </Button>
-                    }
-                    primaryAction={
-                        <Button
-                            onClick={handleMoveToReview}
-                            disabled={!allComplete}
-                            className="flex-1 sm:flex-none gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] disabled:opacity-50"
-                        >
-                            <FileText className="h-4 w-4" /> Review & Generate
-                        </Button>
-                    }
-                />
             )}
 
             {/* Locked — Download payslips */}

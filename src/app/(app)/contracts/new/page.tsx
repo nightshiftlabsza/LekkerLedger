@@ -30,6 +30,7 @@ export default function NewContractPage() {
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [saving, setSaving] = React.useState(false);
+    const [saveError, setSaveError] = React.useState<string | null>(null);
 
     const [formData, setFormData] = React.useState<Partial<Contract>>({
         status: "draft",
@@ -57,6 +58,7 @@ export default function NewContractPage() {
             overtimeAgreement: "Any overtime must be agreed in advance and paid according to the BCEA.",
             sundayHolidayAgreement: "Sunday and public-holiday work must be agreed in advance and paid at the correct rate.",
             noticeClause: "Notice periods follow the BCEA and should be given in writing.",
+            paymentDetails: "",
             lawyerReviewAcknowledged: false,
         },
         effectiveDate: new Date().toISOString().split("T")[0],
@@ -121,12 +123,32 @@ export default function NewContractPage() {
 
     const handleSave = async () => {
         if (!selectedEmployee || !settings) return;
+
+        const missing: string[] = [];
+        if (!settings.employerName?.trim()) missing.push("employer name");
+        if (!settings.employerAddress?.trim()) missing.push("employer address");
+        if (!settings.employerIdNumber?.trim()) missing.push("employer ID / registration number");
+
+        const resolvedEmployeeAddress = (formData.employeeAddress || selectedEmployee.address || "").trim();
+        if (!resolvedEmployeeAddress) missing.push("employee residential address");
+
+        if (missing.length > 0) {
+            const last = missing.pop()!;
+            const listText = missing.length ? `${missing.join(", ")} and ${last}` : last;
+            setSaveError(
+                `Please add the ${listText} before generating a draft. You can update employer details under Settings and the employee's address on the Parties step.`,
+            );
+            return;
+        }
+
+        setSaveError(null);
         setSaving(true);
         try {
             const contract: Contract = {
                 id: crypto.randomUUID(),
                 householdId: selectedEmployee.householdId ?? "default",
                 employeeId: selectedEmployee.id,
+                employeeAddress: (formData.employeeAddress || selectedEmployee.address || "").trim(),
                 status: "draft",
                 version: formData.version ?? 1,
                 effectiveDate: formData.effectiveDate!,
@@ -151,12 +173,14 @@ export default function NewContractPage() {
                     overtimeAgreement: "",
                     sundayHolidayAgreement: "",
                     noticeClause: "",
+                    paymentDetails: "",
                     lawyerReviewAcknowledged: false,
                 }),
                 accommodationDetails: contract.terms?.accommodationDetails?.trim() ?? "",
                 overtimeAgreement: contract.terms?.overtimeAgreement?.trim() ?? "",
                 sundayHolidayAgreement: contract.terms?.sundayHolidayAgreement?.trim() ?? "",
                 noticeClause: contract.terms?.noticeClause?.trim() ?? "",
+                paymentDetails: contract.terms?.paymentDetails?.trim() ?? "",
             };
             await saveContract(contract);
             sessionStorage.removeItem("lekkerledger-contract-draft-state");
@@ -239,6 +263,12 @@ export default function NewContractPage() {
                     </p>
                 </div>
             </Card>
+
+            {saveError && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
+                    {saveError}
+                </div>
+            )}
 
             <ContractFormWizard
                 currentStep={wizardStepIndex}

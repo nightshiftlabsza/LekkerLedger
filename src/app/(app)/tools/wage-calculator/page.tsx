@@ -25,9 +25,9 @@ export default function WageCalculatorPage() {
                 subtitle="Estimate weekly and monthly pay based on SA minimum wage rules"
             />
 
-            <Card className="glass-panel border-none">
+            <Card className="glass-panel border-none max-w-3xl mx-auto">
                 <CardContent className="p-6 space-y-5">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="type-overline text-[var(--text-muted)] block mb-1">Hourly Rate (R)</label>
                             <input
