@@ -102,19 +102,17 @@ function DateInput({ value, onChange }: { value: string; onChange: (v: string) =
     );
 }
 
-// Styled time input with clock icon
+// Styled time input — uses native picker only (no decorative icon overlay to avoid duplicate clocks)
 function TimeInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     return (
-        <div className="relative">
-            <input
-                type="time"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                className="w-full h-11 pl-4 pr-10 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] appearance-none focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:border-[var(--focus)]"
-                style={{ colorScheme: "light" }}
-            />
-            <Clock className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
-        </div>
+        <input
+            type="time"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full h-11 pl-4 pr-3 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:border-[var(--focus)] [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-70"
+            style={{ colorScheme: "light" }}
+            aria-label="Time"
+        />
     );
 }
 
