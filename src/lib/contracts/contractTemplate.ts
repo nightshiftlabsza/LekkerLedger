@@ -92,6 +92,11 @@ export function buildContractClauses(contract: Contract, employee: Employee, set
                     value:
                         "With every payment the employer will provide a written payslip showing gross pay, deductions (including UIF), and net pay, and will keep simple wage records as required by the BCEA.",
                 },
+                {
+                    label: "Annual review",
+                    value:
+                        "The employer shall review the employee's wage at least once every 12 months.",
+                },
                 ...(contract.terms.paymentDetails?.trim()
                     ? [
                         {
@@ -135,6 +140,7 @@ export function buildContractClauses(contract: Contract, employee: Employee, set
             paragraphs: [
                 `The employee is entitled to up to ${contract.leave.sickDays} working day(s) of paid sick leave in each 36‑month sick‑leave cycle, calculated in line with the BCEA.`,
                 "During the first 6 months of employment, sick leave accrues at 1 day for every 26 days worked. Thereafter, the full sick‑leave entitlement applies for the remainder of the 36‑month cycle, subject to reasonable proof of incapacity where required.",
+                "The employee must notify the employer as soon as possible in the event of absence from work due to illness or injury.",
             ],
         },
         {

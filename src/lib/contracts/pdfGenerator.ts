@@ -119,7 +119,7 @@ function addPage(pdfDoc: PDFDocument, fonts: PdfFonts, pageNumber: number): PDFP
         color: PDF_COLORS.BORDER,
     });
 
-    const footerText = `Review carefully before signing · Keep the signed copy with the employee's records`;
+    const footerText = `LekkerLedger is not a law firm. Have this reviewed by a labour lawyer before signing.`;
     const footerW = fonts.sansRegular.widthOfTextAtSize(footerText, 7.5);
     page.drawText(footerText, {
         x: PAGE_W / 2 - footerW / 2,
@@ -324,10 +324,22 @@ export async function generateEmploymentContract(
         const sectionNumber = `${i + 1}.`;
 
         if (clause.type === "signatures") {
-            ({ page: currentPage, cy } = ensureSpace(pdfDoc, fonts, currentPage, cy, 200, pageCounter));
+            ({ page: currentPage, cy } = ensureSpace(pdfDoc, fonts, currentPage, cy, 320, pageCounter));
 
             drawSectionHeader(currentPage, fonts, `${sectionNumber} ${clause.title}`, cy);
             cy -= 18;
+
+            // "Signed at" preamble (DoL: "THUS DONE AND SIGNED AT ___ ON THIS ___ DAY OF ___")
+            currentPage.drawText("THUS DONE AND SIGNED AT __________________________ ON THIS ________ DAY OF __________________________ 20______", {
+                x: MARGIN + 6,
+                y: cy,
+                size: 9,
+                font: fonts.sansRegular,
+                color: PDF_COLORS.TEXT,
+                maxWidth: BODY_W - 12,
+                lineHeight: 15,
+            });
+            cy -= 30;
 
             // "Please sign below" hint
             const sigHintText = "— PLEASE SIGN BELOW —";
@@ -363,6 +375,38 @@ export async function generateEmploymentContract(
             currentPage.drawText("Employee signature", { x: rightX, y: cy - 14, size: 8, font: fonts.sansBold, color: PDF_COLORS.TEXT_MUTED });
             currentPage.drawText(employee.name, { x: rightX, y: cy - 26, size: 9, font: fonts.sansRegular, color: PDF_COLORS.TEXT });
             currentPage.drawText("Date: ____________________", { x: rightX, y: cy - 42, size: 8, font: fonts.sansRegular, color: PDF_COLORS.TEXT_MUTED });
+
+            cy -= 64;
+
+            // Witness signature lines (DoL sample includes two witnesses)
+            ({ page: currentPage, cy } = ensureSpace(pdfDoc, fonts, currentPage, cy, 80, pageCounter));
+
+            currentPage.drawText("WITNESSES", {
+                x: MARGIN,
+                y: cy,
+                size: 8,
+                font: fonts.sansBold,
+                color: PDF_COLORS.TEXT_MUTED,
+            });
+            cy -= 20;
+
+            // Witness 1
+            currentPage.drawLine({
+                start: { x: MARGIN, y: cy },
+                end: { x: MARGIN + 200, y: cy },
+                thickness: 0.5,
+                color: PDF_COLORS.TEXT,
+            });
+            currentPage.drawText("1. ____________________________", { x: MARGIN, y: cy - 14, size: 8, font: fonts.sansRegular, color: PDF_COLORS.TEXT_MUTED });
+
+            // Witness 2
+            currentPage.drawLine({
+                start: { x: rightX, y: cy },
+                end: { x: rightX + 200, y: cy },
+                thickness: 0.5,
+                color: PDF_COLORS.TEXT,
+            });
+            currentPage.drawText("2. ____________________________", { x: rightX, y: cy - 14, size: 8, font: fonts.sansRegular, color: PDF_COLORS.TEXT_MUTED });
 
             continue;
         }
