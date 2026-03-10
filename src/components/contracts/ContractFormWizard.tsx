@@ -239,7 +239,8 @@ export function ContractFormWizard({
 
     const payFrequencyLabel = formData.salary?.frequency === "Monthly" ? "month"
         : formData.salary?.frequency === "Fortnightly" ? "fortnight"
-        : "week";
+        : formData.salary?.frequency === "Weekly" ? "week"
+        : "period";
     const clearError = React.useCallback((field: keyof StepErrorMap) => {
         setStepErrors((current) => {
             if (!current[field]) return current;
@@ -515,7 +516,7 @@ export function ContractFormWizard({
                             </div>
                             <Field label="Pay frequency">
                                 <select
-                                    value={formData.salary?.frequency}
+                                    value={formData.salary?.frequency ?? ""}
                                     onChange={(event) => {
                                         clearError("salaryFrequency");
                                         clearError("salaryAmount");
@@ -530,6 +531,9 @@ export function ContractFormWizard({
                                     }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                 >
+                                    <option value="" disabled>
+                                        Choose frequency
+                                    </option>
                                     <option value="Monthly">Monthly</option>
                                     <option value="Fortnightly">Fortnightly</option>
                                     <option value="Weekly">Weekly</option>

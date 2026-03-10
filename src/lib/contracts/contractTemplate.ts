@@ -149,7 +149,7 @@ export function buildContractClauses(contract: Contract, employee: Employee, set
             title: "DEDUCTIONS",
             type: "paragraphs",
             paragraphs: [
-                "UIF contributions will be deducted from the employee's wages at the statutory rate and remitted to the Unemployment Insurance Fund together with the employer's matching contribution, once the employee has been registered for UIF.",
+                "The employer will register the employee for Unemployment Insurance (UIF) and will deduct UIF contributions from the employee's wages at the statutory rate and remit them together with the employer's matching contribution to the Unemployment Insurance Fund.",
                 "No other deductions may be made without the employee's written consent, unless required by law.",
             ],
         },

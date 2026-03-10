@@ -13,6 +13,7 @@ export interface ContractRowProps {
     onUploadSigned: (contract: Contract) => void;
     onViewSigned: (contract: Contract) => void;
     onMarkFinal: (contract: Contract) => void;
+    onDelete?: (contract: Contract) => void;
 }
 
 const STAGES = ["Draft", "Downloaded", "Signed file", "Finalised"];
@@ -25,6 +26,7 @@ export function ContractRow({
     onUploadSigned,
     onViewSigned,
     onMarkFinal,
+    onDelete,
 }: ContractRowProps) {
     const updatedLabel = contract.updatedAt
         ? formatDistanceToNow(new Date(contract.updatedAt), { addSuffix: true })
@@ -136,6 +138,14 @@ export function ContractRow({
                     >
                         Edit draft
                     </Link>
+                )}
+                {onDelete && (
+                    <button
+                        onClick={() => onDelete(contract)}
+                        className="rounded-2xl border border-red-200 bg-[var(--surface-1)] px-6 py-3 text-base font-medium whitespace-nowrap text-red-700 hover:bg-red-50 hover:text-red-800 transition-colors"
+                    >
+                        Delete
+                    </button>
                 )}
             </div>
         </article>

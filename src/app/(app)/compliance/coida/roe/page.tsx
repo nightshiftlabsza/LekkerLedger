@@ -139,8 +139,8 @@ export default function RoePackPage() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <div className="max-w-xl mx-auto mb-6 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
-                <div className="max-w-xl mx-auto flex items-center gap-3">
+            <div className="w-full max-w-[1200px] mx-auto mb-6 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
+                <div className="flex items-center gap-3">
                     <button
                         onClick={() => step > 1 ? setStep(step - 1) : router.push("/dashboard")}
                         aria-label="Back"
@@ -159,7 +159,7 @@ export default function RoePackPage() {
             </div>
 
             <main className="flex-1 w-full px-4 py-6">
-                <div className="max-w-xl mx-auto space-y-6">
+                <div className="w-full max-w-[1400px] mx-auto space-y-6">
 
                     {/* Progress Indicator */}
                     <div className="flex items-center justify-between px-2">
@@ -347,7 +347,7 @@ export default function RoePackPage() {
                                 </Alert>
                             )}
 
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <RoeValueCard
                                     label="Number of Employees"
                                     value={roeData.employeeCount.toString()}

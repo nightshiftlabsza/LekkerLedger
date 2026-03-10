@@ -241,6 +241,20 @@ export function EmployeeDocumentsTab({
         }
     };
 
+    const handleDeleteContract = async (contract: Contract) => {
+        if (typeof window !== "undefined" && !window.confirm("Delete this contract? This cannot be undone.")) {
+            return;
+        }
+        try {
+            const { deleteContract } = await import("@/lib/storage");
+            await deleteContract(contract.id);
+            if (onDocumentsChange) onDocumentsChange();
+            toast("Contract deleted.", "success");
+        } catch (error) {
+            toast("Could not delete contract.", "error");
+        }
+    };
+
     const handleContractUploadClick = (contract: Contract) => {
         if (!contractSignedCopyUploadAllowed) return;
         setUploadTargetContract(contract);
@@ -438,7 +452,6 @@ export function EmployeeDocumentsTab({
             </div>
 
             {(activeTab === "Payslips" && filteredPayslipDocuments.length > 0) ||
-            (activeTab === "Contracts" && filteredContracts.length > 0) ||
             (activeTab === "Legal" && filteredLegalDocuments.length > 0) ||
             (activeTab === "Other" && filteredOtherDocuments.length > 0) ? (
                 <div className="flex items-center justify-between gap-3">
@@ -554,6 +567,7 @@ export function EmployeeDocumentsTab({
                                         }
                                     }}
                                     onMarkFinal={() => handleMarkFinal(contract)}
+                                    onDelete={() => handleDeleteContract(contract)}
                                 />
                             ))}
                         </div>

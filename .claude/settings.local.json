@@ -23,7 +23,8 @@
       "Bash(grep -v \"//.*Verified\\\\|//.*certified\\\\|//.*official\")",
       "Bash(find . -path \"*/\\(marketing\\)/*\" -name \"*.tsx\" -not -path \"*/node_modules/*\" -not -path \"*/.next/*\")",
       "Bash(ls /c/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/\\\\\\(marketing\\\\\\)/)",
-      "Bash(grep -v \"node_modules\\\\|//\")"
+      "Bash(grep -v \"node_modules\\\\|//\")",
+      "Bash(find 'C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/src/app/\\(app\\)/contracts' -type f)"
     ]
   }
 }

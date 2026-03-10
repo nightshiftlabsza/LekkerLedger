@@ -144,7 +144,9 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                                             </span>
 
                                             <span className="min-w-0 flex-1">
-                                                <span className="block truncate">{label}</span>
+                                                <span className="block leading-snug break-words">
+                                                    {label}
+                                                </span>
                                                 {sublabel ? (
                                                     <span className="mt-0.5 block text-[10px] font-medium leading-4 text-[var(--text-muted)]">
                                                         {sublabel}

@@ -44,10 +44,9 @@ export default function NewContractPage() {
             endAt: "17:00",
             breakDuration: 60,
         },
-        salary: {
-            amount: 0,
-            frequency: "Monthly",
-        },
+        // Start pay and leave fields empty so the user
+        // explicitly enters the agreement for each contract.
+        salary: {},
         leave: {
             annualDays: undefined as unknown as number,
             sickDays: undefined as unknown as number,
@@ -97,10 +96,6 @@ export default function NewContractPage() {
                         employeeId: selectedEmployee.id,
                         jobTitle: current.jobTitle || selectedEmployee.role || "Domestic worker",
                         placeOfWork: current.placeOfWork || employerSettings.employerAddress || "",
-                        salary: {
-                            ...current.salary!,
-                            amount: current.salary?.amount || Number((selectedEmployee.hourlyRate * 195).toFixed(2)),
-                        },
                     }));
                 }
                 // When launched from an employee page, start at step 0 of the visible steps
