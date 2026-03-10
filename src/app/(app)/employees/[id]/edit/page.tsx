@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EmployeeSchema, Employee } from "@/lib/schema";
-import { saveEmployee, getEmployee } from "@/lib/storage";
+import { saveEmployee, getEmployee, getPayslipsForEmployee } from "@/lib/storage";
 import { NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import { formatEmployeeIdNumberInput, normalizeEmployeeIdNumber } from "@/src/lib/employee-id";
@@ -37,6 +37,8 @@ export default function EditEmployeePage() {
     });
     const [isDirty, setIsDirty] = React.useState(false);
     const [errors, setErrors] = React.useState<Record<string, string>>({});
+    const [startDateLocked, setStartDateLocked] = React.useState(false);
+    const [lockedStartDate, setLockedStartDate] = React.useState("");
 
     useUnsavedChanges(isDirty);
 
@@ -48,11 +50,12 @@ export default function EditEmployeePage() {
     React.useEffect(() => {
         async function load() {
             if (!id) return;
-            const emp = await getEmployee(id);
+            const [emp, payslips] = await Promise.all([getEmployee(id), getPayslipsForEmployee(id)]);
             if (!emp) {
                 router.push("/employees");
                 return;
             }
+            const payrollExists = payslips.length > 0;
             setFormData({
                 name: emp.name,
                 idNumber: formatEmployeeIdNumberInput(emp.idNumber || ""),
@@ -64,6 +67,8 @@ export default function EditEmployeePage() {
                 ordinarilyWorksSundays: emp.ordinarilyWorksSundays ?? false,
                 ordinaryHoursPerDay: (emp.ordinaryHoursPerDay ?? 8).toString(),
             });
+            setStartDateLocked(payrollExists);
+            setLockedStartDate(emp.startDate || "");
             setLoading(false);
         }
         load();
@@ -82,6 +87,7 @@ export default function EditEmployeePage() {
             idNumber: normalizeEmployeeIdNumber(formData.idNumber),
             hourlyRate: parseFloat(formData.hourlyRate),
             ordinaryHoursPerDay: Number(formData.ordinaryHoursPerDay) || 8,
+            startDate: startDateLocked ? lockedStartDate : formData.startDate,
         };
 
         const parsed = EmployeeSchema.safeParse(submissionData);
@@ -210,8 +216,13 @@ export default function EditEmployeePage() {
                                     type="date"
                                     value={formData.startDate}
                                     onChange={(e) => updateForm({ startDate: e.target.value })}
-                                    disabled={saving}
+                                    disabled={saving || startDateLocked}
                                 />
+                                {startDateLocked ? (
+                                    <p className="text-xs text-[var(--text-muted)]">
+                                        This date is locked because payroll has already been created for this employee.
+                                    </p>
+                                ) : null}
                             </div>
 
                             <div className="space-y-2">

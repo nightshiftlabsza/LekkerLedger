@@ -21,6 +21,23 @@ export interface UFilingRow {
     totalUif: number;
 }
 
+function escapeCsvValue(value: string): string {
+    return value.replace(/"/g, '""');
+}
+
+function quoteCsvValue(value: string): string {
+    return `"${escapeCsvValue(value)}"`;
+}
+
+function quoteCsvTextForExcel(value: string): string {
+    const trimmed = value.trim();
+    if (!trimmed) return '""';
+    if (/^\d+$/.test(trimmed) && trimmed.startsWith("0")) {
+        return `"=""${escapeCsvValue(trimmed)}"""`;
+    }
+    return quoteCsvValue(value);
+}
+
 export function generateUFilingData(
     employees: Employee[],
     payslips: PayslipInput[],
@@ -110,12 +127,12 @@ export function rowsToCsv(rows: UFilingRow[], settings: EmployerSettings): strin
 
     const dataRows = rows.map((r) =>
         [
-            `"${(settings?.employerName || "").replace(/"/g, '""')}"`,
-            `"${(settings?.uifRefNumber || "").replace(/"/g, '""')}"`,
-            `"${(r.employeeName || "").replace(/"/g, '""')}"`,
-            `"${(r.idNumber || "").replace(/"/g, '""')}"`,
-            `"${r.periodStart}"`,
-            `"${r.periodEnd}"`,
+            quoteCsvValue(settings?.employerName || ""),
+            quoteCsvValue(settings?.uifRefNumber || ""),
+            quoteCsvValue(r.employeeName || ""),
+            quoteCsvTextForExcel(r.idNumber || ""),
+            quoteCsvValue(r.periodStart),
+            quoteCsvValue(r.periodEnd),
             r.grossRemuneration.toFixed(2),
             r.uifEmployee.toFixed(2),
             r.uifEmployer.toFixed(2),

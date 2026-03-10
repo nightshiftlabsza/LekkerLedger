@@ -3,8 +3,7 @@
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ShieldAlert } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { FeatureGateCard } from "@/components/ui/feature-gate-card";
 import { Stepper } from "@/components/ui/stepper";
@@ -81,7 +80,7 @@ export default function NewContractPage() {
                     restoredData = parsed.formData;
                     restoredStep = parsed.currentStep;
                 }
-            } catch (e) {
+            } catch {
                 // Ignore parse errors
             }
 
@@ -140,6 +139,24 @@ export default function NewContractPage() {
                 terms: formData.terms!,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
+            };
+            contract.leave = {
+                annualDays: contract.leave?.annualDays ?? 21,
+                sickDays: contract.leave?.sickDays ?? 30,
+            };
+            contract.terms = {
+                ...(contract.terms ?? {
+                    accommodationProvided: false,
+                    accommodationDetails: "",
+                    overtimeAgreement: "",
+                    sundayHolidayAgreement: "",
+                    noticeClause: "",
+                    lawyerReviewAcknowledged: false,
+                }),
+                accommodationDetails: contract.terms?.accommodationDetails?.trim() ?? "",
+                overtimeAgreement: contract.terms?.overtimeAgreement?.trim() ?? "",
+                sundayHolidayAgreement: contract.terms?.sundayHolidayAgreement?.trim() ?? "",
+                noticeClause: contract.terms?.noticeClause?.trim() ?? "",
             };
             await saveContract(contract);
             sessionStorage.removeItem("lekkerledger-contract-draft-state");

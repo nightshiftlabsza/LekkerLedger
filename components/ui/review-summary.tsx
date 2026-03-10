@@ -60,10 +60,10 @@ export function ReviewSummary({ sections, totalCost, warnings = [], errors = [] 
                     <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <p className="text-sm font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-500">
-                                Total Pay Cycle Cost
+                                Estimated Household Cost
                             </p>
                             <p className="text-xs text-emerald-700/80 dark:text-emerald-500/70 mt-1">
-                                Total net pay across all included employees.
+                                Gross pay plus employer UIF across all included employees.
                             </p>
                         </div>
                         <div className="text-2xl sm:text-3xl font-black tabular-nums text-emerald-700 dark:text-emerald-400">

@@ -44,6 +44,7 @@ function SettingsContent() {
     const [leaveTypeAllowance, setLeaveTypeAllowance] = React.useState("");
     const [leaveTypePaid, setLeaveTypePaid] = React.useState(true);
     const [leaveTypeNote, setLeaveTypeNote] = React.useState("");
+    const [leaveTypeError, setLeaveTypeError] = React.useState("");
     const savedTimerRef = React.useRef<number | null>(null);
     const { toast } = useToast();
     const { theme, setTheme, setDensity } = useUI();
@@ -78,28 +79,41 @@ function SettingsContent() {
         };
     }, [searchParams]);
 
-    const handleSave = async (updated: Partial<EmployerSettings>) => {
-        if (!settings) return;
+    const handleSave = React.useCallback(async (updated: Partial<EmployerSettings>) => {
+        if (!settings || saving) return;
         setSaving(true);
-        const newSettings = { ...settings, ...updated };
-        if (updated.density) setDensity(updated.density);
-        setSettings(newSettings);
-        await saveSettings(newSettings);
-        setSaving(false);
-        setSaved(true);
-        if (savedTimerRef.current) {
-            window.clearTimeout(savedTimerRef.current);
+        try {
+            const newSettings = {
+                ...settings,
+                ...updated,
+                employerName: (updated.employerName ?? settings.employerName ?? "").trim(),
+                employerAddress: (updated.employerAddress ?? settings.employerAddress ?? "").trim(),
+                phone: (updated.phone ?? settings.phone ?? "").trim(),
+                employerEmail: (updated.employerEmail ?? settings.employerEmail ?? "").trim(),
+            };
+            if (updated.density) setDensity(updated.density);
+            setSettings(newSettings);
+            await saveSettings(newSettings);
+            setSaved(true);
+            if (savedTimerRef.current) {
+                window.clearTimeout(savedTimerRef.current);
+            }
+            savedTimerRef.current = window.setTimeout(() => {
+                setSaved(false);
+                savedTimerRef.current = null;
+            }, 2000);
+            toast("Settings saved successfully!", "success");
+        } catch (error) {
+            console.error("Failed to save settings", error);
+            toast(error instanceof Error ? error.message : "Could not save settings just now.", "error");
+        } finally {
+            setSaving(false);
         }
-        savedTimerRef.current = window.setTimeout(() => {
-            setSaved(false);
-            savedTimerRef.current = null;
-        }, 2000);
-        toast("Settings saved successfully!", "success");
-    };
+    }, [saving, setDensity, settings, toast]);
 
     const userPlan = getUserPlan(settings);
     const advancedLeaveEnabled = canUseAdvancedLeaveFeatures(userPlan);
-    const customLeaveTypes = settings?.customLeaveTypes ?? [];
+    const customLeaveTypes = React.useMemo(() => settings?.customLeaveTypes ?? [], [settings?.customLeaveTypes]);
 
     const resetLeaveTypeForm = React.useCallback(() => {
         setEditingLeaveTypeId(null);
@@ -107,6 +121,7 @@ function SettingsContent() {
         setLeaveTypeAllowance("");
         setLeaveTypePaid(true);
         setLeaveTypeNote("");
+        setLeaveTypeError("");
     }, []);
 
     const startEditingLeaveType = React.useCallback((leaveType: CustomLeaveType) => {
@@ -115,13 +130,18 @@ function SettingsContent() {
         setLeaveTypeAllowance(leaveType.annualAllowance === undefined ? "" : String(leaveType.annualAllowance));
         setLeaveTypePaid(leaveType.isPaid);
         setLeaveTypeNote(leaveType.note ?? "");
+        setLeaveTypeError("");
     }, []);
 
     const handleSaveLeaveType = React.useCallback(async () => {
         if (!settings || !advancedLeaveEnabled) return;
 
         const trimmedName = leaveTypeName.trim();
-        if (!trimmedName) return;
+        if (trimmedName.length < 2) {
+            setLeaveTypeError("Use at least 2 characters so the leave type is clear in payroll.");
+            return;
+        }
+        setLeaveTypeError("");
 
         const now = new Date().toISOString();
         const annualAllowance = leaveTypeAllowance.trim() === "" ? undefined : Number(leaveTypeAllowance);
@@ -369,9 +389,19 @@ function SettingsContent() {
                                                     id="leave-type-name"
                                                     value={leaveTypeName}
                                                     maxLength={40}
-                                                    onChange={(e) => setLeaveTypeName(e.target.value)}
+                                                    onChange={(e) => {
+                                                        setLeaveTypeName(e.target.value);
+                                                        if (leaveTypeError) {
+                                                            setLeaveTypeError("");
+                                                        }
+                                                    }}
                                                     placeholder="e.g. Study leave"
                                                 />
+                                                {leaveTypeError ? (
+                                                    <p className="text-xs font-medium text-[var(--danger)]">{leaveTypeError}</p>
+                                                ) : (
+                                                    <p className="text-xs text-[var(--text-muted)]">Use a short clear label like Study leave or Unpaid leave.</p>
+                                                )}
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="leave-type-allowance">Annual allowance in days (optional)</Label>
@@ -410,7 +440,7 @@ function SettingsContent() {
                                         <div className="flex flex-col gap-3 sm:flex-row">
                                             <Button
                                                 onClick={() => void handleSaveLeaveType()}
-                                                disabled={!leaveTypeName.trim() || saving}
+                                                disabled={leaveTypeName.trim().length < 2 || saving}
                                                 className="flex-1 bg-[var(--primary)] text-white font-bold"
                                             >
                                                 {editingLeaveTypeId ? "Save leave type" : "Add leave type"}

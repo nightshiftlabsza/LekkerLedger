@@ -169,6 +169,7 @@ function PreviewContent() {
     const audit = getComplianceAudit(employee, breakdown, payslip.payPeriodEnd);
     const periodLabel = `${format(new Date(payslip.payPeriodStart), "d MMM")} - ${format(new Date(payslip.payPeriodEnd), "d MMM yyyy")}`;
     const employeeRole = employee.role || "Domestic Worker";
+    const employerCost = breakdown.grossPay + breakdown.employerContributions.uifEmployer;
 
     return (
         <div className="min-h-screen bg-[var(--bg)]">
@@ -247,13 +248,22 @@ function PreviewContent() {
                             {breakdown.deductions.advance ? <Row label="Advance" value={`-R ${breakdown.deductions.advance.toFixed(2)}`} red /> : null}
                             {breakdown.deductions.other ? <Row label="Other deductions" value={`-R ${breakdown.deductions.other.toFixed(2)}`} red /> : null}
                             <Row label="Total deductions" value={`R ${breakdown.deductions.total.toFixed(2)}`} bold />
+
+                            <p className="mb-2 mt-6 text-[10px] font-black uppercase tracking-widest text-[var(--focus)]">Employer side</p>
+                            <Row label="Employer UIF (1%)" value={`R ${breakdown.employerContributions.uifEmployer.toFixed(2)}`} />
+                            <Row label="Employer cost this period" value={`R ${employerCost.toFixed(2)}`} bold />
                         </CardContent>
-                        <div className="flex items-center justify-between bg-[var(--primary)] p-5 text-white">
-                            <div>
-                                <p className="text-lg font-bold">Net pay</p>
-                                <p className="text-xs text-white/75">Take-home amount</p>
+                        <div className="grid gap-3 border-t border-[var(--border)] bg-[var(--surface-2)] p-5 sm:grid-cols-2">
+                            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Employer cost</p>
+                                <p className="mt-2 text-2xl font-black tabular-nums text-[var(--text)]">R {employerCost.toFixed(2)}</p>
+                                <p className="mt-1 text-xs text-[var(--text-muted)]">Gross pay plus the employer UIF contribution.</p>
                             </div>
-                            <p className="text-3xl font-black tabular-nums">R {breakdown.netPay.toFixed(2)}</p>
+                            <div className="rounded-2xl bg-[var(--primary)] p-4 text-white shadow-[var(--shadow-sm)]">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-white/75">Net transfer amount</p>
+                                <p className="mt-2 text-2xl font-black tabular-nums">R {breakdown.netPay.toFixed(2)}</p>
+                                <p className="mt-1 text-xs text-white/80">This is the amount to send to the employee.</p>
+                            </div>
                         </div>
                     </Card>
 

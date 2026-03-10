@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
-import { Save, Lock, FileText, AlertTriangle, ArrowLeft, Download, Loader2, Palmtree, AlertCircle, Mail, MessageCircle } from "lucide-react";
+import { Save, Lock, FileText, AlertTriangle, ArrowLeft, Download, Loader2, Palmtree, AlertCircle, Mail, MessageCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,7 +45,9 @@ export default function PayPeriodWorkspacePage() {
     const [showReview, setShowReview] = React.useState(false);
     const [showLockConfirm, setShowLockConfirm] = React.useState(false);
     const [generatingPdfs, setGeneratingPdfs] = React.useState(false);
+    const [saveAcknowledged, setSaveAcknowledged] = React.useState(false);
     const { toast } = useToast();
+    const saveAcknowledgedTimerRef = React.useRef<number | null>(null);
 
     React.useEffect(() => {
         async function load() {
@@ -78,6 +80,11 @@ export default function PayPeriodWorkspacePage() {
             setLoading(false);
         }
         load();
+        return () => {
+            if (saveAcknowledgedTimerRef.current) {
+                window.clearTimeout(saveAcknowledgedTimerRef.current);
+            }
+        };
     }, [periodId]);
 
     const updateEntry = (employeeId: string, field: keyof EmployeeEntry, value: number | string) => {
@@ -94,10 +101,25 @@ export default function PayPeriodWorkspacePage() {
     };
 
     const handleSave = async () => {
-        if (!period) return;
+        if (!period || saving) return;
         setSaving(true);
-        await savePayPeriod(period);
-        setSaving(false);
+        try {
+            await savePayPeriod(period);
+            setSaveAcknowledged(true);
+            if (saveAcknowledgedTimerRef.current) {
+                window.clearTimeout(saveAcknowledgedTimerRef.current);
+            }
+            saveAcknowledgedTimerRef.current = window.setTimeout(() => {
+                setSaveAcknowledged(false);
+                saveAcknowledgedTimerRef.current = null;
+            }, 2200);
+            toast("Changes saved.", "success");
+        } catch (error) {
+            console.error("handleSave error:", error);
+            toast(error instanceof Error ? error.message : "Could not save this payroll month.", "error");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleMoveToReview = async () => {
@@ -388,9 +410,12 @@ export default function PayPeriodWorkspacePage() {
                                             ...(input.sundayHours > 0 ? [{ label: `Sunday Pay (${input.sundayHours}h @ ${sundayRate}×)`, value: `R${(input.sundayHours * (entry.rateOverride ?? emp.hourlyRate) * sundayRate).toFixed(2)}` }] : []),
                                             ...(input.publicHolidayHours > 0 ? [{ label: `Public Holiday Pay (${input.publicHolidayHours}h @ 2.0×)`, value: `R${(input.publicHolidayHours * (entry.rateOverride ?? emp.hourlyRate) * 2.0).toFixed(2)}` }] : []),
                                             { label: "Total Gross", value: `R${calc.grossPay.toFixed(2)}`, highlight: true },
+                                            ...(calc.deductions.uifEmployee > 0 ? [{ label: "Employee UIF (1%)", value: `-R${calc.deductions.uifEmployee.toFixed(2)}` }] : []),
                                             ...(calc.deductions.shortfall > 0 ? [{ label: "Shortfall Deduction", value: `-R${calc.deductions.shortfall.toFixed(2)}` }] : []),
                                             ...(calc.deductions.other > 0 ? [{ label: "Other Deductions", value: `-R${calc.deductions.other.toFixed(2)}` }] : []),
                                             ...(calc.deductions.total > 0 ? [{ label: "Total Deductions", value: `-R${calc.deductions.total.toFixed(2)}` }] : []),
+                                            ...(calc.employerContributions.uifEmployer > 0 ? [{ label: "Employer UIF (1%)", value: `R${calc.employerContributions.uifEmployer.toFixed(2)}` }] : []),
+                                            { label: "Employer cost", value: `R${(calc.grossPay + calc.employerContributions.uifEmployer).toFixed(2)}`, highlight: true },
                                             { label: "Net Pay", value: `R${calc.netPay.toFixed(2)}`, isError: calc.grossPay < calc.deductions.total, highlight: true },
                                             { label: "Hourly Rate", value: calc.hourlyRate }
                                         ],
@@ -406,7 +431,7 @@ export default function PayPeriodWorkspacePage() {
                                     const emp = employees.find(e => e.id === entry.employeeId);
                                     if (!emp) return;
                                     const calc = calculatePayslip(entryToPayslipInput(entry, emp));
-                                    totalCost += calc.netPay;
+                                    totalCost += calc.grossPay + calc.employerContributions.uifEmployer;
                                     calc.complianceWarnings.forEach(w => {
                                         if (!allWarnings.includes(w)) allWarnings.push(`${emp.name}: ${w}`);
                                     });
@@ -464,14 +489,14 @@ export default function PayPeriodWorkspacePage() {
                             <p className="type-body text-[var(--text-muted)]">
                                 If you need to make corrections later, you can record them as an <strong>adjustment</strong> in the next month.
                             </p>
-                            <div className="flex gap-3">
-                                <Button variant="outline" onClick={() => setShowLockConfirm(false)} className="flex-1 font-bold">
+                            <div className="flex flex-col gap-3 sm:flex-row">
+                                <Button variant="outline" onClick={() => setShowLockConfirm(false)} className="w-full flex-1 font-bold">
                                     Cancel
                                 </Button>
                                 <Button
                                     onClick={handleLock}
                                     disabled={saving}
-                                    className="flex-1 gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]"
+                                    className="w-full flex-1 gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]"
                                 >
                                     <Lock className="h-4 w-4" /> {saving ? "Finalising..." : "Confirm & Finalise"}
                                 </Button>
@@ -494,6 +519,7 @@ export default function PayPeriodWorkspacePage() {
                         {period.entries.map(entry => {
                             const emp = employees.find(e => e.id === entry.employeeId);
                             if (!emp) return null;
+                            const entryBreakdown = calculatePayslip(entryToPayslipInput(entry, emp));
 
                             return (
                                 <Card key={entry.employeeId} className="glass-panel border-none">
@@ -617,6 +643,13 @@ export default function PayPeriodWorkspacePage() {
                                                 <span>{entry.leaveDays} leave day{entry.leaveDays !== 1 ? "s" : ""} auto-populated from records</span>
                                             </div>
                                         )}
+
+                                        {!isLocked && entryBreakdown.grossPay < entryBreakdown.deductions.total && (
+                                            <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                                                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                                <span>Deductions are higher than gross pay for this employee. Reduce the deductions before you finalise this month.</span>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             );
@@ -630,7 +663,8 @@ export default function PayPeriodWorkspacePage() {
                 <ActionBar
                     secondaryAction={
                         <Button onClick={handleSave} disabled={saving} variant="outline" className="flex-1 sm:flex-none gap-2 font-bold">
-                            <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save Progress"}
+                            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saveAcknowledged ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+                            {saving ? "Saving..." : saveAcknowledged ? "Changes Saved" : "Save Progress"}
                         </Button>
                     }
                     primaryAction={

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowRight, Save, Loader2, FileText, Clock, Banknote, Calendar, Home, ShieldAlert, CheckCircle2, BriefcaseBusiness, Info, CalendarDays } from "lucide-react";
+import { ArrowRight, Save, Loader2, FileText, Clock, Banknote, Calendar, Home, CheckCircle2, BriefcaseBusiness, Info, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -17,11 +17,57 @@ export const WIZARD_STEPS = [
     { label: "Review", description: "Final check" },
 ];
 
+const TERMS_TEXT_LIMIT = 1000;
+
+type StepErrorMap = Partial<Record<
+    | "employeeId"
+    | "jobTitle"
+    | "effectiveDate"
+    | "placeOfWork"
+    | "duties"
+    | "daysPerWeek"
+    | "startAt"
+    | "endAt"
+    | "workdayRange"
+    | "salaryAmount"
+    | "salaryFrequency"
+    | "accommodationDetails",
+    string
+>>;
+
 function textList(value: string) {
     return value
         .split("\n")
         .map((item) => item.trim())
         .filter(Boolean);
+}
+
+function normalisePlainText(value: string) {
+    return value
+        .replace(/\r\n?/g, "\n")
+        .replace(/\u00A0/g, " ")
+        .replace(/\u2028|\u2029/g, "\n");
+}
+
+function insertPlainTextAtCursor(
+    event: React.ClipboardEvent<HTMLTextAreaElement>,
+    currentValue: string,
+    onChange: (nextValue: string) => void,
+    maxLength: number,
+) {
+    event.preventDefault();
+    const pasted = normalisePlainText(event.clipboardData.getData("text/plain"));
+    const target = event.currentTarget;
+    const start = target.selectionStart ?? currentValue.length;
+    const end = target.selectionEnd ?? currentValue.length;
+    const nextValue = `${currentValue.slice(0, start)}${pasted}${currentValue.slice(end)}`.slice(0, maxLength);
+    const cursorPosition = Math.min(start + pasted.length, nextValue.length);
+
+    onChange(nextValue);
+
+    window.requestAnimationFrame(() => {
+        target.setSelectionRange(cursorPosition, cursorPosition);
+    });
 }
 
 export interface ContractFormWizardProps {
@@ -97,16 +143,15 @@ export function ContractFormWizard({
     formData,
     setFormData,
     employees,
-    settings,
     saving,
     onSave,
     onBackToTop,
     skipEmployeeStep = false,
-    totalVisibleSteps,
 }: ContractFormWizardProps) {
     const selectedEmployee = employees.find((employee) => employee.id === formData.employeeId);
     const initialDuties = formData.duties?.join("\n") || "General cleaning\nLaundry\nBasic household support";
     const [dutiesInput, setDutiesInput] = React.useState(initialDuties);
+    const [stepErrors, setStepErrors] = React.useState<StepErrorMap>({});
 
     // Save to session storage on change
     React.useEffect(() => {
@@ -147,12 +192,73 @@ export function ContractFormWizard({
     const payFrequencyLabel = formData.salary?.frequency === "Monthly" ? "month"
         : formData.salary?.frequency === "Fortnightly" ? "fortnight"
         : "week";
+    const clearError = React.useCallback((field: keyof StepErrorMap) => {
+        setStepErrors((current) => {
+            if (!current[field]) return current;
+            const next = { ...current };
+            delete next[field];
+            return next;
+        });
+    }, []);
 
-    const handleNext = () => setCurrentStep((step) => Math.min(step + 1, WIZARD_STEPS.length - 1));
+    const updateTermsText = React.useCallback(
+        (field: "overtimeAgreement" | "sundayHolidayAgreement" | "noticeClause", value: string) => {
+            setFormData((current) => ({
+                ...current,
+                terms: {
+                    ...current.terms!,
+                    [field]: value.slice(0, TERMS_TEXT_LIMIT),
+                },
+            }));
+        },
+        [setFormData],
+    );
+
+    const validateStep = React.useCallback(() => {
+        const nextErrors: StepErrorMap = {};
+
+        if (currentStep === 0 && !skipEmployeeStep && !formData.employeeId) {
+            nextErrors.employeeId = "Choose the worker before you continue.";
+        }
+
+        if (currentStep === 1) {
+            if (!formData.jobTitle?.trim()) nextErrors.jobTitle = "Add the job title for this contract.";
+            if (!formData.effectiveDate?.trim()) nextErrors.effectiveDate = "Choose the date this draft should start from.";
+            if (!formData.placeOfWork?.trim()) nextErrors.placeOfWork = "Add the place of work so the draft stays clear.";
+            if (textList(dutiesInput).length === 0) nextErrors.duties = "Add at least one duty for the employee.";
+        }
+
+        if (currentStep === 2) {
+            const daysPerWeek = Number(formData.workingHours?.daysPerWeek ?? 0);
+            if (!Number.isFinite(daysPerWeek) || daysPerWeek < 1 || daysPerWeek > 7) {
+                nextErrors.daysPerWeek = "Enter how many days per week they normally work.";
+            }
+            if (!formData.workingHours?.startAt) nextErrors.startAt = "Add the normal start time.";
+            if (!formData.workingHours?.endAt) nextErrors.endAt = "Add the normal end time.";
+            if (formData.workingHours?.startAt && formData.workingHours?.endAt && formData.workingHours.endAt <= formData.workingHours.startAt) {
+                nextErrors.workdayRange = "End time must be later than start time.";
+            }
+        }
+
+        if (currentStep === 3) {
+            const amount = Number(formData.salary?.amount ?? 0);
+            if (!Number.isFinite(amount) || amount <= 0) nextErrors.salaryAmount = "Enter the agreed pay amount before you continue.";
+            if (!formData.salary?.frequency) nextErrors.salaryFrequency = "Choose how often this pay amount applies.";
+        }
+
+        if (currentStep === 4 && formData.terms?.accommodationProvided && !formData.terms.accommodationDetails?.trim()) {
+            nextErrors.accommodationDetails = "Add the accommodation details or switch this off.";
+        }
+
+        setStepErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    }, [currentStep, dutiesInput, formData, skipEmployeeStep]);
+
+    const handleNext = () => {
+        if (!validateStep()) return;
+        setCurrentStep((step) => Math.min(step + 1, WIZARD_STEPS.length - 1));
+    };
     const handleBack = () => setCurrentStep((step) => Math.max(step - 1, 0));
-
-    // The last visible step index depends on whether we skip the employee step
-    const lastStep = skipEmployeeStep ? WIZARD_STEPS.length - 1 : WIZARD_STEPS.length - 1;
 
     return (
         <Card className="glass-panel border-none shadow-2xl overflow-hidden">
@@ -164,7 +270,10 @@ export function ContractFormWizard({
                             {employees.map((employee) => (
                                 <button
                                     key={employee.id}
-                                    onClick={() => setFormData((current) => ({ ...current, employeeId: employee.id }))}
+                                    onClick={() => {
+                                        clearError("employeeId");
+                                        setFormData((current) => ({ ...current, employeeId: employee.id }));
+                                    }}
                                     className={`flex items-center justify-between rounded-2xl border p-4 text-left transition-all ${formData.employeeId === employee.id ? "border-[var(--primary)] bg-[var(--primary)]/6" : "border-[var(--border)] hover:border-[var(--primary)]/25"}`}
                                 >
                                     <div>
@@ -175,6 +284,7 @@ export function ContractFormWizard({
                                 </button>
                             ))}
                         </div>
+                        {stepErrors.employeeId ? <FieldError message={stepErrors.employeeId} /> : null}
                     </div>
                 )}
 
@@ -186,15 +296,23 @@ export function ContractFormWizard({
                                 <input
                                     type="text"
                                     value={formData.jobTitle}
-                                    onChange={(event) => setFormData((current) => ({ ...current, jobTitle: event.target.value }))}
+                                    onChange={(event) => {
+                                        clearError("jobTitle");
+                                        setFormData((current) => ({ ...current, jobTitle: event.target.value }));
+                                    }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                 />
+                                {stepErrors.jobTitle ? <FieldError message={stepErrors.jobTitle} /> : null}
                             </Field>
                             <Field label="Effective date">
                                 <DateInput
                                     value={formData.effectiveDate ?? ""}
-                                    onChange={(v) => setFormData((current) => ({ ...current, effectiveDate: v }))}
+                                    onChange={(v) => {
+                                        clearError("effectiveDate");
+                                        setFormData((current) => ({ ...current, effectiveDate: v }));
+                                    }}
                                 />
+                                {stepErrors.effectiveDate ? <FieldError message={stepErrors.effectiveDate} /> : null}
                             </Field>
                         </div>
                         <Field label="Employee address">
@@ -210,21 +328,27 @@ export function ContractFormWizard({
                             <input
                                 type="text"
                                 value={formData.placeOfWork || ""}
-                                onChange={(event) => setFormData((current) => ({ ...current, placeOfWork: event.target.value }))}
+                                onChange={(event) => {
+                                    clearError("placeOfWork");
+                                    setFormData((current) => ({ ...current, placeOfWork: event.target.value }));
+                                }}
                                 className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                 placeholder="Household address or main work location"
                             />
+                            {stepErrors.placeOfWork ? <FieldError message={stepErrors.placeOfWork} /> : null}
                         </Field>
                         <Field label="Main duties">
                             <textarea
                                 value={dutiesInput}
                                 onChange={(event) => {
+                                    clearError("duties");
                                     setDutiesInput(event.target.value);
                                     setFormData((current) => ({ ...current, duties: textList(event.target.value) }));
                                 }}
                                 className="min-h-[160px] w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] p-4 focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                 placeholder={"General cleaning\nLaundry\nChildcare support\nMeal preparation"}
                             />
+                            {stepErrors.duties ? <FieldError message={stepErrors.duties} /> : null}
                         </Field>
                         <Alert>
                             <BriefcaseBusiness className="h-4 w-4" />
@@ -243,10 +367,14 @@ export function ContractFormWizard({
                                 <input
                                     type="number"
                                     value={formData.workingHours?.daysPerWeek}
-                                    onChange={(event) => setFormData((current) => ({ ...current, workingHours: { ...current.workingHours!, daysPerWeek: parseInt(event.target.value, 10) || 0 } }))}
+                                    onChange={(event) => {
+                                        clearError("daysPerWeek");
+                                        setFormData((current) => ({ ...current, workingHours: { ...current.workingHours!, daysPerWeek: parseInt(event.target.value, 10) || 0 } }));
+                                    }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                     min={1} max={7}
                                 />
+                                {stepErrors.daysPerWeek ? <FieldError message={stepErrors.daysPerWeek} /> : null}
                             </Field>
                             <Field label="Break (minutes)">
                                 <input
@@ -262,16 +390,27 @@ export function ContractFormWizard({
                             <Field label="Work starts">
                                 <TimeInput
                                     value={formData.workingHours?.startAt ?? ""}
-                                    onChange={(v) => setFormData((current) => ({ ...current, workingHours: { ...current.workingHours!, startAt: v } }))}
+                                    onChange={(v) => {
+                                        clearError("startAt");
+                                        clearError("workdayRange");
+                                        setFormData((current) => ({ ...current, workingHours: { ...current.workingHours!, startAt: v } }));
+                                    }}
                                 />
+                                {stepErrors.startAt ? <FieldError message={stepErrors.startAt} /> : null}
                             </Field>
                             <Field label="Work ends">
                                 <TimeInput
                                     value={formData.workingHours?.endAt ?? ""}
-                                    onChange={(v) => setFormData((current) => ({ ...current, workingHours: { ...current.workingHours!, endAt: v } }))}
+                                    onChange={(v) => {
+                                        clearError("endAt");
+                                        clearError("workdayRange");
+                                        setFormData((current) => ({ ...current, workingHours: { ...current.workingHours!, endAt: v } }));
+                                    }}
                                 />
+                                {stepErrors.endAt ? <FieldError message={stepErrors.endAt} /> : null}
                             </Field>
                         </div>
+                        {stepErrors.workdayRange ? <FieldError message={stepErrors.workdayRange} /> : null}
                     </div>
                 )}
 
@@ -286,11 +425,15 @@ export function ContractFormWizard({
                                 <input
                                     type="number"
                                     value={formData.salary?.amount || ""}
-                                    onChange={(event) => setFormData((current) => ({ ...current, salary: { ...current.salary!, amount: parseFloat(event.target.value) || 0 } }))}
+                                    onChange={(event) => {
+                                        clearError("salaryAmount");
+                                        setFormData((current) => ({ ...current, salary: { ...current.salary!, amount: parseFloat(event.target.value) || 0 } }));
+                                    }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                     placeholder="e.g. 5500"
                                     min={0}
                                 />
+                                {stepErrors.salaryAmount ? <FieldError message={stepErrors.salaryAmount} /> : null}
                                 {hourlyRate > 0 && (
                                     <p className="text-[11px] text-[var(--text-muted)]">≈ R{hourlyRate.toFixed(2)}/hr based on hours entered</p>
                                 )}
@@ -298,13 +441,26 @@ export function ContractFormWizard({
                             <Field label="Pay frequency">
                                 <select
                                     value={formData.salary?.frequency}
-                                    onChange={(event) => setFormData((current) => ({ ...current, salary: { ...current.salary!, frequency: event.target.value as Contract["salary"]["frequency"] } }))}
+                                    onChange={(event) => {
+                                        clearError("salaryFrequency");
+                                        clearError("salaryAmount");
+                                        setFormData((current) => ({
+                                            ...current,
+                                            salary: {
+                                                ...current.salary!,
+                                                frequency: event.target.value as Contract["salary"]["frequency"],
+                                                amount: 0,
+                                            },
+                                        }));
+                                    }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                 >
                                     <option value="Monthly">Monthly</option>
                                     <option value="Fortnightly">Fortnightly</option>
                                     <option value="Weekly">Weekly</option>
                                 </select>
+                                {stepErrors.salaryFrequency ? <FieldError message={stepErrors.salaryFrequency} /> : null}
+                                <p className="text-[11px] text-[var(--text-muted)]">Changing frequency clears the old amount so you can enter the new agreement safely.</p>
                             </Field>
                         </div>
 
@@ -365,7 +521,10 @@ export function ContractFormWizard({
                                     <input
                                         type="checkbox"
                                         checked={formData.terms?.accommodationProvided}
-                                        onChange={(event) => setFormData((current) => ({ ...current, terms: { ...current.terms!, accommodationProvided: event.target.checked } }))}
+                                        onChange={(event) => {
+                                            clearError("accommodationDetails");
+                                            setFormData((current) => ({ ...current, terms: { ...current.terms!, accommodationProvided: event.target.checked } }));
+                                        }}
                                         className="h-4 w-4"
                                     />
                                     <span className="text-sm text-[var(--text)]">Yes, accommodation is part of this job</span>
@@ -375,11 +534,15 @@ export function ContractFormWizard({
                                 <input
                                     type="text"
                                     value={formData.terms?.accommodationDetails}
-                                    onChange={(event) => setFormData((current) => ({ ...current, terms: { ...current.terms!, accommodationDetails: event.target.value } }))}
+                                    onChange={(event) => {
+                                        clearError("accommodationDetails");
+                                        setFormData((current) => ({ ...current, terms: { ...current.terms!, accommodationDetails: event.target.value } }));
+                                    }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                     placeholder="Room details, utilities, deduction notes"
                                     disabled={!formData.terms?.accommodationProvided}
                                 />
+                                {stepErrors.accommodationDetails ? <FieldError message={stepErrors.accommodationDetails} /> : null}
                             </Field>
                         </div>
                         {formData.terms?.accommodationProvided && (
@@ -393,23 +556,32 @@ export function ContractFormWizard({
                         <Field label="Overtime wording">
                             <textarea
                                 value={formData.terms?.overtimeAgreement}
-                                onChange={(event) => setFormData((current) => ({ ...current, terms: { ...current.terms!, overtimeAgreement: event.target.value } }))}
+                                onChange={(event) => updateTermsText("overtimeAgreement", event.target.value)}
+                                onPaste={(event) => insertPlainTextAtCursor(event, formData.terms?.overtimeAgreement ?? "", (nextValue) => updateTermsText("overtimeAgreement", nextValue), TERMS_TEXT_LIMIT)}
+                                maxLength={TERMS_TEXT_LIMIT}
                                 className="min-h-[100px] w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] p-4 focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                             />
+                            <p className="text-[11px] text-[var(--text-muted)]">{TERMS_TEXT_LIMIT - (formData.terms?.overtimeAgreement?.length ?? 0)} characters left</p>
                         </Field>
                         <Field label="Sunday / public holiday wording">
                             <textarea
                                 value={formData.terms?.sundayHolidayAgreement}
-                                onChange={(event) => setFormData((current) => ({ ...current, terms: { ...current.terms!, sundayHolidayAgreement: event.target.value } }))}
+                                onChange={(event) => updateTermsText("sundayHolidayAgreement", event.target.value)}
+                                onPaste={(event) => insertPlainTextAtCursor(event, formData.terms?.sundayHolidayAgreement ?? "", (nextValue) => updateTermsText("sundayHolidayAgreement", nextValue), TERMS_TEXT_LIMIT)}
+                                maxLength={TERMS_TEXT_LIMIT}
                                 className="min-h-[100px] w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] p-4 focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                             />
+                            <p className="text-[11px] text-[var(--text-muted)]">{TERMS_TEXT_LIMIT - (formData.terms?.sundayHolidayAgreement?.length ?? 0)} characters left</p>
                         </Field>
                         <Field label="Notice wording">
                             <textarea
                                 value={formData.terms?.noticeClause}
-                                onChange={(event) => setFormData((current) => ({ ...current, terms: { ...current.terms!, noticeClause: event.target.value } }))}
+                                onChange={(event) => updateTermsText("noticeClause", event.target.value)}
+                                onPaste={(event) => insertPlainTextAtCursor(event, formData.terms?.noticeClause ?? "", (nextValue) => updateTermsText("noticeClause", nextValue), TERMS_TEXT_LIMIT)}
+                                maxLength={TERMS_TEXT_LIMIT}
                                 className="min-h-[100px] w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] p-4 focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                             />
+                            <p className="text-[11px] text-[var(--text-muted)]">{TERMS_TEXT_LIMIT - (formData.terms?.noticeClause?.length ?? 0)} characters left</p>
                         </Field>
 
                         {/* Single unified acknowledgement — replaces the two separate disclaimers */}
@@ -527,4 +699,8 @@ function SummaryRow({ icon: Icon, label, value }: { icon: React.ElementType; lab
             </div>
         </div>
     );
+}
+
+function FieldError({ message }: { message: string }) {
+    return <p className="text-sm font-medium text-[var(--danger)]">{message}</p>;
 }
