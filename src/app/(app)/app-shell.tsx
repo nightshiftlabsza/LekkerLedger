@@ -21,10 +21,8 @@ import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEm
 import { syncDataToDrive, performSmartSyncCheck, syncDataFromDrive } from "@/lib/google-drive";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 import { usePaidLoginActivation } from "@/components/paid-login-button";
-import { useAutoSync } from "@/lib/hooks/useAutoSync";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-    useAutoSync();
     const router = useRouter();
     const pathname = usePathname();
     const { network, sync, payments } = useAppConnectivity();
@@ -90,7 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         if (!settings || network !== "online") return;
         
         const plan = getUserPlan(settings);
-        if (!canUseAutoBackup(plan) || !settings.autoBackupEnabled || !settings.googleSyncEnabled) return;
+        if (!canUseAutoBackup(plan) || !settings.googleSyncEnabled) return;
 
         const accessToken = getStoredGoogleAccessToken();
         if (!accessToken) return;

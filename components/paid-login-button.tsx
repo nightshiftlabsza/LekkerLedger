@@ -188,7 +188,7 @@ export function usePaidLoginActivation() {
             }
 
             const settings = await getSettings();
-            await saveSettings({ ...settings, googleSyncEnabled: true });
+            await saveSettings({ ...settings, googleSyncEnabled: true, autoBackupEnabled: true });
 
             setStatusMessage("Finalising first backup sync...");
             const sync = await resolveFirstSync(accessToken);

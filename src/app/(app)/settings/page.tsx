@@ -23,7 +23,7 @@ import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
 import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "@/src/config/plans";
 import { getArchiveCutoffDate, getArchiveUpgradeHref } from "@/lib/archive";
-import { canUseAdvancedLeaveFeatures, canUseAutoBackup, canUseDriveSync, canUseFullHistoryExport, getUserPlan } from "../../../lib/entitlements";
+import { canUseAdvancedLeaveFeatures, canUseDriveSync, canUseFullHistoryExport, getUserPlan } from "../../../lib/entitlements";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 
@@ -513,7 +513,6 @@ function SettingsContent() {
                     <div className="space-y-6">
                         <GoogleSync
                             driveSyncAllowed={canUseDriveSync(getUserPlan(settings))}
-                            autoBackupAllowed={canUseAutoBackup(getUserPlan(settings))}
                         />
 
                         <section className="space-y-4">

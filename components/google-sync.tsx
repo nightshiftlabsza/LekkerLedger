@@ -4,14 +4,12 @@ import { env } from "@/lib/env";
 
 import { useState, useEffect, useCallback } from "react";
 import { useGoogleLogin, googleLogout } from "@react-oauth/google";
-import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Folder, FileJson, Database, Shield, History, RefreshCcw, ArrowRight, Lock } from "lucide-react";
+import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Shield, History, RefreshCcw, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MINIMAL_SCOPES, DRIVE_SCOPE, syncDataToDrive, syncDataFromDrive, deleteDataFromDrive, getBackupMetadata, type BackupMetadata } from "@/lib/google-drive";
 import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail, hasStoredGoogleDriveScope, setStoredGoogleDriveScope, storeGoogleAccessToken, storeGoogleIdentity } from "@/lib/google-session";
 import { getSettings, saveSettings, hasMeaningfulLocalData, getLocalBackupPreview, resetAllData, type LocalBackupPreview } from "@/lib/storage";
-import { Switch } from "@/components/ui/switch";
-
 interface SyncEvent {
     id: string;
     timestamp: string;
@@ -22,7 +20,6 @@ interface SyncEvent {
 
 interface GoogleSyncProps {
     driveSyncAllowed?: boolean;
-    autoBackupAllowed?: boolean;
 }
 
 function getStoredToken(): string | null {
@@ -49,14 +46,13 @@ function GoogleSyncUnavailable() {
     );
 }
 
-function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false }: GoogleSyncProps) {
+function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
     const [token, setToken] = useState<string | null>(() => getStoredToken());
     const [email, setEmail] = useState<string | null>(() => getStoredGoogleEmail());
     const [hasDriveScope, setHasDriveScope] = useState<boolean>(() => hasStoredGoogleDriveScope());
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [statusMessage, setStatusMessage] = useState("");
     const [pendingAction, setPendingAction] = useState<null | "restore" | "delete">(null);
-    const [autoBackupEnabled, setAutoBackupEnabled] = useState(false);
     const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => {
         if (typeof window !== "undefined") return localStorage.getItem("ll_last_sync");
         return null;
@@ -308,7 +304,6 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
             const settings = await getSettings();
             await saveSettings({ ...settings, googleSyncEnabled: true, autoBackupEnabled: true });
             if (!isMountedRef.current) return;
-            setAutoBackupEnabled(true);
             await runDiscovery(accessToken);
             setTransientStatus("success", "Private Google Drive backup enabled.");
         },
@@ -323,7 +318,6 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
         void (async () => {
             const settings = await getSettings();
             if (!isMountedRef.current) return;
-            setAutoBackupEnabled(Boolean(settings.autoBackupEnabled));
             if (!lastSyncTime && settings.lastBackupTimestamp) {
                 setLastSyncTime(settings.lastBackupTimestamp);
                 if (typeof window !== "undefined") {
@@ -551,7 +545,7 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
             )}
 
             {token && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-6">
                     <Card className="glass-panel border-none">
                         <CardHeader className="pb-3 border-b border-[var(--border)]">
                             <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -599,72 +593,6 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
                     </Card>
 
                     <Card className="glass-panel border-none">
-                        <CardHeader className="pb-3 border-b border-[var(--border)]">
-                            <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                <Database className="h-4 w-4 text-[var(--primary)]" /> Storage Details
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-5">
-                            <div className="font-mono text-[10px] text-[var(--text-muted)] space-y-2">
-                                <div className="flex items-center gap-2"><Folder className="h-3 w-3" fill="currentColor" /> appDataFolder/</div>
-                                <div className="flex items-center gap-2 ml-4"><Folder className="h-3 w-3 text-[var(--focus)]" fill="currentColor" /> LekkerLedger/</div>
-                                <div className="flex items-center gap-2 ml-8 text-[var(--text)]"><FileJson className="h-3 w-3 text-blue-400" /> <span className="font-semibold">lekkerledger_data.json</span></div>
-                                <div className="mt-4 pt-4 border-t border-[var(--border)] text-[9px] opacity-70">
-                                    Google sign-in token: session only
-                                    <br />
-                                    Backup storage: Google Drive app data area in your own Google account
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="glass-panel border-none">
-                        <CardHeader className="pb-3 border-b border-[var(--border)]">
-                            <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                <RefreshCcw className="h-4 w-4 text-[var(--primary)]" /> Automatic backup
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-5 space-y-4">
-                            <div className="flex items-start justify-between gap-3">
-                                <div className="space-y-1">
-                                    <p className="text-sm font-semibold text-[var(--text)]">Back up automatically</p>
-                                    <p className="text-xs leading-relaxed text-[var(--text-muted)]">
-                                        Pro keeps your data in sync automatically after changes and at 5-minute intervals.
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={autoBackupEnabled}
-                                    disabled={!autoBackupAllowed}
-                                    onCheckedChange={async (checked) => {
-                                        if (!autoBackupAllowed) return;
-                                        setAutoBackupEnabled(checked);
-                                        const settings = await getSettings();
-                                        await saveSettings({ ...settings, autoBackupEnabled: checked });
-                                    }}
-                                />
-                            </div>
-
-                            {!autoBackupAllowed && (
-                                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4 text-xs text-[var(--text-muted)]">
-                                    <div className="flex items-start gap-2">
-                                        <Lock className="mt-0.5 h-4 w-4 text-[var(--primary)]" />
-                                        <div>
-                                            <p className="font-semibold text-[var(--text)]">Automatic backups are available on Pro.</p>
-                                            <p>You can still run a manual backup any time on Standard.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {autoBackupEnabled && (!token || !hasDriveScope || !driveSyncAllowed) && (
-                                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
-                                    Automatic backup is on but Google isn&apos;t connected. Reconnect to resume backups.
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card className="glass-panel border-none md:col-span-2">
                         <CardHeader className="pb-3 border-b border-[var(--border)] flex flex-row items-center justify-between">
                             <CardTitle className="text-sm font-bold flex items-center gap-2">
                                 <History className="h-4 w-4 text-[var(--primary)]" /> Recent Activity
@@ -701,12 +629,12 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
     );
 }
 
-export function GoogleSync({ driveSyncAllowed = false, autoBackupAllowed = false }: GoogleSyncProps) {
+export function GoogleSync({ driveSyncAllowed = false }: GoogleSyncProps) {
     const googleAuthConfigured = Boolean(env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
     if (!googleAuthConfigured) {
         return <GoogleSyncUnavailable />;
     }
 
-    return <GoogleSyncContent driveSyncAllowed={driveSyncAllowed} autoBackupAllowed={autoBackupAllowed} />;
+    return <GoogleSyncContent driveSyncAllowed={driveSyncAllowed} />;
 }
