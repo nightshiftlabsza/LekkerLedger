@@ -14,7 +14,7 @@ interface SyncStatusBadgeProps {
 const STATES: Record<SyncState, { icon: React.ElementType; label: string; color: string }> = {
     synced: { icon: Check, label: "Synced", color: "var(--success)" },
     syncing: { icon: Loader2, label: "Syncing", color: "var(--primary)" },
-    error: { icon: AlertTriangle, label: "Sync error", color: "var(--red-500)" },
+    error: { icon: AlertTriangle, label: "Sync error", color: "var(--danger)" },
     offline: { icon: CloudOff, label: "Offline", color: "var(--text-muted)" },
     disconnected: { icon: Cloud, label: "Not connected", color: "var(--text-muted)" },
 };

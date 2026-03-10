@@ -759,9 +759,9 @@ export function ContractFormWizard({
                             </div>
 
                             {/* Disclaimer */}
-                            <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-900/40 dark:bg-amber-950/20">
-                                <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
-                                <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                            <div className="flex items-start gap-2 rounded-xl border p-3" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
+                                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--warning)]" />
+                                <p className="text-xs leading-relaxed text-[var(--warning)]">
                                     <strong>LekkerLedger is not a law firm and this draft does not constitute legal advice.</strong> The template follows the Department of Employment and Labour&apos;s sample employment contract structure and references the BCEA and Sectoral Determination 7, but every employment relationship is different. Before either party signs, have the completed document reviewed by a qualified South African labour lawyer. Keep the signed original with the employee&apos;s records.
                                 </p>
                             </div>

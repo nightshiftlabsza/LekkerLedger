@@ -156,7 +156,7 @@ export function UFilingClient() {
                         <CheckItem label="Locked Pay Periods" completed={payPeriods.length > 0} />
                     </div>
                     {(!settings?.uifRefNumber || payPeriods.length === 0) && (
-                        <div className="p-3 bg-[var(--surface-2)] rounded-xl border border-amber-100 flex items-start gap-3">
+                        <div className="flex items-start gap-3 rounded-xl border bg-[var(--surface-2)] p-3" style={{ borderColor: "var(--warning-border)" }}>
                             <AlertCircle className="h-4 w-4 text-[var(--focus)] mt-0.5" />
                             <p className="text-[10px] text-[var(--text-muted)] leading-relaxed font-medium">
                                 Declarations must identify both your <strong>UIF Reference</strong> and data from <strong>Locked</strong> months to be accepted by the uFiling system.
@@ -246,7 +246,7 @@ export function UFilingClient() {
                                     </select>
                                 ) : (
                                     <div className="text-right">
-                                        <p className="text-xs font-bold text-red-500">No locked periods yet</p>
+                                        <p className="text-xs font-bold text-[var(--danger)]">No locked periods yet</p>
                                         <Link href="/payroll" className="text-[10px] text-[var(--primary-hover)] underline">Go to Payroll</Link>
                                     </div>
                                 )
@@ -340,7 +340,7 @@ export function UFilingClient() {
 function CheckItem({ label, completed }: { label: string; completed: boolean }) {
     return (
         <div className="flex items-center gap-2">
-            <div className={`h-4 w-4 rounded flex items-center justify-center ${completed ? 'bg-emerald-500 text-white' : 'bg-[var(--surface-2)] border border-[var(--border)]'}`}>
+            <div className={`flex h-4 w-4 items-center justify-center rounded ${completed ? 'bg-[var(--success)] text-white' : 'border border-[var(--border)] bg-[var(--surface-2)]'}`}>
                 {completed && <CheckCircle2 className="h-3 w-3" strokeWidth={4} />}
             </div>
             <span className={`text-[11px] font-bold ${completed ? 'text-[var(--text)]' : 'text-[var(--text-muted)]'}`}>{label}</span>

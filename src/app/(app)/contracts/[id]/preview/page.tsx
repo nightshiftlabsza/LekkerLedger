@@ -97,8 +97,8 @@ export default function ContractPreviewPage() {
     if (error) {
         return (
             <div className="flex flex-col items-center justify-center p-20 gap-4 text-center">
-                <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-                    <span className="text-red-500 font-bold">!</span>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: "var(--danger-soft)" }}>
+                    <span className="font-bold text-[var(--danger)]">!</span>
                 </div>
                 <div>
                     <h2 className="text-lg font-bold text-[var(--text)]">Generation failed</h2>

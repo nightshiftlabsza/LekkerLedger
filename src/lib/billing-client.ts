@@ -133,6 +133,28 @@ export async function startTrialCheckout(
     };
 }
 
+export async function createInlineTrialIntent(
+    input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; email: string; referralCode?: string | null },
+): Promise<{ reference: string; amountCents: number }> {
+    const response = await fetch("/api/billing/trial/intent", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+        throw await buildErrorMessage(response, "The payment popup could not be opened.");
+    }
+
+    const data = await response.json();
+    return {
+        reference: data.reference as string,
+        amountCents: data.amountCents as number,
+    };
+}
+
 export async function fetchBillingAccount(accessToken = getStoredGoogleAccessToken()): Promise<BillingAccountPayload | null> {
     if (!accessToken) return null;
 
@@ -154,6 +176,37 @@ export async function fetchBillingAccount(accessToken = getStoredGoogleAccessTok
     }
 
     const data = await response.json();
+    return {
+        entitlements: (data?.entitlements as VerifiedEntitlements | undefined) ?? getFreeEntitlements(),
+        account: data?.account as BillingAccountSummary,
+    };
+}
+
+export async function confirmBillingTransaction(reference: string, accessToken = getStoredGoogleAccessToken()): Promise<BillingAccountPayload> {
+    if (!accessToken) {
+        throw new Error("Google sign-in is required before confirming payment.");
+    }
+
+    const response = await fetch("/api/billing/confirm", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ reference }),
+        cache: "no-store",
+    });
+
+    if (response.status === 401) {
+        throw new Error("Google sign-in is required before confirming payment.");
+    }
+
+    if (!response.ok) {
+        throw await buildErrorMessage(response, "Payment confirmation could not be completed.");
+    }
+
+    const data = await response.json();
+    clearVerifiedEntitlementsCache();
     return {
         entitlements: (data?.entitlements as VerifiedEntitlements | undefined) ?? getFreeEntitlements(),
         account: data?.account as BillingAccountSummary,

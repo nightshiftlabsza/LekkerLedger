@@ -12,8 +12,9 @@ export default function RulesPage() {
             <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface-1)]/95 backdrop-blur px-4 py-4">
                 <div className="mx-auto flex max-w-4xl items-center gap-3">
                     <Link href="/">
-                        <Button variant="ghost" size="icon" className="rounded-xl">
+                        <Button variant="ghost" className="gap-2 rounded-xl px-3">
                             <ArrowLeft className="h-4 w-4" />
+                            Back to Home
                         </Button>
                     </Link>
                     <div>

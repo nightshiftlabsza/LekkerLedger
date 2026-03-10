@@ -66,15 +66,15 @@ function Toaster({ toasts }: { toasts: Toast[] }) {
                     className="animate-in fade-in slide-in-from-bottom-4 duration-300 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border glass-panel pointer-events-auto"
                     style={{
                         backgroundColor: "var(--surface-1)",
-                        borderColor: t.type === "success" ? "var(--primary)" : "var(--border)",
+                        borderColor: t.type === "success" ? "var(--success-border)" : t.type === "error" ? "var(--danger-border)" : "var(--info-border)",
                         color: "var(--text)",
                     }}
                 >
                     <div
                         className="h-2 w-2 rounded-full"
                         style={{
-                            backgroundColor: t.type === "success" ? "var(--primary)" :
-                                t.type === "error" ? "var(--red-500)" : "var(--blue-500)"
+                            backgroundColor: t.type === "success" ? "var(--success)" :
+                                t.type === "error" ? "var(--danger)" : "var(--info)"
                         }}
                     />
                     <p className="text-sm font-bold">{t.message}</p>

@@ -21,6 +21,7 @@ import { computeDashboardAlerts, type DashboardAlert as DashboardAlertData } fro
 import { getUserPlan } from "@/lib/entitlements";
 import { Employee, PayPeriod, EmployerSettings, DocumentMeta, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
+import { InlinePlanCheckoutButton } from "@/components/billing/inline-paid-plan-checkout";
 import { PaidLoginGate } from "@/components/paid-login-button";
 
 interface EmployeeSummary {
@@ -212,9 +213,16 @@ function DashboardContent() {
                     {getUserPlan(settings).id === "free" && (
                         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-3 sm:p-4 space-y-2">
                             <p className="text-xs font-semibold text-[var(--text)]">Standard adds 2 more workers, Google Drive backup, and leave tracking — R29/month.</p>
-                            <Link href="/upgrade?plan=standard&pay=1" className="inline-flex items-center gap-1 text-xs font-bold text-[var(--primary)] hover:underline">
-                                R1 for 14 days <ArrowRight className="h-3 w-3" />
-                            </Link>
+                            <InlinePlanCheckoutButton
+                                planId="standard"
+                                billingCycle="monthly"
+                                variant="link"
+                                className="h-auto min-h-0 px-0 py-0 text-xs font-bold"
+                            >
+                                <>
+                                    R1 for 14 days <ArrowRight className="h-3 w-3" />
+                                </>
+                            </InlinePlanCheckoutButton>
                         </div>
                     )}
 
@@ -557,15 +565,15 @@ function RecentRecordsArea({ recentDocs, hasEmployees }: { recentDocs: DocumentM
 function DashboardAlert({ alert }: { alert: DashboardAlertData }) {
     const isUrgent = alert.severity === "urgent";
     const isInfo = alert.severity === "info";
-    const bg = isUrgent ? "rgba(239,68,68,0.08)" : isInfo ? "rgba(59,130,246,0.08)" : "rgba(217,119,6,0.08)";
-    const border = isUrgent ? "rgba(239,68,68,0.30)" : isInfo ? "rgba(59,130,246,0.30)" : "rgba(217,119,6,0.25)";
-    const color = isUrgent ? "var(--danger)" : isInfo ? "var(--blue-500)" : "var(--primary)";
+    const bg = isUrgent ? "var(--danger-soft)" : isInfo ? "var(--info-soft)" : "var(--warning-soft)";
+    const border = isUrgent ? "var(--danger-border)" : isInfo ? "var(--info-border)" : "var(--warning-border)";
+    const color = isUrgent ? "var(--danger)" : isInfo ? "var(--info)" : "var(--warning)";
 
     return (
         <div className="flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border text-sm font-bold shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
             style={{ backgroundColor: bg, borderColor: border, color }}>
             <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg" style={{ backgroundColor: border.replace('0.30', '0.1').replace('0.25', '0.1') }}>
+                <div className="p-2 rounded-lg" style={{ backgroundColor: bg }}>
                     <AlertTriangle className="h-4 w-4 shrink-0" />
                 </div>
                 <span>{alert.message}</span>

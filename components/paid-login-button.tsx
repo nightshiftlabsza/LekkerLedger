@@ -25,6 +25,7 @@ interface PaidLoginButtonProps {
     variant?: "default" | "ghost" | "outline";
     nextPath?: string | null;
     showInlineError?: boolean;
+    skipPaidChecks?: boolean;
 }
 
 function normalizeDestination(raw: string | null | undefined): string {
@@ -241,14 +242,14 @@ function PaidLoginButtonConfigured(props: PaidLoginButtonProps) {
                 className={props.className}
                 disabled={loading}
                 onClick={() => {
-                    void start(props.nextPath);
+                    void start(props.nextPath, { skipPaidChecks: props.skipPaidChecks });
                 }}
             >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {loading ? (statusMessage || "Working...") : (props.label || "Sign in")}
             </Button>
             {props.showInlineError && error && (
-                <p className="text-xs font-medium text-rose-600">{error}</p>
+                <p className="text-xs font-medium text-[var(--danger)]">{error}</p>
             )}
         </div>
     );
@@ -305,16 +306,16 @@ function PaidLoginGateConfigured({ nextPath, skipPaidChecks = false }: { nextPat
                         {loading ? (statusMessage || "Working...") : (error ? "Try Again" : "Continue sign in")}
                     </Button>
                     {isPopupBlocked ? (
-                        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-1 text-xs">
-                            <p className="font-bold text-amber-800">Popup blocked by your browser</p>
-                            <ol className="list-decimal list-inside text-amber-700 space-y-0.5">
+                        <div className="space-y-1 rounded-xl border p-3 text-xs" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)", color: "var(--warning)" }}>
+                            <p className="font-bold text-[var(--text)]">Popup blocked by your browser</p>
+                            <ol className="list-decimal list-inside space-y-0.5">
                                 <li>Click the popup-blocked icon in your browser&apos;s address bar</li>
                                 <li>Select &quot;Always allow popups from this site&quot;</li>
                                 <li>Click Try Again above</li>
                             </ol>
                         </div>
                     ) : error ? (
-                        <p className="text-sm font-medium text-rose-600">{error}</p>
+                        <p className="text-sm font-medium text-[var(--danger)]">{error}</p>
                     ) : null}
                 </div>
             </div>

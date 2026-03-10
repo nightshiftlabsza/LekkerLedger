@@ -20,7 +20,7 @@ const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
             >
                 <span
                     className={cn(
-                        "pointer-events-none block h-6 w-6 rounded-full bg-white shadow-lg ring-0 transition-transform",
+                        "pointer-events-none block h-6 w-6 rounded-full bg-[var(--surface-1)] shadow-lg ring-0 transition-transform",
                         checked ? "translate-x-5" : "translate-x-0"
                     )}
                 />

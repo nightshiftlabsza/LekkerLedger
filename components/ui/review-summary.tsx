@@ -44,7 +44,7 @@ export function ReviewSummary({ sections, totalCost, warnings = [], errors = [] 
             )}
 
             {warnings.length > 0 && (
-                <Alert variant="default" className="bg-[var(--surface-2)] border-[var(--focus)]/30 text-[var(--text)] dark:bg-amber-900/10 dark:text-amber-400">
+                <Alert variant="warning" className="bg-[var(--surface-2)] text-[var(--text)]">
                     <Info className="h-4 w-4" />
                     <AlertDescription>
                         <ul className="list-disc pl-4 space-y-1">
@@ -56,17 +56,17 @@ export function ReviewSummary({ sections, totalCost, warnings = [], errors = [] 
 
             {/* Total Summary Banner (Optional) */}
             {totalCost !== undefined && (
-                <Card className="border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 glass-panel">
+                <Card className="glass-panel" style={{ borderColor: "var(--success-border)", backgroundColor: "var(--success-soft)" }}>
                     <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <p className="text-sm font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-500">
+                            <p className="text-sm font-bold uppercase tracking-wider text-[var(--success)]">
                                 Estimated Household Cost
                             </p>
-                            <p className="text-xs text-emerald-700/80 dark:text-emerald-500/70 mt-1">
+                            <p className="mt-1 text-xs text-[var(--success)]">
                                 Gross pay plus employer UIF across all included employees.
                             </p>
                         </div>
-                        <div className="text-2xl sm:text-3xl font-black tabular-nums text-emerald-700 dark:text-emerald-400">
+                        <div className="text-2xl sm:text-3xl font-black tabular-nums text-[var(--success)]">
                             {formatZAR(totalCost)}
                         </div>
                     </CardContent>
@@ -101,11 +101,11 @@ export function ReviewSummary({ sections, totalCost, warnings = [], errors = [] 
                                             {item.label}
                                         </dt>
                                         <dd
-                                            className={`text-sm font-bold text-right ${item.isError ? 'text-rose-600 dark:text-rose-400' : ''}`}
+                                            className={`text-sm font-bold text-right ${item.isError ? 'text-[var(--danger)]' : ''}`}
                                             style={{ color: item.isError ? undefined : "var(--text)" }}
                                         >
                                             {typeof item.value === 'number' && item.label.toLowerCase().includes('rate') && item.value < NMW_RATE ? (
-                                                <span className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
+                                                <span className="flex items-center gap-1.5 text-[var(--danger)]">
                                                     <AlertTriangle className="h-3 w-3" />
                                                     R{item.value.toFixed(2)}
                                                 </span>

@@ -18,6 +18,7 @@ const serverSchema = z.object({
 
 const publicSchema = z.object({
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string().optional(),
+    NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: z.string().optional(),
 });
 
 /**
@@ -43,11 +44,13 @@ function validateServerEnv() {
 function validatePublicEnv() {
     const parsed = publicSchema.safeParse({
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
     });
     if (!parsed.success) {
         console.error("❌ Invalid public environment variables:", parsed.error.flatten().fieldErrors);
         return {
             NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+            NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
         } as z.infer<typeof publicSchema>;
     }
     return parsed.data;

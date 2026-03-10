@@ -3,19 +3,20 @@
 import * as React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { getSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
-import { cancelSubscriptionRenewal, startTrialCheckout, fetchBillingAccount } from "@/lib/billing-client";
+import { cancelSubscriptionRenewal, fetchBillingAccount } from "@/lib/billing-client";
 import { hasStoredGoogleSession } from "@/lib/google-session";
 import { type BillingCycle, PLANS, type PlanId } from "@/src/config/plans";
 import { EmployerSettings } from "@/lib/schema";
 import { getUserPlan } from "@/lib/entitlements";
 import { MarketingBillingToggle, MarketingPlanCards } from "@/components/marketing/pricing";
+import { useInlinePaidPlanCheckout } from "@/components/billing/inline-paid-plan-checkout";
 
 export default function UpgradePage() {
     return (
@@ -25,39 +26,17 @@ export default function UpgradePage() {
     );
 }
 
-function buildUpgradeHref(planId: "standard" | "pro", billingCycle: BillingCycle, referralCode?: string): string {
-    const params = new URLSearchParams({
-        plan: planId,
-        billing: billingCycle,
-        pay: "1",
-    });
-    if (referralCode) {
-        params.set("ref", referralCode);
-    }
-    return `/upgrade?${params.toString()}`;
-}
-
-function buildPaidLoginHref(planId: "standard" | "pro", billingCycle: BillingCycle, referralCode?: string): string {
-    const params = new URLSearchParams({
-        paidLogin: "1",
-        next: buildUpgradeHref(planId, billingCycle, referralCode),
-    });
-    return `/dashboard?${params.toString()}`;
-}
-
 function UpgradePageContent() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("yearly");
-    const [checkoutPlanId, setCheckoutPlanId] = React.useState<"standard" | "pro" | null>(null);
-    const [checkoutError, setCheckoutError] = React.useState("");
     const [referralCode, setReferralCode] = React.useState("");
     const hasAutoStartedCheckout = React.useRef(false);
     const [downgradingTo, setDowngradingTo] = React.useState<PlanId | null>(null);
     const [cancelingForDowngrade, setCancelingForDowngrade] = React.useState(false);
     const [ownReferralCode, setOwnReferralCode] = React.useState<string | null>(null);
+    const { startCheckout, loadingPlanId, dialog } = useInlinePaidPlanCheckout({ billingCycle, referralCode });
 
     React.useEffect(() => {
         async function load() {
@@ -82,31 +61,6 @@ function UpgradePageContent() {
         void load();
     }, [searchParams]);
 
-    const startCheckout = React.useCallback(async (planId: "standard" | "pro") => {
-        setCheckoutError("");
-        const normalizedReferralCode = referralCode.trim().toUpperCase();
-
-        if (!hasStoredGoogleSession()) {
-            router.push(buildPaidLoginHref(planId, billingCycle, normalizedReferralCode || undefined));
-            return;
-        }
-
-        try {
-            setCheckoutPlanId(planId);
-            const checkout = await startTrialCheckout({
-                planId,
-                billingCycle,
-                referralCode: normalizedReferralCode || null,
-            });
-            window.location.href = checkout.authorizationUrl;
-        } catch (error) {
-            const message = error instanceof Error ? error.message : "Checkout could not be started.";
-            setCheckoutError(message);
-            toast(message);
-            setCheckoutPlanId(null);
-        }
-    }, [billingCycle, referralCode, router, toast]);
-
     React.useEffect(() => {
         if (!settings || hasAutoStartedCheckout.current) return;
         const requestedPlan = searchParams.get("plan");
@@ -115,7 +69,7 @@ function UpgradePageContent() {
             const currentPlan = getUserPlan(settings);
             if (currentPlan.id !== requestedPlan) {
                 hasAutoStartedCheckout.current = true;
-                void startCheckout(requestedPlan);
+                startCheckout(requestedPlan);
             }
         }
     }, [searchParams, settings, startCheckout]);
@@ -184,12 +138,6 @@ function UpgradePageContent() {
                     </CardContent>
                 </Card>
 
-                {checkoutError && (
-                    <div className="rounded-2xl border px-4 py-3 text-sm font-medium" style={{ borderColor: "rgba(180,35,24,0.25)", backgroundColor: "rgba(180,35,24,0.06)", color: "var(--danger)" }}>
-                        {checkoutError}
-                    </div>
-                )}
-
                 <Card className="border-[var(--border)]">
                     <CardContent className="divide-y divide-[var(--border)] p-0">
                         {/* ── Your own referral code to share ── */}
@@ -244,21 +192,21 @@ function UpgradePageContent() {
                         billingCycle={billingCycle}
                         currentPlanId={currentPlan.id as PlanId}
                         onSelect={handlePlanSelect}
-                        isLoadingPlanId={checkoutPlanId}
+                        isLoadingPlanId={loadingPlanId}
                     />
                 </div>
 
                 {downgradingTo !== null && (
-                    <div className="rounded-2xl border border-amber-300/60 bg-amber-50/80 p-5 space-y-4 dark:bg-amber-950/20 dark:border-amber-500/30">
+                    <div className="space-y-4 rounded-2xl border p-5" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
                         <div className="space-y-2">
-                            <p className="font-bold text-amber-900 dark:text-amber-200">
+                            <p className="font-bold text-[var(--text)]">
                                 Downgrade to {PLANS[downgradingTo].label}?
                             </p>
-                            <p className="text-sm text-amber-800 dark:text-amber-300">
+                            <p className="text-sm text-[var(--warning)]">
                                 This cancels your {currentPlan.label} renewal. You keep {currentPlan.label} until your current billing period ends, then move to the Free plan.
                             </p>
                             {downgradingTo !== "free" && (
-                                <p className="text-sm text-amber-800 dark:text-amber-300">
+                                <p className="text-sm text-[var(--warning)]">
                                     After your {currentPlan.label} expires you can start a fresh {PLANS[downgradingTo].label} period from Free.
                                 </p>
                             )}
@@ -268,7 +216,8 @@ function UpgradePageContent() {
                                 type="button"
                                 onClick={() => setDowngradingTo(null)}
                                 disabled={cancelingForDowngrade}
-                                className="flex-1 rounded-xl border border-amber-300 bg-white px-4 py-2.5 text-sm font-bold text-amber-900 hover:bg-amber-50 disabled:opacity-50 dark:bg-transparent dark:text-amber-200 dark:border-amber-500/40"
+                                className="flex-1 rounded-xl border px-4 py-2.5 text-sm font-bold text-[var(--warning)] hover:bg-[var(--surface-1)] disabled:opacity-50"
+                                style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--surface-1)" }}
                             >
                                 Keep {currentPlan.label}
                             </button>
@@ -276,7 +225,7 @@ function UpgradePageContent() {
                                 type="button"
                                 onClick={() => void handleConfirmDowngrade()}
                                 disabled={cancelingForDowngrade}
-                                className="flex-1 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-amber-700 disabled:opacity-50"
+                                className="flex-1 rounded-xl bg-[var(--warning)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-95 disabled:opacity-50"
                             >
                                 {cancelingForDowngrade ? "Canceling..." : "Confirm downgrade"}
                             </button>
@@ -318,6 +267,7 @@ function UpgradePageContent() {
                     </Card>
                 </div>
             </div>
+            {dialog}
         </div>
     );
 }

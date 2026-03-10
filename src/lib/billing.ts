@@ -1,7 +1,7 @@
 import { BillingCycle, PlanId } from "../config/plans";
 
 export type BillingStatus = "free" | "trialing" | "active" | "past_due" | "canceled" | "refunded" | "unknown";
-export type BillingIntentStatus = "pending" | "checkout_started" | "trial_started" | "completed" | "rejected" | "canceled";
+export type BillingIntentStatus = "pending" | "checkout_started" | "payment_received" | "trial_started" | "completed" | "rejected" | "canceled";
 export type ReferralStatus = "trial_started" | "qualified_pending_reward" | "reward_granted" | "reversed" | "rejected";
 export type BillingCreditStatus = "pending" | "available" | "applied" | "reversed";
 

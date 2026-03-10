@@ -107,7 +107,7 @@ export default function ExamplesPage() {
     const netPay = grossPay - uifDeduction;
 
     return (
-        <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] selection:bg-amber-200">
+        <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] selection:bg-[var(--accent-subtle)]">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-20 space-y-12">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                     <Link href="/">

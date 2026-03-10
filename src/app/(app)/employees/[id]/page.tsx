@@ -285,16 +285,16 @@ function EmployeeDetailContent() {
                                                 </Button>
                                             </>
                                         ) : (
-                                            <div className="flex flex-col gap-3 rounded-[14px] border border-red-200 bg-red-50 p-3 w-full max-w-[260px] text-left">
-                                                <p className="text-xs font-bold text-red-800 leading-tight">This will delete all payslips and leave records.</p>
+                                            <div className="w-[260px] rounded-[14px] border p-3 text-left" style={{ borderColor: "var(--danger-border)", backgroundColor: "var(--danger-soft)" }}>
+                                                <p className="text-xs font-bold leading-tight text-[var(--text)]">This will delete all payslips and leave records.</p>
                                                 <div className="space-y-1.5">
-                                                    <p className="text-[10px] uppercase tracking-wider font-semibold text-red-700">Type DELETE to confirm:</p>
+                                                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--danger)]">Type DELETE to confirm:</p>
                                                     <Input
                                                         type="text"
                                                         value={deleteConfirmText}
                                                         onChange={(e) => setDeleteConfirmText(e.target.value)}
                                                         placeholder="DELETE"
-                                                        className="h-8 text-xs bg-white border-red-200 focus-visible:ring-red-500 uppercase"
+                                                        className="h-8 border-[var(--danger-border)] bg-[var(--surface-1)] text-xs uppercase focus-visible:ring-[var(--danger)]"
                                                     />
                                                 </div>
                                                 <div className="flex gap-2">
@@ -313,7 +313,7 @@ function EmployeeDetailContent() {
                                                         size="sm"
                                                         disabled={deleteConfirmText !== "DELETE"}
                                                         onClick={handleDeleteEmployee}
-                                                        className="h-8 flex-1 bg-red-600 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                                                        className="h-8 flex-1 bg-[var(--danger)] text-xs font-bold text-white hover:brightness-95 disabled:opacity-50"
                                                     >
                                                         Delete
                                                     </Button>
@@ -458,14 +458,15 @@ function EmployeeDetailContent() {
                                                         <div className="flex items-center gap-1.5 shrink-0">
                                                             {deleteConfirmId === ps.id ? (
                                                                 <>
-                                                                    <span className="text-xs font-bold text-red-500">Delete?</span>
-                                                                    <Button size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold text-red-500 hover:bg-red-50"
+                                                                    <span className="text-xs font-bold text-[var(--danger)]">Delete?</span>
+                                                                    <Button size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold text-[var(--danger)] hover:bg-[var(--danger-soft)]"
                                                                         onClick={(event) => { event.stopPropagation(); handleDeletePayslip(ps.id); }}>Yes</Button>
                                                                     <Button size="sm" variant="ghost" className="h-8 px-2 text-xs font-bold"
                                                                         onClick={(event) => { event.stopPropagation(); setDeleteConfirmId(null); }}>No</Button>
                                                                 </>
                                                             ) : (
-                                                                <Button variant="outline" size="sm" className="h-10 px-3 text-xs font-bold text-red-700 border-red-200 hover:text-red-800 hover:bg-red-50"
+                                                                <Button variant="outline" size="sm" className="h-10 px-3 text-xs font-bold text-[var(--danger)] hover:bg-[var(--danger-soft)]"
+                                                                        style={{ borderColor: "var(--danger-border)" }}
                                                                         onClick={(event) => { event.stopPropagation(); setDeleteConfirmId(ps.id); }}>
                                                                         <Trash2 className="h-4 w-4" />
                                                                         <span className="ml-1">Delete</span>

@@ -196,7 +196,7 @@ function PreviewContent() {
                                 {action === "email" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                                 Email
                             </Button>
-                            <Button variant="outline" className="gap-2 border-green-600/30 text-green-700 hover:bg-green-50" onClick={() => void runAction("whatsapp")} disabled={!!action}>
+                            <Button variant="outline" className="gap-2" onClick={() => void runAction("whatsapp")} disabled={!!action}>
                                 {action === "whatsapp" ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
                                 WhatsApp
                             </Button>
@@ -208,7 +208,7 @@ function PreviewContent() {
                     </div>
                 </div>
 
-                <Alert className="border-emerald-500/20 bg-emerald-500/10 text-emerald-700">
+                <Alert variant="success">
                     <CheckCircle2 className="h-4 w-4" />
                     <AlertDescription>Payslip ready to review, download, and share.</AlertDescription>
                 </Alert>
@@ -300,7 +300,7 @@ function PreviewContent() {
                                 {action === "email" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                                 Email
                             </Button>
-                            <Button variant="outline" className="h-11 gap-2 border-green-600/30 text-green-700 hover:bg-green-50" onClick={() => void runAction("whatsapp")} disabled={!!action}>
+                            <Button variant="outline" className="h-11 gap-2" onClick={() => void runAction("whatsapp")} disabled={!!action}>
                                 {action === "whatsapp" ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
                                 WhatsApp
                             </Button>

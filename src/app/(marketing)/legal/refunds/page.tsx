@@ -5,9 +5,17 @@ import Link from "next/link";
 import { ChevronLeft, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SupplierDetails } from "@/components/legal/supplier-details";
+import { PLANS, getPlanPricePresentation } from "@/config/plans";
 
 export default function RefundPolicy() {
     const currentYear = new Date().getFullYear();
+    const standardMonthlyPrice = `R${PLANS.standard.pricing.monthly}`;
+    const standardYearlyPrice = `R${PLANS.standard.pricing.yearly}`;
+    const standardYearlyEquivalent = getPlanPricePresentation("standard", "yearly").primaryPrice;
+    const proMonthlyPrice = `R${PLANS.pro.pricing.monthly}`;
+    const proYearlyPrice = `R${PLANS.pro.pricing.yearly}`;
+    const proYearlyEquivalent = getPlanPricePresentation("pro", "yearly").primaryPrice;
+
     return (
         <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
             <div className="max-w-4xl mx-auto px-6 py-12 sm:py-20 space-y-12">
@@ -22,20 +30,20 @@ export default function RefundPolicy() {
                         <CreditCard className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Refund & Cancellation</h1>
-                    <p className="text-zinc-500 font-medium">Updated 10 March 2026 • 14-day refund on the first real subscription charge</p>
+                    <p className="font-medium text-[var(--text-muted)]">Updated 10 March 2026 • 14-day refund on the first real subscription charge</p>
                 </header>
 
-                <div className="prose prose-zinc dark:prose-invert max-w-none space-y-8 text-zinc-400 leading-relaxed font-medium">
+                <div className="policy-copy max-w-none space-y-8 leading-relaxed font-medium">
                     <SupplierDetails />
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">1. Trials, plans, and the R1 card check</h2>
+                        <h2 className="text-2xl font-black text-[var(--text)]">1. Trials, plans, and the R1 card check</h2>
                         <p>
                             LekkerLedger offers two paid plans today:
                         </p>
                         <ul className="list-disc pl-6 space-y-2">
-                            <li><strong>Standard:</strong> R29/month or R249/year for one household, up to 3 active employees, and the core paid features.</li>
-                            <li><strong>Pro:</strong> R49/month or R399/year for unlimited employees, multi-household workspaces, and the deepest archive.</li>
+                            <li><strong>Standard:</strong> {standardMonthlyPrice}/month or {standardYearlyPrice}/year for one household, up to 3 active employees, and the core paid features. Yearly billing works out to about {standardYearlyEquivalent}/month.</li>
+                            <li><strong>Pro:</strong> {proMonthlyPrice}/month or {proYearlyPrice}/year for unlimited employees, multi-household workspaces, and the deepest archive. Yearly billing works out to about {proYearlyEquivalent}/month.</li>
                         </ul>
                         <p>
                             Standard and Pro currently begin with a 14-day trial. Starting a trial requires Google sign-in and a small R1 Paystack card-verification charge so a reusable payment method can be saved for automatic renewal later.
@@ -46,7 +54,7 @@ export default function RefundPolicy() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">2. Cancellation before or after the trial</h2>
+                        <h2 className="text-2xl font-black text-[var(--text)]">2. Cancellation before or after the trial</h2>
                         <p>
                             Monthly and yearly plans renew at the end of the billing period unless you cancel before renewal. If you cancel during the trial, the first real subscription charge will not be taken and access continues until the trial end date already shown in the app.
                         </p>
@@ -56,7 +64,7 @@ export default function RefundPolicy() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">3. Refund requests within 14 days</h2>
+                        <h2 className="text-2xl font-black text-[var(--text)]">3. Refund requests within 14 days</h2>
                         <p>
                             Our 14-day refund policy applies to the first real subscription charge taken after the trial. If LekkerLedger is not the right fit, request a refund within 14 days of that charge date and we will refund you in full once we have verified the payment.
                         </p>
@@ -66,7 +74,7 @@ export default function RefundPolicy() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">4. Referral reward timing</h2>
+                        <h2 className="text-2xl font-black text-[var(--text)]">4. Referral reward timing</h2>
                         <p>
                             If you refer a new paying customer, the free referral month is held in a pending state until that referred customer has completed the trial, paid for one real month on Standard or Pro, and passed the same 14-day refund window without a refund or chargeback.
                         </p>
@@ -76,15 +84,15 @@ export default function RefundPolicy() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-white">5. How to Request a Refund</h2>
+                        <h2 className="text-2xl font-black text-[var(--text)]">5. How to Request a Refund</h2>
                         <p>
                             To request a refund, email support@lekkerledger.co.za with your transaction details. We review refund requests within 1-4 business days (Monday to Friday, South African Standard Time, excluding public holidays) after we receive the information needed to verify the payment.
                         </p>
                     </section>
                 </div>
 
-                <footer className="pt-20 border-t border-zinc-800/50">
-                    <p className="text-xs text-zinc-600">© {currentYear} LekkerLedger. All rights reserved.</p>
+                <footer className="border-t border-[var(--border)] pt-20">
+                    <p className="text-xs text-[var(--text-muted)]">© {currentYear} LekkerLedger. All rights reserved.</p>
                 </footer>
             </div>
         </div>

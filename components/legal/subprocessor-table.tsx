@@ -14,7 +14,7 @@ export function SubprocessorTable() {
                 <div key={entry.name} className="grid gap-3 border-t border-[var(--border)] px-5 py-4 text-sm md:grid-cols-[1fr_1.1fr_1.4fr_1fr] md:gap-4 first:border-t-0">
                     <div>
                         <p className="text-[11px] font-black uppercase tracking-[0.16em] md:hidden" style={{ color: "var(--text-muted)" }}>Provider</p>
-                        <p className="font-bold text-white">{entry.name}</p>
+                        <p className="font-bold text-[var(--text)]">{entry.name}</p>
                     </div>
                     <div>
                         <p className="text-[11px] font-black uppercase tracking-[0.16em] md:hidden" style={{ color: "var(--text-muted)" }}>Purpose</p>

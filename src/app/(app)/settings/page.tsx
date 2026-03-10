@@ -22,6 +22,7 @@ import { CustomLeaveType, EmployerSettings, Employee } from "@/lib/schema";
 import { cancelSubscriptionRenewal, fetchBillingAccount, type BillingAccountPayload } from "@/lib/billing-client";
 import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
+import { InlinePlanCheckoutButton } from "@/components/billing/inline-paid-plan-checkout";
 import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "@/src/config/plans";
 import { getArchiveCutoffDate, getArchiveUpgradeHref } from "@/lib/archive";
 import { canUseAdvancedLeaveFeatures, canUseDriveSync, canUseFullHistoryExport, getUserPlan } from "../../../lib/entitlements";
@@ -244,10 +245,10 @@ function SettingsContent() {
             <PageHeader title="Settings" subtitle="Start with your household details, then open the extra options only if you need them." />
 
             {/* Tab switcher */}
-            <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)]/92 p-1.5 shadow-[var(--shadow-1)] mb-2">
-                <div className="grid grid-cols-5 gap-1">
-                    <TabButton id="general" icon={Building2} label="Details" activeTab={activeTab} setActiveTab={setActiveTab} />
-                    <TabButton id="storage" icon={Database} label="Storage" activeTab={activeTab} setActiveTab={setActiveTab} />
+            <div className="mb-2 rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)]/92 p-2 shadow-[var(--shadow-sm)]">
+                <div className="grid grid-cols-2 gap-1 min-[520px]:grid-cols-3 xl:grid-cols-5">
+                    <TabButton id="general" icon={Building2} label="Your details" activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabButton id="storage" icon={Database} label="Storage & backup" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="plan" icon={ShieldCheck} label="Plan" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="exports" icon={Download} label="Downloads" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="support" icon={HelpCircle} label="Help" activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -329,7 +330,7 @@ function SettingsContent() {
                                 </div>
                                 <div className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] transition-colors border-b border-[var(--border)]">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500"><AlignVerticalJustifyCenter className="h-4 w-4" /></div>
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--info-soft)] text-[var(--info)]"><AlignVerticalJustifyCenter className="h-4 w-4" /></div>
                                         <div>
                                             <p className="text-sm font-bold">Compact Layout</p>
                                             <p className="text-[10px] text-[var(--text-muted)]">Reduce padding and spacing to show more data</p>
@@ -521,7 +522,7 @@ function SettingsContent() {
                                                             <Button variant="outline" size="sm" onClick={() => startEditingLeaveType(leaveType)} className="font-bold">
                                                                 Edit
                                                             </Button>
-                                                            <Button variant="outline" size="sm" onClick={() => void handleDeleteLeaveType(leaveType.id)} className="font-bold text-rose-700 border-rose-200 hover:bg-rose-50">
+                                                            <Button variant="outline" size="sm" onClick={() => void handleDeleteLeaveType(leaveType.id)} className="font-bold text-[var(--danger)]" style={{ borderColor: "var(--danger-border)", backgroundColor: "transparent" }}>
                                                                 Delete
                                                             </Button>
                                                         </div>
@@ -543,11 +544,13 @@ function SettingsContent() {
                                             Add categories like unpaid leave, study leave, or compassionate leave, while keeping the three default types fixed.
                                         </p>
                                     </div>
-                                    <Link href="/upgrade?plan=pro&pay=1" className="block relative z-10">
-                                        <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-black h-12 shadow-lg shadow-[var(--primary)]/20 active-scale">
-                                            Upgrade to Pro
-                                        </Button>
-                                    </Link>
+                                    <InlinePlanCheckoutButton
+                                        planId="pro"
+                                        billingCycle={settings.billingCycle === "monthly" ? "monthly" : "yearly"}
+                                        className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-black h-12 shadow-lg shadow-[var(--primary)]/20 active-scale relative z-10"
+                                    >
+                                        Upgrade to Pro
+                                    </InlinePlanCheckoutButton>
                                 </Card>
                             )}
                         </section>
@@ -573,9 +576,9 @@ function SettingsContent() {
 
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Danger Zone</h2>
-                            <Card className="border-rose-200 dark:border-rose-900/30 bg-rose-500/5 p-5 space-y-4">
+                            <Card className="p-5 space-y-4" style={{ borderColor: "var(--danger-border)", backgroundColor: "var(--danger-soft)" }}>
                                 <div className="space-y-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                                    <p className="font-bold text-rose-600">Delete records stored in this browser only.</p>
+                                    <p className="font-bold text-[var(--danger)]">Delete records stored in this browser only.</p>
                                     <p>
                                         Export a JSON backup first. This wipe removes employer settings, employees, payslips, and other local records from this device.
                                     </p>
@@ -587,7 +590,8 @@ function SettingsContent() {
                                 {!wipeConfirmOpen ? (
                                     <Button
                                         variant="ghost"
-                                        className="w-full justify-between text-rose-600 hover:bg-rose-500/10 h-14 px-4 rounded-xl"
+                                        className="h-14 w-full justify-between rounded-xl px-4"
+                                        style={{ color: "var(--danger)", backgroundColor: "transparent" }}
                                         onClick={() => {
                                             setWipeConfirmOpen(true);
                                             setWipeConfirmText("");
@@ -600,7 +604,7 @@ function SettingsContent() {
                                         <ChevronRight className="h-4 w-4" />
                                     </Button>
                                 ) : (
-                                    <div className="space-y-4 rounded-2xl border border-rose-300/60 bg-white/60 p-4 dark:bg-rose-950/10">
+                                    <div className="space-y-4 rounded-2xl border p-4" style={{ borderColor: "var(--danger-border)", backgroundColor: "var(--surface-1)" }}>
                                         <div className="space-y-2 text-xs leading-relaxed text-[var(--text-muted)]">
                                             <p><strong className="text-[var(--text)]">Before you continue:</strong></p>
                                             <p>1. Export a JSON backup if you may need these records again.</p>
@@ -633,7 +637,7 @@ function SettingsContent() {
                                             </Button>
                                             <Button
                                                 type="button"
-                                                className="flex-1 bg-rose-600 text-white hover:bg-rose-700"
+                                                className="flex-1 bg-[var(--danger)] text-white hover:brightness-95"
                                                 disabled={wiping || wipeConfirmText.trim().toUpperCase() !== "DELETE"}
                                                 onClick={async () => {
                                                     setWiping(true);
@@ -706,11 +710,19 @@ function SettingsContent() {
 
                                     <div className="mt-6">
                                         <div className="space-y-2">
-                                            <Link href={`/upgrade?plan=${currentPlan.id === "free" ? "standard" : "pro"}&pay=1`} className="block">
-                                                <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold" disabled={currentPlan.id === "pro"}>
-                                                    {currentPlan.id === "pro" ? "Highest plan active" : currentPlan.id === "free" ? "14 days for R1" : "Change paid plan"}
+                                            {currentPlan.id === "pro" ? (
+                                                <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold" disabled>
+                                                    Highest plan active
                                                 </Button>
-                                            </Link>
+                                            ) : (
+                                                <InlinePlanCheckoutButton
+                                                    planId={currentPlan.id === "free" ? "standard" : "pro"}
+                                                    billingCycle={displayCycle}
+                                                    className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold"
+                                                >
+                                                    {currentPlan.id === "free" ? "14 days for R1" : "Change paid plan"}
+                                                </InlinePlanCheckoutButton>
+                                            )}
                                             {currentPlan.id !== "pro" && (
                                                 <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
                                                     Cancel before day 14 and pay nothing more.
@@ -753,7 +765,7 @@ function SettingsContent() {
                                                 <p><strong className="text-[var(--text)]">Next real charge:</strong> {nextChargeLabel}</p>
                                             )}
                                             {billingAccount.account.lastError && (
-                                                <p className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-amber-100">
+                                                <p className="rounded-2xl border px-4 py-3 text-[var(--warning)]" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
                                                     {billingAccount.account.lastError}
                                                 </p>
                                             )}
@@ -815,17 +827,17 @@ function SettingsContent() {
                             <section className="space-y-4">
                                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Compare Plans</h2>
                                 {downgradingTo && (
-                                    <div className="rounded-2xl border border-amber-300/60 bg-amber-50/80 p-5 space-y-4 dark:bg-amber-950/20 dark:border-amber-500/30">
+                                    <div className="space-y-4 rounded-2xl border p-5" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
                                         <div className="space-y-2">
-                                            <p className="font-bold text-amber-900 dark:text-amber-200">
+                                            <p className="font-bold text-[var(--text)]">
                                                 Downgrade to {PLANS[downgradingTo as keyof typeof PLANS]?.label ?? downgradingTo}?
                                             </p>
-                                            <p className="text-sm text-amber-800 dark:text-amber-300">
+                                            <p className="text-sm text-[var(--warning)]">
                                                 This cancels your {currentPlan.label} renewal. You keep {currentPlan.label} access until your current billing period ends
                                                 {trialEndsLabel ? ` (${trialEndsLabel})` : nextChargeLabel ? ` (${nextChargeLabel})` : ""}, then move to the Free plan.
                                             </p>
                                             {downgradingTo !== "free" && (
-                                                <p className="text-sm text-amber-800 dark:text-amber-300">
+                                                <p className="text-sm text-[var(--warning)]">
                                                     After your {currentPlan.label} expires you can start a fresh {PLANS[downgradingTo as keyof typeof PLANS]?.label} trial from Free.
                                                 </p>
                                             )}
@@ -837,7 +849,7 @@ function SettingsContent() {
                                             <Button
                                                 onClick={() => void handleCancelRenewal().then(() => setDowngradingTo(null))}
                                                 disabled={cancelingRenewal}
-                                                className="flex-1 bg-amber-600 text-white hover:bg-amber-700 font-bold"
+                                                className="flex-1 bg-[var(--warning)] text-white hover:brightness-95 font-bold"
                                             >
                                                 {cancelingRenewal ? "Canceling..." : "Confirm downgrade"}
                                             </Button>
@@ -897,11 +909,13 @@ function SettingsContent() {
                                                                 Downgrade
                                                             </Button>
                                                         ) : isUpgrade ? (
-                                                            <Link href={`/upgrade?plan=${plan.id}&billing=${comparisonCycle}&pay=1`} className="block">
-                                                                <Button className="w-full font-bold bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">
-                                                                    Upgrade
-                                                                </Button>
-                                                            </Link>
+                                                            <InlinePlanCheckoutButton
+                                                                planId={plan.id as "standard" | "pro"}
+                                                                billingCycle={comparisonCycle}
+                                                                className="w-full font-bold bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
+                                                            >
+                                                                Upgrade
+                                                            </InlinePlanCheckoutButton>
                                                         ) : (
                                                             <Button variant="outline" className="w-full font-bold" disabled>
                                                                 Current plan
@@ -995,7 +1009,7 @@ function SettingsContent() {
                                     </Button>
                                     <label className="flex-1">
                                         <div className="flex items-center justify-center gap-2 text-xs h-12 font-black border border-[var(--border)] rounded-xl px-4 cursor-pointer hover:bg-[var(--surface-2)] transition-all">
-                                            <Upload className="h-4 w-4 text-[var(--blue-500)]" /> Restore JSON Array
+                                            <Upload className="h-4 w-4 text-[var(--info)]" /> Restore JSON Array
                                         </div>
                                         <input type="file" className="sr-only" accept=".json"
                                             onChange={async (e) => {
@@ -1026,7 +1040,7 @@ function SettingsContent() {
                             <Link href="/ufiling" className="block">
                                 <Card className="glass-panel border-none p-5 flex items-center justify-between hover:bg-[var(--surface-2)] transition-colors group">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--success-soft)] text-[var(--success)]">
                                             <FileText className="h-5 w-5" />
                                         </div>
                                         <div>
@@ -1048,7 +1062,7 @@ function SettingsContent() {
                             <Card className="glass-panel border-none overflow-hidden">
                                 <Link href="/help/compliance" className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] border-b border-[var(--border)] transition-colors">
                                     <div className="flex items-center gap-3">
-                                        <BookOpen className="h-5 w-5 text-[var(--blue-500)]" />
+                                        <BookOpen className="h-5 w-5 text-[var(--info)]" />
                                         <div>
                                             <p className="text-sm font-bold">Household checklist</p>
                                             <p className="text-[10px] text-[var(--text-muted)]">Monthly and annual tasks, with plain-language checks</p>
@@ -1103,7 +1117,7 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
             style={{
                 backgroundColor: active ? "var(--primary)" : "transparent",
                 color: active ? "#ffffff" : "var(--text-muted)",
-                boxShadow: active ? "var(--shadow-1)" : "none",
+                boxShadow: active ? "var(--shadow-sm)" : "none",
             }}>
             <Icon className="h-4 w-4 shrink-0" />
             <span className="truncate w-full text-center leading-tight">{label}</span>

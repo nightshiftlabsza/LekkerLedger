@@ -105,7 +105,7 @@ export function ContractPdfPreview({ contract, employee, settings }: ContractPdf
                                 <ul className="list-inside space-y-1">
                                     {clause.bullets.map((b, i) => (
                                         <li key={i} className="flex gap-2">
-                                            <span className="text-green-700 font-bold mt-[-1px]">&bull;</span>
+                                            <span className="mt-[-1px] font-bold text-[#007A4D]">&bull;</span>
                                             <span>{b}</span>
                                         </li>
                                     ))}

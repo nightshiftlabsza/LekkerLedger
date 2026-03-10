@@ -77,11 +77,11 @@ export function DocumentPreview({ url, fileName, onClose, onDownload }: Document
                 </div>
 
                 {/* Preview content */}
-                <div className="flex-1 overflow-hidden relative">
+                <div className="flex-1 overflow-hidden relative bg-[var(--surface-2)]">
                     <iframe
                         src={url}
                         title={fileName ?? "Document preview"}
-                        className="w-full h-full border-0 bg-white"
+                        className="h-full w-full border-0 bg-white shadow-[var(--shadow-lg)]"
                         sandbox="allow-same-origin allow-scripts"
                     />
                 </div>

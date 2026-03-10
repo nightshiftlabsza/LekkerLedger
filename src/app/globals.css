@@ -46,12 +46,28 @@
   --success: #067647;
   --warning: #B54708;
   --info: #155EEF;
+  --danger-soft: rgba(180, 35, 24, 0.1);
+  --danger-border: rgba(180, 35, 24, 0.24);
+  --success-soft: rgba(6, 118, 71, 0.1);
+  --success-border: rgba(6, 118, 71, 0.24);
+  --warning-soft: rgba(181, 71, 8, 0.1);
+  --warning-border: rgba(181, 71, 8, 0.26);
+  --info-soft: rgba(21, 94, 239, 0.1);
+  --info-border: rgba(21, 94, 239, 0.22);
 
   /* Elevation - Multi-layered for premium feel */
   --shadow-sm: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
   --shadow-md: 0 4px 8px -2px rgba(16, 24, 40, 0.1), 0 2px 4px -2px rgba(16, 24, 40, 0.06);
   --shadow-lg: 0 12px 16px -4px rgba(16, 24, 40, 0.08), 0 4px 6px -2px rgba(16, 24, 40, 0.03);
   --shadow-xl: 0 20px 24px -4px rgba(16, 24, 40, 0.08), 0 8px 8px -4px rgba(16, 24, 40, 0.03);
+  --shadow-1: var(--shadow-sm);
+  --shadow-2: var(--shadow-lg);
+  --shadow-2xl: var(--shadow-xl);
+  --red-500: var(--danger);
+  --blue-500: var(--info);
+  --amber-500: var(--warning);
+  --amber-600: var(--warning);
+  --amber-warn-500: var(--warning);
   
   /* Brand Gradients */
   --grad-primary: linear-gradient(135deg, #007A4D 0%, #009D63 100%);
@@ -171,6 +187,14 @@
   --success: #32D583;
   --warning: #FDB022;
   --info: #53B1FD;
+  --danger-soft: rgba(249, 112, 102, 0.14);
+  --danger-border: rgba(249, 112, 102, 0.32);
+  --success-soft: rgba(50, 213, 131, 0.14);
+  --success-border: rgba(50, 213, 131, 0.28);
+  --warning-soft: rgba(253, 176, 34, 0.14);
+  --warning-border: rgba(253, 176, 34, 0.28);
+  --info-soft: rgba(83, 177, 253, 0.14);
+  --info-border: rgba(83, 177, 253, 0.3);
 
   --glass-bg: var(--glass-bg-dark);
   --glass-border: var(--glass-border-dark);
@@ -179,6 +203,14 @@
   --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 12px 16px -4px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
   --shadow-xl: 0 20px 24px -4px rgba(0, 0, 0, 0.7), 0 8px 8px -4px rgba(0, 0, 0, 0.5);
+  --shadow-1: var(--shadow-sm);
+  --shadow-2: var(--shadow-lg);
+  --shadow-2xl: var(--shadow-xl);
+  --red-500: var(--danger);
+  --blue-500: var(--info);
+  --amber-500: var(--warning);
+  --amber-600: var(--warning);
+  --amber-warn-500: var(--warning);
 
   --grad-surface: linear-gradient(180deg, #111827 0%, #0B0F14 100%);
 
@@ -751,6 +783,19 @@ p,
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius-2);
+}
+
+.policy-copy {
+  max-width: 72ch;
+  color: var(--text-muted);
+}
+
+.policy-copy :where(h2, h3, h4, strong) {
+  color: var(--text);
+}
+
+.policy-copy :where(a) {
+  color: var(--primary);
 }
 
 /* FAQ Chevron Rotation */

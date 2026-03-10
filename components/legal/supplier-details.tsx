@@ -5,7 +5,7 @@ export function SupplierDetails() {
     return (
         <section className="rounded-2xl border border-[var(--primary)]/10 bg-[var(--primary)]/5 p-6">
             <h2 className="text-xl font-black text-[var(--text)]">Supplier details</h2>
-            <div className="mt-4 space-y-2 text-sm leading-7 text-zinc-400">
+            <div className="mt-4 space-y-2 text-sm leading-7 text-[var(--text-muted)]">
                 <p>
                     <strong className="text-[var(--text)]">Supplier:</strong> {COMPANY_NAME}
                 </p>
@@ -20,11 +20,11 @@ export function SupplierDetails() {
                 </p>
                 <p>
                     <strong className="text-[var(--text)]">General contact:</strong>{" "}
-                    <a href="mailto:support@lekkerledger.co.za">support@lekkerledger.co.za</a>
+                    <a href="mailto:support@lekkerledger.co.za" className="text-[var(--primary)]">support@lekkerledger.co.za</a>
                 </p>
                 <p>
                     <strong className="text-[var(--text)]">Privacy contact:</strong>{" "}
-                    <a href="mailto:privacy@lekkerledger.co.za">privacy@lekkerledger.co.za</a>
+                    <a href="mailto:privacy@lekkerledger.co.za" className="text-[var(--primary)]">privacy@lekkerledger.co.za</a>
                 </p>
             </div>
         </section>

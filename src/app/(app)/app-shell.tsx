@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { GoogleOAuthProvider, googleLogout } from "@react-oauth/google";
 import { env } from "@/lib/env";
 import { SideDrawer } from "@/components/layout/side-drawer";
@@ -14,7 +14,7 @@ import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { ToastProvider } from "@/components/ui/toast";
 import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
-import { getHouseholds, getSettings, hasMeaningfulLocalData, saveHousehold, saveSettings, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
+import { getHouseholds, getSettings, hasMeaningfulLocalData, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseAutoBackup, canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
 import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail } from "@/lib/google-session";
@@ -24,7 +24,6 @@ import { usePaidLoginActivation } from "@/components/paid-login-button";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
-    const pathname = usePathname();
     const { network, sync, payments } = useAppConnectivity();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
@@ -387,15 +386,20 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
     }, []);
 
     const hasGoogleSession = typeof window !== "undefined" && !!getStoredGoogleAccessToken();
+    const currentPlanId = settings ? getUserPlan(settings).id : "free";
     const googleState = hasGoogleSession
         ? settings?.googleSyncEnabled
             ? "Google backup on"
             : "Google connected"
-        : "Local only";
+        : currentPlanId === "free"
+            ? "Upgrade for Google backup"
+            : "Local only";
 
     const accountSummary = hasGoogleSession && googleEmail
         ? `Signed in as ${googleEmail}.`
-        : "Your records are currently only on this device until you connect Google.";
+        : currentPlanId === "free"
+            ? "Google account linking only unlocks after you start a paid plan."
+            : "Your records are currently only on this device until you connect Google.";
 
     const handleSignOut = () => {
         googleLogout();
@@ -457,6 +461,23 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                                 <p className="text-xs text-[var(--text-muted)]">Stop Google access on this device without deleting your Drive backup.</p>
                             </div>
                         </button>
+                    ) : currentPlanId === "free" ? (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setOpen(false);
+                                router.push("/upgrade");
+                            }}
+                            className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/5 px-4 py-3 text-left transition-all hover:bg-[var(--primary)]/10"
+                        >
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">
+                                <CreditCard className="h-4 w-4" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold text-[var(--text)]">Upgrade to connect Google</p>
+                                <p className="text-xs text-[var(--text-muted)]">Payment comes first. Google backup is enabled after a paid plan starts.</p>
+                            </div>
+                        </button>
                     ) : (
                         <button
                             type="button"
@@ -469,9 +490,9 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                             </div>
                             <div>
                                 <p className="text-sm font-semibold text-[var(--text)]">
-                                    {loading ? (statusMessage || "Signing in...") : "Sign in as a member"}
+                                    {loading ? (statusMessage || "Signing in...") : "Connect your Google account"}
                                 </p>
-                                <p className="text-xs text-[var(--text-muted)]">Connect Google to sync your data and unlock paid features.</p>
+                                <p className="text-xs text-[var(--text-muted)]">Finish linking backup and paid access on this device.</p>
                             </div>
                         </button>
                     )}

@@ -210,7 +210,7 @@ function WizardContent() {
                 console.error('GA4 tracking failed:', e);
             }
 
-            toast("Payslip generated successfully!");
+            toast("Payslip generated successfully!");
             router.push(`/preview?payslipId=${payslipInput.id}&empId=${employee.id}`);
         } catch (err) {
             console.error(err);
@@ -375,7 +375,7 @@ function WizardContent() {
 
                                 <div className="pt-4 space-y-5" style={{ borderTop: "1px solid var(--border)" }}>
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+                                        <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-[var(--text-muted)]">
                                             <Clock className="w-4 h-4 text-[var(--focus)]" />
                                             Work Schedule
                                         </h3>
@@ -443,7 +443,7 @@ function WizardContent() {
 
                                     {/* Hours error */}
                                     {hoursError && (
-                                        <p className="text-xs text-red-500 font-medium">{hoursError}</p>
+                                        <p className="text-xs font-medium text-[var(--danger)]">{hoursError}</p>
                                     )}
 
                                     {/* 4-Hour Rule Assistant */}
@@ -451,7 +451,7 @@ function WizardContent() {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <Info className="w-3.5 h-3.5 text-[var(--focus)]" />
-                                                <Label htmlFor="assistant-switch" className="text-[11px] font-bold text-zinc-300 uppercase tracking-tight cursor-pointer">4-Hour Rule Assistant</Label>
+                                                <Label htmlFor="assistant-switch" className="cursor-pointer text-[11px] font-bold uppercase tracking-tight text-[var(--text-secondary)]">4-Hour Rule Assistant</Label>
                                             </div>
                                             <Switch
                                                 id="assistant-switch"
@@ -463,7 +463,7 @@ function WizardContent() {
                                             <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <div className="space-y-1">
-                                                        <Label className="text-[10px] text-zinc-500 font-bold uppercase">Short Shifts</Label>
+                                                        <Label className="text-[10px] font-bold uppercase text-[var(--text-muted)]">Short Shifts</Label>
                                                         <Input
                                                             type="number"
                                                             className="h-11 text-xs"
@@ -474,7 +474,7 @@ function WizardContent() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <Label className="text-[10px] text-zinc-500 font-bold uppercase">Hrs Worked</Label>
+                                                        <Label className="text-[10px] font-bold uppercase text-[var(--text-muted)]">Hrs Worked</Label>
                                                         <Input
                                                             type="number"
                                                             className="h-11 text-xs"
@@ -556,15 +556,16 @@ function WizardContent() {
                                         <strong>{totalHours > 24 ? "applicable" : "NOT applicable"}</strong>{" "}
                                         — worker has {totalHours > 24 ? "more than" : "24 or fewer"} hours per month.
                                     </AlertDescription>
-                                </Alert>                                {leaveTrackingEnabled && (
+                                </Alert>
+                                {leaveTrackingEnabled && (
                                     <div className="pt-4 space-y-4" style={{ borderTop: "1px solid var(--border)" }}>
-                                        <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+                                        <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-[var(--text-muted)]">
                                             <AlertCircle className="w-4 h-4 text-[var(--focus)]" />
                                             Leave Taken (This Month)
                                         </h3>
                                         <div className="grid grid-cols-3 gap-3">
                                             <div className="space-y-1.5">
-                                                <Label className="text-[10px] text-zinc-500 font-bold uppercase">Annual</Label>
+                                                <Label className="text-[10px] font-bold uppercase text-[var(--text-muted)]">Annual</Label>
                                                 <Input
                                                     type="number"
                                                     className="h-11"
@@ -575,7 +576,7 @@ function WizardContent() {
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <Label className="text-[10px] text-zinc-500 font-bold uppercase">Sick</Label>
+                                                <Label className="text-[10px] font-bold uppercase text-[var(--text-muted)]">Sick</Label>
                                                 <Input
                                                     type="number"
                                                     className="h-11"
@@ -586,7 +587,7 @@ function WizardContent() {
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <Label className="text-[10px] text-zinc-500 font-bold uppercase">Family</Label>
+                                                <Label className="text-[10px] font-bold uppercase text-[var(--text-muted)]">Family</Label>
                                                 <Input
                                                     type="number"
                                                     className="h-11"
@@ -801,7 +802,7 @@ function ComplianceRow({
     failHref?: string;
     isInfo?: boolean;
 }) {
-    const color = pass ? "var(--success)" : isInfo ? "var(--blue-500)" : "var(--primary)";
+    const color = pass ? "var(--success)" : isInfo ? "var(--info)" : "var(--warning)";
     return (
         <div className="flex items-start gap-2.5 text-xs">
             {pass

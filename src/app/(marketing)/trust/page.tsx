@@ -2,11 +2,19 @@ import * as React from "react";
 import Link from "next/link";
 import { Shield, Lock, HardDrive, Scale, ArrowRight, WalletCards, FolderSync, KeyRound, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MarketingHeader } from "@/components/layout/marketing-header";
 import { COMPLIANCE } from "@/lib/compliance-constants";
 import { getNMWRecordForDate } from "@/lib/legal/registry";
+import { PLANS, getPlanPricePresentation } from "@/config/plans";
 
 export default function TrustCenterPage() {
     const nmwRecord = getNMWRecordForDate(new Date());
+    const standardMonthlyPrice = `R${PLANS.standard.pricing.monthly}`;
+    const standardYearlyPrice = `R${PLANS.standard.pricing.yearly}`;
+    const standardYearlyEquivalent = getPlanPricePresentation("standard", "yearly").primaryPrice;
+    const proMonthlyPrice = `R${PLANS.pro.pricing.monthly}`;
+    const proYearlyPrice = `R${PLANS.pro.pricing.yearly}`;
+    const proYearlyEquivalent = getPlanPricePresentation("pro", "yearly").primaryPrice;
     const effectiveDateLabel = new Intl.DateTimeFormat("en-ZA", {
         day: "numeric",
         month: "long",
@@ -15,6 +23,7 @@ export default function TrustCenterPage() {
 
     return (
         <div className="min-h-screen overflow-x-hidden bg-[var(--bg)]">
+            <MarketingHeader />
             {/* Header section */}
             <header className="relative py-20 md:py-32 border-b border-[var(--border)] overflow-hidden" style={{ backgroundColor: "var(--surface-2)" }}>
                 <div className="content-container-wide px-6 lg:px-8 relative z-10 text-center max-w-3xl mx-auto space-y-6">
@@ -28,7 +37,7 @@ export default function TrustCenterPage() {
                 </div>
             </header>
 
-            <main className="content-container-wide px-6 lg:px-8 py-20 space-y-24">
+            <main id="main-content" className="content-container-wide px-6 lg:px-8 py-20 space-y-24">
                 {/* 1. Privacy & Architecture */}
                 <section className="scroll-mt-32" id="privacy">
                     <div className="flex items-center gap-3 mb-8">
@@ -52,12 +61,12 @@ export default function TrustCenterPage() {
                         </div>
                         <div className="grid sm:grid-cols-2 gap-4">
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
-                                <HardDrive className="h-5 w-5 text-zinc-500 mb-3" />
+                                <HardDrive className="mb-3 h-5 w-5 text-[var(--text-muted)]" />
                                 <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Local Storage</h4>
                                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>Your payroll records are stored in your browser&apos;s IndexedDB by default and are not uploaded to a LekkerLedger central employee database.</p>
                             </div>
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
-                                <FolderSync className="h-5 w-5 text-green-500 mb-3" />
+                                <FolderSync className="mb-3 h-5 w-5 text-[var(--success)]" />
                                 <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Google-connected Backup</h4>
                                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paid plans can back up records to the Google Drive app data area in your own Google account so you can restore them on another browser or device.</p>
                             </div>
@@ -75,7 +84,7 @@ export default function TrustCenterPage() {
                     </div>
                     <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
-                            <HardDrive className="h-5 w-5 text-zinc-500 mb-3" />
+                            <HardDrive className="mb-3 h-5 w-5 text-[var(--text-muted)]" />
                             <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Local by default</h4>
                             <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 Payroll records stay in your browser storage by default. They are not uploaded to a LekkerLedger employee database unless you choose your own Google backup path.
@@ -96,7 +105,7 @@ export default function TrustCenterPage() {
                             </p>
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
-                            <Bug className="h-5 w-5 text-rose-500 mb-3" />
+                            <Bug className="mb-3 h-5 w-5 text-[var(--danger)]" />
                             <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Report problems quickly</h4>
                             <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 If you spot a privacy or security issue, email <a href="mailto:support@lekkerledger.co.za" className="font-semibold text-[var(--primary)] hover:underline">support@lekkerledger.co.za</a> with what happened, what device/browser you used, and how to reproduce it.
@@ -138,7 +147,7 @@ export default function TrustCenterPage() {
                             <div className="text-xl font-bold mb-1" style={{ color: "var(--text)" }}>Many domestic employers need to register</div>
                             <p className="text-xs" style={{ color: "var(--text-muted)" }}>Many domestic employers need to register with the Compensation Fund for injury-on-duty cover. This is general information only, so check the official guidance for your own situation before relying on it.</p>
                             <p className="mt-2 text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>Not legal advice.</p>
-                            <a href="https://www.labour.gov.za/compensation-for-occupational-injuries-and-diseases-act" target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-bold text-[var(--primary)] hover:underline">Source: Compensation Fund guidance</a>
+                            <a href="https://www.labour.gov.za/compensation-fund-obligations-of-the-employer" target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-bold text-[var(--primary)] hover:underline">Source: Compensation Fund guidance</a>
                         </div>
                     </div>
                     <div className="mt-6">
@@ -181,7 +190,7 @@ export default function TrustCenterPage() {
                             <div>
                                 <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text)" }}>No Hidden Fees</h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    Free covers the essentials. Standard is R29/month or R249/year for most households that want organised records, backup, contracts, and annual paperwork. Pro is R49/month or R399/year for full document storage, longer archive history, and richer admin tracking, with unlimited employees and multi-household workspaces when you need them. Both paid tiers are still priced for households rather than the higher monthly fees common in managed payroll services.
+                                    Free covers the essentials. Standard is {standardMonthlyPrice}/month or {standardYearlyPrice}/year, which works out to about {standardYearlyEquivalent}/month on yearly billing, for most households that want organised records, backup, contracts, and annual paperwork. Pro is {proMonthlyPrice}/month or {proYearlyPrice}/year, which works out to about {proYearlyEquivalent}/month on yearly billing, for full document storage, longer archive history, and richer admin tracking, with unlimited employees and multi-household workspaces when you need them. Both paid tiers are still priced for households rather than the higher monthly fees common in managed payroll services.
                                 </p>
                             </div>
                         </div>

@@ -151,7 +151,7 @@ export function NewPayrollWizardClient() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             {/* Step 0: Mode Selection */}
             {step === 0 && (
-                <Card className="glass-panel border-black/5 dark:border-white/5 shadow-xl overflow-hidden">
+                <Card className="glass-panel overflow-hidden shadow-xl">
                     <CardContent className="p-4 sm:p-6 md:p-8 space-y-5">
                         <div className="text-center space-y-2 mb-4 sm:mb-6">
                             <h2 className="text-xl sm:text-2xl font-black text-[var(--text)]">How do you want to start?</h2>
@@ -176,7 +176,7 @@ export function NewPayrollWizardClient() {
                             </button>
 
                             <Link href="/settings?tab=storage" className="flex flex-col items-center gap-3 p-6 text-center rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-all group">
-                                <div className="h-12 w-12 rounded-full bg-[var(--surface-3)] flex items-center justify-center text-[var(--text-muted)] group-hover:scale-110 transition-transform">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--text-muted)] transition-transform group-hover:scale-110">
                                     <Save className="h-6 w-6" />
                                 </div>
                                 <h3 className="type-h3 text-[var(--text)]">Restore Backup</h3>
@@ -250,7 +250,7 @@ export function NewPayrollWizardClient() {
                                                 className={`w-full flex items-center justify-between p-4 rounded-xl transition-all border-2 text-left ${isSelected ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-[var(--border)] bg-[var(--surface-1)] hover:border-[var(--primary)]/50'}`}
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`h-10 w-10 flex flex-shrink-0 items-center justify-center rounded-full font-bold text-white transition-colors ${isSelected ? 'bg-[var(--primary)]' : 'bg-zinc-400 dark:bg-zinc-600'}`}>
+                                                    <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full font-bold text-white transition-colors ${isSelected ? 'bg-[var(--primary)]' : 'bg-[var(--text-muted)]'}`}>
                                                         {emp.name.charAt(0).toUpperCase()}
                                                     </div>
                                                     <div>

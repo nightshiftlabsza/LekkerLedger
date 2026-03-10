@@ -16,14 +16,14 @@ export default function StoragePage() {
                 </Link>
 
                 <header className="space-y-4">
-                    <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-6 border border-emerald-500/20">
+                    <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/10 text-[var(--primary)]">
                         <Database className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Security & Storage</h1>
-                    <p className="text-zinc-500 font-medium">How payroll records stay on your device by default, and how optional Google backup works when you choose it.</p>
+                    <p className="font-medium text-[var(--text-muted)]">How payroll records stay on your device by default, and how optional Google backup works when you choose it.</p>
                 </header>
 
-                <div className="prose prose-zinc dark:prose-invert max-w-none space-y-10 text-zinc-400 leading-relaxed font-medium">
+                <div className="policy-copy max-w-none space-y-10 leading-relaxed font-medium">
                     <section className="space-y-6">
                         <h2 className="text-2xl font-black text-[var(--text)]">How local storage and optional backup work</h2>
                         <p>
@@ -36,7 +36,7 @@ export default function StoragePage() {
 
                     <div className="grid md:grid-cols-2 gap-6 not-prose">
                         {/* Local Storage Card */}
-                        <div className="glass-panel border-2 border-[var(--border)] p-6 rounded-2xl relative overflow-hidden group">
+                        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-6 relative overflow-hidden group shadow-[var(--shadow-sm)]">
                             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
                                 <HardDrive className="h-24 w-24 text-[var(--text)]" />
                             </div>
@@ -48,14 +48,14 @@ export default function StoragePage() {
                                 By default, everything you enter is saved in your browser&apos;s local storage database (IndexedDB).
                             </p>
                             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" /> Payroll records are not uploaded to LekkerLedger servers. Optional Google backup is sent to your own Google account.</li>
-                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" /> Works completely offline</li>
-                                <li className="flex gap-2 items-start"><AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" /> <span className="text-amber-500/90 font-medium">If you clear your browser data without backup enabled, the records on this device cannot be recovered. That is why paid plans with sync are better for households that want backup before changing browsers or devices.</span></li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> Payroll records are not uploaded to LekkerLedger servers. Optional Google backup is sent to your own Google account.</li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> Works completely offline</li>
+                                <li className="flex gap-2 items-start"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" /> <span style={{ color: "var(--warning)" }}>If you clear your browser data without backup enabled, the records on this device cannot be recovered. That is why paid plans with sync are better for households that want backup before changing browsers or devices.</span></li>
                             </ul>
                         </div>
 
                         {/* Google Drive Card */}
-                        <div className="glass-panel border-2 border-[var(--primary)]/30 p-6 rounded-2xl relative overflow-hidden group">
+                        <div className="rounded-2xl border border-[var(--primary)]/30 bg-[var(--surface-1)] p-6 relative overflow-hidden group shadow-[var(--shadow-sm)]">
                             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
                                 <Cloud className="h-24 w-24 text-[var(--primary)]" />
                             </div>
@@ -70,7 +70,7 @@ export default function StoragePage() {
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Access data across multiple devices</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Uses your Google account protections and permissions</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Stored in the Google Drive app data area in your own Google account</li>
-                                <li className="flex gap-2 items-start"><AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" /> <span>Paid plans with sync are the better fit if you want your records to move with you. Always confirm backup before changing browsers or devices.</span></li>
+                                <li className="flex gap-2 items-start"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" /> <span style={{ color: "var(--warning)" }}>Paid plans with sync are the better fit if you want your records to move with you. Always confirm backup before changing browsers or devices.</span></li>
                             </ul>
                         </div>
                     </div>
@@ -101,7 +101,7 @@ export default function StoragePage() {
 
                 <div className="pt-12 text-center pb-8 border-t border-[var(--border)] mt-12">
                     <p className="text-lg font-bold text-[var(--text)] mb-6">Ready to start keeping household payroll records?</p>
-                    <Link href="/onboarding">
+                    <Link href="/dashboard">
                         <Button className="h-14 px-8 text-base bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white shadow-lg shadow-[var(--primary)]/20 font-bold rounded-xl transition-all hover:-translate-y-1">
                             Start for Free
                         </Button>

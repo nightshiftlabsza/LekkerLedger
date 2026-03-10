@@ -13,7 +13,7 @@ const UPDATED_DATE = "10 March 2026";
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <section className="space-y-4">
-            <h2 className="text-2xl font-black text-white">{title}</h2>
+            <h2 className="text-2xl font-black text-[var(--text)]">{title}</h2>
             {children}
         </section>
     );
@@ -36,12 +36,12 @@ export default function PrivacyPolicy() {
                         <ShieldCheck className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Privacy Policy</h1>
-                    <p className="font-medium text-zinc-500">Updated {UPDATED_DATE} • Plain-language privacy summary</p>
+                    <p className="font-medium text-[var(--text-muted)]">Updated {UPDATED_DATE} • Plain-language privacy summary</p>
                 </header>
 
-                <div className="space-y-8 text-zinc-400">
+                <div className="space-y-8 text-[var(--text-muted)]">
                     <div className="rounded-2xl border border-[var(--primary)]/10 bg-[var(--primary)]/5 p-6">
-                        <h2 className="text-xl font-black text-white">Plain-language summary</h2>
+                        <h2 className="text-xl font-black text-[var(--text)]">Plain-language summary</h2>
                         <ul className="mt-4 list-disc space-y-2 pl-6 text-sm leading-7">
                             <li>Employee payroll records are stored on your device by default, not in a central LekkerLedger employee database.</li>
                             <li>If you enable Google backup, the backup is stored in the Google Drive app data area in your own Google account.</li>
@@ -53,7 +53,7 @@ export default function PrivacyPolicy() {
 
                     <SupplierDetails />
 
-                    <div className="prose prose-zinc dark:prose-invert max-w-none space-y-8 font-medium leading-relaxed text-zinc-400">
+                    <div className="policy-copy max-w-none space-y-8 font-medium leading-relaxed">
                         <Section title="1. Introduction">
                             <p>
                                 LekkerLedger (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) is a household employment record-keeping and payroll preparation tool operated by {COMPANY_NAME} in South Africa.
@@ -158,7 +158,7 @@ export default function PrivacyPolicy() {
                 </div>
 
                 <footer className="border-t border-zinc-800/50 pt-20">
-                    <p className="text-xs text-zinc-600">© {currentYear} LekkerLedger. All rights reserved.</p>
+                    <p className="text-xs text-[var(--text-muted)]">© {currentYear} LekkerLedger. All rights reserved.</p>
                 </footer>
             </div>
         </div>

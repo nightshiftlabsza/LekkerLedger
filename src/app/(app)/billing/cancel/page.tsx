@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 export default function BillingCancelPage() {
     return (
         <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 text-center">
-            <div className="bg-rose-500/10 text-rose-500 rounded-full p-4 mb-6">
+            <div className="mb-6 rounded-full p-4" style={{ backgroundColor: "var(--danger-soft)", color: "var(--danger)" }}>
                 <XCircle className="h-12 w-12" />
             </div>
 

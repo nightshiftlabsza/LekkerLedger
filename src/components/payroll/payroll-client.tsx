@@ -174,7 +174,7 @@ export function PayrollClient() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => router.push("/payroll")}
-                                className="h-6 gap-1 text-[10px] font-black uppercase text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                                className="h-6 gap-1 text-[10px] font-black uppercase text-[var(--danger)] hover:bg-[var(--danger-soft)]"
                             >
                                 <X className="h-3 w-3" /> Clear Filter
                             </Button>

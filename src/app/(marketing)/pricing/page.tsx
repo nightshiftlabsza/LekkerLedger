@@ -8,6 +8,7 @@ import {
     MarketingPlanCards,
     PricingComparisonTable,
 } from "@/components/marketing/pricing";
+import { useInlinePaidPlanCheckout } from "@/components/billing/inline-paid-plan-checkout";
 import {
     PRICING_PAGE_NUDGE_BODY,
     PRICING_PAGE_NUDGE_TITLE,
@@ -19,6 +20,7 @@ import { useMarketingBillingCycle } from "@/src/lib/use-marketing-billing-cycle"
 
 export default function PricingPage() {
     const [billingCycle, setBillingCycle] = useMarketingBillingCycle();
+    const { startCheckout, loadingPlanId, dialog } = useInlinePaidPlanCheckout({ billingCycle });
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
@@ -44,7 +46,11 @@ export default function PricingPage() {
 
                 <section>
                     <div className="content-container-wide px-4 py-12 sm:px-6 md:py-16 lg:px-8">
-                        <MarketingPlanCards billingCycle={billingCycle} />
+                        <MarketingPlanCards
+                            billingCycle={billingCycle}
+                            onSelect={startCheckout}
+                            isLoadingPlanId={loadingPlanId}
+                        />
                     </div>
                 </section>
 
@@ -118,6 +124,7 @@ export default function PricingPage() {
                     </div>
                 </section>
             </main>
+            {dialog}
         </div>
     );
 }

@@ -19,7 +19,7 @@ const STATUS_STYLES: Record<StepStatus, { bg: string; text: string; border: stri
     complete: { bg: "var(--success)", text: "#ffffff", border: "var(--success)" },
     active: { bg: "var(--primary)", text: "#ffffff", border: "var(--primary)" },
     upcoming: { bg: "var(--surface-2)", text: "var(--text-muted)", border: "var(--border)" },
-    error: { bg: "var(--red-500)", text: "#ffffff", border: "var(--red-500)" },
+    error: { bg: "var(--danger)", text: "#ffffff", border: "var(--danger)" },
 };
 
 export function WizardStepper({ steps, className = "" }: WizardStepperProps) {
@@ -48,7 +48,7 @@ export function WizardStepper({ steps, className = "" }: WizardStepperProps) {
                                 className="text-[11px] font-bold uppercase tracking-wide whitespace-nowrap"
                                 style={{
                                     color: step.status === "active" ? "var(--primary)"
-                                        : step.status === "error" ? "var(--red-500)"
+                                        : step.status === "error" ? "var(--danger)"
                                             : step.status === "complete" ? "var(--success)"
                                                 : "var(--text-muted)",
                                 }}

@@ -5,14 +5,12 @@ import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
-import { PaidLoginButton } from "@/components/paid-login-button";
 
 const NAV_LINKS = [
     { href: "/#how-it-works", label: "How it works" },
-    { href: "/uif-calculator", label: "UIF calculator" },
+    { href: "/uif-calculator", label: "UIF guide" },
+    { href: "/calculator", label: "Wage calculator" },
     { href: "/pricing", label: "Pricing" },
-    { href: "/#how-it-works", label: "How it works" },
-    { href: "/calculator", label: "Calculator" },
     { href: "/trust", label: "Trust & Support" },
 ] as const;
 
@@ -35,7 +33,7 @@ export function MarketingHeader() {
     }, [menuOpen]);
 
     return (
-        <header className="sticky top-0 z-30 bg-[var(--bg)] shadow-[var(--shadow-1)]" style={{ borderBottom: "1px solid var(--border)" }}>
+        <header className="sticky top-0 z-30 bg-[var(--bg)] shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
             <div className="content-container-wide flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
                 <Link href="/" className="rounded-lg py-1">
                     <Logo />
@@ -44,7 +42,7 @@ export function MarketingHeader() {
                 <nav className="hidden lg:flex items-center gap-8">
                     {NAV_LINKS.map(({ href, label }) => (
                         <Link
-                            key={href}
+                            key={`${href}-${label}`}
                             href={href}
                             className="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]"
                         >
@@ -54,15 +52,13 @@ export function MarketingHeader() {
                 </nav>
 
                 <div className="hidden lg:flex items-center gap-3">
-                    <PaidLoginButton
-                        label="Sign in"
-                        variant="outline"
-                        className="h-11 rounded-xl px-4 font-bold"
-                        nextPath="/dashboard"
-                        showInlineError
-                    />
+                    <Link href="/pricing">
+                        <Button variant="outline" className="h-11 rounded-xl px-4 font-bold">
+                            View plans
+                        </Button>
+                    </Link>
                     <Link href="/dashboard">
-                        <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-1)]">
+                        <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-sm)]">
                             Start free <ArrowRight className="h-4 w-4" />
                         </Button>
                     </Link>
@@ -80,7 +76,7 @@ export function MarketingHeader() {
             {menuOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
                     <div className="absolute inset-0 bg-black/30" onClick={() => setMenuOpen(false)} />
-                    <div className="absolute inset-x-0 top-0 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-2)]">
+                    <div className="absolute inset-x-0 top-0 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-lg)]">
                         <div className="flex items-center justify-between px-4 py-4 sm:px-6">
                             <Link href="/" onClick={() => setMenuOpen(false)} className="rounded-lg py-1">
                                 <Logo />
@@ -97,7 +93,7 @@ export function MarketingHeader() {
                         <nav className="space-y-1 px-4 pb-4 sm:px-6">
                             {NAV_LINKS.map(({ href, label }) => (
                                 <Link
-                                    key={href}
+                                    key={`${href}-${label}`}
                                     href={href}
                                     onClick={() => setMenuOpen(false)}
                                     className="block rounded-xl px-4 py-3 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--surface-raised)]"
@@ -106,13 +102,11 @@ export function MarketingHeader() {
                                 </Link>
                             ))}
                             <div className="grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-4">
-                                <PaidLoginButton
-                                    label="Sign in"
-                                    variant="outline"
-                                    className="w-full justify-center font-bold"
-                                    nextPath="/dashboard"
-                                    showInlineError
-                                />
+                                <Link href="/pricing" onClick={() => setMenuOpen(false)}>
+                                    <Button variant="outline" className="w-full justify-center font-bold">
+                                        View plans
+                                    </Button>
+                                </Link>
                                 <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
                                     <Button className="w-full justify-center font-bold">
                                         Start free <ArrowRight className="h-4 w-4" />

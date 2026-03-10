@@ -226,9 +226,9 @@ export function UifCalculatorLanding() {
                                     </p>
                                 </div>
                                 <div>
-                                    <Link href="/onboarding">
+                                    <Link href="/dashboard">
                                         <Button className="w-full justify-center gap-2 px-6 py-6 text-base font-bold lg:w-auto">
-                                            Create your account
+                                            Start free
                                             <ArrowRight className="h-4 w-4" />
                                         </Button>
                                     </Link>

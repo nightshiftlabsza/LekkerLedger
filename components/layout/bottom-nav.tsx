@@ -26,7 +26,7 @@ export function BottomNav({ onMore }: BottomNavProps) {
                             href={item.href}
                             aria-label={item.label}
                             data-testid={`bottom-nav-${item.label.toLowerCase()}`}
-                            className={`flex flex-col items-center justify-center flex-1 h-full gap-0.5 sm:gap-1 transition-all active-scale min-w-0 ${isActive ? "text-[var(--primary)]" : "text[var(--text-muted)]"
+                            className={`flex flex-col items-center justify-center flex-1 h-full gap-0.5 sm:gap-1 transition-all active-scale min-w-0 ${isActive ? "text-[var(--primary)]" : "text-[var(--text-muted)]"
                                 }`}
                         >
                             <Icon className={`h-4 sm:h-5 w-4 sm:w-5 transition-transform ${isActive ? "fill-[var(--primary)]/20 scale-110" : "hover:scale-105"}`} />

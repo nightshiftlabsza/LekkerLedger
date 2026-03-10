@@ -635,14 +635,14 @@ export default function PayPeriodWorkspacePage() {
 
                                         {/* Leave auto-populated indicator (draft mode) */}
                                         {!isLocked && entry.leaveDays > 0 && (
-                                            <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] pt-1">
-                                                <Palmtree className="h-3.5 w-3.5 text-emerald-500" />
+                                            <div className="flex items-center gap-2 pt-1 text-xs text-[var(--text-muted)]">
+                                                <Palmtree className="h-3.5 w-3.5 text-[var(--success)]" />
                                                 <span>{entry.leaveDays} leave day{entry.leaveDays !== 1 ? "s" : ""} auto-populated from records</span>
                                             </div>
                                         )}
 
                                         {!isLocked && entryBreakdown.grossPay < entryBreakdown.deductions.total && (
-                                            <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                                            <div className="flex items-start gap-2 rounded-xl border px-3 py-2 text-xs" style={{ borderColor: "var(--danger-border)", backgroundColor: "var(--danger-soft)", color: "var(--danger)" }}>
                                                 <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                                                 <span>Deductions are higher than gross pay for this employee. Reduce the deductions before you finalise this month.</span>
                                             </div>
@@ -697,7 +697,7 @@ export default function PayPeriodWorkspacePage() {
                             <Button
                                 onClick={handleDownloadPayslips}
                                 disabled={generatingPdfs}
-                                className={`w-full gap-2 h-12 text-base font-bold ${!isRecordWithinArchive(plan, period.endDate) ? 'bg-[var(--surface-2)] text-[var(--accent)] border border-[var(--border)] hover:bg-[var(--surface-2)] cursor-not-allowed' : 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]'}`}
+                                className={`w-full gap-2 h-12 text-base font-bold ${!isRecordWithinArchive(plan, period.endDate) ? 'cursor-not-allowed border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-muted)] hover:bg-[var(--surface-2)]' : 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]'}`}
                             >
                                 {!isRecordWithinArchive(plan, period.endDate) ? (
                                     <><Lock className="h-5 w-5" /> Upgrade to Export</>
@@ -732,7 +732,7 @@ export default function PayPeriodWorkspacePage() {
                                 size="sm"
                                 onClick={handleUnlock}
                                 disabled={saving}
-                                className="text-xs text-[var(--text-muted)] hover:text-red-500 font-bold gap-1.5"
+                                className="gap-1.5 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--danger)]"
                             >
                                 <AlertTriangle className="h-3.5 w-3.5" /> Made a mistake? Undo Finalise
                             </Button>

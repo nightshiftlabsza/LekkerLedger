@@ -23,6 +23,14 @@ export function MarketingFooter() {
                         <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                             Household payroll records, calmer monthly admin, and organised annual paperwork.
                         </p>
+                        <div className="mt-2 flex flex-col gap-1.5">
+                            <p className="text-[11px] font-bold" style={{ color: "var(--text)" }}>© {currentYear} LekkerLedger. All rights reserved.</p>
+                            <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Built by {COMPANY_NAME}.</p>
+                            <div className="mt-1 flex items-center gap-2">
+                                <span className="h-1 w-1 rounded-full bg-[var(--primary)]" />
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Made in South Africa</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -65,33 +73,12 @@ export function MarketingFooter() {
                     </div>
                 </div>
 
-                <div 
-                    className="mt-10 flex flex-col gap-6 border-t border-[var(--border)] pt-6 sm:flex-row sm:items-start sm:justify-between"
-                >
-                    <div className="max-w-xl">
-                        <div className="hidden lg:block space-y-2">
-                            <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text)]">Professional disclaimer</p>
-                            <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                LekkerLedger provides administrative tools for household record-keeping. Calculations and templates are based on general South African labor guidelines but do not constitute legal or tax advice. While we strive for accuracy, the application is not a substitute for professional counsel. Always verify specific or unusual employment situations against official Department of Employment and Labour or SARS documentation before final submission.
-                            </p>
-                        </div>
-
-                        <details className="lg:hidden rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3">
-                            <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wider text-[var(--text)]">
-                                Professional disclaimer
-                            </summary>
-                            <p className="mt-2 text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                LekkerLedger provides administrative tools for household record-keeping. Calculations and templates are based on general South African labor guidelines but do not constitute legal or tax advice. While we strive for accuracy, the application is not a substitute for professional counsel. Always verify specific or unusual employment situations against official Department of Employment and Labour or SARS documentation before final submission.
-                            </p>
-                        </details>
-                    </div>
-                    <div className="flex flex-col gap-2 text-left sm:text-right">
-                        <p className="text-[11px] font-bold" style={{ color: "var(--text)" }}>© {currentYear} LekkerLedger. All rights reserved.</p>
-                        <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Built by {COMPANY_NAME}.</p>
-                        <div className="mt-2 flex items-center gap-2 sm:justify-end">
-                            <span className="h-1 w-1 rounded-full bg-[var(--primary)]" />
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Made in South Africa</p>
-                        </div>
+                <div className="mt-10 border-t border-[var(--border)] pt-6">
+                    <div className="max-w-3xl space-y-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text)]">Disclaimer</p>
+                        <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            LekkerLedger provides administrative tools for household record-keeping. Calculations and templates are based on general South African labor guidelines but do not constitute legal or tax advice. While we strive for accuracy, the application is not a substitute for professional counsel. Always verify specific or unusual employment situations against official Department of Employment and Labour or SARS documentation before final submission.
+                        </p>
                     </div>
                 </div>
             </div>

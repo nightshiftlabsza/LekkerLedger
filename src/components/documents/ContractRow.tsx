@@ -142,7 +142,8 @@ export function ContractRow({
                 {onDelete && (
                     <button
                         onClick={() => onDelete(contract)}
-                        className="rounded-xl border border-red-200 bg-[var(--surface-1)] px-5 py-2.5 text-sm font-medium text-center text-red-700 hover:bg-red-50 hover:text-red-800 transition-colors active:scale-[0.98]"
+                        className="whitespace-nowrap rounded-2xl border bg-[var(--surface-1)] px-6 py-3 text-base font-medium text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)]"
+                        style={{ borderColor: "var(--danger-border)" }}
                     >
                         Delete
                     </button>

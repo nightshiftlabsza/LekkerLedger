@@ -174,7 +174,7 @@ export function MarketingPlanCard({
                     {plan.badge ? (
                         <span
                             className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] shadow-sm ${
-                                plan.badgeTone === "primary" ? "bg-[var(--text)] text-white" : "bg-white/80 border border-[var(--primary)]/10 text-[var(--primary)]"
+                                plan.badgeTone === "primary" ? "bg-[var(--text)] text-white" : "bg-[var(--surface-raised)] border border-[var(--primary)]/10 text-[var(--primary)]"
                             }`}
                         >
                             {plan.badge}

@@ -345,7 +345,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                             <Cloud className="h-6 w-6" />
                         </div>
                         <div className="min-w-0 flex-1 space-y-1">
-                            <h3 className="font-bold text-lg text-amber-950 break-words">Unlock Google-connected access</h3>
+                            <h3 className="break-words text-lg font-bold text-[var(--text)]">Unlock Google-connected access</h3>
                             <p className="text-sm text-[var(--text)]/70 leading-relaxed">
                                 LekkerLedger is local-first. Upgrade to connect Google and keep a backup in the Google Drive app data area in your own Google account so your records can travel with you across devices and browsers.
                             </p>
@@ -359,12 +359,34 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
         );
     }
 
+    const statusAccent = !token
+        ? "var(--text-muted)"
+        : !hasDriveScope
+            ? "var(--warning)"
+            : status === "error"
+                ? "var(--danger)"
+                : "var(--success)";
+    const statusSurface = !token
+        ? "var(--surface-2)"
+        : !hasDriveScope
+            ? "var(--warning-soft)"
+            : status === "error"
+                ? "var(--danger-soft)"
+                : "var(--success-soft)";
+    const statusBorder = !token
+        ? "var(--border)"
+        : !hasDriveScope
+            ? "var(--warning-border)"
+            : status === "error"
+                ? "var(--danger-border)"
+                : "var(--success-border)";
+
     return (
         <div className="space-y-6">
-            <Card className={`border-2 transition-colors ${!token ? "border-[var(--border)]" : !hasDriveScope ? "border-amber-500/50" : status === "error" ? "border-rose-500/50" : "border-emerald-500/50"}`}>
+            <Card className="border-2 transition-colors" style={{ borderColor: statusBorder }}>
                 <CardContent className="p-6 flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className={`p-4 rounded-full ${!token ? "bg-[var(--surface-2)] text-[var(--text-muted)]" : !hasDriveScope ? "bg-amber-500/10 text-amber-500" : status === "error" ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-500"}`}>
+                        <div className="rounded-full p-4" style={{ backgroundColor: statusSurface, color: statusAccent }}>
                             {!token ? <Cloud className="h-8 w-8" /> : !hasDriveScope ? <Shield className="h-8 w-8" /> : status === "loading" ? <Loader2 className="h-8 w-8 animate-spin" /> : status === "error" ? <AlertCircle className="h-8 w-8" /> : <CheckCircle2 className="h-8 w-8" />}
                         </div>
                         <div>
@@ -384,13 +406,13 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
 
                     {!token ? (
                         <div className="flex flex-col sm:flex-row gap-2">
-                             <Button onClick={() => login()} className="bg-[#4285F4] hover:bg-[#3367d6] text-white font-bold whitespace-nowrap">
+                             <Button onClick={() => login()} className="bg-[var(--info)] text-white font-bold whitespace-nowrap hover:brightness-95">
                                 Connect Google account
                             </Button>
                         </div>
                     ) : !hasDriveScope ? (
                         <div className="flex flex-col sm:flex-row gap-2">
-                            <Button onClick={() => enableDrive()} className="bg-amber-500 hover:bg-amber-600 text-white font-bold whitespace-nowrap h-12 rounded-xl shadow-lg shadow-amber-500/20">
+                            <Button onClick={() => enableDrive()} className="h-12 rounded-xl bg-[var(--warning)] text-white font-bold whitespace-nowrap shadow-[var(--shadow-md)] hover:brightness-95">
                                 <Cloud className="h-4 w-4 mr-2" /> Enable Google backup
                             </Button>
                             <Button variant="ghost" className="text-[var(--text-muted)]" onClick={clearAuth}>Sign out</Button>
@@ -403,7 +425,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                             <Button variant="ghost" onClick={() => setPendingAction("restore")} disabled={status === "loading"}>
                                 <Download className="h-4 w-4 mr-2" /> Restore backup
                             </Button>
-                            <Button variant="ghost" className="text-rose-500 hover:text-rose-600 hover:bg-rose-50" onClick={clearAuth}>
+                            <Button variant="ghost" className="text-[var(--danger)] hover:bg-[var(--danger-soft)]" onClick={clearAuth}>
                                 Disconnect
                             </Button>
                         </div>
@@ -419,16 +441,16 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             )}
 
             {discoveryStatus === "local_empty_remote_exists" && remoteMetadata && (
-                 <Card className="border-2 border-emerald-500/30 bg-emerald-50/50">
+                 <Card className="border-2" style={{ borderColor: "var(--success-border)", backgroundColor: "var(--success-soft)" }}>
                      <CardContent className="p-6">
                          <div className="flex flex-col sm:flex-row gap-6 items-center justify-between text-center sm:text-left">
                              <div className="space-y-2">
-                                 <h3 className="text-lg font-bold text-emerald-900">Restore your backup?</h3>
-                                 <p className="text-sm text-emerald-700/80">We found a backup from <b>{new Date(remoteMetadata.modifiedTime!).toLocaleString()}</b>. Would you like to restore it to this device?</p>
+                                 <h3 className="text-lg font-bold text-[var(--text)]">Restore your backup?</h3>
+                                 <p className="text-sm text-[var(--success)]">We found a backup from <b>{new Date(remoteMetadata.modifiedTime!).toLocaleString()}</b>. Would you like to restore it to this device?</p>
                              </div>
                              <div className="flex gap-3 shrink-0">
                                  <Button variant="ghost" onClick={() => setDiscoveryStatus("idle")}>Later</Button>
-                                 <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold" onClick={async () => {
+                                 <Button className="bg-[var(--success)] text-white font-bold hover:brightness-95" onClick={async () => {
                                      setDiscoveryStatus("idle");
                                      await runRestore(false);
                                  }}>Restore now</Button>
@@ -459,38 +481,38 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             )}
 
             {discoveryStatus === "decision_required" && remoteMetadata && localPreview && (
-                <Card className="border-2 border-amber-500/30 bg-amber-50/50">
+                <Card className="border-2" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
                     <CardHeader>
-                        <CardTitle className="text-lg font-bold text-amber-900 flex items-center gap-2">
+                        <CardTitle className="text-lg font-bold text-[var(--text)] flex items-center gap-2">
                             <RefreshCcw className="h-5 w-5" /> Sync decision required
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="p-4 rounded-xl bg-white border border-amber-200">
-                                <p className="text-xs font-black uppercase tracking-wider text-amber-600 mb-2">This Device</p>
+                            <div className="rounded-xl border p-4" style={{ backgroundColor: "var(--surface-1)", borderColor: "var(--warning-border)" }}>
+                                <p className="mb-2 text-xs font-black uppercase tracking-wider text-[var(--warning)]">This Device</p>
                                 <div className="space-y-1">
-                                    <p className="text-sm font-bold text-amber-950">{localPreview.employeeCount} employees, {localPreview.payslipCount} payslips</p>
-                                    <p className="text-[10px] text-amber-700">Local snapshot on this browser</p>
+                                    <p className="text-sm font-bold text-[var(--text)]">{localPreview.employeeCount} employees, {localPreview.payslipCount} payslips</p>
+                                    <p className="text-[10px] text-[var(--warning)]">Local snapshot on this browser</p>
                                 </div>
                             </div>
-                            <div className="p-4 rounded-xl bg-white border border-emerald-200">
-                                <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-2">Google Backup</p>
+                            <div className="rounded-xl border p-4" style={{ backgroundColor: "var(--surface-1)", borderColor: "var(--success-border)" }}>
+                                <p className="mb-2 text-xs font-black uppercase tracking-wider text-[var(--success)]">Google Backup</p>
                                 <div className="space-y-1">
-                                    <p className="text-sm font-bold text-emerald-950">{new Date(remoteMetadata.modifiedTime!).toLocaleString()}</p>
-                                    <p className="text-[10px] text-emerald-700">Remote snapshot in your private Drive area</p>
+                                    <p className="text-sm font-bold text-[var(--text)]">{new Date(remoteMetadata.modifiedTime!).toLocaleString()}</p>
+                                    <p className="text-[10px] text-[var(--success)]">Remote snapshot in your private Drive area</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-3">
-                            <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12" onClick={async () => {
+                            <Button className="flex-1 h-12 bg-[var(--success)] text-white font-bold hover:brightness-95" onClick={async () => {
                                 setDiscoveryStatus("idle");
                                 await runRestore(false);
                             }}>
                                 <Download className="h-4 w-4 mr-2" /> Restore Google backup to this device
                             </Button>
-                            <Button variant="outline" className="flex-1 border-amber-200 text-amber-900 hover:bg-amber-100 font-bold h-12" onClick={async () => {
+                            <Button variant="outline" className="flex-1 h-12 font-bold text-[var(--warning)] hover:bg-[var(--warning-soft)]" style={{ borderColor: "var(--warning-border)" }} onClick={async () => {
                                 setDiscoveryStatus("idle");
                                 await handleBackup(false);
                             }}>
@@ -520,7 +542,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                         <div className="flex gap-2">
                             <Button variant="ghost" onClick={() => setPendingAction(null)}>Cancel</Button>
                             <Button
-                                className={pendingAction === "delete" ? "bg-rose-600 text-white hover:bg-rose-700" : "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"}
+                                className={pendingAction === "delete" ? "bg-[var(--danger)] text-white hover:brightness-95" : "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"}
                                 onClick={async () => {
                                     const action = pendingAction;
                                     setPendingAction(null);
@@ -536,7 +558,14 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             )}
 
             {statusMessage && status !== "idle" && (
-                <div className={`p-4 rounded-xl text-sm font-medium flex items-center gap-3 animate-in slide-in-from-top-2 ${status === "error" ? "bg-rose-50 text-rose-700 border border-rose-200" : status === "success" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-blue-50 text-blue-700 border border-blue-200"}`}>
+                <div
+                    className="animate-in slide-in-from-top-2 flex items-center gap-3 rounded-xl border p-4 text-sm font-medium"
+                    style={{
+                        backgroundColor: status === "error" ? "var(--danger-soft)" : status === "success" ? "var(--success-soft)" : "var(--info-soft)",
+                        borderColor: status === "error" ? "var(--danger-border)" : status === "success" ? "var(--success-border)" : "var(--info-border)",
+                        color: status === "error" ? "var(--danger)" : status === "success" ? "var(--success)" : "var(--info)",
+                    }}
+                >
                     {status === "error" && <AlertCircle className="h-5 w-5" />}
                     {status === "success" && <CheckCircle2 className="h-5 w-5" />}
                     {status === "loading" && <Loader2 className="h-5 w-5 animate-spin" />}
@@ -558,34 +587,34 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                             </p>
                             <ul className="space-y-2">
                                 <li className="flex items-start gap-2 text-[10px] text-[var(--text-muted)] italic">
-                                    <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                                    <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-[var(--success)]" />
                                     LekkerLedger cannot browse your normal Google Drive files, photos, or emails.
                                 </li>
                                 <li className="flex items-start gap-2 text-[10px] text-[var(--text-muted)] italic">
-                                    <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                                    <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-[var(--success)]" />
                                     Payroll records are not uploaded into a central company-hosted employee database as part of this backup flow.
                                 </li>
                                 <li className="flex items-start gap-2 text-[10px] text-[var(--text-muted)] italic">
-                                    <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                                    <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-[var(--success)]" />
                                     The backup area is hidden from your normal Drive view and used only for this app.
                                 </li>
                             </ul>
                             <div className="pt-4 border-t border-[var(--border)]">
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-2">Delete backup</h4>
+                                <h4 className="mb-2 text-[10px] font-black uppercase tracking-widest text-[var(--danger)]">Delete backup</h4>
                                 <p className="text-[10px] text-[var(--text-muted)] mb-4">
                                     Use the button below to remove the Google backup file, or remove hidden app data from your Google account settings.
                                 </p>
-                                <Button variant="outline" size="sm" onClick={() => setPendingAction("delete")} className="h-8 text-[10px] border-rose-200 text-rose-500 hover:bg-rose-50 font-bold">
+                                <Button variant="outline" size="sm" onClick={() => setPendingAction("delete")} className="h-8 text-[10px] font-bold text-[var(--danger)] hover:bg-[var(--danger-soft)]" style={{ borderColor: "var(--danger-border)" }}>
                                     Delete backup from Google Drive
                                 </Button>
                             </div>
 
                             <div className="pt-4 border-t border-[var(--border)]">
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-2">Privacy & Device Reset</h4>
+                                <h4 className="mb-2 text-[10px] font-black uppercase tracking-widest text-[var(--danger)]">Privacy & Device Reset</h4>
                                 <p className="text-[10px] text-[var(--text-muted)] mb-4">
                                      Standard logout keeps your records on this device. Use the option below to clear everything from this browser.
                                 </p>
-                                <Button variant="ghost" size="sm" onClick={handleLogoutAndWipe} className="h-8 text-[10px] text-rose-500 hover:bg-rose-50 font-bold">
+                                <Button variant="ghost" size="sm" onClick={handleLogoutAndWipe} className="h-8 text-[10px] font-bold text-[var(--danger)] hover:bg-[var(--danger-soft)]">
                                     Log out and clear records from this device
                                 </Button>
                             </div>
@@ -606,7 +635,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                                     {syncLogs.slice(0, 5).map((log) => (
                                         <li key={log.id} className="p-3 flex items-center justify-between hover:bg-[var(--surface-2)] transition-colors">
                                             <div className="flex items-center gap-3">
-                                                <div className={`p-1.5 rounded-full ${log.success ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"}`}>
+                                                <div className="rounded-full p-1.5" style={{ backgroundColor: log.success ? "var(--success-soft)" : "var(--danger-soft)", color: log.success ? "var(--success)" : "var(--danger)" }}>
                                                     {log.action === "backup" ? <Upload className="h-3 w-3" /> : log.action === "restore" ? <Download className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
                                                 </div>
                                                 <div className="text-[10px]">

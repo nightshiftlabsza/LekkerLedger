@@ -33,7 +33,7 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: { onStar
     }, [rateNum, hoursNum, nmwRate]);
 
     return (
-        <Card className="glass-panel shadow-[var(--shadow-2xl)] border-none">
+        <Card className="glass-panel border-none shadow-[var(--shadow-xl)]">
             <CardContent className="p-6 sm:p-8 space-y-7">
                 <h2 className="text-lg font-extrabold flex items-center gap-2 mb-2" style={{ color: "var(--text)" }}>
                     <Calculator className="h-6 w-6" style={{ color: "var(--primary)" }} />
@@ -90,7 +90,7 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: { onStar
                                     Employee UIF (1%)
                                     {!preview.uifActive && <span className="text-[10px] lowercase" style={{ color: "var(--primary)" }}> · ≤24hrs</span>}
                                 </span>
-                                <span className="tabular-nums text-sm font-black" style={{ color: "var(--red-500)" }}>{preview.uifActive ? `-R ${preview.employeeUif.toFixed(2)}` : "R 0.00"}</span>
+                                <span className="tabular-nums text-sm font-black" style={{ color: "var(--danger)" }}>{preview.uifActive ? `-R ${preview.employeeUif.toFixed(2)}` : "R 0.00"}</span>
                             </div>
                             <div className="flex justify-between items-center px-5 pb-3.5 text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>
                                 <span>Employer UIF (1%) - not deducted from pay</span>
@@ -103,8 +103,8 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: { onStar
                             </Link>
                         </div>
                         <div className="flex justify-between items-center px-6 py-6 shadow-inner" style={{ background: "var(--primary)" }}>
-                            <span className="font-black text-white/90 uppercase tracking-widest text-[10px]">Net Pay (est.)</span>
-                            <span className="font-black text-white text-3xl tabular-nums">R {preview.net.toFixed(2)}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--on-primary)]">Net Pay (est.)</span>
+                            <span className="text-3xl font-black tabular-nums text-[var(--on-primary)]">R {preview.net.toFixed(2)}</span>
                         </div>
                     </div>
                 )}

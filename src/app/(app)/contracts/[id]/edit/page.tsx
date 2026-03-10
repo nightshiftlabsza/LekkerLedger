@@ -171,9 +171,9 @@ export default function EditContractPage() {
                 />
             </div>
 
-            <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/40 dark:bg-amber-950/20">
-                <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
-                <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+            <div className="flex items-start gap-3 rounded-2xl border px-4 py-3" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
+                <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" />
+                <p className="text-xs leading-relaxed text-[var(--warning)]">
                     This tool helps you prepare a draft employment agreement. It is <strong>not legal advice</strong>. Before anyone signs, review the full document carefully.
                 </p>
             </div>
@@ -186,7 +186,7 @@ export default function EditContractPage() {
             </Card>
 
             {saveError && (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
+                <div className="rounded-2xl border px-4 py-3 text-xs text-[var(--warning)]" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
                     {saveError}
                 </div>
             )}

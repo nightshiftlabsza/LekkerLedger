@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarketingBillingToggle, MarketingPlanCards } from "@/components/marketing/pricing";
+import { useInlinePaidPlanCheckout } from "@/components/billing/inline-paid-plan-checkout";
 import { calculatePayslip } from "@/lib/calculator";
 import { getNMWForDate } from "@/lib/legal/registry";
 import type { Employee, PayslipInput } from "@/lib/schema";
@@ -98,7 +99,7 @@ export default function HomePage() {
     const sample = buildHomepageSample(referenceDate);
 
     return (
-        <div className="min-h-screen flex flex-col selection:bg-amber-200" style={{ backgroundColor: "var(--bg)" }}>
+        <div className="min-h-screen flex flex-col selection:bg-[var(--accent-subtle)]" style={{ backgroundColor: "var(--bg)" }}>
             <MarketingHeader />
 
             <main id="main-content" className="flex-1">
@@ -173,7 +174,7 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
                                 Sample payroll record
                             </p>
                         </div>
-                        <p className="rounded-full border border-[var(--focus)]/20 bg-white/70 px-3 py-1.5 text-sm font-semibold shadow-sm" style={{ color: "var(--text)" }}>
+                        <p className="rounded-full border border-[var(--focus)]/20 bg-[var(--surface-1)] px-3 py-1.5 text-sm font-semibold shadow-sm" style={{ color: "var(--text)" }}>
                             {sample.monthLabel}
                         </p>
                     </div>
@@ -221,7 +222,7 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
                         </p>
                     </div>
                     <p
-                        className="rounded-full border border-[var(--focus)]/20 bg-white/70 px-3 py-1.5 text-xs font-semibold shadow-sm"
+                        className="rounded-full border border-[var(--focus)]/20 bg-[var(--surface-1)] px-3 py-1.5 text-xs font-semibold shadow-sm"
                         style={{ color: "var(--text)" }}
                     >
                         {sample.monthLabel}
@@ -538,6 +539,7 @@ function WhatYouKeep() {
 
 function PricingPreview() {
     const [billingCycle, setBillingCycle] = useMarketingBillingCycle();
+    const { startCheckout, loadingPlanId, dialog } = useInlinePaidPlanCheckout({ billingCycle });
 
     return (
         <section id="pricing-preview" className="scroll-mt-24" style={{ backgroundColor: "var(--surface-2)" }}>
@@ -559,7 +561,12 @@ function PricingPreview() {
                 </div>
 
                 <div className="mt-8">
-                    <MarketingPlanCards billingCycle={billingCycle} compact />
+                    <MarketingPlanCards
+                        billingCycle={billingCycle}
+                        compact
+                        onSelect={startCheckout}
+                        isLoadingPlanId={loadingPlanId}
+                    />
                 </div>
 
                 <div className="mt-8 flex justify-start sm:justify-end">
@@ -568,6 +575,7 @@ function PricingPreview() {
                     </Link>
                 </div>
             </div>
+            {dialog}
         </section>
     );
 }

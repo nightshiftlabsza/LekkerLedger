@@ -775,7 +775,8 @@ export function EmployeeDocumentsTab({
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-9 px-3 gap-2 rounded-full border border-red-200 text-red-700 hover:text-red-800 hover:bg-red-50"
+                                                className="h-9 gap-2 rounded-full border px-3 text-[var(--danger)] hover:bg-[var(--danger-soft)]"
+                                                style={{ borderColor: "var(--danger-border)" }}
                                                 disabled={deletingDocumentId === doc.id}
                                                 onClick={() => void handleDeleteVaultDocument(doc)}
                                             >

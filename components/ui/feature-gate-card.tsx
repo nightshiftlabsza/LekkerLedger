@@ -25,7 +25,7 @@ export function FeatureGateCard({
     ],
 }: FeatureGateCardProps) {
     return (
-        <Card className="border-[var(--primary)] bg-[var(--primary)]/5 shadow-[var(--shadow-1)]">
+        <Card className="border-[var(--primary)] bg-[var(--primary)]/5 shadow-[var(--shadow-sm)]">
             <CardContent className="p-6 space-y-4">
                 <div className="flex items-start gap-3">
                     <div className="rounded-2xl bg-[var(--primary)] p-3 text-white">
@@ -40,7 +40,7 @@ export function FeatureGateCard({
                     </div>
                 </div>
 
-                <div className="space-y-2 rounded-2xl border border-[var(--border)]/70 bg-white/60 p-4 dark:bg-white/5">
+                <div className="space-y-2 rounded-2xl border border-[var(--border)]/70 bg-[var(--surface-raised)] p-4">
                     <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">
                         What you get
                     </p>

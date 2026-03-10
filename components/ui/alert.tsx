@@ -7,27 +7,27 @@ export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const VARIANTS = {
     default: {
-        bg: "rgba(196,122,28,0.08)",
-        border: "rgba(196,122,28,0.25)",
-        color: "var(--primary)",
+        bg: "var(--info-soft)",
+        border: "var(--info-border)",
+        color: "var(--info)",
         Icon: Info,
     },
     success: {
-        bg: "rgba(26,107,58,0.08)",
-        border: "rgba(26,107,58,0.25)",
-        color: "var(--primary)",
+        bg: "var(--success-soft)",
+        border: "var(--success-border)",
+        color: "var(--success)",
         Icon: CheckCircle2,
     },
     warning: {
-        bg: "rgba(196,122,28,0.08)",
-        border: "rgba(196,122,28,0.30)",
-        color: "var(--amber-warn-500)",
+        bg: "var(--warning-soft)",
+        border: "var(--warning-border)",
+        color: "var(--warning)",
         Icon: AlertCircle,
     },
     error: {
-        bg: "rgba(192,57,43,0.08)",
-        border: "rgba(192,57,43,0.25)",
-        color: "var(--red-500)",
+        bg: "var(--danger-soft)",
+        border: "var(--danger-border)",
+        color: "var(--danger)",
         Icon: XCircle,
     },
 };

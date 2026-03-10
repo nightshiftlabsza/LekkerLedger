@@ -12,7 +12,7 @@ const UPDATED_DATE = "10 March 2026";
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <section className="space-y-4">
-            <h2 className="text-2xl font-black text-white">{title}</h2>
+            <h2 className="text-2xl font-black text-[var(--text)]">{title}</h2>
             {children}
         </section>
     );
@@ -35,12 +35,12 @@ export default function TermsOfService() {
                         <Scale className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Terms of Service</h1>
-                    <p className="font-medium text-zinc-500">Updated {UPDATED_DATE}</p>
+                    <p className="font-medium text-[var(--text-muted)]">Updated {UPDATED_DATE}</p>
                 </header>
 
-                <div className="space-y-8 text-zinc-400">
+                <div className="space-y-8 text-[var(--text-muted)]">
                     <div className="rounded-2xl border border-[var(--primary)]/10 bg-[var(--primary)]/5 p-6">
-                        <h2 className="text-xl font-black text-white">Plain-language summary</h2>
+                        <h2 className="text-xl font-black text-[var(--text)]">Plain-language summary</h2>
                         <ul className="mt-4 list-disc space-y-2 pl-6 text-sm leading-7">
                             <li>LekkerLedger is a record-keeping and payroll preparation tool, not a managed payroll service and not legal advice.</li>
                             <li>You are responsible for the accuracy of the information you enter and for checking official requirements before submission or payment.</li>
@@ -52,7 +52,7 @@ export default function TermsOfService() {
 
                     <SupplierDetails />
 
-                    <div className="prose prose-zinc dark:prose-invert max-w-none space-y-8 font-medium leading-relaxed text-zinc-400">
+                    <div className="policy-copy max-w-none space-y-8 font-medium leading-relaxed">
                         <Section title="1. Acceptance of terms">
                             <p>
                                 By using LekkerLedger, you agree to these Terms of Service. If you do not agree, do not use the website or app.
@@ -163,7 +163,7 @@ export default function TermsOfService() {
                 </div>
 
                 <footer className="border-t border-zinc-800/50 pt-20">
-                    <p className="text-xs text-zinc-600">© {currentYear} LekkerLedger. All rights reserved.</p>
+                    <p className="text-xs text-[var(--text-muted)]">© {currentYear} LekkerLedger. All rights reserved.</p>
                 </footer>
             </div>
         </div>

@@ -19,8 +19,8 @@ export default function GlobalError({
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 bg-[var(--bg)]">
             <div className="relative">
-                <div className="absolute inset-0 bg-red-500/20 blur-3xl rounded-full" />
-                <div className="relative h-20 w-20 rounded-3xl bg-red-500 flex items-center justify-center text-white shadow-2xl">
+                <div className="absolute inset-0 rounded-full blur-3xl" style={{ backgroundColor: "var(--danger-soft)" }} />
+                <div className="relative h-20 w-20 rounded-3xl flex items-center justify-center text-white shadow-2xl" style={{ backgroundColor: "var(--danger)" }}>
                     <AlertTriangle className="h-10 w-10" />
                 </div>
             </div>
@@ -35,7 +35,7 @@ export default function GlobalError({
             <div className="flex flex-col gap-3 w-full max-w-xs">
                 <Button
                     onClick={() => reset()}
-                    className="h-12 bg-[var(--amber-500)] hover:bg-[var(--amber-600)] text-white font-bold gap-2"
+                    className="h-12 bg-[var(--warning)] hover:brightness-95 text-white font-bold gap-2"
                 >
                     <RefreshCw className="h-4 w-4" /> Try Again
                 </Button>

@@ -189,11 +189,11 @@ export default function RoePackPage() {
                         <div className="animate-slide-up space-y-5">
 
                             {/* Disclaimer — shown first so user sees it before acting */}
-                            <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">
-                                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                            <div className="flex items-start gap-3 rounded-xl border p-4" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
+                                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" />
                                 <div className="space-y-0.5">
-                                    <p className="text-xs font-bold text-amber-700">Compliance support tool — not a filing service</p>
-                                    <p className="text-[11px] text-amber-600 leading-relaxed">
+                                    <p className="text-xs font-bold text-[var(--text)]">Compliance support tool — not a filing service</p>
+                                    <p className="text-[11px] leading-relaxed text-[var(--warning)]">
                                         LekkerLedger calculates your figures and generates supporting documents. You are responsible for the accuracy of your submission to the Compensation Fund.
                                     </p>
                                 </div>
@@ -327,11 +327,11 @@ export default function RoePackPage() {
                         <div className="animate-slide-up space-y-6">
                             <div className="space-y-2">
                                 <h2 className="type-h3 text-[var(--text)]">Your ROE Numbers</h2>
-                                <div className="flex items-start gap-3 p-4 bg-amber-500/5 rounded-xl border border-amber-500/10">
-                                    <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                                <div className="flex items-start gap-3 rounded-xl border p-4" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
+                                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" />
                                     <div className="space-y-1">
-                                        <p className="text-xs font-bold text-amber-600">Next Step: Enter these into the CF Portal</p>
-                                        <p className="text-[10px] text-amber-700 leading-relaxed">
+                                        <p className="text-xs font-bold text-[var(--text)]">Next Step: Enter these into the CF Portal</p>
+                                        <p className="text-[10px] leading-relaxed text-[var(--warning)]">
                                             1. Visit <strong>roe.labour.gov.za</strong> · 2. Copy each value using the buttons below · 3. Paste into your ROE submission form.
                                         </p>
                                     </div>
@@ -339,9 +339,9 @@ export default function RoePackPage() {
                             </div>
 
                             {roeData.employeeCount === 0 && roeData.actualEarnings === 0 && (
-                                <Alert className="bg-red-500/5 border border-red-500/10">
-                                    <AlertTriangle className="h-4 w-4 text-red-500" />
-                                    <AlertDescription className="text-xs text-red-700 ml-2">
+                                <Alert variant="error">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <AlertDescription className="ml-2 text-xs">
                                         ⚠️ <strong>No payroll data found for {selectedYear}/{selectedYear + 1}</strong>. Add payroll records to generate your ROE numbers.
                                     </AlertDescription>
                                 </Alert>

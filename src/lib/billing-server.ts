@@ -30,6 +30,7 @@ const TRIAL_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
 const REFUND_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
 const REFERRAL_REWARD_MONTHS = 1;
 const REFERRAL_REWARD_CAP_MONTHS = 12;
+const GUEST_INTENT_USER_PREFIX = "guest_";
 
 class BillingError extends Error {
     status: number;
@@ -91,6 +92,13 @@ interface PaystackCreateSubscriptionResponse {
 interface PaystackBasicResponse {
     status?: boolean;
     message?: string;
+}
+
+interface PaystackVerifyTransactionResponse extends PaystackBasicResponse {
+    data?: Record<string, unknown> & {
+        status?: string;
+        reference?: string;
+    };
 }
 
 interface PaystackAuthorization {
@@ -224,6 +232,18 @@ function toIso(timestamp: number | null | undefined): string | undefined {
 function sanitizeReferralCode(value: string | null | undefined): string | null {
     const trimmed = value?.trim().toUpperCase() || "";
     return trimmed ? trimmed.replace(/[^A-Z0-9]/g, "") : null;
+}
+
+function normalizeEmailAddress(value: string): string {
+    return value.trim().toLowerCase();
+}
+
+function buildGuestIntentUserId(): string {
+    return `${GUEST_INTENT_USER_PREFIX}${randomUUID()}`;
+}
+
+function isGuestIntentUserId(value: string | null | undefined): boolean {
+    return typeof value === "string" && value.startsWith(GUEST_INTENT_USER_PREFIX);
 }
 
 function buildTrialReference(userId: string): string {
@@ -586,6 +606,13 @@ async function getBillingIntentByReference(reference: string): Promise<BillingIn
     return rows[0] ? rowToBillingIntentRecord(rows[0]) : null;
 }
 
+async function getBillingIntentById(id: string | null | undefined): Promise<BillingIntentRecord | null> {
+    if (!id) return null;
+    await ensureBillingSchema();
+    const rows = await queryD1("SELECT * FROM billing_intents WHERE id = ? LIMIT 1", [id]);
+    return rows[0] ? rowToBillingIntentRecord(rows[0]) : null;
+}
+
 async function upsertBillingIntent(record: BillingIntentRecord): Promise<void> {
     await ensureBillingSchema();
     await queryD1(
@@ -603,7 +630,8 @@ async function upsertBillingIntent(record: BillingIntentRecord): Promise<void> {
                 created_at,
                 updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(reference) DO UPDATE SET
+            ON CONFLICT(id) DO UPDATE SET
+                reference = excluded.reference,
                 user_id = excluded.user_id,
                 email = excluded.email,
                 plan_id = excluded.plan_id,
@@ -879,9 +907,10 @@ async function initializePaystackTransaction(request: Request, user: VerifiedGoo
     amountCents: number;
     metadata: Record<string, unknown>;
     callbackQuery?: Record<string, string>;
+    reference?: string;
 }): Promise<{ authorizationUrl: string; reference: string }> {
     const origin = normalizeOrigin(request);
-    const reference = buildTrialReference(user.userId);
+    const reference = input.reference || buildTrialReference(user.userId);
     const callbackUrl = new URL(`${origin}/billing/success`);
     if (input.callbackQuery) {
         Object.entries(input.callbackQuery).forEach(([key, value]) => callbackUrl.searchParams.set(key, value));
@@ -1072,6 +1101,42 @@ async function linkReferralToTrial(intent: BillingIntentRecord): Promise<void> {
     });
 }
 
+async function markGuestTrialIntentPaymentReceived(intent: BillingIntentRecord): Promise<boolean> {
+    if (intent.status === "payment_received") {
+        return true;
+    }
+
+    await upsertBillingIntent({
+        ...intent,
+        status: "payment_received",
+        updatedAt: Date.now(),
+    });
+    return true;
+}
+
+async function claimTrialIntentForUser(intent: BillingIntentRecord, user: VerifiedGoogleUser): Promise<BillingIntentRecord> {
+    if (!isGuestIntentUserId(intent.userId)) {
+        if (intent.userId !== user.userId) {
+            throw new BillingAuthError("That payment has already been linked to another Google account.");
+        }
+        return intent;
+    }
+
+    const existing = await getSubscriptionByColumn("user_id", user.userId);
+    if (!canStartTrial(existing)) {
+        throw new BillingError("This Google account has already used the free trial.", 409);
+    }
+
+    const claimedIntent: BillingIntentRecord = {
+        ...intent,
+        userId: user.userId,
+        email: user.email,
+        updatedAt: Date.now(),
+    };
+    await upsertBillingIntent(claimedIntent);
+    return claimedIntent;
+}
+
 async function qualifyReferralForFirstPaidCharge(userId: string, planId: Exclude<PlanId, "free">, billingCycle: BillingCycle, paidAt: number): Promise<void> {
     const referral = await getReferralByReferee(userId);
     if (!referral || referral.status !== "trial_started") return;
@@ -1229,6 +1294,45 @@ async function handleTrialChargeSuccess(data: Record<string, unknown>, intent: B
         updatedAt: Date.now(),
     });
     return true;
+}
+
+async function resolveBillingIntentForCharge(reference: string | null, metadata: Record<string, unknown>): Promise<BillingIntentRecord | null> {
+    const intentByReference = reference ? await getBillingIntentByReference(reference) : null;
+    if (intentByReference) return intentByReference;
+
+    const intentId = getMetadataValue(metadata, "intent_id");
+    const intentById = await getBillingIntentById(intentId);
+    if (!intentById) return null;
+
+    if (reference && intentById.reference !== reference) {
+        const updatedIntent: BillingIntentRecord = {
+            ...intentById,
+            reference,
+            status: intentById.status === "pending" ? "checkout_started" : intentById.status,
+            updatedAt: Date.now(),
+        };
+        await upsertBillingIntent(updatedIntent);
+        return updatedIntent;
+    }
+
+    return intentById;
+}
+
+async function processSuccessfulCharge(data: Record<string, unknown>, reference: string | null, existing: SubscriptionRecord | null): Promise<boolean> {
+    const metadata = parseMetadata(data.metadata);
+    const intent = await resolveBillingIntentForCharge(reference, metadata);
+
+    if (intent) {
+        if (intent.status === "pending" || intent.status === "checkout_started" || intent.status === "payment_received") {
+            if (isGuestIntentUserId(intent.userId)) {
+                return markGuestTrialIntentPaymentReceived(intent);
+            }
+            return handleTrialChargeSuccess(data, intent);
+        }
+        return true;
+    }
+
+    return handleRecurringChargeSuccess(data, existing);
 }
 
 async function handleRecurringChargeSuccess(data: Record<string, unknown>, existing: SubscriptionRecord | null): Promise<boolean> {
@@ -1446,6 +1550,7 @@ export async function startTrialCheckout(
 
     const checkout = await initializePaystackTransaction(request, user, {
         amountCents: TRIAL_VERIFICATION_AMOUNT_CENTS,
+        reference: intent.reference,
         metadata: {
             billing_mode: "trial_setup",
             intent_id: intent.id,
@@ -1467,6 +1572,45 @@ export async function startTrialCheckout(
     });
 
     return checkout;
+}
+
+export async function createAnonymousTrialIntent(input: {
+    planId: Exclude<PlanId, "free">;
+    billingCycle: BillingCycle;
+    email: string;
+    referralCode?: string | null;
+}): Promise<{ reference: string; amountCents: number }> {
+    await ensureBillingSchema();
+
+    const sanitizedReferralCode = sanitizeReferralCode(input.referralCode);
+    if (sanitizedReferralCode) {
+        const codeRecord = await getReferralCodeByCode(sanitizedReferralCode);
+        if (!codeRecord) {
+            throw new BillingError("That referral code could not be found.", 404);
+        }
+    }
+
+    const normalizedEmail = normalizeEmailAddress(input.email);
+    const guestUserId = buildGuestIntentUserId();
+    const intent: BillingIntentRecord = {
+        id: randomUUID(),
+        reference: buildTrialReference(guestUserId),
+        userId: guestUserId,
+        email: normalizedEmail,
+        planId: input.planId,
+        billingCycle: input.billingCycle,
+        referralCode: sanitizedReferralCode,
+        amountCents: TRIAL_VERIFICATION_AMOUNT_CENTS,
+        status: "pending",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+    };
+    await upsertBillingIntent(intent);
+
+    return {
+        reference: intent.reference,
+        amountCents: intent.amountCents,
+    };
 }
 
 export async function getVerifiedEntitlementsForUser(userId: string): Promise<VerifiedEntitlements> {
@@ -1516,6 +1660,70 @@ export function verifyPaystackWebhookSignature(rawBody: string, signature: strin
     return timingSafeEqual(expectedBuffer, receivedBuffer);
 }
 
+export async function confirmPaystackTransaction(reference: string, user: VerifiedGoogleUser): Promise<BillingAccountResponse> {
+    await ensureBillingSchema();
+
+    const normalizedReference = reference.trim();
+    if (!normalizedReference) {
+        throw new BillingError("Payment reference is missing.", 400);
+    }
+
+    const response = await paystackRequest<PaystackVerifyTransactionResponse>(
+        `/transaction/verify/${encodeURIComponent(normalizedReference)}`,
+        { method: "GET" },
+    );
+    const data = response.data && typeof response.data === "object"
+        ? response.data as Record<string, unknown>
+        : null;
+
+    if (!data) {
+        throw new BillingError("Paystack could not return the payment details.", 502);
+    }
+
+    if (getStringFromPaths(data, ["status"]) !== "success") {
+        throw new BillingError("Payment is still pending confirmation.", 409);
+    }
+
+    const metadata = parseMetadata(data.metadata);
+    const intent = await resolveBillingIntentForCharge(normalizedReference, metadata);
+    const metadataUserId = getMetadataValue(metadata, "user_id");
+    const email = getStringFromPaths(data, ["customer.email", "email"]);
+    if (metadataUserId && metadataUserId !== user.userId) {
+        throw new BillingAuthError("That payment belongs to a different Google account.");
+    }
+    if (!metadataUserId && !intent && email && email.toLowerCase() !== user.email.toLowerCase()) {
+        throw new BillingAuthError("That payment belongs to a different Google account.");
+    }
+
+    const eventKey = buildEventKey("charge.success", { data });
+    const canClaimGuestIntent = !!intent
+        && isGuestIntentUserId(intent.userId)
+        && (intent.status === "pending" || intent.status === "checkout_started" || intent.status === "payment_received");
+
+    if (await hasBillingEvent(eventKey) && !canClaimGuestIntent) {
+        return getBillingAccountForUser(user.userId);
+    }
+
+    const claimedIntent = intent && (intent.status === "pending" || intent.status === "checkout_started" || intent.status === "payment_received")
+        ? await claimTrialIntentForUser(intent, user)
+        : intent;
+
+    const existing = await resolveExistingSubscription({
+        userId: metadataUserId || claimedIntent?.userId || user.userId,
+        email: email || claimedIntent?.email || user.email,
+        customerId: getStringFromPaths(data, ["customer.customer_code", "customer_code"]),
+        subscriptionCode: getStringFromPaths(data, ["subscription.subscription_code", "subscription_code"]),
+    });
+
+    const handled = await processSuccessfulCharge(data, normalizedReference, existing);
+    if (!handled) {
+        throw new BillingError("Payment was verified, but the subscription could not be linked.", 409);
+    }
+
+    await markBillingEventProcessed(eventKey, "charge.success", normalizedReference);
+    return getBillingAccountForUser(user.userId);
+}
+
 export async function processPaystackWebhook(rawBody: string): Promise<{ handled: boolean }> {
     await ensureBillingSchema();
     const payload = JSON.parse(rawBody) as Record<string, unknown>;
@@ -1546,12 +1754,7 @@ export async function processPaystackWebhook(rawBody: string): Promise<{ handled
     let handled = false;
 
     if (event === "charge.success") {
-        const intent = reference ? await getBillingIntentByReference(reference) : null;
-        if (intent && intent.status !== "completed") {
-            handled = await handleTrialChargeSuccess(data, intent);
-        } else {
-            handled = await handleRecurringChargeSuccess(data, existing);
-        }
+        handled = await processSuccessfulCharge(data, reference, existing);
     } else if (event === "invoice.payment_failed") {
         handled = await handleInvoicePaymentFailed(existing);
     } else if (event === "subscription.disable" || event === "subscription.not_renew") {

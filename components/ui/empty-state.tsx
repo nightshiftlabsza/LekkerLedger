@@ -116,15 +116,15 @@ export interface ErrorStateProps {
 
 export function ErrorState({ title = "Something went wrong", description, onRetry }: ErrorStateProps) {
     return (
-        <Card className="border-dashed border-2 border-red-200 bg-red-50/30 overflow-hidden">
+        <Card className="overflow-hidden border-2 border-dashed" style={{ borderColor: "var(--danger-border)", backgroundColor: "var(--danger-soft)" }}>
             <CardContent className="flex flex-col items-center justify-center p-8 text-center">
-                <div className="h-16 w-16 rounded-2xl bg-red-100 flex items-center justify-center mb-5">
-                    <Icon className="h-7 w-7 text-red-500" />
+                <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl" style={{ backgroundColor: "var(--surface-1)" }}>
+                    <Icon className="h-7 w-7 text-[var(--danger)]" />
                 </div>
-                <h3 className="text-lg font-bold text-red-900 mb-2">{title}</h3>
-                {description && <p className="text-sm text-red-700 max-w-xs mb-6">{description}</p>}
+                <h3 className="mb-2 text-lg font-bold text-[var(--text)]">{title}</h3>
+                {description && <p className="mb-6 max-w-xs text-sm text-[var(--danger)]">{description}</p>}
                 {onRetry && (
-                    <Button onClick={onRetry} variant="outline" className="font-bold border-red-200 text-red-700 hover:bg-red-50">
+                    <Button onClick={onRetry} variant="outline" className="font-bold text-[var(--danger)] hover:bg-[var(--surface-1)]" style={{ borderColor: "var(--danger-border)" }}>
                         Try Again
                     </Button>
                 )}
