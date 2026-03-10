@@ -158,7 +158,6 @@ export default function DocumentsPage() {
     const [settings, setSettings] = React.useState<Awaited<ReturnType<typeof getSettings>> | null>(null);
     const [search, setSearch] = React.useState("");
     const [empFilter, setEmpFilter] = React.useState<string>("");
-    const [contractStateFilter, setContractStateFilter] = React.useState<Contract["status"] | "needs_action" | "All">("All");
     const [vaultCategoryFilter, setVaultCategoryFilter] = React.useState<string>("");
     const [nextVaultCategory, setNextVaultCategory] = React.useState<VaultCategory>("other");
     const [summaryYear, setSummaryYear] = React.useState<number | "">("");
@@ -309,18 +308,11 @@ export default function DocumentsPage() {
     const filteredContracts = React.useMemo(() => {
         const query = search.trim().toLowerCase();
         return contractsArchiveResult.visible.filter((contract) => {
-            if (contractStateFilter !== "All") {
-                if (contractStateFilter === "needs_action") {
-                    if (contract.status !== "draft" && contract.status !== "awaiting_signed_copy") return false;
-                } else if (contract.status !== contractStateFilter) {
-                    return false;
-                }
-            }
             if (!query) return true;
             const employeeName = employeeNameById[contract.employeeId]?.toLowerCase() ?? "";
             return contract.jobTitle.toLowerCase().includes(query) || employeeName.includes(query);
         });
-    }, [contractsArchiveResult.visible, employeeNameById, search, contractStateFilter]);
+    }, [contractsArchiveResult.visible, employeeNameById, search]);
 
     const filteredVaultDocuments = React.useMemo(() => {
         const query = search.trim().toLowerCase();
@@ -482,7 +474,24 @@ export default function DocumentsPage() {
                 await saveDocumentMeta(nextDocument);
                 await updateContractStatus(targetContract.id, "signed_copy_stored", { signedDocumentId: id });
                 setDocuments((current) => [nextDocument, ...current]);
-                toast("Signed copy saved to Documents.", "success");
+
+                // Also back up to Google Drive if connected
+                const accessToken = getStoredGoogleAccessToken();
+                if (accessToken) {
+                    try {
+                        const driveFileId = await uploadVaultFileToDrive(accessToken, file, {
+                            documentId: id,
+                            fileName: file.name,
+                            mimeType: file.type || "application/pdf",
+                        });
+                        await saveDocumentMeta({ ...nextDocument, driveFileId });
+                        toast("Signed copy saved and backed up to Google Drive.", "success");
+                    } catch {
+                        toast("Signed copy saved locally. Google Drive backup failed — retry in Settings.", "error");
+                    }
+                } else {
+                    toast("Signed copy saved. Connect Google Drive in Settings for secure cloud backup.", "info");
+                }
                 return;
             }
 
@@ -840,8 +849,6 @@ export default function DocumentsPage() {
                             hiddenCount={contractsArchiveResult.hiddenCount}
                             archiveUpgradeHref={archiveUpgradeHref}
                             archiveUpgradeLabel={archiveUpgradeLabel}
-                            contractStateFilter={contractStateFilter}
-                            setContractStateFilter={setContractStateFilter}
                             openContractPreview={openContractPreview}
                             downloadContract={downloadContract}
                             handleContractUploadClick={handleContractUploadClick}

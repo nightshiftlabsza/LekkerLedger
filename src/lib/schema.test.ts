@@ -43,4 +43,35 @@ describe("schema validation", () => {
         expect(parsed.success).toBe(false);
         expect(parsed.error?.issues.some((issue) => issue.path.join(".") === "daysWorked")).toBe(true);
     });
+
+    it("accepts empty string email for optional email field", () => {
+        const parsed = EmployeeSchema.safeParse({
+            id: crypto.randomUUID(),
+            name: "Email Test Worker",
+            role: "Domestic Worker",
+            hourlyRate: 30.23,
+            ordinaryHoursPerDay: 8,
+            frequency: "Monthly",
+            ordinarilyWorksSundays: false,
+            email: "",
+        });
+
+        expect(parsed.success).toBe(true);
+    });
+
+    it("rejects invalid email format", () => {
+        const parsed = EmployeeSchema.safeParse({
+            id: crypto.randomUUID(),
+            name: "Email Test Worker",
+            role: "Domestic Worker",
+            hourlyRate: 30.23,
+            ordinaryHoursPerDay: 8,
+            frequency: "Monthly",
+            ordinarilyWorksSundays: false,
+            email: "notanemail",
+        });
+
+        expect(parsed.success).toBe(false);
+        expect(parsed.error?.issues.some((issue) => issue.path.join(".") === "email")).toBe(true);
+    });
 });

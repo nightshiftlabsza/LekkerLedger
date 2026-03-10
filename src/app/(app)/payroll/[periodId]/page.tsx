@@ -85,9 +85,9 @@ export default function PayPeriodWorkspacePage() {
         const entries = period.entries.map(e => {
             if (e.employeeId !== employeeId) return e;
             const updated = { ...e, [field]: value };
-            // Auto-compute status
-            const hasData = updated.ordinaryHours > 0 || updated.overtimeHours > 0 || updated.sundayHours > 0 || updated.publicHolidayHours > 0;
-            updated.status = hasData ? "complete" : "empty";
+            // A status of "complete" means the user has interacted with the entry.
+            // We allow proceeding even if all fields are 0.
+            updated.status = "complete";
             return updated;
         });
         setPeriod({ ...period, entries });
@@ -139,7 +139,15 @@ export default function PayPeriodWorkspacePage() {
             toast("Payroll finalised successfully", "success");
         } catch (err) {
             console.error("handleLock error:", err);
-            toast(err instanceof Error ? err.message : "Failed to finalise pay period", "error");
+            setShowLockConfirm(false);
+            const msg = err instanceof Error ? err.message : "Failed to finalise pay period";
+            const isDuplicate = msg.includes("already exists");
+            toast(
+                isDuplicate
+                    ? "A payslip already exists for this period. Use \"Undo Finalise\" below to regenerate."
+                    : msg,
+                "error"
+            );
         } finally {
             setSaving(false);
         }
@@ -319,7 +327,7 @@ export default function PayPeriodWorkspacePage() {
     const isLocked = period.status === "locked";
     const completedCount = period.entries.filter(e => e.status === "complete").length;
     const totalCount = period.entries.length;
-    const allComplete = completedCount === totalCount && totalCount > 0;
+    const allComplete = totalCount > 0;
 
     // Wizard steps
     const steps: Step[] = [
@@ -371,14 +379,18 @@ export default function PayPeriodWorkspacePage() {
                                     const input = entryToPayslipInput(entry, emp);
                                     const calc = calculatePayslip(input);
 
+                                    const sundayRate = emp.ordinarilyWorksSundays ? 1.5 : 2.0;
                                     return {
                                         title: emp.name,
                                         items: [
-                                            { label: "Ordinary Pay", value: `R${calc.ordinaryPay.toFixed(2)}` },
+                                            { label: `Ordinary Pay (${input.ordinaryHours}h)`, value: `R${calc.ordinaryPay.toFixed(2)}` },
+                                            ...(input.overtimeHours > 0 ? [{ label: `Overtime Pay (${input.overtimeHours}h @ 1.5×)`, value: `R${(input.overtimeHours * (entry.rateOverride ?? emp.hourlyRate) * 1.5).toFixed(2)}` }] : []),
+                                            ...(input.sundayHours > 0 ? [{ label: `Sunday Pay (${input.sundayHours}h @ ${sundayRate}×)`, value: `R${(input.sundayHours * (entry.rateOverride ?? emp.hourlyRate) * sundayRate).toFixed(2)}` }] : []),
+                                            ...(input.publicHolidayHours > 0 ? [{ label: `Public Holiday Pay (${input.publicHolidayHours}h @ 2.0×)`, value: `R${(input.publicHolidayHours * (entry.rateOverride ?? emp.hourlyRate) * 2.0).toFixed(2)}` }] : []),
                                             { label: "Total Gross", value: `R${calc.grossPay.toFixed(2)}`, highlight: true },
-                                            ...(calc.deductions.shortfall > 0 ? [{ label: "Shortfall Deduction", value: `R${calc.deductions.shortfall.toFixed(2)}` }] : []),
-                                            ...(calc.deductions.other > 0 ? [{ label: "Other Deductions", value: `R${calc.deductions.other.toFixed(2)}` }] : []),
-                                            { label: "Total Deductions", value: `R${calc.deductions.total.toFixed(2)}` },
+                                            ...(calc.deductions.shortfall > 0 ? [{ label: "Shortfall Deduction", value: `-R${calc.deductions.shortfall.toFixed(2)}` }] : []),
+                                            ...(calc.deductions.other > 0 ? [{ label: "Other Deductions", value: `-R${calc.deductions.other.toFixed(2)}` }] : []),
+                                            ...(calc.deductions.total > 0 ? [{ label: "Total Deductions", value: `-R${calc.deductions.total.toFixed(2)}` }] : []),
                                             { label: "Net Pay", value: `R${calc.netPay.toFixed(2)}`, isError: calc.grossPay < calc.deductions.total, highlight: true },
                                             { label: "Hourly Rate", value: calc.hourlyRate }
                                         ],
@@ -508,7 +520,7 @@ export default function PayPeriodWorkspacePage() {
                                                     <input
                                                         type="number"
                                                         min={0}
-                                                        value={entry.ordinaryHours || ""}
+                                                        value={entry.ordinaryHours}
                                                         onChange={e => updateEntry(entry.employeeId, "ordinaryHours", parseFloat(e.target.value) || 0)}
                                                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                         placeholder="0"
@@ -519,7 +531,7 @@ export default function PayPeriodWorkspacePage() {
                                                     <input
                                                         type="number"
                                                         min={0}
-                                                        value={entry.overtimeHours || ""}
+                                                        value={entry.overtimeHours}
                                                         onChange={e => updateEntry(entry.employeeId, "overtimeHours", parseFloat(e.target.value) || 0)}
                                                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                         placeholder="0"
@@ -530,10 +542,19 @@ export default function PayPeriodWorkspacePage() {
                                                     <input
                                                         type="number"
                                                         min={0}
-                                                        value={entry.sundayHours || ""}
+                                                        value={entry.sundayHours}
                                                         onChange={e => updateEntry(entry.employeeId, "sundayHours", parseFloat(e.target.value) || 0)}
                                                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
-                                                        placeholder="0"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Pub. Hol. hrs</label>
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        value={entry.publicHolidayHours}
+                                                        onChange={e => updateEntry(entry.employeeId, "publicHolidayHours", parseFloat(e.target.value) || 0)}
+                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                     />
                                                 </div>
                                                 <div>
@@ -541,10 +562,9 @@ export default function PayPeriodWorkspacePage() {
                                                     <input
                                                         type="number"
                                                         min={0}
-                                                        value={entry.shortFallHours || ""}
+                                                        value={entry.shortFallHours || 0}
                                                         onChange={e => updateEntry(entry.employeeId, "shortFallHours", parseFloat(e.target.value) || 0)}
                                                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
-                                                        placeholder="0"
                                                     />
                                                 </div>
                                                 <div>
@@ -552,10 +572,9 @@ export default function PayPeriodWorkspacePage() {
                                                     <input
                                                         type="number"
                                                         min={0}
-                                                        value={entry.otherDeductions || ""}
+                                                        value={entry.otherDeductions}
                                                         onChange={e => updateEntry(entry.employeeId, "otherDeductions", parseFloat(e.target.value) || 0)}
                                                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
-                                                        placeholder="R0"
                                                     />
                                                 </div>
                                             </div>

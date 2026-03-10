@@ -13,7 +13,7 @@ export const EmployeeSchema = z.object({
     role: z.string().min(1, "Role is required").default("Domestic Worker"),
     hourlyRate: z.number().positive("Hourly rate must be greater than 0"),
     phone: z.string().optional(),
-    email: z.string().email("Invalid email address").optional().or(z.literal("")),
+    email: z.union([z.literal(""), z.string().email("Invalid email address")]).optional(),
     address: z.string().optional(),
     startDate: z.string().optional().default(""), // ISO date string - when employment began
     ordinarilyWorksSundays: z.boolean().default(false),

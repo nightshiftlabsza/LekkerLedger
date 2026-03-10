@@ -44,6 +44,8 @@ export interface PayBreakdown {
         sdlEmployer: number;
     };
     netPay: number;
+    periodStart?: Date;
+    periodEnd?: Date;
     complianceWarnings: string[];
     leaveAccruedDays: number;
     leaveTaken: {
@@ -90,8 +92,11 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
     const grossPay = roundTo(ordinaryPay + overtimePay + sundayPay + publicHolidayPay);
     const totalHours = effectiveOrdinaryHours + input.overtimeHours + input.sundayHours + input.publicHolidayHours;
 
+    const weeksInPeriod = getPeriodWeeks(input);
     const uifBase = Math.min(grossPay, UIF_MONTHLY_CAP);
-    const uifContribution = totalHours > UIF_THRESHOLD_HOURS ? roundTo(uifBase * UIF_RATE) : 0;
+    // UIF threshold is 24h per month. Scale it by weeks in period.
+    const periodUifThreshold = (UIF_THRESHOLD_HOURS / 4.33) * weeksInPeriod;
+    const uifContribution = totalHours > periodUifThreshold ? roundTo(uifBase * UIF_RATE) : 0;
 
     const sdlEmployer = 0;
     const accommodationLimit = roundTo(grossPay * ACCOMMODATION_MAX_PCT);
@@ -105,7 +110,6 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
         complianceWarnings.push(`Hourly rate (R${input.hourlyRate}) is below the statutory NMW for this period (R${activeNmwRate}).`);
     }
 
-    const weeksInPeriod = getPeriodWeeks(input);
     if (input.ordinaryHours > 45 * weeksInPeriod) {
         complianceWarnings.push("Ordinary hours exceed the BCEA guideline of 45 hours per week for this period.");
     }
@@ -138,6 +142,8 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
             sdlEmployer,
         },
         netPay,
+        periodStart: new Date(input.payPeriodStart),
+        periodEnd: new Date(input.payPeriodEnd),
         complianceWarnings,
         leaveAccruedDays,
         leaveTaken: {

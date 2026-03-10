@@ -271,7 +271,11 @@ export default function EditEmployeePage() {
                                 </div>
                                 <div className="flex-1">
                                     <p className="font-bold text-sm" style={{ color: "var(--text)" }}>Ordinarily works on Sundays</p>
-                                    <p className="text-xs mt-1 leading-relaxed opacity-70">Adjusts calculation between 1.5× and 2.0× normal rate (BCEA).</p>
+                                    <p className="text-xs mt-1 leading-relaxed opacity-70">
+                                        {formData.ordinarilyWorksSundays
+                                            ? "Currently: Sunday work charged at 1.5× (ordinary Sunday worker — BCEA)"
+                                            : "Currently: Sunday work charged at 2.0× (casual Sunday work — BCEA)"}
+                                    </p>
                                 </div>
                             </button>
 

@@ -73,7 +73,6 @@ export function EmployeeDocumentsTab({
     const { toast } = useToast();
     const router = useRouter();
     const [activeTab, setActiveTab] = React.useState<Tab>("Contracts");
-    const [contractStateFilter, setContractStateFilter] = React.useState<Contract["status"] | "needs_action" | "All">("All");
     const [vaultCategoryFilter, setVaultCategoryFilter] = React.useState<string>("");
     const [nextVaultCategory, setNextVaultCategory] = React.useState<VaultCategory>("employee-docs");
     
@@ -97,18 +96,7 @@ export function EmployeeDocumentsTab({
         );
     }, [documents, employee.id]);
 
-    const filteredContracts = React.useMemo(() => {
-        return contracts.filter((contract) => {
-            if (contractStateFilter !== "All") {
-                if (contractStateFilter === "needs_action") {
-                    if (contract.status !== "draft" && contract.status !== "awaiting_signed_copy") return false;
-                } else if (contract.status !== contractStateFilter) {
-                    return false;
-                }
-            }
-            return true;
-        });
-    }, [contracts, contractStateFilter]);
+    const filteredContracts = contracts;
 
     const filteredVaultDocuments = React.useMemo(() => {
         let filtered = employeeVaultDocuments;
@@ -251,8 +239,25 @@ export function EmployeeDocumentsTab({
                 await saveDocumentFile(id, file);
                 await saveDocumentMeta(nextDocument);
                 await updateContractStatus(targetContract.id, "signed_copy_stored", { signedDocumentId: id });
-                toast("Signed copy saved to Documents.", "success");
                 if (onDocumentsChange) onDocumentsChange();
+
+                // Also back up to Google Drive if connected
+                const accessToken = getStoredGoogleAccessToken();
+                if (accessToken) {
+                    try {
+                        const driveFileId = await uploadVaultFileToDrive(accessToken, file, {
+                            documentId: id,
+                            fileName: file.name,
+                            mimeType: file.type || "application/pdf",
+                        });
+                        await saveDocumentMeta({ ...nextDocument, driveFileId });
+                        toast("Signed copy saved and backed up to Google Drive.", "success");
+                    } catch {
+                        toast("Signed copy saved locally. Google Drive backup failed — retry in Settings.", "error");
+                    }
+                } else {
+                    toast("Signed copy saved. Connect Google Drive in Settings for secure cloud backup.", "info");
+                }
                 return;
             }
 
@@ -428,26 +433,12 @@ export function EmployeeDocumentsTab({
             {activeTab === "Contracts" ? (
                 contracts.length > 0 ? (
                     <div className="space-y-6">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="flex flex-wrap gap-2">
-                                {(["All", "needs_action", "draft", "awaiting_signed_copy", "final"] as const).map((status) => (
-                                    <button
-                                        key={status}
-                                        type="button"
-                                        onClick={() => setContractStateFilter(status)}
-                                        className={`rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide ${contractStateFilter === status ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)]/50"}`}
-                                    >
-                                        {status === "All" ? "All" : status === "needs_action" ? "Needs action" : status === "awaiting_signed_copy" ? "Waiting for upload" : status}
-                                    </button>
-                                ))}
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <Link href={`/contracts/new?employeeId=${employee.id}`}>
-                                    <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
-                                        <ScrollText className="h-4 w-4" /> New Contract
-                                    </Button>
-                                </Link>
-                            </div>
+                        <div className="flex items-center justify-end">
+                            <Link href={`/contracts/new?employeeId=${employee.id}`}>
+                                <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
+                                    <ScrollText className="h-4 w-4" /> New Contract
+                                </Button>
+                            </Link>
                         </div>
 
                         <div className="space-y-4">
