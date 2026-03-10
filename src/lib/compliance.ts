@@ -26,9 +26,13 @@ export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, 
         ? `Meets the current minimum-wage check (R${employee.hourlyRate.toFixed(2)}/hr)`
         : `Below the current minimum-wage check (R${employee.hourlyRate.toFixed(2)}/hr vs R${nmw.toFixed(2)}/hr)`;
 
-    // 2. UIF check (check if it was applied if hours > 24)
+    // 2. UIF check (check if it was applied if hours > threshold, scaled by pay period length)
     const totalHours = breakdown.totalHours;
-    const expectedUIF = totalHours > UIF_THRESHOLD_HOURS ? Math.min(breakdown.grossPay, 17712) * UIF_RATE : 0;
+    const weeksInPeriod = breakdown.periodStart && breakdown.periodEnd
+        ? Math.max(1, (Math.floor((breakdown.periodEnd.getTime() - breakdown.periodStart.getTime()) / (24 * 60 * 60 * 1000)) + 1) / 7)
+        : 4.33;
+    const periodUifThreshold = (UIF_THRESHOLD_HOURS / 4.33) * weeksInPeriod;
+    const expectedUIF = totalHours > periodUifThreshold ? Math.min(breakdown.grossPay, 17712) * UIF_RATE : 0;
     const meetsUifCheck = Math.abs(breakdown.deductions.uifEmployee - expectedUIF) < 0.01;
     const uifStatusText = totalHours > periodUifThreshold
         ? (meetsUifCheck ? "Matches the 1% deduction check" : "Differs from the 1% deduction check")
