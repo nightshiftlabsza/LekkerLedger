@@ -193,7 +193,16 @@ export function usePaidLoginActivation() {
             }
 
             if (!entitlements.isActive || entitlements.planId === "free") {
-                routeToPricing(router, "free");
+                // Plain sign-in from the marketing header always targets "/dashboard".
+                // In that case the user is already authenticated — just drop them on the
+                // dashboard (free tier) instead of forcing them through the upgrade flow.
+                // Only redirect to /upgrade when the user is trying to unlock a specific
+                // paid feature (nextPath !== "/dashboard").
+                if (normalizeDestination(nextPath) === "/dashboard") {
+                    router.push("/dashboard");
+                } else {
+                    routeToPricing(router, "free");
+                }
                 return;
             }
 
