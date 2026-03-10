@@ -7,7 +7,7 @@ import {
     CheckCircle2, FileText, BookOpen, ArrowRight, Upload,
     ChevronRight, Building2, Save, Smartphone, Database, Loader2, Zap,
     AlignVerticalJustifyCenter, Moon, Sun, Monitor,
-    ShieldCheck, Download, HelpCircle
+    ShieldCheck, Download, HelpCircle, Copy, Gift, Clock3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,6 +19,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
 import { getSettings, saveSettings, resetAllData, exportData, importData, getEmployees } from "@/lib/storage";
 import { CustomLeaveType, EmployerSettings, Employee } from "@/lib/schema";
+import { cancelSubscriptionRenewal, fetchBillingAccount, type BillingAccountPayload } from "@/lib/billing-client";
 import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
 import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "@/src/config/plans";
@@ -36,6 +37,9 @@ function SettingsContent() {
     const [loading, setLoading] = React.useState(true);
     const [saving, setSaving] = React.useState(false);
     const [saved, setSaved] = React.useState(false);
+    const [billingAccount, setBillingAccount] = React.useState<BillingAccountPayload | null>(null);
+    const [billingLoading, setBillingLoading] = React.useState(true);
+    const [cancelingRenewal, setCancelingRenewal] = React.useState(false);
     const [wipeConfirmOpen, setWipeConfirmOpen] = React.useState(false);
     const [wipeConfirmText, setWipeConfirmText] = React.useState("");
     const [wiping, setWiping] = React.useState(false);
@@ -69,6 +73,18 @@ function SettingsContent() {
             else if (tabParam === "plan") setActiveTab("plan");
             else if (tabParam === "exports") setActiveTab("exports");
             else if (tabParam === "support") setActiveTab("support");
+
+            try {
+                const account = await fetchBillingAccount();
+                if (!active) return;
+                setBillingAccount(account);
+            } catch (error) {
+                console.warn("Could not load billing account", error);
+            } finally {
+                if (active) {
+                    setBillingLoading(false);
+                }
+            }
         }
         load();
         return () => {
@@ -114,6 +130,10 @@ function SettingsContent() {
     const userPlan = getUserPlan(settings);
     const advancedLeaveEnabled = canUseAdvancedLeaveFeatures(userPlan);
     const customLeaveTypes = React.useMemo(() => settings?.customLeaveTypes ?? [], [settings?.customLeaveTypes]);
+    const trialEndsLabel = billingAccount?.account.trialEndsAt ? new Date(billingAccount.account.trialEndsAt).toLocaleDateString("en-ZA") : null;
+    const nextChargeLabel = billingAccount?.account.nextChargeAt ? new Date(billingAccount.account.nextChargeAt).toLocaleDateString("en-ZA") : null;
+    const billingStatus = billingAccount?.entitlements.status;
+    const referralCode = billingAccount?.account.referralCode || "";
 
     const resetLeaveTypeForm = React.useCallback(() => {
         setEditingLeaveTypeId(null);
@@ -123,6 +143,30 @@ function SettingsContent() {
         setLeaveTypeNote("");
         setLeaveTypeError("");
     }, []);
+
+    const handleCopyReferralCode = React.useCallback(async () => {
+        if (!referralCode) return;
+        try {
+            await navigator.clipboard.writeText(referralCode);
+            toast("Referral code copied.", "success");
+        } catch {
+            toast("Could not copy the referral code just now.", "error");
+        }
+    }, [referralCode, toast]);
+
+    const handleCancelRenewal = React.useCallback(async () => {
+        if (cancelingRenewal) return;
+        setCancelingRenewal(true);
+        try {
+            const updated = await cancelSubscriptionRenewal();
+            setBillingAccount(updated);
+            toast("Renewal canceled. Access stays on until your current end date.", "success");
+        } catch (error) {
+            toast(error instanceof Error ? error.message : "Renewal could not be canceled.", "error");
+        } finally {
+            setCancelingRenewal(false);
+        }
+    }, [cancelingRenewal, toast]);
 
     const startEditingLeaveType = React.useCallback((leaveType: CustomLeaveType) => {
         setEditingLeaveTypeId(leaveType.id);
@@ -628,9 +672,15 @@ function SettingsContent() {
                                             <p className="text-xs font-bold text-[var(--primary-hover)] uppercase tracking-wider">
                                                 {currentPlan.id === "free"
                                                     ? "Free plan active"
-                                                    : settings.paidUntil
-                                                        ? `Paid through ${new Date(settings.paidUntil).toLocaleDateString("en-ZA")}`
-                                                        : "Paid plan active"}
+                                                    : billingStatus === "trialing" && trialEndsLabel
+                                                        ? `Trial active until ${trialEndsLabel}`
+                                                        : billingAccount?.account.cancelAtPeriodEnd && settings.paidUntil
+                                                            ? `Renewal canceled. Access ends ${new Date(settings.paidUntil).toLocaleDateString("en-ZA")}`
+                                                            : nextChargeLabel
+                                                                ? `Next charge ${nextChargeLabel}`
+                                                                : settings.paidUntil
+                                                                    ? `Access until ${new Date(settings.paidUntil).toLocaleDateString("en-ZA")}`
+                                                                    : "Paid plan active"}
                                             </p>
                                         </div>
                                         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 lg:min-w-[220px]">
@@ -657,16 +707,107 @@ function SettingsContent() {
                                         <div className="space-y-2">
                                             <Link href={`/upgrade?plan=${currentPlan.id === "free" ? "standard" : "pro"}&pay=1`} className="block">
                                                 <Button className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold" disabled={currentPlan.id === "pro"}>
-                                                    {currentPlan.id === "pro" ? "Highest plan active" : "Review paid options"}
+                                                    {currentPlan.id === "pro" ? "Highest plan active" : currentPlan.id === "free" ? "Start 14-day trial" : "Change paid plan"}
                                                 </Button>
                                             </Link>
                                             {currentPlan.id !== "pro" && (
                                                 <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
-                                                    14-day refund. You can stop renewal before the next billing period.
+                                                    R1 card check today. Cancel before the first real charge.
                                                 </p>
                                             )}
                                         </div>
                                     </div>
+                                </Card>
+                            </section>
+
+                            <section className="grid gap-4 lg:grid-cols-2">
+                                <Card className="glass-panel border-none p-5 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="rounded-2xl bg-[var(--primary)]/10 p-3 text-[var(--primary)]">
+                                            <Clock3 className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Billing timing</p>
+                                            <h3 className="text-lg font-black text-[var(--text)]">Know the next charge date</h3>
+                                        </div>
+                                    </div>
+                                    {billingLoading ? (
+                                        <p className="text-sm text-[var(--text-muted)]">Loading billing details...</p>
+                                    ) : billingAccount ? (
+                                        <div className="space-y-3 text-sm text-[var(--text-muted)]">
+                                            <p>
+                                                <strong className="text-[var(--text)]">Status:</strong>{" "}
+                                                {billingStatus === "trialing"
+                                                    ? "14-day trial active"
+                                                    : billingAccount.account.cancelAtPeriodEnd
+                                                        ? "Renewal canceled"
+                                                        : billingStatus === "active"
+                                                            ? "Paid subscription active"
+                                                            : "Free plan"}
+                                            </p>
+                                            {trialEndsLabel && (
+                                                <p><strong className="text-[var(--text)]">Trial ends:</strong> {trialEndsLabel}</p>
+                                            )}
+                                            {nextChargeLabel && (
+                                                <p><strong className="text-[var(--text)]">Next real charge:</strong> {nextChargeLabel}</p>
+                                            )}
+                                            {billingAccount.account.lastError && (
+                                                <p className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-amber-100">
+                                                    {billingAccount.account.lastError}
+                                                </p>
+                                            )}
+                                            {!billingAccount.account.cancelAtPeriodEnd && billingAccount.entitlements.planId !== "free" && (
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full font-bold"
+                                                    disabled={cancelingRenewal}
+                                                    onClick={() => void handleCancelRenewal()}
+                                                >
+                                                    {cancelingRenewal ? "Canceling renewal..." : "Cancel renewal"}
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-[var(--text-muted)]">
+                                            Sign into Google to see your saved card, trial, and renewal details here.
+                                        </p>
+                                    )}
+                                </Card>
+
+                                <Card className="glass-panel border-none p-5 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="rounded-2xl bg-[var(--primary)]/10 p-3 text-[var(--primary)]">
+                                            <Gift className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Referral program</p>
+                                            <h3 className="text-lg font-black text-[var(--text)]">Earn 1 free month per successful referral</h3>
+                                        </div>
+                                    </div>
+                                    {billingLoading ? (
+                                        <p className="text-sm text-[var(--text-muted)]">Loading referral details...</p>
+                                    ) : billingAccount ? (
+                                        <div className="space-y-3 text-sm text-[var(--text-muted)]">
+                                            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
+                                                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Your code</p>
+                                                <div className="mt-2 flex items-center gap-2">
+                                                    <span className="text-lg font-black tracking-[0.18em] text-[var(--text)]">{referralCode || "Sign in to load code"}</span>
+                                                    {referralCode && (
+                                                        <Button variant="outline" className="h-9 px-3 font-bold" onClick={() => void handleCopyReferralCode()}>
+                                                            <Copy className="mr-2 h-4 w-4" /> Copy
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <p><strong className="text-[var(--text)]">Available free months:</strong> {billingAccount.account.availableReferralMonths}</p>
+                                            <p><strong className="text-[var(--text)]">Pending referral months:</strong> {billingAccount.account.pendingReferralMonths}</p>
+                                            <p><strong className="text-[var(--text)]">Successful referrals:</strong> {billingAccount.account.successfulReferralCount}</p>
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-[var(--text-muted)]">
+                                            Sign into Google to get a referral code and track earned free months.
+                                        </p>
+                                    )}
                                 </Card>
                             </section>
 
@@ -715,12 +856,12 @@ function SettingsContent() {
                                                     <div className="space-y-2">
                                                         <Link href={`/upgrade?plan=${plan.id}&billing=${comparisonCycle}&pay=1`} className="block">
                                                             <Button variant={isCurrent ? "outline" : "default"} className={`w-full font-bold ${isCurrent ? "" : "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"}`} disabled={isCurrent}>
-                                                                {isCurrent ? "Current plan" : `Choose ${plan.label}`}
+                                                                {isCurrent ? "Current plan" : plan.id === "free" ? "Stay on Free" : "Start 14-day trial"}
                                                             </Button>
                                                         </Link>
                                                         {!isCurrent && plan.id !== "free" && (
                                                             <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
-                                                                14-day refund. You can stop renewal before the next billing period.
+                                                                R1 card check today. Cancel before the first real charge.
                                                             </p>
                                                         )}
                                                     </div>
@@ -920,10 +1061,6 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
         </button>
     );
 }
-
-
-
-
 
 
 

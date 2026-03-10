@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { COMPANY_NAME } from "@/src/config/brand";
 import { SupplierDetails } from "@/components/legal/supplier-details";
 
-const UPDATED_DATE = "7 March 2026";
+const UPDATED_DATE = "10 March 2026";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
@@ -92,13 +92,19 @@ export default function TermsOfService() {
 
                         <Section title="5. Pricing, billing, and refunds">
                             <p>
-                                Free, Standard, and Pro plan details are described on the pricing pages. Paid access is billed through our payment provider. We do not store your card details ourselves.
+                                Free, Standard, and Pro plan details are described on the pricing pages. Paid access is billed through our payment provider. We do not store your full card details ourselves.
+                            </p>
+                            <p>
+                                Standard and Pro may begin with a 14-day trial that requires Google sign-in and a small R1 card-verification charge through our payment provider so a reusable payment method can be saved. The first real subscription charge happens only after the trial unless you cancel first.
                             </p>
                             <p>
                                 Refunds are handled according to the published refund policy. If there is a conflict between a brief summary on another page and the formal refund policy, the refund policy should control.
                             </p>
                             <p>
                                 We may change pricing, features, or plan packaging in the future. Changes should apply prospectively, not retroactively, unless required for legal, technical, or fraud-prevention reasons.
+                            </p>
+                            <p>
+                                Referral rewards may be offered on published terms. A referral reward can be delayed, withheld, reversed, or canceled where there is self-referral, duplicate-account abuse, refunded qualifying payments, chargebacks, or other fraud-prevention concerns.
                             </p>
                         </Section>
 

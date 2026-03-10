@@ -84,10 +84,13 @@ export default function PricingPage() {
                                 </h3>
                                 <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Free has no billing. Standard and Pro can be paid monthly or yearly, and the toggle above shows the exact monthly or yearly view for each plan.
+                                        Free has no billing. Standard and Pro start with a 14-day trial, require a saved card with a small R1 verification charge today, and then renew monthly or yearly unless you cancel first.
                                     </p>
                                     <p>
                                         {REFUND_POLICY_SUMMARY}
+                                    </p>
+                                    <p>
+                                        Each successful referral that reaches its first real paid month earns the referrer 1 extra free month, up to 12 months total.
                                     </p>
                                     <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
                                         View the refund policy <ChevronRight className="h-4 w-4" />

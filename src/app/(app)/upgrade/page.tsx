@@ -4,13 +4,13 @@ import * as React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { getSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
-import { createCheckoutSession } from "@/lib/billing-client";
+import { startTrialCheckout } from "@/lib/billing-client";
 import { hasStoredGoogleSession } from "@/lib/google-session";
 import { type BillingCycle, PLANS, type PlanId } from "@/src/config/plans";
 import { EmployerSettings } from "@/lib/schema";
@@ -25,10 +25,22 @@ export default function UpgradePage() {
     );
 }
 
-function buildPaidLoginHref(planId: "standard" | "pro", billingCycle: BillingCycle): string {
+function buildUpgradeHref(planId: "standard" | "pro", billingCycle: BillingCycle, referralCode?: string): string {
+    const params = new URLSearchParams({
+        plan: planId,
+        billing: billingCycle,
+        pay: "1",
+    });
+    if (referralCode) {
+        params.set("ref", referralCode);
+    }
+    return `/upgrade?${params.toString()}`;
+}
+
+function buildPaidLoginHref(planId: "standard" | "pro", billingCycle: BillingCycle, referralCode?: string): string {
     const params = new URLSearchParams({
         paidLogin: "1",
-        next: `/upgrade?plan=${planId}&billing=${billingCycle}&pay=1`,
+        next: buildUpgradeHref(planId, billingCycle, referralCode),
     });
     return `/dashboard?${params.toString()}`;
 }
@@ -41,6 +53,7 @@ function UpgradePageContent() {
     const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("yearly");
     const [checkoutPlanId, setCheckoutPlanId] = React.useState<"standard" | "pro" | null>(null);
     const [checkoutError, setCheckoutError] = React.useState("");
+    const [referralCode, setReferralCode] = React.useState("");
     const hasAutoStartedCheckout = React.useRef(false);
 
     React.useEffect(() => {
@@ -48,30 +61,37 @@ function UpgradePageContent() {
             const currentSettings = await getSettings();
             setSettings(currentSettings as EmployerSettings);
             const requestedBilling = searchParams.get("billing");
+            const requestedReferral = searchParams.get("ref");
             setBillingCycle(requestedBilling === "monthly" ? "monthly" : requestedBilling === "yearly" ? "yearly" : currentSettings.billingCycle === "monthly" ? "monthly" : "yearly");
+            setReferralCode(requestedReferral ? requestedReferral.toUpperCase() : "");
         }
         void load();
     }, [searchParams]);
 
     const startCheckout = React.useCallback(async (planId: "standard" | "pro") => {
         setCheckoutError("");
+        const normalizedReferralCode = referralCode.trim().toUpperCase();
 
         if (!hasStoredGoogleSession()) {
-            router.push(buildPaidLoginHref(planId, billingCycle));
+            router.push(buildPaidLoginHref(planId, billingCycle, normalizedReferralCode || undefined));
             return;
         }
 
         try {
             setCheckoutPlanId(planId);
-            const checkout = await createCheckoutSession({ planId, billingCycle });
+            const checkout = await startTrialCheckout({
+                planId,
+                billingCycle,
+                referralCode: normalizedReferralCode || null,
+            });
             window.location.href = checkout.authorizationUrl;
         } catch (error) {
-            const message = error instanceof Error ? error.message : "Checkout could not be started.";
+            const message = error instanceof Error ? error.message : "The free trial could not be started.";
             setCheckoutError(message);
             toast(message);
             setCheckoutPlanId(null);
         }
-    }, [billingCycle, router, toast]);
+    }, [billingCycle, referralCode, router, toast]);
 
     React.useEffect(() => {
         if (!settings || hasAutoStartedCheckout.current) return;
@@ -103,16 +123,16 @@ function UpgradePageContent() {
                 <Card className="border-[var(--primary)] bg-[var(--primary)]/5">
                     <CardContent className="space-y-3 p-5 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                         <p className="font-semibold" style={{ color: "var(--text)" }}>
-                            Try Standard or Pro with a 14-day refund window.
+                            Start a 14-day free trial on Standard or Pro.
                         </p>
                         <p className="font-semibold" style={{ color: "var(--text)" }}>
                             Paid access is confirmed through your Google sign-in, not by this browser alone.
                         </p>
                         <p>
-                            If you are not signed into Google yet, choosing a paid plan starts paid login immediately, then LekkerLedger starts the Paystack checkout securely from the server.
+                            If you are not signed into Google yet, choosing a paid plan starts paid login immediately, then LekkerLedger starts the Paystack card setup securely from the server.
                         </p>
                         <p>
-                            You can stop renewal before the next billing period, and access continues until the end of the billing period you already paid for.
+                            A small R1 card verification charge is taken today. The real subscription charge only happens after the 14-day trial unless you cancel first.
                         </p>
                     </CardContent>
                 </Card>
@@ -122,6 +142,23 @@ function UpgradePageContent() {
                         {checkoutError}
                     </div>
                 )}
+
+                <Card className="border-[var(--border)]">
+                    <CardContent className="space-y-3 p-5">
+                        <div className="space-y-1">
+                            <p className="text-sm font-bold text-[var(--text)]">Referral code</p>
+                            <p className="text-sm text-[var(--text-muted)]">
+                                Add a referral code before you start the trial. The referred person still gets the normal 14-day trial.
+                            </p>
+                        </div>
+                        <Input
+                            value={referralCode}
+                            onChange={(event) => setReferralCode(event.target.value.toUpperCase())}
+                            placeholder="Optional referral code"
+                            className="h-12 font-semibold uppercase tracking-[0.08em]"
+                        />
+                    </CardContent>
+                </Card>
 
                 <div className="flex flex-col items-center gap-10">
                     <MarketingBillingToggle 
@@ -161,16 +198,16 @@ function UpgradePageContent() {
                                 <div className="rounded-2xl bg-[var(--primary)] p-3 text-white">
                                     <ShieldCheck className="h-5 w-5" />
                                 </div>
-                                <h3 className="type-h3" style={{ color: "var(--text)" }}>Refunds and trust</h3>
-                            </div>
-                            <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                If you request a refund within 14 days of purchase, we will refund you in full once we have verified the payment. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
-                            </p>
-                            <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                You can stop renewal before the next billing period, and access continues until the end of the billing period already paid for.
-                            </p>
-                            <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
-                                View refund policy <ArrowRight className="h-4 w-4" />
+                            <h3 className="type-h3" style={{ color: "var(--text)" }}>Refunds and trust</h3>
+                        </div>
+                        <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            If you request a refund within 14 days of the first real subscription charge, we will refund you in full once we have verified the payment. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
+                        </p>
+                        <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            You can cancel during the trial and keep access until the trial ends. No real plan charge happens until the saved charge date shown after setup.
+                        </p>
+                        <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
+                            View refund policy <ArrowRight className="h-4 w-4" />
                             </Link>
                         </CardContent>
                     </Card>

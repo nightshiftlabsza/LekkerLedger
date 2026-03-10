@@ -13,6 +13,17 @@ import {
     PRICING_COMPARISON_GROUPS,
 } from "@/src/config/pricing-display";
 
+function appendReferralCode(href: string, referralCode: string | null): string {
+    if (!referralCode || !href.startsWith("/upgrade")) {
+        return href;
+    }
+
+    const [pathname, existingQuery = ""] = href.split("?");
+    const params = new URLSearchParams(existingQuery);
+    params.set("ref", referralCode.toUpperCase());
+    return `${pathname}?${params.toString()}`;
+}
+
 function FeatureValue({ value }: { value: boolean | string }) {
     if (value === true) {
         return <Check className="mx-auto h-4 w-4 text-[var(--primary)]" />;
@@ -121,7 +132,10 @@ export function MarketingPlanCard({
     const plan = MARKETING_PLAN_DISPLAY[planId];
     const featured = planId === "standard";
     const priceDisplay = getMarketingPriceDisplay(planId, billingCycle);
-    const href = getMarketingPlanHref(planId, billingCycle);
+    const referralCode = typeof window === "undefined"
+        ? null
+        : new URLSearchParams(window.location.search).get("ref");
+    const href = appendReferralCode(getMarketingPlanHref(planId, billingCycle), referralCode);
 
     const handleAction = () => {
         if (onSelect) {
@@ -287,4 +301,3 @@ export function PricingComparisonTable() {
         </div>
     );
 }
-

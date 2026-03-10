@@ -5,18 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fetchVerifiedEntitlements } from "@/lib/billing-client";
+import { fetchBillingAccount, type BillingAccountPayload } from "@/lib/billing-client";
 import { hasStoredGoogleSession } from "@/lib/google-session";
 import { PaidLoginButton } from "@/components/paid-login-button";
 
 export default function BillingSuccessPage() {
     const router = useRouter();
-    const [status, setStatus] = React.useState<"checking" | "active" | "pending" | "auth">("checking");
+    const [status, setStatus] = React.useState<"checking" | "trial" | "active" | "pending" | "auth" | "error">("checking");
+    const [billingAccount, setBillingAccount] = React.useState<BillingAccountPayload | null>(null);
 
     React.useEffect(() => {
         let cancelled = false;
 
-        async function confirmEntitlements() {
+        async function confirmBilling() {
             if (!hasStoredGoogleSession()) {
                 if (!cancelled) setStatus("auth");
                 return;
@@ -24,9 +25,27 @@ export default function BillingSuccessPage() {
 
             for (let attempt = 0; attempt < 8; attempt += 1) {
                 try {
-                    const entitlements = await fetchVerifiedEntitlements(undefined, true);
-                    if (entitlements?.isActive && entitlements.planId !== "free") {
-                        if (!cancelled) setStatus("active");
+                    const account = await fetchBillingAccount();
+                    if (!account) continue;
+                    if (account.account.lastError) {
+                        if (!cancelled) {
+                            setBillingAccount(account);
+                            setStatus("error");
+                        }
+                        return;
+                    }
+                    if (account.entitlements.status === "trialing" && account.entitlements.planId !== "free") {
+                        if (!cancelled) {
+                            setBillingAccount(account);
+                            setStatus("trial");
+                        }
+                        return;
+                    }
+                    if (account.entitlements.isActive && account.entitlements.planId !== "free") {
+                        if (!cancelled) {
+                            setBillingAccount(account);
+                            setStatus("active");
+                        }
                         return;
                     }
                 } catch {
@@ -39,7 +58,7 @@ export default function BillingSuccessPage() {
             if (!cancelled) setStatus("pending");
         }
 
-        void confirmEntitlements();
+        void confirmBilling();
         return () => {
             cancelled = true;
         };
@@ -47,28 +66,43 @@ export default function BillingSuccessPage() {
 
     // Automatic redirect when active
     React.useEffect(() => {
-        if (status === "active") {
+        if (status === "active" || status === "trial") {
             const timer = setTimeout(() => {
                 router.push("/dashboard");
-            }, 2500);
+            }, 3200);
             return () => clearTimeout(timer);
         }
     }, [status, router]);
 
-    const title = status === "active"
-        ? "Thank you!"
+    const trialEnds = billingAccount?.account.trialEndsAt
+        ? new Date(billingAccount.account.trialEndsAt).toLocaleDateString("en-ZA")
+        : null;
+    const nextCharge = billingAccount?.account.nextChargeAt
+        ? new Date(billingAccount.account.nextChargeAt).toLocaleDateString("en-ZA")
+        : null;
+
+    const title = status === "trial"
+        ? "Trial active"
+        : status === "active"
+            ? "Payment confirmed"
+            : status === "error"
+                ? "Billing setup needs attention"
         : status === "auth"
             ? "Google sign-in needed"
             : status === "pending"
-                ? "Payment received"
+                ? "Still confirming"
                 : "Confirming payment";
 
-    const message = status === "active"
-        ? "Your payment was successful and your features are now active. We're redirecting you to your dashboard..."
+    const message = status === "trial"
+        ? `Your 14-day trial is active${trialEnds ? ` until ${trialEnds}` : ""}. ${nextCharge ? `Your first real charge is scheduled for ${nextCharge} unless you cancel first.` : "We are saving your next charge date now."}`
+        : status === "active"
+            ? `Your paid features are active${nextCharge ? ` and the next renewal is scheduled for ${nextCharge}` : ""}. We're redirecting you to your dashboard...`
+        : status === "error"
+            ? billingAccount?.account.lastError || "Your card setup completed, but the billing details still need a final check."
         : status === "auth"
             ? "Sign back into Google so LekkerLedger can confirm the subscription against your account."
             : status === "pending"
-                ? "Success! We've received your payment. We're just waiting for the final confirmation from the billing webhook, which usually takes a few seconds."
+                ? "LekkerLedger is still waiting for the billing webhook to finish. This usually takes a few seconds."
                 : "LekkerLedger is checking Paystack and your billing status now. This usually takes a few seconds.";
 
     return (
@@ -96,7 +130,7 @@ export default function BillingSuccessPage() {
                 ) : (
                     <Link href="/dashboard" className="w-full">
                         <Button className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl">
-                            Open Dashboard <ArrowRight className="h-4 w-4" />
+                            {status === "error" ? "Open Dashboard" : "Open Dashboard"} <ArrowRight className="h-4 w-4" />
                         </Button>
                     </Link>
                 )}

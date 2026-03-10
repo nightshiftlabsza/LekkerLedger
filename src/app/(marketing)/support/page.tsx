@@ -91,6 +91,27 @@ export default function SupportPage() {
 
                         <div className="space-y-6">
                             <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
+                                <h3 className="text-lg font-bold text-[var(--text)] mb-2 flex items-center gap-2"><AlertCircle className="h-4 w-4 text-rose-500" /> &quot;Why did I see an R1 charge when I started the trial?&quot;</h3>
+                                <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                                    That R1 charge is a card-verification step through Paystack so LekkerLedger can save a reusable payment method for the end of the 14-day trial. It is not the main Standard or Pro subscription charge.
+                                </p>
+                            </div>
+
+                            <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
+                                <h3 className="text-lg font-bold text-[var(--text)] mb-2 flex items-center gap-2"><HelpCircle className="h-4 w-4 text-[var(--text-muted)]" /> &quot;How do I stop the first real charge after the trial?&quot;</h3>
+                                <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                                    Open Settings, go to Plan, and cancel renewal before the trial ends. You will keep access until the trial end date already shown in the app, but the first real subscription charge will not go through.
+                                </p>
+                            </div>
+
+                            <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
+                                <h3 className="text-lg font-bold text-[var(--text)] mb-2 flex items-center gap-2"><HelpCircle className="h-4 w-4 text-[var(--text-muted)]" /> &quot;When does a referral free month unlock?&quot;</h3>
+                                <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                                    A referral month unlocks only after the referred person finishes the trial, has their first real paid Standard or Pro charge succeed, and then passes the 14-day refund window without a refund or chargeback.
+                                </p>
+                            </div>
+
+                            <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
                                 <h3 className="text-lg font-bold text-[var(--text)] mb-2 flex items-center gap-2"><AlertCircle className="h-4 w-4 text-rose-500" /> &quot;My payslip disappeared after I closed the browser!&quot;</h3>
                                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
                                     If you are using LekkerLedger in <strong>Incognito or Private Browsing</strong> mode, your browser will delete all local storage data when the window is closed. To save payslips long-term, please use standard browsing mode.

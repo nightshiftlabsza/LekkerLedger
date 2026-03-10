@@ -626,6 +626,7 @@ function applyVerifiedEntitlementsToSettings(settings: EmployerSettings, entitle
         ...settings,
         proStatus: verifiedPlanId,
         paidUntil: entitlements?.isActive ? entitlements.paidUntil : undefined,
+        trialExpiry: entitlements?.trialEndsAt,
         billingCycle,
     };
 }
@@ -635,11 +636,12 @@ async function overlayVerifiedEntitlements(settings: EmployerSettings): Promise<
 
     if (process.env.NEXT_PUBLIC_DEBUG_PRO_PLAN === "true") {
         return {
-            ...settings,
-            proStatus: "pro",
-            paidUntil: new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString(),
-        };
-    }
+        ...settings,
+        proStatus: "pro",
+        paidUntil: new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString(),
+        trialExpiry: undefined,
+    };
+}
 
     const accessToken = getStoredGoogleAccessToken();
     const localPlan = settings.proStatus === "standard" || settings.proStatus === "pro" ? settings.proStatus : "free";
@@ -649,6 +651,7 @@ async function overlayVerifiedEntitlements(settings: EmployerSettings): Promise<
                 ...settings,
                 proStatus: "free",
                 paidUntil: undefined,
+                trialExpiry: undefined,
             };
         }
         return settings;
@@ -688,6 +691,7 @@ export async function saveSettings(settings: EmployerSettings): Promise<void> {
         ...settings,
         proStatus: existingStoredSettings?.proStatus ?? settings.proStatus,
         paidUntil: existingStoredSettings?.paidUntil ?? settings.paidUntil,
+        trialExpiry: existingStoredSettings?.trialExpiry ?? settings.trialExpiry,
         billingCycle: existingStoredSettings?.billingCycle ?? settings.billingCycle,
     });
     const activeHouseholdId = normalized.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;

@@ -1,10 +1,22 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "crypto";
 import { BillingCycle, PlanId, getPlanPrice } from "../config/plans";
 import {
     addBillingInterval,
-    BillingStatus,
+    addCalendarMonths,
+    BillingCreditRecord,
+    BillingCreditStatus,
+    BillingIntentRecord,
+    BillingIntentStatus,
+    BillingAccountSummary,
+    canBeReferred,
+    canStartTrial,
     entitlementsFromSubscription,
+    isPaidPlanId,
+    ReferralCodeRecord,
+    ReferralRecord,
+    ReferralStatus,
     sanitizeBillingCycle,
+    sanitizeBillingStatus,
     sanitizePlanId,
     SubscriptionRecord,
     VerifiedEntitlements,
@@ -12,6 +24,12 @@ import {
 import { env } from "./env";
 
 type QueryParam = string | number | null;
+
+const TRIAL_VERIFICATION_AMOUNT_CENTS = 100;
+const TRIAL_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
+const REFUND_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+const REFERRAL_REWARD_MONTHS = 1;
+const REFERRAL_REWARD_CAP_MONTHS = 12;
 
 class BillingError extends Error {
     status: number;
@@ -40,6 +58,11 @@ export interface VerifiedGoogleUser {
     name?: string;
 }
 
+export interface BillingAccountResponse {
+    entitlements: VerifiedEntitlements;
+    account: BillingAccountSummary;
+}
+
 interface D1ApiEnvelope {
     success?: boolean;
     errors?: Array<{ message?: string }>;
@@ -55,16 +78,26 @@ interface PaystackInitializeResponse {
     };
 }
 
-interface WebhookResolution {
-    userId: string;
-    email: string;
-    customerId: string | null;
-    subscriptionCode: string | null;
-    planCode: string | null;
-    planId: Exclude<PlanId, "free">;
-    billingCycle: BillingCycle;
-    status: BillingStatus;
-    currentPeriodEnd: number;
+interface PaystackCreateSubscriptionResponse {
+    status?: boolean;
+    message?: string;
+    data?: {
+        subscription_code?: string;
+        email_token?: string;
+        next_payment_date?: string;
+    };
+}
+
+interface PaystackBasicResponse {
+    status?: boolean;
+    message?: string;
+}
+
+interface PaystackAuthorization {
+    authorizationCode: string;
+    signature: string | null;
+    last4: string | null;
+    reusable: boolean;
 }
 
 let schemaPromise: Promise<void> | null = null;
@@ -183,6 +216,31 @@ function parseTimestamp(value: string | null): number | null {
     return Number.isNaN(timestamp) ? null : timestamp;
 }
 
+function toIso(timestamp: number | null | undefined): string | undefined {
+    if (!timestamp) return undefined;
+    return new Date(timestamp).toISOString();
+}
+
+function sanitizeReferralCode(value: string | null | undefined): string | null {
+    const trimmed = value?.trim().toUpperCase() || "";
+    return trimmed ? trimmed.replace(/[^A-Z0-9]/g, "") : null;
+}
+
+function buildTrialReference(userId: string): string {
+    return `trial_${userId}_${Date.now()}`;
+}
+
+function buildEventKey(event: string, payload: Record<string, unknown>): string {
+    const data = (payload.data && typeof payload.data === "object" ? payload.data : {}) as Record<string, unknown>;
+    const metadata = parseMetadata(data.metadata);
+    const reference = getStringFromPaths(data, ["reference"]);
+    const subscriptionCode = getStringFromPaths(data, ["subscription.subscription_code", "subscription_code"]);
+    const customerCode = getStringFromPaths(data, ["customer.customer_code", "customer_code"]);
+    const userId = getMetadataValue(metadata, "user_id");
+    const timestamp = getStringFromPaths(data, ["paid_at", "created_at", "transaction_date", "next_payment_date"]) || "";
+    return [event, reference || subscriptionCode || customerCode || userId || "unknown", timestamp].join(":");
+}
+
 function rowToSubscriptionRecord(row: Record<string, unknown>): SubscriptionRecord {
     return {
         userId: String(row.user_id),
@@ -190,10 +248,76 @@ function rowToSubscriptionRecord(row: Record<string, unknown>): SubscriptionReco
         paystackCustomerId: row.paystack_customer_id ? String(row.paystack_customer_id) : null,
         paystackSubscriptionCode: row.paystack_subscription_code ? String(row.paystack_subscription_code) : null,
         paystackPlanCode: row.paystack_plan_code ? String(row.paystack_plan_code) : null,
+        paystackEmailToken: row.paystack_email_token ? String(row.paystack_email_token) : null,
+        paystackAuthorizationCode: row.paystack_authorization_code ? String(row.paystack_authorization_code) : null,
+        paystackAuthorizationSignature: row.paystack_authorization_signature ? String(row.paystack_authorization_signature) : null,
+        paystackAuthorizationLast4: row.paystack_authorization_last4 ? String(row.paystack_authorization_last4) : null,
         planId: sanitizePlanId(String(row.plan_id)),
         billingCycle: sanitizeBillingCycle(String(row.billing_cycle)),
-        status: String(row.status || "unknown") as BillingStatus,
+        status: sanitizeBillingStatus(String(row.status || "unknown")),
         currentPeriodEnd: Number(row.current_period_end || 0),
+        nextChargeAt: row.next_charge_at === null || row.next_charge_at === undefined ? null : Number(row.next_charge_at || 0),
+        cancelAtPeriodEnd: Boolean(Number(row.cancel_at_period_end || 0)),
+        trialStartedAt: row.trial_started_at === null || row.trial_started_at === undefined ? null : Number(row.trial_started_at || 0),
+        trialEndsAt: row.trial_ends_at === null || row.trial_ends_at === undefined ? null : Number(row.trial_ends_at || 0),
+        trialConsumedAt: row.trial_consumed_at === null || row.trial_consumed_at === undefined ? null : Number(row.trial_consumed_at || 0),
+        hasUsedTrial: Boolean(Number(row.has_used_trial || 0)),
+        lastError: row.last_error ? String(row.last_error) : null,
+        updatedAt: Number(row.updated_at || 0),
+    };
+}
+
+function rowToBillingIntentRecord(row: Record<string, unknown>): BillingIntentRecord {
+    return {
+        id: String(row.id),
+        reference: String(row.reference),
+        userId: String(row.user_id),
+        email: String(row.email),
+        planId: sanitizePlanId(String(row.plan_id)) as Exclude<PlanId, "free">,
+        billingCycle: sanitizeBillingCycle(String(row.billing_cycle)),
+        referralCode: row.referral_code ? String(row.referral_code) : null,
+        amountCents: Number(row.amount_cents || 0),
+        status: String(row.status || "pending") as BillingIntentStatus,
+        createdAt: Number(row.created_at || 0),
+        updatedAt: Number(row.updated_at || 0),
+    };
+}
+
+function rowToReferralCodeRecord(row: Record<string, unknown>): ReferralCodeRecord {
+    return {
+        userId: String(row.user_id),
+        code: String(row.code),
+        createdAt: Number(row.created_at || 0),
+    };
+}
+
+function rowToReferralRecord(row: Record<string, unknown>): ReferralRecord {
+    return {
+        id: String(row.id),
+        referrerUserId: String(row.referrer_user_id),
+        refereeUserId: String(row.referee_user_id),
+        refereeEmail: String(row.referee_email),
+        referralCode: String(row.referral_code),
+        planId: sanitizePlanId(String(row.plan_id)) as Exclude<PlanId, "free">,
+        billingCycle: sanitizeBillingCycle(String(row.billing_cycle)),
+        status: String(row.status || "trial_started") as ReferralStatus,
+        qualifiedAt: row.qualified_at === null || row.qualified_at === undefined ? null : Number(row.qualified_at || 0),
+        pendingUntil: row.pending_until === null || row.pending_until === undefined ? null : Number(row.pending_until || 0),
+        createdAt: Number(row.created_at || 0),
+        updatedAt: Number(row.updated_at || 0),
+    };
+}
+
+function rowToBillingCreditRecord(row: Record<string, unknown>): BillingCreditRecord {
+    return {
+        id: String(row.id),
+        userId: String(row.user_id),
+        referralId: String(row.referral_id),
+        months: Number(row.months || 0),
+        status: String(row.status || "pending") as BillingCreditStatus,
+        availableAt: row.available_at === null || row.available_at === undefined ? null : Number(row.available_at || 0),
+        appliedAt: row.applied_at === null || row.applied_at === undefined ? null : Number(row.applied_at || 0),
+        createdAt: Number(row.created_at || 0),
         updatedAt: Number(row.updated_at || 0),
     };
 }
@@ -236,6 +360,18 @@ async function queryD1(sql: string, params: QueryParam[] = []): Promise<Array<Re
     return extractD1Rows(payload);
 }
 
+async function getTableColumns(tableName: string): Promise<Set<string>> {
+    const rows = await queryD1(`PRAGMA table_info(${tableName})`);
+    return new Set(rows.map((row) => String(row.name)));
+}
+
+async function ensureColumn(tableName: string, columnName: string, columnDefinition: string) {
+    const columns = await getTableColumns(tableName);
+    if (!columns.has(columnName)) {
+        await queryD1(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`);
+    }
+}
+
 async function ensureBillingSchema() {
     if (!schemaPromise) {
         schemaPromise = (async () => {
@@ -253,15 +389,116 @@ async function ensureBillingSchema() {
                     updated_at INTEGER NOT NULL
                 )
             `);
+            await ensureColumn("subscriptions", "paystack_email_token", "TEXT");
+            await ensureColumn("subscriptions", "paystack_authorization_code", "TEXT");
+            await ensureColumn("subscriptions", "paystack_authorization_signature", "TEXT");
+            await ensureColumn("subscriptions", "paystack_authorization_last4", "TEXT");
+            await ensureColumn("subscriptions", "next_charge_at", "INTEGER");
+            await ensureColumn("subscriptions", "cancel_at_period_end", "INTEGER NOT NULL DEFAULT 0");
+            await ensureColumn("subscriptions", "trial_started_at", "INTEGER");
+            await ensureColumn("subscriptions", "trial_ends_at", "INTEGER");
+            await ensureColumn("subscriptions", "trial_consumed_at", "INTEGER");
+            await ensureColumn("subscriptions", "has_used_trial", "INTEGER NOT NULL DEFAULT 0");
+            await ensureColumn("subscriptions", "last_error", "TEXT");
             await queryD1("CREATE INDEX IF NOT EXISTS idx_subscriptions_customer_id ON subscriptions(paystack_customer_id)");
             await queryD1("CREATE INDEX IF NOT EXISTS idx_subscriptions_subscription_code ON subscriptions(paystack_subscription_code)");
+            await queryD1("CREATE INDEX IF NOT EXISTS idx_subscriptions_authorization_signature ON subscriptions(paystack_authorization_signature)");
+
+            await queryD1(`
+                CREATE TABLE IF NOT EXISTS billing_intents (
+                    id TEXT PRIMARY KEY,
+                    reference TEXT NOT NULL UNIQUE,
+                    user_id TEXT NOT NULL,
+                    email TEXT NOT NULL,
+                    plan_id TEXT NOT NULL,
+                    billing_cycle TEXT NOT NULL,
+                    referral_code TEXT,
+                    amount_cents INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at INTEGER NOT NULL,
+                    updated_at INTEGER NOT NULL
+                )
+            `);
+            await queryD1("CREATE INDEX IF NOT EXISTS idx_billing_intents_user_id ON billing_intents(user_id)");
+
+            await queryD1(`
+                CREATE TABLE IF NOT EXISTS billing_events (
+                    event_key TEXT PRIMARY KEY,
+                    event_name TEXT NOT NULL,
+                    reference TEXT,
+                    created_at INTEGER NOT NULL
+                )
+            `);
+
+            await queryD1(`
+                CREATE TABLE IF NOT EXISTS referral_codes (
+                    user_id TEXT PRIMARY KEY,
+                    code TEXT NOT NULL UNIQUE,
+                    created_at INTEGER NOT NULL
+                )
+            `);
+
+            await queryD1(`
+                CREATE TABLE IF NOT EXISTS referrals (
+                    id TEXT PRIMARY KEY,
+                    referrer_user_id TEXT NOT NULL,
+                    referee_user_id TEXT NOT NULL UNIQUE,
+                    referee_email TEXT NOT NULL,
+                    referral_code TEXT NOT NULL,
+                    plan_id TEXT NOT NULL,
+                    billing_cycle TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    qualified_at INTEGER,
+                    pending_until INTEGER,
+                    created_at INTEGER NOT NULL,
+                    updated_at INTEGER NOT NULL
+                )
+            `);
+            await queryD1("CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_user_id)");
+
+            await queryD1(`
+                CREATE TABLE IF NOT EXISTS billing_credits (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    referral_id TEXT NOT NULL,
+                    months INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    available_at INTEGER,
+                    applied_at INTEGER,
+                    created_at INTEGER NOT NULL,
+                    updated_at INTEGER NOT NULL
+                )
+            `);
+            await queryD1("CREATE INDEX IF NOT EXISTS idx_billing_credits_user_id ON billing_credits(user_id)");
         })();
     }
 
     await schemaPromise;
 }
 
-async function getSubscriptionByColumn(column: "user_id" | "email" | "paystack_customer_id" | "paystack_subscription_code", value: string | null | undefined): Promise<SubscriptionRecord | null> {
+async function paystackRequest<T>(path: string, init: RequestInit): Promise<T> {
+    const response = await fetch(`https://api.paystack.co${path}`, {
+        ...init,
+        headers: {
+            Authorization: `Bearer ${getPaystackSecretKey()}`,
+            "Content-Type": "application/json",
+            ...(init.headers || {}),
+        },
+        cache: "no-store",
+    });
+
+    const payload = await response.json() as T & PaystackBasicResponse;
+    if (!response.ok || payload.status === false) {
+        throw new BillingError(payload.message || "Paystack request failed.", 502);
+    }
+
+    return payload;
+}
+
+async function getSubscriptionByColumn(
+    column: "user_id" | "email" | "paystack_customer_id" | "paystack_subscription_code" | "paystack_authorization_signature",
+    value: string | null | undefined,
+): Promise<SubscriptionRecord | null> {
     if (!value) return null;
     await ensureBillingSchema();
     const rows = await queryD1(`SELECT * FROM subscriptions WHERE ${column} = ? LIMIT 1`, [value]);
@@ -278,21 +515,43 @@ async function upsertSubscription(record: SubscriptionRecord): Promise<void> {
                 paystack_customer_id,
                 paystack_subscription_code,
                 paystack_plan_code,
+                paystack_email_token,
+                paystack_authorization_code,
+                paystack_authorization_signature,
+                paystack_authorization_last4,
                 plan_id,
                 billing_cycle,
                 status,
                 current_period_end,
+                next_charge_at,
+                cancel_at_period_end,
+                trial_started_at,
+                trial_ends_at,
+                trial_consumed_at,
+                has_used_trial,
+                last_error,
                 updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(user_id) DO UPDATE SET
                 email = excluded.email,
                 paystack_customer_id = COALESCE(excluded.paystack_customer_id, subscriptions.paystack_customer_id),
                 paystack_subscription_code = COALESCE(excluded.paystack_subscription_code, subscriptions.paystack_subscription_code),
                 paystack_plan_code = COALESCE(excluded.paystack_plan_code, subscriptions.paystack_plan_code),
+                paystack_email_token = COALESCE(excluded.paystack_email_token, subscriptions.paystack_email_token),
+                paystack_authorization_code = COALESCE(excluded.paystack_authorization_code, subscriptions.paystack_authorization_code),
+                paystack_authorization_signature = COALESCE(excluded.paystack_authorization_signature, subscriptions.paystack_authorization_signature),
+                paystack_authorization_last4 = COALESCE(excluded.paystack_authorization_last4, subscriptions.paystack_authorization_last4),
                 plan_id = excluded.plan_id,
                 billing_cycle = excluded.billing_cycle,
                 status = excluded.status,
                 current_period_end = excluded.current_period_end,
+                next_charge_at = excluded.next_charge_at,
+                cancel_at_period_end = excluded.cancel_at_period_end,
+                trial_started_at = COALESCE(excluded.trial_started_at, subscriptions.trial_started_at),
+                trial_ends_at = COALESCE(excluded.trial_ends_at, subscriptions.trial_ends_at),
+                trial_consumed_at = COALESCE(excluded.trial_consumed_at, subscriptions.trial_consumed_at),
+                has_used_trial = excluded.has_used_trial,
+                last_error = excluded.last_error,
                 updated_at = excluded.updated_at
         `,
         [
@@ -301,13 +560,266 @@ async function upsertSubscription(record: SubscriptionRecord): Promise<void> {
             record.paystackCustomerId ?? null,
             record.paystackSubscriptionCode ?? null,
             record.paystackPlanCode ?? null,
+            record.paystackEmailToken ?? null,
+            record.paystackAuthorizationCode ?? null,
+            record.paystackAuthorizationSignature ?? null,
+            record.paystackAuthorizationLast4 ?? null,
             record.planId,
             record.billingCycle,
             record.status,
             record.currentPeriodEnd,
+            record.nextChargeAt ?? null,
+            record.cancelAtPeriodEnd ? 1 : 0,
+            record.trialStartedAt ?? null,
+            record.trialEndsAt ?? null,
+            record.trialConsumedAt ?? null,
+            record.hasUsedTrial ? 1 : 0,
+            record.lastError ?? null,
             record.updatedAt,
         ],
     );
+}
+
+async function getBillingIntentByReference(reference: string): Promise<BillingIntentRecord | null> {
+    await ensureBillingSchema();
+    const rows = await queryD1("SELECT * FROM billing_intents WHERE reference = ? LIMIT 1", [reference]);
+    return rows[0] ? rowToBillingIntentRecord(rows[0]) : null;
+}
+
+async function upsertBillingIntent(record: BillingIntentRecord): Promise<void> {
+    await ensureBillingSchema();
+    await queryD1(
+        `
+            INSERT INTO billing_intents (
+                id,
+                reference,
+                user_id,
+                email,
+                plan_id,
+                billing_cycle,
+                referral_code,
+                amount_cents,
+                status,
+                created_at,
+                updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(reference) DO UPDATE SET
+                user_id = excluded.user_id,
+                email = excluded.email,
+                plan_id = excluded.plan_id,
+                billing_cycle = excluded.billing_cycle,
+                referral_code = excluded.referral_code,
+                amount_cents = excluded.amount_cents,
+                status = excluded.status,
+                updated_at = excluded.updated_at
+        `,
+        [
+            record.id,
+            record.reference,
+            record.userId,
+            record.email,
+            record.planId,
+            record.billingCycle,
+            record.referralCode ?? null,
+            record.amountCents,
+            record.status,
+            record.createdAt,
+            record.updatedAt,
+        ],
+    );
+}
+
+async function markBillingEventProcessed(eventKey: string, eventName: string, reference: string | null): Promise<void> {
+    await ensureBillingSchema();
+    await queryD1(
+        "INSERT OR IGNORE INTO billing_events (event_key, event_name, reference, created_at) VALUES (?, ?, ?, ?)",
+        [eventKey, eventName, reference, Date.now()],
+    );
+}
+
+async function hasBillingEvent(eventKey: string): Promise<boolean> {
+    await ensureBillingSchema();
+    const rows = await queryD1("SELECT event_key FROM billing_events WHERE event_key = ? LIMIT 1", [eventKey]);
+    return rows.length > 0;
+}
+
+async function getReferralCodeByCode(code: string | null | undefined): Promise<ReferralCodeRecord | null> {
+    if (!code) return null;
+    await ensureBillingSchema();
+    const rows = await queryD1("SELECT * FROM referral_codes WHERE code = ? LIMIT 1", [code]);
+    return rows[0] ? rowToReferralCodeRecord(rows[0]) : null;
+}
+
+async function getReferralCodeByUserId(userId: string): Promise<ReferralCodeRecord | null> {
+    await ensureBillingSchema();
+    const rows = await queryD1("SELECT * FROM referral_codes WHERE user_id = ? LIMIT 1", [userId]);
+    return rows[0] ? rowToReferralCodeRecord(rows[0]) : null;
+}
+
+async function ensureReferralCodeForUser(userId: string): Promise<ReferralCodeRecord> {
+    const existing = await getReferralCodeByUserId(userId);
+    if (existing) return existing;
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+        const code = randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
+        try {
+            const createdAt = Date.now();
+            await queryD1(
+                "INSERT INTO referral_codes (user_id, code, created_at) VALUES (?, ?, ?)",
+                [userId, code, createdAt],
+            );
+            return { userId, code, createdAt };
+        } catch {
+            // Retry on rare collisions.
+        }
+    }
+
+    throw new BillingError("Could not create a referral code.");
+}
+
+async function getReferralByReferee(refereeUserId: string): Promise<ReferralRecord | null> {
+    await ensureBillingSchema();
+    const rows = await queryD1("SELECT * FROM referrals WHERE referee_user_id = ? LIMIT 1", [refereeUserId]);
+    return rows[0] ? rowToReferralRecord(rows[0]) : null;
+}
+
+async function createReferral(record: ReferralRecord): Promise<void> {
+    await ensureBillingSchema();
+    await queryD1(
+        `
+            INSERT INTO referrals (
+                id,
+                referrer_user_id,
+                referee_user_id,
+                referee_email,
+                referral_code,
+                plan_id,
+                billing_cycle,
+                status,
+                qualified_at,
+                pending_until,
+                created_at,
+                updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        [
+            record.id,
+            record.referrerUserId,
+            record.refereeUserId,
+            record.refereeEmail,
+            record.referralCode,
+            record.planId,
+            record.billingCycle,
+            record.status,
+            record.qualifiedAt ?? null,
+            record.pendingUntil ?? null,
+            record.createdAt,
+            record.updatedAt,
+        ],
+    );
+}
+
+async function updateReferral(record: ReferralRecord): Promise<void> {
+    await ensureBillingSchema();
+    await queryD1(
+        `
+            UPDATE referrals
+            SET plan_id = ?, billing_cycle = ?, status = ?, qualified_at = ?, pending_until = ?, updated_at = ?
+            WHERE id = ?
+        `,
+        [
+            record.planId,
+            record.billingCycle,
+            record.status,
+            record.qualifiedAt ?? null,
+            record.pendingUntil ?? null,
+            record.updatedAt,
+            record.id,
+        ],
+    );
+}
+
+async function getCreditsForUser(userId: string): Promise<BillingCreditRecord[]> {
+    await ensureBillingSchema();
+    const rows = await queryD1("SELECT * FROM billing_credits WHERE user_id = ?", [userId]);
+    return rows.map(rowToBillingCreditRecord);
+}
+
+async function getCreditsByReferralId(referralId: string): Promise<BillingCreditRecord[]> {
+    await ensureBillingSchema();
+    const rows = await queryD1("SELECT * FROM billing_credits WHERE referral_id = ?", [referralId]);
+    return rows.map(rowToBillingCreditRecord);
+}
+
+async function insertCredit(record: BillingCreditRecord): Promise<void> {
+    await ensureBillingSchema();
+    await queryD1(
+        `
+            INSERT INTO billing_credits (
+                id,
+                user_id,
+                referral_id,
+                months,
+                status,
+                available_at,
+                applied_at,
+                created_at,
+                updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        [
+            record.id,
+            record.userId,
+            record.referralId,
+            record.months,
+            record.status,
+            record.availableAt ?? null,
+            record.appliedAt ?? null,
+            record.createdAt,
+            record.updatedAt,
+        ],
+    );
+}
+
+async function updateCredit(record: BillingCreditRecord): Promise<void> {
+    await ensureBillingSchema();
+    await queryD1(
+        `
+            UPDATE billing_credits
+            SET status = ?, available_at = ?, applied_at = ?, updated_at = ?
+            WHERE id = ?
+        `,
+        [
+            record.status,
+            record.availableAt ?? null,
+            record.appliedAt ?? null,
+            record.updatedAt,
+            record.id,
+        ],
+    );
+}
+
+async function summarizeCreditsForUser(userId: string) {
+    const credits = await getCreditsForUser(userId);
+    return credits.reduce(
+        (summary, credit) => {
+            if (credit.status === "pending") summary.pending += credit.months;
+            if (credit.status === "available") summary.available += credit.months;
+            if (credit.status === "applied") summary.applied += credit.months;
+            if (credit.status !== "reversed") summary.total += credit.months;
+            return summary;
+        },
+        { pending: 0, available: 0, applied: 0, total: 0 },
+    );
+}
+
+async function countSuccessfulReferrals(userId: string): Promise<number> {
+    await ensureBillingSchema();
+    const rows = await queryD1(
+        "SELECT COUNT(*) AS count FROM referrals WHERE referrer_user_id = ? AND status = ?",
+        [userId, "reward_granted"],
+    );
+    return Number(rows[0]?.count || 0);
 }
 
 async function resolveExistingSubscription(identity: {
@@ -326,16 +838,12 @@ async function resolveExistingSubscription(identity: {
 
 function mapPlanCode(planCode: string | null): { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle } | null {
     if (!planCode) return null;
-    const match = getPaystackPlanLookup().get(planCode);
-    return match || null;
+    return getPaystackPlanLookup().get(planCode) || null;
 }
 
-function resolveWebhookPlan(input: {
-    metadata: Record<string, unknown>;
-    planCode: string | null;
-}): { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle } | null {
-    const mappedFromCode = mapPlanCode(input.planCode);
-    if (mappedFromCode) return mappedFromCode;
+function resolveWebhookPlan(input: { metadata: Record<string, unknown>; planCode: string | null }): { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle } | null {
+    const mapped = mapPlanCode(input.planCode);
+    if (mapped) return mapped;
 
     const metadataPlanId = sanitizePlanId(getMetadataValue(input.metadata, "plan_id"));
     const metadataCycle = sanitizeBillingCycle(getMetadataValue(input.metadata, "billing_cycle"));
@@ -349,92 +857,490 @@ function resolveWebhookPlan(input: {
     return null;
 }
 
-function buildWebhookResolution(event: string, payload: Record<string, unknown>, existing: SubscriptionRecord | null): WebhookResolution | null {
-    const data = (payload.data && typeof payload.data === "object" ? payload.data : {}) as Record<string, unknown>;
+function extractAuthorization(data: Record<string, unknown>): PaystackAuthorization | null {
+    const authorization = getNestedValue(data, "authorization");
+    if (!authorization || typeof authorization !== "object") {
+        return null;
+    }
+
+    const auth = authorization as Record<string, unknown>;
+    const authorizationCode = typeof auth.authorization_code === "string" ? auth.authorization_code : null;
+    if (!authorizationCode) return null;
+
+    return {
+        authorizationCode,
+        signature: typeof auth.signature === "string" ? auth.signature : null,
+        last4: typeof auth.last4 === "string" ? auth.last4 : null,
+        reusable: auth.reusable === true,
+    };
+}
+
+async function initializePaystackTransaction(request: Request, user: VerifiedGoogleUser, input: {
+    amountCents: number;
+    metadata: Record<string, unknown>;
+    callbackQuery?: Record<string, string>;
+}): Promise<{ authorizationUrl: string; reference: string }> {
+    const origin = normalizeOrigin(request);
+    const reference = buildTrialReference(user.userId);
+    const callbackUrl = new URL(`${origin}/billing/success`);
+    if (input.callbackQuery) {
+        Object.entries(input.callbackQuery).forEach(([key, value]) => callbackUrl.searchParams.set(key, value));
+    }
+    callbackUrl.searchParams.set("reference", reference);
+
+    const response = await paystackRequest<PaystackInitializeResponse>("/transaction/initialize", {
+        method: "POST",
+        body: JSON.stringify({
+            reference,
+            email: user.email,
+            amount: input.amountCents,
+            callback_url: callbackUrl.toString(),
+            channels: ["card"],
+            metadata: JSON.stringify(input.metadata),
+        }),
+    });
+
+    if (!response.data?.authorization_url || !response.data.reference) {
+        throw new BillingError(response.message || "Paystack checkout could not be started.", 502);
+    }
+
+    return {
+        authorizationUrl: response.data.authorization_url,
+        reference: response.data.reference,
+    };
+}
+
+async function createPaystackSubscription(input: {
+    customerId: string;
+    planId: Exclude<PlanId, "free">;
+    billingCycle: BillingCycle;
+    authorizationCode: string;
+    startDate: number;
+}): Promise<{ subscriptionCode: string; emailToken: string | null; nextPaymentDate: number | null; planCode: string }> {
+    const planCode = getPaystackPlanCode(input.planId, input.billingCycle);
+    const response = await paystackRequest<PaystackCreateSubscriptionResponse>("/subscription", {
+        method: "POST",
+        body: JSON.stringify({
+            customer: input.customerId,
+            plan: planCode,
+            authorization: input.authorizationCode,
+            start_date: new Date(input.startDate).toISOString(),
+        }),
+    });
+
+    return {
+        subscriptionCode: response.data?.subscription_code || "",
+        emailToken: response.data?.email_token || null,
+        nextPaymentDate: parseTimestamp(response.data?.next_payment_date || null),
+        planCode,
+    };
+}
+
+async function disablePaystackSubscription(subscriptionCode: string, emailToken: string) {
+    await paystackRequest<PaystackBasicResponse>("/subscription/disable", {
+        method: "POST",
+        body: JSON.stringify({
+            code: subscriptionCode,
+            token: emailToken,
+        }),
+    });
+}
+
+async function releaseMaturedCreditsForUser(userId: string): Promise<void> {
+    const credits = await getCreditsForUser(userId);
+    const now = Date.now();
+    const matured = credits.filter((credit) => credit.status === "pending" && (credit.availableAt || 0) <= now);
+    if (!matured.length) return;
+
+    for (const credit of matured) {
+        await updateCredit({
+            ...credit,
+            status: "available",
+            updatedAt: now,
+        });
+    }
+
+    const referralIds = Array.from(new Set(matured.map((credit) => credit.referralId)));
+    for (const referralId of referralIds) {
+        const rows = await queryD1("SELECT * FROM referrals WHERE id = ? LIMIT 1", [referralId]);
+        if (!rows[0]) continue;
+        const referral = rowToReferralRecord(rows[0]);
+        await updateReferral({
+            ...referral,
+            status: "reward_granted",
+            updatedAt: now,
+        });
+    }
+
+    const subscription = await getSubscriptionByColumn("user_id", userId);
+    if (subscription) {
+        await applyAvailableCreditsToSubscription(subscription);
+    }
+}
+
+async function applyAvailableCreditsToSubscription(subscription: SubscriptionRecord): Promise<SubscriptionRecord> {
+    const creditSummary = await summarizeCreditsForUser(subscription.userId);
+    if (
+        creditSummary.available <= 0 ||
+        subscription.cancelAtPeriodEnd ||
+        !isPaidPlanId(subscription.planId) ||
+        !subscription.paystackCustomerId ||
+        !subscription.paystackAuthorizationCode
+    ) {
+        return subscription;
+    }
+
+    const baseChargeAt = subscription.nextChargeAt ?? subscription.currentPeriodEnd;
+    if (!baseChargeAt) return subscription;
+
+    if (subscription.paystackSubscriptionCode && subscription.paystackEmailToken) {
+        await disablePaystackSubscription(subscription.paystackSubscriptionCode, subscription.paystackEmailToken);
+    }
+
+    const rescheduledStart = addCalendarMonths(new Date(baseChargeAt), creditSummary.available).getTime();
+    const created = await createPaystackSubscription({
+        customerId: subscription.paystackCustomerId,
+        planId: subscription.planId as Exclude<PlanId, "free">,
+        billingCycle: subscription.billingCycle,
+        authorizationCode: subscription.paystackAuthorizationCode,
+        startDate: rescheduledStart,
+    });
+
+    const credits = await getCreditsForUser(subscription.userId);
+    const now = Date.now();
+    for (const credit of credits.filter((entry) => entry.status === "available")) {
+        await updateCredit({
+            ...credit,
+            status: "applied",
+            appliedAt: now,
+            updatedAt: now,
+        });
+    }
+
+    const updatedRecord: SubscriptionRecord = {
+        ...subscription,
+        paystackSubscriptionCode: created.subscriptionCode || subscription.paystackSubscriptionCode,
+        paystackPlanCode: created.planCode,
+        paystackEmailToken: created.emailToken,
+        currentPeriodEnd: rescheduledStart,
+        nextChargeAt: rescheduledStart,
+        lastError: null,
+        updatedAt: now,
+    };
+    await upsertSubscription(updatedRecord);
+    return updatedRecord;
+}
+
+async function buildBillingSummary(userId: string, record: SubscriptionRecord | null): Promise<BillingAccountSummary> {
+    const referralCode = await ensureReferralCodeForUser(userId);
+    const creditSummary = await summarizeCreditsForUser(userId);
+    const successfulReferralCount = await countSuccessfulReferrals(userId);
+
+    return {
+        referralCode: referralCode.code,
+        trialEndsAt: toIso(record?.trialEndsAt),
+        nextChargeAt: toIso(record?.nextChargeAt ?? record?.currentPeriodEnd),
+        cancelAtPeriodEnd: Boolean(record?.cancelAtPeriodEnd),
+        availableReferralMonths: creditSummary.available,
+        pendingReferralMonths: creditSummary.pending,
+        successfulReferralCount,
+        totalReferralMonthsEarned: creditSummary.total,
+        lastError: record?.lastError || undefined,
+    };
+}
+
+async function linkReferralToTrial(intent: BillingIntentRecord): Promise<void> {
+    const referralCode = sanitizeReferralCode(intent.referralCode);
+    if (!referralCode) return;
+    const codeRecord = await getReferralCodeByCode(referralCode);
+    if (!codeRecord || codeRecord.userId === intent.userId) return;
+
+    const existing = await getReferralByReferee(intent.userId);
+    if (existing) return;
+
+    await createReferral({
+        id: randomUUID(),
+        referrerUserId: codeRecord.userId,
+        refereeUserId: intent.userId,
+        refereeEmail: intent.email,
+        referralCode,
+        planId: intent.planId,
+        billingCycle: intent.billingCycle,
+        status: "trial_started",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+    });
+}
+
+async function qualifyReferralForFirstPaidCharge(userId: string, planId: Exclude<PlanId, "free">, billingCycle: BillingCycle, paidAt: number): Promise<void> {
+    const referral = await getReferralByReferee(userId);
+    if (!referral || referral.status !== "trial_started") return;
+
+    const referrerCredits = await summarizeCreditsForUser(referral.referrerUserId);
+    if (referrerCredits.total >= REFERRAL_REWARD_CAP_MONTHS) {
+        await updateReferral({
+            ...referral,
+            status: "rejected",
+            updatedAt: Date.now(),
+        });
+        return;
+    }
+
+    const pendingUntil = paidAt + REFUND_WINDOW_MS;
+    await updateReferral({
+        ...referral,
+        planId,
+        billingCycle,
+        status: "qualified_pending_reward",
+        qualifiedAt: paidAt,
+        pendingUntil,
+        updatedAt: Date.now(),
+    });
+
+    const existingCredits = await getCreditsByReferralId(referral.id);
+    if (!existingCredits.length) {
+        await insertCredit({
+            id: randomUUID(),
+            userId: referral.referrerUserId,
+            referralId: referral.id,
+            months: REFERRAL_REWARD_MONTHS,
+            status: "pending",
+            availableAt: pendingUntil,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+        });
+    }
+}
+
+async function rejectTrialIntent(intent: BillingIntentRecord, userId: string, email: string, message: string) {
+    await upsertBillingIntent({
+        ...intent,
+        status: "rejected",
+        updatedAt: Date.now(),
+    });
+
+    const existing = await getSubscriptionByColumn("user_id", userId);
+    await upsertSubscription({
+        userId,
+        email,
+        paystackCustomerId: existing?.paystackCustomerId ?? null,
+        paystackSubscriptionCode: existing?.paystackSubscriptionCode ?? null,
+        paystackPlanCode: existing?.paystackPlanCode ?? null,
+        paystackEmailToken: existing?.paystackEmailToken ?? null,
+        paystackAuthorizationCode: existing?.paystackAuthorizationCode ?? null,
+        paystackAuthorizationSignature: existing?.paystackAuthorizationSignature ?? null,
+        paystackAuthorizationLast4: existing?.paystackAuthorizationLast4 ?? null,
+        planId: existing?.planId ?? "free",
+        billingCycle: existing?.billingCycle ?? "monthly",
+        status: existing?.status ?? "free",
+        currentPeriodEnd: existing?.currentPeriodEnd ?? 0,
+        nextChargeAt: existing?.nextChargeAt ?? null,
+        cancelAtPeriodEnd: existing?.cancelAtPeriodEnd ?? false,
+        trialStartedAt: existing?.trialStartedAt ?? null,
+        trialEndsAt: existing?.trialEndsAt ?? null,
+        trialConsumedAt: existing?.trialConsumedAt ?? null,
+        hasUsedTrial: existing?.hasUsedTrial ?? false,
+        lastError: message,
+        updatedAt: Date.now(),
+    });
+}
+
+async function handleTrialChargeSuccess(data: Record<string, unknown>, intent: BillingIntentRecord): Promise<boolean> {
+    const authorization = extractAuthorization(data);
+    if (!authorization?.reusable) {
+        await rejectTrialIntent(intent, intent.userId, intent.email, "The card could not be saved for automatic billing. Please try another card.");
+        return true;
+    }
+
+    const existing = await getSubscriptionByColumn("user_id", intent.userId);
+    if (!canStartTrial(existing)) {
+        await rejectTrialIntent(intent, intent.userId, intent.email, "This Google account has already used its free trial.");
+        return true;
+    }
+
+    if (authorization.signature) {
+        const signatureMatch = await getSubscriptionByColumn("paystack_authorization_signature", authorization.signature);
+        if (signatureMatch && signatureMatch.userId !== intent.userId && signatureMatch.hasUsedTrial) {
+            await rejectTrialIntent(intent, intent.userId, intent.email, "This card has already been used for a free trial.");
+            return true;
+        }
+    }
+
+    const customerId = getStringFromPaths(data, ["customer.customer_code", "customer_code"]);
+    const paidAt = parseTimestamp(getStringFromPaths(data, ["paid_at", "paidAt", "created_at"])) || Date.now();
+    const trialEndsAt = paidAt + TRIAL_DURATION_MS;
+
+    let record: SubscriptionRecord = {
+        userId: intent.userId,
+        email: intent.email,
+        paystackCustomerId: customerId,
+        paystackSubscriptionCode: existing?.paystackSubscriptionCode ?? null,
+        paystackPlanCode: existing?.paystackPlanCode ?? null,
+        paystackEmailToken: existing?.paystackEmailToken ?? null,
+        paystackAuthorizationCode: authorization.authorizationCode,
+        paystackAuthorizationSignature: authorization.signature,
+        paystackAuthorizationLast4: authorization.last4,
+        planId: intent.planId,
+        billingCycle: intent.billingCycle,
+        status: "trialing",
+        currentPeriodEnd: trialEndsAt,
+        nextChargeAt: trialEndsAt,
+        cancelAtPeriodEnd: false,
+        trialStartedAt: paidAt,
+        trialEndsAt,
+        trialConsumedAt: paidAt,
+        hasUsedTrial: true,
+        lastError: null,
+        updatedAt: Date.now(),
+    };
+    await upsertSubscription(record);
+
+    try {
+        const created = await createPaystackSubscription({
+            customerId: customerId || "",
+            planId: intent.planId,
+            billingCycle: intent.billingCycle,
+            authorizationCode: authorization.authorizationCode,
+            startDate: trialEndsAt,
+        });
+        record = {
+            ...record,
+            paystackSubscriptionCode: created.subscriptionCode || null,
+            paystackEmailToken: created.emailToken,
+            paystackPlanCode: created.planCode,
+            nextChargeAt: created.nextPaymentDate || trialEndsAt,
+            currentPeriodEnd: created.nextPaymentDate || trialEndsAt,
+            updatedAt: Date.now(),
+        };
+        await upsertSubscription(record);
+        record = await applyAvailableCreditsToSubscription(record);
+    } catch (error) {
+        await upsertSubscription({
+            ...record,
+            lastError: error instanceof Error ? error.message : "The trial started, but automatic billing setup still needs attention.",
+            updatedAt: Date.now(),
+        });
+    }
+
+    await linkReferralToTrial(intent);
+    await upsertBillingIntent({
+        ...intent,
+        status: "trial_started",
+        updatedAt: Date.now(),
+    });
+    return true;
+}
+
+async function handleRecurringChargeSuccess(data: Record<string, unknown>, existing: SubscriptionRecord | null): Promise<boolean> {
     const metadata = parseMetadata(data.metadata);
     const mappedPlan = resolveWebhookPlan({
         metadata,
         planCode: getStringFromPaths(data, ["plan.plan_code", "plan_code"]),
     });
+    if (!mappedPlan) return false;
 
-    if (!mappedPlan) return null;
+    const userId = getMetadataValue(metadata, "user_id") || existing?.userId || null;
+    const email = getStringFromPaths(data, ["customer.email", "email"]) || existing?.email || null;
+    if (!userId || !email) return false;
 
     const customerId = getStringFromPaths(data, ["customer.customer_code", "customer_code"]);
     const subscriptionCode = getStringFromPaths(data, ["subscription.subscription_code", "subscription_code"]);
-    const userId = getMetadataValue(metadata, "user_id") || existing?.userId || null;
-    const email = getStringFromPaths(data, ["customer.email", "email"]) || existing?.email || null;
-
-    if (!userId || !email) {
-        return null;
-    }
-
-    const explicitPeriodEnd =
+    const paidAt = parseTimestamp(getStringFromPaths(data, ["paid_at", "paidAt", "created_at"])) || Date.now();
+    const nextPaymentDate =
         parseTimestamp(getStringFromPaths(data, ["next_payment_date", "subscription.next_payment_date"])) ||
-        parseTimestamp(getStringFromPaths(data, ["current_period_end"])) ||
-        null;
-    const paidAt =
-        parseTimestamp(getStringFromPaths(data, ["paid_at", "paidAt", "created_at"])) ||
-        Date.now();
-    const fallbackPeriodEnd = addBillingInterval(new Date(paidAt), mappedPlan.billingCycle).getTime();
-    const now = Date.now();
+        addBillingInterval(new Date(paidAt), mappedPlan.billingCycle).getTime();
 
-    if (event === "charge.success" || event === "subscription.create") {
-        return {
-            userId,
-            email,
-            customerId,
-            subscriptionCode,
-            planCode: getStringFromPaths(data, ["plan.plan_code", "plan_code"]),
-            planId: mappedPlan.planId,
-            billingCycle: mappedPlan.billingCycle,
-            status: "active",
-            currentPeriodEnd: explicitPeriodEnd || fallbackPeriodEnd,
-        };
+    let record: SubscriptionRecord = {
+        userId,
+        email,
+        paystackCustomerId: customerId || existing?.paystackCustomerId || null,
+        paystackSubscriptionCode: subscriptionCode || existing?.paystackSubscriptionCode || null,
+        paystackPlanCode: getStringFromPaths(data, ["plan.plan_code", "plan_code"]) || existing?.paystackPlanCode || getPaystackPlanCode(mappedPlan.planId, mappedPlan.billingCycle),
+        paystackEmailToken: existing?.paystackEmailToken || null,
+        paystackAuthorizationCode: extractAuthorization(data)?.authorizationCode || existing?.paystackAuthorizationCode || null,
+        paystackAuthorizationSignature: extractAuthorization(data)?.signature || existing?.paystackAuthorizationSignature || null,
+        paystackAuthorizationLast4: extractAuthorization(data)?.last4 || existing?.paystackAuthorizationLast4 || null,
+        planId: mappedPlan.planId,
+        billingCycle: mappedPlan.billingCycle,
+        status: "active",
+        currentPeriodEnd: nextPaymentDate,
+        nextChargeAt: nextPaymentDate,
+        cancelAtPeriodEnd: false,
+        trialStartedAt: existing?.trialStartedAt ?? null,
+        trialEndsAt: existing?.trialEndsAt ?? null,
+        trialConsumedAt: existing?.trialConsumedAt ?? null,
+        hasUsedTrial: existing?.hasUsedTrial ?? false,
+        lastError: null,
+        updatedAt: Date.now(),
+    };
+    await upsertSubscription(record);
+
+    await qualifyReferralForFirstPaidCharge(userId, mappedPlan.planId, mappedPlan.billingCycle, paidAt);
+    record = await applyAvailableCreditsToSubscription(record);
+    await releaseMaturedCreditsForUser(userId);
+    return true;
+}
+
+async function handleInvoicePaymentFailed(existing: SubscriptionRecord | null): Promise<boolean> {
+    if (!existing) return false;
+    await upsertSubscription({
+        ...existing,
+        status: "past_due",
+        lastError: "We could not renew your subscription from the saved card.",
+        updatedAt: Date.now(),
+    });
+    return true;
+}
+
+async function handleSubscriptionDisabled(data: Record<string, unknown>, existing: SubscriptionRecord | null): Promise<boolean> {
+    if (!existing) return false;
+    const incomingSubscriptionCode = getStringFromPaths(data, ["subscription.subscription_code", "subscription_code"]);
+    if (incomingSubscriptionCode && existing.paystackSubscriptionCode && incomingSubscriptionCode !== existing.paystackSubscriptionCode) {
+        return false;
     }
 
-    if (event === "invoice.payment_failed") {
-        return {
-            userId,
-            email,
-            customerId,
-            subscriptionCode,
-            planCode: getStringFromPaths(data, ["plan.plan_code", "plan_code"]),
-            planId: existing?.planId === "pro" ? "pro" : mappedPlan.planId,
-            billingCycle: existing?.billingCycle || mappedPlan.billingCycle,
-            status: "past_due",
-            currentPeriodEnd: existing?.currentPeriodEnd || explicitPeriodEnd || fallbackPeriodEnd,
-        };
-    }
+    await upsertSubscription({
+        ...existing,
+        status: "canceled",
+        nextChargeAt: null,
+        cancelAtPeriodEnd: true,
+        updatedAt: Date.now(),
+    });
+    return true;
+}
 
-    if (event === "subscription.disable" || event === "subscription.not_renew") {
-        return {
-            userId,
-            email,
-            customerId,
-            subscriptionCode,
-            planCode: getStringFromPaths(data, ["plan.plan_code", "plan_code"]),
-            planId: existing?.planId === "pro" ? "pro" : mappedPlan.planId,
-            billingCycle: existing?.billingCycle || mappedPlan.billingCycle,
-            status: "canceled",
-            currentPeriodEnd: existing?.currentPeriodEnd || explicitPeriodEnd || fallbackPeriodEnd,
-        };
-    }
+async function handleRefundProcessed(existing: SubscriptionRecord | null): Promise<boolean> {
+    if (!existing) return false;
 
-    if (event === "refund.processed") {
-        return {
-            userId,
-            email,
-            customerId,
-            subscriptionCode,
-            planCode: getStringFromPaths(data, ["plan.plan_code", "plan_code"]),
-            planId: existing?.planId === "pro" ? "pro" : mappedPlan.planId,
-            billingCycle: existing?.billingCycle || mappedPlan.billingCycle,
-            status: "refunded",
-            currentPeriodEnd: now,
-        };
-    }
+    await upsertSubscription({
+        ...existing,
+        status: "refunded",
+        currentPeriodEnd: Date.now(),
+        nextChargeAt: null,
+        cancelAtPeriodEnd: true,
+        lastError: "The latest payment was refunded.",
+        updatedAt: Date.now(),
+    });
 
-    return null;
+    const referral = await getReferralByReferee(existing.userId);
+    if (referral && referral.status === "qualified_pending_reward") {
+        await updateReferral({
+            ...referral,
+            status: "reversed",
+            updatedAt: Date.now(),
+        });
+        const credits = await getCreditsByReferralId(referral.id);
+        for (const credit of credits) {
+            if (credit.status === "pending" || credit.status === "available") {
+                await updateCredit({
+                    ...credit,
+                    status: "reversed",
+                    updatedAt: Date.now(),
+                });
+            }
+        }
+    }
+    return true;
 }
 
 export async function verifyGoogleUserFromRequest(request: Request): Promise<VerifiedGoogleUser> {
@@ -473,56 +1379,131 @@ export async function createCheckoutSession(
     user: VerifiedGoogleUser,
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle },
 ): Promise<{ authorizationUrl: string; reference: string }> {
-    const paystackSecretKey = getPaystackSecretKey();
-    const planCode = getPaystackPlanCode(input.planId, input.billingCycle);
     const amount = getPlanPrice(input.planId, input.billingCycle);
-
     if (!amount) {
         throw new BillingError("Pricing is not configured for that plan.", 400);
     }
 
-    const origin = normalizeOrigin(request);
-    const reference = `ll_${user.userId}_${Date.now()}`;
-    const callbackUrl = `${origin}/billing/success`;
-    const metadata = JSON.stringify({
-        user_id: user.userId,
-        plan_id: input.planId,
-        billing_cycle: input.billingCycle,
-        source: "upgrade_page",
-    });
-
-    const response = await fetch("https://api.paystack.co/transaction/initialize", {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${paystackSecretKey}`,
-            "Content-Type": "application/json",
+    return initializePaystackTransaction(request, user, {
+        amountCents: amount * 100,
+        metadata: {
+            billing_mode: "direct_purchase",
+            user_id: user.userId,
+            plan_id: input.planId,
+            billing_cycle: input.billingCycle,
+            source: "upgrade_page",
         },
-        body: JSON.stringify({
-            reference,
-            email: user.email,
-            amount: amount * 100,
-            plan: planCode,
-            callback_url: callbackUrl,
-            channels: ["card"],
-            metadata,
-        }),
-        cache: "no-store",
+        callbackQuery: {
+            mode: "purchase",
+        },
     });
+}
 
-    const payload = await response.json() as PaystackInitializeResponse;
-    if (!response.ok || !payload.status || !payload.data?.authorization_url || !payload.data.reference) {
-        throw new BillingError(payload.message || "Paystack checkout could not be started.", 502);
+export async function startTrialCheckout(
+    request: Request,
+    user: VerifiedGoogleUser,
+    input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; referralCode?: string | null },
+): Promise<{ authorizationUrl: string; reference: string }> {
+    await ensureBillingSchema();
+    const existing = await getSubscriptionByColumn("user_id", user.userId);
+    if (!canStartTrial(existing)) {
+        throw new BillingError("This Google account has already used the free trial.", 409);
     }
 
-    return {
-        authorizationUrl: payload.data.authorization_url,
-        reference: payload.data.reference,
+    if (!canBeReferred(existing)) {
+        throw new BillingError("This account is not eligible for a referral trial.", 409);
+    }
+
+    const sanitizedReferralCode = sanitizeReferralCode(input.referralCode);
+    if (sanitizedReferralCode) {
+        const codeRecord = await getReferralCodeByCode(sanitizedReferralCode);
+        if (!codeRecord) {
+            throw new BillingError("That referral code could not be found.", 404);
+        }
+        if (codeRecord.userId === user.userId) {
+            throw new BillingError("You cannot use your own referral code.", 400);
+        }
+        const existingReferral = await getReferralByReferee(user.userId);
+        if (existingReferral) {
+            throw new BillingError("This account already has a referral attached.", 409);
+        }
+    }
+
+    const intent: BillingIntentRecord = {
+        id: randomUUID(),
+        reference: buildTrialReference(user.userId),
+        userId: user.userId,
+        email: user.email,
+        planId: input.planId,
+        billingCycle: input.billingCycle,
+        referralCode: sanitizedReferralCode,
+        amountCents: TRIAL_VERIFICATION_AMOUNT_CENTS,
+        status: "pending",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
     };
+    await upsertBillingIntent(intent);
+
+    const checkout = await initializePaystackTransaction(request, user, {
+        amountCents: TRIAL_VERIFICATION_AMOUNT_CENTS,
+        metadata: {
+            billing_mode: "trial_setup",
+            intent_id: intent.id,
+            user_id: user.userId,
+            plan_id: input.planId,
+            billing_cycle: input.billingCycle,
+            referral_code: sanitizedReferralCode,
+        },
+        callbackQuery: {
+            mode: "trial",
+        },
+    });
+
+    await upsertBillingIntent({
+        ...intent,
+        reference: checkout.reference,
+        status: "checkout_started",
+        updatedAt: Date.now(),
+    });
+
+    return checkout;
 }
 
 export async function getVerifiedEntitlementsForUser(userId: string): Promise<VerifiedEntitlements> {
+    await releaseMaturedCreditsForUser(userId);
     const record = await getSubscriptionByColumn("user_id", userId);
-    return entitlementsFromSubscription(record);
+    const summary = await buildBillingSummary(userId, record);
+    return entitlementsFromSubscription(record, Date.now(), summary);
+}
+
+export async function getBillingAccountForUser(userId: string): Promise<BillingAccountResponse> {
+    await releaseMaturedCreditsForUser(userId);
+    const record = await getSubscriptionByColumn("user_id", userId);
+    const summary = await buildBillingSummary(userId, record);
+    return {
+        entitlements: entitlementsFromSubscription(record, Date.now(), summary),
+        account: summary,
+    };
+}
+
+export async function cancelSubscriptionForUser(userId: string): Promise<BillingAccountResponse> {
+    await ensureBillingSchema();
+    const record = await getSubscriptionByColumn("user_id", userId);
+    if (!record || !record.paystackSubscriptionCode || !record.paystackEmailToken) {
+        throw new BillingError("There is no active renewal to cancel.", 404);
+    }
+
+    await disablePaystackSubscription(record.paystackSubscriptionCode, record.paystackEmailToken);
+    await upsertSubscription({
+        ...record,
+        status: "canceled",
+        nextChargeAt: null,
+        cancelAtPeriodEnd: true,
+        lastError: null,
+        updatedAt: Date.now(),
+    });
+
+    return getBillingAccountForUser(userId);
 }
 
 export function verifyPaystackWebhookSignature(rawBody: string, signature: string | null): boolean {
@@ -536,14 +1517,21 @@ export function verifyPaystackWebhookSignature(rawBody: string, signature: strin
 }
 
 export async function processPaystackWebhook(rawBody: string): Promise<{ handled: boolean }> {
+    await ensureBillingSchema();
     const payload = JSON.parse(rawBody) as Record<string, unknown>;
     const event = typeof payload.event === "string" ? payload.event : "";
     if (!event) {
         throw new BillingError("Webhook event missing.", 400);
     }
 
+    const eventKey = buildEventKey(event, payload);
+    if (await hasBillingEvent(eventKey)) {
+        return { handled: true };
+    }
+
     const data = (payload.data && typeof payload.data === "object" ? payload.data : {}) as Record<string, unknown>;
     const metadata = parseMetadata(data.metadata);
+    const reference = getStringFromPaths(data, ["reference"]);
     const customerId = getStringFromPaths(data, ["customer.customer_code", "customer_code"]);
     const subscriptionCode = getStringFromPaths(data, ["subscription.subscription_code", "subscription_code"]);
     const email = getStringFromPaths(data, ["customer.email", "email"]) || getMetadataValue(metadata, "email");
@@ -555,25 +1543,28 @@ export async function processPaystackWebhook(rawBody: string): Promise<{ handled
         subscriptionCode,
     });
 
-    const resolved = buildWebhookResolution(event, payload, existing);
-    if (!resolved) {
-        return { handled: false };
+    let handled = false;
+
+    if (event === "charge.success") {
+        const intent = reference ? await getBillingIntentByReference(reference) : null;
+        if (intent && intent.status !== "completed") {
+            handled = await handleTrialChargeSuccess(data, intent);
+        } else {
+            handled = await handleRecurringChargeSuccess(data, existing);
+        }
+    } else if (event === "invoice.payment_failed") {
+        handled = await handleInvoicePaymentFailed(existing);
+    } else if (event === "subscription.disable" || event === "subscription.not_renew") {
+        handled = await handleSubscriptionDisabled(data, existing);
+    } else if (event === "refund.processed") {
+        handled = await handleRefundProcessed(existing);
     }
 
-    await upsertSubscription({
-        userId: resolved.userId,
-        email: resolved.email,
-        paystackCustomerId: resolved.customerId,
-        paystackSubscriptionCode: resolved.subscriptionCode,
-        paystackPlanCode: resolved.planCode,
-        planId: resolved.planId,
-        billingCycle: resolved.billingCycle,
-        status: resolved.status,
-        currentPeriodEnd: resolved.currentPeriodEnd,
-        updatedAt: Date.now(),
-    });
+    if (handled) {
+        await markBillingEventProcessed(eventKey, event, reference);
+    }
 
-    return { handled: true };
+    return { handled };
 }
 
 export function toErrorResponse(error: unknown): { status: number; message: string } {
@@ -586,5 +1577,3 @@ export function toErrorResponse(error: unknown): { status: number; message: stri
         message: "Billing request failed.",
     };
 }
-
-

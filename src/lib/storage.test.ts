@@ -159,4 +159,28 @@ describe("storage safeguards", () => {
         expect(preview.payslipCount).toBe(1);
         expect(preview.lastBackupTimestamp).toBe(timestamp);
     });
+
+    it("preserves billing dates across normal settings saves", async () => {
+        const settings = await getSettings();
+        const trialExpiry = "2026-03-24T12:00:00.000Z";
+        const paidUntil = "2026-04-24T12:00:00.000Z";
+
+        await saveSettings({
+            ...settings,
+            trialExpiry,
+            paidUntil,
+        });
+
+        const updatedSettings = await getSettings();
+        await saveSettings({
+            ...updatedSettings,
+            employerName: "Main household",
+            trialExpiry: undefined,
+            paidUntil: undefined,
+        });
+
+        const reloadedSettings = await getSettings();
+        expect(reloadedSettings.trialExpiry).toBe(trialExpiry);
+        expect(reloadedSettings.paidUntil).toBe(paidUntil);
+    });
 });

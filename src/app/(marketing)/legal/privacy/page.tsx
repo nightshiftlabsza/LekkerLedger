@@ -8,7 +8,7 @@ import { COMPANY_NAME } from "@/src/config/brand";
 import { SupplierDetails } from "@/components/legal/supplier-details";
 import { SubprocessorTable } from "@/components/legal/subprocessor-table";
 
-const UPDATED_DATE = "7 March 2026";
+const UPDATED_DATE = "10 March 2026";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
@@ -72,7 +72,8 @@ export default function PrivacyPolicy() {
                                 <li><strong>Export preparation data:</strong> UIF export files and related records you generate for your own records or for uFiling preparation. LekkerLedger does not submit to UIF on your behalf.</li>
                                 <li><strong>Product usage data:</strong> limited app and website analytics, such as page views or interaction events used to understand product usage and improve the service.</li>
                                 <li><strong>Google connection data:</strong> if you choose Google-connected backup, your Google account email, Google identifier, and Google permissions state are processed so backup and restore can work.</li>
-                                <li><strong>Subscription and transaction data:</strong> plan choice, billing status, renewal timing, and payment references needed to manage paid access.</li>
+                                <li><strong>Subscription and transaction data:</strong> plan choice, billing status, trial timing, renewal timing, payment references, and limited payment-provider authorization metadata needed to manage paid access and prevent abuse.</li>
+                                <li><strong>Referral program data:</strong> referral codes, referral links between accounts, reward status, and related anti-fraud checks where the referral program is used.</li>
                                 <li><strong>Support communications:</strong> emails or support requests you send to us.</li>
                             </ul>
                         </Section>
@@ -96,7 +97,7 @@ export default function PrivacyPolicy() {
                             <ul className="list-disc space-y-2 pl-6">
                                 <li>To generate payslips, exports, summaries, and supporting paperwork from the information you enter.</li>
                                 <li>To enable optional backup and restore through your Google account.</li>
-                                <li>To provide paid plan access, billing support, and refund handling.</li>
+                                <li>To provide paid plan access, billing support, referral rewards, refund handling, and trial-abuse prevention.</li>
                                 <li>To operate, maintain, secure, and improve the website and app.</li>
                                 <li>To answer support requests and communicate about your account or service issues.</li>
                             </ul>
@@ -124,7 +125,7 @@ export default function PrivacyPolicy() {
                             <ul className="list-disc space-y-2 pl-6">
                                 <li><strong>Local payroll records:</strong> remain on your device until you delete them, clear browser data, or replace them with your own actions.</li>
                                 <li><strong>Google backup data:</strong> remains in the Google Drive app data area in your own Google account until you delete it or revoke access.</li>
-                                <li><strong>Subscription, analytics, and support records:</strong> may be retained for operational, accounting, fraud-prevention, support, or legal reasons for as long as reasonably necessary.</li>
+                                <li><strong>Subscription, referral, analytics, and support records:</strong> may be retained for operational, accounting, fraud-prevention, support, or legal reasons for as long as reasonably necessary.</li>
                             </ul>
                             <p>
                                 Retention periods can vary depending on the category of data and the reason it was processed.

@@ -35,7 +35,7 @@ export const MARKETING_YEARLY_BADGE = "Save up to 32%";
 export const HOMEPAGE_PRICING_LINK_LABEL = "Compare plans in detail";
 
 export const PRICING_PAGE_TITLE = "Pick the plan that fits your household.";
-export const PRICING_PAGE_SUBTITLE = "Start free with basic payslips. Upgrade when you need organised records, backup, or manage more workers.";
+export const PRICING_PAGE_SUBTITLE = "Start free with basic payslips, or begin a 14-day trial on Standard or Pro with a saved card for automatic billing later.";
 export const PRICING_PAGE_NUDGE_TITLE = "Standard to Pro is less than R13/month extra.";
 export const PRICING_PAGE_NUDGE_BODY = "That's the price of a cup of coffee for full document storage, year-end summaries, and 5 years of searchable history.";
 
@@ -51,7 +51,7 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Stored on this device",
         ],
         ctaLabel: "Start free",
-        ctaSubtext: "Upgrade anytime / cancel before renewal",
+        ctaSubtext: "Upgrade anytime",
         prices: {
             monthly: {
                 primary: "Free",
@@ -82,18 +82,18 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Google Drive backup",
             "12 months of browsable history",
         ],
-        ctaLabel: "Choose Standard",
-        ctaSubtext: "14-day refund on paid upgrades",
+        ctaLabel: "Start 14-day trial",
+        ctaSubtext: "R1 card check today",
         prices: {
             monthly: {
                 primary: "R29",
                 periodLabel: "/month",
-                helperText: "Billed monthly, cancel before renewal",
+                helperText: "14-day trial, then billed monthly",
             },
             yearly: {
                 primary: "R20.75",
                 periodLabel: "/month",
-                helperText: "R249/year — save R99 vs monthly",
+                helperText: "14-day trial, then R249/year",
             },
         },
     },
@@ -113,18 +113,18 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Faster support — reply within 1 business day",
             "Multiple households (main home + holiday home)",
         ],
-        ctaLabel: "Choose Pro",
-        ctaSubtext: "14-day refund on paid upgrades",
+        ctaLabel: "Start 14-day trial",
+        ctaSubtext: "R1 card check today",
         prices: {
             monthly: {
                 primary: "R49",
                 periodLabel: "/month",
-                helperText: "Billed monthly, cancel before renewal",
+                helperText: "14-day trial, then billed monthly",
             },
             yearly: {
                 primary: "R33.25",
                 periodLabel: "/month",
-                helperText: "R399/year — save R189 vs monthly",
+                helperText: "14-day trial, then R399/year",
             },
         },
     },
