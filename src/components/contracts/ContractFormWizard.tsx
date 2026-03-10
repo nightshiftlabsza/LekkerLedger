@@ -754,7 +754,7 @@ export function ContractFormWizard({
                                     Generating creates a draft contract in Documents. From there, you can preview the PDF, download it, discuss the wording with the employee, and only sign a version you are both happy with.
                                 </p>
                                 <p className="text-xs text-[var(--text-muted)]">
-                                    Template version {CONTRACT_TEMPLATE_META.versionLabel} · Last updated {CONTRACT_TEMPLATE_META.updatedAtLabel}
+                                    Template version {CONTRACT_TEMPLATE_META.versionLabel} · <a href={CONTRACT_TEMPLATE_META.sourceHref} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--primary)] hover:underline">{CONTRACT_TEMPLATE_META.sourceLabel}</a> · {CONTRACT_TEMPLATE_META.sourceCheckedLabel}
                                 </p>
                             </div>
 

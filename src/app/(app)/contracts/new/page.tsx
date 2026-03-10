@@ -258,7 +258,7 @@ export default function NewContractPage() {
                         Version: <strong className="text-[var(--text)]">{CONTRACT_TEMPLATE_META.versionLabel}</strong> · Updated: <strong className="text-[var(--text)]">{CONTRACT_TEMPLATE_META.updatedAtLabel}</strong>
                     </p>
                     <p>
-                        Source: <a href={CONTRACT_TEMPLATE_META.sourceHref} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--primary)] hover:underline">{CONTRACT_TEMPLATE_META.sourceLabel}</a> · <strong className="text-[var(--text)]">{CONTRACT_TEMPLATE_META.reviewLabel}</strong>
+                        Source: <a href={CONTRACT_TEMPLATE_META.sourceHref} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--primary)] hover:underline">{CONTRACT_TEMPLATE_META.sourceLabel}</a> · {CONTRACT_TEMPLATE_META.sourceCheckedLabel}
                     </p>
                 </div>
             </Card>

@@ -178,7 +178,8 @@ export function buildContractClauses(contract: Contract, employee: Employee, set
             paragraphs: [
                 "This document serves as a record of the employment relationship. Any changes to these terms must be agreed upon in writing.",
                 "Basic Conditions of Employment Act (BCEA) rules always apply as the minimum standard.",
-                "Note: The employer must register with the Compensation Fund (COIDA) to ensure the employee is covered for any occupational injuries and diseases in accordance with the law."
+                "Note: The employer must register with the Compensation Fund (COIDA) to ensure the employee is covered for any occupational injuries and diseases in accordance with the law.",
+                "Template source: Department of Labour Sample Contract (www.labour.gov.za). Source checked 10 March 2026. LekkerLedger is not a law firm — have this document reviewed by a qualified South African labour lawyer before signing.",
             ]
         },
         {
