@@ -44,9 +44,10 @@ export default function NewContractPage() {
             endAt: "17:00",
             breakDuration: 60,
         },
-        // Start pay and leave fields empty so the user
-        // explicitly enters the agreement for each contract.
-        salary: {},
+        // Start pay fields effectively empty; the wizard will
+        // require the user to enter amount and frequency before saving.
+        // Cast keeps TypeScript happy while we initialise with no values.
+        salary: {} as unknown as Contract["salary"],
         leave: {
             annualDays: undefined as unknown as number,
             sickDays: undefined as unknown as number,
