@@ -92,11 +92,12 @@ export default function EditContractPage() {
                     sickDays: formData.leave?.sickDays ?? 30,
                 },
                 terms: {
-                    ...(formData.terms ?? {}),
+                    accommodationProvided: formData.terms?.accommodationProvided ?? false,
                     accommodationDetails: formData.terms?.accommodationDetails?.trim() ?? "",
                     overtimeAgreement: formData.terms?.overtimeAgreement?.trim() ?? "",
                     sundayHolidayAgreement: formData.terms?.sundayHolidayAgreement?.trim() ?? "",
                     noticeClause: formData.terms?.noticeClause?.trim() ?? "",
+                    lawyerReviewAcknowledged: formData.terms?.lawyerReviewAcknowledged ?? false,
                 },
                 createdAt: formData.createdAt!,
                 updatedAt: new Date().toISOString(),
