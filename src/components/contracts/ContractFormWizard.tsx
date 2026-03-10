@@ -323,7 +323,7 @@ export function ContractFormWizard({
 
         setStepErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
-    }, [currentStep, dutiesInput, formData, skipEmployeeStep]);
+    }, [currentStep, dutiesInput, formData, skipEmployeeStep, selectedEmployee?.address]);
 
     const handleNext = () => {
         if (!validateStep()) return;
