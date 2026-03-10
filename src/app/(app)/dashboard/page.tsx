@@ -589,7 +589,7 @@ function ComplianceCard() {
                 </div>
                 <div className="space-y-3">
                     <div>
-                        <h4 className="type-body font-bold text-[var(--text)]">Compensation Fund return</h4>
+                        <h4 className="type-body font-bold text-[var(--text)]">Compensation Fund ROE</h4>
                         <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                             Gather your yearly wage totals and supporting records for the annual ROE submission.
                         </p>

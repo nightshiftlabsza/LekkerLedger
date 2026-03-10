@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowRight, Save, Loader2, FileText, Clock, Banknote, Calendar, Home, CheckCircle2, BriefcaseBusiness, Info, CalendarDays } from "lucide-react";
+import { ArrowRight, Save, Loader2, FileText, Clock, Banknote, Calendar, Home, CheckCircle2, BriefcaseBusiness, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -94,32 +94,32 @@ export interface ContractFormWizardProps {
 
 const STORAGE_KEY = "lekkerledger-contract-draft-state";
 
-// Styled date input with calendar icon
+// Styled date input — use native picker only (single calendar icon from browser)
 function DateInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     return (
-        <div className="relative">
-            <input
-                type="date"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                className="w-full h-11 pl-4 pr-10 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] appearance-none focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:border-[var(--focus)]"
-                style={{ colorScheme: "light" }}
-            />
-            <CalendarDays className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
-        </div>
+        <input
+            type="date"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full h-11 pl-4 pr-3 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] appearance-none focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:border-[var(--focus)] [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-70"
+            style={{ colorScheme: "light" }}
+            aria-label="Date"
+        />
     );
 }
 
-// Styled time input — uses native picker only (no decorative icon overlay to avoid duplicate clocks)
+// Styled time input — simple 24-hour text field (hh:mm) to avoid clunky native picker UIs
 function TimeInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     return (
         <input
-            type="time"
+            type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full h-11 pl-4 pr-3 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:border-[var(--focus)] [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-70"
+            inputMode="numeric"
+            placeholder="08:00"
+            className="w-full h-11 pl-4 pr-3 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:border-[var(--focus)]"
             style={{ colorScheme: "light" }}
-            aria-label="Time"
+            aria-label="Time (24-hour, hh:mm)"
         />
     );
 }
@@ -270,13 +270,13 @@ export function ContractFormWizard({
         }
 
         if (currentStep === 1) {
-            if (!formData.jobTitle?.trim()) nextErrors.jobTitle = "Add the job title for this contract.";
-            if (!formData.effectiveDate?.trim()) nextErrors.effectiveDate = "Choose the date this draft should start from.";
-            if (!formData.placeOfWork?.trim()) nextErrors.placeOfWork = "Add the place of work so the draft stays clear.";
+            if (!formData.jobTitle?.trim()) nextErrors.jobTitle = "Required.";
+            if (!formData.effectiveDate?.trim()) nextErrors.effectiveDate = "Required.";
+            if (!formData.placeOfWork?.trim()) nextErrors.placeOfWork = "Required.";
             if (textList(dutiesInput).length === 0) nextErrors.duties = "Add at least one duty for the employee.";
             const resolvedEmployeeAddress = (formData.employeeAddress || selectedEmployee?.address || "").trim();
             if (!resolvedEmployeeAddress) {
-                nextErrors.employeeAddress = "Add the employee's residential address so notices have a clear place to go.";
+                nextErrors.employeeAddress = "Required.";
             }
         }
 

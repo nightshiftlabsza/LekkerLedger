@@ -80,7 +80,7 @@ const TAB_TYPE_MAP: Record<Exclude<Tab, "Contracts">, DocumentMeta["type"]> = {
 const VAULT_CATEGORIES: Array<{ value: VaultCategory; label: string }> = [
     { value: "contracts", label: "Contracts" },
     { value: "employee-docs", label: "Employee docs" },
-    { value: "compliance", label: "Compliance" },
+    { value: "compliance", label: "Legal" },
     { value: "other", label: "Other" },
 ];
 
@@ -346,7 +346,17 @@ export default function DocumentsPage() {
         setPreviewFileName(doc.fileName);
 
         if (pdfCache.current[doc.id]) {
-            setPreviewUrl(pdfCache.current[doc.id]);
+            const cachedUrl = pdfCache.current[doc.id];
+
+            // For PDFs, open directly in a new tab instead of the side-panel viewer
+            if ((doc.mimeType || "").startsWith("application/pdf")) {
+                if (typeof window !== "undefined") {
+                    window.open(cachedUrl, "_blank", "noopener,noreferrer");
+                }
+                return;
+            }
+
+            setPreviewUrl(cachedUrl);
             return;
         }
 
@@ -365,6 +375,18 @@ export default function DocumentsPage() {
             }
 
             const mimeType = blob.type || doc.mimeType || "application/octet-stream";
+
+            // PDFs: open in a proper browser tab instead of the cramped side panel
+            if (mimeType === "application/pdf") {
+                const url = URL.createObjectURL(blob);
+                pdfCache.current[doc.id] = url;
+                if (typeof window !== "undefined") {
+                    window.open(url, "_blank", "noopener,noreferrer");
+                }
+                return;
+            }
+
+            // Images and other inline-previewable types keep using the in-app preview panel
             if (isPreviewableMimeType(mimeType)) {
                 const url = URL.createObjectURL(blob);
                 pdfCache.current[doc.id] = url;
@@ -903,8 +925,14 @@ export default function DocumentsPage() {
                                             label: "",
                                             align: "right",
                                             render: (doc) => (
-                                                <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => void handlePreview(doc)}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-9 px-3 gap-2 rounded-full border border-[var(--border)] hover:bg-[var(--surface-2)]"
+                                                    onClick={() => void handlePreview(doc)}
+                                                >
                                                     <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                    <span className="text-xs font-bold">Preview</span>
                                                 </Button>
                                             ),
                                         },
@@ -959,8 +987,14 @@ export default function DocumentsPage() {
                                             label: "",
                                             align: "right",
                                             render: (doc) => (
-                                                <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => void handlePreview(doc)}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-9 px-3 gap-2 rounded-full border border-[var(--border)] hover:bg-[var(--surface-2)]"
+                                                    onClick={() => void handlePreview(doc)}
+                                                >
                                                     <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                    <span className="text-xs font-bold">Preview</span>
                                                 </Button>
                                             ),
                                         },
@@ -1039,19 +1073,26 @@ export default function DocumentsPage() {
                                     label: "",
                                     align: "right",
                                     render: (doc) => (
-                                        <div className="flex items-center justify-end gap-1">
-                                            <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => void handlePreview(doc)}>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-9 px-3 gap-2 rounded-full border border-[var(--border)] hover:bg-[var(--surface-2)]"
+                                                onClick={() => void handlePreview(doc)}
+                                            >
                                                 <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                <span className="text-xs font-bold">Preview</span>
                                             </Button>
                                             {vaultUploadsAllowed ? (
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="h-9 w-9 p-0"
+                                                    className="h-9 px-3 gap-2 rounded-full border border-red-200 text-red-700 hover:text-red-800 hover:bg-red-50"
                                                     disabled={deletingDocumentId === doc.id}
                                                     onClick={() => void handleDeleteVaultDocument(doc)}
                                                 >
-                                                    <Trash2 className="h-4 w-4 text-[var(--text-muted)]" />
+                                                    <Trash2 className="h-4 w-4" />
+                                                    <span className="text-xs font-bold">Delete</span>
                                                 </Button>
                                             ) : null}
                                         </div>
@@ -1090,7 +1131,7 @@ export default function DocumentsPage() {
                                             Vault storage
                                         </div>
                                         <p className="text-sm text-[var(--text-muted)]">
-                                            Existing uploaded files always stay visible here. Pro unlocks new uploads for contracts, employee paperwork, and compliance records.
+                                            Existing uploaded files always stay visible here. Pro unlocks new uploads for contracts, employee paperwork, and legal records.
                                         </p>
                                     </div>
                                 )}

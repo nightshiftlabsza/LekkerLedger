@@ -68,7 +68,7 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                 aria-modal="true"
                 aria-label="Navigation"
                 className={[
-                    "fixed top-0 left-0 h-full w-80 lg:w-64 z-50 flex flex-col glass-panel",
+                    "fixed top-0 left-0 h-full w-80 lg:w-64 min-[1600px]:lg:w-72 z-50 flex flex-col glass-panel",
                     "lg:border-r lg:border-[var(--border)] lg:shadow-none",
                     "shadow-[var(--shadow-xl)] transition-transform duration-300",
                     open ? "translate-x-0 animate-drawer-in" : "-translate-x-full lg:translate-x-0",

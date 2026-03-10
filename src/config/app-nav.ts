@@ -45,8 +45,8 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
         links: [
             {
                 href: "/compliance/coida/roe",
-                label: "Compensation Fund return",
-                sublabel: "Annual ROE submission",
+                label: "Compensation Fund ROE",
+                sublabel: "Annual return submission",
                 icon: ShieldCheck,
             },
             { href: "/ufiling", label: "uFiling export", icon: Sparkles },

@@ -62,9 +62,9 @@ export const helpAdminContent = {
         },
         {
             id: "roe-help",
-            title: "Compensation Fund return",
+            title: "Compensation Fund ROE",
             description: "Gather annual totals and prepare your ROE supporting documents for the Compensation Fund.",
-            cta: "Open CF Return wizard",
+            cta: "Open ROE wizard",
             href: "/compliance/coida/roe"
         }
     ] as QuickAction[],
