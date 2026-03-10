@@ -223,23 +223,14 @@ function DashboardContent() {
                         <ComplianceCard />
                     </div>
 
-                    {/* Resource Links */}
+                    {/* Help & Support */}
                     <div className="pt-4 border-t border-[var(--border)]">
-                        <h4 className="type-overline mb-3 text-[var(--text-muted)]">Reference Guides</h4>
-                        <div className="space-y-4">
-                            <Link href="/help/coida" className="group flex items-center gap-3 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
-                                <div className="p-1.5 rounded-lg bg-[var(--surface-2)] group-hover:bg-[var(--primary)]/10 transition-colors">
-                                    <ShieldCheck className="h-4 w-4" />
-                                </div>
-                                Compensation Fund guide
-                            </Link>
-                            <Link href="/help/admin" className="group flex items-center gap-3 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
-                                <div className="p-1.5 rounded-lg bg-[var(--surface-2)] group-hover:bg-[var(--primary)]/10 transition-colors">
-                                    <BookOpen className="h-4 w-4" />
-                                </div>
-                                Household checklist
-                            </Link>
-                        </div>
+                        <Link href="/settings?tab=support" className="group flex items-center gap-3 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
+                            <div className="p-1.5 rounded-lg bg-[var(--surface-2)] group-hover:bg-[var(--primary)]/10 transition-colors">
+                                <BookOpen className="h-4 w-4" />
+                            </div>
+                            Help &amp; Support
+                        </Link>
                     </div>
                 </div>
             </div>
