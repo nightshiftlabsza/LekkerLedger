@@ -306,9 +306,9 @@ function GoogleSyncContent({ driveSyncAllowed = false, autoBackupAllowed = false
             setHasDriveScope(true);
             setStoredGoogleDriveScope(true);
             const settings = await getSettings();
-            await saveSettings({ ...settings, googleSyncEnabled: true });
+            await saveSettings({ ...settings, googleSyncEnabled: true, autoBackupEnabled: true });
             if (!isMountedRef.current) return;
-            setAutoBackupEnabled(Boolean(settings.autoBackupEnabled));
+            setAutoBackupEnabled(true);
             await runDiscovery(accessToken);
             setTransientStatus("success", "Private Google Drive backup enabled.");
         },

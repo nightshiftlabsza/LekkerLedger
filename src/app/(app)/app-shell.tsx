@@ -3,7 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { googleLogout } from "@react-oauth/google";
+import { GoogleOAuthProvider, googleLogout } from "@react-oauth/google";
+import { env } from "@/lib/env";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
@@ -20,8 +21,10 @@ import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEm
 import { syncDataToDrive, performSmartSyncCheck, syncDataFromDrive } from "@/lib/google-drive";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 import { usePaidLoginActivation } from "@/components/paid-login-button";
+import { useAutoSync } from "@/lib/hooks/useAutoSync";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+    useAutoSync();
     const router = useRouter();
     const pathname = usePathname();
     const { network, sync, payments } = useAppConnectivity();
@@ -252,7 +255,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             )}
 
                             <div className="flex items-center gap-3">
-                                <AccountMenu settings={settings} />
+                                <GoogleOAuthProvider clientId={env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "placeholder"}>
+                                    <AccountMenu settings={settings} />
+                                </GoogleOAuthProvider>
                                 <HouseholdSwitcher
                                     households={households}
                                     activeId={activeHouseholdId}
