@@ -121,18 +121,12 @@ function UpgradePageContent() {
 
             <div className="mx-auto max-w-6xl space-y-10">
                 <Card className="border-[var(--primary)] bg-[var(--primary)]/5">
-                    <CardContent className="space-y-3 p-5 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                    <CardContent className="space-y-2 p-5 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                         <p className="font-semibold" style={{ color: "var(--text)" }}>
-                            R1 for your first 14 days on Standard or Pro.
-                        </p>
-                        <p className="font-semibold" style={{ color: "var(--text)" }}>
-                            Paid access is confirmed through your Google sign-in, not by this browser alone.
+                            R1 for your first 14 days.
                         </p>
                         <p>
-                            If you are not signed into Google yet, choosing a paid plan starts paid login immediately, then LekkerLedger starts the Paystack card setup securely from the server.
-                        </p>
-                        <p>
-                            A small R1 card verification charge is taken today. The real subscription charge only happens after the 14-day trial unless you cancel first.
+                            Pick a plan below. You&apos;ll sign in with Google and save a card for R1 today. Your full subscription only starts after 14 days — cancel before then and you pay nothing more.
                         </p>
                     </CardContent>
                 </Card>
