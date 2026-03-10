@@ -82,6 +82,8 @@ export interface ContractFormWizardProps {
     onBackToTop: () => void;
     skipEmployeeStep?: boolean;
     totalVisibleSteps?: number;
+    /** Custom label for save button when editing (e.g. "Update draft") */
+    saveLabel?: string;
 }
 
 const STORAGE_KEY = "lekkerledger-contract-draft-state";
@@ -116,19 +118,60 @@ function TimeInput({ value, onChange }: { value: string; onChange: (v: string) =
     );
 }
 
-// Label with optional ⓘ tooltip
+// Label with optional ⓘ tooltip — hover or click to show SA labour-law hints
 function FieldLabel({ label, tooltip }: { label: string; tooltip?: string }) {
-    return (
-        <span className="flex items-center gap-1.5">
+    const [open, setOpen] = React.useState(false);
+    const hoverTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const ref = React.useRef<HTMLSpanElement>(null);
+
+    React.useEffect(() => {
+        if (!open) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [open]);
+
+    if (!tooltip) {
+        return (
             <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</span>
-            {tooltip && (
+        );
+    }
+
+    return (
+        <span
+            className="flex items-center gap-1.5 relative"
+            ref={ref}
+            onMouseEnter={() => {
+                hoverTimer.current = setTimeout(() => setOpen(true), 200);
+            }}
+            onMouseLeave={() => {
+                if (hoverTimer.current) {
+                    clearTimeout(hoverTimer.current);
+                    hoverTimer.current = null;
+                }
+                setOpen(false);
+            }}
+        >
+            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</span>
+            <button
+                type="button"
+                onClick={() => setOpen((o) => !o)}
+                className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold cursor-help select-none shrink-0 focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-1"
+                style={{ color: "var(--primary)", border: "1.5px solid var(--primary)", lineHeight: 1 }}
+                aria-label={`Info about ${label}`}
+                aria-expanded={open}
+            >
+                i
+            </button>
+            {open && (
                 <span
-                    title={tooltip}
-                    className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold cursor-help select-none"
-                    style={{ color: "var(--primary)", border: "1.5px solid var(--primary)", lineHeight: 1 }}
-                    aria-label={`Info: ${tooltip}`}
+                    role="tooltip"
+                    className="absolute left-0 top-full mt-1.5 z-50 max-w-[280px] rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 text-xs leading-relaxed text-[var(--text)] shadow-lg"
+                    style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
                 >
-                    i
+                    {tooltip}
                 </span>
             )}
         </span>
@@ -145,6 +188,7 @@ export function ContractFormWizard({
     onSave,
     onBackToTop,
     skipEmployeeStep = false,
+    saveLabel = "Generate draft",
 }: ContractFormWizardProps) {
     const selectedEmployee = employees.find((employee) => employee.id === formData.employeeId);
     const initialDuties = formData.duties?.join("\n") || "General cleaning\nLaundry\nBasic household support";
@@ -663,7 +707,7 @@ export function ContractFormWizard({
                             className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] gap-2"
                         >
                             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                            {saving ? "Generating..." : "Generate draft"}
+                            {saving ? (saveLabel.startsWith("Update") ? "Updating..." : "Generating...") : saveLabel}
                         </Button>
                     ) : (
                         <Button onClick={handleNext} className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] gap-2">

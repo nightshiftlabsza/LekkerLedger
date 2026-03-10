@@ -688,13 +688,7 @@ export default function DocumentsPage() {
                         ))}
                     </div>
 
-                    {activeTab === "Contracts" && filteredContracts.length > 0 && (
-                        <div className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs text-orange-800">
-                            <strong>Review before signing:</strong>&nbsp;Templates are starting points. Verify with a labour lawyer if unsure.
-                        </div>
-                    )}
-
-                    {hasAnyContent && (
+                    {hasAnyContent && activeTab !== "Contracts" && (
                         <FiltersBar
                             searchPlaceholder={`Search ${activeTab.toLowerCase()}...`}
                             searchValue={search}
@@ -705,7 +699,7 @@ export default function DocumentsPage() {
                     )}
 
                     {activeTab === "Contracts" && filteredContracts.length > 0 && (
-                        <div className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs text-orange-800 mb-4">
+                        <div className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs text-orange-800">
                             <strong>Review before signing:</strong>&nbsp;Templates are starting points. Verify with a labour lawyer if unsure.
                         </div>
                     )}
