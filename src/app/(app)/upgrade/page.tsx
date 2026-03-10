@@ -123,7 +123,7 @@ function UpgradePageContent() {
                 <Card className="border-[var(--primary)] bg-[var(--primary)]/5">
                     <CardContent className="space-y-3 p-5 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                         <p className="font-semibold" style={{ color: "var(--text)" }}>
-                            Start a 14-day free trial on Standard or Pro.
+                            R1 for your first 14 days on Standard or Pro.
                         </p>
                         <p className="font-semibold" style={{ color: "var(--text)" }}>
                             Paid access is confirmed through your Google sign-in, not by this browser alone.
@@ -148,7 +148,7 @@ function UpgradePageContent() {
                         <div className="space-y-1">
                             <p className="text-sm font-bold text-[var(--text)]">Referral code</p>
                             <p className="text-sm text-[var(--text-muted)]">
-                                Add a referral code before you start the trial. The referred person still gets the normal 14-day trial.
+                                Add a referral code before you start the trial. You earn 1 free month when the referred person completes their trial and makes their first payment. Up to 12 free months per account. The referred person still gets the normal 14-day trial.
                             </p>
                         </div>
                         <Input

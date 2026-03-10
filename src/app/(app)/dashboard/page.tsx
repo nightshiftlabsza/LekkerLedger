@@ -201,6 +201,16 @@ function DashboardContent() {
                     {/* 4. Quick Access Block */}
                     <QuickActions />
 
+                    {/* Upgrade nudge for free users */}
+                    {getUserPlan(settings).id === "free" && (
+                        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4 space-y-2">
+                            <p className="text-xs font-semibold text-[var(--text)]">Standard adds 2 more workers, Google Drive backup, and leave tracking — R29/month.</p>
+                            <Link href="/upgrade?plan=standard&pay=1" className="inline-flex items-center gap-1 text-xs font-bold text-[var(--primary)] hover:underline">
+                                R1 for 14 days <ArrowRight className="h-3 w-3" />
+                            </Link>
+                        </div>
+                    )}
+
                     {/* 6. Advanced/Annual (Quiet) */}
                     <div className="pt-2">
                         <ComplianceCard />

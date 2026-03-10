@@ -265,24 +265,40 @@ function PaidLoginGateConfigured({ nextPath, skipPaidChecks = false }: { nextPat
         void start(nextPath, { skipPaidChecks });
     }, [nextPath, skipPaidChecks, start]);
 
+    const isPopupBlocked = Boolean(error) && error.includes("popup");
+
     return (
-        <div className="glass-panel border-none rounded-2xl border border-[var(--border)] bg-[var(--surface-1)]">
-            <div className="space-y-4 p-6">
-                <h2 className="text-xl font-black text-[var(--text)]">Completing sign in</h2>
-                <p className="text-sm text-[var(--text-muted)]">
-                    This flow will finish Google auth, verify your paid access, enable private Drive backup, and resolve first sync before opening the app.
-                </p>
-                <Button
-                    className="h-11 w-full font-bold"
-                    onClick={() => {
-                        void start(nextPath, { skipPaidChecks });
-                    }}
-                    disabled={loading}
-                >
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    {loading ? (statusMessage || "Working...") : "Continue sign in"}
-                </Button>
-                {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
+        <div className="max-w-sm w-full mx-auto">
+            <div className="glass-panel rounded-2xl border border-[var(--border)] bg-[var(--surface-1)]">
+                <div className="space-y-4 p-6">
+                    <h2 className="text-xl font-black text-[var(--text)]">Completing sign in</h2>
+                    <p className="text-sm text-[var(--text-muted)]">
+                        This flow will finish Google auth, verify your paid access, enable private Drive backup, and resolve first sync before opening the app.
+                    </p>
+                    <Button
+                        className="h-11 w-full font-bold"
+                        onClick={() => {
+                            hasStartedRef.current = false;
+                            void start(nextPath, { skipPaidChecks });
+                        }}
+                        disabled={loading}
+                    >
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        {loading ? (statusMessage || "Working...") : (error ? "Try Again" : "Continue sign in")}
+                    </Button>
+                    {isPopupBlocked ? (
+                        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-1 text-xs">
+                            <p className="font-bold text-amber-800">Popup blocked by your browser</p>
+                            <ol className="list-decimal list-inside text-amber-700 space-y-0.5">
+                                <li>Click the popup-blocked icon in your browser&apos;s address bar</li>
+                                <li>Select &quot;Always allow popups from this site&quot;</li>
+                                <li>Click Try Again above</li>
+                            </ol>
+                        </div>
+                    ) : error ? (
+                        <p className="text-sm font-medium text-rose-600">{error}</p>
+                    ) : null}
+                </div>
             </div>
         </div>
     );
@@ -293,11 +309,13 @@ export function PaidLoginGate({ nextPath, skipPaidChecks = false }: { nextPath?:
 
     if (!googleConfigured) {
         return (
-            <div className="glass-panel border-none rounded-2xl border border-[var(--border)] bg-[var(--surface-1)]">
-                <div className="p-6">
-                    <p className="text-sm text-[var(--text-muted)]">
-                        Google login is not configured in this build. You can still continue with local-only access.
-                    </p>
+            <div className="max-w-sm w-full mx-auto">
+                <div className="glass-panel rounded-2xl border border-[var(--border)] bg-[var(--surface-1)]">
+                    <div className="p-6">
+                        <p className="text-sm text-[var(--text-muted)]">
+                            Google login is not configured in this build. You can still continue with local-only access.
+                        </p>
+                    </div>
                 </div>
             </div>
         );
