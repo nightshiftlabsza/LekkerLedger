@@ -71,42 +71,42 @@ export function ContractRow({
     }
 
     return (
-        <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-7 space-y-6 shadow-sm transition-all hover:shadow-md">
+        <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 sm:p-6 space-y-4 shadow-sm transition-all hover:shadow-md">
             {/* Header row */}
-            <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-2xl font-semibold text-[var(--text)]">
+            <div className="flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2 min-w-0">
+                        <h3 className="text-lg sm:text-xl font-semibold text-[var(--text)] truncate">
                             {employee?.name ?? "Unknown worker"}
                         </h3>
-                        <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-0.5 text-xs font-medium text-[var(--text-muted)]">
+                        <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-0.5 text-xs font-medium text-[var(--text-muted)] shrink-0">
                             {contract.jobTitle}
                         </span>
-                        <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-0.5 text-xs font-medium text-[var(--text)]">
+                        <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-0.5 text-xs font-medium text-[var(--text)] shrink-0">
                             {statusLabel}
                         </span>
                     </div>
-                    <p className="text-base text-[var(--text-muted)] leading-relaxed">
-                        {helperText}
+                    <p className="text-xs text-[var(--text-muted)] shrink-0 pt-1 whitespace-nowrap">
+                        {updatedLabel}
                     </p>
                 </div>
-                <p className="text-sm text-[var(--text-muted)] shrink-0 pt-0.5">
-                    Updated {updatedLabel}
+                <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                    {helperText}
                 </p>
             </div>
 
             {/* Progress bar */}
-            <div className="grid grid-cols-4 gap-3 max-w-xl">
+            <div className="grid grid-cols-4 gap-2">
                 {STAGES.map((stageLabel, index) => {
                     const filled = index < stage;
                     const current = index === stage - 1;
                     return (
-                        <div key={stageLabel} className="space-y-2">
+                        <div key={stageLabel} className="space-y-1.5">
                             <div
-                                className={`h-2 rounded-full transition-colors ${filled ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`}
+                                className={`h-1.5 rounded-full transition-colors ${filled ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`}
                             />
                             <p
-                                className={`text-xs font-medium ${current ? "text-[var(--text)]" : "text-[var(--text-muted)]"}`}
+                                className={`text-[10px] font-medium leading-tight ${current ? "text-[var(--text)]" : "text-[var(--text-muted)]"}`}
                             >
                                 {stageLabel}
                             </p>
@@ -116,17 +116,17 @@ export function ContractRow({
             </div>
 
             {/* Actions */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 pt-1">
                 <button
                     onClick={primaryAction.onClick}
-                    className="rounded-2xl bg-[var(--primary)] text-white px-6 py-3 text-base font-semibold whitespace-nowrap hover:bg-[var(--primary-hover)] transition-colors"
+                    className="rounded-xl bg-[var(--primary)] text-white px-5 py-2.5 text-sm font-semibold text-center hover:bg-[var(--primary-hover)] transition-colors active:scale-[0.98]"
                 >
                     {primaryAction.label}
                 </button>
                 {secondaryAction && (
                     <button
                         onClick={secondaryAction.onClick}
-                        className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-6 py-3 text-base font-medium whitespace-nowrap text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
+                        className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-5 py-2.5 text-sm font-medium text-center text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors active:scale-[0.98]"
                     >
                         {secondaryAction.label}
                     </button>
@@ -134,7 +134,7 @@ export function ContractRow({
                 {canEditDraft && (
                     <Link
                         href={`/contracts/${contract.id}/edit`}
-                        className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-6 py-3 text-base font-medium whitespace-nowrap text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors inline-block"
+                        className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-5 py-2.5 text-sm font-medium text-center text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors inline-block active:scale-[0.98]"
                     >
                         Edit draft
                     </Link>
@@ -142,7 +142,7 @@ export function ContractRow({
                 {onDelete && (
                     <button
                         onClick={() => onDelete(contract)}
-                        className="rounded-2xl border border-red-200 bg-[var(--surface-1)] px-6 py-3 text-base font-medium whitespace-nowrap text-red-700 hover:bg-red-50 hover:text-red-800 transition-colors"
+                        className="rounded-xl border border-red-200 bg-[var(--surface-1)] px-5 py-2.5 text-sm font-medium text-center text-red-700 hover:bg-red-50 hover:text-red-800 transition-colors active:scale-[0.98]"
                     >
                         Delete
                     </button>

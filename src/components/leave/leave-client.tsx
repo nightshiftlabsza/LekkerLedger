@@ -209,9 +209,11 @@ export function LeaveClient() {
                             ) : null}
                         </div>
                         {primaryTarget ? (
-                            <Link href={`/employees/${primaryTarget.employee.id}?tab=leave`}>
-                                <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">
-                                    Open employee leave record <ArrowRight className="h-4 w-4" />
+                            <Link href={`/employees/${primaryTarget.employee.id}?tab=leave`} className="shrink-0">
+                                <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] h-10 px-4 text-sm">
+                                    <span className="hidden sm:inline">Open employee leave record</span>
+                                    <span className="sm:hidden">View leave</span>
+                                    <ArrowRight className="h-4 w-4 shrink-0" />
                                 </Button>
                             </Link>
                         ) : null}
@@ -371,8 +373,8 @@ export function LeaveClient() {
                             <p className="text-sm font-bold text-[var(--text)]">Recording new leave entries starts on Standard.</p>
                             <p className="text-xs text-[var(--text-muted)]">You can still monitor leave history here.</p>
                         </div>
-                        <Link href="/upgrade?plan=standard">
-                            <Button size="sm" className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">Upgrade</Button>
+                        <Link href="/upgrade?plan=standard" className="sm:w-auto">
+                            <Button size="sm" className="w-full sm:w-auto bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">Upgrade</Button>
                         </Link>
                     </CardContent>
                 </Card>

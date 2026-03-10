@@ -176,6 +176,11 @@ function DashboardContent() {
                         />
                     </div>
 
+                    {/* Quick Access — mobile only (appears early, before alerts) */}
+                    <div className="lg:hidden">
+                        <QuickActions />
+                    </div>
+
                     {/* Alert banners */}
                     <div className="space-y-3">
                         {alerts.map(alert => (
@@ -187,7 +192,7 @@ function DashboardContent() {
                     <RecentRecordsArea recentDocs={recentDocs} hasEmployees={employeeCount > 0} />
                 </div>
 
-                {/* Right Column: Supporting Info */}
+                {/* Right Column: Supporting Info (desktop only) */}
                 <div className="lg:col-span-4 space-y-6">
                     {/* 2. Compact Household Snapshot (Desktop) */}
                     <div className="hidden lg:block">
@@ -198,12 +203,14 @@ function DashboardContent() {
                         />
                     </div>
 
-                    {/* 4. Quick Access Block */}
-                    <QuickActions />
+                    {/* 4. Quick Access Block (desktop only — mobile version is above) */}
+                    <div className="hidden lg:block">
+                        <QuickActions />
+                    </div>
 
                     {/* Upgrade nudge for free users */}
                     {getUserPlan(settings).id === "free" && (
-                        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4 space-y-2">
+                        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-3 sm:p-4 space-y-2">
                             <p className="text-xs font-semibold text-[var(--text)]">Standard adds 2 more workers, Google Drive backup, and leave tracking — R29/month.</p>
                             <Link href="/upgrade?plan=standard&pay=1" className="inline-flex items-center gap-1 text-xs font-bold text-[var(--primary)] hover:underline">
                                 R1 for 14 days <ArrowRight className="h-3 w-3" />
@@ -331,17 +338,17 @@ function PrimaryTaskHero({
             {/* Subtle background pattern/gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-transparent opacity-50" />
 
-            <CardContent className="relative space-y-6 p-8">
-                <div className="space-y-3">
+            <CardContent className="relative space-y-4 p-4 sm:p-6 md:p-8">
+                <div className="space-y-2">
                     <p className="type-overline text-[var(--primary)] flex items-center gap-2">
                         <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
                         {currentPeriod ? "Current Pay Period" : "Getting Started"}
                     </p>
                     <div className="max-w-2xl">
-                        <h2 className="text-3xl font-black tracking-tight text-[var(--text)] mb-2 leading-tight">
+                        <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-[var(--text)] mb-1.5 leading-tight">
                             {title}
                         </h2>
-                        <p className="text-base text-[var(--text-muted)] leading-relaxed font-medium">
+                        <p className="text-sm sm:text-base text-[var(--text-muted)] leading-relaxed font-medium">
                             {subtitle}
                         </p>
                     </div>
@@ -362,16 +369,16 @@ function PrimaryTaskHero({
                     </div>
                 )}
 
-                <div className="flex flex-wrap gap-4 pt-2">
-                    <Link href={primaryActionHref}>
-                        <Button className="h-12 px-6 gap-2 rounded-xl bg-[var(--primary)] font-bold text-white hover:bg-[var(--primary-hover)] shadow-lg shadow-[var(--primary)]/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-1">
+                    <Link href={primaryActionHref} className="sm:w-auto">
+                        <Button className="w-full sm:w-auto h-11 px-5 gap-2 rounded-xl bg-[var(--primary)] font-bold text-white hover:bg-[var(--primary-hover)] shadow-lg shadow-[var(--primary)]/20 transition-all active:scale-[0.98]">
                             {primaryActionLabel}
-                            <ArrowRight className="h-5 w-5" />
+                            <ArrowRight className="h-4 w-4 shrink-0" />
                         </Button>
                     </Link>
                     {!isSetupIncomplete && (
-                        <Link href="/employees">
-                            <Button variant="outline" className="h-12 px-6 gap-2 rounded-xl border-[var(--border)] font-bold text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors">
+                        <Link href="/employees" className="sm:w-auto">
+                            <Button variant="outline" className="w-full sm:w-auto h-11 px-5 gap-2 rounded-xl border-[var(--border)] font-bold text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors">
                                 View Employees
                             </Button>
                         </Link>
@@ -414,9 +421,9 @@ function OnboardingChecklist({ employeeCount, isPayrollStarted, settings }: { em
 
     return (
         <Card className="glass-panel border-none">
-            <CardContent className="p-6 space-y-4">
+            <CardContent className="p-4 sm:p-6 space-y-3">
                 <div className="flex items-center justify-between">
-                    <h3 className="type-h3 text-[var(--text)]">Next Steps</h3>
+                    <h3 className="text-base sm:text-lg font-black text-[var(--text)]">Next Steps</h3>
                     <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Setup Progress</p>
                 </div>
                 <div className="space-y-3">
@@ -443,10 +450,10 @@ function OnboardingChecklist({ employeeCount, isPayrollStarted, settings }: { em
 function HouseholdSnapshot({ employeeCount, documentCount, settings }: { employeeCount: number; documentCount: number; settings: EmployerSettings | null }) {
     return (
         <Card className="glass-panel border-none shadow-sm outline outline-1 outline-[var(--border)]">
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="p-4 sm:p-6 space-y-4">
                 <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1">Snapshot</p>
-                    <h3 className="type-h3 text-[var(--text)]">Household Metrics</h3>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-0.5">Snapshot</p>
+                    <h3 className="text-base sm:text-lg font-black text-[var(--text)]">Household Metrics</h3>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -506,11 +513,11 @@ function RecentRecordsArea({ recentDocs, hasEmployees }: { recentDocs: DocumentM
 
     return (
         <Card className="glass-panel border-none">
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="p-4 sm:p-6 space-y-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1">Recent Activity</p>
-                        <h3 className="type-h3 text-[var(--text)]">Recent Records</h3>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-0.5">Recent Activity</p>
+                        <h3 className="text-base sm:text-lg font-black text-[var(--text)]">Recent Records</h3>
                     </div>
                     {recentDocs.length > 0 && (
                         <Link href="/documents">

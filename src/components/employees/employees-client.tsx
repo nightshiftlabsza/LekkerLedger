@@ -104,7 +104,7 @@ export function EmployeesClient() {
                 subtitle="Manage your household team and employment records"
                 actions={employees.length > 0 && (
                     <Link href="/employees/new">
-                        <Button className="bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]">
+                        <Button className="bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] h-10 px-4 text-sm">
                             Add employee
                         </Button>
                     </Link>
@@ -192,24 +192,27 @@ export function EmployeesClient() {
                                 ]}
                                 renderCard={(emp) => (
                                     <Link href={`/employees/${emp.id}`} className="block">
-                                        <Card className="glass-panel hover-lift border-none overflow-hidden transition-all duration-200">
-                                            <CardContent className="p-5">
-                                                <div className="flex items-center justify-between gap-4">
-                                                    <div className="flex items-center gap-4 min-w-0">
+                                        <Card className="glass-panel hover-lift border-none overflow-hidden transition-all duration-200 active:scale-[0.99]">
+                                            <CardContent className="p-4">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <div className="h-10 w-10 shrink-0 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center font-black text-[var(--primary)] text-base">
+                                                            {emp.name.charAt(0).toUpperCase()}
+                                                        </div>
                                                         <div className="flex flex-col min-w-0">
-                                                            <span className="type-body-bold text-[var(--text)] truncate text-base">{emp.name}</span>
-                                                            <span className="type-overline text-[var(--text-muted)] text-[10px] mt-1">{emp.role || "Domestic Worker"}</span>
+                                                            <span className="type-body-bold text-[var(--text)] truncate">{emp.name}</span>
+                                                            <span className="type-overline text-[var(--text-muted)] text-[10px] mt-0.5">{emp.role || "Domestic Worker"}</span>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-2 shrink-0">
                                                         <StatusChip variant="complete" label="ACTIVE" className="scale-90" />
-                                                        <ChevronRight className="h-5 w-5 text-[var(--text-muted)]" />
+                                                        <ChevronRight className="h-4 w-4 text-[var(--text-muted)]" />
                                                     </div>
                                                 </div>
                                                 {emp.phone && (
-                                                    <div className="mt-4 pt-4 border-t border-[var(--border)]/30 flex items-center gap-2 text-sm text-[var(--text-muted)]">
-                                                        <Phone className="h-4 w-4" />
-                                                        <span>{emp.phone}</span>
+                                                    <div className="mt-3 pt-3 border-t border-[var(--border)]/30 flex items-center gap-2 text-sm text-[var(--text-muted)]">
+                                                        <Phone className="h-3.5 w-3.5" />
+                                                        <span className="text-xs">{emp.phone}</span>
                                                     </div>
                                                 )}
                                             </CardContent>

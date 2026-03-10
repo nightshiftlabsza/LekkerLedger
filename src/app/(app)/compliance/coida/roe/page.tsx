@@ -139,18 +139,18 @@ export default function RoePackPage() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <div className="w-full max-w-[1200px] mx-auto mb-6 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
-                <div className="flex items-center gap-3">
+            <div className="w-full max-w-[1200px] mx-auto mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-3 sm:p-4 shadow-[var(--shadow-sm)]">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <button
                         onClick={() => step > 1 ? setStep(step - 1) : router.push("/dashboard")}
                         aria-label="Back"
-                        className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-2)]"
+                        className="h-9 w-9 shrink-0 flex items-center justify-center rounded-xl transition-colors hover:bg-[var(--surface-2)]"
                         style={{ color: "var(--text-muted)" }}
                     >
                         <ArrowLeft className="h-4 w-4" />
                     </button>
-                    <div>
-                        <h1 className="font-bold text-base tracking-tight" style={{ color: "var(--text)" }}>
+                    <div className="min-w-0">
+                        <h1 className="font-bold text-sm sm:text-base tracking-tight truncate" style={{ color: "var(--text)" }}>
                             {step === 1 ? "Compensation Fund Return" : `CF Return — ${selectedYear}/${selectedYear + 1}`}
                         </h1>
                         {step > 1 && <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold">Assessment Year</p>}
@@ -347,7 +347,7 @@ export default function RoePackPage() {
                                 </Alert>
                             )}
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                                 <RoeValueCard
                                     label="Number of Employees"
                                     value={roeData.employeeCount.toString()}
@@ -410,7 +410,7 @@ export default function RoePackPage() {
 
                             <Card className="border-none glass-panel overflow-hidden">
                                 <CardContent className="p-0">
-                                    <div className="p-6 space-y-4">
+                                    <div className="p-4 sm:p-6 space-y-4">
                                         <div className="flex items-start gap-3 p-4 bg-[var(--surface-2)] rounded-xl border border-[var(--border)]">
                                             <ShieldCheck className="h-5 w-5 text-[var(--primary)] shrink-0 mt-0.5" />
                                             <div>

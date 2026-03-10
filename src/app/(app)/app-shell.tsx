@@ -410,20 +410,20 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                 type="button"
                 onClick={() => setOpen((current) => !current)}
                 data-testid="account-menu-toggle"
-                className="hidden items-center gap-1 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-2 sm:px-3 py-1.5 sm:py-2 shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25 sm:flex"
+                className="flex items-center gap-1 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-2 sm:px-3 py-1.5 sm:py-2 shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25 min-h-[40px]"
             >
-                <div className="flex h-7 sm:h-9 w-7 sm:w-9 items-center justify-center rounded-lg sm:rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">
-                    <CircleUserRound className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                <div className="flex h-7 sm:h-8 w-7 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl bg-[var(--surface-2)] text-[var(--primary)] shrink-0">
+                    <CircleUserRound className="h-4 w-4" />
                 </div>
-                <div className="text-left hidden sm:block">
-                    <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Account</p>
-                    <p className="text-xs sm:text-sm font-semibold text-[var(--text)] truncate max-w-[120px]">{hasGoogleSession && googleEmail ? googleEmail : googleState}</p>
+                <div className="text-left hidden sm:block max-w-[100px] md:max-w-[140px]">
+                    <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[var(--text-muted)] leading-none mb-0.5">Account</p>
+                    <p className="text-xs font-semibold text-[var(--text)] truncate">{hasGoogleSession && googleEmail ? googleEmail : googleState}</p>
                 </div>
-                <ChevronDown className="h-3 sm:h-4 w-3 sm:w-4 text-[var(--text-muted)] shrink-0" />
+                <ChevronDown className="h-3 w-3 text-[var(--text-muted)] shrink-0 hidden sm:block" />
             </button>
 
             {open && (
-                <div className="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-72 rounded-3xl border border-[var(--border)] bg-[var(--surface-raised)] p-3 shadow-[0_18px_48px_rgba(16,24,40,0.14)]">
+                <div className="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-[min(18rem,calc(100vw-1.5rem))] rounded-3xl border border-[var(--border)] bg-[var(--surface-raised)] p-3 shadow-[0_18px_48px_rgba(16,24,40,0.14)]">
                     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
                         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Current setup</p>
                         <p className="mt-1 text-sm font-semibold text-[var(--text)]">{googleState}</p>

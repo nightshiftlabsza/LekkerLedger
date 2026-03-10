@@ -85,8 +85,8 @@ export const ACCOUNT_MENU_LINKS: AppNavLink[] = [
 ];
 
 export const MOBILE_NAV_ITEMS: AppNavLink[] = [
+    { href: "/dashboard", label: "Home", icon: LayoutDashboard },
     { href: "/payroll", label: "Payroll", icon: Banknote },
     { href: "/employees", label: "Employees", icon: Users },
-    { href: "/documents", label: "Documents", icon: FolderOpen },
-    { href: "/settings", label: "Settings", icon: Settings },
+    { href: "/documents", label: "Docs", icon: FolderOpen },
 ];

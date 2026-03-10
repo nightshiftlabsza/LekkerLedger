@@ -31,16 +31,16 @@ export function EmptyState({
 }: EmptyStateProps) {
     return (
         <Card className="border-dashed border-2 glass-panel hover:border-[var(--primary)] transition-colors duration-300 group overflow-hidden">
-            <CardContent className="flex flex-col items-center justify-center p-8 sm:p-12 text-center text-balance">
-                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-3xl bg-[var(--surface-2)] flex items-center justify-center mb-6 group-hover:-translate-y-1 transition-transform duration-300">
-                    <Icon className="h-8 w-8 sm:h-10 sm:w-10 text-[var(--primary)]" strokeWidth={1.5} />
+            <CardContent className="flex flex-col items-center justify-center p-6 sm:p-10 text-center text-balance">
+                <div className="h-14 w-14 sm:h-18 sm:w-18 rounded-3xl bg-[var(--surface-2)] flex items-center justify-center mb-4 group-hover:-translate-y-1 transition-transform duration-300">
+                    <Icon className="h-7 w-7 sm:h-9 sm:w-9 text-[var(--primary)]" strokeWidth={1.5} />
                 </div>
 
-                <h3 className="text-xl font-bold mb-3" style={{ color: "var(--text)" }}>
+                <h3 className="text-lg sm:text-xl font-bold mb-2" style={{ color: "var(--text)" }}>
                     {title}
                 </h3>
 
-                <p className="max-w-md text-sm sm:text-base leading-relaxed mb-6" style={{ color: "var(--text-muted)" }}>
+                <p className="max-w-md text-sm leading-relaxed mb-5" style={{ color: "var(--text-muted)" }}>
                     {description}
                 </p>
 
@@ -78,24 +78,24 @@ export function EmptyState({
                     </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 w-full sm:w-auto">
                     {actionLabel && actionHref && (
                         <Link href={actionHref} className="w-full sm:w-auto">
-                            <Button className="w-full sm:w-auto h-12 px-8 text-base font-bold bg-[var(--primary)] text-white shadow-lg shadow-amber-500/20 active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
+                            <Button className="w-full sm:w-auto h-11 px-6 text-sm font-bold bg-[var(--primary)] text-white active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
                                 {actionLabel}
                             </Button>
                         </Link>
                     )}
 
                     {actionLabel && actionOnClick && !actionHref && (
-                        <Button onClick={actionOnClick} className="w-full sm:w-auto h-12 px-8 text-base font-bold bg-[var(--primary)] text-white shadow-lg shadow-amber-500/20 active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
+                        <Button onClick={actionOnClick} className="w-full sm:w-auto h-11 px-6 text-sm font-bold bg-[var(--primary)] text-white active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
                             {actionLabel}
                         </Button>
                     )}
 
                     {secondaryActionLabel && secondaryActionHref && (
-                        <Link href={secondaryActionHref} className="w-full sm:w-auto mt-3 sm:mt-0">
-                            <Button variant="outline" className="w-full sm:w-auto h-12 px-8 text-base font-bold bg-transparent text-[var(--text)] border-[var(--border)] hover:bg-[var(--surface-2)] active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
+                        <Link href={secondaryActionHref} className="w-full sm:w-auto">
+                            <Button variant="outline" className="w-full sm:w-auto h-11 px-6 text-sm font-bold bg-transparent text-[var(--text)] border-[var(--border)] hover:bg-[var(--surface-2)] active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
                                 {secondaryActionLabel}
                             </Button>
                         </Link>

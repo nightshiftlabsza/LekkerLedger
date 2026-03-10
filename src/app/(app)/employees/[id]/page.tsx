@@ -32,7 +32,7 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: "documents", label: "Documents", icon: FileText },
 ];
 
-const PROFILE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_4.25rem_6rem_6rem] gap-x-3 sm:grid-cols-[minmax(0,1fr)_5rem_6.75rem_7rem]";
+const PROFILE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_4.5rem] gap-x-2 sm:grid-cols-[minmax(0,1fr)_5rem_6.75rem_7rem] sm:gap-x-3";
 const SHELL_PANEL_CLASS = "rounded-[22px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_1px_2px_rgba(16,24,40,0.04)]";
 
 function formatRand(value: number) {
@@ -234,7 +234,7 @@ function EmployeeDetailContent() {
                                         key={tabId}
                                         onClick={() => setActiveTab(tabId)}
                                         aria-pressed={active}
-                                        className="flex-1 flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] transition-all duration-200"
+                                        className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 rounded-xl px-1 sm:px-3 py-2 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.08em] sm:tracking-[0.14em] transition-all duration-200 min-h-[44px]"
                                         style={{
                                             backgroundColor: active ? "var(--primary)" : "transparent",
                                             color: active ? "#ffffff" : "var(--text-muted)",
@@ -285,7 +285,7 @@ function EmployeeDetailContent() {
                                                 </Button>
                                             </>
                                         ) : (
-                                            <div className="flex flex-col gap-3 rounded-[14px] border border-red-200 bg-red-50 p-3 w-[260px] text-left">
+                                            <div className="flex flex-col gap-3 rounded-[14px] border border-red-200 bg-red-50 p-3 w-full max-w-[260px] text-left">
                                                 <p className="text-xs font-bold text-red-800 leading-tight">This will delete all payslips and leave records.</p>
                                                 <div className="space-y-1.5">
                                                     <p className="text-[10px] uppercase tracking-wider font-semibold text-red-700">Type DELETE to confirm:</p>
@@ -492,7 +492,7 @@ function EmployeeDetailContent() {
                                                 <p className="text-sm font-bold text-[var(--text)]">{getArchiveUpgradeMessage(currentPlan.id, payslipArchiveResult.hiddenCount, "payslip")}</p>
                                             </div>
                                             <Link href={archiveUpgradeHref}>
-                                                <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{archiveUpgradeLabel}</Button>
+                                                <Button className="w-full sm:w-auto bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{archiveUpgradeLabel}</Button>
                                             </Link>
                                         </div>
                                     </div>

@@ -87,10 +87,11 @@ export function PayrollClient() {
                 {showAddButton && (
                     <Link href="/payroll/new">
                         <Button
-                            className="gap-1.5 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)]"
+                            className="gap-1.5 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] h-10 px-4 text-sm"
                         >
-                            <Plus className="h-4 w-4" />
-                            Add {format(new Date(), "MMMM yyyy")} Payroll
+                            <Plus className="h-4 w-4 shrink-0" />
+                            <span className="hidden sm:inline">Add {format(new Date(), "MMMM yyyy")} Payroll</span>
+                            <span className="sm:hidden">New Pay Run</span>
                         </Button>
                     </Link>
                 )}
@@ -99,15 +100,15 @@ export function PayrollClient() {
             {/* Current / active period */}
             {currentPeriod && (
                 <Card className="glass-panel border-2 border-[var(--primary)]/30 overflow-hidden">
-                    <CardContent className="p-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="h-12 w-12 rounded-2xl bg-[var(--primary)] flex items-center justify-center">
-                                    <Calendar className="h-6 w-6 text-white" />
+                    <CardContent className="p-4 sm:p-6 space-y-4">
+                        <div className="flex items-start sm:items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 rounded-xl sm:rounded-2xl bg-[var(--primary)] flex items-center justify-center">
+                                    <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                                 </div>
-                                <div>
-                                    <h2 className="type-h3 text-[var(--text)]">{currentPeriod.name}</h2>
-                                    <p className="type-label text-[var(--text-muted)]">
+                                <div className="min-w-0">
+                                    <h2 className="type-h3 text-[var(--text)] truncate">{currentPeriod.name}</h2>
+                                    <p className="type-label text-[var(--text-muted)] text-xs">
                                         {format(new Date(currentPeriod.startDate), "d MMM")} — {format(new Date(currentPeriod.endDate), "d MMM yyyy")}
                                     </p>
                                 </div>
@@ -139,9 +140,9 @@ export function PayrollClient() {
                         </div>
 
                         <Link href={`/payroll/${currentPeriod.id}`}>
-                            <Button className="w-full gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] h-12 rounded-xl">
-                                Open {currentPeriod.name}
-                                <ArrowRight className="h-4 w-4" />
+                            <Button className="w-full gap-2 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] h-11 rounded-xl text-sm">
+                                <span className="truncate">Open {currentPeriod.name}</span>
+                                <ArrowRight className="h-4 w-4 shrink-0" />
                             </Button>
                         </Link>
                     </CardContent>
@@ -197,15 +198,15 @@ export function PayrollClient() {
                         <div className="space-y-2">
                             {lockedPeriods.map(period => (
                                 <Link key={period.id} href={`/payroll/${period.id}`}>
-                                    <Card className="glass-panel border-none hover-lift">
-                                        <CardContent className="p-4 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-9 w-9 rounded-lg bg-[var(--surface-2)] flex items-center justify-center">
-                                                    <Lock className="h-4 w-4 text-[var(--text-muted)]" />
+                                    <Card className="glass-panel border-none hover-lift active:scale-[0.99]">
+                                        <CardContent className="p-3 sm:p-4 flex items-center justify-between gap-3">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-lg bg-[var(--surface-2)] flex items-center justify-center">
+                                                    <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-muted)]" />
                                                 </div>
-                                                <div>
-                                                    <p className="type-body-bold text-[var(--text)]">{period.name}</p>
-                                                    <p className="type-overline text-[var(--text-muted)]">
+                                                <div className="min-w-0">
+                                                    <p className="type-body-bold text-[var(--text)] truncate">{period.name}</p>
+                                                    <p className="type-overline text-[var(--text-muted)] text-[10px]">
                                                         Finalised {period.lockedAt ? format(new Date(period.lockedAt), "d MMM yyyy") : ""}
                                                     </p>
                                                 </div>

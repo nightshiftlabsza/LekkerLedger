@@ -244,10 +244,10 @@ function SettingsContent() {
             <PageHeader title="Settings" subtitle="Start with your household details, then open the extra options only if you need them." />
 
             {/* Tab switcher */}
-            <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)]/92 p-2 shadow-[var(--shadow-1)] mb-2">
-                <div className="grid grid-cols-2 gap-1 min-[520px]:grid-cols-3 xl:grid-cols-5">
-                    <TabButton id="general" icon={Building2} label="Your details" activeTab={activeTab} setActiveTab={setActiveTab} />
-                    <TabButton id="storage" icon={Database} label="Storage & backup" activeTab={activeTab} setActiveTab={setActiveTab} />
+            <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)]/92 p-1.5 shadow-[var(--shadow-1)] mb-2">
+                <div className="grid grid-cols-5 gap-1">
+                    <TabButton id="general" icon={Building2} label="Details" activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <TabButton id="storage" icon={Database} label="Storage" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="plan" icon={ShieldCheck} label="Plan" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="exports" icon={Download} label="Downloads" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="support" icon={HelpCircle} label="Help" activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -1099,13 +1099,14 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
     return (
         <button onClick={() => setActiveTab(id)} aria-pressed={active}
             data-testid={`settings-tab-${id}`}
-            className="flex min-h-[76px] w-full flex-col items-center justify-center gap-2 rounded-[1.5rem] px-3 py-3 text-[11px] font-black uppercase tracking-[0.12em] transition-all duration-200"
+            className="flex min-h-[48px] sm:min-h-[60px] w-full flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[1.5rem] px-0.5 py-1.5 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.05em] sm:tracking-[0.1em] transition-all duration-200 overflow-hidden"
             style={{
                 backgroundColor: active ? "var(--primary)" : "transparent",
                 color: active ? "#ffffff" : "var(--text-muted)",
                 boxShadow: active ? "var(--shadow-1)" : "none",
             }}>
-            <Icon className="h-4 w-4" />{label}
+            <Icon className="h-4 w-4 shrink-0" />
+            <span className="truncate w-full text-center leading-tight">{label}</span>
         </button>
     );
 }

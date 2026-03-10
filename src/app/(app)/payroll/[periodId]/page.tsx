@@ -523,7 +523,7 @@ export default function PayPeriodWorkspacePage() {
 
                             return (
                                 <Card key={entry.employeeId} className="border border-[var(--border)] bg-[var(--surface-1)] shadow-sm">
-                                    <CardContent className="p-6 space-y-4">
+                                    <CardContent className="p-4 sm:p-6 space-y-4">
                                         {/* Employee header */}
                                         <div className="flex items-center gap-3">
                                             <div className="h-10 w-10 rounded-xl bg-[var(--primary)] flex items-center justify-center text-white font-black text-lg shrink-0">
@@ -537,7 +537,7 @@ export default function PayPeriodWorkspacePage() {
 
                                         {/* Input fields */}
                                         {!isLocked && (
-                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                            <div className="grid grid-cols-2 gap-3">
                                                 <div>
                                                     <label className="type-overline text-[var(--text-muted)] block mb-1">Ordinary hours</label>
                                                     <input
@@ -605,7 +605,7 @@ export default function PayPeriodWorkspacePage() {
 
                                         {/* Locked view - just show totals */}
                                         {isLocked && (
-                                            <div className="grid grid-cols-5 gap-3 text-center">
+                                            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
                                                 <div>
                                                     <p className="type-overline text-[var(--text-muted)]">Ordinary</p>
                                                     <p className="font-mono text-sm text-[var(--text)]">{entry.ordinaryHours}h</p>

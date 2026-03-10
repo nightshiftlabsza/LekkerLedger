@@ -59,7 +59,7 @@ export function FiltersBar({
                         value={searchValue}
                         onChange={e => onSearchChange(e.target.value)}
                         placeholder={searchPlaceholder}
-                        className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                        className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[16px] sm:text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                     />
                     {searchValue && (
                         <button
@@ -109,7 +109,7 @@ export function FiltersBar({
                         <button
                             key={chip.key}
                             onClick={() => onFilterToggle?.(chip.key)}
-                            className={`shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wide border transition-colors ${chip.active
+                            className={`shrink-0 px-3 py-1.5 min-h-[36px] rounded-full text-[11px] font-bold uppercase tracking-wide border transition-colors ${chip.active
                                     ? "bg-[var(--primary)] text-white border-[var(--primary)]"
                                     : "bg-transparent text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
                                 }`}

@@ -152,9 +152,9 @@ export function NewPayrollWizardClient() {
             {/* Step 0: Mode Selection */}
             {step === 0 && (
                 <Card className="glass-panel border-black/5 dark:border-white/5 shadow-xl overflow-hidden">
-                    <CardContent className="p-8 space-y-6">
-                        <div className="text-center space-y-2 mb-8">
-                            <h2 className="type-h2 text-[var(--text)]">How do you want to start?</h2>
+                    <CardContent className="p-4 sm:p-6 md:p-8 space-y-5">
+                        <div className="text-center space-y-2 mb-4 sm:mb-6">
+                            <h2 className="text-xl sm:text-2xl font-black text-[var(--text)]">How do you want to start?</h2>
                             <p className="type-body text-[var(--text-muted)]">
                                 All payroll data is stored securely on your device.
                             </p>
@@ -192,10 +192,10 @@ export function NewPayrollWizardClient() {
             {/* Step 1: Choose Employee(s) */}
             {step === 1 && isClient && (
                 <Card className="glass-panel border-[var(--primary)]/30 border-2 shadow-2xl">
-                    <CardContent className="p-6 md:p-8 space-y-6">
+                    <CardContent className="p-4 sm:p-6 md:p-8 space-y-5">
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="h-8 w-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-bold">1</div>
-                            <h2 className="type-h2 text-[var(--text)]">Who are you paying?</h2>
+                            <div className="h-8 w-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-bold shrink-0">1</div>
+                            <h2 className="text-xl sm:text-2xl font-black text-[var(--text)]">Who are you paying?</h2>
                         </div>
 
                         {employees.length === 0 ? (
@@ -291,10 +291,10 @@ export function NewPayrollWizardClient() {
             {/* Step 2: Pay Period */}
             {step === 2 && isClient && (
                 <Card className="glass-panel border-[var(--primary)]/30 border-2 shadow-2xl animate-in slide-in-from-right-4">
-                    <CardContent className="p-6 md:p-8 space-y-6">
+                    <CardContent className="p-4 sm:p-6 md:p-8 space-y-5">
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="h-8 w-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-bold">2</div>
-                            <h2 className="type-h2 text-[var(--text)]">Set the pay period</h2>
+                            <div className="h-8 w-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-bold shrink-0">2</div>
+                            <h2 className="text-xl sm:text-2xl font-black text-[var(--text)]">Set the pay period</h2>
                         </div>
 
                         <div className="grid gap-4 sm:grid-cols-2 pt-2">

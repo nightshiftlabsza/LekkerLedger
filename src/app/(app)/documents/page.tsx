@@ -672,10 +672,12 @@ export default function DocumentsPage() {
                     vaultUploadsAllowed ? (
                         <Button
                             type="button"
-                            className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold"
+                            className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold h-10 px-4 text-sm"
                             onClick={handleVaultUploadClick}
                         >
-                            <Upload className="h-4 w-4" /> Upload Document
+                            <Upload className="h-4 w-4 shrink-0" />
+                            <span className="hidden sm:inline">Upload Document</span>
+                            <span className="sm:hidden">Upload</span>
                         </Button>
                     ) : (
                         <Link href={vaultUpgradeHref}>
@@ -697,13 +699,13 @@ export default function DocumentsPage() {
 
             <div className="ultrawide-grid">
                 <div className="ultrawide-main space-y-6">
-                    <div className="flex items-center gap-1 border-b border-[var(--border)] -mx-4 overflow-x-auto px-4 no-scrollbar lg:mx-0 lg:px-0">
+                    <div className="flex items-center border-b border-[var(--border)] -mx-4 overflow-x-auto px-4 no-scrollbar lg:mx-0 lg:px-0">
                         {TABS.map((tab) => (
                             <button
                                 key={tab}
                                 type="button"
                                 onClick={() => setActiveTab(tab)}
-                                className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-bold transition-colors ${activeTab === tab ? "border-[var(--primary)] text-[var(--primary)]" : "border-transparent text-[var(--text-muted)] hover:text-[var(--text)]"}`}
+                                className={`whitespace-nowrap border-b-2 px-3 sm:px-4 py-3 text-sm font-bold transition-colors min-h-[44px] ${activeTab === tab ? "border-[var(--primary)] text-[var(--primary)]" : "border-transparent text-[var(--text-muted)] hover:text-[var(--text)]"}`}
                             >
                                 {tab}
                             </button>
@@ -937,6 +939,30 @@ export default function DocumentsPage() {
                                             ),
                                         },
                                     ]}
+                                    renderCard={(doc) => (
+                                        <Card className="glass-panel border-none">
+                                            <CardContent className="p-3 space-y-2">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                                        <FileText className="h-4 w-4 text-[var(--primary)]" />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</p>
+                                                        <p className="text-xs text-[var(--text-muted)]">{doc.employeeId ? employeeNameById[doc.employeeId] ?? "Unknown" : "-"} · {format(new Date(doc.createdAt), "d MMM yyyy")}</p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="w-full h-9 gap-2 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-2)]"
+                                                    onClick={() => void handlePreview(doc)}
+                                                >
+                                                    <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                    <span className="text-xs font-bold">Preview</span>
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
+                                    )}
                                 />
                                 <ArchiveBanner hiddenCount={payslipArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
                             </>
@@ -999,6 +1025,30 @@ export default function DocumentsPage() {
                                             ),
                                         },
                                     ]}
+                                    renderCard={(doc) => (
+                                        <Card className="glass-panel border-none">
+                                            <CardContent className="p-3 space-y-2">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                                        <FileSpreadsheet className="h-4 w-4 text-[var(--primary)]" />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</p>
+                                                        <p className="text-xs text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="w-full h-9 gap-2 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-2)]"
+                                                    onClick={() => void handlePreview(doc)}
+                                                >
+                                                    <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                    <span className="text-xs font-bold">Preview</span>
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
+                                    )}
                                 />
                                 <ArchiveBanner hiddenCount={exportArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
                             </>
@@ -1097,9 +1147,47 @@ export default function DocumentsPage() {
                                             ) : null}
                                         </div>
                                     ),
-                                },
-                            ]}
-                        />
+                                        },
+                                    ]}
+                                    renderCard={(doc) => (
+                                        <Card className="glass-panel border-none">
+                                            <CardContent className="p-3 space-y-2">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                                        <FileText className="h-4 w-4 text-[var(--primary)]" />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</p>
+                                                        <p className="text-xs text-[var(--text-muted)]">{VAULT_CATEGORIES.find((c) => c.value === doc.vaultCategory)?.label ?? "Other"} · {format(new Date(doc.createdAt), "d MMM yyyy")}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="flex-1 h-9 gap-2 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-2)]"
+                                                        onClick={() => void handlePreview(doc)}
+                                                    >
+                                                        <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                        <span className="text-xs font-bold">Preview</span>
+                                                    </Button>
+                                                    {vaultUploadsAllowed ? (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="flex-1 h-9 gap-2 rounded-xl border border-red-200 text-red-700 hover:text-red-800 hover:bg-red-50"
+                                                            disabled={deletingDocumentId === doc.id}
+                                                            onClick={() => void handleDeleteVaultDocument(doc)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            <span className="text-xs font-bold">Delete</span>
+                                                        </Button>
+                                                    ) : null}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+                                />
                     )}
                 </div>
                 {hasAnyContent && (

@@ -28,15 +28,15 @@ export default function UFilingPage() {
         <div className="space-y-6 pb-20">
             <PageHeader title="uFiling Export" subtitle="Prepare UIF declaration CSV files for uFiling and the Department of Employment and Labour process" />
             <Card className="border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-1)]">
-                <CardContent className="space-y-6 p-6">
+                <CardContent className="space-y-5 p-4 sm:p-6">
                     <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)] xl:items-start">
                         <div className="space-y-4">
                             <p className="max-w-[62ch] text-sm leading-6 text-[var(--text-muted)]">
                                 This page helps you prepare the CSV file for UIF submission. LekkerLedger prepares the export from your payroll records, but you still review and submit it in the official uFiling process.
                             </p>
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                                <a href="#ufiling-export-tool">
-                                    <Button className="h-11 rounded-xl bg-[var(--primary)] px-5 font-bold text-white hover:bg-[var(--primary-hover)]">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                <a href="#ufiling-export-tool" className="sm:w-auto">
+                                    <Button className="w-full sm:w-auto h-11 rounded-xl bg-[var(--primary)] px-5 font-bold text-white hover:bg-[var(--primary-hover)] gap-2">
                                         Generate UIF CSV <Download className="h-4 w-4" />
                                     </Button>
                                 </a>
