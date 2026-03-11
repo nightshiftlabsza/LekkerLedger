@@ -10,11 +10,10 @@ function OpenAppCompatibilityContent() {
 
     React.useEffect(() => {
         const source = searchParams.get("source");
-        const recommendedGoogle = searchParams.get("recommended") === "google";
         const next = searchParams.get("next");
         const safeNext = next && next.startsWith("/") ? next : null;
 
-        const shouldRunPaidLogin = recommendedGoogle || source === "billing" || source === "onboarding" || source === "dashboard";
+        const shouldRunPaidLogin = source === "billing" || source === "onboarding" || source === "dashboard";
 
         if (shouldRunPaidLogin) {
             const params = new URLSearchParams({ paidLogin: "1" });

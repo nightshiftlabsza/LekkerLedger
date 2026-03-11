@@ -2,7 +2,10 @@
 
 import { BillingCycle, PlanId } from "../config/plans";
 import { BillingAccountSummary, getFreeEntitlements, VerifiedEntitlements } from "./billing";
-import { getStoredGoogleAccessToken } from "./google-session";
+// TODO: In Batch 2, this will use Supabase auth token
+function getStoredAccessToken(): string | null {
+    return null;
+}
 
 interface CachedEntitlements {
     token: string;
@@ -31,7 +34,7 @@ export function clearVerifiedEntitlementsCache() {
     cachedEntitlements = null;
 }
 
-export async function fetchVerifiedEntitlements(accessToken = getStoredGoogleAccessToken(), force = false): Promise<VerifiedEntitlements | null> {
+export async function fetchVerifiedEntitlements(accessToken = getStoredAccessToken(), force = false): Promise<VerifiedEntitlements | null> {
     if (!accessToken) return null;
 
     if (!force && cachedEntitlements && cachedEntitlements.token === accessToken && (Date.now() - cachedEntitlements.fetchedAt) < ENTITLEMENTS_CACHE_TTL_MS) {
@@ -71,10 +74,10 @@ export async function fetchVerifiedEntitlements(accessToken = getStoredGoogleAcc
 
 export async function createCheckoutSession(
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle },
-    accessToken = getStoredGoogleAccessToken(),
+    accessToken = getStoredAccessToken(),
 ): Promise<{ authorizationUrl: string; reference: string }> {
     if (!accessToken) {
-        throw new Error("Google sign-in is required before starting paid checkout.");
+        throw new Error("Sign-in is required before starting paid checkout.");
     }
 
     const response = await fetch("/api/billing/checkout", {
@@ -87,7 +90,7 @@ export async function createCheckoutSession(
     });
 
     if (response.status === 401) {
-        throw new Error("Google sign-in is required before starting paid checkout.");
+        throw new Error("Sign-in is required before starting paid checkout.");
     }
 
     if (!response.ok) {
@@ -103,10 +106,10 @@ export async function createCheckoutSession(
 
 export async function startTrialCheckout(
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; referralCode?: string | null },
-    accessToken = getStoredGoogleAccessToken(),
+    accessToken = getStoredAccessToken(),
 ): Promise<{ authorizationUrl: string; reference: string }> {
     if (!accessToken) {
-        throw new Error("Google sign-in is required before starting a trial.");
+        throw new Error("Sign-in is required before starting a trial.");
     }
 
     const response = await fetch("/api/billing/trial/start", {
@@ -119,7 +122,7 @@ export async function startTrialCheckout(
     });
 
     if (response.status === 401) {
-        throw new Error("Google sign-in is required before starting a trial.");
+        throw new Error("Sign-in is required before starting a trial.");
     }
 
     if (!response.ok) {
@@ -156,7 +159,7 @@ export async function createInlineTrialIntent(
     };
 }
 
-export async function fetchBillingAccount(accessToken = getStoredGoogleAccessToken()): Promise<BillingAccountPayload | null> {
+export async function fetchBillingAccount(accessToken = getStoredAccessToken()): Promise<BillingAccountPayload | null> {
     if (!accessToken) return null;
 
     const response = await fetch("/api/billing/account", {
@@ -183,9 +186,9 @@ export async function fetchBillingAccount(accessToken = getStoredGoogleAccessTok
     };
 }
 
-export async function confirmBillingTransaction(reference: string, accessToken = getStoredGoogleAccessToken()): Promise<BillingAccountPayload> {
+export async function confirmBillingTransaction(reference: string, accessToken = getStoredAccessToken()): Promise<BillingAccountPayload> {
     if (!accessToken) {
-        throw new Error("Google sign-in is required before confirming payment.");
+        throw new Error("Sign-in is required before confirming payment.");
     }
 
     const response = await fetch("/api/billing/confirm", {
@@ -199,7 +202,7 @@ export async function confirmBillingTransaction(reference: string, accessToken =
     });
 
     if (response.status === 401) {
-        throw new Error("Google sign-in is required before confirming payment.");
+        throw new Error("Sign-in is required before confirming payment.");
     }
 
     if (!response.ok) {
@@ -214,9 +217,9 @@ export async function confirmBillingTransaction(reference: string, accessToken =
     };
 }
 
-export async function cancelSubscriptionRenewal(accessToken = getStoredGoogleAccessToken()): Promise<BillingAccountPayload> {
+export async function cancelSubscriptionRenewal(accessToken = getStoredAccessToken()): Promise<BillingAccountPayload> {
     if (!accessToken) {
-        throw new Error("Google sign-in is required before canceling renewal.");
+        throw new Error("Sign-in is required before canceling renewal.");
     }
 
     const response = await fetch("/api/billing/subscription/cancel", {
@@ -227,7 +230,7 @@ export async function cancelSubscriptionRenewal(accessToken = getStoredGoogleAcc
     });
 
     if (response.status === 401) {
-        throw new Error("Google sign-in is required before canceling renewal.");
+        throw new Error("Sign-in is required before canceling renewal.");
     }
 
     if (!response.ok) {

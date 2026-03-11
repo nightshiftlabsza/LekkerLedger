@@ -84,7 +84,7 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Upload signed contract copies",
             "Documents hub for payslips and contracts",
             "uFiling CSV export and ROE downloads",
-            "Automatic private backup to your own Google account",
+            "Encrypted sync (coming soon)",
             "12 months of history",
         ],
         ctaLabel: "Try Standard for R1",
@@ -178,7 +178,7 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
         title: "Storage & backup",
         rows: [
             { label: "Stored on device", values: { free: true, standard: true, pro: true } },
-            { label: "Automatic private backup (Google Drive)", values: { free: false, standard: true, pro: true } },
+            { label: "Encrypted sync", values: { free: false, standard: true, pro: true } },
         ],
     },
     {

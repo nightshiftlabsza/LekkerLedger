@@ -2,12 +2,11 @@ export type PlanId = "free" | "standard" | "pro";
 export type BillingCycle = "monthly" | "yearly";
 
 export interface PlanFeatures {
-    driveSync: boolean;
+    encryptedSync: boolean;
     leaveTracking: boolean;
     documentsHub: boolean;
     contractSignedCopyUpload: boolean;
     vaultUploads: boolean;
-    autoBackup: boolean;
     yearEndSummary: boolean;
     fullHistoryExport: boolean;
     contractGenerator: boolean;
@@ -54,12 +53,12 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         maxHouseholds: 1,
         archiveMonths: 3,
         features: {
-            driveSync: false,
+            encryptedSync: false,
             leaveTracking: false,
             documentsHub: false,
             contractSignedCopyUpload: false,
             vaultUploads: false,
-            autoBackup: false,
+
             yearEndSummary: false,
             fullHistoryExport: false,
             contractGenerator: false,
@@ -90,12 +89,12 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         maxHouseholds: 1,
         archiveMonths: 12,
         features: {
-            driveSync: true,
+            encryptedSync: true,
             leaveTracking: true,
             documentsHub: true,
             contractSignedCopyUpload: true,
             vaultUploads: false,
-            autoBackup: false,
+
             yearEndSummary: false,
             fullHistoryExport: false,
             contractGenerator: true,
@@ -112,7 +111,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             "Upload signed copies of your contracts",
             "Documents hub for payslips and contracts",
             "uFiling CSV export and ROE downloads",
-            "Google Drive backup",
+            "Encrypted sync across devices",
             "12 months of browsable history",
         ],
     },
@@ -130,12 +129,12 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         maxHouseholds: Number.POSITIVE_INFINITY,
         archiveMonths: 60,
         features: {
-            driveSync: true,
+            encryptedSync: true,
             leaveTracking: true,
             documentsHub: true,
             contractSignedCopyUpload: true,
             vaultUploads: true,
-            autoBackup: true,
+
             yearEndSummary: true,
             fullHistoryExport: true,
             contractGenerator: true,
@@ -150,7 +149,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             "Document vault — upload and store signed contracts, ID copies, anything",
             "Year-end employment summary PDF",
             "5 years of browsable, searchable history",
-            "Automatic scheduled backups",
+            "Automatic encrypted sync",
             "Faster support — reply within 1 business day",
             "Multiple households (main home + holiday home)",
         ],

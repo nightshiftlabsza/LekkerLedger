@@ -6,8 +6,13 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createInlineTrialIntent } from "@/lib/billing-client";
-import { getStoredGoogleEmail } from "@/lib/google-session";
 import { getSettings } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/client";
+async function getAuthEmail() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.email || "";
+}
 import { type BillingCycle, type PlanId } from "@/src/config/plans";
 
 const CHECKOUT_EMAIL_STORAGE_KEY = "lekkerledger:checkout-email";
@@ -109,10 +114,10 @@ export function useInlinePaidPlanCheckout({
         let cancelled = false;
 
         async function prefillEmail() {
-            const storedGoogleEmail = getStoredGoogleEmail();
-            if (storedGoogleEmail) {
+            const authEmail = await getAuthEmail();
+            if (authEmail) {
                 if (!cancelled) {
-                    setCheckoutEmail(normalizeEmail(storedGoogleEmail));
+                    setCheckoutEmail(normalizeEmail(authEmail));
                 }
                 return;
             }
@@ -279,7 +284,7 @@ export function useInlinePaidPlanCheckout({
                             Open secure payment
                         </h2>
                         <p className="text-sm leading-6 text-[var(--text-muted)]">
-                            Paystack will open here in a secure popup. Google login only comes after payment on the thank-you screen.
+                            Paystack will open here in a secure popup. Creating your LekkerLedger account only comes after payment on the thank-you screen.
                         </p>
                     </div>
 
@@ -305,7 +310,7 @@ export function useInlinePaidPlanCheckout({
                         </div>
 
                         <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--text-muted)]">
-                            You&apos;ll pay R1 now to start the 14-day paid trial. After payment, the next step is linking your Google account for backup and activation.
+                            You&apos;ll pay R1 now to start the 14-day paid trial. After payment, the next step is creating your account for secure cloud sync and activation.
                         </div>
 
                         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

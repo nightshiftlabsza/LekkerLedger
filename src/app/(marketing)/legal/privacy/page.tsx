@@ -44,7 +44,7 @@ export default function PrivacyPolicy() {
                         <h2 className="text-xl font-black text-[var(--text)]">Plain-language summary</h2>
                         <ul className="mt-4 list-disc space-y-2 pl-6 text-sm leading-7">
                             <li>Employee payroll records are stored on your device by default, not in a central LekkerLedger employee database.</li>
-                            <li>If you enable Google backup, the backup is stored in the Google Drive app data area in your own Google account.</li>
+                            <li>If you enable encrypted sync, the backup is stored in an encrypted format that only you can access.</li>
                             <li>We do collect limited product and website analytics so we can operate and improve the service.</li>
                             <li>We use payment and infrastructure providers for paid plans and service delivery, but we do not store your card details ourselves.</li>
                             <li>You remain responsible for checking figures and submissions against official guidance.</li>
@@ -71,7 +71,7 @@ export default function PrivacyPolicy() {
                                 <li><strong>Employee record data:</strong> names, ID or passport details, role details, pay rates, leave records, payslip figures, and uploaded employment documents.</li>
                                 <li><strong>Export preparation data:</strong> UIF export files and related records you generate for your own records or for uFiling preparation. LekkerLedger does not submit to UIF on your behalf.</li>
                                 <li><strong>Product usage data:</strong> limited app and website analytics, such as page views or interaction events used to understand product usage and improve the service.</li>
-                                <li><strong>Google connection data:</strong> if you choose Google-connected backup, your Google account email, Google identifier, and Google permissions state are processed so backup and restore can work.</li>
+                                <li><strong>Account data:</strong> if you choose encrypted sync, your email address and sync permissions state are processed so backup and restore can work.</li>
                                 <li><strong>Subscription and transaction data:</strong> plan choice, billing status, trial timing, renewal timing, payment references, and limited payment-provider authorization metadata needed to manage paid access and prevent abuse.</li>
                                 <li><strong>Referral program data:</strong> referral codes, referral links between accounts, reward status, and related anti-fraud checks where the referral program is used.</li>
                                 <li><strong>Support communications:</strong> emails or support requests you send to us.</li>
@@ -85,7 +85,7 @@ export default function PrivacyPolicy() {
                             </p>
                             <ul className="list-disc space-y-2 pl-6">
                                 <li><strong>On your device by default:</strong> payroll records, employee details, payslips, and related records are stored locally in your browser storage.</li>
-                                <li><strong>In your Google account if you enable backup:</strong> backups are stored in the Google Drive app data area in your own Google account.</li>
+                                <li><strong>Encrypted sync storage:</strong> backups are stored in an encrypted format that only you can decrypt.</li>
                                 <li><strong>In our service systems where needed:</strong> analytics, support messages, subscription records, and payment-related references may be processed through service providers used to operate the product.</li>
                             </ul>
                             <p>
@@ -96,7 +96,7 @@ export default function PrivacyPolicy() {
                         <Section title="4. How we use data">
                             <ul className="list-disc space-y-2 pl-6">
                                 <li>To generate payslips, exports, summaries, and supporting paperwork from the information you enter.</li>
-                                <li>To enable optional backup and restore through your Google account.</li>
+                                <li>To enable optional encrypted backup and restore across devices.</li>
                                 <li>To provide paid plan access, billing support, referral rewards, refund handling, and trial-abuse prevention.</li>
                                 <li>To operate, maintain, secure, and improve the website and app.</li>
                                 <li>To answer support requests and communicate about your account or service issues.</li>
@@ -117,14 +117,14 @@ export default function PrivacyPolicy() {
                                 We aim to use reasonable technical and organizational safeguards appropriate to the type of data involved. Examples may include access controls, provider-managed transport security, and local-first product architecture for payroll record storage.
                             </p>
                             <p>
-                                No online system can promise absolute security. You are also responsible for keeping your own device, browser profile, Google account, and passwords secure.
+                                No online system can promise absolute security. You are also responsible for keeping your own device, browser profile, account, and passwords secure.
                             </p>
                         </Section>
 
                         <Section title="7. Retention">
                             <ul className="list-disc space-y-2 pl-6">
                                 <li><strong>Local payroll records:</strong> remain on your device until you delete them, clear browser data, or replace them with your own actions.</li>
-                                <li><strong>Google backup data:</strong> remains in the Google Drive app data area in your own Google account until you delete it or revoke access.</li>
+                                <li><strong>Encrypted sync data:</strong> remains stored until you delete it or revoke access from your account settings.</li>
                                 <li><strong>Subscription, referral, analytics, and support records:</strong> may be retained for operational, accounting, fraud-prevention, support, or legal reasons for as long as reasonably necessary.</li>
                             </ul>
                             <p>
@@ -139,10 +139,10 @@ export default function PrivacyPolicy() {
                                 <li>request correction of inaccurate information,</li>
                                 <li>object to certain processing,</li>
                                 <li>request deletion where appropriate, and</li>
-                                <li>withdraw optional permissions such as Google-connected backup.</li>
+                                <li>withdraw optional permissions such as encrypted sync.</li>
                             </ul>
                             <p>
-                                In practice, many payroll records are under your direct control because they are stored locally on your device or in your own Google account. You can also remove local data in-app or revoke Google access through your Google account settings.
+                                In practice, many payroll records are under your direct control because they are stored locally on your device or in your encrypted sync storage. You can also remove local data in-app or disable sync through your account settings.
                             </p>
                         </Section>
 

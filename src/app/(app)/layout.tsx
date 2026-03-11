@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { GoogleWrapper } from "@/components/google-wrapper";
 import { PwaInstallTracking } from "@/components/PwaInstallTracking";
 import { AppShell } from "./app-shell";
 import { Suspense } from "react";
@@ -73,11 +72,11 @@ export default function AppRootLayout({
                 </Suspense>
                 {/* PWA install tracking */}
                 <PwaInstallTracking />
-                <GoogleWrapper>
+                <>
                     <ThemeProvider>
                         <AppShell>{children}</AppShell>
                     </ThemeProvider>
-                </GoogleWrapper>
+                </>
             </body>
         </html>
     );

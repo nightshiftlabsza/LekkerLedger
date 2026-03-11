@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { GoogleWrapper } from "@/components/google-wrapper";
 import { ToastProvider } from "@/components/ui/toast";
 import { Suspense } from "react";
 import { AnalyticsPageView } from "@/components/AnalyticsPageView";
@@ -72,14 +71,14 @@ export default function RootLayout({
         {/* PWA install tracking (beforeinstallprompt + appinstalled) */}
         <PwaInstallTracking />
 
-        <GoogleWrapper>
+        <>
           <ThemeProvider>
             <ToastProvider>
               {children}
               <MarketingFooter />
             </ToastProvider>
           </ThemeProvider>
-        </GoogleWrapper>
+        </>
       </body>
     </html>
   );

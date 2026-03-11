@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { startTrialCheckout, toErrorResponse, verifyGoogleUserFromRequest } from "@/lib/billing-server";
+import { startTrialCheckout, toErrorResponse, verifyUserFromRequest } from "@/lib/billing-server";
 
 export async function POST(request: Request) {
     try {
-        const user = await verifyGoogleUserFromRequest(request);
+        const user = await verifyUserFromRequest(request);
         const body = await request.json() as {
             planId?: "standard" | "pro";
             billingCycle?: "monthly" | "yearly";

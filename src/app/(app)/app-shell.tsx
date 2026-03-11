@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { GoogleOAuthProvider, googleLogout } from "@react-oauth/google";
 import { env } from "@/lib/env";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
@@ -16,11 +15,11 @@ import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
 import { getHouseholds, getSettings, saveHousehold, saveSettings, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
-import { canUseAutoBackup, canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
-import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail, hasStoredGoogleDriveScope } from "@/lib/google-session";
-import { syncDataToDrive, performSmartSyncCheck, syncDataFromDrive } from "@/lib/google-drive";
+import { canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
-import { usePaidLoginActivation } from "@/components/paid-login-button";
+import { AppModeProvider, useAppMode } from "@/lib/app-mode";
+import { RecoveryGate } from "@/components/encryption/recovery-gate";
+import { SyncIndicator } from "@/components/sync-indicator";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -43,10 +42,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const settingsRef = React.useRef<typeof settings>(null);
     settingsRef.current = settings;
     const previousNetworkRef = React.useRef(network);
-    const autoBackupInFlightRef = React.useRef(false);
-    const sessionSyncPerformedRef = React.useRef(false);
-    const lastSyncAttemptRef = React.useRef<number>(0);
-    const pendingSyncTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
     React.useEffect(() => {
         if (network === "offline" && previousNetworkRef.current !== "offline") {
@@ -86,108 +81,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
-    // Auto-Sync: only re-runs when network changes or settings first loads.
-    // Uses settingsRef so data writes don't re-trigger this effect and cancel pending syncs.
-    React.useEffect(() => {
-        if (!settingsReady || network !== "online") return;
-
-        const s = settingsRef.current;
-        if (!s) return;
-
-        if (!canUseAutoBackup(getUserPlan(s))) return;
-
-        const accessToken = getStoredGoogleAccessToken();
-        if (!accessToken || !hasStoredGoogleDriveScope()) return;
-
-        // Auto-enable sync flags if they're off (happens silently in the background)
-        if (!s.googleSyncEnabled || !s.autoBackupEnabled) {
-            const nextSettings = { ...s, googleSyncEnabled: true, autoBackupEnabled: true };
-            settingsRef.current = nextSettings;
-            setSettingsState(nextSettings);
-            void saveSettings(nextSettings);
-        }
-
-        const performSync = async (reason: string) => {
-            if (autoBackupInFlightRef.current) return;
-
-            const isDataChange = reason === "data-change";
-            const now = Date.now();
-            // Throttle session-start and periodic checks, but always allow data-change backups
-            if (!isDataChange && sessionSyncPerformedRef.current && now - lastSyncAttemptRef.current < 5 * 60 * 1000) return;
-
-            // Re-read token each time in case session changed
-            const token = getStoredGoogleAccessToken();
-            if (!token || !hasStoredGoogleDriveScope()) return;
-
-            autoBackupInFlightRef.current = true;
-            lastSyncAttemptRef.current = now;
-            sessionSyncPerformedRef.current = true;
-            console.log(`Auto-sync: Triggering sync (${reason})`);
-
-            try {
-                // Data-change: user just modified data locally — always back up, no need to check remote.
-                if (isDataChange) {
-                    await syncDataToDrive(token);
-                    return;
-                }
-
-                // Session-start / periodic: check remote state before deciding what to do.
-                const check = await performSmartSyncCheck(token);
-
-                if (check.recommendation === "RESTORE") {
-                    console.log("Auto-sync: Restoring data from Drive backup");
-                    await syncDataFromDrive(token);
-                    window.location.reload();
-                    return;
-                }
-
-                if (check.recommendation === "BACKUP") {
-                    await syncDataToDrive(token);
-                    return;
-                }
-
-                if (check.recommendation === "CONFLICT") {
-                    setSyncConflict(true);
-                    return;
-                }
-
-                // UP_TO_DATE — nothing to do
-            } catch (err) {
-                console.error("Auto-sync failed", err);
-            } finally {
-                autoBackupInFlightRef.current = false;
-            }
-        };
-
-        // 1. Session start sync
-        if (!sessionSyncPerformedRef.current) {
-            void performSync("session-start");
-        }
-
-        // 2. Event-driven sync — debounced 5s after a change.
-        // Cleanup does NOT clear pendingSyncTimeoutRef so in-flight debounces survive
-        // settings re-renders (the previous bug: cleanup was cancelling the timer).
-        const unsubscribe = subscribeToDataChanges(() => {
-            if (pendingSyncTimeoutRef.current) clearTimeout(pendingSyncTimeoutRef.current);
-            pendingSyncTimeoutRef.current = setTimeout(() => {
-                void performSync("data-change");
-            }, 5_000);
-        });
-
-        // 3. Periodic sync every 5 minutes
-        const interval = setInterval(() => {
-            void performSync("periodic-interval");
-        }, 5 * 60 * 1000);
-
-        return () => {
-            unsubscribe();
-            clearInterval(interval);
-            // Intentionally NOT clearing pendingSyncTimeoutRef here.
-            // Settings updates used to re-trigger this effect and cancel the debounce,
-            // preventing syncs from ever firing. The ref outlives this effect instance.
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [settingsReady, network]);
+    // TODO: In Batch 2, implement Supabase-based encrypted sync here
 
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && (sync === "error" || syncConflict) && !syncBannerDismissed;
@@ -254,144 +148,140 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 
     return (
-        <ToastProvider>
-            <div className="min-h-screen flex flex-col lg:pl-64 min-[1600px]:lg:pl-72" style={{ backgroundColor: "var(--bg)" }}>
-                <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)] shadow-[var(--shadow-sm)] safe-area-pt">
-                    <div className="content-container-wide flex w-full items-center justify-between px-3 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-3">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                            <SideDrawer open={moreOpen} onOpenChange={setMoreOpen} showButton={true} />
-                            <Link href="/dashboard" className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-1.5 sm:px-2.5 py-1.5 sm:py-2 outline-none shadow-[0_6px_18px_rgba(16,24,40,0.05)] transition-all hover:border-[var(--primary)]/20 lg:hidden">
-                                <Logo
-                                    iconClassName="h-6 sm:h-9 w-6 sm:w-9"
-                                    textClassName="text-[0.85rem] sm:text-[1.12rem]"
-                                    className="gap-1.5 sm:gap-2.5"
-                                />
-                            </Link>
-                        </div>
+        <AppModeProvider>
+            <ToastProvider>
+                <div className="min-h-screen flex flex-col lg:pl-64 min-[1600px]:lg:pl-72" style={{ backgroundColor: "var(--bg)" }}>
+                    <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)] shadow-[var(--shadow-sm)] safe-area-pt">
+                        <div className="content-container-wide flex w-full items-center justify-between px-3 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-3">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                <SideDrawer open={moreOpen} onOpenChange={setMoreOpen} showButton={true} />
+                                <Link href="/dashboard" className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-1.5 sm:px-2.5 py-1.5 sm:py-2 outline-none shadow-[0_6px_18px_rgba(16,24,40,0.05)] transition-all hover:border-[var(--primary)]/20 lg:hidden">
+                                    <Logo
+                                        iconClassName="h-6 sm:h-9 w-6 sm:w-9"
+                                        textClassName="text-[0.85rem] sm:text-[1.12rem]"
+                                        className="gap-1.5 sm:gap-2.5"
+                                    />
+                                </Link>
+                            </div>
 
-                        <div className="ml-auto flex items-center gap-1.5 sm:gap-2 lg:gap-3">
-                            {network === "offline" && (
-                                <span className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--focus)]/20 bg-[var(--primary)]/10 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold text-[var(--focus)]">
-                                    <CloudOff className="h-2.5 sm:h-3 w-2.5 sm:w-3" /> <span className="hidden sm:inline">Offline</span>
-                                </span>
-                            )}
+                            <div className="ml-auto flex items-center gap-1.5 sm:gap-2 lg:gap-3">
+                                {network === "offline" && (
+                                    <span className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--focus)]/20 bg-[var(--primary)]/10 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold text-[var(--focus)]">
+                                        <CloudOff className="h-2.5 sm:h-3 w-2.5 sm:w-3" /> <span className="hidden sm:inline">Offline</span>
+                                    </span>
+                                )}
 
-                            <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
-                                <GoogleOAuthProvider clientId={env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "placeholder"}>
-                                    <AccountMenu settings={settings} />
-                                </GoogleOAuthProvider>
-                                <HouseholdSwitcher
-                                    households={households}
-                                    activeId={activeHouseholdId}
-                                    isPro={multiHouseholdEnabled}
-                                    onSwitch={handleSwitchHousehold}
-                                    onAddHousehold={handleAddHousehold}
-                                    variant="account"
-                                    className="hidden lg:block"
-                                />
+                                <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
+                                        <SyncIndicator />
+                                        <AccountMenu settings={settings} />
+                                    <HouseholdSwitcher
+                                        households={households}
+                                        activeId={activeHouseholdId}
+                                        isPro={multiHouseholdEnabled}
+                                        onSwitch={handleSwitchHousehold}
+                                        onAddHousehold={handleAddHousehold}
+                                        variant="account"
+                                        className="hidden lg:block"
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </header>
-                {showOfflineBanner && (
-                    <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold"
-                        style={{ backgroundColor: "var(--accent-subtle)", borderBottom: "1px solid var(--border)", color: "var(--primary)" }}>
-                        <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
-                            <div className="flex items-center gap-2">
-                                <CloudOff className="h-4 w-4 shrink-0" />
-                                <span>
-                                    Saved locally on this device{lastLocalSaveLabel ? ` at ${lastLocalSaveLabel}` : ""}. Backup will resume when you&apos;re online.
-                                </span>
+                    </header>
+                    {showOfflineBanner && (
+                        <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold"
+                            style={{ backgroundColor: "var(--accent-subtle)", borderBottom: "1px solid var(--border)", color: "var(--primary)" }}>
+                            <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
+                                <div className="flex items-center gap-2">
+                                    <CloudOff className="h-4 w-4 shrink-0" />
+                                    <span>
+                                        Saved locally on this device{lastLocalSaveLabel ? ` at ${lastLocalSaveLabel}` : ""}. Backup will resume when you&apos;re online.
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => setOfflineBannerDismissed(true)}
+                                    aria-label="Dismiss offline notice"
+                                    className="shrink-0 rounded p-0.5 hover:bg-[var(--primary)]/20 transition-colors"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setOfflineBannerDismissed(true)}
-                                aria-label="Dismiss offline notice"
-                                className="shrink-0 rounded p-0.5 hover:bg-[var(--primary)]/20 transition-colors"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {showSyncBanner && (
-                    <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold" style={{ backgroundColor: "rgba(180,35,24,0.06)", color: "var(--danger)", borderBottom: "1px solid var(--border)" }}>
-                        <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
-                            <div className="flex items-center gap-2">
-                                <AlertOctagon className="h-4 w-4 shrink-0" />
-                                <span>
-                                    {syncConflict 
-                                        ? "Sync conflict: Your Google backup and this device both have new data. Decide which to keep in Settings > Google Sync."
-                                        : "Google backup needs attention. Reconnect your Google account or Drive access in Settings."}
-                                </span>
+                    {showSyncBanner && (
+                        <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold" style={{ backgroundColor: "rgba(180,35,24,0.06)", color: "var(--danger)", borderBottom: "1px solid var(--border)" }}>
+                            <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
+                                <div className="flex items-center gap-2">
+                                    <AlertOctagon className="h-4 w-4 shrink-0" />
+                                    <span>
+                                        {syncConflict 
+                                            ? "Sync conflict detected. Resolve in Settings."
+                                            : "Sync needs attention. Check Settings for details."}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => setSyncBannerDismissed(true)}
+                                    aria-label="Dismiss sync notice"
+                                    className="shrink-0 rounded p-0.5 hover:bg-[var(--danger)]/10 transition-colors"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setSyncBannerDismissed(true)}
-                                aria-label="Dismiss sync notice"
-                                className="shrink-0 rounded p-0.5 hover:bg-[var(--danger)]/10 transition-colors"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {showPaymentsBanner && (
-                    <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold" style={{ backgroundColor: "rgba(180,35,24,0.08)", color: "var(--danger)", borderBottom: "1px solid rgba(180,35,24,0.22)" }}>
-                        <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
-                            <div className="flex items-center gap-2">
-                                <CreditCard className="h-4 w-4 shrink-0" />
-                                <span>Payments system currently unavailable. Check back later.</span>
+                    {showPaymentsBanner && (
+                        <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold" style={{ backgroundColor: "rgba(180,35,24,0.08)", color: "var(--danger)", borderBottom: "1px solid rgba(180,35,24,0.22)" }}>
+                            <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
+                                <div className="flex items-center gap-2">
+                                    <CreditCard className="h-4 w-4 shrink-0" />
+                                    <span>Payments system currently unavailable. Check back later.</span>
+                                </div>
+                                <button
+                                    onClick={() => setPaymentsBannerDismissed(true)}
+                                    aria-label="Dismiss payments notice"
+                                    className="shrink-0 rounded p-0.5 hover:bg-[var(--danger)]/10 transition-colors"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setPaymentsBannerDismissed(true)}
-                                aria-label="Dismiss payments notice"
-                                className="shrink-0 rounded p-0.5 hover:bg-[var(--danger)]/10 transition-colors"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                <main id="main-content" className="flex-1 py-4 sm:py-6 lg:py-8 content-container-wide w-full flex flex-col gap-4 sm:gap-6 lg:gap-8 pb-24 sm:pb-28 lg:pb-12 px-3 sm:px-6 lg:px-8 safe-area-pb">
-                    {children}
-                </main>
+                    <main id="main-content" className="flex-1 py-4 sm:py-6 lg:py-8 content-container-wide w-full flex flex-col gap-4 sm:gap-6 lg:gap-8 pb-24 sm:pb-28 lg:pb-12 px-3 sm:px-6 lg:px-8 safe-area-pb">
+                        <RecoveryGate>
+                            {children}
+                        </RecoveryGate>
+                    </main>
 
-                <GlobalCreateFAB />
-                <AddHouseholdDialog
-                    open={addHouseholdOpen}
-                    name={newHouseholdName}
-                    error={addHouseholdError}
-                    saving={addingHousehold}
-                    onNameChange={(value) => {
-                        setNewHouseholdName(value);
-                        if (addHouseholdError) setAddHouseholdError("");
-                    }}
-                    onClose={() => {
-                        if (addingHousehold) return;
-                        setAddHouseholdOpen(false);
-                        setAddHouseholdError("");
-                    }}
-                    onSubmit={() => void handleConfirmAddHousehold()}
-                />
-                <BottomNav onMore={() => setMoreOpen(true)} />
-            </div>
-        </ToastProvider>
+                    <GlobalCreateFAB />
+                    <AddHouseholdDialog
+                        open={addHouseholdOpen}
+                        name={newHouseholdName}
+                        error={addHouseholdError}
+                        saving={addingHousehold}
+                        onNameChange={(value) => {
+                            setNewHouseholdName(value);
+                            if (addHouseholdError) setAddHouseholdError("");
+                        }}
+                        onClose={() => {
+                            if (addingHousehold) return;
+                            setAddHouseholdOpen(false);
+                            setAddHouseholdError("");
+                        }}
+                        onSubmit={() => void handleConfirmAddHousehold()}
+                    />
+                    <BottomNav onMore={() => setMoreOpen(true)} />
+                </div>
+            </ToastProvider>
+        </AppModeProvider>
     );
 }
 
 function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
     const router = useRouter();
     const [open, setOpen] = React.useState(false);
-    const [googleEmail, setGoogleEmail] = React.useState<string | null>(null);
     const menuRef = React.useRef<HTMLDivElement | null>(null);
-    const { start, loading, statusMessage } = usePaidLoginActivation();
-
-    React.useEffect(() => {
-        if (typeof window === "undefined") return;
-        setGoogleEmail(getStoredGoogleEmail());
-    }, []);
 
     React.useEffect(() => {
         function handleClick(event: MouseEvent) {
@@ -410,23 +300,18 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
         };
     }, []);
 
-    const hasGoogleSession = typeof window !== "undefined" && !!getStoredGoogleAccessToken();
-    const googleState = hasGoogleSession
-        ? settings?.googleSyncEnabled
-            ? "Google backup on"
-            : "Google connected"
-        : "Not connected";
+    const { mode } = useAppMode();
 
-    const accountSummary = hasGoogleSession && googleEmail
-        ? `Signed in as ${googleEmail}.`
-        : "Connect your Google account to enable Drive backup and restore your data on this device.";
+    let accountState = "Local mode";
+    let accountSummary = "Your data is stored securely on this device. No cloud sync.";
 
-    const handleSignOut = () => {
-        googleLogout();
-        clearStoredGoogleSession();
-        setOpen(false);
-        router.push("/dashboard?signedOut=1");
-    };
+    if (mode === "account_locked") {
+        accountState = "Account Locked";
+        accountSummary = "Your encrypted data is paused until you provide your recovery key.";
+    } else if (mode === "account_unlocked") {
+        accountState = "Cloud Sync Active";
+        accountSummary = "Your data is securely encrypted and synced to the cloud.";
+    }
 
     return (
         <div className="relative" ref={menuRef}>
@@ -441,7 +326,7 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                 </div>
                 <div className="text-left hidden sm:block max-w-[100px] md:max-w-[140px]">
                     <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[var(--text-muted)] leading-none mb-0.5">Account</p>
-                    <p className="text-xs font-semibold text-[var(--text)] truncate">{hasGoogleSession && googleEmail ? googleEmail : googleState}</p>
+                    <p className="text-xs font-semibold text-[var(--text)] truncate">{accountState}</p>
                 </div>
                 <ChevronDown className="h-3 w-3 text-[var(--text-muted)] shrink-0 hidden sm:block" />
             </button>
@@ -450,7 +335,7 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                 <div className="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-[min(18rem,calc(100vw-1.5rem))] rounded-3xl border border-[var(--border)] bg-[var(--surface-raised)] p-3 shadow-[0_18px_48px_rgba(16,24,40,0.14)]">
                     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
                         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Current setup</p>
-                        <p className="mt-1 text-sm font-semibold text-[var(--text)]">{googleState}</p>
+                        <p className="mt-1 text-sm font-semibold text-[var(--text)]">{accountState}</p>
                         <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{accountSummary}</p>
                     </div>
 
@@ -466,39 +351,6 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                             />
                         ))}
                     </div>
-
-                    {hasGoogleSession ? (
-                        <button
-                            type="button"
-                            onClick={handleSignOut}
-                            className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-[var(--border)] px-4 py-3 text-left transition-colors hover:bg-[var(--surface-2)]"
-                        >
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--text-muted)]">
-                                <LogOut className="h-4 w-4" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-semibold text-[var(--text)]">Sign out of this session</p>
-                                <p className="text-xs text-[var(--text-muted)]">Stop Google access on this device without deleting your Drive backup.</p>
-                            </div>
-                        </button>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={() => void start()}
-                            disabled={loading}
-                            className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/5 px-4 py-3 text-left transition-all hover:bg-[var(--primary)]/10 disabled:opacity-50"
-                        >
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">
-                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CircleUserRound className="h-4 w-4" />}
-                            </div>
-                            <div>
-                                <p className="text-sm font-semibold text-[var(--text)]">
-                                    {loading ? (statusMessage || "Signing in...") : "Connect your Google account"}
-                                </p>
-                                <p className="text-xs text-[var(--text-muted)]">Sign in to restore your backup and enable automatic Drive sync.</p>
-                            </div>
-                        </button>
-                    )}
                 </div>
             )}
         </div>

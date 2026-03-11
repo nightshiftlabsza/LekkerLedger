@@ -71,7 +71,7 @@ export const ACCOUNT_MENU_LINKS: AppNavLink[] = [
     {
         href: "/upgrade",
         label: "Plans & billing",
-        sublabel: "Plans, pricing, and Google-connected backup",
+        sublabel: "Plans, pricing, and subscription management",
         icon: Sparkles,
     },
     {

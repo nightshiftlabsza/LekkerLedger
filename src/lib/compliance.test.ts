@@ -12,6 +12,7 @@ describe("Compliance Logic (SD7 & NMW)", () => {
         role: "Domestic Worker",
         hourlyRate: 30.23,
         phone: "",
+        email: "",
         address: "",
         startDate: "2026-01-01",
         ordinarilyWorksSundays: false,
@@ -31,6 +32,8 @@ describe("Compliance Logic (SD7 & NMW)", () => {
         deductions: {
             uifEmployee: 48.37,
             accommodation: undefined,
+            shortfall: 0,
+            advance: 0,
             other: 0,
             total: 48.37,
         },

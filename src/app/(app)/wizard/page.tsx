@@ -178,6 +178,7 @@ function WizardContent() {
                 daysWorked: Number(daysWorked) || 1,
                 shortFallHours: Number(shortFallHours) || 0,
                 hourlyRate: employee.hourlyRate,
+                advanceAmount: 0,
                 ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
                 ordinaryHoursPerDay: employee.ordinaryHoursPerDay ?? 8,
                 includeAccommodation,

@@ -19,6 +19,7 @@ export const EmployeeSchema = z.object({
     ordinarilyWorksSundays: z.boolean().default(false),
     ordinaryHoursPerDay: z.number().min(1).max(24).default(8),
     frequency: z.enum(["Weekly", "Fortnightly", "Monthly"]).default("Monthly"),
+    updatedAt: z.string().optional(),
 }).superRefine((employee, ctx) => {
     const referenceDate = employee.startDate ? new Date(employee.startDate) : new Date();
     const nmwDate = Number.isNaN(referenceDate.getTime()) ? new Date() : referenceDate;
@@ -68,6 +69,7 @@ export const PayslipInputSchema = z.object({
     annualLeaveTaken: z.number().min(0).default(0),
     sickLeaveTaken: z.number().min(0).default(0),
     familyLeaveTaken: z.number().min(0).default(0),
+    updatedAt: z.string().optional(),
 }).superRefine((payslip, ctx) => {
     const referenceDate = new Date(payslip.payPeriodEnd);
     const nmwDate = Number.isNaN(referenceDate.getTime()) ? new Date() : referenceDate;
@@ -138,6 +140,7 @@ export const LeaveRecordSchema = z.object({
     paid: z.boolean().optional(),
     allocations: z.array(LeaveAllocationSchema).optional(),
     note: z.string().optional().default(""),
+    updatedAt: z.string().optional(),
 });
 
 export type LeaveRecord = z.infer<typeof LeaveRecordSchema>;
@@ -149,6 +152,7 @@ export const LeaveCarryOverSchema = z.object({
     fromCycleEnd: z.string(),
     daysCarried: z.number().min(0),
     daysUsedFromCarry: z.number().min(0).default(0),
+    updatedAt: z.string().optional(),
 });
 
 export type LeaveCarryOver = z.infer<typeof LeaveCarryOverSchema>;
@@ -173,10 +177,7 @@ export const EmployerSettingsSchema = z.object({
     simpleMode: z.boolean().default(false),
     advancedMode: z.boolean().default(false),
     density: z.enum(["comfortable", "compact"]).default("comfortable"),
-    googleSyncEnabled: z.boolean().default(false),
-    autoBackupEnabled: z.boolean().default(false),
-    lastBackupTimestamp: z.string().optional(),
-    googleAuthToken: z.string().optional(),
+
     piiObfuscationEnabled: z.boolean().default(true),
     installationId: z.string().default(""),
     usageHistory: z.array(z.string()).default([]),
@@ -190,6 +191,7 @@ export const HouseholdSchema = z.object({
     id: z.string(),
     name: z.string().min(1, "Household name required"),
     createdAt: z.string(), // ISO date
+    updatedAt: z.string().optional(),
 });
 
 export type Household = z.infer<typeof HouseholdSchema>;
@@ -246,7 +248,7 @@ export const DocumentMetaSchema = z.object({
     vaultCategory: z.enum(["contracts", "employee-docs", "admin", "compliance", "other"]).optional(),
     sizeBytes: z.number().optional(),
     createdAt: z.string(), // ISO date
-    driveFileId: z.string().optional(),
+
 });
 
 export type DocumentMeta = z.infer<typeof DocumentMetaSchema>;
@@ -320,7 +322,7 @@ export const AuditLogSchema = z.object({
         "CREATE_PAYSLIP", "DELETE_PAYSLIP",
         "CREATE_EMPLOYEE", "DELETE_EMPLOYEE",
         "CREATE_LEAVE_RECORD", "DELETE_LEAVE_RECORD",
-        "UPDATE_SETTINGS", "SYNC_DRIVE",
+        "UPDATE_SETTINGS",
         "CREATE_PAY_PERIOD", "LOCK_PAY_PERIOD", "DELETE_PAY_PERIOD",
         "EXPORT_UFILING", "EXPORT_ROE", "EXPORT_COIDA", "EXPORT_DATA", "IMPORT_DATA", "DELETE_ALL_DATA",
         "SWITCH_HOUSEHOLD",

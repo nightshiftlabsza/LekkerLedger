@@ -40,8 +40,6 @@ import {
     canUseYearEndSummary,
     getUserPlan,
 } from "@/lib/entitlements";
-import { deleteDriveFile, uploadVaultFileToDrive } from "@/lib/google-drive";
-import { getStoredGoogleAccessToken } from "@/lib/google-session";
 import { generateEmploymentContract, buildContractFileName } from "@/lib/contracts/pdfGenerator";
 
 import {
@@ -363,8 +361,7 @@ export default function DocumentsPage() {
                 return;
             }
 
-            const accessToken = getStoredGoogleAccessToken();
-            const blob = await getDocumentFile(doc.id, { accessToken });
+            const blob = await getDocumentFile(doc.id);
             if (!blob) {
                 throw new Error("That file is not available yet.");
             }
@@ -491,43 +488,9 @@ export default function DocumentsPage() {
                 await saveDocumentMeta(nextDocument);
                 await updateContractStatus(targetContract.id, "signed_copy_stored", { signedDocumentId: id });
                 setDocuments((current) => [nextDocument, ...current]);
-
-                // Also back up to Google Drive if connected
-                const accessToken = getStoredGoogleAccessToken();
-                if (accessToken) {
-                    try {
-                        const driveFileId = await uploadVaultFileToDrive(accessToken, file, {
-                            documentId: id,
-                            fileName: file.name,
-                            mimeType: file.type || "application/pdf",
-                        });
-                        await saveDocumentMeta({ ...nextDocument, driveFileId });
-                        toast("Signed copy saved and backed up to Google Drive.", "success");
-                    } catch {
-                        toast("Signed copy saved locally. Google Drive backup failed — retry in Settings.", "error");
-                    }
-                } else {
-                    toast("Signed copy saved. Connect Google Drive in Settings for secure cloud backup.", "info");
-                }
+                toast("Signed copy saved.", "success");
                 return;
             }
-
-            if (!vaultUploadsAllowed) {
-                router.push(vaultUpgradeHref);
-                return;
-            }
-
-            const accessToken = getStoredGoogleAccessToken();
-            if (!accessToken) {
-                toast("Reconnect Google in Settings before uploading to the Vault.", "error");
-                return;
-            }
-
-            const driveFileId = await uploadVaultFileToDrive(accessToken, file, {
-                documentId: id,
-                fileName: file.name,
-                mimeType: file.type || "application/octet-stream",
-            });
 
             const nextDocument: DocumentMeta = {
                 id,
@@ -539,13 +502,12 @@ export default function DocumentsPage() {
                 vaultCategory: nextVaultCategory,
                 sizeBytes: file.size,
                 createdAt,
-                driveFileId,
             };
 
             await saveDocumentFile(id, file);
             await saveDocumentMeta(nextDocument);
             setDocuments((current) => [nextDocument, ...current]);
-            toast("Document uploaded to Vault.", "success");
+            toast("Document uploaded.", "success");
         } catch (error) {
             toast(error instanceof Error ? error.message : "Could not save that file.", "error");
         } finally {
@@ -561,13 +523,6 @@ export default function DocumentsPage() {
 
         try {
             setDeletingDocumentId(document.id);
-            if (document.driveFileId) {
-                const accessToken = getStoredGoogleAccessToken();
-                if (!accessToken) {
-                    throw new Error("Reconnect Google before deleting Vault files.");
-                }
-                await deleteDriveFile(accessToken, document.driveFileId);
-            }
             await deleteDocumentMeta(document.id);
             setDocuments((current) => current.filter((entry) => entry.id !== document.id));
             if (previewDoc?.id === document.id) {
@@ -783,8 +738,8 @@ export default function DocumentsPage() {
                                     </div>
                                 )}
 
-                                {(vaultUploadsAllowed || vaultDocuments.some((document) => document.driveFileId)) && (
-                                    <p className="text-xs text-[var(--text-muted)]">Your files are stored in your Google account.</p>
+                                {(vaultUploadsAllowed) && (
+                                    <p className="text-xs text-[var(--text-muted)]">Your files are stored on this device.</p>
                                 )}
                             </CardContent>
                         </Card>
@@ -907,8 +862,8 @@ export default function DocumentsPage() {
                                             label: "Storage",
                                             render: (doc) => (
                                                 <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
-                                                    {doc.driveFileId ? <Cloud className="h-3 w-3 text-[var(--primary)]" /> : <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />}
-                                                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">{doc.driveFileId ? "Drive backup" : "This device"}</span>
+                                                    <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
+                                                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
                                                 </div>
                                             ),
                                         },
@@ -993,8 +948,8 @@ export default function DocumentsPage() {
                                             label: "Storage",
                                             render: (doc) => (
                                                 <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
-                                                    {doc.driveFileId ? <Cloud className="h-3 w-3 text-[var(--primary)]" /> : <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />}
-                                                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">{doc.driveFileId ? "Drive backup" : "This device"}</span>
+                                                    <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
+                                                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
                                                 </div>
                                             ),
                                         },
@@ -1066,7 +1021,7 @@ export default function DocumentsPage() {
                                 href={vaultUpgradeHref}
                                 eyebrow="Pro"
                                 benefits={[
-                                    "Private document vault in your Google account",
+                                    "Private document vault with encrypted sync",
                                     "All uploaded files stay in one place",
                                     "Upload general household employment paperwork",
                                 ]}
@@ -1103,8 +1058,8 @@ export default function DocumentsPage() {
                                     label: "Storage",
                                     render: (doc) => (
                                         <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
-                                            {doc.driveFileId ? <Cloud className="h-3 w-3 text-[var(--primary)]" /> : <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />}
-                                            <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">{doc.driveFileId ? "Google account" : "This device"}</span>
+                                            <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
+                                            <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
                                         </div>
                                     ),
                                 },

@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { getSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
 import { cancelSubscriptionRenewal, fetchBillingAccount } from "@/lib/billing-client";
-import { hasStoredGoogleSession } from "@/lib/google-session";
+// TODO: Batch 2 — gate referral code loading behind Supabase auth
 import { type BillingCycle, PLANS, type PlanId } from "@/src/config/plans";
 import { EmployerSettings } from "@/lib/schema";
 import { getUserPlan, ENTITLEMENTS, type FeatureKey } from "@/lib/entitlements";
@@ -53,15 +53,14 @@ function UpgradePageContent() {
             setBillingCycle(requestedBilling === "monthly" ? "monthly" : requestedBilling === "yearly" ? "yearly" : currentSettings.billingCycle === "monthly" ? "monthly" : "yearly");
             setReferralCode(requestedReferral ? requestedReferral.toUpperCase() : "");
             // Load the logged-in user's own referral code so they can share it
-            if (hasStoredGoogleSession()) {
-                try {
-                    const account = await fetchBillingAccount();
-                    if (account?.account.referralCode) {
-                        setOwnReferralCode(account.account.referralCode);
-                    }
-                } catch {
-                    // Non-critical — referral code display is optional
+            // TODO: Batch 2 — gate behind Supabase auth session check
+            try {
+                const account = await fetchBillingAccount();
+                if (account?.account.referralCode) {
+                    setOwnReferralCode(account.account.referralCode);
                 }
+            } catch {
+                // Non-critical — referral code display is optional
             }
         }
         void load();
@@ -129,7 +128,7 @@ function UpgradePageContent() {
         <div className="space-y-8 pb-20">
             <PageHeader
                 title="Plans & billing"
-                subtitle="Choose the level of Google-connected backup, archive depth, and household control you need."
+                subtitle="Choose the level of backup, archive depth, and household control you need."
             />
 
             <div className="mx-auto max-w-6xl space-y-10">
@@ -257,10 +256,10 @@ function UpgradePageContent() {
                         <CardContent className="space-y-4 p-6 text-sm">
                             <h3 className="type-h3" style={{ color: "var(--text)" }}>What changes on paid plans</h3>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Paid plans are for households that want less repeated admin: Google-connected backup across browsers and devices, exports, deeper archives, and cleaner annual paperwork. They are meant to cost less than the time or outside help it usually takes to reconstruct records later.
+                                Paid plans are for households that want less repeated admin: encrypted sync across browsers and devices, exports, deeper archives, and cleaner annual paperwork. They are meant to cost less than the time or outside help it usually takes to reconstruct records later.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Standard is the paid plan for most households that want organised records, Google-connected backup, and annual paperwork. Pro is for households that want deeper history and more control, with multi-household support and unlimited employees when you need more headroom.
+                                Standard is the paid plan for most households that want organised records, encrypted sync, and annual paperwork. Pro is for households that want deeper history and more control, with multi-household support and unlimited employees when you need more headroom.
                             </p>
                         </CardContent>
                     </Card>

@@ -4,17 +4,10 @@ import { calculatePayslip, getNMW } from "./calculator";
 import { format } from "date-fns";
 import { loadPdfFonts } from "./pdf-fonts";
 import { drawPdfBrandLockup } from "./pdf-brand";
+import { PDF_COLORS as SHARED_PDF_COLORS } from "./pdf-theme";
 export const PDF_COLORS = {
-    PRIMARY_GREEN: rgb(0, 122 / 255, 77 / 255),
+    ...SHARED_PDF_COLORS,
     PRIMARY_BLUE: rgb(62 / 255, 95 / 255, 104 / 255),
-    TEXT: rgb(16 / 255, 24 / 255, 40 / 255),
-    TEXT_MUTED: rgb(71 / 255, 84 / 255, 103 / 255),
-    BORDER: rgb(230 / 255, 224 / 255, 214 / 255),
-    PAPER: rgb(250 / 255, 247 / 255, 240 / 255),
-    SURFACE: rgb(1, 1, 1), // White surface for cards/elements
-    RULING_LINE: rgb(0.9, 0.88, 0.84),
-    DANGER: rgb(180 / 255, 35 / 255, 24 / 255),
-    FOCUS_GOLD: rgb(196 / 255, 122 / 255, 28 / 255),
 };
 
 export const PDF_MARGIN = 50;
@@ -58,9 +51,6 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         legalDisclaimer: "Prepared from payroll information entered by the employer. Review against official requirements where needed.",
         minWage: "Min Wage",
         proudlySA: "",
-        legal: "RECORD",
-        compliant: "REVIEW",
-        bcea_sd7: "PAYROLL"
     },
     zu: {
         payslip: "ISILIPHU SEHOLO",
@@ -90,12 +80,9 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         annual: "Lonyaka",
         sick: "Lokugula",
         family: "Lomndeni",
-        legalDisclaimer: "SENZIWE ngokuhambisana ne-Sectoral Determination 7 kanye ne-BCEA.",
+        legalDisclaimer: "Kulungiswe ngolwazi lwe-payroll olufakwe ngumqashi. Buyekeza nezimfuneko ezisemthethweni lapho kudingeka.",
         minWage: "Iholo elincane",
         proudlySA: "",
-        legal: "KUMTHETHO",
-        compliant: "KUYAHHAMBISANA",
-        bcea_sd7: "PAYROLL"
     },
     xh: {
         payslip: "ISILIPHU SOMVUZO",
@@ -125,12 +112,9 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
         annual: "Yonyaka",
         sick: "Yokugula",
         family: "Yosapho",
-        legalDisclaimer: "SENZIWE ngokungqinelana neSectoral Determination 7 kunye neBCEA.",
+        legalDisclaimer: "Ilungiswe ngolwazi lwe-payroll olungeniswe ngumqeshi. Phonononga iimfuno ezisemthethweni xa kuyimfuneko.",
         minWage: "Umvuzo ophantsi",
         proudlySA: "",
-        legal: "KUSEMthethweni",
-        compliant: "IYAQHUBEKA",
-        bcea_sd7: "PAYROLL"
     }
 };
 

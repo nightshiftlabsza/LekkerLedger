@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarketingBillingToggle, MarketingPlanCards } from "@/components/marketing/pricing";
-import { useInlinePaidPlanCheckout } from "@/components/billing/inline-paid-plan-checkout";
 import { calculatePayslip } from "@/lib/calculator";
 import { getNMWForDate } from "@/lib/legal/registry";
 import type { Employee, PayslipInput } from "@/lib/schema";
@@ -537,6 +536,8 @@ function WhatYouKeep() {
     );
 }
 
+import { useInlinePaidPlanCheckout } from "@/components/billing/inline-paid-plan-checkout";
+
 function PricingPreview() {
     const [billingCycle, setBillingCycle] = useMarketingBillingCycle();
     const { startCheckout, loadingPlanId, dialog } = useInlinePaidPlanCheckout({ billingCycle });
@@ -592,7 +593,7 @@ function FAQPreview() {
         },
         {
             q: "Are employee records stored on LekkerLedger servers?",
-            a: "Employee records stay on your device by default. Paid plans can add optional backup in the Google Drive app data area in your own Google account.",
+            a: "Employee records stay on your device by default. Paid plans can add optional end-to-end encrypted cloud sync to keep your records accessible across all your devices.",
         },
         {
             q: "Can I start with one employee, and what changes when I upgrade?",
@@ -600,7 +601,7 @@ function FAQPreview() {
         },
         {
             q: "What happens if I change devices later?",
-            a: "Free is simplest on one device. Paid backup lets you restore records later in your own Google account when you change browsers or devices.",
+            a: "Free is simplest on one device. Paid cloud sync lets you restore records instantly on any new browser or device after logging into your LekkerLedger account.",
         },
     ];
 

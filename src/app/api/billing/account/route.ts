@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getBillingAccountForUser, toErrorResponse, verifyGoogleUserFromRequest } from "@/lib/billing-server";
+import { getBillingAccountForUser, toErrorResponse, verifyUserFromRequest } from "@/lib/billing-server";
 
 export async function GET(request: Request) {
     try {
-        const user = await verifyGoogleUserFromRequest(request);
+        const user = await verifyUserFromRequest(request);
         const billingAccount = await getBillingAccountForUser(user.userId);
 
         return NextResponse.json({

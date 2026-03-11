@@ -22,7 +22,7 @@ import { getUserPlan } from "@/lib/entitlements";
 import { Employee, PayPeriod, EmployerSettings, DocumentMeta, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { InlinePlanCheckoutButton } from "@/components/billing/inline-paid-plan-checkout";
-import { PaidLoginGate } from "@/components/paid-login-button";
+
 
 interface EmployeeSummary {
     employee: Employee;
@@ -96,7 +96,7 @@ function DashboardContent() {
         return (
             <>
                 <PageHeader title="Dashboard" subtitle="Completing your setup." />
-                <PaidLoginGate nextPath={paidLoginNext} skipPaidChecks={skipPaidChecks} />
+                <p className="text-sm text-[var(--text-muted)]">Completing your setup...</p>
             </>
         );
     }
@@ -212,7 +212,7 @@ function DashboardContent() {
                     {/* Upgrade nudge for free users */}
                     {getUserPlan(settings).id === "free" && (
                         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-3 sm:p-4 space-y-2">
-                            <p className="text-xs font-semibold text-[var(--text)]">Standard adds 2 more workers, Google Drive backup, and leave tracking — R29/month.</p>
+                            <p className="text-xs font-semibold text-[var(--text)]">Standard adds 2 more workers, encrypted sync, and leave tracking — R29/month.</p>
                             <InlinePlanCheckoutButton
                                 planId="standard"
                                 billingCycle="monthly"
@@ -247,8 +247,7 @@ function DashboardContent() {
 }
 
 function ActivationAlert({ syncState, settings }: { syncState: string | null; settings: EmployerSettings | null }) {
-    const lastBackupTime = settings?.lastBackupTimestamp ? new Date(settings.lastBackupTimestamp) : null;
-    const backupLabel = lastBackupTime ? "just now" : "not yet";
+    const backupLabel = "not yet";
 
     return (
         <Card className="overflow-hidden border-2 border-[var(--primary)] bg-[var(--surface-raised)] shadow-lg">
@@ -406,7 +405,7 @@ function OnboardingChecklist({ employeeCount, isPayrollStarted, settings }: { em
         },
         {
             label: "Set hourly rates & schedule",
-            description: "Required for legal payslip calculations.",
+            description: "Required for accurate payslip calculations.",
             completed: employeeCount > 0, // Simplified check
             href: "/employees"
         },
@@ -423,7 +422,7 @@ function OnboardingChecklist({ employeeCount, isPayrollStarted, settings }: { em
             <CardContent className="p-4 sm:p-6 space-y-3">
                 <div className="flex items-center justify-between">
                     <h3 className="text-base sm:text-lg font-black text-[var(--text)]">Next Steps</h3>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Setup Progress</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-[var(--text-muted)]">Setup Progress</p>
                 </div>
                 <div className="space-y-3">
                     {steps.map((step, i) => (
@@ -451,17 +450,17 @@ function HouseholdSnapshot({ employeeCount, documentCount, settings }: { employe
         <Card className="glass-panel border-none shadow-sm outline outline-1 outline-[var(--border)]">
             <CardContent className="p-4 sm:p-6 space-y-4">
                 <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-0.5">Snapshot</p>
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-0.5">Snapshot</p>
                     <h3 className="text-base sm:text-lg font-black text-[var(--text)]">Household Metrics</h3>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Active Employees</p>
+                        <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Active Employees</p>
                         <p className="text-2xl font-black text-[var(--text)]">{employeeCount}</p>
                     </div>
                     <div className="space-y-1">
-                        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Documents</p>
+                        <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Documents</p>
                         <p className="text-2xl font-black text-[var(--text)]">{documentCount}</p>
                     </div>
                 </div>
@@ -469,7 +468,7 @@ function HouseholdSnapshot({ employeeCount, documentCount, settings }: { employe
                 <div className="pt-4 border-t border-[var(--border)]">
                     <div className="flex items-center justify-between gap-3 text-xs">
                         <span className="font-bold text-[var(--text-muted)]">Storage & Sync</span>
-                        <SyncStatusBadge state={settings?.googleSyncEnabled ? "synced" : "disconnected"} />
+                        <SyncStatusBadge state={"disconnected"} />
                     </div>
                 </div>
             </CardContent>
@@ -515,7 +514,7 @@ function RecentRecordsArea({ recentDocs, hasEmployees }: { recentDocs: DocumentM
             <CardContent className="p-4 sm:p-6 space-y-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-0.5">Recent Activity</p>
+                        <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-0.5">Recent Activity</p>
                         <h3 className="text-base sm:text-lg font-black text-[var(--text)]">Recent Records</h3>
                     </div>
                     {recentDocs.length > 0 && (
@@ -606,7 +605,7 @@ function ComplianceCard() {
                 <div className="space-y-3">
                     <div>
                         <h4 className="type-body font-bold text-[var(--text)]">Compensation Fund ROE</h4>
-                        <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                        <p className="text-xs text-[var(--text-muted)] leading-relaxed">
                             Gather your yearly wage totals and supporting records for the annual ROE submission.
                         </p>
                     </div>

@@ -118,11 +118,11 @@ function addPage(pdfDoc: PDFDocument, fonts: PdfFonts, pageNumber: number): PDFP
     });
 
     const footerText = `LekkerLedger is not a law firm. Have this reviewed by a labour lawyer before signing.`;
-    const footerW = fonts.sansRegular.widthOfTextAtSize(footerText, 7.5);
+    const footerW = fonts.sansRegular.widthOfTextAtSize(footerText, 9);
     page.drawText(footerText, {
         x: PAGE_W / 2 - footerW / 2,
         y: 24,
-        size: 7.5,
+        size: 9,
         font: fonts.sansRegular,
         color: PDF_COLORS.TEXT_MUTED,
     });

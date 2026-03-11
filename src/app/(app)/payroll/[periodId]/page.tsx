@@ -23,7 +23,7 @@ import {
 import { calculatePayslip } from "@/lib/calculator";
 import { PayPeriod, Employee, EmployeeEntry, PayslipInput, EmployerSettings, LeaveRecord } from "@/lib/schema";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
-import { getUserPlan, isRecordWithinArchive, canUseAutoBackup } from "@/lib/entitlements";
+import { getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
 import { track } from "@/lib/analytics";
 import { PLANS, PlanConfig } from "../../../../config/plans";
 
@@ -669,11 +669,6 @@ export default function PayPeriodWorkspacePage() {
                                 >
                                     <FileText className="h-4 w-4" /> Review & Generate
                                 </Button>
-                            }
-                            hint={
-                                settings && canUseAutoBackup(plan) && settings.autoBackupEnabled && settings.googleSyncEnabled
-                                    ? "Saves to this device; auto-syncs to your Google Drive shortly."
-                                    : undefined
                             }
                         />
                     )}

@@ -22,6 +22,7 @@ import {
     VerifiedEntitlements,
 } from "./billing";
 import { env } from "./env";
+import { createClient } from "./supabase/server";
 
 type QueryParam = string | number | null;
 
@@ -53,7 +54,7 @@ export class BillingAuthError extends BillingError {
     }
 }
 
-export interface VerifiedGoogleUser {
+export interface VerifiedUser {
     userId: string;
     email: string;
     name?: string;
@@ -908,7 +909,7 @@ function extractAuthorization(data: Record<string, unknown>): PaystackAuthorizat
     };
 }
 
-async function initializePaystackTransaction(request: Request, user: VerifiedGoogleUser, input: {
+async function initializePaystackTransaction(request: Request, user: VerifiedUser, input: {
     amountCents: number;
     metadata: Record<string, unknown>;
     callbackQuery?: Record<string, string>;
@@ -1120,17 +1121,17 @@ async function markGuestTrialIntentPaymentReceived(intent: BillingIntentRecord):
     return true;
 }
 
-async function claimTrialIntentForUser(intent: BillingIntentRecord, user: VerifiedGoogleUser): Promise<BillingIntentRecord> {
+async function claimTrialIntentForUser(intent: BillingIntentRecord, user: VerifiedUser): Promise<BillingIntentRecord> {
     if (!isGuestIntentUserId(intent.userId)) {
         if (intent.userId !== user.userId) {
-            throw new BillingAuthError("That payment has already been linked to another Google account.");
+            throw new BillingAuthError("That payment has already been linked to another account.");
         }
         return intent;
     }
 
     const existing = await getSubscriptionByColumn("user_id", user.userId);
     if (!canStartTrial(existing)) {
-        throw new BillingError("This Google account has already used the free trial.", 409);
+        throw new BillingError("This account has already used the free trial.", 409);
     }
 
     const claimedIntent: BillingIntentRecord = {
@@ -1225,7 +1226,7 @@ async function handleTrialChargeSuccess(data: Record<string, unknown>, intent: B
 
     const existing = await getSubscriptionByColumn("user_id", intent.userId);
     if (!canStartTrial(existing)) {
-        await rejectTrialIntent(intent, intent.userId, intent.email, "This Google account has already used its free trial.");
+        await rejectTrialIntent(intent, intent.userId, intent.email, "This account has already used its free trial.");
         return true;
     }
 
@@ -1453,40 +1454,24 @@ async function handleRefundProcessed(existing: SubscriptionRecord | null): Promi
     return true;
 }
 
-export async function verifyGoogleUserFromRequest(request: Request): Promise<VerifiedGoogleUser> {
-    const authHeader = request.headers.get("authorization") || "";
-    const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
-    if (!accessToken) {
-        throw new BillingAuthError("Google sign-in is required.");
-    }
+export async function verifyUserFromRequest(request: Request): Promise<VerifiedUser> {
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-    const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        method: "GET",
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-        },
-        cache: "no-store",
-    });
-
-    if (!response.ok) {
-        throw new BillingAuthError("Google sign-in could not be verified.");
-    }
-
-    const data = await response.json() as { sub?: string; email?: string; name?: string };
-    if (!data.sub || !data.email) {
-        throw new BillingAuthError("Google sign-in could not be verified.");
+    if (error || !user || !user.email) {
+        throw new BillingAuthError("Sign-in is required.");
     }
 
     return {
-        userId: data.sub,
-        email: data.email,
-        name: data.name,
+        userId: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.email.split("@")[0],
     };
 }
 
 export async function createCheckoutSession(
     request: Request,
-    user: VerifiedGoogleUser,
+    user: VerifiedUser,
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle },
 ): Promise<{ authorizationUrl: string; accessCode: string; reference: string }> {
     const amount = getPlanPrice(input.planId, input.billingCycle);
@@ -1511,13 +1496,13 @@ export async function createCheckoutSession(
 
 export async function startTrialCheckout(
     request: Request,
-    user: VerifiedGoogleUser,
+    user: VerifiedUser,
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; referralCode?: string | null },
 ): Promise<{ authorizationUrl: string; accessCode: string; reference: string }> {
     await ensureBillingSchema();
     const existing = await getSubscriptionByColumn("user_id", user.userId);
     if (!canStartTrial(existing)) {
-        throw new BillingError("This Google account has already used the free trial.", 409);
+        throw new BillingError("This account has already used the free trial.", 409);
     }
 
     if (!canBeReferred(existing)) {
@@ -1693,7 +1678,7 @@ export function verifyPaystackWebhookSignature(rawBody: string, signature: strin
     return timingSafeEqual(expectedBuffer, receivedBuffer);
 }
 
-export async function confirmPaystackTransaction(reference: string, user: VerifiedGoogleUser): Promise<BillingAccountResponse> {
+export async function confirmPaystackTransaction(reference: string, user: VerifiedUser): Promise<BillingAccountResponse> {
     await ensureBillingSchema();
 
     const normalizedReference = reference.trim();
@@ -1722,10 +1707,10 @@ export async function confirmPaystackTransaction(reference: string, user: Verifi
     const metadataUserId = getMetadataValue(metadata, "user_id");
     const email = getStringFromPaths(data, ["customer.email", "email"]);
     if (metadataUserId && metadataUserId !== user.userId) {
-        throw new BillingAuthError("That payment belongs to a different Google account.");
+        throw new BillingAuthError("That payment belongs to a different account.");
     }
     if (!metadataUserId && !intent && email && email.toLowerCase() !== user.email.toLowerCase()) {
-        throw new BillingAuthError("That payment belongs to a different Google account.");
+        throw new BillingAuthError("That payment belongs to a different account.");
     }
 
     const eventKey = buildEventKey("charge.success", { data });

@@ -23,6 +23,7 @@ const baseEmployee: Employee = {
     role: "Domestic Worker",
     hourlyRate: 30.23,
     phone: "0821234567",
+    email: "",
     address: "",
     startDate: "2026-03-01",
     ordinarilyWorksSundays: false,
@@ -43,6 +44,7 @@ const basePayslip: PayslipInput = {
     daysWorked: 20,
     shortFallHours: 0,
     hourlyRate: 30.23,
+    advanceAmount: 0,
     includeAccommodation: false,
     accommodationCost: 0,
     otherDeductions: 0,
@@ -145,19 +147,13 @@ describe("storage safeguards", () => {
     it("provides accurate local backup previews", async () => {
         let preview = await getLocalBackupPreview();
         expect(preview.employeeCount).toBe(0);
-        expect(preview.lastBackupTimestamp).toBeUndefined();
 
         await saveEmployee(baseEmployee);
         await savePayslip(basePayslip);
-        
-        const timestamp = new Date().toISOString();
-        const settings = await getSettings();
-        await saveSettings({ ...settings, lastBackupTimestamp: timestamp });
 
         preview = await getLocalBackupPreview();
         expect(preview.employeeCount).toBe(1);
         expect(preview.payslipCount).toBe(1);
-        expect(preview.lastBackupTimestamp).toBe(timestamp);
     });
 
     it("preserves billing dates across normal settings saves", async () => {

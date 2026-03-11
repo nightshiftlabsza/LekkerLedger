@@ -151,7 +151,7 @@ export function EmployeesClient() {
                                             <div className="flex items-center gap-4">
                                                 <div className="flex flex-col text-left min-w-0">
                                                     <span className="type-body-bold text-[var(--text)] truncate">{emp.name}</span>
-                                                    <span className="type-overline text-[var(--text-muted)] text-[9px] mt-0.5">{emp.role || "Domestic Worker"}</span>
+                                                    <span className="type-overline mt-0.5 text-xs text-[var(--text-muted)]">{emp.role || "Domestic Worker"}</span>
                                                 </div>
                                             </div>
                                         )
@@ -201,7 +201,7 @@ export function EmployeesClient() {
                                                         </div>
                                                         <div className="flex flex-col min-w-0">
                                                             <span className="type-body-bold text-[var(--text)] truncate">{emp.name}</span>
-                                                            <span className="type-overline text-[var(--text-muted)] text-[10px] mt-0.5">{emp.role || "Domestic Worker"}</span>
+                                                            <span className="type-overline mt-0.5 text-xs text-[var(--text-muted)]">{emp.role || "Domestic Worker"}</span>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">

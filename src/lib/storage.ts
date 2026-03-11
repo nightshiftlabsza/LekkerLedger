@@ -22,7 +22,6 @@ import {
     HouseholdSchema,
 } from "./schema";
 import { fetchVerifiedEntitlements } from "./billing-client";
-import { getStoredGoogleAccessToken } from "./google-session";
 import { normalizeEmployeeIdNumber } from "./employee-id";
 import { calculateAnnualLeaveSummary, getLeaveTypeLabel } from "./leave";
 
@@ -44,7 +43,6 @@ export interface LocalBackupPreview {
     leaveCount: number;
     documentCount: number;
     contractCount: number;
-    lastBackupTimestamp?: string;
 }
 
 
@@ -142,10 +140,7 @@ function buildDefaultSettings(overrides: Partial<EmployerSettings> = {}): Employ
         simpleMode: false,
         advancedMode: false,
         density: "comfortable",
-        googleSyncEnabled: false,
-        autoBackupEnabled: false,
-        lastBackupTimestamp: undefined,
-        googleAuthToken: undefined,
+
         piiObfuscationEnabled: true,
         installationId: "",
         usageHistory: [],
@@ -643,27 +638,9 @@ async function overlayVerifiedEntitlements(settings: EmployerSettings): Promise<
     };
 }
 
-    const accessToken = getStoredGoogleAccessToken();
-    const localPlan = settings.proStatus === "standard" || settings.proStatus === "pro" ? settings.proStatus : "free";
-    if (!accessToken) {
-        if (localPlan !== "free") {
-            return {
-                ...settings,
-                proStatus: "free",
-                paidUntil: undefined,
-                trialExpiry: undefined,
-            };
-        }
-        return settings;
-    }
-
-    try {
-        const entitlements = await fetchVerifiedEntitlements(accessToken);
-        return applyVerifiedEntitlementsToSettings(settings, entitlements);
-    } catch (error) {
-        console.warn("Failed to verify billing entitlements", error);
-        return settings;
-    }
+    // TODO: In Batch 2, this will check Supabase auth and verify entitlements.
+    // For now, local-only mode means we skip server-side entitlement verification.
+    return settings;
 }
 
 export async function getSettings(): Promise<EmployerSettings> {
@@ -709,7 +686,7 @@ export async function saveSettings(settings: EmployerSettings): Promise<void> {
     if (typeof window !== "undefined" && typeof window.localStorage?.setItem === "function") {
         window.localStorage.setItem("ll-density", globalSettings.density || "comfortable");
     }
-    await logAuditEvent("UPDATE_SETTINGS", `Employer settings updated (PII: ${globalSettings.piiObfuscationEnabled}, Sync: ${globalSettings.googleSyncEnabled})`, {
+    await logAuditEvent("UPDATE_SETTINGS", `Employer settings updated (PII: ${globalSettings.piiObfuscationEnabled})`, {
         householdId: activeHouseholdId,
     });
     await notifyListeners();
@@ -857,7 +834,6 @@ export async function getLocalBackupPreview(): Promise<LocalBackupPreview> {
         leaveCount: counts.leave,
         documentCount: counts.documents,
         contractCount: counts.contracts,
-        lastBackupTimestamp: settings.lastBackupTimestamp,
     };
 }
 
@@ -936,7 +912,7 @@ export async function exportData(options: ExportDataOptions = {}): Promise<strin
 
     for (const document of data.documents as DocumentMeta[]) {
         if (document.source !== "uploaded") continue;
-        if (document.driveFileId) continue;
+
         const blob = await documentFileStore.getItem<Blob>(document.id);
         if (!blob) continue;
         data.uploadedDocuments.push({
@@ -948,9 +924,7 @@ export async function exportData(options: ExportDataOptions = {}): Promise<strin
 
     const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
     if (rawSettings) {
-        const { googleAuthToken, ...safeSettings } = stripHouseholdScopedSettings(rawSettings);
-        void googleAuthToken;
-        data.settings = safeSettings;
+        data.settings = stripHouseholdScopedSettings(rawSettings);
     }
 
     for (const household of households) {
@@ -1205,23 +1179,8 @@ export async function saveDocumentFile(id: string, file: Blob): Promise<void> {
     await documentFileStore.setItem(id, file);
 }
 
-export async function getDocumentFile(id: string, options?: { accessToken?: string | null }): Promise<Blob | null> {
-    const file = await documentFileStore.getItem<Blob>(id);
-    if (file) return file;
-
-    const metadata = await getDocumentMeta(id);
-    if (!metadata?.driveFileId || !options?.accessToken) return null;
-
-    try {
-        const { downloadVaultFileFromDrive } = await import("./google-drive");
-        const remoteFile = await downloadVaultFileFromDrive(options.accessToken, metadata.driveFileId);
-        if (!remoteFile) return null;
-        await saveDocumentFile(id, remoteFile);
-        return remoteFile;
-    } catch (error) {
-        console.error("Failed to fetch document from Google Drive", error);
-        return null;
-    }
+export async function getDocumentFile(id: string): Promise<Blob | null> {
+    return await documentFileStore.getItem<Blob>(id) ?? null;
 }
 
 export async function getContracts(): Promise<Contract[]> {

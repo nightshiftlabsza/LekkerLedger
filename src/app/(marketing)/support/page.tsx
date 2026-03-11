@@ -65,7 +65,7 @@ export default function SupportPage() {
                                 <h3 className="text-xl font-bold text-[var(--text)]">Storage & Backup</h3>
                             </div>
                             <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                Learn how local storage works, when Google Drive backup is used, and what stays on your device.
+                                Learn how local storage works, when encrypted sync is used, and what stays on your device.
                             </p>
                         </div>
                     </Link>
@@ -119,9 +119,9 @@ export default function SupportPage() {
                             </div>
 
                             <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
-                                <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-[var(--text)]"><AlertCircle className="h-4 w-4 text-[var(--danger)]" /> &quot;It says Google Drive Sync failed&quot;</h3>
+                                <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-[var(--text)]"><AlertCircle className="h-4 w-4 text-[var(--danger)]" /> &quot;It says sync failed&quot;</h3>
                                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                    This usually happens if your browser blocks third-party cookies or pop-ups. Make sure you allow pop-ups for lekkerledger.co.za to complete the Google Sign-in flow.
+                                    This usually happens if your browser blocks third-party cookies or pop-ups. Make sure you allow pop-ups for lekkerledger.co.za to complete the sign-in flow.
                                 </p>
                             </div>
 

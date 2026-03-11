@@ -9,7 +9,7 @@ export type FeatureKey =
     | "documents.coreHub"
     | "exports.ufilingCsv"
     | "exports.roe"
-    | "backup.googlePrivateAuto"
+    | "sync.encrypted"
     | "documents.vault"
     | "records.advancedEmployment"
     | "summary.yearEndPdf"
@@ -68,12 +68,12 @@ export const ENTITLEMENTS: Record<FeatureKey, FeatureEntitlement> = {
         upsellHeadline: "This export is available on Standard",
         upsellBody: "Upgrade to Standard to download Return of Earnings (ROE) batches.",
     },
-    "backup.googlePrivateAuto": {
-        key: "backup.googlePrivateAuto",
+    "sync.encrypted": {
+        key: "sync.encrypted",
         minPlan: "standard",
         status: "live",
-        upsellHeadline: "Automatic backup is available on Standard",
-        upsellBody: "Upgrade to ensure your local history is securely backed up to your Google account.",
+        upsellHeadline: "Encrypted sync is available on Standard",
+        upsellBody: "Upgrade to sync your data across devices with end-to-end encryption.",
     },
     "documents.vault": {
         key: "documents.vault",
@@ -172,12 +172,8 @@ export function hasPaidAccess(userProfile: EmployerSettings | null | undefined, 
     return isPaidPlanId(getUserPlan(userProfile, now).id);
 }
 
-export function canUseDriveSync(plan: PlanConfig): boolean {
-    return checkFeatureAccess(plan.id, "backup.googlePrivateAuto").hasAccess;
-}
-
-export function canUseAutoBackup(plan: PlanConfig): boolean {
-    return checkFeatureAccess(plan.id, "backup.googlePrivateAuto").hasAccess;
+export function canUseEncryptedSync(plan: PlanConfig): boolean {
+    return checkFeatureAccess(plan.id, "sync.encrypted").hasAccess;
 }
 
 export function canUseLeaveTracking(plan: PlanConfig): boolean {

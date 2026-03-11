@@ -19,7 +19,7 @@ export function FeatureGateCard({
     href = "/upgrade",
     eyebrow = "Standard and Pro",
     benefits = [
-        "Optional Google Drive backup",
+        "Secure cloud sync",
         "Documents and exports",
         "Longer record history",
     ],

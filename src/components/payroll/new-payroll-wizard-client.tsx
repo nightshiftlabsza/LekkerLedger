@@ -129,6 +129,7 @@ export function NewPayrollWizardClient() {
                     sundayHours: 0,
                     publicHolidayHours: 0,
                     leaveDays: 0,
+                    shortFallHours: 0,
                     advanceAmount: 0,
                     otherDeductions: 0,
                     note: "",
@@ -181,7 +182,7 @@ export function NewPayrollWizardClient() {
                                 </div>
                                 <h3 className="type-h3 text-[var(--text)]">Restore Backup</h3>
                                 <p className="text-xs text-[var(--text-muted)] mt-1">
-                                    Load previous data from Google Drive.
+                                    Load previous data from a backup file.
                                 </p>
                             </Link>
                         </div>

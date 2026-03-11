@@ -20,12 +20,11 @@ import { CardSkeleton } from "@/components/ui/loading-skeleton";
 import { getSettings, saveSettings, resetAllData, exportData, importData, getEmployees } from "@/lib/storage";
 import { CustomLeaveType, EmployerSettings, Employee } from "@/lib/schema";
 import { cancelSubscriptionRenewal, fetchBillingAccount, type BillingAccountPayload } from "@/lib/billing-client";
-import { GoogleSync } from "@/components/google-sync";
 import { useUI } from "@/components/theme-provider";
 import { InlinePlanCheckoutButton } from "@/components/billing/inline-paid-plan-checkout";
 import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "@/src/config/plans";
 import { getArchiveCutoffDate, getArchiveUpgradeHref } from "@/lib/archive";
-import { canUseAdvancedLeaveFeatures, canUseDriveSync, canUseFullHistoryExport, getUserPlan } from "../../../lib/entitlements";
+import { canUseAdvancedLeaveFeatures, canUseFullHistoryExport, getUserPlan } from "../../../lib/entitlements";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 
@@ -559,18 +558,22 @@ function SettingsContent() {
 
                 {activeTab === "storage" && (
                     <div className="space-y-6">
-                        <GoogleSync
-                            driveSyncAllowed={canUseDriveSync(getUserPlan(settings))}
-                        />
+                        <section className="space-y-4">
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Encrypted Sync</h2>
+                            <Card className="glass-panel border-none p-5 space-y-3 text-sm text-[var(--text-muted)] leading-relaxed">
+                                <p className="font-bold text-[var(--text)]">Coming soon</p>
+                                <p>Encrypted sync will let you back up and restore your data across browsers and devices. Until then, use the JSON export below to keep a copy of your records.</p>
+                            </Card>
+                        </section>
 
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Storage Rules</h2>
                             <Card className="glass-panel border-none p-5 space-y-4 text-sm text-[var(--text-muted)] leading-relaxed">
-                                <p><strong>1. Local first:</strong> All payroll records stay on this browser or device unless you choose to connect Google.</p>
-                                <p><strong>2. Google-connected backup:</strong> If enabled on a paid plan, a backup is stored in the Google Drive app data area in your own Google account so you can restore records on another browser or device.</p>
-                                <p><strong>3. What LekkerLedger can access:</strong> We cannot browse your normal Google Drive files, and this backup flow does not create a central company payroll database of employee records.</p>
-                                <p><strong>4. PDF generation:</strong> Payslips and contracts do not leave your device unless you explicitly share or export them.</p>
-                                <p><strong>5. Do not clear browser storage without a backup:</strong> If you clear browser data or lose this device before exporting or enabling backup, your records on this device cannot be recovered.</p>
+                                <p><strong>1. Local first:</strong> All payroll records stay on this browser or device unless you choose to enable encrypted sync (coming soon on paid plans).</p>
+                                <p><strong>2. Encrypted sync:</strong> When available, a backup will be stored in an encrypted format so you can restore records on another browser or device.</p>
+                                <p><strong>3. PDF generation:</strong> Payslips and contracts do not leave your device unless you explicitly share or export them.</p>
+                                <p><strong>4. Do not clear browser storage without a backup:</strong> If you clear browser data or lose this device before exporting, your records on this device cannot be recovered.</p>
+                                
                             </Card>
                         </section>
 
@@ -782,7 +785,7 @@ function SettingsContent() {
                                         </div>
                                     ) : (
                                         <p className="text-sm text-[var(--text-muted)]">
-                                            Sign into Google to see your saved card, trial, and renewal details here.
+                                            Sign in to see your saved card, trial, and renewal details here.
                                         </p>
                                     )}
                                 </Card>
@@ -818,7 +821,7 @@ function SettingsContent() {
                                         </div>
                                     ) : (
                                         <p className="text-sm text-[var(--text-muted)]">
-                                            Sign into Google to get a referral code and track earned free months.
+                                            Sign in to get a referral code and track earned free months.
                                         </p>
                                     )}
                                 </Card>
@@ -969,7 +972,8 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Raw Data Backup & Restore</h2>
                             <Card className="glass-panel border-none p-5 space-y-4">
-                                {!settings.googleSyncEnabled && (
+                                {/* Always show tip — encrypted sync not yet available */}
+                                {(
                                     <div
                                         className="rounded-2xl border px-4 py-3 text-xs leading-relaxed"
                                         style={{
@@ -984,8 +988,8 @@ function SettingsContent() {
                                 <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-xs leading-relaxed text-[var(--text-muted)]">
                                     <p className="font-bold text-[var(--text)]">Before you change devices</p>
                                     <ol className="mt-2 list-decimal space-y-1.5 pl-4">
-                                        <li>Turn on Google backup on a paid plan, or download a JSON export first.</li>
-                                        <li>On the new device, reconnect the same Google account to restore your backup.</li>
+                                        <li>Enable encrypted sync on a paid plan (coming soon), or download a JSON export first.</li>
+                                        <li>On the new device, sign in with the same account to restore your backup.</li>
                                         <li>Do not clear browser data on this device until you have confirmed the restore worked.</li>
                                     </ol>
                                 </div>
@@ -1113,7 +1117,7 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
     return (
         <button onClick={() => setActiveTab(id)} aria-pressed={active}
             data-testid={`settings-tab-${id}`}
-            className="flex min-h-[48px] sm:min-h-[60px] w-full flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[1.5rem] px-0.5 py-1.5 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.05em] sm:tracking-[0.1em] transition-all duration-200 overflow-hidden"
+            className="flex min-h-[48px] sm:min-h-[60px] w-full flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[1.5rem] px-0.5 py-1.5 text-xs sm:text-xs font-black uppercase tracking-[0.05em] sm:tracking-[0.1em] transition-all duration-200 overflow-hidden"
             style={{
                 backgroundColor: active ? "var(--primary)" : "transparent",
                 color: active ? "#ffffff" : "var(--text-muted)",

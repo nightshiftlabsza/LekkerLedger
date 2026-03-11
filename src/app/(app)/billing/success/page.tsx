@@ -7,8 +7,6 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { confirmBillingTransaction, fetchBillingAccount, type BillingAccountPayload } from "@/lib/billing-client";
-import { hasStoredGoogleSession } from "@/lib/google-session";
-import { PaidLoginButton } from "@/components/paid-login-button";
 
 export default function BillingSuccessPage() {
     return (
@@ -56,11 +54,6 @@ function BillingSuccessPageContent() {
         }
 
         async function confirmBilling() {
-            if (!hasStoredGoogleSession()) {
-                if (!cancelled) setStatus("auth");
-                return;
-            }
-
             for (let attempt = 0; attempt < 8; attempt += 1) {
                 if (reference) {
                     try {
@@ -121,11 +114,9 @@ function BillingSuccessPageContent() {
     const message = status === "trial"
         ? `Your 14-day trial is active${trialEnds ? ` until ${trialEnds}` : ""}. ${nextCharge ? `Your first real charge is scheduled for ${nextCharge} unless you cancel first.` : "We are still saving your next charge date."}`
         : status === "active"
-            ? `Your paid features are active${nextCharge ? ` and the next renewal is scheduled for ${nextCharge}` : ""}. Google-linked backup is now ready to use.`
+            ? `Your paid features are active${nextCharge ? ` and the next renewal is scheduled for ${nextCharge}` : ""}. Encrypted sync will be available soon.`
         : status === "error"
             ? billingAccount?.account.lastError || "Your card setup completed, but the billing details still need a final check."
-        : status === "auth"
-            ? "Your payment went through. The next step is to connect your Google account so LekkerLedger can attach this paid plan to you and enable the private Drive backup."
             : status === "pending"
                 ? "LekkerLedger is still finishing the payment confirmation. This usually takes a few seconds."
                 : "LekkerLedger is checking Paystack and your billing status now. This usually takes a few seconds.";
@@ -145,20 +136,11 @@ function BillingSuccessPageContent() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-                {status === "auth" ? (
-                    <PaidLoginButton
-                        label="Enable Google account & Drive backup"
-                        className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl"
-                        nextPath={successPath}
-                        showInlineError
-                    />
-                ) : (
-                    <Link href="/dashboard" className="w-full">
-                        <Button className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl">
-                            Open Dashboard <ArrowRight className="h-4 w-4" />
-                        </Button>
-                    </Link>
-                )}
+                <Link href="/dashboard" className="w-full">
+                    <Button className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl">
+                        Open Dashboard <ArrowRight className="h-4 w-4" />
+                    </Button>
+                </Link>
                 <Link href="/upgrade" className="w-full">
                     <Button variant="outline" className="w-full h-12 font-bold rounded-2xl">
                         Manage Billing

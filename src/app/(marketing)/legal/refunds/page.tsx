@@ -46,7 +46,7 @@ export default function RefundPolicy() {
                             <li><strong>Pro:</strong> {proMonthlyPrice}/month or {proYearlyPrice}/year for unlimited employees, multi-household workspaces, and the deepest archive. Yearly billing works out to about {proYearlyEquivalent}/month.</li>
                         </ul>
                         <p>
-                            Standard and Pro currently begin with a 14-day trial. Starting a trial requires Google sign-in and a small R1 Paystack card-verification charge so a reusable payment method can be saved for automatic renewal later.
+                            Standard and Pro currently begin with a 14-day trial. Starting a trial requires sign-in and a small R1 Paystack card-verification charge so a reusable payment method can be saved for automatic renewal later.
                         </p>
                         <p>
                             The R1 card-verification charge is not the main subscription charge and does not start the 14-day refund window for the plan itself.

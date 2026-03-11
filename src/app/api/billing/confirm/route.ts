@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { confirmPaystackTransaction, toErrorResponse, verifyGoogleUserFromRequest } from "@/lib/billing-server";
+import { confirmPaystackTransaction, toErrorResponse, verifyUserFromRequest } from "@/lib/billing-server";
 
 export async function POST(request: Request) {
     try {
-        const user = await verifyGoogleUserFromRequest(request);
+        const user = await verifyUserFromRequest(request);
         const body = await request.json() as { reference?: string };
 
         if (!body.reference || !body.reference.trim()) {

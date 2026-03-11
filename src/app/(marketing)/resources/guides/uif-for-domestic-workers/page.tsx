@@ -102,7 +102,7 @@ export default function UIFGuidePage() {
                         <section className="space-y-4">
                             <h2 className="type-h2 text-[var(--text)] font-semibold">What Happens if You Don&apos;t Pay?</h2>
                             <p>
-                                Failing to register for UIF or failing to pay the monthly contributions is a criminal offense. If your domestic worker leaves your employment (e.g., dismissal, retrenchment, or the end of a contract) or goes on maternity leave, they will go to the Department of Labour to claim their benefits. 
+                                Failing to register for UIF or keep the monthly contributions up to date can lead to penalties and delays when your domestic worker needs to claim. If your domestic worker leaves your employment (for example after dismissal, retrenchment, the end of a contract, or maternity leave), they will go to the Department of Labour to claim their benefits.
                             </p>
                             <p>
                                 If the Department finds that you have not been paying your contributions, you will be liable for all back-pay, plus penalties, and interest.

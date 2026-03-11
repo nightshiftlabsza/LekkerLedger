@@ -50,10 +50,10 @@ export default function TrustCenterPage() {
                                 We take a local-first approach to payroll records. Employee names, wages, and ID details stay on your device by default instead of being uploaded into a central LekkerLedger payroll database.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                This architecture reduces how much employee payroll data LekkerLedger needs to handle directly. If you enable Google backup, the backup lives in the Google Drive app data area in your own Google account.
+                                This architecture reduces how much employee payroll data LekkerLedger needs to handle directly. When encrypted sync is available on paid plans, your backup will be stored in an encrypted format that only you can access.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Free does not require an account. A Google account is only needed if you choose paid backup and restore across devices.
+                                Free does not require an account. A sign-in is only needed if you choose paid encrypted sync to back up and restore across devices.
                             </p>
                             <Link href="/storage" className="inline-flex items-center text-sm font-bold text-[var(--primary)] hover:underline mt-2">
                                 Read the storage guide <ArrowRight className="h-4 w-4 ml-1" />
@@ -67,8 +67,8 @@ export default function TrustCenterPage() {
                             </div>
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                                 <FolderSync className="mb-3 h-5 w-5 text-[var(--success)]" />
-                                <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Google-connected Backup</h4>
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paid plans can back up records to the Google Drive app data area in your own Google account so you can restore them on another browser or device.</p>
+                                <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Encrypted Sync</h4>
+                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paid plans will offer encrypted sync to back up and restore records across browsers and devices (coming soon).</p>
                             </div>
                         </div>
                     </div>
@@ -87,14 +87,14 @@ export default function TrustCenterPage() {
                             <HardDrive className="mb-3 h-5 w-5 text-[var(--text-muted)]" />
                             <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Local by default</h4>
                             <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Payroll records stay in your browser storage by default. They are not uploaded to a LekkerLedger employee database unless you choose your own Google backup path.
+                                Payroll records stay in your browser storage by default. They are not uploaded to a LekkerLedger employee database unless you choose encrypted sync on a paid plan.
                             </p>
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <KeyRound className="h-5 w-5 text-[var(--primary)] mb-3" />
-                            <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Limited Google scopes</h4>
+                            <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Limited data access</h4>
                             <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Google sign-in starts with basic identity scopes. Drive access is requested separately only if you enable backup, and it uses Google Drive&apos;s private app-data area rather than your normal files.
+                                Authentication uses email and password via Supabase. Encrypted sync is available on paid plans and stores your data in an encrypted format that only you can decrypt.
                             </p>
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
@@ -113,7 +113,7 @@ export default function TrustCenterPage() {
                         </div>
                     </div>
                     <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-5 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                        Google account email, backup-permission state, and similar connection details may be stored locally on your device so reconnect and restore flows can work. Google access tokens are kept for the current browser session rather than written into long-term local backup data. This page is meant to describe the current setup plainly, not to claim enterprise-grade controls that are not in place.
+                        Account email and sync-permission state may be stored locally on your device so reconnect and restore flows can work. This page is meant to describe the current setup plainly, not to claim enterprise-grade controls that are not in place.
                     </div>
                 </section>
 

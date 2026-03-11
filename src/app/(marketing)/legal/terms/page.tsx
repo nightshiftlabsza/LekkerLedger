@@ -95,7 +95,7 @@ export default function TermsOfService() {
                                 Free, Standard, and Pro plan details are described on the pricing pages. Paid access is billed through our payment provider. We do not store your full card details ourselves.
                             </p>
                             <p>
-                                Standard and Pro may begin with a 14-day trial that requires Google sign-in and a small R1 card-verification charge through our payment provider so a reusable payment method can be saved. The first real subscription charge happens only after the trial unless you cancel first.
+                                Standard and Pro may begin with a 14-day trial that requires sign-in and a small R1 card-verification charge through our payment provider so a reusable payment method can be saved. The first real subscription charge happens only after the trial unless you cancel first.
                             </p>
                             <p>
                                 Refunds are handled according to the published refund policy. If there is a conflict between a brief summary on another page and the formal refund policy, the refund policy should control.
@@ -149,7 +149,7 @@ export default function TermsOfService() {
                                 You may stop using the service at any time. We may suspend or terminate access where reasonably necessary for abuse, fraud, legal reasons, or security reasons.
                             </p>
                             <p>
-                                Termination does not automatically delete data stored on your own device or in your own Google account. Those storage locations remain under your control.
+                                Termination does not automatically delete data stored on your own device or in your encrypted sync storage. Those storage locations remain under your control.
                             </p>
                         </Section>
 

@@ -14,11 +14,21 @@ const serverSchema = z.object({
     CLOUDFLARE_ACCOUNT_ID: z.string().min(1, "CLOUDFLARE_ACCOUNT_ID is required"),
     CLOUDFLARE_D1_DATABASE_ID: z.string().min(1, "CLOUDFLARE_D1_DATABASE_ID is required"),
     CLOUDFLARE_D1_API_TOKEN: z.string().min(1, "CLOUDFLARE_D1_API_TOKEN is required"),
+    
+    // Cloudflare R2
+    CLOUDFLARE_R2_ACCESS_KEY_ID: z.string().optional(),
+    CLOUDFLARE_R2_SECRET_ACCESS_KEY: z.string().optional(),
+    CLOUDFLARE_R2_ENDPOINT: z.string().optional(),
+    CLOUDFLARE_R2_BUCKET_NAME: z.string().optional(),
+
+    // Supabase Server
+    SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 });
 
 const publicSchema = z.object({
-    NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string().optional(),
     NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: z.string().optional(),
+    NEXT_PUBLIC_SUPABASE_URL: z.string().optional(),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
 });
 
 /**
@@ -43,14 +53,16 @@ function validateServerEnv() {
  */
 function validatePublicEnv() {
     const parsed = publicSchema.safeParse({
-        NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
         NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+        NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     });
     if (!parsed.success) {
         console.error("❌ Invalid public environment variables:", parsed.error.flatten().fieldErrors);
         return {
-            NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
             NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+            NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+            NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
         } as z.infer<typeof publicSchema>;
     }
     return parsed.data;

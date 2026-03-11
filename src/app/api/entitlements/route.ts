@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getVerifiedEntitlementsForUser, toErrorResponse, verifyGoogleUserFromRequest } from "@/lib/billing-server";
+import { getVerifiedEntitlementsForUser, toErrorResponse, verifyUserFromRequest } from "@/lib/billing-server";
 
 export async function GET(request: Request) {
     try {
-        const user = await verifyGoogleUserFromRequest(request);
+        const user = await verifyUserFromRequest(request);
         const entitlements = await getVerifiedEntitlementsForUser(user.userId);
 
         return NextResponse.json({

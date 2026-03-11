@@ -110,7 +110,7 @@ export default function PricingPage() {
                                 </h3>
                                 <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Records stay on your device by default. Paid plans can add backup in the Google Drive app-data area in your own Google account.
+                                        Records stay on your device by default. Paid plans add encrypted sync across browsers and devices.
                                     </p>
                                     <p>
                                         Standard and Pro include the documents hub. Pro adds the Vault, automatic backups, year-end summaries, and longer browsable history.
