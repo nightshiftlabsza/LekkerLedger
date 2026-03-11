@@ -14,7 +14,7 @@ import { cancelSubscriptionRenewal, fetchBillingAccount } from "@/lib/billing-cl
 import { hasStoredGoogleSession } from "@/lib/google-session";
 import { type BillingCycle, PLANS, type PlanId } from "@/src/config/plans";
 import { EmployerSettings } from "@/lib/schema";
-import { getUserPlan } from "@/lib/entitlements";
+import { getUserPlan, ENTITLEMENTS, type FeatureKey } from "@/lib/entitlements";
 import { MarketingBillingToggle, MarketingPlanCards } from "@/components/marketing/pricing";
 import { useInlinePaidPlanCheckout } from "@/components/billing/inline-paid-plan-checkout";
 
@@ -37,6 +37,12 @@ function UpgradePageContent() {
     const [cancelingForDowngrade, setCancelingForDowngrade] = React.useState(false);
     const [ownReferralCode, setOwnReferralCode] = React.useState<string | null>(null);
     const { startCheckout, loadingPlanId, dialog } = useInlinePaidPlanCheckout({ billingCycle, referralCode });
+
+    const sourceKey = searchParams.get("source") as FeatureKey | null;
+
+    const entitlement = sourceKey ? ENTITLEMENTS[sourceKey] : null;
+
+
 
     React.useEffect(() => {
         async function load() {
@@ -127,6 +133,19 @@ function UpgradePageContent() {
             />
 
             <div className="mx-auto max-w-6xl space-y-10">
+                {entitlement && (
+                    <Card className="border-[var(--primary)] bg-[var(--primary)]/10">
+                        <CardContent className="flex items-center gap-4 p-5">
+                            <div className="rounded-xl bg-[var(--primary)] p-2 text-white">
+                                <ShieldCheck className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="font-bold text-[var(--text)]">{entitlement.upsellHeadline}</p>
+                                <p className="text-sm text-[var(--text-muted)]">{entitlement.upsellBody}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
                 <Card className="border-[var(--primary)] bg-[var(--primary)]/5">
                     <CardContent className="space-y-2 p-5 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                         <p className="font-semibold" style={{ color: "var(--text)" }}>

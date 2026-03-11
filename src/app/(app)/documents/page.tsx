@@ -235,7 +235,7 @@ export default function DocumentsPage() {
     const archiveUpgradePlanId = getUpgradePlanForArchive(plan.id);
     const archiveUpgradeHref = getArchiveUpgradeHref(plan.id);
     const archiveUpgradeLabel = archiveUpgradePlanId ? `Upgrade to ${PLANS[archiveUpgradePlanId].label}` : "Upgrade";
-    const vaultUpgradeHref = "/upgrade?plan=pro";
+    const vaultUpgradeHref = "/upgrade?plan=pro&source=documents.vault";
     const vaultUploadsAllowed = canUseVaultUploads(plan);
     const contractSignedCopyUploadAllowed = canUseContractSignedCopyUpload(plan);
     const yearEndSummaryAllowed = canUseYearEndSummary(plan);
@@ -468,7 +468,7 @@ export default function DocumentsPage() {
 
             if (targetContract) {
                 if (!contractSignedCopyUploadAllowed) {
-                    router.push("/upgrade?plan=standard");
+                    router.push("/upgrade?plan=standard&source=contracts.signedUploads");
                     return;
                 }
 

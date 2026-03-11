@@ -2,6 +2,143 @@ import { PLANS, PlanId, PlanConfig } from "../config/plans";
 import { isPaidPlanId } from "./billing";
 import { EmployerSettings } from "./schema";
 
+export type FeatureKey =
+    | "payslips.basic"
+    | "contracts.drafts"
+    | "contracts.signedUploads"
+    | "documents.coreHub"
+    | "exports.ufilingCsv"
+    | "exports.roe"
+    | "backup.googlePrivateAuto"
+    | "documents.vault"
+    | "records.advancedEmployment"
+    | "summary.yearEndPdf"
+    | "households.multiple"
+    | "support.priority"
+    | "android.priorityAccess";
+
+export interface FeatureEntitlement {
+    key: FeatureKey;
+    minPlan: PlanId;
+    status: "live" | "planned";
+    upsellHeadline: string;
+    upsellBody: string;
+}
+
+export const ENTITLEMENTS: Record<FeatureKey, FeatureEntitlement> = {
+    "payslips.basic": {
+        key: "payslips.basic",
+        minPlan: "free",
+        status: "live",
+        upsellHeadline: "",
+        upsellBody: "",
+    },
+    "contracts.drafts": {
+        key: "contracts.drafts",
+        minPlan: "standard",
+        status: "live",
+        upsellHeadline: "This feature is available on Standard",
+        upsellBody: "Upgrade to Standard to create employment contracts.",
+    },
+    "contracts.signedUploads": {
+        key: "contracts.signedUploads",
+        minPlan: "standard",
+        status: "live",
+        upsellHeadline: "This feature is available on Standard",
+        upsellBody: "Upgrade to Standard to store your signed employment contract copies.",
+    },
+    "documents.coreHub": {
+        key: "documents.coreHub",
+        minPlan: "standard",
+        status: "live",
+        upsellHeadline: "This feature is available on Standard",
+        upsellBody: "Upgrade to unlock the broader documents hub for payslips and contracts.",
+    },
+    "exports.ufilingCsv": {
+        key: "exports.ufilingCsv",
+        minPlan: "standard",
+        status: "live",
+        upsellHeadline: "This export is available on Standard",
+        upsellBody: "Upgrade to Standard for easy uFiling CSV exports.",
+    },
+    "exports.roe": {
+        key: "exports.roe",
+        minPlan: "standard",
+        status: "live",
+        upsellHeadline: "This export is available on Standard",
+        upsellBody: "Upgrade to Standard to download Return of Earnings (ROE) batches.",
+    },
+    "backup.googlePrivateAuto": {
+        key: "backup.googlePrivateAuto",
+        minPlan: "standard",
+        status: "live",
+        upsellHeadline: "Automatic backup is available on Standard",
+        upsellBody: "Upgrade to ensure your local history is securely backed up to your Google account.",
+    },
+    "documents.vault": {
+        key: "documents.vault",
+        minPlan: "pro",
+        status: "live",
+        upsellHeadline: "This feature is available on Pro",
+        upsellBody: "Upgrade to Pro to unlock broader document storage beyond basic contracts and payslips.",
+    },
+    "records.advancedEmployment": {
+        key: "records.advancedEmployment",
+        minPlan: "pro",
+        status: "planned",
+        upsellHeadline: "Planned feature",
+        upsellBody: "Advanced employment records are planned for Pro but are not available yet.",
+    },
+    "summary.yearEndPdf": {
+        key: "summary.yearEndPdf",
+        minPlan: "pro",
+        status: "live",
+        upsellHeadline: "Year-end summaries are available on Pro",
+        upsellBody: "Upgrade to Pro to generate consolidated employment summaries for the tax year.",
+    },
+    "households.multiple": {
+        key: "households.multiple",
+        minPlan: "pro",
+        status: "live",
+        upsellHeadline: "Multiple households are supported on Pro",
+        upsellBody: "Upgrade to Pro to organize and switch between multiple workers or holiday homes.",
+    },
+    "support.priority": {
+        key: "support.priority",
+        minPlan: "pro",
+        status: "live",
+        upsellHeadline: "Priority support requires Pro",
+        upsellBody: "Upgrade to Pro to receive faster customer support.",
+    },
+    "android.priorityAccess": {
+        key: "android.priorityAccess",
+        minPlan: "pro",
+        status: "planned",
+        upsellHeadline: "Android App Access",
+        upsellBody: "Priority access to the Android app is a planned feature for Pro users.",
+    },
+};
+
+const PLAN_WEIGHTS: Record<PlanId, number> = {
+    free: 0,
+    standard: 1,
+    pro: 2,
+};
+
+export function checkFeatureAccess(planId: PlanId, featureKey: FeatureKey): { hasAccess: boolean; isLive: boolean; entitlement: FeatureEntitlement } {
+    const entitlement = ENTITLEMENTS[featureKey];
+    const hasAccess = PLAN_WEIGHTS[planId] >= PLAN_WEIGHTS[entitlement.minPlan];
+    return {
+        hasAccess,
+        isLive: entitlement.status === "live",
+        entitlement,
+    };
+}
+
+export function getFeatureEntitlement(featureKey: FeatureKey): FeatureEntitlement {
+    return ENTITLEMENTS[featureKey];
+}
+
 function normalizePlanId(planId: string | undefined | null): PlanId {
     if (!planId || planId === "free") return "free";
     if (planId === "standard" || planId === "annual" || planId === "trial") return "standard";
@@ -36,14 +173,15 @@ export function hasPaidAccess(userProfile: EmployerSettings | null | undefined, 
 }
 
 export function canUseDriveSync(plan: PlanConfig): boolean {
-    return plan.features.driveSync;
+    return checkFeatureAccess(plan.id, "backup.googlePrivateAuto").hasAccess;
 }
 
 export function canUseAutoBackup(plan: PlanConfig): boolean {
-    return plan.features.autoBackup;
+    return checkFeatureAccess(plan.id, "backup.googlePrivateAuto").hasAccess;
 }
 
 export function canUseLeaveTracking(plan: PlanConfig): boolean {
+    // Retain original plan.features logic if not explicitly in entitlement config, or map here
     return plan.features.leaveTracking;
 }
 
@@ -53,11 +191,11 @@ export function canBrowseLeaveHistory(_plan: PlanConfig): boolean {
 }
 
 export function canUseDocumentsHub(plan: PlanConfig): boolean {
-    return plan.features.documentsHub;
+    return checkFeatureAccess(plan.id, "documents.coreHub").hasAccess;
 }
 
 export function canUploadSignedContractCopies(plan: PlanConfig): boolean {
-    return plan.features.contractSignedCopyUpload;
+    return checkFeatureAccess(plan.id, "contracts.signedUploads").hasAccess;
 }
 
 export function assertCanUploadSignedContractCopies(plan: PlanConfig): void {
@@ -71,11 +209,11 @@ export function canUseContractSignedCopyUpload(plan: PlanConfig): boolean {
 }
 
 export function canUseVaultUploads(plan: PlanConfig): boolean {
-    return plan.features.vaultUploads;
+    return checkFeatureAccess(plan.id, "documents.vault").hasAccess;
 }
 
 export function canUseYearEndSummary(plan: PlanConfig): boolean {
-    return plan.features.yearEndSummary;
+    return checkFeatureAccess(plan.id, "summary.yearEndPdf").hasAccess;
 }
 
 export function canUseFullHistoryExport(plan: PlanConfig): boolean {
@@ -83,15 +221,15 @@ export function canUseFullHistoryExport(plan: PlanConfig): boolean {
 }
 
 export function canUseContractGenerator(plan: PlanConfig): boolean {
-    return plan.features.contractGenerator;
+    return checkFeatureAccess(plan.id, "contracts.drafts").hasAccess;
 }
 
 export function canUseUFilingExport(plan: PlanConfig): boolean {
-    return plan.features.ufilingExport;
+    return checkFeatureAccess(plan.id, "exports.ufilingCsv").hasAccess;
 }
 
 export function canDownloadRoePack(plan: PlanConfig): boolean {
-    return plan.features.roeDownloads;
+    return checkFeatureAccess(plan.id, "exports.roe").hasAccess;
 }
 
 export function canCreateEmployee(plan: PlanConfig, currentActiveEmployeesCount: number): boolean {
@@ -99,7 +237,7 @@ export function canCreateEmployee(plan: PlanConfig, currentActiveEmployeesCount:
 }
 
 export function canUseMultipleHouseholds(plan: PlanConfig): boolean {
-    return plan.features.multiHousehold;
+    return checkFeatureAccess(plan.id, "households.multiple").hasAccess;
 }
 
 export function canAddHousehold(plan: PlanConfig, currentHouseholdsCount: number): boolean {
