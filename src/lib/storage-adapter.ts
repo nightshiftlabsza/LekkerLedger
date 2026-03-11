@@ -55,7 +55,7 @@ export interface StorageAdapter {
     deleteContract(id: string): Promise<void>;
 
     getAuditLogs(): Promise<AuditLog[]>;
-    logAuditEvent(action: string, details: string, metadata?: any): Promise<void>;
+    logAuditEvent(action: string, details: string, metadata?: Record<string, unknown>): Promise<void>;
 
     saveDocumentFile(id: string, file: Blob): Promise<void>;
     getDocumentFile(id: string): Promise<Blob | null>;

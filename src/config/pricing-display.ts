@@ -84,7 +84,7 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Upload signed contract copies",
             "Documents hub for payslips and contracts",
             "uFiling CSV export and ROE downloads",
-            "Encrypted sync (coming soon)",
+            "Encrypted sync",
             "12 months of history",
         ],
         ctaLabel: "Try Standard for R1",

@@ -5,7 +5,7 @@ import { useAppMode } from "@/lib/app-mode";
 import { RecoveryKeySetup } from "./recovery-key-setup";
 import { RecoveryKeyInput } from "./recovery-key-input";
 import { createClient } from "@/lib/supabase/client";
-import { generateValidationPayload, verifyValidationPayload } from "@/lib/crypto";
+import { generateValidationPayload, verifyValidationPayload, type EncryptedPayload } from "@/lib/crypto";
 import { Loader2 } from "lucide-react";
 
 export function RecoveryGate({ children }: { children: React.ReactNode }) {
@@ -94,7 +94,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 .single();
 
             if (profile?.validation_payload) {
-                 const isValid = await verifyValidationPayload(profile.validation_payload as any, cryptoKey);
+                 const isValid = await verifyValidationPayload(profile.validation_payload as unknown as EncryptedPayload, cryptoKey);
                  if (!isValid) {
                      alert("Incorrect Recovery Key. Please try again.");
                      setStatus('needs_input');

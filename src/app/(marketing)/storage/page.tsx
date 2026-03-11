@@ -30,7 +30,7 @@ export default function StoragePage() {
                             Unlike traditional HR software, LekkerLedger is designed so employee payroll records stay on your device by default instead of being uploaded into a large company-run payroll database.
                         </p>
                         <p>
-                            You have two main storage paths: <strong>Local only</strong> or <strong>Encrypted sync across devices</strong> (coming soon on paid plans).
+                            You have two main storage paths: <strong>Local only</strong> or <strong>Encrypted sync across devices</strong> (available on paid plans).
                         </p>
                     </section>
 

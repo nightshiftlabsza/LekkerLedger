@@ -47,7 +47,7 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
         const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === "SIGNED_OUT") {
                 setMode("local_guest");
-                syncEngine.setCryptoKey(null as any);
+                syncEngine.setCryptoKey(null);
             } else if (event === "SIGNED_IN" && mode === "local_guest") {
                 setMode("account_locked");
             }
@@ -66,7 +66,7 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const lockAccount = React.useCallback(() => {
-        syncEngine.setCryptoKey(null as any);
+        syncEngine.setCryptoKey(null);
         setMode("account_locked");
     }, []);
 

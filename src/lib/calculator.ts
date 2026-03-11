@@ -63,6 +63,30 @@ function getPeriodWeeks(input: PayslipInput): number {
     return Math.max(1, diffDays / 7);
 }
 
+function getPeriodDayCount(periodStart?: Date | string, periodEnd?: Date | string): number {
+    if (!periodStart || !periodEnd) return 30;
+    const start = new Date(periodStart);
+    const end = new Date(periodEnd);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 30;
+    const msPerDay = 24 * 60 * 60 * 1000;
+    return Math.max(1, Math.floor((end.getTime() - start.getTime()) / msPerDay) + 1);
+}
+
+export function getUifThresholdHoursForPeriod(periodStart?: Date | string, periodEnd?: Date | string): number {
+    const dayCount = getPeriodDayCount(periodStart, periodEnd);
+    if (dayCount >= 28) return UIF_THRESHOLD_HOURS;
+    const weeksInPeriod = Math.max(1, dayCount / 7);
+    return (UIF_THRESHOLD_HOURS / 4.33) * weeksInPeriod;
+}
+
+export function isUifApplicable(totalHours: number, periodStart?: Date | string, periodEnd?: Date | string): boolean {
+    return totalHours >= getUifThresholdHoursForPeriod(periodStart, periodEnd);
+}
+
+export function getSundayRateMultiplier(ordinarilyWorksSundays: boolean): number {
+    return ordinarilyWorksSundays ? SUNDAY_ORDINARY_MULTIPLIER : SUNDAY_NON_ORDINARY_MULTIPLIER;
+}
+
 export function calculatePayslip(input: PayslipInput): PayBreakdown {
     const referenceDate = input.payPeriodEnd ? new Date(input.payPeriodEnd) : new Date();
     const activeNmwRate = getNMWForDate(referenceDate);
@@ -76,7 +100,7 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
     const ordinaryPay = roundTo(effectiveOrdinaryHours * rate);
     const overtimePay = roundTo(input.overtimeHours * rate * OVERTIME_MULTIPLIER);
 
-    const sundayMultiplier = input.ordinarilyWorksSundays ? SUNDAY_ORDINARY_MULTIPLIER : SUNDAY_NON_ORDINARY_MULTIPLIER;
+    const sundayMultiplier = getSundayRateMultiplier(input.ordinarilyWorksSundays);
     let sundayPay = 0;
     if (input.sundayHours > 0) {
         sundayPay = input.sundayHours * rate * sundayMultiplier;
@@ -92,11 +116,11 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
     const grossPay = roundTo(ordinaryPay + overtimePay + sundayPay + publicHolidayPay);
     const totalHours = effectiveOrdinaryHours + input.overtimeHours + input.sundayHours + input.publicHolidayHours;
 
-    const weeksInPeriod = getPeriodWeeks(input);
     const uifBase = Math.min(grossPay, UIF_MONTHLY_CAP);
-    // UIF threshold is 24h per month. Scale it by weeks in period.
-    const periodUifThreshold = (UIF_THRESHOLD_HOURS / 4.33) * weeksInPeriod;
-    const uifContribution = totalHours > periodUifThreshold ? roundTo(uifBase * UIF_RATE) : 0;
+    const weeksInPeriod = getPeriodWeeks(input);
+    const uifContribution = isUifApplicable(totalHours, input.payPeriodStart, input.payPeriodEnd)
+        ? roundTo(uifBase * UIF_RATE)
+        : 0;
 
     const sdlEmployer = 0;
     const accommodationLimit = roundTo(grossPay * ACCOMMODATION_MAX_PCT);

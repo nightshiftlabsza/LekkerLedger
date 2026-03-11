@@ -24,12 +24,14 @@ import { useUI } from "@/components/theme-provider";
 import { InlinePlanCheckoutButton } from "@/components/billing/inline-paid-plan-checkout";
 import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "@/src/config/plans";
 import { getArchiveCutoffDate, getArchiveUpgradeHref } from "@/lib/archive";
-import { canUseAdvancedLeaveFeatures, canUseFullHistoryExport, getUserPlan } from "../../../lib/entitlements";
+import { canUseAdvancedLeaveFeatures, canUseFullHistoryExport, getUserPlan } from "@/lib/entitlements";
+import { useAppMode } from "@/lib/app-mode";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 
 function SettingsContent() {
     const searchParams = useSearchParams();
+    const { mode } = useAppMode();
     const [activeTab, setActiveTab] = React.useState<SettingsTab>("general");
     const [appearanceOpen, setAppearanceOpen] = React.useState(false);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
@@ -561,16 +563,41 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Encrypted Sync</h2>
                             <Card className="glass-panel border-none p-5 space-y-3 text-sm text-[var(--text-muted)] leading-relaxed">
-                                <p className="font-bold text-[var(--text)]">Coming soon</p>
-                                <p>Encrypted sync will let you back up and restore your data across browsers and devices. Until then, use the JSON export below to keep a copy of your records.</p>
+                                {mode === "account_unlocked" ? (
+                                    <>
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-2 w-2 rounded-full bg-[var(--primary)] animate-pulse" />
+                                            <p className="font-bold text-[var(--text)]">Cloud Sync Active</p>
+                                        </div>
+                                        <p>Your data is being encrypted with your private Recovery Key and synced to your secure LekkerLedger account in real-time. You can log in on any device to restore your records instantly.</p>
+                                    </>
+                                ) : mode === "account_locked" ? (
+                                    <>
+                                        <div className="flex items-center gap-2 text-[var(--warning)]">
+                                            <ShieldCheck className="h-4 w-4" />
+                                            <p className="font-bold text-[var(--text)]">Sync Paused (Key Required)</p>
+                                        </div>
+                                        <p>You are logged in, but your Recovery Key is required to unlock and resume sync. Look for the &quot;Unlock account&quot; banner at the top of the screen.</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="font-bold text-[var(--text)]">Secure Cloud Sync</p>
+                                        <p>Real-time encrypted sync is available on all paid plans. It allows you to back up and restore your data across browsers and devices automatically.</p>
+                                        {userPlan.id === "free" && (
+                                            <Link href="/pricing" className="inline-flex items-center font-bold text-[var(--primary)] hover:underline">
+                                                Upgrade to enable sync <ArrowRight className="ml-1 h-3 w-3" />
+                                            </Link>
+                                        )}
+                                    </>
+                                )}
                             </Card>
                         </section>
 
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Storage Rules</h2>
                             <Card className="glass-panel border-none p-5 space-y-4 text-sm text-[var(--text-muted)] leading-relaxed">
-                                <p><strong>1. Local first:</strong> All payroll records stay on this browser or device unless you choose to enable encrypted sync (coming soon on paid plans).</p>
-                                <p><strong>2. Encrypted sync:</strong> When available, a backup will be stored in an encrypted format so you can restore records on another browser or device.</p>
+                                <p><strong>1. Local first:</strong> All payroll records are stored on this device. If you have a paid plan, they are also synced securely to your account.</p>
+                                <p><strong>2. Encrypted sync:</strong> Your data is encrypted locally using your Recovery Key before it ever leaves your device. Only you can decrypt it.</p>
                                 <p><strong>3. PDF generation:</strong> Payslips and contracts do not leave your device unless you explicitly share or export them.</p>
                                 <p><strong>4. Do not clear browser storage without a backup:</strong> If you clear browser data or lose this device before exporting, your records on this device cannot be recovered.</p>
                                 
@@ -972,7 +999,7 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Raw Data Backup & Restore</h2>
                             <Card className="glass-panel border-none p-5 space-y-4">
-                                {/* Always show tip — encrypted sync not yet available */}
+                                {/* Tip for sync status */}
                                 {(
                                     <div
                                         className="rounded-2xl border px-4 py-3 text-xs leading-relaxed"
@@ -982,13 +1009,13 @@ function SettingsContent() {
                                             color: "var(--text)",
                                         }}
                                     >
-                                        Tip: Your records are stored in this browser right now. Download a JSON export regularly, or turn on backup on a paid plan before clearing browser data or changing devices.
+                                        Tip: Your records are stored in this browser right now. Paid users: Turn on Cloud Sync to back up and restore records automatically across devices.
                                     </div>
                                 )}
                                 <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-xs leading-relaxed text-[var(--text-muted)]">
                                     <p className="font-bold text-[var(--text)]">Before you change devices</p>
                                     <ol className="mt-2 list-decimal space-y-1.5 pl-4">
-                                        <li>Enable encrypted sync on a paid plan (coming soon), or download a JSON export first.</li>
+                                        <li>Ensure Cloud Sync is active (paid plans) or download a JSON export first.</li>
                                         <li>On the new device, sign in with the same account to restore your backup.</li>
                                         <li>Do not clear browser data on this device until you have confirmed the restore worked.</li>
                                     </ol>

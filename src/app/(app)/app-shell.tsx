@@ -40,7 +40,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const [lastLocalSaveAt, setLastLocalSaveAt] = React.useState<number | null>(null);
     const [settingsReady, setSettingsReady] = React.useState(false);
     const settingsRef = React.useRef<typeof settings>(null);
-    settingsRef.current = settings;
+    React.useEffect(() => {
+        settingsRef.current = settings;
+    }, [settings]);
     const previousNetworkRef = React.useRef(network);
 
     React.useEffect(() => {

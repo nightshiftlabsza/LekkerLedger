@@ -26,7 +26,7 @@ export class SyncEngine {
         this.localRepo = new LocalRepository();
     }
 
-    setCryptoKey(key: CryptoKey) {
+    setCryptoKey(key: CryptoKey | null) {
         this.cryptoKey = key;
     }
 

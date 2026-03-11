@@ -51,7 +51,7 @@ export function SignUpForm() {
                     Check your email
                 </h1>
                 <p className="text-[var(--text-muted)] text-[0.95rem] leading-relaxed mb-8 max-w-[280px] mx-auto">
-                    We've sent a confirmation link to <span className="font-semibold text-[var(--text)]">{email}</span>. Click the link to complete your account setup.
+                    We&apos;ve sent a confirmation link to <span className="font-semibold text-[var(--text)]">{email}</span>. Click the link to complete your account setup.
                 </p>
                 
                 <div className="mt-6 pt-5 border-t border-[var(--border)]/50">

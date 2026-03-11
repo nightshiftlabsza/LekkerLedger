@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         const uploadUrl = await getSignedUrl(r2, command, { expiresIn: 900 });
 
         return NextResponse.json({ uploadUrl });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Presign error:", err);
         return NextResponse.json({ error: "Failed to generate upload URL." }, { status: 500 });
     }

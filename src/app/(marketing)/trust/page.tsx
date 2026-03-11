@@ -50,7 +50,7 @@ export default function TrustCenterPage() {
                                 We take a local-first approach to payroll records. Employee names, wages, and ID details stay on your device by default instead of being uploaded into a central LekkerLedger payroll database.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                This architecture reduces how much employee payroll data LekkerLedger needs to handle directly. When encrypted sync is available on paid plans, your backup will be stored in an encrypted format that only you can access.
+                                This architecture reduces how much employee payroll data LekkerLedger needs to handle directly. On paid plans, your backup is stored in an encrypted format that only you can access via your secure recovery key.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 Free does not require an account. A sign-in is only needed if you choose paid encrypted sync to back up and restore across devices.
@@ -68,7 +68,7 @@ export default function TrustCenterPage() {
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                                 <FolderSync className="mb-3 h-5 w-5 text-[var(--success)]" />
                                 <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Encrypted Sync</h4>
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paid plans will offer encrypted sync to back up and restore records across browsers and devices (coming soon).</p>
+                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paid plans include encrypted sync to back up and restore records across browsers and devices.</p>
                             </div>
                         </div>
                     </div>

@@ -6,8 +6,8 @@ describe("Calculation Logic (lib/calculator.ts)", () => {
     const defaultPayslip: PayslipInput = {
         id: "test",
         employeeId: "emp-1",
-        payPeriodStart: new Date(),
-        payPeriodEnd: new Date(),
+        payPeriodStart: new Date("2024-01-01"),
+        payPeriodEnd: new Date("2024-01-31"),
         ordinaryHours: 160,
         overtimeHours: 0,
         sundayHours: 0,
@@ -95,8 +95,8 @@ describe("Calculation Logic (lib/calculator.ts)", () => {
         const bdOver = calculatePayslip(slipOver);
         expect(bdOver.totalHours).toBe(25);
         expect(bdOver.grossPay).toBe(2500);
-        expect(bdOver.deductions.uifEmployee).toBeCloseTo(25); // 1% of 2500
-        expect(bdOver.employerContributions.uifEmployer).toBeCloseTo(25); // 1%
+        expect(bdOver.deductions.uifEmployee).toBe(25); // 1% of 2500
+        expect(bdOver.employerContributions.uifEmployer).toBe(25); // 1%
     });
 
     it("UIF is capped at R17712 a month", () => {
