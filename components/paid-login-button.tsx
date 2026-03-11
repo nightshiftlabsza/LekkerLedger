@@ -114,7 +114,13 @@ export function usePaidLoginActivation() {
         if (check.recommendation === "RESTORE") {
             const restore = await syncDataFromDrive(accessToken);
             if (!restore.success) {
-                throw new Error(restore.error || "Restore failed while activating paid login.");
+                // Remote backup is unreadable (wrong format, corrupted, etc.).
+                // Fall back to uploading local data so the user isn't blocked.
+                const backup = await syncDataToDrive(accessToken);
+                if (!backup.success) {
+                    throw new Error(backup.error || "Sync failed while activating paid login.");
+                }
+                return "backup";
             }
             return "restore";
         }
