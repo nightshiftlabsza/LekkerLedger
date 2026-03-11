@@ -33,14 +33,22 @@ export function MarketingFooter() {
                         </div>
                     </div>
 
-                    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
                         <div>
                             <h4 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Product</h4>
                             <div className="space-y-2.5">
                                 <Link href="/#how-it-works" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">How it works</Link>
                                 <Link href="/pricing" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Pricing</Link>
                                 <Link href="/calculator" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Wage & UIF calculator</Link>
-                                <Link href="/rules" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Household checklist</Link>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Resources</h4>
+                            <div className="space-y-2.5">
+                                <Link href="/resources/tools/domestic-worker-payslip" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Payslip Generator</Link>
+                                <Link href="/resources/guides/uif-for-domestic-workers" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">UIF Guide</Link>
+                                <Link href="/resources/guides/domestic-worker-minimum-wage-2026" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">NMW Rules 2026</Link>
+                                <Link href="/resources/checklists/household-employer-monthly" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Monthly Checklist</Link>
                             </div>
                         </div>
                         <div>

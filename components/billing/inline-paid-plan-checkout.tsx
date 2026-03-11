@@ -11,6 +11,24 @@ import { getSettings } from "@/lib/storage";
 import { type BillingCycle, type PlanId } from "@/src/config/plans";
 
 const CHECKOUT_EMAIL_STORAGE_KEY = "lekkerledger:checkout-email";
+const PAYSTACK_PRECONNECT_URLS = [
+    "https://checkout.paystack.com",
+    "https://api.paystack.co",
+] as const;
+
+type PaystackPopup = {
+    resumeTransaction: (
+        accessCode: string,
+        handlers: {
+            onLoad: () => void;
+            onSuccess: (response: unknown) => void;
+            onCancel: () => void;
+            onError: (error: { message?: string } | undefined) => void;
+        },
+    ) => void;
+};
+
+let paystackConstructorPromise: Promise<new () => PaystackPopup> | null = null;
 
 function normalizeEmail(value: string): string {
     return value.trim().toLowerCase();
@@ -43,6 +61,14 @@ function writeStoredCheckoutEmail(email: string) {
     window.localStorage.setItem(CHECKOUT_EMAIL_STORAGE_KEY, normalizeEmail(email));
 }
 
+function loadPaystackConstructor(): Promise<new () => PaystackPopup> {
+    if (!paystackConstructorPromise) {
+        paystackConstructorPromise = import("@paystack/inline-js").then((paystackModule) => paystackModule.default as new () => PaystackPopup);
+    }
+
+    return paystackConstructorPromise;
+}
+
 async function openInlinePaystackPayment(input: {
     accessCode: string;
     onLoad: () => void;
@@ -50,8 +76,7 @@ async function openInlinePaystackPayment(input: {
     onCancel: () => void;
     onError: (message: string) => void;
 }) {
-    const paystackModule = await import("@paystack/inline-js");
-    const PaystackPop = paystackModule.default;
+    const PaystackPop = await loadPaystackConstructor();
     const popup = new PaystackPop();
 
     popup.resumeTransaction(input.accessCode, {
@@ -115,6 +140,53 @@ export function useInlinePaidPlanCheckout({
         return () => {
             cancelled = true;
         };
+    }, []);
+
+    React.useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const cleanup: Array<() => void> = [];
+        for (const href of PAYSTACK_PRECONNECT_URLS) {
+            const existing = document.head.querySelector(`link[rel="preconnect"][href="${href}"]`);
+            if (existing) continue;
+
+            const link = document.createElement("link");
+            link.rel = "preconnect";
+            link.href = href;
+            link.crossOrigin = "anonymous";
+            document.head.appendChild(link);
+            cleanup.push(() => {
+                link.remove();
+            });
+        }
+
+        const warmPaystack = () => {
+            void loadPaystackConstructor();
+        };
+
+        if (typeof window.requestIdleCallback === "function") {
+            const idleHandle = window.requestIdleCallback(() => {
+                warmPaystack();
+            });
+            cleanup.push(() => {
+                window.cancelIdleCallback?.(idleHandle);
+            });
+        } else {
+            const timeoutHandle = window.setTimeout(() => {
+                warmPaystack();
+            }, 250);
+            cleanup.push(() => {
+                window.clearTimeout(timeoutHandle);
+            });
+        }
+
+        return () => {
+            cleanup.forEach((dispose) => dispose());
+        };
+    }, []);
+
+    const warmCheckout = React.useCallback(() => {
+        void loadPaystackConstructor();
     }, []);
 
     const openPaystackCheckout = React.useCallback(async (planId: Exclude<PlanId, "free">, email: string) => {
@@ -265,6 +337,7 @@ export function useInlinePaidPlanCheckout({
         startCheckout,
         loadingPlanId,
         dialog,
+        warmCheckout,
     };
 }
 
@@ -283,7 +356,7 @@ export function InlinePlanCheckoutButton({
     children: React.ReactNode;
     loadingLabel?: string;
 } & React.ComponentProps<typeof Button>) {
-    const { startCheckout, loadingPlanId, dialog } = useInlinePaidPlanCheckout({ billingCycle, referralCode });
+    const { startCheckout, loadingPlanId, dialog, warmCheckout } = useInlinePaidPlanCheckout({ billingCycle, referralCode });
     const isLoading = loadingPlanId === planId;
 
     return (
@@ -296,6 +369,18 @@ export function InlinePlanCheckoutButton({
                     buttonProps.onClick?.(event);
                     if (event.defaultPrevented) return;
                     startCheckout(planId);
+                }}
+                onPointerEnter={(event) => {
+                    buttonProps.onPointerEnter?.(event);
+                    warmCheckout();
+                }}
+                onFocus={(event) => {
+                    buttonProps.onFocus?.(event);
+                    warmCheckout();
+                }}
+                onTouchStart={(event) => {
+                    buttonProps.onTouchStart?.(event);
+                    warmCheckout();
                 }}
             >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}

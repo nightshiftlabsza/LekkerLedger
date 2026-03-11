@@ -386,10 +386,12 @@ async function getTableColumns(tableName: string): Promise<Set<string>> {
     return new Set(rows.map((row) => String(row.name)));
 }
 
-async function ensureColumn(tableName: string, columnName: string, columnDefinition: string) {
+async function ensureColumns(tableName: string, columnsByName: Record<string, string>) {
     const columns = await getTableColumns(tableName);
-    if (!columns.has(columnName)) {
-        await queryD1(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`);
+    for (const [columnName, columnDefinition] of Object.entries(columnsByName)) {
+        if (!columns.has(columnName)) {
+            await queryD1(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`);
+        }
     }
 }
 
@@ -410,17 +412,19 @@ async function ensureBillingSchema() {
                     updated_at INTEGER NOT NULL
                 )
             `);
-            await ensureColumn("subscriptions", "paystack_email_token", "TEXT");
-            await ensureColumn("subscriptions", "paystack_authorization_code", "TEXT");
-            await ensureColumn("subscriptions", "paystack_authorization_signature", "TEXT");
-            await ensureColumn("subscriptions", "paystack_authorization_last4", "TEXT");
-            await ensureColumn("subscriptions", "next_charge_at", "INTEGER");
-            await ensureColumn("subscriptions", "cancel_at_period_end", "INTEGER NOT NULL DEFAULT 0");
-            await ensureColumn("subscriptions", "trial_started_at", "INTEGER");
-            await ensureColumn("subscriptions", "trial_ends_at", "INTEGER");
-            await ensureColumn("subscriptions", "trial_consumed_at", "INTEGER");
-            await ensureColumn("subscriptions", "has_used_trial", "INTEGER NOT NULL DEFAULT 0");
-            await ensureColumn("subscriptions", "last_error", "TEXT");
+            await ensureColumns("subscriptions", {
+                paystack_email_token: "TEXT",
+                paystack_authorization_code: "TEXT",
+                paystack_authorization_signature: "TEXT",
+                paystack_authorization_last4: "TEXT",
+                next_charge_at: "INTEGER",
+                cancel_at_period_end: "INTEGER NOT NULL DEFAULT 0",
+                trial_started_at: "INTEGER",
+                trial_ends_at: "INTEGER",
+                trial_consumed_at: "INTEGER",
+                has_used_trial: "INTEGER NOT NULL DEFAULT 0",
+                last_error: "TEXT",
+            });
             await queryD1("CREATE INDEX IF NOT EXISTS idx_subscriptions_customer_id ON subscriptions(paystack_customer_id)");
             await queryD1("CREATE INDEX IF NOT EXISTS idx_subscriptions_subscription_code ON subscriptions(paystack_subscription_code)");
             await queryD1("CREATE INDEX IF NOT EXISTS idx_subscriptions_authorization_signature ON subscriptions(paystack_authorization_signature)");

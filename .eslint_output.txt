@@ -1,0 +1,73 @@
+
+> lekkerledger@0.1.0 lint
+> eslint
+
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\google-sync.tsx
+  138:8  warning  React Hook useCallback has a missing dependency: 'isMountedRef'. Either include it or remove the dependency array                                                          react-hooks/exhaustive-deps
+  159:8  warning  React Hook useCallback has a missing dependency: 'isMountedRef'. Either include it or remove the dependency array                                                          react-hooks/exhaustive-deps
+  220:8  warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', and 'setTransientStatus'. Either include them or remove the dependency array                    react-hooks/exhaustive-deps
+  250:8  warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', 'reloadTimerRef', and 'setTransientStatus'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  272:8  warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', and 'setTransientStatus'. Either include them or remove the dependency array                    react-hooks/exhaustive-deps
+  305:8  warning  React Hook useCallback has a missing dependency: 'setTransientStatus'. Either include it or remove the dependency array                                                    react-hooks/exhaustive-deps
+  365:8  warning  React Hook useEffect has missing dependencies: 'isMountedRef', 'reloadTimerRef', and 'statusTimerRef'. Either include them or remove the dependency array                  react-hooks/exhaustive-deps
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\layout\startup-scripts.tsx
+  43:13  warning  `next/script`'s `beforeInteractive` strategy should not be used outside of `pages/_document.js`. See: https://nextjs.org/docs/messages/no-before-interactive-script-outside-document  @next/next/no-before-interactive-script-outside-document
+  44:13  warning  `next/script`'s `beforeInteractive` strategy should not be used outside of `pages/_document.js`. See: https://nextjs.org/docs/messages/no-before-interactive-script-outside-document  @next/next/no-before-interactive-script-outside-document
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\audit\helpers.ts
+  475:15  warning  'textBearingElements' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\public\theme-init.js
+  21:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\app-shell.tsx
+  30:26  warning  'setSyncConflict' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\documents\page.tsx
+    8:5   warning  'Download' is defined but never used                 @typescript-eslint/no-unused-vars
+   16:5   warning  'ScrollText' is defined but never used               @typescript-eslint/no-unused-vars
+   22:10  warning  'Alert' is defined but never used                    @typescript-eslint/no-unused-vars
+   22:17  warning  'AlertDescription' is defined but never used         @typescript-eslint/no-unused-vars
+   22:35  warning  'AlertTitle' is defined but never used               @typescript-eslint/no-unused-vars
+   30:10  warning  'ContractRow' is defined but never used              @typescript-eslint/no-unused-vars
+   50:10  warning  'generatePayslipPdfBytes' is defined but never used  @typescript-eslint/no-unused-vars
+   60:5   warning  'getPayslipsForEmployee' is defined but never used   @typescript-eslint/no-unused-vars
+  430:18  warning  'error' is defined but never used                    @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\employees\[id]\page.tsx
+    8:30  warning  'FolderOpen' is defined but never used            @typescript-eslint/no-unused-vars
+  173:11  warning  'periodLabel' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\wizard\page.tsx
+  221:8  warning  React Hook React.useCallback has a missing dependency: 'leaveTrackingEnabled'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\ufiling-errors\page.tsx
+  2:10  warning  'ArrowLeft' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\components\employees\employee-documents-tab.tsx
+    6:55  warning  'Lock' is defined but never used         @typescript-eslint/no-unused-vars
+    8:10  warning  'Card' is defined but never used         @typescript-eslint/no-unused-vars
+    8:16  warning  'CardContent' is defined but never used  @typescript-eslint/no-unused-vars
+  239:18  warning  'error' is defined but never used        @typescript-eslint/no-unused-vars
+  253:18  warning  'error' is defined but never used        @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\contracts\pdfGenerator.ts
+  5:10  warning  'getNMWRecordForDate' is defined but never used     @typescript-eslint/no-unused-vars
+  8:10  warning  'CONTRACT_TEMPLATE_META' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\entitlements.ts
+  50:39  warning  '_plan' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\google-drive.ts
+  19:11  warning  'GoogleDriveCreateResponse' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\pdf.ts
+  154:5  warning  'isLimited' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\year-end-summary.ts
+  10:7  warning  'LINE_HEIGHT' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 36 problems (0 errors, 36 warnings)
+

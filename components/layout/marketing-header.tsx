@@ -8,10 +8,10 @@ import { Logo } from "@/components/ui/logo";
 
 const NAV_LINKS = [
     { href: "/#how-it-works", label: "How it works" },
-    { href: "/uif-calculator", label: "UIF guide" },
+    { href: "/resources/tools/domestic-worker-payslip", label: "Payslip Generator" },
     { href: "/calculator", label: "Wage calculator" },
+    { href: "/resources/checklists/household-employer-monthly", label: "Employer Checklist" },
     { href: "/pricing", label: "Pricing" },
-    { href: "/trust", label: "Trust & Support" },
 ] as const;
 
 export function MarketingHeader() {

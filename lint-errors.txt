@@ -1,0 +1,79 @@
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\google-sync.tsx
+  80:11 1 react-hooks/exhaustive-deps The 'addLog' function makes the dependencies of useCallback Hook (at line 220) change on every render. To fix this, wrap the definition of 'addLog' in its own useCallback() Hook.
+  80:11 1 react-hooks/exhaustive-deps The 'addLog' function makes the dependencies of useCallback Hook (at line 250) change on every render. To fix this, wrap the definition of 'addLog' in its own useCallback() Hook.
+  80:11 1 react-hooks/exhaustive-deps The 'addLog' function makes the dependencies of useCallback Hook (at line 272) change on every render. To fix this, wrap the definition of 'addLog' in its own useCallback() Hook.
+  108:11 1 react-hooks/exhaustive-deps The 'setTransientStatus' function makes the dependencies of useCallback Hook (at line 220) change on every render. To fix this, wrap the definition of 'setTransientStatus' in its own useCallback() Hook.
+  108:11 1 react-hooks/exhaustive-deps The 'setTransientStatus' function makes the dependencies of useCallback Hook (at line 250) change on every render. To fix this, wrap the definition of 'setTransientStatus' in its own useCallback() Hook.
+  108:11 1 react-hooks/exhaustive-deps The 'setTransientStatus' function makes the dependencies of useCallback Hook (at line 272) change on every render. To fix this, wrap the definition of 'setTransientStatus' in its own useCallback() Hook.
+  108:11 1 react-hooks/exhaustive-deps The 'setTransientStatus' function makes the dependencies of useCallback Hook (at line 305) change on every render. To fix this, wrap the definition of 'setTransientStatus' in its own useCallback() Hook.
+  365:8 2 react-hooks/refs Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\google-sync.tsx:365:8
+  363 |             }
+  364 |         };
+> 365 |     }, [lastSyncTime, isMountedRef, reloadTimerRef, statusTimerRef]);
+      |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  366 |
+  367 |     if (!driveSyncAllowed) {
+  368 |         return (
+  365:23 2 react-hooks/refs Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\google-sync.tsx:365:23
+  363 |             }
+  364 |         };
+> 365 |     }, [lastSyncTime, isMountedRef, reloadTimerRef, statusTimerRef]);
+      |                       ^^^^^^^^^^^^ Cannot access ref value during render
+  366 |
+  367 |     if (!driveSyncAllowed) {
+  368 |         return (
+  365:37 2 react-hooks/refs Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\google-sync.tsx:365:37
+  363 |             }
+  364 |         };
+> 365 |     }, [lastSyncTime, isMountedRef, reloadTimerRef, statusTimerRef]);
+      |                                     ^^^^^^^^^^^^^^ Cannot access ref value during render
+  366 |
+  367 |     if (!driveSyncAllowed) {
+  368 |         return (
+  365:53 2 react-hooks/refs Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\google-sync.tsx:365:53
+  363 |             }
+  364 |         };
+> 365 |     }, [lastSyncTime, isMountedRef, reloadTimerRef, statusTimerRef]);
+      |                                                     ^^^^^^^^^^^^^^ Cannot access ref value during render
+  366 |
+  367 |     if (!driveSyncAllowed) {
+  368 |         return (
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\layout\startup-scripts.tsx
+  43:13 2 @next/next/no-sync-scripts Synchronous scripts should not be used. See: https://nextjs.org/docs/messages/no-sync-scripts
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\audit\helpers.ts
+  475:15 1 @typescript-eslint/no-unused-vars 'textBearingElements' is assigned a value but never used.
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\public\theme-init.js
+  21:14 1 @typescript-eslint/no-unused-vars 'error' is defined but never used.
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\app-shell.tsx
+  30:26 1 @typescript-eslint/no-unused-vars 'setSyncConflict' is assigned a value but never used.
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\documents\page.tsx
+  425:18 1 @typescript-eslint/no-unused-vars '_' is defined but never used.
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\employees\[id]\page.tsx
+  170:11 1 @typescript-eslint/no-unused-vars 'periodStart' is assigned a value but never used.
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\ufiling-errors\page.tsx
+  2:10 1 @typescript-eslint/no-unused-vars 'ArrowLeft' is defined but never used.
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\components\employees\employee-documents-tab.tsx
+  238:18 1 @typescript-eslint/no-unused-vars 'error' is defined but never used.
+  252:18 1 @typescript-eslint/no-unused-vars 'error' is defined but never used.
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\entitlements.ts
+  50:39 1 @typescript-eslint/no-unused-vars '_plan' is defined but never used.
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\google-drive.ts
+  19:11 1 @typescript-eslint/no-unused-vars 'GoogleDriveCreateResponse' is defined but never used.
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\pdf.ts
+  154:5 1 @typescript-eslint/no-unused-vars '_isLimited' is assigned a value but never used.
