@@ -163,13 +163,15 @@ export async function syncDataFromDrive(accessToken: string) {
         const json = await response.text();
         const result = await importData(json);
 
-        if (result.success && remoteMeta.modifiedTime) {
-            // Ensure local timestamp reflects the remote file we just restored (Issue 172)
+        if (result.success) {
+            // Always save a timestamp after restore so performSmartSyncCheck doesn't
+            // recommend RESTORE again on the next load (infinite reload loop).
+            // Fall back to current time if Drive didn't return modifiedTime.
             try {
                 const settings = await getSettings();
                 await saveSettings({
                     ...settings,
-                    lastBackupTimestamp: remoteMeta.modifiedTime
+                    lastBackupTimestamp: remoteMeta.modifiedTime ?? new Date().toISOString(),
                 });
             } catch (e) {
                 console.warn("Failed to update lastBackupTimestamp after restore", e);

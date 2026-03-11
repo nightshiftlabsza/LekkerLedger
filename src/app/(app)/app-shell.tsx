@@ -39,6 +39,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const [addHouseholdError, setAddHouseholdError] = React.useState("");
     const [addingHousehold, setAddingHousehold] = React.useState(false);
     const [lastLocalSaveAt, setLastLocalSaveAt] = React.useState<number | null>(null);
+    const [settingsReady, setSettingsReady] = React.useState(false);
+    const settingsRef = React.useRef<typeof settings>(null);
+    settingsRef.current = settings;
     const previousNetworkRef = React.useRef(network);
     const autoBackupInFlightRef = React.useRef(false);
     const sessionSyncPerformedRef = React.useRef(false);
@@ -65,6 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             setHouseholds(loadedHouseholds);
             setSettingsState(settings);
+            setSettingsReady(true);
             if (settings) {
                 setActiveHouseholdState(settings.activeHouseholdId || "default");
                 setMultiHouseholdEnabled(canUseMultipleHouseholds(getUserPlan(settings)));
@@ -82,36 +86,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
-    // High-Frequency & Event-Driven Auto-Sync (Issue 175)
+    // Auto-Sync: only re-runs when network changes or settings first loads.
+    // Uses settingsRef so data writes don't re-trigger this effect and cancel pending syncs.
     React.useEffect(() => {
-        if (!settings || network !== "online") return;
-        
-        const plan = getUserPlan(settings);
-        if (!canUseAutoBackup(plan)) return;
+        if (!settingsReady || network !== "online") return;
+
+        const s = settingsRef.current;
+        if (!s) return;
+
+        if (!canUseAutoBackup(getUserPlan(s))) return;
 
         const accessToken = getStoredGoogleAccessToken();
-        const hasDriveScope = hasStoredGoogleDriveScope();
-        if (!accessToken || !hasDriveScope) return;
+        if (!accessToken || !hasStoredGoogleDriveScope()) return;
 
-        if (!settings.googleSyncEnabled || !settings.autoBackupEnabled) {
-            const nextSettings = {
-                ...settings,
-                googleSyncEnabled: true,
-                autoBackupEnabled: true,
-            };
+        // Auto-enable sync flags if they're off (happens silently in the background)
+        if (!s.googleSyncEnabled || !s.autoBackupEnabled) {
+            const nextSettings = { ...s, googleSyncEnabled: true, autoBackupEnabled: true };
+            settingsRef.current = nextSettings;
             setSettingsState(nextSettings);
             void saveSettings(nextSettings);
         }
 
         const performSync = async (reason: string) => {
             if (autoBackupInFlightRef.current) return;
-            
-            // Throttle to once every 5 minutes unless it's the very first session sync
+
             const now = Date.now();
-            const minInterval = 5 * 60 * 1000;
-            if (sessionSyncPerformedRef.current && (now - lastSyncAttemptRef.current < minInterval)) {
-                return;
-            }
+            if (sessionSyncPerformedRef.current && now - lastSyncAttemptRef.current < 5 * 60 * 1000) return;
+
+            // Re-read token each time in case session changed
+            const token = getStoredGoogleAccessToken();
+            if (!token || !hasStoredGoogleDriveScope()) return;
 
             autoBackupInFlightRef.current = true;
             lastSyncAttemptRef.current = now;
@@ -119,23 +123,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             try {
                 if (!sessionSyncPerformedRef.current) {
-                    // Initial check for this session
-                    const check = await performSmartSyncCheck(accessToken);
+                    const check = await performSmartSyncCheck(token);
                     sessionSyncPerformedRef.current = true;
 
                     if (check.recommendation === "RESTORE") {
                         console.log("Auto-sync: Restoring data from Drive backup");
-                        await syncDataFromDrive(accessToken);
+                        await syncDataFromDrive(token);
                         window.location.reload();
                         return;
                     } else if (check.recommendation === "BACKUP") {
-                        await syncDataToDrive(accessToken);
+                        await syncDataToDrive(token);
                         return;
                     }
                 }
 
-                // Regular incremental backup
-                await syncDataToDrive(accessToken);
+                await syncDataToDrive(token);
             } catch (err) {
                 console.error("Auto-sync failed", err);
             } finally {
@@ -148,15 +150,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             void performSync("session-start");
         }
 
-        // 2. Event-driven sync (debounced 30s after a change)
+        // 2. Event-driven sync — debounced 5s after a change.
+        // Cleanup does NOT clear pendingSyncTimeoutRef so in-flight debounces survive
+        // settings re-renders (the previous bug: cleanup was cancelling the timer).
         const unsubscribe = subscribeToDataChanges(() => {
             if (pendingSyncTimeoutRef.current) clearTimeout(pendingSyncTimeoutRef.current);
             pendingSyncTimeoutRef.current = setTimeout(() => {
                 void performSync("data-change");
-            }, 30000); // 30s debounce
+            }, 5_000);
         });
 
-        // 3. Periodic sync (every 5 minutes)
+        // 3. Periodic sync every 5 minutes
         const interval = setInterval(() => {
             void performSync("periodic-interval");
         }, 5 * 60 * 1000);
@@ -164,9 +168,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         return () => {
             unsubscribe();
             clearInterval(interval);
-            if (pendingSyncTimeoutRef.current) clearTimeout(pendingSyncTimeoutRef.current);
+            // Intentionally NOT clearing pendingSyncTimeoutRef here.
+            // Settings updates used to re-trigger this effect and cancel the debounce,
+            // preventing syncs from ever firing. The ref outlives this effect instance.
         };
-    }, [settings, network]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [settingsReady, network]);
 
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && (sync === "error" || syncConflict) && !syncBannerDismissed;
