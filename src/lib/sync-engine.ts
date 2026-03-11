@@ -85,21 +85,22 @@ export class SyncEngine {
                 });
             }
 
-        } catch (error: any) {
-            console.error("Migration failed", error);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Unknown error occurred";
+            console.error("Migration failed", message);
             if (this.onProgress) {
                 this.onProgress({
                     status: 'error',
                     currentTask: 'Failed',
                     progress: 0,
-                    error: error.message || "Unknown error occurred"
+                    error: message
                 });
             }
             throw error;
         }
     }
 
-    private async pushRecord(tableName: string, recordId: string, data: any, userId: string) {
+    private async pushRecord(tableName: string, recordId: string, data: Record<string, unknown>, userId: string) {
         if (!this.cryptoKey) return;
         
         const encrypted = await encryptData(data, this.cryptoKey);

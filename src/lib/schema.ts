@@ -248,7 +248,7 @@ export const DocumentMetaSchema = z.object({
     vaultCategory: z.enum(["contracts", "employee-docs", "admin", "compliance", "other"]).optional(),
     sizeBytes: z.number().optional(),
     createdAt: z.string(), // ISO date
-
+    updatedAt: z.string().optional(),
 });
 
 export type DocumentMeta = z.infer<typeof DocumentMetaSchema>;

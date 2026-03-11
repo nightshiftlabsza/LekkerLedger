@@ -1,6 +1,5 @@
 import { createClient } from "./supabase/client";
 import { cloudRepo } from "./cloud-repository";
-import { subscribeToDataChanges } from "./storage";
 import { 
     getEmployees, saveEmployee, 
     getAllPayslips, savePayslip, deletePayslip,
@@ -14,7 +13,7 @@ import {
 export class SyncService {
     private supabase = createClient();
     private isSyncing = false;
-    private userId: string | null = null;
+    private userId: string| null = null;
 
     init(userId: string, cryptoKey: CryptoKey) {
         this.userId = userId;
@@ -31,7 +30,7 @@ export class SyncService {
     }
 
     // Called when local storage changes
-    async pushLocalChange(table: string, id: string, data: any) {
+    async pushLocalChange(table: string, id: string, data: Record<string, unknown>) {
         if (!this.userId) return;
         if (this.isSyncing) return; // Prevent infinite loop
 
@@ -60,11 +59,14 @@ export class SyncService {
     }
 
     // Called by useRealtimeSync when a remote change arrives
-    async applyRemoteChange(payload: any) {
+    async applyRemoteChange(payload: { new?: Record<string, unknown>; old?: Record<string, unknown>; eventType: string }) {
         if (!this.userId) return;
 
-        const { table_name, record_id, encrypted_data, updated_at } = payload.new || payload.old;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { table_name, record_id, encrypted_data, updated_at } = (payload.new || payload.old || {}) as any;
         const eventType = payload.eventType;
+
+        if (!table_name || !record_id) return;
 
         console.log(`Applying remote ${eventType} on ${table_name}/${record_id}`);
 
@@ -77,15 +79,11 @@ export class SyncService {
 
             // INSERT or UPDATE
             if (!encrypted_data) return;
-            const decrypted = await cloudRepo.pullRecord(table_name, record_id) || []; // wait, pullRecord fetches from DB, but we already have encrypted_data in payload?
-            // Actually pullRecord is easy, but we can just decrypt directly here to save a network call.
-            // Let's modify cloudRepo to expose decryptData or we just pull it.
             const record = await cloudRepo.pullRecord(table_name, record_id);
             if (!record) return;
 
             // Conflict resolution: Last Write Wins
-            // Compare local updatedAt with remote updatedAt
-            const isNewer = await this.isRemoteNewer(table_name, record_id, updated_at);
+            const isNewer = await this.isRemoteNewer(table_name, record_id, updated_at as string);
             if (!isNewer) {
                 console.log(`Local ${table_name}/${record_id} is newer, ignoring remote.`);
                 return;
@@ -102,28 +100,28 @@ export class SyncService {
     private async isRemoteNewer(table: string, id: string, remoteUpdatedAt: string): Promise<boolean> {
         if (!remoteUpdatedAt) return true;
 
-        let localRecord: any = null;
+        let localRecord: { updatedAt?: string | Date } | undefined = undefined;
         switch (table) {
             case 'employees':
-                localRecord = (await getEmployees()).find(e => e.id === id);
+                localRecord = (await getEmployees()).find(e => e.id === id) as { updatedAt?: string } | undefined;
                 break;
             case 'payslips':
-                localRecord = (await getAllPayslips()).find(p => p.id === id);
+                localRecord = (await getAllPayslips()).find(p => p.id === id) as { updatedAt?: string } | undefined;
                 break;
             case 'leave':
-                localRecord = (await getAllLeaveRecords()).find(l => l.id === id);
+                localRecord = (await getAllLeaveRecords()).find(l => l.id === id) as { updatedAt?: string } | undefined;
                 break;
             case 'pay_periods':
-                localRecord = (await getPayPeriods()).find(p => p.id === id);
+                localRecord = (await getPayPeriods()).find(p => p.id === id) as { updatedAt?: string } | undefined;
                 break;
             case 'documents':
-                localRecord = (await getDocuments()).find(d => d.id === id);
+                localRecord = (await getDocuments()).find(d => d.id === id) as { updatedAt?: string } | undefined;
                 break;
             case 'contracts':
-                localRecord = (await getContracts()).find(c => c.id === id);
+                localRecord = (await getContracts()).find(c => c.id === id) as { updatedAt?: string } | undefined;
                 break;
             case 'households':
-                localRecord = (await getHouseholds()).find(h => h.id === id);
+                localRecord = (await getHouseholds()).find(h => h.id === id) as { updatedAt?: string } | undefined;
                 break;
         }
 
@@ -134,15 +132,22 @@ export class SyncService {
         return remoteTime > localTime;
     }
 
-    private async applyLocalSave(table: string, data: any) {
+    private async applyLocalSave(table: string, data: Record<string, unknown>) {
         switch (table) {
-            case 'employees': await saveEmployee(data); break;
-            case 'payslips': await savePayslip(data); break;
-            case 'leave': await saveLeaveRecord(data); break;
-            case 'pay_periods': await savePayPeriod(data); break;
-            case 'documents': await saveDocumentMeta(data); break;
-            case 'contracts': await saveContract(data); break;
-            case 'households': await saveHousehold(data); break;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            case 'employees': await saveEmployee(data as any); break;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            case 'payslips': await savePayslip(data as any); break;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            case 'leave': await saveLeaveRecord(data as any); break;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            case 'pay_periods': await savePayPeriod(data as any); break;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            case 'documents': await saveDocumentMeta(data as any); break;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            case 'contracts': await saveContract(data as any); break;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            case 'households': await saveHousehold(data as any); break;
         }
     }
 

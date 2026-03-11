@@ -120,8 +120,8 @@ export class LocalRepository implements StorageAdapter {
     async getAuditLogs(): Promise<AuditLog[]> {
         return localStore.getAuditLogs();
     }
-    async logAuditEvent(action: string, details: string, metadata?: any): Promise<void> {
-        return localStore.logAuditEvent(action as any, details, metadata);
+    async logAuditEvent(action: string, details: string, metadata?: Record<string, unknown>): Promise<void> {
+        return localStore.logAuditEvent(action as AuditLog["action"], details, metadata);
     }
 
     async saveDocumentFile(id: string, file: Blob): Promise<void> {

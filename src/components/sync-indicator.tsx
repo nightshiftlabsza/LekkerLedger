@@ -9,7 +9,9 @@ import { Cloud, CloudOff, RefreshCw } from 'lucide-react';
 
 export function SyncIndicator() {
     const { mode } = useAppMode();
-    const [status, setStatus] = useState<"offline" | "syncing" | "synced">("offline");
+    const [status, setStatus] = useState<"offline" | "syncing" | "synced">(
+        (mode === 'local_guest' || mode === 'account_locked') ? "offline" : "synced"
+    );
     const [userId, setUserId] = useState<string | undefined>();
     const supabase = createClient();
 
@@ -21,7 +23,7 @@ export function SyncIndicator() {
                 setUserId(user.id);
             }
         }
-        checkAuth();
+        void checkAuth();
         return () => { mounted = false; };
     }, [supabase]);
 
@@ -34,15 +36,14 @@ export function SyncIndicator() {
 
     useEffect(() => {
         if (mode === 'local_guest' || mode === 'account_locked') {
-            setStatus("offline");
             return;
         }
 
         const interval = setInterval(() => {
             if (syncService.isCurrentlySyncing()) {
-                setStatus("syncing");
+                 setStatus(prev => prev !== "syncing" ? "syncing" : prev);
             } else {
-                setStatus("synced");
+                 setStatus(prev => prev !== "synced" ? "synced" : prev);
             }
         }, 300);
 

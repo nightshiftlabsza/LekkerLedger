@@ -1,5 +1,5 @@
 import { createClient } from "./supabase/client";
-import { encryptData, decryptData, encryptFile, decryptFile } from "./crypto";
+import { encryptData, decryptData } from "./crypto";
 
 export class CloudRepository {
     private supabase = createClient();
@@ -11,7 +11,7 @@ export class CloudRepository {
         this.userId = userId;
     }
 
-    async pushRecord(tableName: string, recordId: string, data: any) {
+    async pushRecord(tableName: string, recordId: string, data: Record<string, unknown>) {
         if (!this.cryptoKey || !this.userId) throw new Error("Sync not initialized");
         const encrypted = await encryptData(data, this.cryptoKey);
         
@@ -38,7 +38,7 @@ export class CloudRepository {
         if (error) throw new Error(`Delete failed: ${error.message}`);
     }
 
-    async pullRecord(tableName: string, recordId: string): Promise<any> {
+    async pullRecord(tableName: string, recordId: string): Promise<Record<string, unknown> | null> {
         if (!this.cryptoKey || !this.userId) throw new Error("Sync not initialized");
         const { data, error } = await this.supabase
             .from('synced_records')
