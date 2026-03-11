@@ -402,15 +402,11 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
         ? settings?.googleSyncEnabled
             ? "Google backup on"
             : "Google connected"
-        : currentPlanId === "free"
-            ? "Upgrade for Google backup"
-            : "Local only";
+        : "Not connected";
 
     const accountSummary = hasGoogleSession && googleEmail
         ? `Signed in as ${googleEmail}.`
-        : currentPlanId === "free"
-            ? "Google account linking only unlocks after you start a paid plan."
-            : "Your records are currently only on this device until you connect Google.";
+        : "Connect your Google account to enable Drive backup and restore your data on this device.";
 
     const handleSignOut = () => {
         googleLogout();
@@ -472,23 +468,6 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                                 <p className="text-xs text-[var(--text-muted)]">Stop Google access on this device without deleting your Drive backup.</p>
                             </div>
                         </button>
-                    ) : currentPlanId === "free" ? (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setOpen(false);
-                                router.push("/upgrade");
-                            }}
-                            className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/5 px-4 py-3 text-left transition-all hover:bg-[var(--primary)]/10"
-                        >
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">
-                                <CreditCard className="h-4 w-4" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-semibold text-[var(--text)]">Upgrade to connect Google</p>
-                                <p className="text-xs text-[var(--text-muted)]">Payment comes first. Google backup is enabled after a paid plan starts.</p>
-                            </div>
-                        </button>
                     ) : (
                         <button
                             type="button"
@@ -503,7 +482,7 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
                                 <p className="text-sm font-semibold text-[var(--text)]">
                                     {loading ? (statusMessage || "Signing in...") : "Connect your Google account"}
                                 </p>
-                                <p className="text-xs text-[var(--text-muted)]">Finish linking backup and paid access on this device.</p>
+                                <p className="text-xs text-[var(--text-muted)]">Sign in to restore your backup and enable automatic Drive sync.</p>
                             </div>
                         </button>
                     )}
