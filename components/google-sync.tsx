@@ -7,7 +7,7 @@ import { useGoogleLogin, googleLogout } from "@react-oauth/google";
 import { Cloud, Download, Upload, CheckCircle2, AlertCircle, Loader2, Shield, History, RefreshCcw, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MINIMAL_SCOPES, DRIVE_SCOPE, syncDataToDrive, syncDataFromDrive, deleteDataFromDrive, getBackupMetadata, type BackupMetadata } from "@/lib/google-drive";
+import { GOOGLE_SCOPES, performSmartSyncCheck, syncDataToDrive, syncDataFromDrive, deleteDataFromDrive, getBackupMetadata, type BackupMetadata } from "@/lib/google-drive";
 import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail, hasStoredGoogleDriveScope, setStoredGoogleDriveScope, storeGoogleAccessToken, storeGoogleIdentity } from "@/lib/google-session";
 import { getSettings, saveSettings, hasMeaningfulLocalData, getLocalBackupPreview, resetAllData, type LocalBackupPreview } from "@/lib/storage";
 interface SyncEvent {
@@ -52,13 +52,13 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
     const [hasDriveScope, setHasDriveScope] = useState<boolean>(() => hasStoredGoogleDriveScope());
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [statusMessage, setStatusMessage] = useState("");
-    const [pendingAction, setPendingAction] = useState<null | "restore" | "delete">(null);
+    const [pendingAction, setPendingAction] = useState<null | "delete">(null);
     const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => {
         if (typeof window !== "undefined") return localStorage.getItem("ll_last_sync");
         return null;
     });
 
-    const [discoveryStatus, setDiscoveryStatus] = useState<"idle" | "discovering" | "decision_required" | "no_backup" | "local_empty_remote_exists">("idle");
+    const [discoveryStatus, setDiscoveryStatus] = useState<"idle" | "discovering" | "decision_required" | "no_backup">("idle");
     const [remoteMetadata, setRemoteMetadata] = useState<BackupMetadata | null>(null);
     const [localPreview, setLocalPreview] = useState<LocalBackupPreview | null>(null);
 
@@ -150,7 +150,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
         setHasDriveScope(false);
         clearStoredGoogleSession();
         const settings = await getSettings();
-        await saveSettings({ ...settings, googleSyncEnabled: false });
+        await saveSettings({ ...settings, googleSyncEnabled: false, autoBackupEnabled: false });
         if (!isMountedRef.current) return;
         setPendingAction(null);
         setDiscoveryStatus("idle");
@@ -186,10 +186,10 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                     setDiscoveryStatus("idle");
                 }
             } else {
-                if (!hasMeaningful) {
-                    setDiscoveryStatus("local_empty_remote_exists");
-                } else {
+                if (hasMeaningful) {
                     setDiscoveryStatus("decision_required");
+                } else {
+                    setDiscoveryStatus("idle");
                 }
             }
         } catch (error) {
@@ -200,7 +200,8 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
 
     const handleBackup = useCallback(async (silent = false) => {
         const currentToken = token || getStoredToken();
-        if (!currentToken || !hasDriveScope) return;
+        const driveReady = hasDriveScope || hasStoredGoogleDriveScope();
+        if (!currentToken || !driveReady) return;
 
         if (!silent) {
             setStatus("loading");
@@ -210,7 +211,6 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
         const result = await syncDataToDrive(currentToken);
         if (result.success) {
             addLog({ success: true, action: "backup", details: "Uploaded lekkerledger_data.json" });
-            const timestamp = new Date().toISOString();
             await refreshLocalTimestamp();
             if (!silent) setTransientStatus("success", "Backup saved to the Google Drive app data area in your Google account.");
         } else if (!silent && isMountedRef.current) {
@@ -271,8 +271,47 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
         }
     }, [token]);
 
+    const finishGoogleBackupSetup = useCallback(async (accessToken: string, options?: { connectedMessage?: string }) => {
+        if (!isMountedRef.current) return;
+
+        persistAuth(accessToken);
+        setHasDriveScope(true);
+        setStoredGoogleDriveScope(true);
+
+        const settings = await getSettings();
+        await saveSettings({ ...settings, googleSyncEnabled: true, autoBackupEnabled: true });
+
+        const check = await performSmartSyncCheck(accessToken);
+        if (!isMountedRef.current) return;
+
+        if (check.recommendation === "RESTORE") {
+            setDiscoveryStatus("idle");
+            setStatus("loading");
+            setStatusMessage("Found your Google backup. Restoring it to this device...");
+            await runRestore(false);
+            return;
+        }
+
+        if (check.recommendation === "BACKUP") {
+            setDiscoveryStatus("idle");
+            setStatus("loading");
+            setStatusMessage("Saving this device to your Google backup...");
+            await handleBackup(false);
+            return;
+        }
+
+        await runDiscovery(accessToken);
+
+        if (check.recommendation === "CONFLICT") {
+            setTransientStatus("success", "Google backup connected. Choose which copy to keep.", 5000);
+            return;
+        }
+
+        setTransientStatus("success", options?.connectedMessage || "Google backup connected.");
+    }, [handleBackup, isMountedRef, persistAuth, runDiscovery, runRestore]);
+
     const login = useGoogleLogin({
-        scope: MINIMAL_SCOPES,
+        scope: GOOGLE_SCOPES,
         onSuccess: async (tokenResponse) => {
             const accessToken = tokenResponse.access_token;
             const userEmail = await fetchUserInfo(accessToken);
@@ -281,15 +320,15 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                 return;
             }
             if (!isMountedRef.current) return;
-            persistAuth(accessToken);
-            await runDiscovery(accessToken);
-            setTransientStatus("success", "Google account connected.");
+            await finishGoogleBackupSetup(accessToken, {
+                connectedMessage: "Google account connected and backup is ready.",
+            });
         },
         onError: () => setTransientStatus("error", "Google sign-in failed.", 5000),
     });
 
     const enableDrive = useGoogleLogin({
-        scope: DRIVE_SCOPE,
+        scope: GOOGLE_SCOPES,
         onSuccess: async (tokenResponse) => {
             const accessToken = tokenResponse.access_token;
             const verifiedEmail = email || await fetchUserInfo(accessToken);
@@ -298,14 +337,9 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                 return;
             }
             if (!isMountedRef.current) return;
-            persistAuth(accessToken);
-            setHasDriveScope(true);
-            setStoredGoogleDriveScope(true);
-            const settings = await getSettings();
-            await saveSettings({ ...settings, googleSyncEnabled: true, autoBackupEnabled: true });
-            if (!isMountedRef.current) return;
-            await runDiscovery(accessToken);
-            setTransientStatus("success", "Private Google Drive backup enabled.");
+            await finishGoogleBackupSetup(accessToken, {
+                connectedMessage: "Private Google Drive backup enabled.",
+            });
         },
         onError: () => {
             addLog({ success: false, action: "backup", details: "Drive scope permission denied" });
@@ -394,7 +428,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                                 {!token ? "Local only" : !hasDriveScope ? "Google connected" : status === "loading" ? "Working with Google backup..." : status === "error" ? "Google backup issue" : "Google backup active"}
                             </h2>
                             <p className="text-sm text-[var(--text-muted)] mt-1">
-                                {!token ? "Your records remain on this device. Connect Google to restore paid access and optional backup." : !hasDriveScope ? `Google account connected as ${email}. Next, enable backup in the Google Drive app data area in your own Google account so your records can travel with you.` : `Google-connected backup active for ${email}`}
+                                {!token ? "Your records remain on this device. Connect Google once and LekkerLedger will sync the right backup for this device." : !hasDriveScope ? `Google account connected as ${email}. Finish backup access once so this device can sync with your Google backup.` : `Google-connected backup active for ${email}`}
                             </p>
                             {token && hasDriveScope && lastSyncTime && (
                                 <p className="text-xs text-[var(--text-muted)] mt-1 font-mono">
@@ -407,13 +441,13 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                     {!token ? (
                         <div className="flex flex-col sm:flex-row gap-2">
                              <Button onClick={() => login()} className="bg-[var(--info)] text-white font-bold whitespace-nowrap hover:brightness-95">
-                                Connect Google account
+                                Connect Google & sync
                             </Button>
                         </div>
                     ) : !hasDriveScope ? (
                         <div className="flex flex-col sm:flex-row gap-2">
                             <Button onClick={() => enableDrive()} className="h-12 rounded-xl bg-[var(--warning)] text-white font-bold whitespace-nowrap shadow-[var(--shadow-md)] hover:brightness-95">
-                                <Cloud className="h-4 w-4 mr-2" /> Enable Google backup
+                                <Cloud className="h-4 w-4 mr-2" /> Finish Google backup setup
                             </Button>
                             <Button variant="ghost" className="text-[var(--text-muted)]" onClick={clearAuth}>Sign out</Button>
                         </div>
@@ -421,9 +455,6 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                         <div className="flex flex-col sm:flex-row gap-2">
                             <Button variant="outline" onClick={() => handleBackup(false)} disabled={status === "loading"}>
                                 <RefreshCcw className={`h-4 w-4 mr-2 ${status === "loading" ? "animate-spin" : ""}`} /> Backup now
-                            </Button>
-                            <Button variant="ghost" onClick={() => setPendingAction("restore")} disabled={status === "loading"}>
-                                <Download className="h-4 w-4 mr-2" /> Restore backup
                             </Button>
                             <Button variant="ghost" className="text-[var(--danger)] hover:bg-[var(--danger-soft)]" onClick={clearAuth}>
                                 Disconnect
@@ -438,26 +469,6 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                     <Loader2 className="h-8 w-8 animate-spin mx-auto text-[var(--primary)] mb-3" />
                     <p className="text-sm font-medium text-[var(--text)]">Checking for existing backups...</p>
                 </div>
-            )}
-
-            {discoveryStatus === "local_empty_remote_exists" && remoteMetadata && (
-                 <Card className="border-2" style={{ borderColor: "var(--success-border)", backgroundColor: "var(--success-soft)" }}>
-                     <CardContent className="p-6">
-                         <div className="flex flex-col sm:flex-row gap-6 items-center justify-between text-center sm:text-left">
-                             <div className="space-y-2">
-                                 <h3 className="text-lg font-bold text-[var(--text)]">Restore your backup?</h3>
-                                 <p className="text-sm text-[var(--success)]">We found a backup from <b>{new Date(remoteMetadata.modifiedTime!).toLocaleString()}</b>. Would you like to restore it to this device?</p>
-                             </div>
-                             <div className="flex gap-3 shrink-0">
-                                 <Button variant="ghost" onClick={() => setDiscoveryStatus("idle")}>Later</Button>
-                                 <Button className="bg-[var(--success)] text-white font-bold hover:brightness-95" onClick={async () => {
-                                     setDiscoveryStatus("idle");
-                                     await runRestore(false);
-                                 }}>Restore now</Button>
-                             </div>
-                         </div>
-                     </CardContent>
-                 </Card>
             )}
 
             {discoveryStatus === "no_backup" && (
@@ -530,24 +541,18 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                 <Card className="border-[var(--border)] bg-[var(--surface-2)]/70">
                     <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <p className="font-bold text-[var(--text)]">
-                                {pendingAction === "restore" ? "Restore from your Google backup?" : "Delete your Google backup?"}
-                            </p>
+                            <p className="font-bold text-[var(--text)]">Delete your Google backup?</p>
                             <p className="text-sm text-[var(--text-muted)]">
-                                {pendingAction === "restore"
-                                    ? "This will replace the current local data with the latest backup from the Google Drive app data area in your own Google account."
-                                    : "This removes the backup file from the Google Drive app data area in your own Google account."}
+                                This removes the backup file from the Google Drive app data area in your own Google account.
                             </p>
                         </div>
                         <div className="flex gap-2">
                             <Button variant="ghost" onClick={() => setPendingAction(null)}>Cancel</Button>
                             <Button
-                                className={pendingAction === "delete" ? "bg-[var(--danger)] text-white hover:brightness-95" : "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"}
+                                className="bg-[var(--danger)] text-white hover:brightness-95"
                                 onClick={async () => {
-                                    const action = pendingAction;
                                     setPendingAction(null);
-                                    if (action === "restore") await runRestore(false);
-                                    if (action === "delete") await runDeleteBackup();
+                                    await runDeleteBackup();
                                 }}
                             >
                                 Confirm

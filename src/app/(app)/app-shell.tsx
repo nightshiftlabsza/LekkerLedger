@@ -14,10 +14,10 @@ import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { ToastProvider } from "@/components/ui/toast";
 import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
-import { getHouseholds, getSettings, hasMeaningfulLocalData, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
+import { getHouseholds, getSettings, hasMeaningfulLocalData, saveHousehold, saveSettings, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseAutoBackup, canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
-import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail } from "@/lib/google-session";
+import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail, hasStoredGoogleDriveScope } from "@/lib/google-session";
 import { syncDataToDrive, performSmartSyncCheck, syncDataFromDrive } from "@/lib/google-drive";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 import { usePaidLoginActivation } from "@/components/paid-login-button";
@@ -87,10 +87,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         if (!settings || network !== "online") return;
         
         const plan = getUserPlan(settings);
-        if (!canUseAutoBackup(plan) || !settings.googleSyncEnabled) return;
+        if (!canUseAutoBackup(plan)) return;
 
         const accessToken = getStoredGoogleAccessToken();
-        if (!accessToken) return;
+        const hasDriveScope = hasStoredGoogleDriveScope();
+        if (!accessToken || !hasDriveScope) return;
+
+        if (!settings.googleSyncEnabled || !settings.autoBackupEnabled) {
+            const nextSettings = {
+                ...settings,
+                googleSyncEnabled: true,
+                autoBackupEnabled: true,
+            };
+            setSettingsState(nextSettings);
+            void saveSettings(nextSettings);
+        }
 
         const performSync = async (reason: string) => {
             if (autoBackupInFlightRef.current) return;

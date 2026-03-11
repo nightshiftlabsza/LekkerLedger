@@ -144,8 +144,8 @@ export function usePaidLoginActivation() {
 
         // UP_TO_DATE or UNKNOWN
         const settings = await getSettings();
-        if (!settings.googleSyncEnabled) {
-            await saveSettings({ ...settings, googleSyncEnabled: true });
+        if (!settings.googleSyncEnabled || !settings.autoBackupEnabled) {
+            await saveSettings({ ...settings, googleSyncEnabled: true, autoBackupEnabled: true });
         }
         return "none";
     }, []);

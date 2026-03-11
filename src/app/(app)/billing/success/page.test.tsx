@@ -7,6 +7,7 @@ const pushMock = vi.fn();
 const confirmBillingTransactionMock = vi.fn();
 const fetchBillingAccountMock = vi.fn();
 const hasStoredGoogleSessionMock = vi.fn();
+const paidLoginButtonMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
     useRouter: () => ({ push: pushMock }),
@@ -23,7 +24,10 @@ vi.mock("@/lib/google-session", () => ({
 }));
 
 vi.mock("@/components/paid-login-button", () => ({
-    PaidLoginButton: ({ label }: { label: string }) => <button type="button">{label}</button>,
+    PaidLoginButton: (props: { label: string; nextPath?: string | null; showInlineError?: boolean; skipPaidChecks?: boolean }) => {
+        paidLoginButtonMock(props);
+        return <button type="button">{props.label}</button>;
+    },
 }));
 
 import BillingSuccessPage from "./page";
@@ -56,6 +60,7 @@ describe("BillingSuccessPage", () => {
         confirmBillingTransactionMock.mockReset();
         fetchBillingAccountMock.mockReset();
         hasStoredGoogleSessionMock.mockReset();
+        paidLoginButtonMock.mockReset();
         hasStoredGoogleSessionMock.mockReturnValue(true);
     });
 
@@ -70,5 +75,17 @@ describe("BillingSuccessPage", () => {
 
         expect(fetchBillingAccountMock).not.toHaveBeenCalled();
         expect(await screen.findByText("Thank you, payment confirmed")).toBeInTheDocument();
+    });
+
+    it("finishes Google activation with the paid checks still enabled", async () => {
+        hasStoredGoogleSessionMock.mockReturnValue(false);
+
+        render(<BillingSuccessPage />);
+
+        expect(await screen.findByText("Thank you for your order")).toBeInTheDocument();
+        expect(paidLoginButtonMock).toHaveBeenCalledWith(expect.objectContaining({
+            label: "Enable Google account & Drive backup",
+        }));
+        expect(paidLoginButtonMock.mock.calls[0]?.[0]).not.toHaveProperty("skipPaidChecks");
     });
 });

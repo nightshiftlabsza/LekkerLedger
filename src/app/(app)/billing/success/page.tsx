@@ -151,7 +151,6 @@ function BillingSuccessPageContent() {
                         className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl"
                         nextPath={successPath}
                         showInlineError
-                        skipPaidChecks
                     />
                 ) : (
                     <Link href="/dashboard" className="w-full">
