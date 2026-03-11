@@ -1,0 +1,294 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { Loader2, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { createInlineTrialIntent } from "@/lib/billing-client";
+import { getStoredGoogleEmail } from "@/lib/google-session";
+import { getSettings } from "@/lib/storage";
+import { env } from "@/lib/env";
+import { type BillingCycle, type PlanId } from "@/src/config/plans";
+
+const CHECKOUT_EMAIL_STORAGE_KEY = "lekkerledger:checkout-email";
+
+function normalizeEmail(value: string): string {
+    return value.trim().toLowerCase();
+}
+
+function isValidEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function extractReference(value: unknown): string | null {
+    if (!value || typeof value !== "object") return null;
+    const data = value as { reference?: unknown; ref?: unknown };
+    if (typeof data.reference === "string" && data.reference.trim()) {
+        return data.reference.trim();
+    }
+    if (typeof data.ref === "string" && data.ref.trim()) {
+        return data.ref.trim();
+    }
+    return null;
+}
+
+function readStoredCheckoutEmail(): string {
+    if (typeof window === "undefined") return "";
+    const stored = window.localStorage.getItem(CHECKOUT_EMAIL_STORAGE_KEY);
+    return stored ? normalizeEmail(stored) : "";
+}
+
+function writeStoredCheckoutEmail(email: string) {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(CHECKOUT_EMAIL_STORAGE_KEY, normalizeEmail(email));
+}
+
+export function useInlinePaidPlanCheckout({
+    billingCycle,
+    referralCode,
+}: {
+    billingCycle: BillingCycle;
+    referralCode?: string | null;
+}) {
+    const router = useRouter();
+    const paystackPublicKey = env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
+    const [checkoutEmail, setCheckoutEmail] = React.useState("");
+    const [emailError, setEmailError] = React.useState("");
+    const [dialogOpen, setDialogOpen] = React.useState(false);
+    const [requestedPlanId, setRequestedPlanId] = React.useState<Exclude<PlanId, "free"> | null>(null);
+    const [loadingPlanId, setLoadingPlanId] = React.useState<Exclude<PlanId, "free"> | null>(null);
+
+    React.useEffect(() => {
+        let cancelled = false;
+
+        async function prefillEmail() {
+            const storedGoogleEmail = getStoredGoogleEmail();
+            if (storedGoogleEmail) {
+                if (!cancelled) {
+                    setCheckoutEmail(normalizeEmail(storedGoogleEmail));
+                }
+                return;
+            }
+
+            const storedCheckoutEmail = readStoredCheckoutEmail();
+            if (storedCheckoutEmail) {
+                if (!cancelled) {
+                    setCheckoutEmail(storedCheckoutEmail);
+                }
+                return;
+            }
+
+            try {
+                const settings = await getSettings();
+                const employerEmail = settings.employerEmail ? normalizeEmail(settings.employerEmail) : "";
+                if (!cancelled && employerEmail) {
+                    setCheckoutEmail(employerEmail);
+                }
+            } catch {
+                // Local settings are optional on the marketing pages.
+            }
+        }
+
+        void prefillEmail();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const openPaystackCheckout = React.useCallback(async (planId: Exclude<PlanId, "free">, email: string) => {
+        if (!paystackPublicKey) {
+            throw new Error("Paystack is not configured for this build.");
+        }
+
+        setLoadingPlanId(planId);
+        setEmailError("");
+
+        const normalizedEmail = normalizeEmail(email);
+        writeStoredCheckoutEmail(normalizedEmail);
+
+        try {
+            const intent = await createInlineTrialIntent({
+                planId,
+                billingCycle,
+                email: normalizedEmail,
+                referralCode: referralCode?.trim() || null,
+            });
+
+            const { usePaystackPayment } = await import("react-paystack");
+            const initializePayment = usePaystackPayment({
+                publicKey: paystackPublicKey,
+            });
+
+            initializePayment({
+                config: {
+                    reference: intent.reference,
+                    email: normalizedEmail,
+                    amount: intent.amountCents,
+                    currency: "ZAR",
+                    channels: ["card"],
+                },
+                onSuccess: (response) => {
+                    const reference = extractReference(response) || intent.reference;
+                    setDialogOpen(false);
+                    setRequestedPlanId(null);
+                    setLoadingPlanId(null);
+                    router.push(`/billing/success?reference=${encodeURIComponent(reference)}`);
+                },
+                onClose: () => {
+                    setLoadingPlanId(null);
+                },
+            });
+        } catch (error) {
+            setLoadingPlanId(null);
+            const message = error instanceof Error ? error.message : "The payment popup could not be opened.";
+            setEmailError(message);
+            setDialogOpen(true);
+        }
+    }, [billingCycle, paystackPublicKey, referralCode, router]);
+
+    const startCheckout = React.useCallback((planId: PlanId) => {
+        if (planId === "free") {
+            router.push("/dashboard");
+            return;
+        }
+
+        setRequestedPlanId(planId);
+        const normalizedEmail = normalizeEmail(checkoutEmail);
+        if (!isValidEmail(normalizedEmail)) {
+            setEmailError(checkoutEmail ? "Enter a valid email address to continue." : "Enter the email to use for this payment.");
+            setDialogOpen(true);
+            return;
+        }
+
+        void openPaystackCheckout(planId, normalizedEmail);
+    }, [checkoutEmail, openPaystackCheckout, router]);
+
+    const handleDialogSubmit = React.useCallback((event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!requestedPlanId) {
+            setDialogOpen(false);
+            return;
+        }
+
+        const normalizedEmail = normalizeEmail(checkoutEmail);
+        if (!isValidEmail(normalizedEmail)) {
+            setEmailError("Enter a valid email address to continue.");
+            return;
+        }
+
+        void openPaystackCheckout(requestedPlanId, normalizedEmail);
+    }, [checkoutEmail, openPaystackCheckout, requestedPlanId]);
+
+    const dialog = dialogOpen ? (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/45 px-4 py-6" role="dialog" aria-modal="true">
+            <div className="w-full max-w-md rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_24px_70px_rgba(15,23,42,0.24)]">
+                <div className="space-y-4 p-6 sm:p-7">
+                    <div className="space-y-2">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--primary)]/15 bg-[var(--primary)]/8 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">
+                            <ShieldCheck className="h-3.5 w-3.5" />
+                            Payment first
+                        </div>
+                        <h2 className="text-2xl font-black text-[var(--text)]">
+                            Open secure payment
+                        </h2>
+                        <p className="text-sm leading-6 text-[var(--text-muted)]">
+                            Paystack will open here in a secure popup. Google login only comes after payment on the thank-you screen.
+                        </p>
+                    </div>
+
+                    <form className="space-y-4" onSubmit={handleDialogSubmit}>
+                        <div className="space-y-2">
+                            <label htmlFor="checkout-email" className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                                Billing email
+                            </label>
+                            <Input
+                                id="checkout-email"
+                                type="email"
+                                autoComplete="email"
+                                placeholder="name@example.com"
+                                value={checkoutEmail}
+                                error={emailError}
+                                onChange={(event) => {
+                                    setCheckoutEmail(event.target.value);
+                                    if (emailError) {
+                                        setEmailError("");
+                                    }
+                                }}
+                            />
+                        </div>
+
+                        <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--text-muted)]">
+                            You&apos;ll pay R1 now to start the 14-day paid trial. After payment, the next step is linking your Google account for backup and activation.
+                        </div>
+
+                        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full sm:w-auto"
+                                disabled={!!loadingPlanId}
+                                onClick={() => {
+                                    if (loadingPlanId) return;
+                                    setDialogOpen(false);
+                                    setEmailError("");
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit" className="w-full sm:w-auto min-w-[180px]" disabled={!!loadingPlanId}>
+                                {loadingPlanId ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                                {loadingPlanId ? "Opening Paystack..." : "Continue to payment"}
+                            </Button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    ) : null;
+
+    return {
+        startCheckout,
+        loadingPlanId,
+        dialog,
+    };
+}
+
+export function InlinePlanCheckoutButton({
+    planId,
+    billingCycle,
+    referralCode,
+    children,
+    loadingLabel = "Opening Paystack...",
+    disabled,
+    ...buttonProps
+}: {
+    planId: Exclude<PlanId, "free">;
+    billingCycle: BillingCycle;
+    referralCode?: string | null;
+    children: React.ReactNode;
+    loadingLabel?: string;
+} & React.ComponentProps<typeof Button>) {
+    const { startCheckout, loadingPlanId, dialog } = useInlinePaidPlanCheckout({ billingCycle, referralCode });
+    const isLoading = loadingPlanId === planId;
+
+    return (
+        <>
+            <Button
+                type="button"
+                {...buttonProps}
+                disabled={disabled || isLoading}
+                onClick={(event) => {
+                    buttonProps.onClick?.(event);
+                    if (event.defaultPrevented) return;
+                    startCheckout(planId);
+                }}
+            >
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {isLoading ? loadingLabel : children}
+            </Button>
+            {dialog}
+        </>
+    );
+}

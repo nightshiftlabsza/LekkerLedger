@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
@@ -10,6 +11,14 @@ import { hasStoredGoogleSession } from "@/lib/google-session";
 import { PaidLoginButton } from "@/components/paid-login-button";
 
 export default function BillingSuccessPage() {
+    return (
+        <Suspense fallback={null}>
+            <BillingSuccessPageContent />
+        </Suspense>
+    );
+}
+
+function BillingSuccessPageContent() {
     const searchParams = useSearchParams();
     const [status, setStatus] = React.useState<"checking" | "trial" | "active" | "pending" | "auth" | "error">("checking");
     const [billingAccount, setBillingAccount] = React.useState<BillingAccountPayload | null>(null);
