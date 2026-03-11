@@ -11,7 +11,9 @@ export interface MarketingPlanDisplay {
     headline: string;
     subtitle: string;
     badge?: string;
-    badgeTone?: "primary" | "subtle";
+    badgeTone?: "primary" | "subtle" | "earlybird";
+    /** Optional microcopy shown beneath the price block */
+    launchNote?: string;
     featureIntro?: string;
     features: string[];
     ctaLabel: string;
@@ -37,15 +39,15 @@ export const MARKETING_YEARLY_BADGE = "Save up to 32%";
 export const HOMEPAGE_PRICING_LINK_LABEL = "Compare plans in detail";
 
 export const PRICING_PAGE_TITLE = "Pick the plan that fits your household.";
-export const PRICING_PAGE_SUBTITLE = "Start free with basic payslips, or pay R1 for your first 14 days on Standard or Pro.";
+export const PRICING_PAGE_SUBTITLE = "Start free. Or pay R1 for your first 14 days on Standard or Pro.";
 export const PRICING_PAGE_NUDGE_TITLE = "Standard to Pro is less than R13/month extra.";
 export const PRICING_PAGE_NUDGE_BODY = "That's the price of a cup of coffee for full document storage, year-end summaries, and 5 years of searchable history.";
 
 export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
     free: {
-        label: "FREE",
-        headline: "Try it out, or keep it simple.",
-        subtitle: "One worker. Quick monthly payslips. No sign-up needed.",
+        label: "Free",
+        headline: "Start simple.",
+        subtitle: "One worker. Basic monthly payslips. No sign-up needed.",
         features: [
             "1 active employee",
             "Monthly payslips — preview, download, share",
@@ -53,88 +55,90 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Stored on this device",
         ],
         ctaLabel: "Start free",
-        ctaSubtext: "Upgrade anytime",
+        ctaSubtext: "No billing. No account required.",
         prices: {
             monthly: {
                 primary: "Free",
                 periodLabel: "",
-                helperText: "No billing, no account required",
+                helperText: "No billing. No account required.",
             },
             yearly: {
                 primary: "Free",
                 periodLabel: "",
-                helperText: "No billing, no account required",
+                helperText: "No billing. No account required.",
             },
         },
     },
     standard: {
-        label: "STANDARD",
-        headline: "Do it properly.",
-        subtitle: "A domestic worker, nanny, and gardener — up to 3 workers with organised records and backup.",
-        badge: "Most popular",
-        badgeTone: "primary",
+        label: "Standard",
+        headline: "For most households.",
+        subtitle: "Payslips, leave, contracts, organised records, and automatic private backup.",
+        badge: "Early-bird pricing",
+        badgeTone: "earlybird",
+        launchNote: "Launch pricing for early customers.",
         featureIntro: "Everything in Free, plus:",
         features: [
             "Up to 3 active employees",
             "Leave tracking — annual, sick & family responsibility",
             "Employment contract drafts",
-            "Upload signed copies of your contracts",
+            "Upload signed contract copies",
             "Documents hub for payslips and contracts",
             "uFiling CSV export and ROE downloads",
-            "Google Drive backup",
-            "12 months of browsable history",
+            "Automatic private backup to your own Google account",
+            "12 months of history",
         ],
-        ctaLabel: "14 days for R1",
-        ctaSubtext: "then R29/month",
+        ctaLabel: "Try Standard for R1",
+        ctaSubtext: "14-day trial, then R29/month",
         ctaSubtextByCycle: {
-            monthly: "then R29/month",
-            yearly: "then R249/year",
+            monthly: "14-day trial, then R29/month",
+            yearly: "14-day trial, then R249/year",
         },
         prices: {
             monthly: {
                 primary: "R29",
                 periodLabel: "/month",
-                helperText: "R1 today, then R29/month",
+                helperText: "Or R249/year — works out to R20.75/month",
             },
             yearly: {
-                primary: "R20.75",
-                periodLabel: "/month",
-                helperText: "R1 today, then R249/year",
+                primary: "R249",
+                periodLabel: "/year",
+                helperText: "≈ R20.75/month",
             },
         },
     },
     pro: {
-        label: "PRO",
-        headline: "Complete peace of mind.",
-        subtitle: "Full document storage, year-end summaries, long-term history, and faster support. Also for multiple households.",
-        badge: "Full control",
-        badgeTone: "subtle",
+        label: "Pro",
+        headline: "For long-term records and more control.",
+        subtitle: "Advanced document tools, full storage, longer history, and support for more complexity.",
+        badge: "Early-bird pricing",
+        badgeTone: "earlybird",
+        launchNote: "Launch pricing for early customers.",
         featureIntro: "Everything in Standard, plus:",
         features: [
             "Unlimited employees",
-            "Document vault — upload and store signed contracts, ID copies, anything",
+            "Document vault — upload and store any employment files",
+            "Advanced employment records",
             "Year-end employment summary PDF",
-            "5 years of browsable, searchable history",
-            "Automatic scheduled backups",
+            "5 years of searchable history",
+            "Multiple households",
             "Faster support — reply within 1 business day",
-            "Multiple households (main home + holiday home)",
         ],
-        ctaLabel: "14 days for R1",
-        ctaSubtext: "then R49/month",
+        ctaLabel: "Try Pro for R1",
+        ctaSubtext: "14-day trial, then R49/month",
         ctaSubtextByCycle: {
-            monthly: "then R49/month",
-            yearly: "then R399/year",
+            monthly: "14-day trial, then R49/month",
+            yearly: "14-day trial, then R399/year",
         },
         prices: {
             monthly: {
                 primary: "R49",
                 periodLabel: "/month",
-                helperText: "R1 today, then R49/month",
+                helperText: "Or R399/year — works out to R33.25/month",
             },
             yearly: {
-                primary: "R33.25",
-                periodLabel: "/month",
-                helperText: "R1 today, then R399/year",
+                primary: "R399",
+                periodLabel: "/year",
+                helperText: "≈ R33.25/month",
             },
         },
     },
@@ -146,7 +150,7 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
         rows: [
             { label: "Active employees", values: { free: "1", standard: "Up to 3", pro: "Unlimited" } },
             { label: "Households", values: { free: "1", standard: "1", pro: "Multiple" } },
-            { label: "Browsable history", values: { free: "3 months", standard: "12 months", pro: "5 years" } },
+            { label: "Searchable history", values: { free: "3 months", standard: "12 months", pro: "5 years" } },
         ],
     },
     {
@@ -156,7 +160,7 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
             { label: "Leave tracking", values: { free: false, standard: true, pro: true } },
             { label: "uFiling CSV export", values: { free: false, standard: true, pro: true } },
             { label: "ROE downloads", values: { free: false, standard: true, pro: true } },
-            { label: "Year-end employment summary", values: { free: false, standard: false, pro: true } },
+            { label: "Year-end employment summary PDF", values: { free: false, standard: false, pro: true } },
         ],
     },
     {
@@ -164,17 +168,16 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
         rows: [
             { label: "Contract drafts", values: { free: false, standard: true, pro: true } },
             { label: "Upload signed contract copies", values: { free: false, standard: true, pro: true } },
-            { label: "Documents hub", values: { free: false, standard: true, pro: true } },
+            { label: "Documents hub (payslips & contracts)", values: { free: false, standard: true, pro: true } },
             { label: "Document vault (upload any file)", values: { free: false, standard: false, pro: true } },
-            { label: "Bulk export of all records", values: { free: false, standard: false, pro: true } },
+            { label: "Advanced employment records", values: { free: false, standard: false, pro: true } },
         ],
     },
     {
         title: "Storage & backup",
         rows: [
             { label: "Stored on device", values: { free: true, standard: true, pro: true } },
-            { label: "Google Drive backup (manual)", values: { free: false, standard: true, pro: true } },
-            { label: "Automatic scheduled backups", values: { free: false, standard: false, pro: true } },
+            { label: "Automatic private backup (Google Drive)", values: { free: false, standard: true, pro: true } },
         ],
     },
     {
@@ -183,9 +186,9 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
             {
                 label: "Email support",
                 values: {
-                    free: "1-4 business days (Mon-Fri, SAST)",
-                    standard: "1-4 business days (Mon-Fri, SAST)",
-                    pro: "1 business day (Mon-Fri, SAST)",
+                    free: "1–4 business days",
+                    standard: "1–4 business days",
+                    pro: "1 business day",
                 },
             },
         ],

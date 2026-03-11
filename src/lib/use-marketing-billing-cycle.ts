@@ -6,15 +6,15 @@ import { MARKETING_BILLING_CYCLE_STORAGE_KEY } from "@/src/config/pricing-displa
 
 function readStoredBillingCycle(): BillingCycle {
     if (typeof window === "undefined") {
-        return "yearly";
+        return "monthly";
     }
 
     const storedValue = window.sessionStorage.getItem(MARKETING_BILLING_CYCLE_STORAGE_KEY);
-    return storedValue === "monthly" ? "monthly" : "yearly";
+    return storedValue === "yearly" ? "yearly" : "monthly";
 }
 
 export function useMarketingBillingCycle(): readonly [BillingCycle, (cycle: BillingCycle) => void] {
-    const [billingCycle, setBillingCycleState] = React.useState<BillingCycle>("yearly");
+    const [billingCycle, setBillingCycleState] = React.useState<BillingCycle>("monthly");
 
     React.useEffect(() => {
         setBillingCycleState(readStoredBillingCycle());

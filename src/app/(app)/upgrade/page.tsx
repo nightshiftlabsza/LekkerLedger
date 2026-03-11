@@ -30,7 +30,7 @@ function UpgradePageContent() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
-    const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("yearly");
+    const [billingCycle, setBillingCycle] = React.useState<BillingCycle>("monthly");
     const [referralCode, setReferralCode] = React.useState("");
     const hasAutoStartedCheckout = React.useRef(false);
     const [downgradingTo, setDowngradingTo] = React.useState<PlanId | null>(null);
