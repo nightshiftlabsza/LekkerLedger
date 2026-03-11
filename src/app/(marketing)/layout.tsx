@@ -9,6 +9,7 @@ import { AnalyticsPageView } from "@/components/AnalyticsPageView";
 import { PwaInstallTracking } from "@/components/PwaInstallTracking";
 import { MarketingFooter } from "@/components/layout/marketing-footer";
 import { StartupScripts } from "@/components/layout/startup-scripts";
+import { JsonLd, organizationSchema, softwareApplicationSchema } from "@/components/seo/json-ld";
 
 const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-sans",
@@ -51,6 +52,8 @@ export default function RootLayout({
         <StartupScripts gaId={gaId} gaDebug={gaDebug} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <JsonLd schema={organizationSchema} />
+        <JsonLd schema={softwareApplicationSchema} />
       </head>
       <body className={`${ibmPlexSans.variable} ${ibmPlexSerif.variable} antialiased selection:bg-[#C47A1C]/30 selection:text-[#C47A1C]`} style={{ overscrollBehaviorY: 'contain' }}>
         <a

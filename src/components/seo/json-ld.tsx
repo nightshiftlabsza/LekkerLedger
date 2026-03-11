@@ -1,0 +1,35 @@
+export const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "LekkerLedger",
+    url: "https://www.lekkerledger.co.za",
+    logo: "https://www.lekkerledger.co.za/icon.png",
+    description: "South African household employment administration software. Manage payslips, UIF, and compliance records.",
+    address: {
+        "@type": "PostalAddress",
+        addressCountry: "ZA"
+    }
+};
+
+export const softwareApplicationSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "LekkerLedger",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "ZAR"
+    },
+    description: "Payslip generator, UIF calculator, and compliance record management for South African household employers."
+};
+
+export function JsonLd({ schema }: { schema: Record<string, unknown> }) {
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+}

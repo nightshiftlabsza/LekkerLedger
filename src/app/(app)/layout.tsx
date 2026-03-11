@@ -28,6 +28,10 @@ export const metadata: Metadata = {
     description:
         "Manage payslips, leave tracking, and household employment records in one place.",
     manifest: "/manifest.webmanifest",
+    robots: {
+        index: false,
+        follow: true,
+    },
 };
 
 export const viewport: Viewport = {

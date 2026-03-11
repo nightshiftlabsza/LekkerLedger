@@ -1,0 +1,277 @@
+LekkerLedger.co.za SEO Growth Strategy for South African Household Employers
+Executive summary
+SECTION 1 — Executive summary
+LekkerLedger is positioned as a lightweight, self-service household-employment admin tool: record pay, generate payslips, show UIF clearly, and keep an organized document trail for later UIF/annual paperwork—starting free with no account required, then upgrading for backup/history/contracts and exports. [1] The product’s “local-first” architecture (records stay on the user’s device unless they opt into Google Drive app-data backup) is a meaningful trust differentiator in a category where many competitors push employer/employee PII into central systems. [2]
+Your biggest SEO constraint is structural: much of the most valuable, authority-building content (“household checklist” and deeper guidance) is intentionally kept inside the app to avoid maintaining it twice. [3] That’s operationally sensible, but it caps organic growth because you’re choosing not to publish the very pages that would rank for revenue-intent searches (UIF, payslip requirements, contract templates, ROE/COIDA, onboarding checklists). At the same time, several app routes (e.g., /dashboard, /employees, /payroll) are publicly accessible and appear discoverable as URLs, which risks thin/low-value pages being crawled/indexed and diluting the domain’s perceived purpose. [4]
+The commercial sweet spot for LekkerLedger SEO is not “general household lifestyle content.” It’s compliance-adjacent operational intent: “I need a payslip,” “how much must I pay,” “UIF threshold and deductions,” “uFiling export,” “domestic worker contract template,” “COIDA/ROE return,” “what documents do I need,” and “what do I do each month.” This aligns with users’ fear of getting it wrong (CCMA, penalties, admin chaos) and maps cleanly to your product workflows (payslip → export → archive → annual pack). [5]
+Key near-term SEO growth bet: build a public, indexable “Resources / Compliance Centre” that mirrors (selectively) your best in-app guidance, but packaged as landing pages + tools + templates with clear disclaimers and official citations. Google’s guidance is explicit that ranking systems prioritize helpful, reliable, people-first content—not content created primarily to manipulate rankings. [6] Your niche is inherently “your money or your life” adjacent (legal compliance and wages), so the bar for sourcing, freshness, and careful wording is higher than for generic blog content.
+What LekkerLedger should own in SEO
+SECTION 2 — What LekkerLedger should own in SEO
+The highest-value user and the “moment of purchase”
+Your highest-value user is the household employer who: 1) employs at least one domestic worker/nanny/gardener/carer on a recurring basis, 2) feels uncertainty about minimum wage, UIF, or paperwork, 3) wants a simple system that reduces admin and creates a defensible record trail. [7]
+The “moment of purchase” in this market is rarely “I want payroll software.” It’s usually one of these triggers: - “I need to issue a payslip / proof of payment.” (Your product’s core.) [8]- “UIF… do I need to register/pay? How much? By when?” (High anxiety + repeated monthly.) [9]- “I’m onboarding/terminating someone; what documents do I need?” (High stakes, high trust requirement.) [10]- “Annual admin: ROE / Compensation Fund / COIDA—what do I submit?” (Painful, deadline-driven.) [11]
+The core topical territory to “must own”
+If LekkerLedger wants revenue (not vanity traffic), your SEO territory should be narrow and deep:
+Core / must own (direct revenue-driving) - Domestic worker payslips (requirements, examples, generator, templates, “what must it include”). [12]- UIF for domestic workers (24-hours rule, 1%+1%, ceiling, deadlines, uFiling workflow). [13]- National Minimum Wage updates & calculations for household staff (including domestic workers; effective dates; hourly/daily/monthly conversions). In 2026, the statutory NMW rose from R28.79 to R30.23 per hour effective 1 March 2026, including domestic workers. [14]- “Pay for at least 4 hours” rule for short shifts (directly relevant to part-time cleaners). The BCEA inserted section 9A requiring that workers who work less than four hours on any day must be paid for four hours (subject to the earnings threshold). [15]- Contracts/written particulars + document retention + certificate of service (practical templates; not legal “representation”). Your own product already sells “contract drafts” and document storage. [16]- COIDA / Compensation Fund registration + annual ROE (especially if your Pro plan focuses on “peace of mind” and year-end summaries). [17]
+Strong adjacent (trust-building that still converts) - Leave basics by role (annual/sick/family responsibility/maternity), but framed as “recordkeeping and payslip accuracy” rather than legal adjudication. Your product already includes leave tracking. [18]- “First-time household employer” onboarding as an admin workflow: setup checklist, what info to collect, how to set pay basis, how to avoid common mistakes. [19]- Practical “how uFiling works” and “how to export/import” guides (tools beat generic advice). uFiling is explicitly positioned as a free online service for employers (including employers of domestics) to declare and pay UIF contributions. [20]
+Weak adjacent (publish only if tightly tied to employment records) - “Domestic worker routine / chore list / job duties” content only if it produces an employment artifact: job description template, schedule template, performance expectations doc—which supports written particulars and helps prevent disputes. [21]
+Traffic bait / avoid - “Buy these 5 cheap tools for your gardener” is overwhelmingly likely to attract DIY/home-improvement shoppers, not employers trying to do payroll/admin. Unless you can directly tie it to employment administration (allowances policy, equipment issued register, tool deductions rules, etc.), it’s traffic confetti. This kind of content also competes with massive publishers/retailers and will not build topical authority for household employment admin.
+Technical SEO audit
+SECTION 3 — Technical SEO audit
+You asked for operator-level recommendations. Below are the changes that matter most for LekkerLedger specifically, given the site’s current structure (marketing pages + web app routes + in-app help).
+Technical recommendation set
+1) Separate “indexable content” from “app routes” to avoid thin-index bloat 1. Recommendation: Ensure the web app routes are not indexed (or are very selectively indexed), while dedicated SEO landing pages + resources are indexable and intentionally written. 2. Why it matters: Right now, routes like /dashboard, /employees, /payroll are accessible and largely navigational/thin when viewed without user data, which can dilute quality signals and confuse Google about what the site is “about.” [4] 3. Expected SEO/business impact: Prevents low-value pages from competing with your intended landing pages, improves crawl efficiency, and reduces the risk that Google ranks an app shell instead of a conversion-optimized page. 4. Implementation details:- Add noindex,follow to app route templates (dashboard, employees, payroll, documents, settings, etc.).- Alternatively (or additionally), disallow crawling of app directories in robots.txt and rely on meta noindex for safety (robots alone doesn’t remove already-indexed URLs reliably). Google’s documentation emphasizes robots.txt is mainly for crawl management, not guaranteed deindexing. [22]- Keep public resources indexable (see IA section).5. Priority level: P0 (do this before scaling content). 6. Difficulty: Medium (depends on your framework). 7. Risks/cautions: If you accidentally noindex key conversion pages (pricing, calculator), you can wipe out organic acquisition. Roll out with an allowlist and verify in Search Console.
+2) Publish (and submit) a clean sitemap for only your intended indexable pages 1. Recommendation: Create sitemap.xml containing only: homepage, pricing, trust center, calculator, and the new public “Resources/Guides/Templates/Tools” URLs—excluding app routes. 2. Why it matters: Sitemaps help search engines crawl efficiently and understand what you consider important. Google explicitly describes sitemaps as a way to provide information about important pages/files and encourages submitting in Search Console. [23] 3. Expected SEO/business impact: Faster discovery of new Revenue SEO pages and less crawler time wasted on app shells. 4. Implementation details:- Generate automatically at build time.- Use a sitemap index if you end up with separate sitemaps (e.g., /sitemap-pages.xml, /sitemap-articles.xml, /sitemap-templates.xml). [24]5. Priority level: P0. 6. Difficulty: Low–Medium. 7. Risks/cautions: Including “junk URLs” in the sitemap is worse than having no sitemap.
+3) Turn the existing Compliance Guide into an SEO asset (selectively) 1. Recommendation: Decide what parts of /help/compliance should be a public “Compliance Centre” (indexable) vs what should remain inside the app, then refactor accordingly. 2. Why it matters: Your compliance guide is substantive, updated recently, and already written in a careful, disclaimer-forward tone with sources. [25] Keeping it “in-app” limits search acquisition; publishing it as structured resources builds topical authority. 3. Expected SEO/business impact: High—this can become your moat if done as tools + templates + citations (hard for generic blogs to beat). 4. Implementation details:- Convert each major guide section into a dedicated URL targeting a clear query cluster (UIF, payslips, minimum wage, ROE/COIDA, onboarding checklist).- Keep the app guide as the “interactive workflow,” but make the public pages the “reference” that drives acquisition.5. Priority level: P0–P1 (start with UIF + payslips + contract template). 6. Difficulty: Medium–High (content ops + dev). 7. Risks/cautions: Compliance content becomes a maintenance obligation; mitigate with a “last updated” label, source citations, and a scheduled review cadence (see publishing system).
+4) Add structured data where it actually improves snippets and trust 1. Recommendation: Implement schema for: Organization, SoftwareApplication/Product, FAQPage (sparingly), and Article on editorial content. 2. Why it matters: Structured data helps Google understand your pages and can enable richer search results depending on eligibility and query intent. [26] 3. Expected SEO/business impact: Moderate. The win is improved snippet clarity (“what is this?”), not a magic ranking button. 4. Implementation details:- Use FAQPage schema only where the page truly contains FAQs visible to users (and keep it high quality). [27]- Use Article schema for guides that function as articles, with author + updated date (this matters in legal-ish content). [28]5. Priority level: P1. 6. Difficulty: Medium. 7. Risks/cautions: Spammy structured data can backfire; follow Google’s structured data policies. [29]
+5) Keep performance and mobile UX “good enough,” but don’t worship Core Web Vitals 1. Recommendation: Run CWV and reduce obvious friction (mobile nav, LCP images, JS bloat), but prioritize crawl/index quality + intent-match content. 2. Why it matters: Google states its systems “look to reward content that provides a good page experience,” but page experience isn’t something to optimize in isolation. [30] 3. Expected SEO/business impact: Moderate (mostly conversion impact on mobile). 4. Implementation details: Use PageSpeed Insights/Lighthouse; fix biggest offenders; keep PWA/app fast for conversion. 5. Priority level: P1. 6. Difficulty: Medium. 7. Risks/cautions: Over-investing here before fixing IA/content is a common failure mode.
+Information architecture recommendations
+SECTION 4 — Information architecture recommendations
+Your current navigation is coherent for users who already know LekkerLedger: How it works, Pricing, Wage & UIF calculator, Household checklist plus trust/support/legal. [31] The problem is that the “household checklist” page is intentionally short and pushes the real content into the app. [32] That decision is costing you organic growth.
+The winning structure: a “Resources / Compliance Centre,” not a generic blog
+6) Build a public, indexable Resources hub with clear subtypes 1. Recommendation: Create a top-level /resources/ hub with four subdirectories: - /resources/guides/ (long-form, cited guides) - /resources/templates/ (downloadable docs) - /resources/tools/ (calculators and generators) - /resources/checklists/ (printable step-by-step flows) 2. Why it matters: A generic blog becomes a dumping ground. A resource centre creates topical authority and drives users into product workflows with the right CTA. 3. Expected SEO/business impact: High. It aligns with real search intent: people want templates, calculators, checklists, and examples—not essays. Your own market shows competitors winning by “payslip pages” and “payslip generators.” [33] 4. Implementation details:- Each resource must map to a product action: “Generate payslip,” “Export UIF,” “Store contract,” “Prepare ROE pack,” etc. [34]- Use a consistent page template: (a) what this is, (b) who it’s for, (c) the rules with official sources, (d) worked example, (e) downloadable asset, (f) CTA into LekkerLedger.5. Priority level: P0–P1. 6. Difficulty: Medium–High. 7. Risks/cautions: Creates ongoing update obligations. Mitigate with an editorial calendar and “source log” approach (you already do this in-app). [25]
+7) Create dedicated commercial landing pages for the 3 money keywords 1. Recommendation: Launch three non-blog, conversion pages: - /domestic-worker-payslip/ (or /payslips/domestic-worker/) - /uif-for-domestic-workers/ - /domestic-worker-contract-template/ 2. Why it matters: These are high-intent, high-conversion queries; they deserve purpose-built pages, not buried mentions. 3. Expected SEO/business impact: Very high (best chance of producing paid users). 4. Implementation details:- “Payslip” page must include the DEL payslip content requirements and the “<24 hours” caveat, because that detail affects trust. [35]- “UIF” page must include: who must register (>24 hours/month), how much (1%+1%), ceiling, and where to pay (uFiling or SARS). [13]- “Contract template” page should use the official DEL sample contract as a reference option and explain what LekkerLedger provides (draft + storage), without pretending to replace legal counsel. [36]5. Priority level: P0. 6. Difficulty: Medium. 7. Risks/cautions: Legal-risk if you present templates as “guaranteed compliant.” Keep your existing disclaimer posture. [37]
+Keyword and intent map
+SECTION 5 — Keyword and intent map
+Below is a commercially biased mapping (not a “traffic-maximizing” mapping). It assumes you’d rather rank for 500 high-intent visits that convert than 50,000 random home-management visits that don’t.
+Bottom-of-funnel (revenue-driving SEO)
+These queries indicate the user is ready to take action (generate, download, submit, register).
+Domestic worker payslip / payslip template / payslip generator (South Africa)Intent: “Give me the doc now; I’m paying someone.”Why it matters: Direct product fit—LekkerLedger generates payslips and keeps the record trail. [38]Recommended page type: Landing page + embedded “quick generator” CTA.CTA: “Create full payslip” (you already do this on calculator). [39]Zero-click risk: Moderate. Users may get a quick answer about “what to include,” so the page must offer a tool/template.
+UIF calculator domestic worker / UIF deduction 1% / uFiling declare and payIntent: “Tell me exactly what to deduct and how to submit.”Why: recurring obligation + anxiety; your calculator already shows employee and employer UIF. [40]Page type: Tool page + guide.CTA: “Export for uFiling” / “Create payslip with UIF shown.”
+Domestic worker contract template / nanny contract template (South Africa)Intent: “I’m hiring; I need paperwork.”Why: onboarding moment is when employers are willing to adopt a system; your Standard plan includes contract drafts and document hub. [18]Page type: Template landing page + onboarding checklist.
+COIDA / Compensation Fund domestic employer registration + ROE submissionIntent: “I have to submit something annual; I’m lost.”Why: high pain, low clarity; you already have a ROE wizard and talk about ROE packs. [41]Page type: Guide + tool explainer + “ROE pack” CTA.Trust factor: Must cite official registration guidance. [42]
+Mid-funnel (consideration)
+These users are trying to understand rules and won’t buy unless you simplify it:
+National minimum wage domestic worker 2026 (and future years) → you need a yearly updated canonical page. The official 2026 NMW is R30.23/hour effective 1 March 2026. [14]
+“24 hours per month” threshold questions (UIF + payslips) → official guidance exists; use it. [43]
+“Pay for 4 hours even if she worked 2?” → cite BCEA section 9A explicitly. [15]
+Top-of-funnel (trust-building that doesn’t rot your relevance)
+Only publish TOFU content if it can be tied to a downloadable artifact or a product workflow.
+“First-time household employer checklist” (onboarding and monthly run) → tie to in-app checklist and “start free.” [19]
+“What must a payslip include?” → tie to payslip generator + example PDF.
+Topical authority and editorial judgment
+SECTION 6 — Topical authority analysis and “smart vs stupid” content calls
+You said: don’t approve everything. Here’s the blunt filter.
+Core / must own
+These topics are both (a) central to what you sell and (b) repeatedly searched by people who will convert:
+1) Payslip rules + payslip generation for domestic workers. [44]2) UIF eligibility + contribution mechanics + ceiling + deadlines + uFiling workflow. [13]3) Minimum wage updates + conversions (hour/day/week/month) with effective dates (updated annually). [45]4) Short-shift “4-hour minimum pay” (BCEA 9A) + earnings threshold context (effective 1 April 2025: R261,748.45/annum). [15]5) Contracts / written particulars + storage + retention + certificate of service (DEL provides relevant forms and a domestic worker sample contract). [46]6) COIDA / Compensation Fund registration + annual ROE submission and prep. [47]
+Strong adjacent
+These can earn organic trust and still convert because they reduce “employment admin ambiguity”:
+“How to set duties, hours, and pay basis clearly” (ties to written particulars and prevents payroll mess). [19]
+“Leave tracking for household staff” (ties to your Standard plan leave tracking). [18]
+“How to pay Sundays/public holidays” as a recordkeeping guide, not a legal ruling (ties to payslip line-items; your app even references Sunday rate logic). [48]
+Weak adjacent
+Not automatically useless, but only worth publishing if it produces artifacts you can store in LekkerLedger:
+“Designing a routine for your domestic worker to maximize efficiency”Verdict: weak unless framed as “Create a weekly schedule + duties template that becomes an attachment to the employment agreement.” Generic chore-list content is saturated and global (not SA-specific), and most searchers are not in “UIF/payslip mode.” [49]
+“Tips for someone getting a nanny for the first time”Verdict: potentially strong adjacent if it’s “nanny employment onboarding pack” (contract template, schedule template, payslip setup, UIF steps), not parenting advice. There is clear content competition in SA parenting/childcare ecosystems. [50]
+Traffic bait / avoid
+“Buy these 5 cheap tools to help your gardener…”Verdict: avoid. It targets shopping intent and broad DIY audiences, not household employers trying to comply. It will not build authority around “household employment administration.” If you insist on touching “tools,” do it only as an employment record artifact (equipment issued register, allowance policy, deduction rules) and keep it in the compliance centre—otherwise it’s irrelevant.
+Content strategy, 30 opportunities, and top 10 outlines
+SECTION 7 — Content engine, 30 opportunities, top 10 pages, internal linking, resources/tools, conversion strategy, plans, and mistakes
+The content engine rules (so this doesn’t become content cosplay)
+Editorial standard (non-negotiable in this niche) - Every compliance-related guide must include: “last updated,” “sources” (gov.za, labour.gov.za, SARS), and a plain disclaimer consistent with your existing positioning (“admin tool, not legal advice”). [51]- Annual-update pages (minimum wage; UIF ceiling; earnings thresholds; ROE earnings cap if you publish it) must have a scheduled review cadence (e.g., every Feb–Mar). The NMW changes are date-bound (e.g., 1 March 2026). [45]- Write for “doers”: include worked examples, not just definitions (your in-app guide already does this well). [25]
+CTA logic by intent stage - Tool pages (calculator/generator): CTA is immediate (“Create full payslip”). [39]- Template pages: CTA is “Download template” + “Store it in LekkerLedger” (Standard/Pro upsell). [52]- Guides: CTA is “Start free; run your first month” (Free plan, no account). [1]
+The 30 best SEO content ideas for LekkerLedger
+These are intentionally skewed toward commercial relevance and linkable utility.
+1) Domestic worker payslip generator (SA) landing page + example output2) What a domestic worker payslip must include (with DEL checklist) [35]3) UIF for domestic workers: 24-hour rule, how to register, how much to pay [53]4) UIF calculator: employee 1% + employer 1% + ceiling + examples [54]5) uFiling “how to declare and pay” for domestic employers (step-by-step, screenshot-light) [20]6) “uFiling export template” + “how to upload” (position LekkerLedger export as easiest path)7) Domestic worker minimum wage 2026 (and a canonical yearly page going forward) [45]8) “4-hour minimum pay rule” explained + calculator add-on [15]9) Domestic worker contract template (Word/PDF) based on official sample [55]10) Nanny contract template (household employer version) tied to recordkeeping11) Gardener employment agreement (household employer version)12) Written particulars checklist: what info to collect on day 1 [21]13) Certificate of service for domestic workers: template + when to issue (DEL provides a form) [56]14) Termination admin checklist: final pay record, leave payout record, documents to keep (general + disclaimers) [57]15) “What records should I keep for UIF and disputes?” (framed as admin hygiene, not litigation) [58]16) COIDA / Compensation Fund registration for domestic employers (how + links) [42]17) ROE / Return of Earnings explained + “ROE prep pack” CTA [59]18) ROE “actual vs provisional earnings” example explainer (ties to your wizard flow) [60]19) “How to calculate hourly rate from monthly pay” with NMW sense-check [61]20) “Domestic worker paid daily: convert to hourly + check minimum wage” [62]21) “UIF: SARS vs uFiling—where do I pay?” (explain both cleanly) [63]22) “UIF for workers with multiple employers” (trust-building; reduces confusion) [64]23) “POPIA basics for household employers storing ID numbers & payslips” (trust content; align with your privacy posture) [65]24) “How local-first storage works + how not to lose your records” (addresses fear; links to backup upsell) [66]25) “Incognito mode warning: why your payslip disappeared” (SEO for support queries; reduces churn) [67]26) “Domestic worker paid less than 24 hours/month: what changes?” (UIF + payslips caveats) [68]27) “Domestic employer monthly checklist” (public preview; full checklist in-app) [3]28) “Annual household employer admin checklist” (UIF + ROE + document cleanup) [69]29) “Compare: self-service vs managed payroll services (cost + control + privacy)” (positioning page; not vendor-name warfare) [70]30) “LekkerLedger vs Payslip-only generators: why record trail matters” (competitive differentiation vs single-doc tools) [71]
+Ranked top 10 highest likely business impact
+This is ordered by “conversion proximity + repeated demand + differentiation potential.”
+1) Domestic worker payslip generator landing page2) UIF for domestic workers (guide + calculator)3) Domestic worker contract template landing page4) Minimum wage hub (2026 now; yearly updates)5) uFiling export guide + template (bulk upload / CSV)6) “What to keep” record trail guide + templates (payslip archive, contract, certificate)7) COIDA/Compensation Fund + ROE prep (guide + wizard CTA)8) “24 hours per month” rule explainer (UIF + payslips applicability)9) “4-hour minimum pay” explainer + mini calculator10) “First-time household employer onboarding pack” (checklist + templates)
+Top 10 pages with outlines (with SEO specs)
+Page 1
+Working title: Domestic Worker Payslip Generator (South Africa) + Example
+Primary keyword: domestic worker payslip
+Secondary keywords: payslip generator South Africa; domestic worker payslip template
+Search intent: BOFU (generate a payslip now)
+Ideal URL slug: /domestic-worker-payslip/
+Outline (high-converting): 1) What this page does (generate a payslip + keep a record trail) [72]2) Payslip requirements checklist (DEL list) + <24 hours caveat [35]3) Example payslip preview (your sample already shows UIF line item) [72]4) Common payslip mistakes household employers make5) CTA block: “Start free (no account) → Create payslip” [1]6) FAQ (minimal, high-quality)
+Internal link targets:
+/calculator (UIF/wage calc) [39]
+/pricing (upgrade for records/backup/contracts) [73]
+/trust (local-first privacy) [74]
+CTA placement ideas: above the fold + after requirements checklist + after example.
+Suggested downloadable asset: “Blank payslip example PDF + checklist” (not a replacement for the app; a trust artifact).
+Page type: Landing page + tool-assisted CTA.
+Page 2
+Working title: UIF for Domestic Workers: Who Must Register, How Much to Deduct, and How to Pay
+Primary keyword: UIF for domestic workers
+Secondary keywords: domestic worker UIF 24 hours; UIF contribution 1% employer 1% employee; UIF ceiling
+Intent: BOFU/MOFU (figure out compliance steps)
+Slug: /uif-for-domestic-workers/
+Outline: 1) The 24-hours/month rule (who must register) [75]2) Contribution amount: employer 1% + employee 1% [54]3) UIF earnings ceiling (R17,712/month; max employee deduction R177.12/month) [76]4) When to pay (within 7 days after month-end; practical reminder) [54]5) uFiling overview for domestic employers (declare/pay online) [20]6) CTA: “Use the Wage & UIF calculator → Create payslip with UIF clearly shown” [77]
+Internal links: /calculator, /domestic-worker-payslip/, /pricing, /help/compliance (if you keep it indexable). [78]
+Lead magnet: “UIF monthly checklist + employer info sheet (what you need before registering)”.
+Page type: Guide + tool page.
+Page 3
+Working title: Domestic Worker Minimum Wage (2026): Rates, Daily/Monthly Examples, and a Calculator
+Primary keyword: domestic worker minimum wage 2026
+Secondary keywords: national minimum wage 2026; R30.23 per hour
+Intent: MOFU (verify legal minimums)
+Slug: /minimum-wage/domestic-workers/
+Outline: 1) Current rate + effective date (1 March 2026; R30.23/hour) [14]2) Conversions (daily/weekly/monthly) using official examples where possible [79]3) Common pay setups (hourly/daily/monthly) and how to sense-check against NMW [80]4) CTA: “Run your pay period in LekkerLedger (free)” [72]5) Update history (2025 vs 2026) to build trust
+Lead magnet: “Minimum wage update email alert” (optional).
+Page type: Evergreen guide updated annually.
+Page 4
+Working title: The 4‑Hour Minimum Pay Rule (South Africa): When It Applies and How to Calculate It
+Primary keyword: 4 hour rule South Africa pay
+Secondary keywords: BCEA section 9A; domestic worker 4 hour minimum
+Intent: MOFU/BOFU (resolve a specific pay dispute)
+Slug: /guides/4-hour-minimum-pay-rule/
+Outline: 1) The rule (BCEA 9A text) [81]2) Earnings threshold context (effective 1 April 2025) [82]3) Worked examples (1 hour worked → pay 4 hours)4) CTA: “Use calculator + generate compliant payslip”
+Page type: Guide + micro-tool.
+Page 5
+Working title: Domestic Worker Contract Template (South Africa) + Written Particulars Checklist
+Primary keyword: domestic worker contract template South Africa
+Secondary keywords: written particulars of employment; domestic worker employment contract
+Intent: BOFU (download contract)
+Slug: /templates/domestic-worker-contract/
+Outline: 1) What this template is (and isn’t) + disclaimer consistent with your ToS [83]2) What to fill in (hours, pay basis, Sundays/holidays, accommodation if any) [25]3) Official sample: link/reference the DEL sample contract [55]4) CTA: “Store signed copy in LekkerLedger (Standard/Pro)” [73]
+Asset: Word (.docx) + PDF + “job duties addendum.”
+Page type: Template page.
+Page 6
+Working title: UIF Registration for Domestic Employers: The Fastest Path (uFiling + What You Need)
+Primary keyword: register domestic worker UIF
+Secondary keywords: domestics@uif.gov.za; uFiling registration
+Intent: BOFU
+Slug: /guides/uif-registration-domestic-employers/
+Outline: 1) Who must register (>24 hours/month) [84]2) What you need before you start (ID, employment details) [85]3) Where to do it (official channels) [86]4) CTA: “Once registered → export your monthly UIF numbers from LekkerLedger” [87]
+Page type: Guide.
+Page 7
+Working title: COIDA / Compensation Fund Registration for Domestic Employers + ROE Basics
+Primary keyword: register domestic worker compensation fund
+Secondary keywords: COIDA domestic employer; ROE submission
+Intent: MOFU/BOFU
+Slug: /guides/compensation-fund-domestic-employers/
+Outline: 1) Registering requirement + official guidance [42]2) What ROE is + why it matters (then disclaimers) [59]3) CTA: “Use ROE wizard / ROE pack workflow” [60]
+Page type: Guide + tool CTA.
+Page 8
+Working title: Household Employer Monthly Checklist (UIF, Payslips, Records)
+Primary keyword: household employer checklist
+Secondary keywords: domestic worker monthly checklist; payroll recordkeeping
+Intent: TOFU→MOFU (trust, then adoption)
+Slug: /checklists/monthly-household-employer/
+Outline: 1) The 5 monthly checks (pay period, minimum wage sense-check, Sunday/overtime if any, UIF applicability, archive) [19]2) CTA: “Full checklist lives in-app” (your existing choice) [3]
+Page type: Checklist page.
+Page 9
+Working title: What Must a Payslip Include for Domestic Workers? (South Africa)
+Primary keyword: what must a payslip include South Africa
+Secondary keywords: domestic worker payslip requirements
+Intent: MOFU
+Slug: /guides/payslip-requirements-domestic-workers/
+Outline:
+Reproduce DEL’s content list as a checklist with plain language [35]
+CTA: generate in LekkerLedger
+Page type: Guide.
+Page 10
+Working title: Storage & Backup for Household Payroll Records (Local‑First vs Cloud)
+Primary keyword: store domestic worker payslips
+Secondary keywords: payroll recordkeeping; Google Drive backup payroll
+Intent: trust + conversion (reduce fear)
+Slug: /guides/how-lekkerledger-stores-data/
+Outline: 1) Local-first explanation [2]2) Risks (incognito mode, device loss) + mitigation [67]3) Upgrade path for backup/history [52]
+Page type: Trust/education page.
+Internal linking strategy (practical rules)
+SECTION 10 — Internal linking strategy
+1) Every BOFU landing page links to: Pricing, Trust Center, and the single most relevant tool/demo (usually calculator or “create payslip”). [88]2) Every guide links upward to its hub (e.g., /resources/uif/) and downward to at least one template/tool.3) Every template page links to: (a) a “how to use this template” guide, (b) document storage benefits (Standard/Pro), and (c) the onboarding checklist. [89]4) Use “next step” blocks, not random inline links. Your goal is predictable conversion paths, not Wikipedia.
+Resource/template/tool opportunities (and what converts vs what just earns links)
+SECTION 11 — Resource/template/tool opportunities
+High-converting assets (build these first) - Domestic worker payslip example PDF + checklist (ties directly to payslip generator). [44]- Domestic worker contract template + “written particulars” checklist (ties to Standard plan contract drafts + document hub). [90]- UIF monthly checklist + calculator + ceiling explainer (ties to repeated monthly need). [91]- Certificate of service template (DEL provides a “certificate of service for domestic workers” form—build a clean template page around it). [56]
+Linkable assets (good for backlinks, also useful) - “Household Employer Starter Pack (2026)” including official-source links, template bundle, and a monthly/annual calendar. This works because it consolidates scattered government resources into a usable workflow—without pretending to be legal counsel. [92]
+Conversion strategy from SEO traffic (revenue logic, not vanity metrics)
+SECTION 12 — Conversion strategy from SEO traffic
+Your product already has a conversion advantage: Free plan “no billing, no account required,” which reduces friction for SEO visitors. [18] The conversion system should exploit that:
+1) Tool-first conversion: SEO visitor → calculator/generator → download payslip → “Want this saved & accessible next month?” → upgrade for backup/history/contracts. [93]2) Template-first conversion: SEO visitor → download contract template → “Store signed copy + keep payslips together” → Standard/Pro. [18]3) Deadline-first conversion (ROE/COIDA season): SEO visitor → ROE guide → ROE wizard CTA → Pro value proposition (archive + year-end summary). [94]4) Trust-first conversion: users in this niche fear mishandling private worker data. Your Trust Center and privacy policy are unusually clear—use them as supporting pages for commercial landing pages. [2]
+Execution plan
+SECTION 13 — 90-day plan (sequenced for compounding impact)
+Week 1–2: Fix index control + foundations 1) Put noindex,follow on app routes (dashboard/employees/payroll/etc.) to prevent thin-index bloat. [4]2) Create sitemap for “indexable pages only” and submit in Search Console (and Bing). [95]3) Decide your public IA: /resources/ with Guides/Templates/Tools/Checklists.
+Week 3–6: Launch the first revenue cluster (payslips + UIF) 4) Publish /domestic-worker-payslip/ + /uif-for-domestic-workers/ + supporting guides for requirements and registration. [96]5) Upgrade /calculator page into an SEO-grade tool page (more context, examples, internal links), while keeping it fast and conversion-focused. [39]6) Implement Article + FAQ schema where appropriate (don’t spam). [97]
+Week 7–10: Templates that convert 7) Launch /templates/domestic-worker-contract/ (plus a nanny variant if you can keep it compliant) using official sample contract as baseline reference. [98]8) Launch “certificate of service” page (template + explanation). [56]
+Week 11–13: ROE/COIDA cluster (differentiation) 9) Publish a public ROE/COIDA guide that points to your in-app ROE wizard, and cite official registration resources. [47]
+SECTION 14 — 6-month plan (build moat + expand clusters)
+1) Expand into “minimum wage hub” with yearly updates, including the 4‑hour rule explainer (BCEA 9A) and keep it current. [99]2) Build uFiling export content (how-to + template) and connect it to Standard plan exports. [100]3) Create a public “household employer starter pack” as your flagship linkable asset (with rigorous sourcing). [43]4) Add comparison positioning pages (self-service vs managed services; “record trail” vs “single payslip generators”). [101]
+Measurement plan (KPIs that actually matter)
+Track in Search Console: - Growth in impressions/clicks for BOFU queries (“domestic worker payslip,” “UIF domestic worker,” “contract template”).- Index coverage: ensure only intended pages are indexed (app routes excluded).
+Track in analytics/product events (you already collect limited analytics per your privacy policy): [102]- Organic → “Create full payslip” clicks [39]- Payslip generated + downloaded (activation)- Upgrade funnel: Free → trial start → paid conversion [103]
+Google also notes that improvements may take time to be reflected in search; expect compounding effects over months, not days. [104]
+Biggest mistakes to avoid
+SECTION 15 — Biggest mistakes to avoid
+1) Publishing broad “household lifestyle” content that doesn’t create employer-admin intent. It will dilute topical authority and won’t convert.2) Leaving app shell routes indexable while trying to rank editorial pages. You’ll confuse crawlers and waste crawl budget on thin pages. [4]3) Over-claiming compliance guarantees. Keep your existing stance: administrative tool, general guidance, verify against official sources. [105]4) Not maintaining annual-update pages. In SA household employment, numbers change on known cycles (e.g., NMW effective 1 March 2026). [45]5) Chasing “traffic” instead of building tools/templates that earn trust and trigger product use. Google’s own guidance stresses creating helpful, reliable, people-first content. [6]
+In this niche, compounding SEO growth comes from being the most reliable “next step” when a household employer is uncertain and needs to produce a real document, with an official source behind every important claim and a workflow that turns that anxiety into an organized record trail. [106]
+[1] [5] [7] [8] [12] [31] [38] [51] [71] [72] [105] [106] https://www.lekkerledger.co.za/
+https://www.lekkerledger.co.za/
+[2] [66] [74] https://www.lekkerledger.co.za/trust
+https://www.lekkerledger.co.za/trust
+[3] [32] https://www.lekkerledger.co.za/rules
+https://www.lekkerledger.co.za/rules
+[4] https://www.lekkerledger.co.za/dashboard
+https://www.lekkerledger.co.za/dashboard
+[6] https://developers.google.com/search/docs/fundamentals/creating-helpful-content
+https://developers.google.com/search/docs/fundamentals/creating-helpful-content
+[9] [54] [63] [91] https://www.labour.gov.za/DocumentCenter/Pages/Basic-Guide-to-UIF-Contributions.aspx
+https://www.labour.gov.za/DocumentCenter/Pages/Basic-Guide-to-UIF-Contributions.aspx
+[10] [19] [21] [25] [57] [58] [69] https://www.lekkerledger.co.za/help/compliance
+https://www.lekkerledger.co.za/help/compliance
+[11] [17] [41] [59] [60] [94] LekkerLedger | Dashboard
+https://www.lekkerledger.co.za/compliance/coida/roe
+[13] [43] [53] [64] [75] [84] [86] [92] https://www.gov.za/faq/government-services/how-do-i-register-my-domestic-worker-uif
+https://www.gov.za/faq/government-services/how-do-i-register-my-domestic-worker-uif
+[14] [45] [99] https://www.gov.za/news/media-statements/minister-nomakhosazana-meth-increases-statutory-national-minimum-wage-r3023
+https://www.gov.za/news/media-statements/minister-nomakhosazana-meth-increases-statutory-national-minimum-wage-r3023
+[15] [81] https://www.gov.za/sites/default/files/gcis_document/201811/42059gon1302act7of2018.pdf
+https://www.gov.za/sites/default/files/gcis_document/201811/42059gon1302act7of2018.pdf
+[16] [18] [36] [52] [70] [73] [87] [88] [89] [90] [100] [101] [103] https://www.lekkerledger.co.za/pricing
+https://www.lekkerledger.co.za/pricing
+[20] https://ufiling.labour.gov.za/uif/how-to-declare-and-pay
+https://ufiling.labour.gov.za/uif/how-to-declare-and-pay
+[22] https://developers.google.com/search/docs/crawling-indexing/robots/intro
+https://developers.google.com/search/docs/crawling-indexing/robots/intro
+[23] https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview
+https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview
+[24] https://developers.google.com/search/docs/crawling-indexing/sitemaps/large-sitemaps
+https://developers.google.com/search/docs/crawling-indexing/sitemaps/large-sitemaps
+[26] https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data
+https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data
+[27] https://developers.google.com/search/docs/appearance/structured-data/faqpage
+https://developers.google.com/search/docs/appearance/structured-data/faqpage
+[28] [97] https://developers.google.com/search/docs/appearance/structured-data/article
+https://developers.google.com/search/docs/appearance/structured-data/article
+[29] https://developers.google.com/search/docs/appearance/structured-data/sd-policies
+https://developers.google.com/search/docs/appearance/structured-data/sd-policies
+[30] https://developers.google.com/search/docs/appearance/page-experience
+https://developers.google.com/search/docs/appearance/page-experience
+[33] https://www.wabill.co.za/domestic-worker-payslip
+https://www.wabill.co.za/domestic-worker-payslip
+[34] [39] [40] [62] [77] [78] [80] [93] https://www.lekkerledger.co.za/calculator
+https://www.lekkerledger.co.za/calculator
+[35] [44] [68] [96] https://www.labour.gov.za/DocumentCenter/Pages/Basic-Guide-to-Pay-Slips-%28Domestic-Workers%29.aspx
+https://www.labour.gov.za/DocumentCenter/Pages/Basic-Guide-to-Pay-Slips-%28Domestic-Workers%29.aspx
+[37] [83] https://www.lekkerledger.co.za/legal/terms
+https://www.lekkerledger.co.za/legal/terms
+[42] [47] https://www.gov.za/services/compensation-fund/register-compensation-fund
+https://www.gov.za/services/compensation-fund/register-compensation-fund
+[46] [56] https://www.labour.gov.za/DocumentCenter/Pages/Forms.aspx?FolderCTID=0x012000D5ECDCDA58282140A4A77318EE711621&RootFolder=%2FDocumentCenter%2FForms%2FBasic+Conditions+of+Employment&View=%7B5AF82B29-C4FA-4276-8F0A-14DFA96C61EF%7D
+https://www.labour.gov.za/DocumentCenter/Pages/Forms.aspx?FolderCTID=0x012000D5ECDCDA58282140A4A77318EE711621&RootFolder=%2FDocumentCenter%2FForms%2FBasic+Conditions+of+Employment&View=%7B5AF82B29-C4FA-4276-8F0A-14DFA96C61EF%7D
+[48] https://www.lekkerledger.co.za/employees/new
+https://www.lekkerledger.co.za/employees/new
+[49] https://fairagency.org/answers/template-domestic-helper-schedule-managing-setting-expectations/
+https://fairagency.org/answers/template-domestic-helper-schedule-managing-setting-expectations/
+[50] https://www.nannyconnect.co.za/advise
+https://www.nannyconnect.co.za/advise
+[55] [98] https://www.labour.gov.za/DocumentCenter/Forms/Basic%20Conditions%20of%20Employment/Sample%20-%20Domestic%20worker%20employment%20contract.doc
+https://www.labour.gov.za/DocumentCenter/Forms/Basic%20Conditions%20of%20Employment/Sample%20-%20Domestic%20worker%20employment%20contract.doc
+[61] [79] https://www.labour.gov.za/DocumentCenter/Publications/Basic%20Conditions%20of%20Employment/National%20Minimum%20Wage%20flyer%202026.pdf
+https://www.labour.gov.za/DocumentCenter/Publications/Basic%20Conditions%20of%20Employment/National%20Minimum%20Wage%20flyer%202026.pdf
+[65] [102] https://www.lekkerledger.co.za/legal/privacy
+https://www.lekkerledger.co.za/legal/privacy
+[67] https://www.lekkerledger.co.za/support
+https://www.lekkerledger.co.za/support
+[76] https://www.sars.gov.za/types-of-tax/unemployment-insurance-fund/
+https://www.sars.gov.za/types-of-tax/unemployment-insurance-fund/
+[82] Basic Conditions of Employment Act: Determination: Earnings Threshold
+https://www.gov.za/sites/default/files/gcis_document/202503/52232rg11806gon5970.pdf?utm_source=chatgpt.com
+[85] https://ufiling.labour.gov.za/uif/help-faqs
+https://ufiling.labour.gov.za/uif/help-faqs
+[95] https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap
+https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap
+[104] https://developers.google.com/search/docs/appearance/core-updates
+https://developers.google.com/search/docs/appearance/core-updates

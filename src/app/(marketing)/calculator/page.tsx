@@ -4,6 +4,30 @@ import { ArrowLeft } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { CalculatorHero } from "@/components/calculator-hero";
 import { getNMWRecordForDate } from "@/lib/legal/registry";
+import { JsonLd } from "@/components/seo/json-ld";
+
+const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "How is domestic worker UIF calculated in South Africa?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "UIF is calculated as 2% of gross pay: 1% deducted from the employee's salary and 1% contributed by the employer."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is the minimum wage for domestic workers?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The minimum wage is updated annually by the Department of Employment and Labour. Our calculator automatically uses the correct rate based on the current date."
+            }
+        }
+    ]
+};
 
 export default function CalculatorPage() {
     const nmwRecord = getNMWRecordForDate(new Date());
@@ -15,6 +39,7 @@ export default function CalculatorPage() {
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
+            <JsonLd schema={faqSchema} />
             <MarketingHeader />
 
             <main className="flex-1 px-4 py-10 sm:py-16 content-container">
@@ -46,7 +71,52 @@ export default function CalculatorPage() {
 
                     <CalculatorHero startHref="/payroll/new" />
 
-                    <p className="text-xs font-medium text-center" style={{ color: "var(--text-muted)" }}>
+                    <div className="pt-8 mt-8 border-t border-[var(--border)] space-y-8">
+                        <div className="space-y-4">
+                            <h2 className="type-h3" style={{ color: "var(--text)" }}>How to use this UIF calculator</h2>
+                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                Enter the number of hours your domestic worker worked this month. The calculator automatically fetches the current National Minimum Wage to calculate the gross pay. 
+                                It then calculates the UIF deduction (1% of gross pay from the employee) and the net pay (Gross Pay minus UIF).
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h2 className="type-h3" style={{ color: "var(--text)" }}>Frequently Asked Questions</h2>
+                            <div className="space-y-4">
+                                <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+                                    <h3 className="text-sm font-bold mb-2" style={{ color: "var(--text)" }}>How is domestic worker UIF calculated in South Africa?</h3>
+                                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>UIF is calculated as 2% of gross pay in total. This is made up of 1% deducted from the employee's salary and 1% contributed by the employer.</p>
+                                </div>
+                                <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+                                    <h3 className="text-sm font-bold mb-2" style={{ color: "var(--text)" }}>What is the minimum wage for domestic workers?</h3>
+                                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>The minimum wage is updated annually by the Department of Employment and Labour. Our calculator automatically uses the correct rate based on the current date.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h2 className="type-h3" style={{ color: "var(--text)" }}>Related Resources</h2>
+                            <ul className="space-y-2 text-sm font-medium">
+                                <li>
+                                    <Link href="/resources/guides/uif-for-domestic-workers" className="text-[var(--primary)] hover:underline">
+                                        The complete guide to UIF for domestic workers
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/resources/tools/domestic-worker-payslip" className="text-[var(--primary)] hover:underline">
+                                        Use our free payslip generator to create an official record
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/resources" className="text-[var(--primary)] hover:underline">
+                                        Browse all household employer resources
+                                    </Link>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <p className="text-xs font-medium text-center pb-8 pt-8 mt-8 border-t border-[var(--border)]" style={{ color: "var(--text-muted)" }}>
                         This is an estimate only. For a full payslip with all deductions and allowances,{" "}
                         <Link href="/payroll/new" className="underline hover:text-[var(--primary)] transition-colors">
                             create your first payslip
@@ -57,4 +127,3 @@ export default function CalculatorPage() {
         </div>
     );
 }
-
