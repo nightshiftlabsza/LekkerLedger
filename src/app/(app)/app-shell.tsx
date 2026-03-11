@@ -397,7 +397,6 @@ function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
     }, []);
 
     const hasGoogleSession = typeof window !== "undefined" && !!getStoredGoogleAccessToken();
-    const currentPlanId = settings ? getUserPlan(settings).id : "free";
     const googleState = hasGoogleSession
         ? settings?.googleSyncEnabled
             ? "Google backup on"
