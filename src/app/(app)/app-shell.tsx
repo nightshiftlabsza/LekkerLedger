@@ -27,7 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const { network, sync, payments } = useAppConnectivity();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
-    const [syncConflict] = React.useState(false);
+    const [syncConflict, setSyncConflict] = React.useState(false);
     const [paymentsBannerDismissed, setPaymentsBannerDismissed] = React.useState(false);
     const [moreOpen, setMoreOpen] = React.useState(false);
     const [households, setHouseholds] = React.useState<Household[]>([{ id: "default", name: "Main household", createdAt: new Date(0).toISOString() }]);
@@ -110,8 +110,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         const performSync = async (reason: string) => {
             if (autoBackupInFlightRef.current) return;
 
+            const isDataChange = reason === "data-change";
             const now = Date.now();
-            if (sessionSyncPerformedRef.current && now - lastSyncAttemptRef.current < 5 * 60 * 1000) return;
+            // Throttle session-start and periodic checks, but always allow data-change backups
+            if (!isDataChange && sessionSyncPerformedRef.current && now - lastSyncAttemptRef.current < 5 * 60 * 1000) return;
 
             // Re-read token each time in case session changed
             const token = getStoredGoogleAccessToken();
@@ -119,25 +121,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             autoBackupInFlightRef.current = true;
             lastSyncAttemptRef.current = now;
+            sessionSyncPerformedRef.current = true;
             console.log(`Auto-sync: Triggering sync (${reason})`);
 
             try {
-                if (!sessionSyncPerformedRef.current) {
-                    const check = await performSmartSyncCheck(token);
-                    sessionSyncPerformedRef.current = true;
-
-                    if (check.recommendation === "RESTORE") {
-                        console.log("Auto-sync: Restoring data from Drive backup");
-                        await syncDataFromDrive(token);
-                        window.location.reload();
-                        return;
-                    } else if (check.recommendation === "BACKUP") {
-                        await syncDataToDrive(token);
-                        return;
-                    }
+                // Data-change: user just modified data locally — always back up, no need to check remote.
+                if (isDataChange) {
+                    await syncDataToDrive(token);
+                    return;
                 }
 
-                await syncDataToDrive(token);
+                // Session-start / periodic: check remote state before deciding what to do.
+                const check = await performSmartSyncCheck(token);
+
+                if (check.recommendation === "RESTORE") {
+                    console.log("Auto-sync: Restoring data from Drive backup");
+                    await syncDataFromDrive(token);
+                    window.location.reload();
+                    return;
+                }
+
+                if (check.recommendation === "BACKUP") {
+                    await syncDataToDrive(token);
+                    return;
+                }
+
+                if (check.recommendation === "CONFLICT") {
+                    setSyncConflict(true);
+                    return;
+                }
+
+                // UP_TO_DATE — nothing to do
             } catch (err) {
                 console.error("Auto-sync failed", err);
             } finally {
