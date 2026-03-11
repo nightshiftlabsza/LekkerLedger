@@ -13,6 +13,27 @@ export class CloudRepository {
 
     async pushRecord(tableName: string, recordId: string, data: Record<string, unknown>) {
         if (!this.cryptoKey || !this.userId) throw new Error("Sync not initialized");
+
+        // Conflict resolution: Check if cloud is already newer
+        const { data: existing, error: pullError } = await this.supabase
+            .from('synced_records')
+            .select('updated_at')
+            .match({ user_id: this.userId, table_name: tableName, record_id: recordId })
+            .maybeSingle();
+
+        if (pullError) console.warn("LWW check failed, proceeding with push", pullError);
+        
+        const incomingUpdatedAt = (data.updatedAt as string) || new Date().toISOString();
+        
+        if (existing?.updated_at) {
+            const cloudTime = new Date(existing.updated_at).getTime();
+            const localTime = new Date(incomingUpdatedAt).getTime();
+            if (cloudTime >= localTime) {
+                console.log(`Cloud version of ${tableName}/${recordId} is newer or same. Skipping push.`);
+                return;
+            }
+        }
+
         const encrypted = await encryptData(data, this.cryptoKey);
         
         const { error } = await this.supabase
@@ -22,7 +43,7 @@ export class CloudRepository {
                 table_name: tableName,
                 record_id: recordId,
                 encrypted_data: encrypted,
-                updated_at: new Date().toISOString()
+                updated_at: incomingUpdatedAt
             });
             
         if (error) throw new Error(`Push failed: ${error.message}`);

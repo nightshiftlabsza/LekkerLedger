@@ -116,22 +116,67 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
 
     // Modal takeover for locked state
     return (
-        <div className="fixed inset-0 z-50 bg-[var(--surface-raised)] flex flex-col items-center justify-center p-4 sm:p-8 animate-fade-in overflow-y-auto">
-            <div className="w-full max-w-lg mx-auto">
-                {status === 'checking' && (
-                    <div className="flex flex-col items-center text-[var(--text-muted)] p-12">
-                        <Loader2 className="w-10 h-10 animate-spin mb-4 text-[var(--primary)]" />
-                        <p className="font-medium animate-pulse">Verifying secure vault...</p>
-                    </div>
-                )}
-                
-                {status === 'needs_setup' && (
-                    <RecoveryKeySetup onComplete={handleSetupComplete} />
-                )}
+        <div className="fixed inset-0 z-50 bg-[var(--bg)] flex items-center justify-center p-4 sm:p-8 animate-fade-in overflow-y-auto selection:bg-[var(--primary)]/20">
+            <div className="w-full max-w-lg lg:max-w-4xl mx-auto">
+                <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-center">
+                    {/* Main Action Area */}
+                    <div className="lg:col-span-7">
+                        {status === 'checking' && (
+                            <div className="bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-12 text-center shadow-[var(--shadow-lg)]">
+                                <Loader2 className="w-12 h-12 animate-spin mb-6 text-[var(--primary)] mx-auto" />
+                                <h2 className="font-serif text-2xl font-bold text-[var(--text)] mb-2">Verifying Vault</h2>
+                                <p className="text-[var(--text-muted)] animate-pulse">Establishing secure connection...</p>
+                            </div>
+                        )}
+                        
+                        {status === 'needs_setup' && (
+                            <RecoveryKeySetup onComplete={handleSetupComplete} />
+                        )}
 
-                {status === 'needs_input' && (
-                    <RecoveryKeyInput onComplete={handleInputComplete} />
-                )}
+                        {status === 'needs_input' && (
+                            <RecoveryKeyInput onComplete={handleInputComplete} />
+                        )}
+                    </div>
+
+                    {/* Context/Help Area (Visible from LG up) */}
+                    <div className="hidden lg:block lg:col-span-5 space-y-8 animate-slide-right delay-200">
+                        <div className="p-8 bg-[var(--surface-raised)]/50 border-l-4 border-[var(--focus)] rounded-r-3xl shadow-sm">
+                            <h3 className="font-serif text-xl font-bold text-[var(--text)] mb-4">Why is this locked?</h3>
+                            <div className="space-y-4 text-sm text-[var(--text-muted)] leading-relaxed">
+                                <p>
+                                    LekkerLedger uses <strong>Zero-Knowledge Encryption</strong>. This means your data is "scrambled" with your recovery key before it ever leaves your device.
+                                </p>
+                                <p>
+                                    Even if our servers were compromised, your payroll records would be unreadable to anyone without your key. Not even our team can see your data.
+                                </p>
+                                <p>
+                                    You only need to enter this key once per device to "unlock" the cloud sync.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="p-8 space-y-4">
+                            <div className="flex items-center gap-3 text-[var(--primary)] font-bold uppercase tracking-widest text-[10px]">
+                                <span className="w-8 h-px bg-[var(--primary)]/30" />
+                                Security Standards
+                            </div>
+                            <ul className="space-y-4 text-xs">
+                                <li className="flex gap-3">
+                                    <div className="w-5 h-5 rounded-full bg-[var(--success-soft)] text-[var(--success)] flex items-center justify-center flex-shrink-0">✓</div>
+                                    <span className="text-[var(--text-muted)]">AES-256-GCM Military Grade Encryption</span>
+                                </li>
+                                <li className="flex gap-3">
+                                    <div className="w-5 h-5 rounded-full bg-[var(--success-soft)] text-[var(--success)] flex items-center justify-center flex-shrink-0">✓</div>
+                                    <span className="text-[var(--text-muted)]">PBKDF2 Key Derivation</span>
+                                </li>
+                                <li className="flex gap-3">
+                                    <div className="w-5 h-5 rounded-full bg-[var(--success-soft)] text-[var(--success)] flex items-center justify-center flex-shrink-0">✓</div>
+                                    <span className="text-[var(--text-muted)]">South African POPIA Compliant Architecture</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

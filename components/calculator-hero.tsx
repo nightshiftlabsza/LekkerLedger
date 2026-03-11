@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getNMW, UIF_MONTHLY_CAP, UIF_RATE } from "@/lib/calculator";
+import { getNMW, isUifApplicable, UIF_MONTHLY_CAP, UIF_RATE } from "@/lib/calculator";
 import { roundTo } from "@/lib/money";
 import { COMPLIANCE } from "@/lib/compliance-constants";
 
@@ -25,7 +25,7 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: { onStar
         if (!rateNum || !hoursNum) return null;
         const effectiveRate = Math.max(rateNum, nmwRate);
         const gross = roundTo(hoursNum * effectiveRate);
-        const uifActive = hoursNum > 24;
+        const uifActive = isUifApplicable(hoursNum);
         const uifBase = Math.min(gross, UIF_MONTHLY_CAP);
         const employeeUif = uifActive ? roundTo(uifBase * UIF_RATE) : 0;
         const employerUif = uifActive ? roundTo(uifBase * UIF_RATE) : 0;
@@ -88,7 +88,7 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: { onStar
                             <div className="flex justify-between items-center px-5 py-3.5 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                                 <span>
                                     Employee UIF (1%)
-                                    {!preview.uifActive && <span className="text-[10px] lowercase" style={{ color: "var(--primary)" }}> · ≤24hrs</span>}
+                                    {!preview.uifActive && <span className="text-[10px] lowercase" style={{ color: "var(--primary)" }}> · under 24hrs</span>}
                                 </span>
                                 <span className="tabular-nums text-sm font-black" style={{ color: "var(--danger)" }}>{preview.uifActive ? `-R ${preview.employeeUif.toFixed(2)}` : "R 0.00"}</span>
                             </div>

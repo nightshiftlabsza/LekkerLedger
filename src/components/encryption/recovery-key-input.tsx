@@ -56,7 +56,7 @@ export function RecoveryKeyInput({ onComplete }: RecoveryKeyInputProps) {
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
-                    <div className="p-4 bg-red-50 text-red-800 border border-red-200 rounded-2xl text-sm flex items-start space-x-3">
+                    <div className="p-4 bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] rounded-2xl text-sm flex items-start space-x-3 animate-slide-down">
                         <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                         <span className="font-medium">{error}</span>
                     </div>
@@ -81,7 +81,7 @@ export function RecoveryKeyInput({ onComplete }: RecoveryKeyInputProps) {
                 <button
                     type="submit"
                     disabled={isLoading || !inputValue.trim()}
-                    className="w-full flex justify-center items-center py-3.5 px-4 bg-[var(--primary)] text-white font-bold rounded-xl active-scale transition-all hover:bg-[#006640] shadow-[0_2px_10px_rgba(0,122,77,0.15)] disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full flex justify-center items-center py-3.5 px-4 bg-[var(--primary)] text-white font-bold rounded-xl active-scale transition-all hover:bg-[var(--primary-hover)] shadow-[0_2px_10px_rgba(0,122,77,0.15)] disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     {isLoading ? (
                         <>

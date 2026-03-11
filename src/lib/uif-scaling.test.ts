@@ -25,7 +25,7 @@ const baseInput: PayslipInput = {
     familyLeaveTaken: 0,
 };
 
-describe("UIF scaling logic", () => {
+describe("UIF threshold logic", () => {
     it("should calculate UIF for a weekly employee working > 5.5 hours", () => {
         // 1 week (7 days), 10 hours. Threshold is (24 / 4.33) * 1 = 5.54h.
         // 10h > 5.54h, so UIF should be applied.
@@ -40,5 +40,19 @@ describe("UIF scaling logic", () => {
         const breakdown = calculatePayslip({ ...baseInput, id: "test2", ordinaryHours: 5 });
         expect(breakdown.grossPay).toBe(500);
         expect(breakdown.deductions.uifEmployee).toBe(0);
+    });
+
+    it("should calculate UIF for a full monthly payslip at exactly 24 hours", () => {
+        const breakdown = calculatePayslip({
+            ...baseInput,
+            id: "test3",
+            payPeriodEnd: new Date("2026-03-31"),
+            ordinaryHours: 24,
+            daysWorked: 3,
+        });
+
+        expect(breakdown.grossPay).toBe(2400);
+        expect(breakdown.deductions.uifEmployee).toBe(24);
+        expect(breakdown.employerContributions.uifEmployer).toBe(24);
     });
 });

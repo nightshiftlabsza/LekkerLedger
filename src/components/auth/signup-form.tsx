@@ -12,13 +12,30 @@ export function SignUpForm() {
     
     const [email, setEmail] = React.useState("");
     const [password, setPassword] = React.useState("");
+    const [passwordError, setPasswordError] = React.useState<string | null>(null);
     const [error, setError] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(false);
     const [isSuccess, setIsSuccess] = React.useState(false);
 
+    const validatePassword = (pass: string) => {
+        if (pass.length < 10) return "Password must be at least 10 characters long.";
+        if (!/[A-Z]/.test(pass)) return "Password must include at least one uppercase letter.";
+        if (!/[a-z]/.test(pass)) return "Password must include at least one lowercase letter.";
+        if (!/[0-9]/.test(pass)) return "Password must include at least one number.";
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass)) return "Password must include at least one special character.";
+        return null;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        
+        const pError = validatePassword(password);
+        if (pError) {
+            setPasswordError(pError);
+            return;
+        }
+        setPasswordError(null);
         setIsLoading(true);
 
         const { error: signUpError } = await supabase.auth.signUp({
@@ -43,7 +60,7 @@ export function SignUpForm() {
         return (
             <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] text-center animate-fade-in relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-[--primary]" />
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-50 text-[var(--primary)] mb-6 shadow-sm border border-green-100">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--success-soft)] text-[var(--primary)] mb-6 shadow-sm border border-[var(--success-border)]">
                     <CheckCircle2 className="w-7 h-7" strokeWidth={2.5} />
                 </div>
                 
@@ -79,7 +96,7 @@ export function SignUpForm() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                    <div className="p-4 bg-red-50 text-red-800 border border-red-200 rounded-xl text-sm mb-4">
+                    <div className="p-4 bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] rounded-xl text-sm mb-4 animate-slide-down">
                         {error}
                     </div>
                 )}
@@ -114,14 +131,25 @@ export function SignUpForm() {
                                 id="password"
                                 type="password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-[var(--bg)] border border-[var(--border)] rounded-xl text-[var(--text)] placeholder-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-[#C47A1C] focus:border-transparent transition-all sm:text-sm"
-                                placeholder="At least 6 characters"
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    if (passwordError) setPasswordError(null);
+                                }}
+                                className={`w-full pl-11 pr-4 py-3 bg-[var(--bg)] border ${passwordError ? 'border-red-500' : 'border-[var(--border)]'} rounded-xl text-[var(--text)] placeholder-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-[#C47A1C] focus:border-transparent transition-all sm:text-sm`}
+                                placeholder="Min. 10 chars (A-z, 0-9, !@#$)"
                                 required
-                                minLength={6}
+                                minLength={10}
                                 disabled={isLoading}
                             />
                         </div>
+                        {passwordError && (
+                            <p className="text-xs text-[var(--danger)] font-medium pl-1 animate-slide-right">{passwordError}</p>
+                        )}
+                        {!passwordError && (
+                            <p className="text-[10px] text-[var(--text-muted)] pl-1 leading-normal">
+                                Must be 10+ characters with uppercase, lowercase, numbers & symbols.
+                            </p>
+                        )}
                     </div>
                 </div>
 

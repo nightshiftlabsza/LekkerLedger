@@ -103,6 +103,7 @@ export class SyncEngine {
     private async pushRecord(tableName: string, recordId: string, data: Record<string, unknown>, userId: string) {
         if (!this.cryptoKey) return;
         
+        const incomingUpdatedAt = (data.updatedAt as string) || new Date().toISOString();
         const encrypted = await encryptData(data, this.cryptoKey);
         
         const { error } = await this.supabase
@@ -112,7 +113,7 @@ export class SyncEngine {
                 table_name: tableName,
                 record_id: recordId,
                 encrypted_data: encrypted,
-                updated_at: new Date().toISOString()
+                updated_at: incomingUpdatedAt
             });
             
         if (error) {

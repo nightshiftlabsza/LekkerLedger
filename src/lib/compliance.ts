@@ -1,5 +1,5 @@
 import { Employee } from "./schema";
-import { PayBreakdown, ACCOMMODATION_MAX_PCT, UIF_RATE, UIF_THRESHOLD_HOURS } from "./calculator";
+import { PayBreakdown, ACCOMMODATION_MAX_PCT, UIF_RATE, getUifThresholdHoursForPeriod, isUifApplicable } from "./calculator";
 import { getNMWForDate } from "./legal/registry";
 
 export interface ComplianceAudit {
@@ -26,17 +26,17 @@ export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, 
         ? `Meets the current minimum-wage check (R${employee.hourlyRate.toFixed(2)}/hr)`
         : `Below the current minimum-wage check (R${employee.hourlyRate.toFixed(2)}/hr vs R${nmw.toFixed(2)}/hr)`;
 
-    // 2. UIF check (check if it was applied if hours > threshold, scaled by pay period length)
+    // 2. UIF check
     const totalHours = breakdown.totalHours;
-    const weeksInPeriod = breakdown.periodStart && breakdown.periodEnd
-        ? Math.max(1, (Math.floor((breakdown.periodEnd.getTime() - breakdown.periodStart.getTime()) / (24 * 60 * 60 * 1000)) + 1) / 7)
-        : 4.33;
-    const periodUifThreshold = (UIF_THRESHOLD_HOURS / 4.33) * weeksInPeriod;
-    const expectedUIF = totalHours > periodUifThreshold ? Math.min(breakdown.grossPay, 17712) * UIF_RATE : 0;
+    const periodUifThreshold = getUifThresholdHoursForPeriod(breakdown.periodStart, breakdown.periodEnd);
+    const expectedUIF = isUifApplicable(totalHours, breakdown.periodStart, breakdown.periodEnd)
+        ? Math.min(breakdown.grossPay, 17712) * UIF_RATE
+        : 0;
     const meetsUifCheck = Math.abs(breakdown.deductions.uifEmployee - expectedUIF) < 0.01;
-    const uifStatusText = totalHours > periodUifThreshold
+    const thresholdUnit = periodUifThreshold >= 24 ? "month" : "period";
+    const uifStatusText = isUifApplicable(totalHours, breakdown.periodStart, breakdown.periodEnd)
         ? (meetsUifCheck ? "Matches the 1% deduction check" : "Differs from the 1% deduction check")
-        : `Not Applicable (≤ ${periodUifThreshold.toFixed(1)}hrs/period)`;
+        : `Not Applicable (< ${periodUifThreshold.toFixed(1)}hrs/${thresholdUnit})`;
 
     // 3. Accommodation deduction check (Max 10% of gross pay)
     const accommodationValue = breakdown.deductions.accommodation ?? 0;

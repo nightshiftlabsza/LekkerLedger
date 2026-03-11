@@ -11,13 +11,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Stepper } from "@/components/ui/stepper";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { StickyBottomBar } from "@/components/layout/sticky-bottom-bar";
 import { getEmployees, savePayslip, getSecureTime, getSettings, getAllPayslips, deletePayslip, saveDocumentMeta } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { format } from "date-fns";
-import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
+import { calculatePayslip, getSundayRateMultiplier, isUifApplicable, NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import { getHolidaysInRange } from "@/lib/holidays";
 import { formatDateSafe } from "@/lib/utils";
@@ -34,6 +35,28 @@ const safeDate = (s: string): Date => {
     if (!s) return new Date();
     const d = new Date(s);
     return isNaN(d.getTime()) ? new Date() : d;
+};
+
+const FOUR_HOUR_RULE_TOOLTIP = "From 1 March 2026, if someone works for you on a day, they must be paid for at least 4 hours for that day, even if they worked less.";
+
+const getWeekdayEstimate = (startValue: string, endValue: string): number => {
+    if (!startValue || !endValue) return 0;
+
+    const start = safeDate(startValue);
+    const end = safeDate(endValue);
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
+
+    let count = 0;
+    const cur = new Date(start);
+    let safety = 0;
+
+    while (cur <= end && safety < 100) {
+        if (cur.getDay() !== 0) count++;
+        cur.setDate(cur.getDate() + 1);
+        safety++;
+    }
+
+    return count;
 };
 
 function WizardContent() {
@@ -56,7 +79,7 @@ function WizardContent() {
 
     const [hours, setHours] = React.useState({ ordinary: "", overtime: "", sunday: "", holiday: "" });
     const [shortFallHours, setShortFallHours] = React.useState("");
-    const [daysWorked, setDaysWorked] = React.useState("0");
+    const [daysWorked, setDaysWorked] = React.useState("");
     const [dates, setDates] = React.useState({ start: defaultStart, end: defaultEnd });
 
     // Automation States
@@ -71,36 +94,12 @@ function WizardContent() {
         setHours(prev => ({ ...prev, holiday: total }));
         toast(`Applied ${total} hours for ${detectedHolidays.length} holidays.`);
     };
-
-    // Auto-calculate ordinary days (excluding Sundays) when period changes
-    React.useEffect(() => {
-        if (dates.start && dates.end) {
-            const start = safeDate(dates.start);
-            const end = safeDate(dates.end);
-
-            // Prevent runaway loops if dates are invalid or start > end
-            if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
-                setDaysWorked("0");
-                return;
-            }
-
-            let count = 0;
-            const cur = new Date(start);
-            // Limit loop to prevent potential infinite if date logic bad
-            let safety = 0;
-            while (cur <= end && safety < 100) {
-                if (cur.getDay() !== 0) count++; // Exclude Sundays
-                cur.setDate(cur.getDate() + 1);
-                safety++;
-            }
-            setDaysWorked(count.toString());
-        }
-    }, [dates.start, dates.end]);
     const [periodError, setPeriodError] = React.useState("");
     const [hoursError, setHoursError] = React.useState("");
     const [includeAccommodation, setIncludeAccommodation] = React.useState(false);
     const [accommodationCost, setAccommodationCost] = React.useState("");
     const leaveTrackingEnabled = settings ? canUseLeaveTracking(getUserPlan(settings)) : false;
+    const weekdayEstimate = React.useMemo(() => getWeekdayEstimate(dates.start, dates.end), [dates.start, dates.end]);
 
     React.useEffect(() => {
         let active = true;
@@ -122,11 +121,13 @@ function WizardContent() {
         };
     }, [empId, router]);
 
+    const enteredDaysWorked = Number(daysWorked) || 0;
     const totalHours =
         (Number(hours.ordinary) || 0) +
         (Number(hours.overtime) || 0) +
         (Number(hours.sunday) || 0) +
         (Number(hours.holiday) || 0);
+    const sundayRateLabel = employee ? `${getSundayRateMultiplier(employee.ordinarilyWorksSundays ?? false).toFixed(1)}x` : "2.0x";
 
     const [leave, setLeave] = React.useState({ annual: "", sick: "", family: "" });
 
@@ -141,7 +142,7 @@ function WizardContent() {
             overtimeHours: Number(hours.overtime) || 0,
             sundayHours: Number(hours.sunday) || 0,
             publicHolidayHours: Number(hours.holiday) || 0,
-            daysWorked: Number(daysWorked) || 1,
+            daysWorked: enteredDaysWorked,
             shortFallHours: Number(shortFallHours) || 0,
             hourlyRate: employee.hourlyRate,
             ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
@@ -155,6 +156,9 @@ function WizardContent() {
             createdAt: new Date(),
         })
         : null;
+    const uifApplicable = breakdown
+        ? isUifApplicable(breakdown.totalHours, breakdown.periodStart, breakdown.periodEnd)
+        : false;
 
     const doSave = React.useCallback(async () => {
         if (!employee) return;
@@ -175,7 +179,7 @@ function WizardContent() {
                 overtimeHours: Number(hours.overtime) || 0,
                 sundayHours: Number(hours.sunday) || 0,
                 publicHolidayHours: Number(hours.holiday) || 0,
-                daysWorked: Number(daysWorked) || 1,
+                daysWorked: enteredDaysWorked,
                 shortFallHours: Number(shortFallHours) || 0,
                 hourlyRate: employee.hourlyRate,
                 advanceAmount: 0,
@@ -219,13 +223,17 @@ function WizardContent() {
         } finally {
             setLoading(false);
         }
-    }, [employee, dates, hours, daysWorked, shortFallHours, includeAccommodation, accommodationCost, leave, leaveTrackingEnabled, router, toast]);
+    }, [employee, dates, hours, enteredDaysWorked, shortFallHours, includeAccommodation, accommodationCost, leave, leaveTrackingEnabled, router, toast]);
 
     const handleNext = async () => {
         if (currentStep === 0) {
             if (!dates.start || !dates.end) { setPeriodError("Please select the pay period."); return; }
             if (!hours.ordinary && !hours.overtime && !hours.sunday && !hours.holiday) {
                 setHoursError("Please enter at least some hours worked.");
+                return;
+            }
+            if ((Number(hours.ordinary) || 0) > 0 && enteredDaysWorked === 0) {
+                setHoursError("Enter the actual days worked. This should not be auto-guessed because it affects the 4-hour minimum rule.");
                 return;
             }
             setPeriodError("");
@@ -408,15 +416,29 @@ function WizardContent() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="daysWorked" className="text-xs">Days Worked</Label>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <Label htmlFor="daysWorked" className="text-xs">Actual Days Worked</Label>
+                                                {weekdayEstimate > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        className="text-[10px] font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
+                                                        onClick={() => setDaysWorked(weekdayEstimate.toString())}
+                                                    >
+                                                        Use weekday estimate ({weekdayEstimate})
+                                                    </button>
+                                                )}
+                                            </div>
                                             <Input
                                                 id="daysWorked"
                                                 type="number"
                                                 min="0"
-                                                placeholder="20"
+                                                placeholder={weekdayEstimate > 0 ? weekdayEstimate.toString() : "20"}
                                                 value={daysWorked}
                                                 onChange={(e) => setDaysWorked(e.target.value)}
                                             />
+                                            <p className="text-[10px] text-[var(--text-muted)]">
+                                                Enter the real number of days worked in this period. We do not auto-fill this because it affects the 4-hour minimum rule.
+                                            </p>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="overtime" className="text-xs">Overtime (1.5x)</Label>
@@ -430,7 +452,13 @@ function WizardContent() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="shortFallHours" className="text-xs">Shortfall (4-hr rule)</Label>
+                                            <div className="flex items-center gap-2">
+                                                <Label htmlFor="shortFallHours" className="text-xs">Shortfall (4-hr rule)</Label>
+                                                <InfoTooltip
+                                                    label="Explain the 4-hour minimum rule"
+                                                    tooltip={FOUR_HOUR_RULE_TOOLTIP}
+                                                />
+                                            </div>
                                             <Input
                                                 id="shortFallHours"
                                                 type="number"
@@ -453,6 +481,10 @@ function WizardContent() {
                                             <div className="flex items-center gap-2">
                                                 <Info className="w-3.5 h-3.5 text-[var(--focus)]" />
                                                 <Label htmlFor="assistant-switch" className="cursor-pointer text-[11px] font-bold uppercase tracking-tight text-[var(--text-secondary)]">4-Hour Rule Assistant</Label>
+                                                <InfoTooltip
+                                                    label="Explain the 4-hour minimum rule assistant"
+                                                    tooltip={FOUR_HOUR_RULE_TOOLTIP}
+                                                />
                                             </div>
                                             <Switch
                                                 id="assistant-switch"
@@ -514,12 +546,13 @@ function WizardContent() {
                             <div className="space-y-4">
                                 <Alert variant="default">
                                     <AlertDescription>
-                                        Sundays and Public Holidays are legally paid at{" "}
-                                        <strong>2× the normal rate</strong> (BCEA).
+                                        Sunday pay depends on the worker&apos;s normal schedule. This employee is set to{" "}
+                                        <strong>{employee.ordinarilyWorksSundays ? "normally work Sundays" : "not normally work Sundays"}</strong>,
+                                        {" "}so Sunday hours here pay at <strong>{sundayRateLabel}</strong>. Public holiday hours stay at <strong>2.0x</strong>.
                                     </AlertDescription>
                                 </Alert>
                                 <div className="space-y-2">
-                                    <Label htmlFor="sunday">Sunday Hours ({employee.ordinarilyWorksSundays ? '1.5× rate' : '2× rate'})</Label>
+                                    <Label htmlFor="sunday">Sunday Hours ({sundayRateLabel} rate)</Label>
                                     <Input
                                         id="sunday"
                                         type="number"
@@ -551,11 +584,11 @@ function WizardContent() {
                         {/* STEP 2 — Deductions */}
                         {currentStep === 2 && (
                             <div className="space-y-4">
-                                <Alert variant={totalHours > 24 ? "success" : "warning"}>
+                                <Alert variant={uifApplicable ? "success" : "warning"}>
                                     <AlertDescription>
                                         <strong>UIF</strong> (1% employee + 1% employer) is{" "}
-                                        <strong>{totalHours > 24 ? "applicable" : "NOT applicable"}</strong>{" "}
-                                        — worker has {totalHours > 24 ? "more than" : "24 or fewer"} hours per month.
+                                        <strong>{uifApplicable ? "applicable" : "not applicable"}</strong>{" "}
+                                        for this payslip, based on <strong>{breakdown?.totalHours ?? totalHours} counted hours</strong>.
                                     </AlertDescription>
                                 </Alert>
                                 {leaveTrackingEnabled && (
@@ -690,13 +723,13 @@ function WizardContent() {
                                         failText={`Rate below NMW — calculator auto-corrects to R${NMW_RATE.toFixed(2)}/hr`}
                                     />
                                     <ComplianceRow
-                                        pass={totalHours > 24}
+                                        pass={uifApplicable}
                                         passText="UIF deducted (1% employee + 1% employer)"
-                                        failText="UIF not applicable — worker has ≤24 hrs this period"
-                                        isInfo={totalHours <= 24}
+                                        failText="UIF not deducted for this payslip"
+                                        isInfo={!uifApplicable}
                                     />
                                     <ComplianceRow
-                                        pass={Number(daysWorked) === 0 || (Number(hours.ordinary) / Math.max(Number(daysWorked), 1)) >= 4}
+                                        pass={enteredDaysWorked === 0 || (Number(hours.ordinary) / Math.max(enteredDaysWorked, 1)) >= 4}
                                         passText="Hours meet 4-hr minimum shift rule"
                                         failText="Some shifts may be below 4 hrs — calculator tops up automatically"
                                     />
@@ -726,9 +759,9 @@ function WizardContent() {
                                             label={`Ordinary (${breakdown.effectiveOrdinaryHours}h${Number(shortFallHours) > 0 ? " inc. 4-hr minimum top-up" : ""})`}
                                             value={`R ${breakdown.ordinaryPay.toFixed(2)}`}
                                         />
-                                        {(Number(hours.overtime) || 0) > 0 && <Row label={`Overtime (${Number(hours.overtime)}h)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}
-                                        {(Number(hours.sunday) || 0) > 0 && <Row label={`Sunday (${Number(hours.sunday)}h)`} value={`R ${breakdown.sundayPay.toFixed(2)}`} />}
-                                        {(Number(hours.holiday) || 0) > 0 && <Row label={`Public Holiday (${Number(hours.holiday)}h)`} value={`R ${breakdown.publicHolidayPay.toFixed(2)}`} />}
+                                        {(Number(hours.overtime) || 0) > 0 && <Row label={`Overtime (${Number(hours.overtime)}h @ 1.5x)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}
+                                        {(Number(hours.sunday) || 0) > 0 && <Row label={`Sunday (${Number(hours.sunday)}h @ ${sundayRateLabel})`} value={`R ${breakdown.sundayPay.toFixed(2)}`} />}
+                                        {(Number(hours.holiday) || 0) > 0 && <Row label={`Public Holiday (${Number(hours.holiday)}h @ 2x)`} value={`R ${breakdown.publicHolidayPay.toFixed(2)}`} />}
                                         <Row label="Gross Pay" value={`R ${breakdown.grossPay.toFixed(2)}`} bold />
                                     </div>
 
@@ -737,7 +770,7 @@ function WizardContent() {
                                     {/* Deductions */}
                                     <div className="px-4 pt-3 pb-2 space-y-2">
                                         <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--primary)" }}>Deductions</p>
-                                        <Row label={`UIF ${totalHours > 24 ? "(1%)" : "(n/a)"}`} value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`} red />
+                                        <Row label={`UIF ${uifApplicable ? "(1%)" : "(n/a)"}`} value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`} red />
                                         {includeAccommodation && breakdown.deductions.accommodation && (
                                             <Row label="Accommodation (10%)" value={`-R ${breakdown.deductions.accommodation.toFixed(2)}`} red />
                                         )}

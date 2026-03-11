@@ -48,7 +48,7 @@ export function LoginForm() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                    <div className="p-4 bg-red-50 text-red-800 border border-red-200 rounded-xl text-sm mb-4">
+                    <div className="p-4 bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] rounded-xl text-sm mb-4 animate-slide-down">
                         {error}
                     </div>
                 )}
@@ -104,7 +104,7 @@ export function LoginForm() {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full flex justify-center items-center py-3.5 px-4 bg-[var(--primary)] text-white font-bold rounded-xl active-scale transition-all hover:bg-[#006640] shadow-[0_2px_10px_rgba(0,122,77,0.15)] disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                    className="w-full flex justify-center items-center py-3.5 px-4 bg-[var(--primary)] text-white font-bold rounded-xl active-scale transition-all hover:bg-[var(--primary-hover)] shadow-[0_2px_10px_rgba(0,122,77,0.15)] disabled:opacity-70 disabled:cursor-not-allowed mt-2"
                 >
                     {isLoading ? (
                         <>

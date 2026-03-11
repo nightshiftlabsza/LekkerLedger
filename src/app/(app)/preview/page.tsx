@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/toast";
 import { getEmployees, getPayslipsForEmployee, getSettings } from "@/lib/storage";
 import { Employee, EmployerSettings, PayslipInput } from "@/lib/schema";
-import { calculatePayslip } from "@/lib/calculator";
+import { calculatePayslip, getSundayRateMultiplier, isUifApplicable } from "@/lib/calculator";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
 import { shareViaEmail, shareViaWhatsApp } from "@/lib/share";
 import { getComplianceAudit } from "@/lib/compliance";
@@ -236,13 +236,17 @@ function PreviewContent() {
                         <CardContent className="p-5">
                             <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-[var(--focus)]">Earnings</p>
                             <Row label={`Ordinary (${payslip.ordinaryHours}h)`} value={`R ${breakdown.ordinaryPay.toFixed(2)}`} />
-                            {payslip.overtimeHours > 0 && <Row label={`Overtime (${payslip.overtimeHours}h)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}
-                            {payslip.sundayHours > 0 && <Row label={`Sunday (${payslip.sundayHours}h)`} value={`R ${breakdown.sundayPay.toFixed(2)}`} />}
-                            {payslip.publicHolidayHours > 0 && <Row label={`Public holiday (${payslip.publicHolidayHours}h)`} value={`R ${breakdown.publicHolidayPay.toFixed(2)}`} />}
+                            {payslip.overtimeHours > 0 && <Row label={`Overtime (${payslip.overtimeHours}h @ 1.5x)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}
+                            {payslip.sundayHours > 0 && <Row label={`Sunday (${payslip.sundayHours}h @ ${getSundayRateMultiplier(payslip.ordinarilyWorksSundays).toFixed(1)}x)`} value={`R ${breakdown.sundayPay.toFixed(2)}`} />}
+                            {payslip.publicHolidayHours > 0 && <Row label={`Public holiday (${payslip.publicHolidayHours}h @ 2x)`} value={`R ${breakdown.publicHolidayPay.toFixed(2)}`} />}
                             <Row label="Gross pay" value={`R ${breakdown.grossPay.toFixed(2)}`} bold />
 
                             <p className="mb-2 mt-6 text-[10px] font-black uppercase tracking-widest text-[var(--focus)]">Deductions</p>
-                            <Row label="Employee UIF (1%)" value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`} red />
+                            <Row
+                                label={isUifApplicable(breakdown.totalHours, payslip.payPeriodStart, payslip.payPeriodEnd) ? "Employee UIF (1%)" : "Employee UIF (n/a)"}
+                                value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`}
+                                red
+                            />
                             {breakdown.deductions.accommodation ? <Row label="Accommodation" value={`-R ${breakdown.deductions.accommodation.toFixed(2)}`} red /> : null}
                             {breakdown.deductions.shortfall ? <Row label="Shortfall" value={`-R ${breakdown.deductions.shortfall.toFixed(2)}`} red /> : null}
                             {breakdown.deductions.advance ? <Row label="Advance" value={`-R ${breakdown.deductions.advance.toFixed(2)}`} red /> : null}
