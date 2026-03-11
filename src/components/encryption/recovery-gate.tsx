@@ -144,13 +144,13 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                             <h3 className="font-serif text-xl font-bold text-[var(--text)] mb-4">Why is this locked?</h3>
                             <div className="space-y-4 text-sm text-[var(--text-muted)] leading-relaxed">
                                 <p>
-                                    LekkerLedger uses <strong>Zero-Knowledge Encryption</strong>. This means your data is "scrambled" with your recovery key before it ever leaves your device.
+                                    LekkerLedger uses <strong>Zero-Knowledge Encryption</strong>. This means your data is &quot;scrambled&quot; with your recovery key before it ever leaves your device.
                                 </p>
                                 <p>
                                     Even if our servers were compromised, your payroll records would be unreadable to anyone without your key. Not even our team can see your data.
                                 </p>
                                 <p>
-                                    You only need to enter this key once per device to "unlock" the cloud sync.
+                                    You only need to enter this key once per device to &quot;unlock&quot; the cloud sync.
                                 </p>
                             </div>
                         </div>
