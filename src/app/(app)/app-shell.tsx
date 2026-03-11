@@ -151,7 +151,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     return (
         <AppModeProvider>
-            <ToastProvider>
                 <div className="min-h-screen flex flex-col lg:pl-64 min-[1600px]:lg:pl-72" style={{ backgroundColor: "var(--bg)" }}>
                     <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)] shadow-[var(--shadow-sm)] safe-area-pt">
                         <div className="content-container-wide flex w-full items-center justify-between px-3 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-3">
@@ -275,7 +274,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     />
                     <BottomNav onMore={() => setMoreOpen(true)} />
                 </div>
-            </ToastProvider>
         </AppModeProvider>
     );
 }

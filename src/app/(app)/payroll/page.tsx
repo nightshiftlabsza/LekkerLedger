@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { PayrollClient } from "@/components/payroll/payroll-client";
@@ -17,7 +18,9 @@ export default function PayrollPage() {
                     </Link>
                 }
             />
-            <PayrollClient />
+            <Suspense fallback={<div className="h-40 flex items-center justify-center text-[var(--text-muted)]">Loading payroll...</div>}>
+                <PayrollClient />
+            </Suspense>
         </div>
     );
 }

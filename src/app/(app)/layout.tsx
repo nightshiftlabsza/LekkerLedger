@@ -7,6 +7,7 @@ import { AppShell } from "./app-shell";
 import { Suspense } from "react";
 import { AnalyticsPageView } from "@/components/AnalyticsPageView";
 import { StartupScripts } from "@/components/layout/startup-scripts";
+import { ToastProvider } from "@/components/ui/toast";
 
 const ibmPlexSans = IBM_Plex_Sans({
     variable: "--font-sans",
@@ -72,11 +73,15 @@ export default function AppRootLayout({
                 </Suspense>
                 {/* PWA install tracking */}
                 <PwaInstallTracking />
-                <>
+                <ToastProvider>
                     <ThemeProvider>
-                        <AppShell>{children}</AppShell>
+                        <AppShell>
+                            <Suspense fallback={null}>
+                                {children}
+                            </Suspense>
+                        </AppShell>
                     </ThemeProvider>
-                </>
+                </ToastProvider>
             </body>
         </html>
     );

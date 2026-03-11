@@ -74,7 +74,9 @@ export default function RootLayout({
         <>
           <ThemeProvider>
             <ToastProvider>
-              {children}
+              <Suspense fallback={null}>
+                {children}
+              </Suspense>
               <MarketingFooter />
             </ToastProvider>
           </ThemeProvider>

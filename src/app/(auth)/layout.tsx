@@ -1,7 +1,9 @@
 import * as React from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 import { ArrowLeft } from "lucide-react";
+import { ToastProvider } from "@/components/ui/toast";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
     return (
@@ -24,7 +26,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                     <div className="sm:hidden flex justify-center mb-8">
                         <Logo />
                     </div>
-                    {children}
+                    <ToastProvider>
+                        <Suspense fallback={null}>
+                            {children}
+                        </Suspense>
+                    </ToastProvider>
                 </div>
             </main>
         </div>
