@@ -192,7 +192,7 @@ export default function RoePackPage() {
                             <div className="flex items-start gap-3 rounded-xl border p-4" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
                                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" />
                                 <div className="space-y-0.5">
-                                    <p className="text-xs font-bold text-[var(--text)]">Compliance support tool — not a filing service</p>
+                                    <p className="text-xs font-bold text-[var(--text)]">ROE preparation tool — not a filing service</p>
                                     <p className="text-[11px] leading-relaxed text-[var(--warning)]">
                                         LekkerLedger calculates your figures and generates supporting documents. You are responsible for the accuracy of your submission to the Compensation Fund.
                                     </p>
@@ -474,7 +474,7 @@ export default function RoePackPage() {
 
                     {/* Subtle compliance footer — disclaimer now lives at step 1 top */}
                     <div className="flex items-center justify-center gap-1.5 py-4 text-[10px] text-[var(--text-muted)] type-overline">
-                        <ShieldCheck className="h-3 w-3" /> Compliance Support Tool
+                        <ShieldCheck className="h-3 w-3" /> ROE Preparation Tool
                     </div>
 
                 </div>

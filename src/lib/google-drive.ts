@@ -211,11 +211,12 @@ export async function performSmartSyncCheck(accessToken: string): Promise<{
     }
 
     if (!localTimestamp) {
-        // Remote exists, but local has no record of sync. 
-        // If local is empty, RESTORE.
-        // If local has data, CONFLICT (or decision needed).
-        return { 
-            recommendation: hasData ? "CONFLICT" : "RESTORE",
+        // Remote exists, but this device has never completed a sync.
+        // Remote is authoritative — always restore, regardless of local data.
+        // Local data without a backup timestamp is orphaned (e.g. stale free-plan
+        // session data) and should not block the restore.
+        return {
+            recommendation: "RESTORE",
             remoteMetadata,
             localMetadata: { lastBackupTimestamp: localTimestamp }
         };

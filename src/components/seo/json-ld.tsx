@@ -4,7 +4,7 @@ export const organizationSchema = {
     name: "LekkerLedger",
     url: "https://www.lekkerledger.co.za",
     logo: "https://www.lekkerledger.co.za/icon.png",
-    description: "South African household employment administration software. Manage payslips, UIF, and compliance records.",
+    description: "South African household employment administration software. Manage payslips, UIF, and employment records.",
     address: {
         "@type": "PostalAddress",
         addressCountry: "ZA"
@@ -22,7 +22,7 @@ export const softwareApplicationSchema = {
         price: "0",
         priceCurrency: "ZAR"
     },
-    description: "Payslip generator, UIF calculator, and compliance record management for South African household employers."
+    description: "Payslip generator, UIF calculator, and employment record management for South African household employers."
 };
 
 export function JsonLd({ schema }: { schema: Record<string, unknown> }) {

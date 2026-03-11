@@ -55,12 +55,6 @@ function routeToPricing(router: ReturnType<typeof useRouter>, reason: "free" | "
     router.push(`/pricing?${params.toString()}`);
 }
 
-function buildConflictPrompt(): boolean {
-    return window.confirm(
-        "We found payroll data on this device and in your Google backup.\n\nOK: Restore Google backup to this device.\nCancel: Keep this device data and upload it to Google now.",
-    );
-}
-
 export function usePaidLoginActivation() {
     const router = useRouter();
     const [loading, setLoading] = React.useState(false);
@@ -123,23 +117,6 @@ export function usePaidLoginActivation() {
                 throw new Error(restore.error || "Restore failed while activating paid login.");
             }
             return "restore";
-        }
-
-        if (check.recommendation === "CONFLICT") {
-            const restoreRemote = buildConflictPrompt();
-            if (restoreRemote) {
-                const restore = await syncDataFromDrive(accessToken);
-                if (!restore.success) {
-                    throw new Error(restore.error || "Restore failed while activating paid login.");
-                }
-                return "restore";
-            }
-
-            const backup = await syncDataToDrive(accessToken);
-            if (!backup.success) {
-                throw new Error(backup.error || "Backup failed while activating paid login.");
-            }
-            return "backup";
         }
 
         // UP_TO_DATE or UNKNOWN

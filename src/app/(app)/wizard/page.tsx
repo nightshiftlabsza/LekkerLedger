@@ -218,7 +218,7 @@ function WizardContent() {
         } finally {
             setLoading(false);
         }
-    }, [employee, dates, hours, daysWorked, shortFallHours, includeAccommodation, accommodationCost, leave, router, toast]);
+    }, [employee, dates, hours, daysWorked, shortFallHours, includeAccommodation, accommodationCost, leave, leaveTrackingEnabled, router, toast]);
 
     const handleNext = async () => {
         if (currentStep === 0) {
@@ -676,7 +676,7 @@ function WizardContent() {
 
                                 {/* Compliance checklist */}
                                 <div className="p-4 rounded-xl space-y-2.5" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface-2)" }}>
-                                    <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Compliance Check</p>
+                                    <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Payroll Check</p>
                                     <ComplianceRow
                                         pass={!!settings?.employerName?.trim() && !!settings?.employerAddress?.trim()}
                                         passText="Employer name and address set"

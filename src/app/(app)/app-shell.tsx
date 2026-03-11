@@ -14,7 +14,7 @@ import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { ToastProvider } from "@/components/ui/toast";
 import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
-import { getHouseholds, getSettings, hasMeaningfulLocalData, saveHousehold, saveSettings, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
+import { getHouseholds, getSettings, saveHousehold, saveSettings, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseAutoBackup, canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
 import { clearStoredGoogleSession, getStoredGoogleAccessToken, getStoredGoogleEmail, hasStoredGoogleDriveScope } from "@/lib/google-session";
@@ -124,17 +124,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     sessionSyncPerformedRef.current = true;
 
                     if (check.recommendation === "RESTORE") {
-                        const hasLocal = await hasMeaningfulLocalData();
-                        if (!hasLocal) {
-                            console.log("Auto-sync: Restoring data for new device");
-                            await syncDataFromDrive(accessToken);
-                            return;
-                        } else {
-                            // Conflict or older local: show banner
-                            setSyncConflict(true);
-                            setSyncBannerDismissed(false);
-                            return; 
-                        }
+                        console.log("Auto-sync: Restoring data from Drive backup");
+                        await syncDataFromDrive(accessToken);
+                        window.location.reload();
+                        return;
                     } else if (check.recommendation === "BACKUP") {
                         await syncDataToDrive(accessToken);
                         return;

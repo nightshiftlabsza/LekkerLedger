@@ -135,7 +135,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             console.error("Failed to fetch user info", error);
             return null;
         }
-    }, []);
+    }, [isMountedRef]);
 
     const persistAuth = useCallback((accessToken: string) => {
         setToken(accessToken);
@@ -156,7 +156,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
         setDiscoveryStatus("idle");
         setStatus("idle");
         setStatusMessage("");
-    }, []);
+    }, [isMountedRef]);
 
     const handleLogoutAndWipe = useCallback(async () => {
         if (!confirm("This will log you out AND permanently remove all payroll records from this device. Remote backups in Google Drive remain. Proceed?")) return;
@@ -217,7 +217,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             addLog({ success: false, action: "backup", details: result.error || "Network or permission error during upload" });
             setTransientStatus("error", result.error || "Backup failed. Check your Google connection or Drive permission and try again.", 5000);
         }
-    }, [hasDriveScope, refreshLocalTimestamp, token]);
+    }, [hasDriveScope, refreshLocalTimestamp, token, addLog, isMountedRef, setTransientStatus]);
 
     const runRestore = useCallback(async (silent = false) => {
         const currentToken = token || getStoredToken();
@@ -247,7 +247,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             addLog({ success: false, action: "restore", details: result.error || "Failed to download snapshot" });
             setTransientStatus("error", result.error || "Restore failed or no Google backup was found.", 5000);
         }
-    }, [token]);
+    }, [token, addLog, isMountedRef, reloadTimerRef, setTransientStatus]);
 
     const runDeleteBackup = useCallback(async () => {
         const currentToken = token || getStoredToken();
@@ -269,7 +269,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             addLog({ success: false, action: "delete", details: "Failed to delete backup from Drive" });
             setTransientStatus("error", "Failed to delete the Google backup. Please try again.", 5000);
         }
-    }, [token]);
+    }, [token, addLog, isMountedRef, setTransientStatus]);
 
     const finishGoogleBackupSetup = useCallback(async (accessToken: string, options?: { connectedMessage?: string }) => {
         if (!isMountedRef.current) return;
@@ -301,14 +301,8 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
         }
 
         await runDiscovery(accessToken);
-
-        if (check.recommendation === "CONFLICT") {
-            setTransientStatus("success", "Google backup connected. Choose which copy to keep.", 5000);
-            return;
-        }
-
         setTransientStatus("success", options?.connectedMessage || "Google backup connected.");
-    }, [handleBackup, isMountedRef, persistAuth, runDiscovery, runRestore]);
+    }, [handleBackup, isMountedRef, persistAuth, runDiscovery, runRestore, setTransientStatus]);
 
     const login = useGoogleLogin({
         scope: GOOGLE_SCOPES,
@@ -368,7 +362,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                 window.clearTimeout(reloadTimerRef.current);
             }
         };
-    }, [lastSyncTime]);
+    }, [lastSyncTime, isMountedRef, reloadTimerRef, statusTimerRef]);
 
     if (!driveSyncAllowed) {
         return (
