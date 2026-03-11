@@ -75,6 +75,7 @@ interface PaystackInitializeResponse {
     message?: string;
     data?: {
         authorization_url?: string;
+        access_code?: string;
         reference?: string;
     };
 }
@@ -908,7 +909,7 @@ async function initializePaystackTransaction(request: Request, user: VerifiedGoo
     metadata: Record<string, unknown>;
     callbackQuery?: Record<string, string>;
     reference?: string;
-}): Promise<{ authorizationUrl: string; reference: string }> {
+}): Promise<{ authorizationUrl: string; accessCode: string; reference: string }> {
     const origin = normalizeOrigin(request);
     const reference = input.reference || buildTrialReference(user.userId);
     const callbackUrl = new URL(`${origin}/billing/success`);
@@ -929,12 +930,13 @@ async function initializePaystackTransaction(request: Request, user: VerifiedGoo
         }),
     });
 
-    if (!response.data?.authorization_url || !response.data.reference) {
+    if (!response.data?.authorization_url || !response.data?.access_code || !response.data.reference) {
         throw new BillingError(response.message || "Paystack checkout could not be started.", 502);
     }
 
     return {
         authorizationUrl: response.data.authorization_url,
+        accessCode: response.data.access_code,
         reference: response.data.reference,
     };
 }
@@ -1482,7 +1484,7 @@ export async function createCheckoutSession(
     request: Request,
     user: VerifiedGoogleUser,
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle },
-): Promise<{ authorizationUrl: string; reference: string }> {
+): Promise<{ authorizationUrl: string; accessCode: string; reference: string }> {
     const amount = getPlanPrice(input.planId, input.billingCycle);
     if (!amount) {
         throw new BillingError("Pricing is not configured for that plan.", 400);
@@ -1507,7 +1509,7 @@ export async function startTrialCheckout(
     request: Request,
     user: VerifiedGoogleUser,
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; referralCode?: string | null },
-): Promise<{ authorizationUrl: string; reference: string }> {
+): Promise<{ authorizationUrl: string; accessCode: string; reference: string }> {
     await ensureBillingSchema();
     const existing = await getSubscriptionByColumn("user_id", user.userId);
     if (!canStartTrial(existing)) {
@@ -1574,12 +1576,12 @@ export async function startTrialCheckout(
     return checkout;
 }
 
-export async function createAnonymousTrialIntent(input: {
+export async function createAnonymousTrialIntent(request: Request, input: {
     planId: Exclude<PlanId, "free">;
     billingCycle: BillingCycle;
     email: string;
     referralCode?: string | null;
-}): Promise<{ reference: string; amountCents: number }> {
+}): Promise<{ reference: string; accessCode: string; amountCents: number }> {
     await ensureBillingSchema();
 
     const sanitizedReferralCode = sanitizeReferralCode(input.referralCode);
@@ -1607,8 +1609,35 @@ export async function createAnonymousTrialIntent(input: {
     };
     await upsertBillingIntent(intent);
 
-    return {
+    const checkout = await initializePaystackTransaction(request, {
+        userId: guestUserId,
+        email: normalizedEmail,
+    }, {
+        amountCents: TRIAL_VERIFICATION_AMOUNT_CENTS,
         reference: intent.reference,
+        metadata: {
+            billing_mode: "trial_setup",
+            intent_id: intent.id,
+            plan_id: input.planId,
+            billing_cycle: input.billingCycle,
+            referral_code: sanitizedReferralCode,
+            email: normalizedEmail,
+        },
+        callbackQuery: {
+            mode: "trial",
+        },
+    });
+
+    await upsertBillingIntent({
+        ...intent,
+        reference: checkout.reference,
+        status: "checkout_started",
+        updatedAt: Date.now(),
+    });
+
+    return {
+        reference: checkout.reference,
+        accessCode: checkout.accessCode,
         amountCents: intent.amountCents,
     };
 }

@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { createInlineTrialIntent } from "@/lib/billing-client";
 import { getStoredGoogleEmail } from "@/lib/google-session";
 import { getSettings } from "@/lib/storage";
-import { env } from "@/lib/env";
 import { type BillingCycle, type PlanId } from "@/src/config/plans";
 
 const CHECKOUT_EMAIL_STORAGE_KEY = "lekkerledger:checkout-email";
@@ -45,29 +44,25 @@ function writeStoredCheckoutEmail(email: string) {
 }
 
 async function openInlinePaystackPayment(input: {
-    publicKey: string;
-    reference: string;
-    email: string;
-    amountCents: number;
+    accessCode: string;
+    onLoad: () => void;
     onSuccess: (response: unknown) => void;
-    onClose: () => void;
+    onCancel: () => void;
+    onError: (message: string) => void;
 }) {
-    const paystackModule = await import("react-paystack");
-    const createPayment = paystackModule.usePaystackPayment;
-    const initializePayment = createPayment({
-        publicKey: input.publicKey,
-    });
+    const paystackModule = await import("@paystack/inline-js");
+    const PaystackPop = paystackModule.default;
+    const popup = new PaystackPop();
 
-    initializePayment({
-        config: {
-            reference: input.reference,
-            email: input.email,
-            amount: input.amountCents,
-            currency: "ZAR",
-            channels: ["card"],
+    popup.resumeTransaction(input.accessCode, {
+        onLoad: () => {
+            input.onLoad();
         },
         onSuccess: input.onSuccess,
-        onClose: input.onClose,
+        onCancel: input.onCancel,
+        onError: (error: { message?: string } | undefined) => {
+            input.onError(error?.message?.trim() || "The payment popup could not be opened.");
+        },
     });
 }
 
@@ -79,7 +74,6 @@ export function useInlinePaidPlanCheckout({
     referralCode?: string | null;
 }) {
     const router = useRouter();
-    const paystackPublicKey = env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
     const [checkoutEmail, setCheckoutEmail] = React.useState("");
     const [emailError, setEmailError] = React.useState("");
     const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -124,10 +118,6 @@ export function useInlinePaidPlanCheckout({
     }, []);
 
     const openPaystackCheckout = React.useCallback(async (planId: Exclude<PlanId, "free">, email: string) => {
-        if (!paystackPublicKey) {
-            throw new Error("Paystack is not configured for this build.");
-        }
-
         setLoadingPlanId(planId);
         setEmailError("");
 
@@ -143,10 +133,10 @@ export function useInlinePaidPlanCheckout({
             });
 
             await openInlinePaystackPayment({
-                publicKey: paystackPublicKey,
-                reference: intent.reference,
-                email: normalizedEmail,
-                amountCents: intent.amountCents,
+                accessCode: intent.accessCode,
+                onLoad: () => {
+                    setLoadingPlanId(null);
+                },
                 onSuccess: (response) => {
                     const reference = extractReference(response) || intent.reference;
                     setDialogOpen(false);
@@ -154,8 +144,12 @@ export function useInlinePaidPlanCheckout({
                     setLoadingPlanId(null);
                     router.push(`/billing/success?reference=${encodeURIComponent(reference)}`);
                 },
-                onClose: () => {
+                onCancel: () => {
                     setLoadingPlanId(null);
+                },
+                onError: (message) => {
+                    setLoadingPlanId(null);
+                    setEmailError(message);
                 },
             });
         } catch (error) {
@@ -164,7 +158,7 @@ export function useInlinePaidPlanCheckout({
             setEmailError(message);
             setDialogOpen(true);
         }
-    }, [billingCycle, paystackPublicKey, referralCode, router]);
+    }, [billingCycle, referralCode, router]);
 
     const startCheckout = React.useCallback((planId: PlanId) => {
         if (planId === "free") {

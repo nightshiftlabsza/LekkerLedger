@@ -12,7 +12,7 @@ const bodySchema = z.object({
 export async function POST(request: Request) {
     try {
         const payload = bodySchema.parse(await request.json());
-        const intent = await createAnonymousTrialIntent({
+        const intent = await createAnonymousTrialIntent(request, {
             planId: payload.planId,
             billingCycle: payload.billingCycle,
             email: payload.email,
