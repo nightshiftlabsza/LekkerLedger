@@ -44,6 +44,33 @@ function writeStoredCheckoutEmail(email: string) {
     window.localStorage.setItem(CHECKOUT_EMAIL_STORAGE_KEY, normalizeEmail(email));
 }
 
+async function openInlinePaystackPayment(input: {
+    publicKey: string;
+    reference: string;
+    email: string;
+    amountCents: number;
+    onSuccess: (response: unknown) => void;
+    onClose: () => void;
+}) {
+    const paystackModule = await import("react-paystack");
+    const createPayment = paystackModule.usePaystackPayment;
+    const initializePayment = createPayment({
+        publicKey: input.publicKey,
+    });
+
+    initializePayment({
+        config: {
+            reference: input.reference,
+            email: input.email,
+            amount: input.amountCents,
+            currency: "ZAR",
+            channels: ["card"],
+        },
+        onSuccess: input.onSuccess,
+        onClose: input.onClose,
+    });
+}
+
 export function useInlinePaidPlanCheckout({
     billingCycle,
     referralCode,
@@ -115,19 +142,11 @@ export function useInlinePaidPlanCheckout({
                 referralCode: referralCode?.trim() || null,
             });
 
-            const { usePaystackPayment } = await import("react-paystack");
-            const initializePayment = usePaystackPayment({
+            await openInlinePaystackPayment({
                 publicKey: paystackPublicKey,
-            });
-
-            initializePayment({
-                config: {
-                    reference: intent.reference,
-                    email: normalizedEmail,
-                    amount: intent.amountCents,
-                    currency: "ZAR",
-                    channels: ["card"],
-                },
+                reference: intent.reference,
+                email: normalizedEmail,
+                amountCents: intent.amountCents,
                 onSuccess: (response) => {
                     const reference = extractReference(response) || intent.reference;
                     setDialogOpen(false);
