@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, CheckSquare, Calendar, CreditCard, ShieldCheck } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
-import { Button } from "@/components/ui/button";
+
 
 export const metadata = {
   title: "Household Employer Monthly Checklist | LekkerLedger",
@@ -35,7 +35,7 @@ export default function MonthlyChecklistPage() {
                                 Monthly Household Employer Checklist
                             </h1>
                             <p className="text-xl leading-relaxed font-medium" style={{ color: "var(--text-muted)" }}>
-                                A foolproof, step-by-step guide to ensuring your domestic worker's payroll and compliance are perfectly handled every single month.
+                                A foolproof, step-by-step guide to ensuring your domestic worker&apos;s payroll and compliance are perfectly handled every single month.
                             </p>
                         </div>
                     </div>
@@ -135,7 +135,7 @@ export default function MonthlyChecklistPage() {
                                         <div className="mt-1 h-5 w-5 rounded border border-[var(--border)] shrink-0 p-0 flex items-center justify-center bg-emerald-500 border-emerald-500">
                                             <div className="h-2 w-2 rounded-sm bg-white" />
                                         </div>
-                                        <span className="text-sm" style={{ color: "var(--text)" }}>Transfer the specific <i>Net Pay</i> amount to the employee's bank account.</span>
+                                        <span className="text-sm" style={{ color: "var(--text)" }}>Transfer the specific <i>Net Pay</i> amount to the employee&apos;s bank account.</span>
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <div className="mt-1 h-5 w-5 rounded border border-[var(--border)] shrink-0 flex items-center justify-center">

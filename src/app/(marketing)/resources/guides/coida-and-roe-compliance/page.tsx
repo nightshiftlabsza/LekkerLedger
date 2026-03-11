@@ -70,7 +70,7 @@ export default function COIDAGuidePage() {
                         <section className="space-y-4">
                             <h2 className="type-h2 text-[var(--text)] font-semibold">How much does it cost?</h2>
                             <p>
-                                Unlike UIF (which is a monthly 2% deduction), COIDA is an <b>annual, employer-only payment.</b> You cannot deduct a cent of the COIDA assessment from your employee's wages.
+                                Unlike UIF (which is a monthly 2% deduction), COIDA is an <b>annual, employer-only payment.</b> You cannot deduct a cent of the COIDA assessment from your employee&apos;s wages.
                             </p>
                             <p>
                                 Every year, the Compensation Commissioner sets industry-specific assessment rates. Domestic employers are classified under a specific low-risk sub-class. You pay a tiny percentage (often around 1% or less) of the <i>total annual earnings</i> of your domestic staff.
@@ -78,7 +78,7 @@ export default function COIDAGuidePage() {
                         </section>
 
                         <section className="space-y-4">
-                            <h2 className="type-h2 text-[var(--text)] font-semibold">What is the "Return of Earnings" (ROE)?</h2>
+                            <h2 className="type-h2 text-[var(--text)] font-semibold">What is the &quot;Return of Earnings&quot; (ROE)?</h2>
                             <p>
                                 Because COIDA is based on how much you pay your staff annually, you must tell the Department how much you paid them. This process is called submitting the <b>Return of Earnings (ROE)</b>.
                             </p>
@@ -95,7 +95,7 @@ export default function COIDAGuidePage() {
                                     <FileSpreadsheet className="h-6 w-6 text-emerald-500 shrink-0" />
                                     <div>
                                         <h3 className="font-bold text-[var(--text)] text-sm mb-1">The Notice of Assessment</h3>
-                                        <p className="text-sm">After you submit your ROE online, the system automatically generates a "Notice of Assessment" (an invoice). You then have 30 days to pay that invoice directly to the Compensation Fund to remain in good standing.</p>
+                                        <p className="text-sm">After you submit your ROE online, the system automatically generates a &quot;Notice of Assessment&quot; (an invoice). You then have 30 days to pay that invoice directly to the Compensation Fund to remain in good standing.</p>
                                     </div>
                                 </div>
                             </div>
@@ -110,7 +110,7 @@ export default function COIDAGuidePage() {
                                 When ROE season rolls around, many employers scramble to find 12 months of scattered bank transfers to figure out their total annual wage bill. LekkerLedger tracks everything throughout the year. 
                             </p>
                             <p className="text-sm font-bold text-[var(--primary)] py-2">
-                                In April, simply click "Generate ROE Report" and LekkerLedger provides the exact figure you need to plug into the government portal.
+                                In April, simply click &quot;Generate ROE Report&quot; and LekkerLedger provides the exact figure you need to plug into the government portal.
                             </p>
                             <div className="pt-4">
                                 <Link

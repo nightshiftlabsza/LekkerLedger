@@ -48,7 +48,7 @@ export default function NMW2026GuidePage() {
                             <h2 className="type-h2 text-[var(--text)] font-semibold">Equalization is Complete</h2>
                             <p>
                                 Historically, domestic workers (which includes gardeners, nannies, caregivers, and domestic drivers) had a lower minimum wage tier than general workers. 
-                                However, as of recent years, domestic worker wages have been 100% equalized with the National Minimum Wage. There is no longer a "discounted" tier for domestic labor.
+                                However, as of recent years, domestic worker wages have been 100% equalized with the National Minimum Wage. There is no longer a &quot;discounted&quot; tier for domestic labor.
                             </p>
                         </section>
 
@@ -85,7 +85,7 @@ export default function NMW2026GuidePage() {
                                 No. It is illegal to pay below the National Minimum Wage, even if the domestic worker agrees to it. A contract clause agreeing to a rate lower than R30.23/hr is legally void and unenforceable. 
                             </p>
                             <p>
-                                Furthermore, you cannot calculate the value of "payment in kind" (such as free accommodation, transport allowances, or food rations) to make up the R30.23 minimum. <b>The R30.23 must be paid in cash (or EFT) for ordinary hours worked.</b> Allowances are calculated in addition to this minimum base.
+                                Furthermore, you cannot calculate the value of &quot;payment in kind&quot; (such as free accommodation, transport allowances, or food rations) to make up the R30.23 minimum. <b>The R30.23 must be paid in cash (or EFT) for ordinary hours worked.</b> Allowances are calculated in addition to this minimum base.
                             </p>
                         </section>
 
@@ -105,7 +105,7 @@ export default function NMW2026GuidePage() {
                         <div className="bg-[var(--surface-raised)] rounded-2xl p-8 text-center space-y-4">
                             <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Never worry about rate changes again</h3>
                             <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-                                LekkerLedger automatically updates its internal calculator every time the government gazettes a new minimum wage. When you generate a payslip, we'll warn you if the calculated rate drops below the legal minimum for that specific date.
+                                LekkerLedger automatically updates its internal calculator every time the government gazettes a new minimum wage. When you generate a payslip, we&apos;ll warn you if the calculated rate drops below the legal minimum for that specific date.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                                 <Link

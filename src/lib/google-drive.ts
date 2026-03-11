@@ -16,9 +16,6 @@ interface GoogleDriveListResponse {
     files?: GoogleDriveFile[];
 }
 
-interface GoogleDriveCreateResponse {
-    id?: string;
-}
 
 export interface BackupMetadata {
     exists: boolean;

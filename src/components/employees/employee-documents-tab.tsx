@@ -3,9 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Cloud, Eye, FileText, FolderOpen, HardDrive, Lock, ScrollText, Trash2, Upload } from "lucide-react";
+import { Cloud, Eye, FileText, FolderOpen, HardDrive, ScrollText, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FeatureGateCard } from "@/components/ui/feature-gate-card";
@@ -236,7 +235,7 @@ export function EmployeeDocumentsTab({
             await updateContractStatus(contract.id, "final", { finalizedAt: new Date().toISOString() });
             toast("Contract marked as final.", "success");
             if (onDocumentsChange) onDocumentsChange();
-        } catch (error) {
+        } catch {
             toast("Could not update contract status.", "error");
         }
     };
@@ -250,7 +249,7 @@ export function EmployeeDocumentsTab({
             await deleteContract(contract.id);
             if (onDocumentsChange) onDocumentsChange();
             toast("Contract deleted.", "success");
-        } catch (error) {
+        } catch {
             toast("Could not delete contract.", "error");
         }
     };

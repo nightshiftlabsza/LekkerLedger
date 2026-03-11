@@ -61,10 +61,10 @@ export default function UIFGuidePage() {
                         <section className="space-y-4">
                             <h2 className="type-h2 text-[var(--text)] font-semibold">How is UIF Calculated?</h2>
                             <p>
-                                The total UIF contribution is <b>2% of the employee's gross monthly remuneration</b>. This is split evenly between the employer and the employee:
+                                The total UIF contribution is <b>2% of the employee&apos;s gross monthly remuneration</b>. This is split evenly between the employer and the employee:
                             </p>
                             <ul className="list-disc pl-6 space-y-2">
-                                <li><b>1% is deducted</b> from the employee's gross wage.</li>
+                                <li><b>1% is deducted</b> from the employee&apos;s gross wage.</li>
                                 <li><b>1% is contributed</b> by the employer out of their own pocket.</li>
                             </ul>
                             <div className="rounded-xl bg-blue-500/10 p-6 space-y-3 border border-blue-500/20">
@@ -95,12 +95,12 @@ export default function UIFGuidePage() {
                                 <li><b>Monthly Declarations:</b> Every month, you must declare the hours worked and the salary paid, and pay the 2% contribution. Most employers do this electronically via the uFiling portal.</li>
                             </ol>
                             <p>
-                                Payment is due by the <b>7th of every month</b> for the previous month's pay cycle.
+                                Payment is due by the <b>7th of every month</b> for the previous month&apos;s pay cycle.
                             </p>
                         </section>
 
                         <section className="space-y-4">
-                            <h2 className="type-h2 text-[var(--text)] font-semibold">What Happens if You Don't Pay?</h2>
+                            <h2 className="type-h2 text-[var(--text)] font-semibold">What Happens if You Don&apos;t Pay?</h2>
                             <p>
                                 Failing to register for UIF or failing to pay the monthly contributions is a criminal offense. If your domestic worker leaves your employment (e.g., dismissal, retrenchment, or the end of a contract) or goes on maternity leave, they will go to the Department of Labour to claim their benefits. 
                             </p>
@@ -115,7 +115,7 @@ export default function UIFGuidePage() {
                         <div className="bg-[var(--surface-raised)] rounded-2xl p-8 text-center space-y-4">
                             <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Automate your calculations</h3>
                             <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-                                Use LekkerLedger's free minimum wage and UIF calculator to instantly get the correct deductions for this month. Or use our payroll tool to generate a compliant payslip automatically.
+                                Use LekkerLedger&apos;s free minimum wage and UIF calculator to instantly get the correct deductions for this month. Or use our payroll tool to generate a compliant payslip automatically.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                                 <Link

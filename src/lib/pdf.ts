@@ -151,7 +151,8 @@ export async function generatePayslipPdfBytes(
     payslip: PayslipInput,
     settings: EmployerSettings,
     lang: SupportLang = "en",
-    isLimited: boolean = false
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _isLimited: boolean = false
 ): Promise<Uint8Array> {
     const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
     const breakdown = calculatePayslip(payslip);

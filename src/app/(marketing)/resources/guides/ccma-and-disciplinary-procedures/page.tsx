@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Gavel, AlertOctagon, FileWarning, ExternalLink } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 
 export const metadata = {
   title: "CCMA & Disciplinary Guide for Domestic Employers | LekkerLedger",
@@ -44,9 +42,9 @@ export default function CCMAGuidePage() {
                     <div className="prose prose-slate max-w-none text-base leading-relaxed space-y-8" style={{ color: "var(--text-muted)" }}>
                         
                         <section className="space-y-4">
-                            <h2 className="type-h2 text-[var(--text)] font-semibold">The Myth of "Just Firing Them"</h2>
+                            <h2 className="type-h2 text-[var(--text)] font-semibold">The Myth of &quot;Just Firing Them&quot;</h2>
                             <p>
-                                A common misconception among South African household employers is that domestic workers can be dismissed without consequence, or simply be given a month's pay in lieu of notice and asked to leave immediately. <b>This is illegal and will almost certainly result in a CCMA dispute for Unfair Dismissal.</b>
+                                A common misconception among South African household employers is that domestic workers can be dismissed without consequence, or simply be given a month&apos;s pay in lieu of notice and asked to leave immediately. <b>This is illegal and will almost certainly result in a CCMA dispute for Unfair Dismissal.</b>
                             </p>
                             <p>
                                 By law, a dismissal must satisfy two criteria:
@@ -57,7 +55,7 @@ export default function CCMAGuidePage() {
                             </ul>
                             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-6 mt-4">
                                 <p className="text-sm font-bold text-red-500">
-                                    Failure on either front can result in the CCMA ordering the employer to pay up to 12 months' salary in compensation to the employee.
+                                    Failure on either front can result in the CCMA ordering the employer to pay up to 12 months&apos; salary in compensation to the employee.
                                 </p>
                             </div>
                         </section>
@@ -73,7 +71,7 @@ export default function CCMAGuidePage() {
                                     <FileWarning className="h-6 w-6 text-amber-500 shrink-0" />
                                     <div>
                                         <h3 className="font-bold text-[var(--text)] text-sm mb-1">1. Verbal Warning</h3>
-                                        <p className="text-sm">For minor infractions (e.g., occasional late arrival). Even though it's "verbal", you must document the date, time, and topic discussed in a logbook or your digital vault.</p>
+                                        <p className="text-sm">For minor infractions (e.g., occasional late arrival). Even though it&apos;s &quot;verbal&quot;, you must document the date, time, and topic discussed in a logbook or your digital vault.</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-4 p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)]">
@@ -103,14 +101,14 @@ export default function CCMAGuidePage() {
                                 <li>Be notified of the hearing and the charges in writing at least 48 hours in advance.</li>
                                 <li>Have an interpreter present.</li>
                                 <li>Bring a representative (a fellow employee or union rep, but generally not an outside lawyer unless agreed upon).</li>
-                                <li>State their case, bring witnesses, and question the employer's evidence.</li>
+                                <li>State their case, bring witnesses, and question the employer&apos;s evidence.</li>
                             </ul>
                         </section>
 
                         <section className="space-y-4">
                             <h2 className="type-h2 text-[var(--text)] font-semibold">Why Documentation is Everything</h2>
                             <p>
-                                If a dispute reaches the CCMA, the Commissioner will ask for a "Paper Trail". If you have no signed employment contract, no attendance records, no payslips, and no signed warning letters, the CCMA will likely side with the employee's version of events.
+                                If a dispute reaches the CCMA, the Commissioner will ask for a &quot;Paper Trail&quot;. If you have no signed employment contract, no attendance records, no payslips, and no signed warning letters, the CCMA will likely side with the employee&apos;s version of events.
                             </p>
                             <p className="font-medium text-[var(--text)]">
                                 Memory is not evidence. A digitally signed, timestamped document is.

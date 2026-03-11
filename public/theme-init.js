@@ -18,7 +18,7 @@
         } else {
             document.documentElement.classList.remove("density-compact");
         }
-    } catch (error) {
+    } catch {
         const fallbackTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         document.documentElement.setAttribute("data-theme", fallbackTheme);
         document.documentElement.classList.remove("density-compact");

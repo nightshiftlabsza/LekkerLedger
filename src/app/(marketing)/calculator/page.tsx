@@ -85,7 +85,7 @@ export default function CalculatorPage() {
                             <div className="space-y-4">
                                 <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
                                     <h3 className="text-sm font-bold mb-2" style={{ color: "var(--text)" }}>How is domestic worker UIF calculated in South Africa?</h3>
-                                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>UIF is calculated as 2% of gross pay in total. This is made up of 1% deducted from the employee's salary and 1% contributed by the employer.</p>
+                                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>UIF is calculated as 2% of gross pay in total. This is made up of 1% deducted from the employee&apos;s salary and 1% contributed by the employer.</p>
                                 </div>
                                 <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
                                     <h3 className="text-sm font-bold mb-2" style={{ color: "var(--text)" }}>What is the minimum wage for domestic workers?</h3>

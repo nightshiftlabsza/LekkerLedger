@@ -1,17 +1,151 @@
 
-C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\dashboard\page.tsx
-    7:32  warning  'Users' is defined but never used          @typescript-eslint/no-unused-vars
-   24:10  warning  'COMPLIANCE' is defined but never used     @typescript-eslint/no-unused-vars
-  253:5   warning  'employeeCount' is defined but never used  @typescript-eslint/no-unused-vars
-  433:25  warning  'hasEmployees' is defined but never used   @typescript-eslint/no-unused-vars
-  518:45  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+> lekkerledger@0.1.0 lint
+> eslint
+
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\google-sync.tsx
+  138:8  warning  React Hook useCallback has a missing dependency: 'isMountedRef'. Either include it or remove the dependency array                                                          react-hooks/exhaustive-deps
+  159:8  warning  React Hook useCallback has a missing dependency: 'isMountedRef'. Either include it or remove the dependency array                                                          react-hooks/exhaustive-deps
+  220:8  warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', and 'setTransientStatus'. Either include them or remove the dependency array                    react-hooks/exhaustive-deps
+  250:8  warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', 'reloadTimerRef', and 'setTransientStatus'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  272:8  warning  React Hook useCallback has missing dependencies: 'addLog', 'isMountedRef', and 'setTransientStatus'. Either include them or remove the dependency array                    react-hooks/exhaustive-deps
+  311:8  warning  React Hook useCallback has a missing dependency: 'setTransientStatus'. Either include it or remove the dependency array                                                    react-hooks/exhaustive-deps
+  371:8  warning  React Hook useEffect has missing dependencies: 'isMountedRef', 'reloadTimerRef', and 'statusTimerRef'. Either include them or remove the dependency array                  react-hooks/exhaustive-deps
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\layout\startup-scripts.tsx
+  43:13  warning  `next/script`'s `beforeInteractive` strategy should not be used outside of `pages/_document.js`. See: https://nextjs.org/docs/messages/no-before-interactive-script-outside-document  @next/next/no-before-interactive-script-outside-document
+  44:13  warning  `next/script`'s `beforeInteractive` strategy should not be used outside of `pages/_document.js`. See: https://nextjs.org/docs/messages/no-before-interactive-script-outside-document  @next/next/no-before-interactive-script-outside-document
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\audit\helpers.ts
+  475:15  warning  'textBearingElements' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\public\theme-init.js
+  21:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
 
 C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\documents\page.tsx
-  140:11  warning  'requestedEmployeeId' is assigned a value but never used              @typescript-eslint/no-unused-vars
-  172:11  warning  'hasAppliedInitialEmployeeFilter' is assigned a value but never used  @typescript-eslint/no-unused-vars
+    8:5   warning  'Download' is defined but never used                 @typescript-eslint/no-unused-vars
+   16:5   warning  'ScrollText' is defined but never used               @typescript-eslint/no-unused-vars
+   22:10  warning  'Alert' is defined but never used                    @typescript-eslint/no-unused-vars
+   22:17  warning  'AlertDescription' is defined but never used         @typescript-eslint/no-unused-vars
+   22:35  warning  'AlertTitle' is defined but never used               @typescript-eslint/no-unused-vars
+   30:10  warning  'ContractRow' is defined but never used              @typescript-eslint/no-unused-vars
+   50:10  warning  'generatePayslipPdfBytes' is defined but never used  @typescript-eslint/no-unused-vars
+   60:5   warning  'getPayslipsForEmployee' is defined but never used   @typescript-eslint/no-unused-vars
+  430:18  warning  'error' is defined but never used                    @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\employees\[id]\page.tsx
+    8:30  warning  'FolderOpen' is defined but never used            @typescript-eslint/no-unused-vars
+  173:11  warning  'periodLabel' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\wizard\page.tsx
+  221:8  warning  React Hook React.useCallback has a missing dependency: 'leaveTrackingEnabled'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\calculator\page.tsx
+  88:194  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\resources\checklists\household-employer-monthly\page.tsx
+    4:10   warning  'Button' is defined but never used                               @typescript-eslint/no-unused-vars
+   38:97   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  138:159  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\resources\guides\4-hour-minimum-pay-rule\page.tsx
+   2:43   warning  'Info' is defined but never used                                 @typescript-eslint/no-unused-vars
+   4:10   warning  'Alert' is defined but never used                                @typescript-eslint/no-unused-vars
+   4:17   warning  'AlertDescription' is defined but never used                     @typescript-eslint/no-unused-vars
+   4:35   warning  'AlertTitle' is defined but never used                           @typescript-eslint/no-unused-vars
+   5:10   warning  'Button' is defined but never used                               @typescript-eslint/no-unused-vars
+  65:167  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  83:35   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\resources\guides\ccma-and-disciplinary-procedures\page.tsx
+    4:10   warning  'Alert' is defined but never used                                @typescript-eslint/no-unused-vars
+    4:17   warning  'AlertDescription' is defined but never used                     @typescript-eslint/no-unused-vars
+    4:35   warning  'AlertTitle' is defined but never used                           @typescript-eslint/no-unused-vars
+    5:10   warning  'Button' is defined but never used                               @typescript-eslint/no-unused-vars
+   47:98   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   47:115  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   49:185  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+   60:128  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+   76:133  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+   76:136  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   76:143  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  106:97   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  113:96   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  113:108  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  113:264  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\resources\guides\coida-and-roe-compliance\page.tsx
+   73:196  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+   81:98   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   81:117  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   98:135  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   98:156  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  113:56   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  113:76   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\resources\guides\domestic-worker-minimum-wage-2026\page.tsx
+   51:162  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   51:173  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   88:80   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   88:96   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  108:178  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\resources\guides\uif-for-domestic-workers\page.tsx
+   64:84   error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+   67:76   error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+   98:103  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  103:109  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  118:49   error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\resources\templates\domestic-worker-contract\page.tsx
+  62:97   error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  64:119  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  64:153  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\resources\tools\domestic-worker-payslip\page.tsx
+  108:273  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(marketing)\ufiling-errors\page.tsx
+   2:10   warning  'ArrowLeft' is defined but never used                            @typescript-eslint/no-unused-vars
+   2:55   warning  'CheckCircle2' is defined but never used                         @typescript-eslint/no-unused-vars
+   4:10   warning  'Alert' is defined but never used                                @typescript-eslint/no-unused-vars
+   4:17   warning  'AlertDescription' is defined but never used                     @typescript-eslint/no-unused-vars
+   4:35   warning  'AlertTitle' is defined but never used                           @typescript-eslint/no-unused-vars
+  28:84   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  28:106  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  39:128  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  39:155  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  39:168  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  48:83   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  48:100  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  65:124  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  65:144  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  80:98   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  80:122  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  98:135  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\components\employees\employee-documents-tab.tsx
+    6:55  warning  'Lock' is defined but never used         @typescript-eslint/no-unused-vars
+    8:10  warning  'Card' is defined but never used         @typescript-eslint/no-unused-vars
+    8:16  warning  'CardContent' is defined but never used  @typescript-eslint/no-unused-vars
+  239:18  warning  'error' is defined but never used        @typescript-eslint/no-unused-vars
+  253:18  warning  'error' is defined but never used        @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\contracts\pdfGenerator.ts
+  5:10  warning  'getNMWRecordForDate' is defined but never used     @typescript-eslint/no-unused-vars
+  8:10  warning  'CONTRACT_TEMPLATE_META' is defined but never used  @typescript-eslint/no-unused-vars
 
 C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\entitlements.ts
   50:39  warning  '_plan' is defined but never used  @typescript-eslint/no-unused-vars
 
-Γ£û 8 problems (1 error, 7 warnings)
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\google-drive.ts
+  19:11  warning  'GoogleDriveCreateResponse' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\pdf.ts
+  154:5  warning  'isLimited' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\year-end-summary.ts
+  10:7  warning  'LINE_HEIGHT' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 98 problems (49 errors, 49 warnings)
 

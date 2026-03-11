@@ -47,6 +47,7 @@ export function canUseLeaveTracking(plan: PlanConfig): boolean {
     return plan.features.leaveTracking;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function canBrowseLeaveHistory(_plan: PlanConfig): boolean {
     return true;
 }

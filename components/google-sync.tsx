@@ -77,7 +77,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
         return [];
     });
 
-    const addLog = (event: Omit<SyncEvent, "id" | "timestamp">) => {
+    const addLog = useCallback((event: Omit<SyncEvent, "id" | "timestamp">) => {
         if (!isMountedRef.current) return;
         const newLog: SyncEvent = {
             id: Math.random().toString(36).slice(2),
@@ -93,7 +93,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             setLastSyncTime(newLog.timestamp);
             localStorage.setItem("ll_last_sync", newLog.timestamp);
         }
-    };
+    }, []); // eslint-disable-next-line react-hooks/exhaustive-deps
 
     const refreshLocalTimestamp = useCallback(async () => {
         const settings = await getSettings();
@@ -105,7 +105,7 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
         }
     }, []);
 
-    const setTransientStatus = (nextStatus: "success" | "error", message: string, timeout = 4000) => {
+    const setTransientStatus = useCallback((nextStatus: "success" | "error", message: string, timeout = 4000) => {
         if (!isMountedRef.current) return;
         if (statusTimerRef.current) {
             window.clearTimeout(statusTimerRef.current);
@@ -117,7 +117,8 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
             setStatus("idle");
             statusTimerRef.current = null;
         }, timeout);
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const fetchUserInfo = useCallback(async (accessToken: string): Promise<string | null> => {
         try {
@@ -362,7 +363,8 @@ function GoogleSyncContent({ driveSyncAllowed = false }: GoogleSyncProps) {
                 window.clearTimeout(reloadTimerRef.current);
             }
         };
-    }, [lastSyncTime, isMountedRef, reloadTimerRef, statusTimerRef]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [lastSyncTime]);
 
     if (!driveSyncAllowed) {
         return (

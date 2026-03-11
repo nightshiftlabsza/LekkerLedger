@@ -7,7 +7,6 @@ import type { Employee, LeaveRecord, PayPeriod, PayslipInput } from "./schema";
 
 const PAGE_SIZE: [number, number] = [595.28, 841.89];
 const MARGIN = 48;
-const LINE_HEIGHT = 16;
 
 interface YearEndSummaryOptions {
     year: number;

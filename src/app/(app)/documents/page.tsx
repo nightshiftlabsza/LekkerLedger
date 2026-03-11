@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
     Cloud,
-    Download,
     Eye,
     FileSpreadsheet,
     FileText,
@@ -13,13 +12,11 @@ import {
     HardDrive,
     History,
     Lock,
-    ScrollText,
     Trash2,
     Upload,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { FeatureGateCard } from "@/components/ui/feature-gate-card";
@@ -27,7 +24,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable } from "@/components/ui/data-table";
 import { FiltersBar, type FilterChip } from "@/components/ui/filters-bar";
 import { DocumentPreview } from "@/components/ui/document-preview";
-import { ContractRow } from "@/components/documents/ContractRow";
 import { ContractsTab } from "@/components/documents/ContractsTab";
 import { useToast } from "@/components/ui/toast";
 import { PLANS, type PlanConfig } from "@/config/plans";
@@ -47,7 +43,7 @@ import {
 import { deleteDriveFile, uploadVaultFileToDrive } from "@/lib/google-drive";
 import { getStoredGoogleAccessToken } from "@/lib/google-session";
 import { generateEmploymentContract, buildContractFileName } from "@/lib/contracts/pdfGenerator";
-import { generatePayslipPdfBytes } from "@/lib/pdf";
+
 import {
     deleteDocumentMeta,
     getAllLeaveRecords,
@@ -57,7 +53,6 @@ import {
     getDocuments,
     getEmployees,
     getPayPeriods,
-    getPayslipsForEmployee,
     getSettings,
     saveDocumentFile,
     saveDocumentMeta,
@@ -427,7 +422,7 @@ export default function DocumentsPage() {
         try {
             await updateContractStatus(contract.id, "final", { finalizedAt: new Date().toISOString() });
             toast("Contract marked as final.", "success");
-        } catch (error) {
+        } catch {
             toast("Could not update contract status.", "error");
         }
     };

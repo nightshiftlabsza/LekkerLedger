@@ -105,7 +105,7 @@ export default function PayslipGeneratorPage() {
                         <div className="space-y-6">
                             <h2 className="type-h2" style={{ color: "var(--text)" }}>How LekkerLedger helps</h2>
                             <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Creating a payslip manually every month is tedious and error-prone. Our generator is built specifically for the South African context. It knows the current National Minimum Wage and automatically calculates the 1% UIF deduction. Wait, there's more—when you generate a payslip through LekkerLedger, we automatically save the record for the mandatory 3-year retention period required by law.
+                                Creating a payslip manually every month is tedious and error-prone. Our generator is built specifically for the South African context. It knows the current National Minimum Wage and automatically calculates the 1% UIF deduction. Wait, there&apos;s more—when you generate a payslip through LekkerLedger, we automatically save the record for the mandatory 3-year retention period required by law.
                             </p>
                         </div>
 

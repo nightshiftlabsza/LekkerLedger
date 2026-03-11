@@ -1,8 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, Clock, AlertTriangle, Info, ExternalLink } from "lucide-react";
+import { ArrowLeft, Clock, AlertTriangle, ExternalLink } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 
 export const metadata = {
   title: "The 4-Hour Minimum Pay Rule for Domestic Workers | LekkerLedger",
@@ -62,7 +60,7 @@ export default function FourHourRuleGuidePage() {
                         <section className="space-y-4">
                             <h2 className="type-h2 text-[var(--text)] font-semibold">Why does this rule exist?</h2>
                             <p>
-                                The law is designed to protect vulnerable workers from exploitation and to acknowledge the fixed costs of working. From the government's perspective:
+                                The law is designed to protect vulnerable workers from exploitation and to acknowledge the fixed costs of working. From the government&apos;s perspective:
                             </p>
                             <ul className="list-disc pl-6 space-y-2">
                                 <li>The worker still has to pay the same amount for taxi fare whether they work for 2 hours or 8 hours.</li>
@@ -80,7 +78,7 @@ export default function FourHourRuleGuidePage() {
 
                         <section className="space-y-4">
                             <h2 className="type-h2 text-[var(--text)] font-semibold">Practical Examples</h2>
-                            <p>Let's look at how this works in practice, assuming the current minimum wage of R30.23 per hour (2026 rate).</p>
+                            <p>Let&apos;s look at how this works in practice, assuming the current minimum wage of R30.23 per hour (2026 rate).</p>
                             
                             <div className="grid sm:grid-cols-2 gap-4 mt-4">
                                 <div className="rounded-xl bg-red-500/5 border border-red-500/20 p-5 space-y-2">

@@ -2,10 +2,8 @@ import { format } from "date-fns";
 import { PDFDocument, type PDFFont, type PDFPage } from "pdf-lib";
 import { buildContractClauses } from "./contractTemplate";
 import type { Contract, Employee, EmployerSettings } from "../schema";
-import { getNMWRecordForDate } from "../legal/registry";
 import { loadPdfFonts } from "../pdf-fonts";
 import { PDF_COLORS, PDF_LAYOUT } from "../pdf-theme";
-import { CONTRACT_TEMPLATE_META } from "@/src/config/contract-template";
 
 type ResolvedContractDraft = {
     contract: Contract;

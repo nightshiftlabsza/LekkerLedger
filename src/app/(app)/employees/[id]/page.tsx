@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import {
     ArrowLeft, User, Clock, FileText, Palmtree,
-    Pencil, Trash2, Loader2, FolderOpen
+    Pencil, Trash2, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -165,12 +165,9 @@ function EmployeeDetailContent() {
     const latestPayslip = payslips[0] ?? null;
     const latestBreakdown = latestPayslip ? calculatePayslip(latestPayslip) : null;
     const now = new Date();
-    const defaultPeriodStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const defaultPeriodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const periodStart = latestPayslip ? new Date(latestPayslip.payPeriodStart) : defaultPeriodStart;
     const periodEnd = latestPayslip ? new Date(latestPayslip.payPeriodEnd) : defaultPeriodEnd;
     const monthLabel = new Intl.DateTimeFormat("en-ZA", { month: "long", year: "numeric" }).format(periodEnd);
-    const periodLabel = `${periodStart.toLocaleDateString("en-ZA", { day: "2-digit", month: "short" })} - ${periodEnd.toLocaleDateString("en-ZA", { day: "2-digit", month: "short", year: "numeric" })}`;
     const employerName = employerSettings?.employerName?.trim() || "Employer details not added";
     const employerAddress = employerSettings?.employerAddress?.trim() || "Add employer details in Settings";
     const employerPhone = employerSettings?.phone?.trim();

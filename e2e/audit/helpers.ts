@@ -472,11 +472,6 @@ export async function collectAuditMetrics(page: Page): Promise<AuditMetrics> {
         const visibleElements = Array.from(document.querySelectorAll<HTMLElement>("body *"));
         const viewportWidth = window.innerWidth;
         const overflowThreshold = 4;
-        const textBearingElements = visibleElements.filter((element) => {
-            const rect = element.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) return false;
-            return (element.textContent || "").replace(/\s+/g, "").length >= 2;
-        });
         const tinyTextCount = visibleElements.filter((element) => {
             const rect = element.getBoundingClientRect();
             if (rect.width === 0 || rect.height === 0) return false;

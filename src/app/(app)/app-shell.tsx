@@ -27,7 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const { network, sync, payments } = useAppConnectivity();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
-    const [syncConflict, setSyncConflict] = React.useState(false);
+    const [syncConflict] = React.useState(false);
     const [paymentsBannerDismissed, setPaymentsBannerDismissed] = React.useState(false);
     const [moreOpen, setMoreOpen] = React.useState(false);
     const [households, setHouseholds] = React.useState<Household[]>([{ id: "default", name: "Main household", createdAt: new Date(0).toISOString() }]);

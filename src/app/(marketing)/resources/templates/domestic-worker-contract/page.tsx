@@ -59,9 +59,9 @@ export default function ContractTemplatePage() {
                             <div className="flex gap-4 p-6 rounded-2xl bg-[var(--surface-raised)] border border-[var(--border)]">
                                 <ShieldCheck className="h-6 w-6 text-purple-500 shrink-0" />
                                 <div>
-                                    <h3 className="font-bold text-[var(--text)] text-lg mb-2">It's the Law (Section 29 of the BCEA)</h3>
+                                    <h3 className="font-bold text-[var(--text)] text-lg mb-2">It&apos;s the Law (Section 29 of the BCEA)</h3>
                                     <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                        The Basic Conditions of Employment Act strictly requires employers to provide "written particulars of employment" to domestic workers on their first day of work. You cannot rely on a verbal agreement.
+                                        The Basic Conditions of Employment Act strictly requires employers to provide &quot;written particulars of employment&quot; to domestic workers on their first day of work. You cannot rely on a verbal agreement.
                                     </p>
                                 </div>
                             </div>

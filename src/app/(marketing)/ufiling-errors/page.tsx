@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, AlertCircle, RefreshCw, FileText, CheckCircle2 } from "lucide-react";
+import { AlertCircle, RefreshCw, FileText } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
@@ -25,7 +24,7 @@ export default function UFilingErrorsPage() {
                             Common uFiling Errors (And How to Bypass Them)
                         </h1>
                         <p className="text-xl leading-relaxed max-w-2xl mx-auto" style={{ color: "var(--text-muted)" }}>
-                            The official uFiling portal is notorious for timeouts, "Employee not declared" errors, and manual entry failures. Stop typing manually and switch to CSV uploads.
+                            The official uFiling portal is notorious for timeouts, &quot;Employee not declared&quot; errors, and manual entry failures. Stop typing manually and switch to CSV uploads.
                         </p>
                     </div>
                 </section>
@@ -36,7 +35,7 @@ export default function UFilingErrorsPage() {
                         <div className="space-y-6">
                             <h2 className="type-h2" style={{ color: "var(--text)" }}>The problem with manual entry</h2>
                             <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Most household employers log into uFiling and attempt to manually capture their domestic worker's hours and salary on the "Declarations" screen. This method frequently results in the following frustations:
+                                Most household employers log into uFiling and attempt to manually capture their domestic worker&apos;s hours and salary on the &quot;Declarations&quot; screen. This method frequently results in the following frustations:
                             </p>
                             
                             <div className="grid sm:grid-cols-2 gap-4 mt-6">
@@ -45,7 +44,7 @@ export default function UFilingErrorsPage() {
                                     <p className="text-sm" style={{ color: "var(--text-muted)" }}>The session times out before you finish typing, forcing you to start over.</p>
                                 </div>
                                 <div className="p-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)]">
-                                    <h3 className="font-bold text-amber-500 mb-2">"Employee Missing"</h3>
+                                    <h3 className="font-bold text-amber-500 mb-2">&quot;Employee Missing&quot;</h3>
                                     <p className="text-sm" style={{ color: "var(--text-muted)" }}>You manually type the ID number, but the system says they are not registered to your profile.</p>
                                 </div>
                                 <div className="p-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)]">
@@ -62,7 +61,7 @@ export default function UFilingErrorsPage() {
                         <div className="space-y-6">
                             <h2 className="type-h2" style={{ color: "var(--text)" }}>The Recommended Solution: CSV Uploads</h2>
                             <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Experienced payroll administrators <b>never</b> use the manual entry screens. They use the "Upload Payroll File" feature. This allows you to upload a simple spreadsheet (CSV mapped to exactly what uFiling expects), bypassing the slow manual forms entirely.
+                                Experienced payroll administrators <b>never</b> use the manual entry screens. They use the &quot;Upload Payroll File&quot; feature. This allows you to upload a simple spreadsheet (CSV mapped to exactly what uFiling expects), bypassing the slow manual forms entirely.
                             </p>
                             
                             <div className="rounded-2xl bg-emerald-500/5 border border-emerald-500/20 p-8 mt-6">
@@ -77,7 +76,7 @@ export default function UFilingErrorsPage() {
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">2</div>
-                                        <p className="text-sm">At the end of the month, click <b>"Download uFiling Export"</b> in your Pro dashboard.</p>
+                                        <p className="text-sm">At the end of the month, click <b>&quot;Download uFiling Export&quot;</b> in your Pro dashboard.</p>
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">3</div>
@@ -95,7 +94,7 @@ export default function UFilingErrorsPage() {
                             <FileText className="h-10 w-10 text-[var(--text-muted)] mx-auto" />
                             <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Ready to stop fighting uFiling?</h3>
                             <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-                                The CSV export feature is available to all LekkerLedger Pro users. It maps perfectly to the Department's technical specifications.
+                                The CSV export feature is available to all LekkerLedger Pro users. It maps perfectly to the Department&apos;s technical specifications.
                             </p>
                             <Link href="/dashboard" className="inline-block">
                                 <Button size="lg" className="h-12 px-8 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-full">
