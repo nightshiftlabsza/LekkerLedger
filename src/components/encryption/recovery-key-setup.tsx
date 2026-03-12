@@ -12,6 +12,8 @@ export function RecoveryKeySetup({ onComplete }: RecoveryKeySetupProps) {
     const [recoveryKey, setRecoveryKey] = React.useState<string>("");
     const [isCopied, setIsCopied] = React.useState(false);
     const [confirmationText, setConfirmationText] = React.useState("");
+    const normalizedConfirmation = confirmationText.trim().toUpperCase();
+    const isConfirmed = normalizedConfirmation === "I UNDERSTAND";
 
     React.useEffect(() => {
         // Generate once on mount
@@ -29,7 +31,7 @@ export function RecoveryKeySetup({ onComplete }: RecoveryKeySetupProps) {
     };
 
     const handleContinue = () => {
-        if (confirmationText !== "I UNDERSTAND") return;
+        if (!isConfirmed) return;
         onComplete(recoveryKey);
     };
 
@@ -38,7 +40,7 @@ export function RecoveryKeySetup({ onComplete }: RecoveryKeySetupProps) {
     }
 
     return (
-        <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] animate-fade-in max-w-md mx-auto">
+        <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] animate-fade-in">
             <div className="text-center mb-6">
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--warning-soft)] text-[var(--warning)] mb-6 shadow-sm border border-[var(--warning-border)]">
                     <KeyRound className="w-7 h-7" strokeWidth={2.5} />
@@ -64,17 +66,28 @@ export function RecoveryKeySetup({ onComplete }: RecoveryKeySetupProps) {
                 </p>
             </div>
 
-            <div className="relative mb-8">
-                <div className="font-mono text-center text-lg sm:text-xl font-bold text-[var(--text)] tracking-wider p-5 bg-[var(--bg)] border border-[var(--border)] rounded-xl break-all">
-                    {recoveryKey}
+            <div className="mb-8 rounded-[1.25rem] border border-[var(--border)] bg-[var(--bg)] p-4 sm:p-5">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:gap-4">
+                    <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                            Save this key exactly as shown
+                        </p>
+                        <div className="mt-3 font-mono text-center text-lg font-bold tracking-[0.08em] text-[var(--text)] sm:text-[1.9rem] sm:leading-[1.45] break-words [overflow-wrap:anywhere]">
+                            {recoveryKey}
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleCopy}
+                        className="mt-7 flex h-11 w-11 shrink-0 items-center justify-center self-start rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-1)] hover:text-[var(--text)]"
+                        title="Copy to clipboard"
+                        aria-label="Copy recovery key"
+                    >
+                        {isCopied ? <Check className="h-5 w-5 text-[var(--success)]" /> : <Copy className="h-5 w-5" />}
+                    </button>
                 </div>
-                <button
-                    onClick={handleCopy}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--border)] rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                    title="Copy to clipboard"
-                >
-                    {isCopied ? <Check className="w-5 h-5 text-[var(--success)]" /> : <Copy className="w-5 h-5" />}
-                </button>
+                <p className="mt-4 text-xs leading-5 text-[var(--text-muted)]">
+                    Store it in a password manager or another safe place before you continue.
+                </p>
             </div>
 
             <div className="space-y-4 mb-8">
@@ -87,9 +100,11 @@ export function RecoveryKeySetup({ onComplete }: RecoveryKeySetupProps) {
                         type="text"
                         value={confirmationText}
                         onChange={(e) => setConfirmationText(e.target.value)}
-                        className="w-full px-4 py-3 bg-[var(--bg)] border border-[var(--border)] rounded-xl text-[var(--text)] placeholder-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-[#C47A1C] focus:border-transparent transition-all text-center font-bold tracking-widest"
+                        className="w-full px-4 py-3 bg-[var(--bg)] border border-[var(--border)] rounded-xl text-[var(--text)] placeholder-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-[#C47A1C] focus:border-transparent transition-all text-center font-bold tracking-[0.14em] uppercase"
                         placeholder="I UNDERSTAND"
                         autoComplete="off"
+                        autoCapitalize="characters"
+                        spellCheck={false}
                     />
                 </div>
                 <p className="text-[10px] text-center text-[var(--text-muted)] leading-tight px-4">
@@ -99,10 +114,10 @@ export function RecoveryKeySetup({ onComplete }: RecoveryKeySetupProps) {
 
             <button
                 onClick={handleContinue}
-                disabled={confirmationText !== "I UNDERSTAND"}
-                className="w-full flex justify-center items-center py-3.5 px-4 bg-[var(--text)] text-white font-bold rounded-xl active-scale transition-all hover:opacity-90 shadow-[0_2px_10px_rgba(0,0,0,0.15)] disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={!isConfirmed}
+                className="w-full flex justify-center items-center py-3.5 px-4 bg-[var(--primary)] text-white font-bold rounded-xl active-scale transition-all hover:bg-[var(--primary-hover)] shadow-[0_2px_10px_rgba(0,122,77,0.15)] disabled:bg-[var(--border-strong)] disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
             >
-                Continue Setup
+                Continue to dashboard
             </button>
         </div>
     );

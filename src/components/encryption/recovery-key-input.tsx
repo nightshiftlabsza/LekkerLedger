@@ -49,7 +49,7 @@ export function RecoveryKeyInput({ onComplete }: RecoveryKeyInputProps) {
                 <h1 className="font-serif text-2xl font-bold text-[var(--text)] mb-3 tracking-tight">
                     Enter Recovery Key
                 </h1>
-                <p className="text-[var(--text-muted)] text-[0.95rem] leading-relaxed max-w-[320px] mx-auto">
+                <p className="text-[var(--text-muted)] text-[0.95rem] leading-relaxed max-w-[34ch] mx-auto">
                     To decrypt your synced data on this device, please enter your 256-bit recovery key.
                 </p>
             </div>
@@ -70,7 +70,7 @@ export function RecoveryKeyInput({ onComplete }: RecoveryKeyInputProps) {
                         id="recovery-key"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        className="w-full p-4 bg-[var(--bg)] border border-[var(--border)] rounded-2xl text-[var(--text)] font-mono resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
+                        className="w-full p-4 bg-[var(--bg)] border border-[var(--border)] rounded-2xl text-[var(--text)] font-mono text-sm leading-7 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
                         placeholder="AAAA-BBBB-CCCC-DDDD..."
                         rows={3}
                         required
@@ -93,6 +93,13 @@ export function RecoveryKeyInput({ onComplete }: RecoveryKeyInputProps) {
                     )}
                 </button>
             </form>
+
+            <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Tip</p>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
+                    You can paste the recovery key with spaces or line breaks. LekkerLedger will clean the format before unlocking this device.
+                </p>
+            </div>
         </div>
     );
 }

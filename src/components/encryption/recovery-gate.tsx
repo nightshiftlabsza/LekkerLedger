@@ -109,11 +109,24 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
 
     // Modal takeover for locked state
     return (
-        <div className="fixed inset-0 z-50 bg-[var(--bg)] flex items-center justify-center p-4 sm:p-8 animate-fade-in overflow-y-auto selection:bg-[var(--primary)]/20">
-            <div className="w-full max-w-lg lg:max-w-4xl mx-auto">
-                <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-center">
-                    {/* Main Action Area */}
-                    <div className="lg:col-span-7">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-[var(--bg)] animate-fade-in selection:bg-[var(--primary)]/20">
+            <div className="min-h-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+                <div className="content-container-wide mx-auto">
+                    <div className="grid gap-6 xl:grid-cols-[minmax(0,44rem)_minmax(22rem,30rem)] xl:items-start 2xl:grid-cols-[minmax(0,48rem)_minmax(24rem,32rem)]">
+                        <div className="mx-auto w-full max-w-[44rem] xl:mx-0">
+                            <div className="mb-5 rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] px-5 py-5 shadow-[var(--shadow-sm)] sm:px-6">
+                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                                    Secure sync unlock
+                                </p>
+                                <h2 className="mt-3 font-serif text-2xl font-bold tracking-tight text-[var(--text)] sm:text-[2rem]">
+                                    Keep this device connected to your encrypted payroll records.
+                                </h2>
+                                <p className="mt-3 max-w-[54ch] text-sm leading-7 text-[var(--text-muted)] sm:text-[0.97rem]">
+                                    This step protects your cloud sync with a recovery key only you control. The main action stays in one clear column, while the supporting guidance sits beside it on larger screens and stacks cleanly on smaller ones.
+                                </p>
+                            </div>
+
+                            <div className="w-full">
                         {status === 'checking' && (
                             <div className="bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-12 text-center shadow-[var(--shadow-lg)]">
                                 <Loader2 className="w-12 h-12 animate-spin mb-6 text-[var(--primary)] mx-auto" />
@@ -129,11 +142,12 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                         {status === 'needs_input' && (
                             <RecoveryKeyInput onComplete={handleInputComplete} />
                         )}
-                    </div>
+                            </div>
+                        </div>
 
-                    {/* Context/Help Area (Visible from LG up) */}
-                    <div className="hidden lg:block lg:col-span-5 space-y-8 animate-slide-right delay-200">
-                        <div className="p-8 bg-[var(--surface-raised)]/50 border-l-4 border-[var(--focus)] rounded-r-3xl shadow-sm">
+                        <div className="space-y-5 xl:sticky xl:top-6 animate-slide-right delay-200">
+                            <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-sm)] sm:p-7">
+                                <div className="border-l-4 border-[var(--focus)] pl-5">
                             <h3 className="font-serif text-xl font-bold text-[var(--text)] mb-4">Why is this locked?</h3>
                             <div className="space-y-4 text-sm text-[var(--text-muted)] leading-relaxed">
                                 <p>
@@ -147,26 +161,28 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                                 </p>
                             </div>
                         </div>
-
-                        <div className="p-8 space-y-4">
-                            <div className="flex items-center gap-3 text-[var(--primary)] font-bold uppercase tracking-widest text-[10px]">
-                                <span className="w-8 h-px bg-[var(--primary)]/30" />
-                                Security Standards
                             </div>
-                            <ul className="space-y-4 text-xs">
-                                <li className="flex gap-3">
-                                    <div className="w-5 h-5 rounded-full bg-[var(--success-soft)] text-[var(--success)] flex items-center justify-center flex-shrink-0">✓</div>
-                                    <span className="text-[var(--text-muted)]">AES-256-GCM Military Grade Encryption</span>
-                                </li>
-                                <li className="flex gap-3">
-                                    <div className="w-5 h-5 rounded-full bg-[var(--success-soft)] text-[var(--success)] flex items-center justify-center flex-shrink-0">✓</div>
-                                    <span className="text-[var(--text-muted)]">PBKDF2 Key Derivation</span>
-                                </li>
-                                <li className="flex gap-3">
-                                    <div className="w-5 h-5 rounded-full bg-[var(--success-soft)] text-[var(--success)] flex items-center justify-center flex-shrink-0">✓</div>
-                                    <span className="text-[var(--text-muted)]">South African POPIA Compliant Architecture</span>
-                                </li>
-                            </ul>
+
+                            <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-sm)] sm:p-7">
+                                <div className="flex items-center gap-3 text-[var(--primary)] font-bold uppercase tracking-widest text-[10px]">
+                                    <span className="w-8 h-px bg-[var(--primary)]/30" />
+                                    Security Standards
+                                </div>
+                                <ul className="mt-5 space-y-4 text-xs sm:text-sm">
+                                    <li className="flex gap-3">
+                                        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--success-soft)] text-[var(--success)]">✓</div>
+                                        <span className="text-[var(--text-muted)]">AES-256-GCM encryption for protected record payloads</span>
+                                    </li>
+                                    <li className="flex gap-3">
+                                        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--success-soft)] text-[var(--success)]">✓</div>
+                                        <span className="text-[var(--text-muted)]">PBKDF2 key derivation before sync secrets are used</span>
+                                    </li>
+                                    <li className="flex gap-3">
+                                        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--success-soft)] text-[var(--success)]">✓</div>
+                                        <span className="text-[var(--text-muted)]">POPIA-aware design for South African household payroll records</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
