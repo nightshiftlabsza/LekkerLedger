@@ -2,6 +2,15 @@
 
 import { BillingCycle, PlanId } from "../config/plans";
 import { BillingAccountSummary, getFreeEntitlements, VerifiedEntitlements } from "./billing";
+import { getSettings } from "./storage";
+import { createClient } from "./supabase/client";
+
+async function getAuthEmail() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.email || "";
+}
+
 // TODO: In Batch 2, this will use Supabase auth token
 function getStoredAccessToken(): string | null {
     return null;
@@ -243,4 +252,21 @@ export async function cancelSubscriptionRenewal(accessToken = getStoredAccessTok
         entitlements: data.entitlements as VerifiedEntitlements,
         account: data.account as BillingAccountSummary,
     };
+}
+
+export async function confirmGuestBillingTransaction(reference: string): Promise<{ paid: boolean; email: string; planId?: string }> {
+    const response = await fetch("/api/billing/guest-confirm", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reference }),
+        cache: "no-store",
+    });
+
+    if (!response.ok) {
+        throw await buildErrorMessage(response, "Payment verification could not be completed.");
+    }
+
+    return await response.json();
 }

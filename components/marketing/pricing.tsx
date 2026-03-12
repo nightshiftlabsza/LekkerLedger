@@ -173,20 +173,31 @@ export function MarketingPlanCards({
     isLoadingPlanId?: PlanId | null;
 }) {
     return (
-        <div className={`grid gap-5 md:gap-6 ${compact ? "lg:grid-cols-3" : "xl:grid-cols-3"}`}>
-            {PLAN_ORDER.map((planId) => (
-                <MarketingPlanCard
-                    key={planId}
-                    planId={planId}
-                    billingCycle={billingCycle}
-                    compact={compact}
-                    isCurrent={currentPlanId === planId}
-                    currentPlanId={currentPlanId}
-                    onSelect={onSelect}
-                    isLoading={isLoadingPlanId === planId}
-                    isDisabled={!!isLoadingPlanId && isLoadingPlanId !== planId}
-                />
-            ))}
+        <div className="space-y-6">
+            <div className={`grid gap-5 md:gap-6 ${compact ? "lg:grid-cols-3" : "xl:grid-cols-3"}`}>
+                {PLAN_ORDER.map((planId) => (
+                    <MarketingPlanCard
+                        key={planId}
+                        planId={planId}
+                        billingCycle={billingCycle}
+                        compact={compact}
+                        isCurrent={currentPlanId === planId}
+                        currentPlanId={currentPlanId}
+                        onSelect={onSelect}
+                        isLoading={isLoadingPlanId === planId}
+                        isDisabled={!!isLoadingPlanId && isLoadingPlanId !== planId}
+                    />
+                ))}
+            </div>
+            
+            {!currentPlanId && (
+                <p className="text-center text-sm text-[var(--text-muted)]">
+                    Already have a paid account?{" "}
+                    <Link href="/login" className="font-bold text-[var(--primary)] hover:underline">
+                        Log in here
+                    </Link>
+                </p>
+            )}
         </div>
     );
 }

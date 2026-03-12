@@ -2,15 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Mail, Lock, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export function SignUpForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const supabase = createClient();
     
-    const [email, setEmail] = React.useState("");
+    const [email, setEmail] = React.useState(searchParams.get("email") || "");
     const [password, setPassword] = React.useState("");
     const [passwordError, setPasswordError] = React.useState<string | null>(null);
     const [error, setError] = React.useState<string | null>(null);
@@ -38,11 +39,14 @@ export function SignUpForm() {
         setPasswordError(null);
         setIsLoading(true);
 
+        const reference = searchParams.get("reference");
+        const next = reference ? `/billing/success?reference=${encodeURIComponent(reference)}` : '/dashboard';
+
         const { error: signUpError } = await supabase.auth.signUp({
             email,
             password,
             options: {
-                emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+                emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(next)}`,
             },
         });
 

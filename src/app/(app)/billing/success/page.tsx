@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { confirmBillingTransaction, fetchBillingAccount, type BillingAccountPayload } from "@/lib/billing-client";
+import { confirmBillingTransaction, confirmGuestBillingTransaction, fetchBillingAccount, type BillingAccountPayload } from "@/lib/billing-client";
 
 export default function BillingSuccessPage() {
     return (
@@ -20,6 +20,7 @@ function BillingSuccessPageContent() {
     const searchParams = useSearchParams();
     const [status, setStatus] = React.useState<"checking" | "trial" | "active" | "pending" | "auth" | "error">("checking");
     const [billingAccount, setBillingAccount] = React.useState<BillingAccountPayload | null>(null);
+    const [guestEmail, setGuestEmail] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -57,23 +58,33 @@ function BillingSuccessPageContent() {
             for (let attempt = 0; attempt < 8; attempt += 1) {
                 if (reference) {
                     try {
+                        // First try authenticated confirmation
                         const confirmed = await confirmBillingTransaction(reference);
-                        if (applyAccount(confirmed)) {
-                            return;
+                        if (applyAccount(confirmed)) return;
+                    } catch (error) {
+                        // If unauthenticated (401), try guest confirmation
+                        if (error instanceof Error && (error.message.includes("Sign-in") || error.message.includes("401"))) {
+                            try {
+                                const guestStatus = await confirmGuestBillingTransaction(reference);
+                                if (guestStatus.paid) {
+                                    if (!cancelled) {
+                                        setGuestEmail(guestStatus.email);
+                                        setStatus("auth");
+                                    }
+                                    return;
+                                }
+                            } catch {
+                                // Guest confirm failed, keep polling
+                            }
                         }
-                    } catch {
-                        // Keep polling briefly while the webhook or verification catches up.
                     }
                 }
 
                 try {
                     const account = await fetchBillingAccount();
-                    if (!account) continue;
-                    if (applyAccount(account)) {
-                        return;
-                    }
+                    if (account && applyAccount(account)) return;
                 } catch {
-                    // Keep polling briefly while the webhook catches up.
+                    // Fetch failed, keep polling
                 }
 
                 await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -102,7 +113,7 @@ function BillingSuccessPageContent() {
             : status === "error"
                 ? "Payment received, but setup needs attention"
         : status === "auth"
-            ? "Thank you for your order"
+            ? "Thank you! Your order is confirmed"
             : status === "pending"
                 ? "Finishing your activation"
                 : "Confirming payment";
@@ -113,9 +124,14 @@ function BillingSuccessPageContent() {
             ? `Your paid features are active${nextCharge ? ` and the next renewal is scheduled for ${nextCharge}` : ""}. Encrypted sync will be available soon.`
         : status === "error"
             ? billingAccount?.account.lastError || "Your card setup completed, but the billing details still need a final check."
-            : status === "pending"
-                ? "LekkerLedger is still finishing the payment confirmation. This usually takes a few seconds."
-                : "LekkerLedger is checking Paystack and your billing status now. This usually takes a few seconds.";
+        : status === "auth"
+            ? `We've confirmed your payment for ${guestEmail || "your account"}. Now, create your secure LekkerLedger account to finish activation and start syncing.`
+        : status === "pending"
+            ? "LekkerLedger is still finishing the payment confirmation. This usually takes a few seconds."
+            : "LekkerLedger is checking Paystack and your billing status now. This usually takes a few seconds.";
+
+    const reference = searchParams.get("reference")?.trim() || "";
+    const signupUrl = `/signup?email=${encodeURIComponent(guestEmail || "")}&reference=${encodeURIComponent(reference)}`;
 
     return (
         <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 text-center">
@@ -132,16 +148,26 @@ function BillingSuccessPageContent() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-                <Link href="/dashboard" className="w-full">
-                    <Button className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl">
-                        Open Dashboard <ArrowRight className="h-4 w-4" />
-                    </Button>
-                </Link>
-                <Link href="/upgrade" className="w-full">
-                    <Button variant="outline" className="w-full h-12 font-bold rounded-2xl">
-                        Manage Billing
-                    </Button>
-                </Link>
+                {status === "auth" ? (
+                    <Link href={signupUrl} className="w-full">
+                        <Button className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl shadow-lg hover:translate-y-[-2px] transition-transform">
+                            Create Your Account <ArrowRight className="h-4 w-4" />
+                        </Button>
+                    </Link>
+                ) : (
+                    <>
+                        <Link href="/dashboard" className="w-full">
+                            <Button className="w-full h-12 gap-2 bg-[var(--primary)] text-white font-bold rounded-2xl">
+                                Open Dashboard <ArrowRight className="h-4 w-4" />
+                            </Button>
+                        </Link>
+                        <Link href="/upgrade" className="w-full">
+                            <Button variant="outline" className="w-full h-12 font-bold rounded-2xl">
+                                Manage Billing
+                            </Button>
+                        </Link>
+                    </>
+                )}
             </div>
         </div>
     );

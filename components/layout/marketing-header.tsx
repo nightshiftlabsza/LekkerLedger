@@ -52,6 +52,9 @@ export function MarketingHeader() {
                 </nav>
 
                 <div className="hidden lg:flex items-center gap-3">
+                    <Link href="/login" className="text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text)] px-3">
+                        Log in
+                    </Link>
                     <Link href="/pricing">
                         <Button variant="outline" className="h-11 rounded-xl px-4 font-bold">
                             View plans
@@ -102,6 +105,11 @@ export function MarketingHeader() {
                                 </Link>
                             ))}
                             <div className="grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-4">
+                                <Link href="/login" onClick={() => setMenuOpen(false)}>
+                                    <Button variant="ghost" className="w-full justify-center font-bold">
+                                        Log in
+                                    </Button>
+                                </Link>
                                 <Link href="/pricing" onClick={() => setMenuOpen(false)}>
                                     <Button variant="outline" className="w-full justify-center font-bold">
                                         View plans
@@ -120,4 +128,3 @@ export function MarketingHeader() {
         </header>
     );
 }
-

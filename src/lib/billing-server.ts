@@ -1697,6 +1697,42 @@ export function verifyPaystackWebhookSignature(rawBody: string, signature: strin
     return timingSafeEqual(expectedBuffer, receivedBuffer);
 }
 
+export async function getGuestPaymentStatus(reference: string): Promise<{ paid: boolean; email: string; planId?: string }> {
+    const normalizedReference = reference.trim();
+    if (!normalizedReference) return { paid: false, email: "" };
+
+    try {
+        const response = await paystackRequest<PaystackVerifyTransactionResponse>(
+            `/transaction/verify/${encodeURIComponent(normalizedReference)}`,
+            { method: "GET" },
+        );
+        const data = response.data && typeof response.data === "object"
+            ? response.data as Record<string, unknown>
+            : null;
+
+        if (!data || getStringFromPaths(data, ["status"]) !== "success") {
+            return { paid: false, email: "" };
+        }
+
+        const metadata = parseMetadata(data.metadata);
+        const email = getStringFromPaths(data, ["customer.email", "email"]) || getMetadataValue(metadata, "email") || "";
+        const planId = getMetadataValue(metadata, "plan_id") || undefined;
+
+        const intent = await resolveBillingIntentForCharge(normalizedReference, metadata);
+        if (intent && (intent.status === "pending" || intent.status === "checkout_started")) {
+            await upsertBillingIntent({
+                ...intent,
+                status: "payment_received",
+                updatedAt: Date.now(),
+            });
+        }
+
+        return { paid: true, email, planId };
+    } catch {
+        return { paid: false, email: "" };
+    }
+}
+
 export async function confirmPaystackTransaction(reference: string, user: VerifiedUser): Promise<BillingAccountResponse> {
     await ensureBillingSchema();
 

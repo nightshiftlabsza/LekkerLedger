@@ -40,6 +40,7 @@ export function MarketingFooter() {
                                 <Link href="/#how-it-works" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">How it works</Link>
                                 <Link href="/pricing" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Pricing</Link>
                                 <Link href="/calculator" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Wage & UIF calculator</Link>
+                                <Link href="/login" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Log in</Link>
                             </div>
                         </div>
                         <div>
