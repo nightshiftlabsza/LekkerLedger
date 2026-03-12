@@ -3,9 +3,24 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Mail, Lock, CheckCircle2 } from "lucide-react";
+import { Loader2, Mail, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { readPendingBillingEmail, readPendingBillingReference } from "@/lib/billing-handoff";
+
+function mapSignUpError(message: string): string {
+    const lower = message.toLowerCase();
+    if (lower.includes("already registered") || lower.includes("already been registered") || lower.includes("user_already_exists"))
+        return "An account with this email already exists. Try logging in instead.";
+    if (lower.includes("you can only request this") || lower.includes("rate limit") || lower.includes("too many requests"))
+        return "Too many attempts. Please wait a moment before trying again.";
+    if (lower.includes("password") && (lower.includes("weak") || lower.includes("short") || lower.includes("length")))
+        return "Your password does not meet the minimum security requirements. Please choose a stronger one.";
+    if (lower.includes("network") || lower.includes("fetch"))
+        return "Unable to reach the server. Please check your internet connection and try again.";
+    if (lower.includes("not authorized") || lower.includes("signup_disabled"))
+        return "Account registration is currently unavailable. Please try again later.";
+    return message;
+}
 
 type SignUpFormProps = {
     initialEmail?: string;
@@ -68,7 +83,7 @@ export function SignUpForm({
         });
 
         if (signUpError) {
-            setError(signUpError.message);
+            setError(mapSignUpError(signUpError.message));
             setIsLoading(false);
             return;
         }
@@ -121,8 +136,9 @@ export function SignUpForm({
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                    <div className="p-4 bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] rounded-xl text-sm mb-4 animate-slide-down">
-                        {error}
+                    <div className="flex items-start gap-3 p-4 bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] rounded-xl text-sm animate-slide-down">
+                        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+                        <span>{error}</span>
                     </div>
                 )}
 

@@ -3,9 +3,35 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Mail, Lock } from "lucide-react";
+import { Loader2, Mail, Lock, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { readPendingBillingReference } from "@/lib/billing-handoff";
+
+const CALLBACK_ERROR_MESSAGES: Record<string, string> = {
+    invalid_or_expired_link: "That reset or confirmation link is no longer valid. Please request a fresh link.",
+    code_exchange_failed: "The sign-in link could not be verified. It may have expired or already been used. Please request a new one.",
+    session_expired: "Your session has expired. Please sign in again to continue.",
+};
+
+function mapCallbackError(param: string | null): string | null {
+    if (!param) return null;
+    return CALLBACK_ERROR_MESSAGES[param.toLowerCase()] ?? "Something went wrong during sign-in. Please try again.";
+}
+
+function mapSignInError(message: string): string {
+    const lower = message.toLowerCase();
+    if (lower.includes("invalid login credentials") || lower.includes("invalid_credentials"))
+        return "Incorrect email or password. Please double-check and try again.";
+    if (lower.includes("email not confirmed"))
+        return "Your email address hasn't been verified yet. Please check your inbox for a confirmation link.";
+    if (lower.includes("you can only request this") || lower.includes("rate limit") || lower.includes("too many requests"))
+        return "Too many login attempts. Please wait a moment before trying again.";
+    if (lower.includes("user not found"))
+        return "No account found with that email address. Did you mean to sign up?";
+    if (lower.includes("network") || lower.includes("fetch"))
+        return "Unable to reach the server. Please check your internet connection and try again.";
+    return message;
+}
 
 type LoginFormProps = {
     title?: string;
@@ -27,9 +53,7 @@ export function LoginForm({
     const [email, setEmail] = React.useState("");
     const [password, setPassword] = React.useState("");
     const [error, setError] = React.useState<string | null>(
-        searchParams.get("error") === "Invalid_or_expired_magic_link"
-            ? "That reset or confirmation link is no longer valid. Please request a fresh link."
-            : null
+        mapCallbackError(searchParams.get("error"))
     );
     const [isLoading, setIsLoading] = React.useState(false);
     const signupHref = React.useMemo(() => {
@@ -48,7 +72,7 @@ export function LoginForm({
         });
 
         if (signInError) {
-            setError(signInError.message);
+            setError(mapSignInError(signInError.message));
             setIsLoading(false);
             return;
         }
@@ -76,8 +100,9 @@ export function LoginForm({
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                    <div className="p-4 bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] rounded-xl text-sm mb-4 animate-slide-down">
-                        {error}
+                    <div className="flex items-start gap-3 p-4 bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] rounded-xl text-sm animate-slide-down">
+                        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+                        <span>{error}</span>
                     </div>
                 )}
 

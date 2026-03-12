@@ -2,8 +2,17 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Loader2, Mail, CheckCircle2 } from "lucide-react";
+import { Loader2, Mail, CheckCircle2, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+
+function mapResetError(message: string): string {
+    const lower = message.toLowerCase();
+    if (lower.includes("you can only request this") || lower.includes("rate limit") || lower.includes("too many requests"))
+        return "Too many reset attempts. Please wait a moment before trying again.";
+    if (lower.includes("network") || lower.includes("fetch"))
+        return "Unable to reach the server. Please check your internet connection and try again.";
+    return message;
+}
 
 type ForgotPasswordFormProps = {
     title?: string;
@@ -35,7 +44,7 @@ export function ForgotPasswordForm({
         });
 
         if (resetError) {
-            setError(resetError.message);
+            setError(mapResetError(resetError.message));
             setIsLoading(false);
             return;
         }
@@ -84,8 +93,9 @@ export function ForgotPasswordForm({
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                    <div className="p-4 bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] rounded-xl text-sm mb-4 animate-slide-down">
-                        {error}
+                    <div className="flex items-start gap-3 p-4 bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] rounded-xl text-sm animate-slide-down">
+                        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+                        <span>{error}</span>
                     </div>
                 )}
 
