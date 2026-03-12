@@ -503,12 +503,14 @@ async function ensureBillingSchema() {
 }
 
 async function paystackRequest<T>(path: string, init: RequestInit): Promise<T> {
-    const secretKey = getPaystackSecretKey();
-    
-    // Diagnostic: Log key prefix (never log the full key)
-    if (secretKey.length < 20 || !secretKey.startsWith("sk_")) {
-        console.warn(`[Billing] PAYSTACK_SECRET_KEY looks invalid (length: ${secretKey.length}, startsWith: ${secretKey.slice(0, 3)}...)`);
+    const rawKey = getPaystackSecretKey();
+    const secretKey = rawKey.replace(/[^\x20-\x7E]/g, "");
+
+    if (secretKey.length !== rawKey.length) {
+        console.warn(`[Billing] Stripped ${rawKey.length - secretKey.length} non-printable/non-ASCII character(s) from PAYSTACK_SECRET_KEY`);
     }
+
+    console.log(`[Billing] Using Paystack key: ${secretKey.slice(0, 15)}... (length: ${secretKey.length})`);
 
     const response = await fetch(`https://api.paystack.co${path}`, {
         ...init,
