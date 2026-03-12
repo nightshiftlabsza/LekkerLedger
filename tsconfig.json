@@ -52,6 +52,10 @@
   "exclude": [
     "node_modules",
     ".next",
-    "__tests__"
+    "__tests__",
+    "e2e",
+    "artifacts",
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }
