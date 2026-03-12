@@ -19,6 +19,7 @@ type ForgotPasswordFormProps = {
     description?: string;
     returnHref?: string;
     returnLabel?: string;
+    embedded?: boolean;
 };
 
 export function ForgotPasswordForm({
@@ -26,6 +27,7 @@ export function ForgotPasswordForm({
     description = "Enter your email address and we'll send you a link to reset your password.",
     returnHref = "/login",
     returnLabel = "Back to log in",
+    embedded = false,
 }: ForgotPasswordFormProps = {}) {
     const supabase = createClient();
     
@@ -54,25 +56,23 @@ export function ForgotPasswordForm({
     };
 
     if (isSuccess) {
-        return (
-            <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] text-center animate-fade-in relative overflow-hidden">
-                <div className="absolute top-0 left-0 h-1 w-full bg-[var(--primary)]" />
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--success-soft)] text-[var(--primary)] mb-6 shadow-sm border border-[var(--success-border)]">
-                    <CheckCircle2 className="w-7 h-7" strokeWidth={2.5} />
+        const successContent = (
+            <div className="text-center animate-fade-in relative overflow-hidden py-2">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--success-soft)] text-[var(--primary)] mb-4 shadow-sm border border-[var(--success-border)]">
+                    <CheckCircle2 className="w-6 h-6" strokeWidth={2.5} />
                 </div>
-                
-                <h1 className="font-serif text-2xl font-bold text-[var(--text)] mb-3 tracking-tight">
-                    Reset email sent
-                </h1>
-                <p className="text-[var(--text-muted)] text-[0.95rem] leading-relaxed mb-8 max-w-[280px] mx-auto">
+                <p className="font-semibold text-[var(--text)] mb-2">Reset email sent</p>
+                <p className="text-[var(--text-muted)] text-sm leading-relaxed max-w-[280px] mx-auto">
                     If an account exists for <span className="font-semibold text-[var(--text)]">{email}</span>, you will receive a password reset link shortly.
                 </p>
-                
-                <div className="mt-6 pt-5 border-t border-[var(--border)]/50">
-                    <Link 
-                        href={returnHref}
-                        className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
-                    >
+            </div>
+        );
+        if (embedded) return <div className="w-full">{successContent}</div>;
+        return (
+            <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)]">
+                {successContent}
+                <div className="mt-6 pt-5 border-t border-[var(--border)]/50 text-center">
+                    <Link href={returnHref} className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
                         {returnLabel}
                     </Link>
                 </div>
@@ -80,16 +80,18 @@ export function ForgotPasswordForm({
         );
     }
 
-    return (
-        <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] animate-fade-in">
-            <div className="text-center mb-8">
-                <h1 className="font-serif text-3xl font-bold text-[var(--text)] mb-2 tracking-tight">
-                    {title}
-                </h1>
-                <p className="text-[var(--text-muted)] text-[0.95rem] max-w-[260px] mx-auto">
-                    {description}
-                </p>
-            </div>
+    const formContent = (
+        <>
+            {!embedded && (
+                <div className="text-center mb-8">
+                    <h1 className="font-serif text-3xl font-bold text-[var(--text)] mb-2 tracking-tight">
+                        {title}
+                    </h1>
+                    <p className="text-[var(--text-muted)] text-[0.95rem] max-w-[260px] mx-auto">
+                        {description}
+                    </p>
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
@@ -136,11 +138,21 @@ export function ForgotPasswordForm({
                 </div>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-[var(--border)]/50 text-center">
-                <Link href={returnHref} className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
-                    {returnLabel}
-                </Link>
-            </div>
+            {!embedded && (
+                <div className="mt-8 pt-6 border-t border-[var(--border)]/50 text-center">
+                    <Link href={returnHref} className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
+                        {returnLabel}
+                    </Link>
+                </div>
+            )}
+        </>
+    );
+
+    if (embedded) return <div className="w-full">{formContent}</div>;
+
+    return (
+        <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] animate-fade-in">
+            {formContent}
         </div>
     );
 }

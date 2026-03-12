@@ -38,6 +38,7 @@ type LoginFormProps = {
     description?: string;
     forgotPasswordHref?: string;
     showSignupFooter?: boolean;
+    embedded?: boolean;
 };
 
 export function LoginForm({
@@ -45,6 +46,7 @@ export function LoginForm({
     description = "Log in to restore your paid access and unlock secure sync on this device.",
     forgotPasswordHref = "/forgot-password",
     showSignupFooter = true,
+    embedded = false,
 }: LoginFormProps = {}) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -87,16 +89,18 @@ export function LoginForm({
         router.refresh();
     };
 
-    return (
-        <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)]">
-            <div className="text-center mb-8">
-                <h1 className="font-serif text-3xl font-bold text-[var(--text)] mb-2 tracking-tight">
-                    {title}
-                </h1>
-                <p className="text-[var(--text-muted)] text-[0.95rem]">
-                    {description}
-                </p>
-            </div>
+    const formContent = (
+        <>
+            {!embedded && (
+                <div className="text-center mb-8">
+                    <h1 className="font-serif text-3xl font-bold text-[var(--text)] mb-2 tracking-tight">
+                        {title}
+                    </h1>
+                    <p className="text-[var(--text-muted)] text-[0.95rem]">
+                        {description}
+                    </p>
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
@@ -180,6 +184,16 @@ export function LoginForm({
                     </p>
                 </div>
             ) : null}
+        </>
+    );
+
+    if (embedded) {
+        return <div className="w-full">{formContent}</div>;
+    }
+
+    return (
+        <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)]">
+            {formContent}
         </div>
     );
 }

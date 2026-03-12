@@ -123,7 +123,7 @@ function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
         <section className="relative overflow-hidden border-b border-[var(--border)]" style={{ backgroundColor: "var(--bg)" }}>
             <div className="absolute inset-x-0 top-24 h-px bg-[var(--border)]" />
 
-            <div className="relative content-container-wide px-4 py-8 sm:px-6 md:py-10 lg:px-8 lg:py-14">
+            <div className="relative content-container-wide px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
                 <div className="grid gap-10 xl:grid-cols-[minmax(0,38rem)_minmax(0,1fr)] xl:items-center 2xl:gap-16">
                     <div className="max-w-[38rem] space-y-6">
                         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em]">
@@ -439,7 +439,7 @@ function HowItWorks() {
 
     return (
         <section id="how-it-works" style={{ backgroundColor: "var(--bg)" }}>
-            <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8 lg:py-20">                <div className="max-w-3xl space-y-3">
+            <div className="content-container-wide px-4 py-10 sm:px-6 lg:px-8 lg:py-14">                <div className="max-w-3xl space-y-3">
                 <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                     How it works
                 </p>
@@ -451,7 +451,7 @@ function HowItWorks() {
                 </p>
             </div>
 
-                <div className="mt-8 grid gap-4 lg:grid-cols-3">
+                <div className="mt-6 grid gap-4 lg:grid-cols-3">
                     {steps.map((step, index) => {
                         const Icon = step.icon;
 
@@ -478,7 +478,7 @@ function HowItWorks() {
                     })}
                 </div>
 
-                <div className="mt-10 flex justify-center">
+                <div className="mt-7 flex justify-center">
                     <Link href="/rules" className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-6 py-3 text-sm font-bold text-[var(--primary)] transition-all hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)]">
                         View the complete household checklist <ArrowRight className="h-4 w-4" />
                     </Link>
@@ -510,7 +510,7 @@ function WhatYouKeep() {
 
     return (
         <section style={{ backgroundColor: "var(--bg)" }}>
-            <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+            <div className="content-container-wide px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
                 <div className="grid gap-6 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] xl:items-start">
                     <div className="space-y-4">
                         <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
@@ -550,7 +550,7 @@ function PricingPreview() {
 
     return (
         <section id="pricing-preview" className="scroll-mt-24" style={{ backgroundColor: "var(--surface-2)" }}>
-            <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+            <div className="content-container-wide px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div className="max-w-2xl space-y-3">
                         <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
@@ -567,7 +567,7 @@ function PricingPreview() {
                     <MarketingBillingToggle billingCycle={billingCycle} onChange={setBillingCycle} align="right" />
                 </div>
 
-                <div className="mt-8">
+                <div className="mt-6">
                     <MarketingPlanCards
                         billingCycle={billingCycle}
                         compact
@@ -613,8 +613,8 @@ function FAQPreview() {
 
     return (
         <section id="faq" style={{ backgroundColor: "var(--bg)" }}>
-            <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-                <div className="mb-10 max-w-2xl space-y-3">
+            <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+                <div className="mb-6 max-w-2xl space-y-3">
                     <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                         FAQ
                     </p>
