@@ -503,18 +503,37 @@ async function ensureBillingSchema() {
 }
 
 async function paystackRequest<T>(path: string, init: RequestInit): Promise<T> {
+    const secretKey = getPaystackSecretKey();
+    
+    // Diagnostic: Log key prefix (never log the full key)
+    if (secretKey.length < 20 || !secretKey.startsWith("sk_")) {
+        console.warn(`[Billing] PAYSTACK_SECRET_KEY looks invalid (length: ${secretKey.length}, startsWith: ${secretKey.slice(0, 3)}...)`);
+    }
+
     const response = await fetch(`https://api.paystack.co${path}`, {
         ...init,
         headers: {
-            Authorization: `Bearer ${getPaystackSecretKey()}`,
+            Authorization: `Bearer ${secretKey}`,
             "Content-Type": "application/json",
             ...(init.headers || {}),
         },
         cache: "no-store",
     });
 
-    const payload = await response.json() as T & PaystackBasicResponse;
+    const bodyText = await response.text();
+    let payload: T & PaystackBasicResponse;
+    try {
+        payload = JSON.parse(bodyText);
+    } catch {
+        throw new BillingError(`Paystack returned invalid JSON (Status: ${response.status}). Body: ${bodyText.slice(0, 200)}`, 502);
+    }
+
     if (!response.ok || payload.status === false) {
+        console.error(`[Billing] Paystack error: ${payload.message || "Unknown error"}`, {
+            path,
+            status: response.status,
+            payload
+        });
         throw new BillingError(payload.message || "Paystack request failed.", 502);
     }
 
@@ -929,8 +948,8 @@ async function initializePaystackTransaction(request: Request, user: VerifiedUse
             reference,
             email: user.email,
             amount: input.amountCents,
+            currency: "ZAR",
             callback_url: callbackUrl.toString(),
-            channels: ["card"],
             metadata: JSON.stringify(input.metadata),
         }),
     });
