@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const PUBLIC_PREFIXES = [
   '/',
+  '/billing',
   '/login',
   '/signup',
   '/forgot-password',
