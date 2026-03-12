@@ -53,3 +53,10 @@ externalPort = 3000
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+PAYSTACK_SECRET_KEY = "sk_test_dbde7c18cb6b946412a4ac16253fbd709efab0e4"
+PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c"
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY = "pk_test_3520c14017518f98180b12907a3069d4916eac7c"
