@@ -37,8 +37,9 @@ export function useRealtimeSync(userId: string | undefined, onDataChanged: () =>
                     table: 'synced_files',
                     filter: `user_id=eq.${userId}`
                 },
-                (payload) => {
+                async (payload) => {
                     console.log('Realtime update received (files):', payload);
+                    await syncService.applyRemoteFileChange(payload);
                     onDataChanged();
                 }
             )

@@ -1,30 +1,20 @@
 import { createClient } from "@/lib/supabase/client";
-import { LocalRepository } from "@/lib/local-repository";
-import { encryptData, encryptFile } from "@/lib/crypto";
+import { cloudRepo } from "@/lib/cloud-repository";
+import { getSyncMigrationSnapshot } from "@/lib/storage";
 
 export interface SyncProgressData {
-    status: 'idle' | 'running' | 'completed' | 'error';
+    status: "idle" | "running" | "completed" | "error";
     currentTask: string;
-    progress: number; // 0 to 100
+    progress: number;
     error?: string;
 }
 
 type ProgressCallback = (data: SyncProgressData) => void;
 
-/**
- * Handles the one-time local-to-cloud migration.
- * Reads everything from LocalRepository, encrypts it, and pushes it to Supabase
- * and R2 (for files).
- */
 export class SyncEngine {
-    private localRepo: LocalRepository;
     private supabase = createClient();
     private cryptoKey: CryptoKey | null = null;
     private onProgress?: ProgressCallback;
-
-    constructor() {
-        this.localRepo = new LocalRepository();
-    }
 
     setCryptoKey(key: CryptoKey | null) {
         this.cryptoKey = key;
@@ -35,13 +25,11 @@ export class SyncEngine {
     }
 
     private updateProgress(task: string, percentage: number) {
-        if (this.onProgress) {
-            this.onProgress({
-                status: 'running',
-                currentTask: task,
-                progress: percentage
-            });
-        }
+        this.onProgress?.({
+            status: "running",
+            currentTask: task,
+            progress: percentage,
+        });
     }
 
     async runMigration() {
@@ -53,111 +41,51 @@ export class SyncEngine {
             if (authError || !user) throw new Error("Must be logged in to sync data.");
 
             this.updateProgress("Reading local data...", 10);
-            
-            // 1. Gather all local data
-            // Note: Since this is local, we just grab everything we have
-            // We need to fetch from the raw storage or use the repo methods.
-            // Since repo methods might require specific household IDs, we actually need to 
-            // query localforage directly for all keys to ensure we don't miss anything, 
-            // OR depend on the known IDs. For simplicity, we assume we want to sync
-            // the active employer settings, and we loop through known stores.
-            
-            const settings = await this.localRepo.getSettings();
-            
-            // To do this thoroughly without a specific ID, we'd need to use the lower-level localforage instances.
-            // But let's build the generic pusher.
-            
-            // We will push settings first
-            this.updateProgress("Encrypting settings...", 20);
-            if (settings) {
-                 await this.pushRecord('settings', 'main', settings, user.id);
-            }
+            const snapshot = await getSyncMigrationSnapshot();
+            const tasks = [
+                ...snapshot.households.map((record) => ({ label: `Household ${record.name}`, run: () => cloudRepo.pushRecord("households", record.id, record as unknown as Record<string, unknown>) })),
+                { label: "Settings", run: () => cloudRepo.pushRecord("settings", "main", { ...snapshot.settings, updatedAt: new Date().toISOString() }) },
+                ...snapshot.employees.map((record) => ({ label: `Employee ${record.name}`, run: () => cloudRepo.pushRecord("employees", record.id, record as unknown as Record<string, unknown>) })),
+                ...snapshot.payslips.map((record) => ({ label: `Payslip ${record.id}`, run: () => cloudRepo.pushRecord("payslips", record.id, record as unknown as Record<string, unknown>) })),
+                ...snapshot.leaveRecords.map((record) => ({ label: `Leave ${record.id}`, run: () => cloudRepo.pushRecord("leave", record.id, record as unknown as Record<string, unknown>) })),
+                ...snapshot.payPeriods.map((record) => ({ label: `Pay period ${record.name}`, run: () => cloudRepo.pushRecord("pay_periods", record.id, record as unknown as Record<string, unknown>) })),
+                ...snapshot.documents.map((record) => ({ label: `Document ${record.fileName}`, run: () => cloudRepo.pushRecord("documents", record.id, record as unknown as Record<string, unknown>) })),
+                ...snapshot.contracts.map((record) => ({ label: `Contract ${record.id}`, run: () => cloudRepo.pushRecord("contracts", record.id, record as unknown as Record<string, unknown>) })),
+                ...snapshot.documentFiles.map((record) => ({ label: `Uploaded file ${record.id}`, run: () => cloudRepo.pushFile(record.id, record.blob, record.mimeType) })),
+            ];
 
-            // You would normally fetch all dynamic lists here (employees, payslips, leaves, contracts)
-            // For a complete migration, you'd iterate `localforage.iterate()`.
-            
-            this.updateProgress("Sync complete!", 100);
-            if (this.onProgress) {
-                this.onProgress({
-                    status: 'completed',
-                    currentTask: 'Done',
-                    progress: 100
+            if (tasks.length === 0) {
+                this.onProgress?.({
+                    status: "completed",
+                    currentTask: "Nothing new to back up.",
+                    progress: 100,
                 });
+                return;
             }
 
+            for (let index = 0; index < tasks.length; index += 1) {
+                const task = tasks[index];
+                const progress = 10 + Math.round(((index + 1) / tasks.length) * 90);
+                this.updateProgress(task.label, progress);
+                await task.run();
+            }
+
+            this.onProgress?.({
+                status: "completed",
+                currentTask: "Backup complete",
+                progress: 100,
+            });
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Unknown error occurred";
             console.error("Migration failed", message);
-            if (this.onProgress) {
-                this.onProgress({
-                    status: 'error',
-                    currentTask: 'Failed',
-                    progress: 0,
-                    error: message
-                });
-            }
+            this.onProgress?.({
+                status: "error",
+                currentTask: "Failed",
+                progress: 0,
+                error: message,
+            });
             throw error;
         }
-    }
-
-    private async pushRecord(tableName: string, recordId: string, data: Record<string, unknown>, userId: string) {
-        if (!this.cryptoKey) return;
-        
-        const incomingUpdatedAt = (data.updatedAt as string) || new Date().toISOString();
-        const encrypted = await encryptData(data, this.cryptoKey);
-        
-        const { error } = await this.supabase
-            .from('synced_records')
-            .upsert({
-                user_id: userId,
-                table_name: tableName,
-                record_id: recordId,
-                encrypted_data: encrypted,
-                updated_at: incomingUpdatedAt
-            });
-            
-        if (error) {
-            console.error(`Failed to push ${tableName}/${recordId}`, error);
-            throw new Error(`Cloud sync failed: ${error.message}`);
-        }
-    }
-
-    // Helper for files
-    private async pushFile(fileId: string, blob: Blob, originalMimeType: string, userId: string) {
-        if (!this.cryptoKey) return;
-
-        const { encryptedBlob, iv } = await encryptFile(new File([blob], fileId, { type: originalMimeType }), this.cryptoKey);
-        
-        // Push the metadata to Supabase
-        const { error: dbError } = await this.supabase
-            .from('synced_files')
-            .upsert({
-                user_id: userId,
-                file_id: fileId,
-                mime_type: originalMimeType,
-                iv: iv,
-                size: blob.size,
-                updated_at: new Date().toISOString()
-            });
-
-        if (dbError) throw new Error(`Failed metadata sync: ${dbError.message}`);
-
-        // Upload to R2 via presigned URL
-        // We need an API route to get the URL
-        const res = await fetch(`/api/storage/presign?fileId=${encodeURIComponent(fileId)}`);
-        if (!res.ok) throw new Error("Failed to get upload URL");
-        
-        const { uploadUrl } = await res.json();
-        
-        const uploadRes = await fetch(uploadUrl, {
-            method: 'PUT',
-            body: encryptedBlob,
-            headers: {
-                'Content-Type': 'application/octet-stream'
-            }
-        });
-
-        if (!uploadRes.ok) throw new Error("Cloud upload failed");
     }
 }
 

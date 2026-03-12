@@ -53,14 +53,9 @@ export function MarketingHeader() {
 
                 <div className="hidden lg:flex items-center gap-3">
                     <Link href="/?auth=login" className="text-sm font-bold text-[var(--text)] hover:text-[var(--primary)] px-3 transition-colors">
-                        Log in
+                        Login (Paid users)
                     </Link>
-                    <Link href="/pricing">
-                        <Button variant="outline" className="h-11 rounded-xl px-4 font-bold border-2">
-                            View plans
-                        </Button>
-                    </Link>
-                    <Link href="/?auth=signup">
+                    <Link href="/dashboard">
                         <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-sm)] active:scale-[0.98]">
                             Start free <ArrowRight className="h-4 w-4" />
                         </Button>
@@ -107,15 +102,10 @@ export function MarketingHeader() {
                             <div className="grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-6 mt-2">
                                 <Link href="/?auth=login" onClick={() => setMenuOpen(false)}>
                                     <Button variant="ghost" className="w-full justify-center font-bold text-[var(--text)]">
-                                        Log in
+                                        Login (Paid users)
                                     </Button>
                                 </Link>
-                                <Link href="/pricing" onClick={() => setMenuOpen(false)}>
-                                    <Button variant="outline" className="w-full justify-center font-bold border-2">
-                                        View plans
-                                    </Button>
-                                </Link>
-                                <Link href="/?auth=signup" onClick={() => setMenuOpen(false)}>
+                                <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
                                     <Button className="w-full justify-center font-bold h-12">
                                         Start free <ArrowRight className="h-4 w-4" />
                                     </Button>

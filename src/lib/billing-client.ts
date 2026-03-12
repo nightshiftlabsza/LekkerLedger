@@ -2,22 +2,10 @@
 
 import { BillingCycle, PlanId } from "../config/plans";
 import { BillingAccountSummary, getFreeEntitlements, VerifiedEntitlements } from "./billing";
-import { getSettings } from "./storage";
 import { createClient } from "./supabase/client";
 
-async function getAuthEmail() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    return user?.email || "";
-}
-
-// TODO: In Batch 2, this will use Supabase auth token
-function getStoredAccessToken(): string | null {
-    return null;
-}
-
 interface CachedEntitlements {
-    token: string;
+    sessionKey: string;
     fetchedAt: number;
     value: VerifiedEntitlements;
 }
@@ -28,6 +16,34 @@ let cachedEntitlements: CachedEntitlements | null = null;
 export interface BillingAccountPayload {
     entitlements: VerifiedEntitlements;
     account: BillingAccountSummary;
+}
+
+async function getAuthContext(accessToken?: string | null): Promise<{ accessToken: string | null; sessionKey: string }> {
+    if (accessToken) {
+        return {
+            accessToken,
+            sessionKey: accessToken,
+        };
+    }
+
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+
+    return {
+        accessToken: session?.access_token ?? null,
+        sessionKey: session?.user?.id ?? "anonymous",
+    };
+}
+
+async function buildAuthHeaders(accessToken?: string | null): Promise<Record<string, string>> {
+    const { accessToken: resolvedToken } = await getAuthContext(accessToken);
+    if (!resolvedToken) {
+        return {};
+    }
+
+    return {
+        Authorization: `Bearer ${resolvedToken}`,
+    };
 }
 
 async function buildErrorMessage(response: Response, fallback: string): Promise<Error> {
@@ -43,18 +59,17 @@ export function clearVerifiedEntitlementsCache() {
     cachedEntitlements = null;
 }
 
-export async function fetchVerifiedEntitlements(accessToken = getStoredAccessToken(), force = false): Promise<VerifiedEntitlements | null> {
-    if (!accessToken) return null;
+export async function fetchVerifiedEntitlements(accessToken?: string | null, force = false): Promise<VerifiedEntitlements | null> {
+    const { sessionKey } = await getAuthContext(accessToken);
 
-    if (!force && cachedEntitlements && cachedEntitlements.token === accessToken && (Date.now() - cachedEntitlements.fetchedAt) < ENTITLEMENTS_CACHE_TTL_MS) {
+    if (!force && cachedEntitlements && cachedEntitlements.sessionKey === sessionKey && (Date.now() - cachedEntitlements.fetchedAt) < ENTITLEMENTS_CACHE_TTL_MS) {
         return cachedEntitlements.value;
     }
 
+    const authHeaders = await buildAuthHeaders(accessToken);
     const response = await fetch("/api/entitlements", {
         method: "GET",
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-        },
+        headers: authHeaders,
         cache: "no-store",
     });
 
@@ -64,7 +79,7 @@ export async function fetchVerifiedEntitlements(accessToken = getStoredAccessTok
     }
 
     if (!response.ok) {
-        if (cachedEntitlements && cachedEntitlements.token === accessToken) {
+        if (cachedEntitlements && cachedEntitlements.sessionKey === sessionKey) {
             return cachedEntitlements.value;
         }
 
@@ -74,7 +89,7 @@ export async function fetchVerifiedEntitlements(accessToken = getStoredAccessTok
     const data = await response.json();
     const entitlements = (data?.entitlements as VerifiedEntitlements | undefined) ?? getFreeEntitlements();
     cachedEntitlements = {
-        token: accessToken,
+        sessionKey,
         fetchedAt: Date.now(),
         value: entitlements,
     };
@@ -83,17 +98,14 @@ export async function fetchVerifiedEntitlements(accessToken = getStoredAccessTok
 
 export async function createCheckoutSession(
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle },
-    accessToken = getStoredAccessToken(),
+    accessToken?: string | null,
 ): Promise<{ authorizationUrl: string; reference: string }> {
-    if (!accessToken) {
-        throw new Error("Sign-in is required before starting paid checkout.");
-    }
-
+    const authHeaders = await buildAuthHeaders(accessToken);
     const response = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
+            ...authHeaders,
         },
         body: JSON.stringify(input),
     });
@@ -115,17 +127,14 @@ export async function createCheckoutSession(
 
 export async function startTrialCheckout(
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; referralCode?: string | null },
-    accessToken = getStoredAccessToken(),
+    accessToken?: string | null,
 ): Promise<{ authorizationUrl: string; reference: string }> {
-    if (!accessToken) {
-        throw new Error("Sign-in is required before starting a trial.");
-    }
-
+    const authHeaders = await buildAuthHeaders(accessToken);
     const response = await fetch("/api/billing/trial/start", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
+            ...authHeaders,
         },
         body: JSON.stringify(input),
     });
@@ -168,14 +177,11 @@ export async function createInlineTrialIntent(
     };
 }
 
-export async function fetchBillingAccount(accessToken = getStoredAccessToken()): Promise<BillingAccountPayload | null> {
-    if (!accessToken) return null;
-
+export async function fetchBillingAccount(accessToken?: string | null): Promise<BillingAccountPayload | null> {
+    const authHeaders = await buildAuthHeaders(accessToken);
     const response = await fetch("/api/billing/account", {
         method: "GET",
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-        },
+        headers: authHeaders,
         cache: "no-store",
     });
 
@@ -195,16 +201,13 @@ export async function fetchBillingAccount(accessToken = getStoredAccessToken()):
     };
 }
 
-export async function confirmBillingTransaction(reference: string, accessToken = getStoredAccessToken()): Promise<BillingAccountPayload> {
-    if (!accessToken) {
-        throw new Error("Sign-in is required before confirming payment.");
-    }
-
+export async function confirmBillingTransaction(reference: string, accessToken?: string | null): Promise<BillingAccountPayload> {
+    const authHeaders = await buildAuthHeaders(accessToken);
     const response = await fetch("/api/billing/confirm", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
+            ...authHeaders,
         },
         body: JSON.stringify({ reference }),
         cache: "no-store",
@@ -226,16 +229,11 @@ export async function confirmBillingTransaction(reference: string, accessToken =
     };
 }
 
-export async function cancelSubscriptionRenewal(accessToken = getStoredAccessToken()): Promise<BillingAccountPayload> {
-    if (!accessToken) {
-        throw new Error("Sign-in is required before canceling renewal.");
-    }
-
+export async function cancelSubscriptionRenewal(accessToken?: string | null): Promise<BillingAccountPayload> {
+    const authHeaders = await buildAuthHeaders(accessToken);
     const response = await fetch("/api/billing/subscription/cancel", {
         method: "POST",
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-        },
+        headers: authHeaders,
     });
 
     if (response.status === 401) {

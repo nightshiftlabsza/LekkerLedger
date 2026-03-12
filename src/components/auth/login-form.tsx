@@ -2,18 +2,39 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Mail, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-export function LoginForm() {
+type LoginFormProps = {
+    title?: string;
+    description?: string;
+    forgotPasswordHref?: string;
+    showSignupFooter?: boolean;
+};
+
+export function LoginForm({
+    title = "Welcome back",
+    description = "Log in to restore your paid access and unlock secure sync on this device.",
+    forgotPasswordHref = "/forgot-password",
+    showSignupFooter = true,
+}: LoginFormProps = {}) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const supabase = createClient();
     
     const [email, setEmail] = React.useState("");
     const [password, setPassword] = React.useState("");
-    const [error, setError] = React.useState<string | null>(null);
+    const [error, setError] = React.useState<string | null>(
+        searchParams.get("error") === "Invalid_or_expired_magic_link"
+            ? "That reset or confirmation link is no longer valid. Please request a fresh link."
+            : null
+    );
     const [isLoading, setIsLoading] = React.useState(false);
+    const signupHref = React.useMemo(() => {
+        const reference = searchParams.get("reference")?.trim() || "";
+        return reference ? `/signup?reference=${encodeURIComponent(reference)}` : "/signup";
+    }, [searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,7 +52,13 @@ export function LoginForm() {
             return;
         }
 
-        router.push("/dashboard");
+        const reference = searchParams.get("reference")?.trim() || "";
+        const next = searchParams.get("next")?.trim() || "";
+        const destination = reference
+            ? `/billing/success?reference=${encodeURIComponent(reference)}`
+            : next || "/dashboard";
+
+        router.push(destination);
         router.refresh();
     };
 
@@ -39,10 +66,10 @@ export function LoginForm() {
         <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)]">
             <div className="text-center mb-8">
                 <h1 className="font-serif text-3xl font-bold text-[var(--text)] mb-2 tracking-tight">
-                    Welcome back
+                    {title}
                 </h1>
                 <p className="text-[var(--text-muted)] text-[0.95rem]">
-                    Log in to securely sync your household ledger.
+                    {description}
                 </p>
             </div>
 
@@ -79,7 +106,7 @@ export function LoginForm() {
                                 Password
                             </label>
                             <Link 
-                                href="/forgot-password" 
+                                href={forgotPasswordHref}
                                 className="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4"
                             >
                                 Forgot password?
@@ -117,14 +144,16 @@ export function LoginForm() {
                 </button>
             </form>
 
-            <div className="mt-8 text-center">
-                <p className="text-sm text-[var(--text-muted)]">
-                    First time setting up sync?{" "}
-                    <Link href="/signup" className="font-semibold text-[var(--primary)] hover:underline underline-offset-4">
-                        Create an account
-                    </Link>
-                </p>
-            </div>
+            {showSignupFooter ? (
+                <div className="mt-8 text-center">
+                    <p className="text-sm text-[var(--text-muted)]">
+                        First time after payment?{" "}
+                        <Link href={signupHref} className="font-semibold text-[var(--primary)] hover:underline underline-offset-4">
+                            Create an account
+                        </Link>
+                    </p>
+                </div>
+            ) : null}
         </div>
     );
 }

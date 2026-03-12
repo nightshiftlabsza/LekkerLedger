@@ -17,7 +17,7 @@ export type AppMode = "local_guest" | "account_unlocked" | "account_locked";
 interface AppModeContextValue {
     mode: AppMode;
     setMode: React.Dispatch<React.SetStateAction<AppMode>>;
-    unlockAccount: (key: CryptoKey, userId: string) => void;
+    unlockAccount: (key: CryptoKey, userId: string) => Promise<void>;
     lockAccount: () => void;
 }
 
@@ -48,6 +48,7 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
             if (event === "SIGNED_OUT") {
                 setMode("local_guest");
                 syncEngine.setCryptoKey(null);
+                syncService.clearSession();
             } else if (event === "SIGNED_IN" && mode === "local_guest") {
                 setMode("account_locked");
             }
@@ -59,14 +60,16 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
         };
     }, [supabase.auth, mode]);
 
-    const unlockAccount = React.useCallback((key: CryptoKey, userId: string) => {
+    const unlockAccount = React.useCallback(async (key: CryptoKey, userId: string) => {
         syncEngine.setCryptoKey(key);
         syncService.init(userId, key);
+        await syncService.reconcileAfterUnlock();
         setMode("account_unlocked");
     }, []);
 
     const lockAccount = React.useCallback(() => {
         syncEngine.setCryptoKey(null);
+        syncService.clearSession();
         setMode("account_locked");
     }, []);
 

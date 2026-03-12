@@ -36,7 +36,7 @@ export function SyncProgress({ onComplete }: SyncProgressProps) {
     if (progressData.status === 'idle') {
         return (
             <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] text-center animate-fade-in">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-blue-50 text-blue-600 mb-6 shadow-sm border border-blue-100">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--surface-2)] text-[var(--info)] mb-6 shadow-sm border border-[var(--border)]">
                     <CloudUpload className="w-7 h-7" strokeWidth={2.5} />
                 </div>
                 <h2 className="font-serif text-2xl font-bold text-[var(--text)] mb-3 tracking-tight">Sync Your Data</h2>
@@ -60,19 +60,19 @@ export function SyncProgress({ onComplete }: SyncProgressProps) {
             <div className="flex flex-col items-center text-center">
                 
                 {status === 'running' && (
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-blue-50 text-blue-600 mb-6 shadow-sm border border-blue-100 animate-pulse">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--surface-2)] text-[var(--info)] mb-6 shadow-sm border border-[var(--border)] animate-pulse">
                         <Loader2 className="w-7 h-7 animate-spin" strokeWidth={2.5} />
                     </div>
                 )}
                 
                 {status === 'completed' && (
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-50 text-green-600 mb-6 shadow-sm border border-green-100">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--success-soft)] text-[var(--success)] mb-6 shadow-sm border border-[var(--success-border)]">
                         <CheckCircle2 className="w-7 h-7" strokeWidth={2.5} />
                     </div>
                 )}
 
                 {status === 'error' && (
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-50 text-red-600 mb-6 shadow-sm border border-red-100">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--danger-soft)] text-[var(--danger)] mb-6 shadow-sm border border-[var(--danger-border)]">
                         <AlertCircle className="w-7 h-7" strokeWidth={2.5} />
                     </div>
                 )}
@@ -83,7 +83,7 @@ export function SyncProgress({ onComplete }: SyncProgressProps) {
                      'Sync Failed'}
                 </h2>
                 
-                <p className={`text-[0.95rem] mb-8 font-medium ${status === 'error' ? 'text-red-600 max-w-[320px]' : 'text-[var(--text-muted)]'}`}>
+                <p className={`text-[0.95rem] mb-8 font-medium ${status === 'error' ? 'text-[var(--danger)] max-w-[320px]' : 'text-[var(--text-muted)]'}`}>
                     {status === 'error' ? error : currentTask}
                 </p>
 
@@ -95,8 +95,8 @@ export function SyncProgress({ onComplete }: SyncProgressProps) {
                     <div className="w-full h-3 bg-[var(--border)] rounded-full overflow-hidden">
                         <div 
                             className={`h-full transition-all duration-500 ease-out origin-left ${
-                                status === 'error' ? 'bg-red-500' : 
-                                status === 'completed' ? 'bg-green-500' : 
+                                status === 'error' ? 'bg-[var(--danger)]' :
+                                status === 'completed' ? 'bg-[var(--success)]' :
                                 'bg-[var(--primary)]'
                             }`}
                             style={{ 
@@ -109,7 +109,7 @@ export function SyncProgress({ onComplete }: SyncProgressProps) {
                 {status === 'error' && (
                     <button
                         onClick={handleStart}
-                        className="mt-8 px-6 py-2.5 bg-red-50 text-red-700 font-bold rounded-xl active-scale transition-all hover:bg-red-100 shadow-sm border border-red-200"
+                        className="mt-8 px-6 py-2.5 bg-[var(--danger-soft)] text-[var(--danger)] font-bold rounded-xl active-scale transition-all hover:opacity-90 shadow-sm border border-[var(--danger-border)]"
                     >
                         Try Again
                     </button>

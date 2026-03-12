@@ -7,17 +7,19 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
 import { GlobalCreateFAB } from "@/components/global-create";
-import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound } from "lucide-react";
+import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, LogOut, ShieldCheck, Trash2, Loader2 } from "lucide-react";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
-import { getHouseholds, getSettings, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
+import { getHouseholds, getSettings, resetAllData, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 import { AppModeProvider, useAppMode } from "@/lib/app-mode";
 import { RecoveryGate } from "@/components/encryption/recovery-gate";
 import { SyncIndicator } from "@/components/sync-indicator";
+import { clearVerifiedEntitlementsCache } from "@/lib/billing-client";
+import { createClient } from "@/lib/supabase/client";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -278,7 +280,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 function AccountMenu() {
     const [open, setOpen] = React.useState(false);
+    const [signOutPromptOpen, setSignOutPromptOpen] = React.useState(false);
+    const [signingOut, setSigningOut] = React.useState<"keep" | "delete" | null>(null);
     const menuRef = React.useRef<HTMLDivElement | null>(null);
+    const router = useRouter();
+    const supabase = React.useMemo(() => createClient(), []);
 
     React.useEffect(() => {
         function handleClick(event: MouseEvent) {
@@ -297,7 +303,7 @@ function AccountMenu() {
         };
     }, []);
 
-    const { mode } = useAppMode();
+    const { mode, lockAccount } = useAppMode();
 
     let accountState = "Local mode";
     let accountSummary = "Your data is stored securely on this device. No cloud sync.";
@@ -310,47 +316,159 @@ function AccountMenu() {
         accountSummary = "Your data is securely encrypted and synced to the cloud.";
     }
 
+    const handleSignOut = React.useCallback(async (dataMode: "keep" | "delete") => {
+        if (signingOut) return;
+        setSigningOut(dataMode);
+
+        try {
+            clearVerifiedEntitlementsCache();
+            lockAccount();
+            await supabase.auth.signOut();
+            if (dataMode === "delete") {
+                await resetAllData();
+            }
+            setOpen(false);
+            setSignOutPromptOpen(false);
+            router.push("/login");
+            router.refresh();
+        } catch (error) {
+            console.error("Sign out failed", error);
+        } finally {
+            setSigningOut(null);
+        }
+    }, [lockAccount, router, signingOut, supabase.auth]);
+
     return (
-        <div className="relative" ref={menuRef}>
-            <button
-                type="button"
-                onClick={() => setOpen((current) => !current)}
-                data-testid="account-menu-toggle"
-                className="flex items-center gap-1 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-2 sm:px-3 py-1.5 sm:py-2 shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25 min-h-[40px]"
-            >
-                <div className="flex h-7 sm:h-8 w-7 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl bg-[var(--surface-2)] text-[var(--primary)] shrink-0">
-                    <CircleUserRound className="h-4 w-4" />
-                </div>
-                <div className="text-left hidden sm:block max-w-[100px] md:max-w-[140px]">
-                    <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[var(--text-muted)] leading-none mb-0.5">Account</p>
-                    <p className="text-xs font-semibold text-[var(--text)] truncate">{accountState}</p>
-                </div>
-                <ChevronDown className="h-3 w-3 text-[var(--text-muted)] shrink-0 hidden sm:block" />
-            </button>
-
-            {open && (
-                <div className="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-[min(18rem,calc(100vw-1.5rem))] rounded-3xl border border-[var(--border)] bg-[var(--surface-raised)] p-3 shadow-[0_18px_48px_rgba(16,24,40,0.14)]">
-                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
-                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Current setup</p>
-                        <p className="mt-1 text-sm font-semibold text-[var(--text)]">{accountState}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{accountSummary}</p>
+        <>
+            <div className="relative" ref={menuRef}>
+                <button
+                    type="button"
+                    onClick={() => setOpen((current) => !current)}
+                    data-testid="account-menu-toggle"
+                    className="flex items-center gap-1 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-2 sm:px-3 py-1.5 sm:py-2 shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25 min-h-[40px]"
+                >
+                    <div className="flex h-7 sm:h-8 w-7 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl bg-[var(--surface-2)] text-[var(--primary)] shrink-0">
+                        <CircleUserRound className="h-4 w-4" />
                     </div>
+                    <div className="text-left hidden sm:block max-w-[100px] md:max-w-[140px]">
+                        <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[var(--text-muted)] leading-none mb-0.5">Account</p>
+                        <p className="text-xs font-semibold text-[var(--text)] truncate">{accountState}</p>
+                    </div>
+                    <ChevronDown className="h-3 w-3 text-[var(--text-muted)] shrink-0 hidden sm:block" />
+                </button>
 
-                    <div className="mt-3 space-y-1">
-                        {ACCOUNT_MENU_LINKS.map((link) => (
-                            <MenuLink
-                                key={link.href}
-                                href={link.href}
-                                icon={link.icon}
-                                label={link.label}
-                                sublabel={link.sublabel || ""}
-                                onNavigate={() => setOpen(false)}
-                            />
-                        ))}
+                {open && (
+                    <div className="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-[min(20rem,calc(100vw-1.5rem))] rounded-3xl border border-[var(--border)] bg-[var(--surface-raised)] p-3 shadow-[0_18px_48px_rgba(16,24,40,0.14)]">
+                        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
+                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Current setup</p>
+                            <p className="mt-1 text-sm font-semibold text-[var(--text)]">{accountState}</p>
+                            <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{accountSummary}</p>
+                        </div>
+
+                        <div className="mt-3 space-y-1">
+                            {ACCOUNT_MENU_LINKS.map((link) => (
+                                <MenuLink
+                                    key={link.href}
+                                    href={link.href}
+                                    icon={link.icon}
+                                    label={link.label}
+                                    sublabel={link.sublabel || ""}
+                                    onNavigate={() => setOpen(false)}
+                                />
+                            ))}
+                        </div>
+
+                        <div className="mt-3 border-t border-[var(--border)] pt-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSignOutPromptOpen(true);
+                                    setOpen(false);
+                                }}
+                                className="flex w-full items-start gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-[var(--surface-2)]"
+                            >
+                                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--danger-soft)] text-[var(--danger)]">
+                                    <LogOut className="h-4 w-4" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-[var(--text)]">Sign out</p>
+                                    <p className="text-xs leading-relaxed text-[var(--text-muted)]">Choose whether this device should keep or remove its local records.</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {signOutPromptOpen ? (
+                <div className="fixed inset-0 z-[80] flex items-end justify-center bg-[rgba(9,14,20,0.55)] p-4 sm:items-center sm:p-6">
+                    <div className="w-full max-w-2xl rounded-[2rem] border border-[var(--border)] bg-[var(--surface-raised)] p-6 shadow-[var(--shadow-lg)] sm:p-8">
+                        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,18rem)] lg:items-start">
+                            <div>
+                                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--primary)]/15 bg-[var(--primary)]/8 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">
+                                    <ShieldCheck className="h-3.5 w-3.5" />
+                                    Sign out safely
+                                </div>
+                                <h2 className="mt-5 font-serif text-3xl font-bold tracking-tight text-[var(--text)]">How should this device be left?</h2>
+                                <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">
+                                    Signing out always closes the cloud session. You can either keep the local records in this browser for faster access later, or remove them from this device completely.
+                                </p>
+
+                                <div className="mt-8 flex flex-col gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => void handleSignOut("keep")}
+                                        disabled={signingOut !== null}
+                                        className="flex min-h-[52px] items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-5 py-4 text-left transition-colors hover:bg-[var(--surface-2)] disabled:opacity-60"
+                                    >
+                                        <span>
+                                            <span className="block text-sm font-bold text-[var(--text)]">Keep local data on this device</span>
+                                            <span className="mt-1 block text-xs leading-5 text-[var(--text-muted)]">Good for your own phone or laptop. Cloud access ends, but local records remain here.</span>
+                                        </span>
+                                        {signingOut === "keep" ? <Loader2 className="h-4 w-4 animate-spin text-[var(--primary)]" /> : null}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => void handleSignOut("delete")}
+                                        disabled={signingOut !== null}
+                                        className="flex min-h-[52px] items-center justify-between rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] px-5 py-4 text-left transition-colors hover:bg-[rgba(180,35,24,0.12)] disabled:opacity-60"
+                                    >
+                                        <span>
+                                            <span className="block text-sm font-bold text-[var(--text)]">Delete local data from this device</span>
+                                            <span className="mt-1 block text-xs leading-5 text-[var(--text-muted)]">Best for a shared or borrowed computer. The next login will restore from cloud sync.</span>
+                                        </span>
+                                        {signingOut === "delete" ? <Loader2 className="h-4 w-4 animate-spin text-[var(--danger)]" /> : <Trash2 className="h-4 w-4 text-[var(--danger)]" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <aside className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-5">
+                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Reminder</p>
+                                <ul className="mt-4 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
+                                    <li>Keeping local data does not keep you logged in.</li>
+                                    <li>Deleting local data does not cancel your paid plan.</li>
+                                    <li>You can still restore on the next login with your recovery key.</li>
+                                </ul>
+                            </aside>
+                        </div>
+
+                        <div className="mt-6 border-t border-[var(--border)] pt-4 text-right">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (signingOut) return;
+                                    setSignOutPromptOpen(false);
+                                }}
+                                className="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
-            )}
-        </div>
+            ) : null}
+        </>
     );
 }
 function MenuLink({

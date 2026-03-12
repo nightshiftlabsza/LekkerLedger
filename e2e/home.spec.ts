@@ -16,6 +16,7 @@ test("home page hero shows new headline and CTAs", async ({ page }) => {
     await expect(page.getByRole("heading", { name: /Payslips and household employment records in one place\./i })).toBeVisible();
     await expect(page.getByText(/Track monthly pay, show UIF deductions clearly on payslips, and keep records available when you need them\./i)).toBeVisible();
     await expect(page.getByRole("link", { name: /Start free/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "Login (Paid users)" })).toBeVisible();
 });
 
 test("home page does not contain old fear messaging", async ({ page }) => {
@@ -43,5 +44,18 @@ test("home page has all major sections", async ({ page }) => {
     await expect(page.getByText(/Set up once\. Generate payslips\. Keep the records together/i)).toBeVisible();
     await expect(page.getByText(/Not just a payslip\. Your household record trail/i)).toBeVisible();
     await expect(page.getByText(/Questions households ask before they start/i)).toBeVisible();
+});
+
+test("paid login opens an in-page auth area with inline password reset", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: "Login (Paid users)" }).click();
+
+    await expect(page.getByRole("region", { name: "Paid user login area" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Paid account login" })).toBeVisible();
+    await expect(page.getByText(/Password reset stays in this browser/i)).toBeVisible();
+
+    await page.getByRole("link", { name: "Forgot password?" }).click();
+    await expect(page.getByRole("heading", { name: "Password reset" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Back to paid login" })).toBeVisible();
 });
 

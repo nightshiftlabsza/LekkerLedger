@@ -19,6 +19,24 @@ test.describe("Mobile UX regressions", () => {
         expect(tinyTextInSample).toBe(0);
     });
 
+    test("homepage paid login panel fits on phone without horizontal overflow", async ({ page }) => {
+        await page.goto("/");
+        await page.getByRole("button", { name: "Open menu" }).click();
+        await page.getByRole("button", { name: "Login (Paid users)" }).click();
+
+        await expect(page.getByRole("region", { name: "Paid user login area" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Paid account login" })).toBeVisible();
+
+        const metrics = await page.evaluate(() => ({
+            panelWidth: document.querySelector<HTMLElement>("#homepage-auth-panel")?.scrollWidth ?? 0,
+            viewportWidth: window.innerWidth,
+            bodyOverflowing: document.body.scrollWidth > window.innerWidth + 1,
+        }));
+
+        expect(metrics.panelWidth).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+        expect(metrics.bodyOverflowing).toBe(false);
+    });
+
     test("onboarding does not show app shell chrome on phone", async ({ page }) => {
         await page.goto("/onboarding");
 

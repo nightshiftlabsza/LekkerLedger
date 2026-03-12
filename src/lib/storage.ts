@@ -24,6 +24,9 @@ import {
 
 import { normalizeEmployeeIdNumber } from "./employee-id";
 import { calculateAnnualLeaveSummary, getLeaveTypeLabel } from "./leave";
+import { fetchVerifiedEntitlements } from "./billing-client";
+import { syncService } from "./sync-service";
+import { createClient } from "./supabase/client";
 
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
 const payslipStore = localforage.createInstance({ name: "LekkerLedger", storeName: "payslips" });
@@ -43,6 +46,22 @@ export interface LocalBackupPreview {
     leaveCount: number;
     documentCount: number;
     contractCount: number;
+}
+
+export interface SyncMigrationSnapshot {
+    settings: EmployerSettings;
+    households: Household[];
+    employees: Employee[];
+    payslips: PayslipInput[];
+    leaveRecords: LeaveRecord[];
+    payPeriods: PayPeriod[];
+    documents: DocumentMeta[];
+    contracts: Contract[];
+    documentFiles: Array<{
+        id: string;
+        blob: Blob;
+        mimeType: string;
+    }>;
 }
 
 
@@ -257,6 +276,33 @@ type DataChangeListener = () => void | Promise<void>;
 const listeners: DataChangeListener[] = [];
 let isImporting = false;
 
+function withUpdatedAt<T extends Record<string, unknown>>(value: T): T & { updatedAt: string } {
+    return {
+        ...value,
+        updatedAt: typeof value.updatedAt === "string" && value.updatedAt ? value.updatedAt : new Date().toISOString(),
+    };
+}
+
+async function syncRecordToCloud(table: string, id: string, data: Record<string, unknown>) {
+    if (!syncService.isReady()) return;
+    await syncService.pushLocalChange(table, id, data);
+}
+
+async function syncRecordDeletionToCloud(table: string, id: string) {
+    if (!syncService.isReady()) return;
+    await syncService.pushLocalDelete(table, id);
+}
+
+async function syncDocumentFileToCloud(id: string, file: Blob, mimeType: string) {
+    if (!syncService.isReady()) return;
+    await syncService.pushLocalFile(id, file, mimeType);
+}
+
+async function syncDocumentFileDeletionToCloud(id: string) {
+    if (!syncService.isReady()) return;
+    await syncService.pushLocalFileDelete(id);
+}
+
 export function subscribeToDataChanges(callback: DataChangeListener) {
     listeners.push(callback);
     return () => {
@@ -293,9 +339,11 @@ export async function getHouseholds(): Promise<Household[]> {
 }
 
 export async function saveHousehold(household: Household): Promise<void> {
-    await householdStore.setItem(household.id, household);
-    await ensureHouseholdScopedSettings(household.id);
-    await logAuditEvent("SWITCH_HOUSEHOLD", `Saved household: ${household.name}`, { householdId: household.id });
+    const normalized = withUpdatedAt(household);
+    await householdStore.setItem(normalized.id, normalized);
+    await ensureHouseholdScopedSettings(normalized.id);
+    await syncRecordToCloud("households", normalized.id, normalized);
+    await logAuditEvent("SWITCH_HOUSEHOLD", `Saved household: ${normalized.name}`, { householdId: normalized.id });
     await notifyListeners();
 }
 
@@ -342,13 +390,13 @@ export async function getEmployee(id: string): Promise<Employee | null> {
 
 export async function saveEmployee(employee: Employee): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
-    const normalized: Employee = {
+    const normalized = withUpdatedAt({
         ...employee,
         householdId: employee.householdId || activeHouseholdId,
         name: employee.name.trim(),
         idNumber: normalizeEmployeeIdNumber(employee.idNumber ?? ""),
         phone: employee.phone?.trim() ?? "",
-    };
+    }) as Employee;
 
     if (normalized.idNumber) {
         const employees = await getEmployees();
@@ -362,6 +410,7 @@ export async function saveEmployee(employee: Employee): Promise<void> {
     }
 
     await employeeStore.setItem(normalized.id, await encodeData(normalized));
+    await syncRecordToCloud("employees", normalized.id, normalized as unknown as Record<string, unknown>);
     await logAuditEvent("CREATE_EMPLOYEE", `Saved employee: ${normalized.name}`, {
         employeeId: normalized.id,
         householdId: normalized.householdId,
@@ -398,6 +447,7 @@ export async function deleteEmployee(id: string): Promise<void> {
         employeeId: employee?.id || id,
         employeeName: employee?.name,
     });
+    await syncRecordDeletionToCloud("employees", id);
     await notifyListeners();
 }
 
@@ -414,12 +464,13 @@ export async function savePayslip(payslip: PayslipInput): Promise<void> {
         throw new Error("A payslip for this employee and pay period already exists.");
     }
 
-    const normalized: PayslipInput = {
+    const normalized = withUpdatedAt({
         ...payslip,
         householdId: payslip.householdId || activeHouseholdId,
-    };
+    }) as PayslipInput;
 
     await payslipStore.setItem(normalized.id, await encodeData(normalized));
+    await syncRecordToCloud("payslips", normalized.id, normalized as unknown as Record<string, unknown>);
     await logAuditEvent("CREATE_PAYSLIP", `Generated payslip for employee ID: ${normalized.employeeId}`, {
         payslipId: normalized.id,
         householdId: normalized.householdId,
@@ -466,6 +517,7 @@ export async function getAllPayslips(): Promise<PayslipInput[]> {
 export async function deletePayslip(id: string): Promise<void> {
     await payslipStore.removeItem(id);
     await logAuditEvent("DELETE_PAYSLIP", `Deleted payslip ID: ${id}`, { payslipId: id });
+    await syncRecordDeletionToCloud("payslips", id);
     await notifyListeners();
 }
 
@@ -555,12 +607,13 @@ export async function saveLeaveRecord(record: LeaveRecord): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
     const settings = await getSettings();
     const customLeaveTypes = normaliseCustomLeaveTypes(settings.customLeaveTypes ?? []);
-    const normalized: LeaveRecord = {
+    const normalized = withUpdatedAt({
         ...applyLeaveTypeMetadata(record, customLeaveTypes),
         householdId: record.householdId || activeHouseholdId,
-    };
+    }) as LeaveRecord;
     await leaveStore.setItem(normalized.id, await encodeData(normalized));
     await synchronizeEmployeeLeaveLedger(normalized.employeeId, customLeaveTypes);
+    await syncRecordToCloud("leave", normalized.id, normalized as unknown as Record<string, unknown>);
     await logAuditEvent("CREATE_LEAVE_RECORD", `Saved leave record: ${normalized.type} for employee ${normalized.employeeId}`, {
         leaveId: normalized.id,
         householdId: normalized.householdId,
@@ -583,6 +636,7 @@ export async function deleteLeaveRecord(id: string): Promise<void> {
         employeeId: record?.employeeId,
         leaveType: record?.type,
     });
+    await syncRecordDeletionToCloud("leave", id);
     await notifyListeners();
 }
 
@@ -627,9 +681,37 @@ async function overlayVerifiedEntitlements(settings: EmployerSettings): Promise<
     };
 }
 
-    // TODO: In Batch 2, this will check Supabase auth and verify entitlements.
-    // For now, local-only mode means we skip server-side entitlement verification.
-    return settings;
+    try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            return settings;
+        }
+
+        const entitlements = await fetchVerifiedEntitlements(session.access_token);
+        if (!entitlements) {
+            return settings;
+        }
+
+        const resolvedStatus = entitlements.status === "trialing"
+            ? "trial"
+            : entitlements.planId === "standard"
+                ? "standard"
+                : entitlements.planId === "pro"
+                    ? "pro"
+                    : "free";
+
+        return buildDefaultSettings({
+            ...settings,
+            proStatus: resolvedStatus,
+            paidUntil: entitlements.paidUntil,
+            trialExpiry: entitlements.trialEndsAt,
+            billingCycle: entitlements.billingCycle,
+        });
+    } catch (error) {
+        console.warn("Could not overlay verified entitlements.", error);
+        return settings;
+    }
 }
 
 export async function getSettings(): Promise<EmployerSettings> {
@@ -672,6 +754,12 @@ export async function saveSettings(settings: EmployerSettings): Promise<void> {
     const employees = await getEmployees();
     const customLeaveTypes = normaliseCustomLeaveTypes(normalized.customLeaveTypes ?? []);
     await Promise.all(employees.map(async (employee) => synchronizeEmployeeLeaveLedger(employee.id, customLeaveTypes)));
+    await syncRecordToCloud("settings", "main", {
+        ...globalSettings,
+        ...householdSettings,
+        activeHouseholdId,
+        updatedAt: new Date().toISOString(),
+    });
     if (typeof window !== "undefined" && typeof window.localStorage?.setItem === "function") {
         window.localStorage.setItem("ll-density", globalSettings.density || "comfortable");
     }
@@ -823,6 +911,93 @@ export async function getLocalBackupPreview(): Promise<LocalBackupPreview> {
         leaveCount: counts.leave,
         documentCount: counts.documents,
         contractCount: counts.contracts,
+    };
+}
+
+export async function getSyncMigrationSnapshot(): Promise<SyncMigrationSnapshot> {
+    await ensureDefaultHousehold();
+
+    const households: Household[] = [];
+    const employees: Employee[] = [];
+    const payslips: PayslipInput[] = [];
+    const leaveRecords: LeaveRecord[] = [];
+    const payPeriods: PayPeriod[] = [];
+    const documents: DocumentMeta[] = [];
+    const contracts: Contract[] = [];
+    const documentFiles: SyncMigrationSnapshot["documentFiles"] = [];
+
+    await householdStore.iterate<unknown, void>((value: unknown) => {
+        const parsed = HouseholdSchema.safeParse(value);
+        if (parsed.success) {
+            households.push(parsed.data);
+        }
+    });
+
+    await employeeStore.iterate<unknown, void>((value: unknown) => {
+        const decoded = decodeData<Employee>(value);
+        if (decoded) {
+            employees.push(decoded);
+        }
+    });
+
+    await payslipStore.iterate<unknown, void>((value: unknown) => {
+        const decoded = decodeData<PayslipInput>(value);
+        if (decoded) {
+            payslips.push(decoded);
+        }
+    });
+
+    await leaveStore.iterate<unknown, void>((value: unknown) => {
+        const decoded = decodeData<LeaveRecord>(value);
+        if (decoded) {
+            leaveRecords.push(decoded);
+        }
+    });
+
+    await payPeriodStore.iterate<unknown, void>((value: unknown) => {
+        const decoded = decodeData<PayPeriod>(value);
+        if (decoded) {
+            payPeriods.push(decoded);
+        }
+    });
+
+    await documentStore.iterate<unknown, void>((value: unknown) => {
+        const decoded = decodeData<DocumentMeta>(value);
+        if (decoded) {
+            documents.push(decoded);
+        }
+    });
+
+    await contractStore.iterate<unknown, void>((value: unknown) => {
+        const decoded = decodeData<Contract>(value);
+        if (decoded) {
+            contracts.push(decoded);
+        }
+    });
+
+    for (const document of documents) {
+        if (document.source !== "uploaded") continue;
+        const blob = await documentFileStore.getItem<Blob>(document.id);
+        if (!blob) continue;
+        documentFiles.push({
+            id: document.id,
+            blob,
+            mimeType: blob.type || document.mimeType || "application/octet-stream",
+        });
+    }
+
+    const settings = await getSettings();
+
+    return {
+        settings,
+        households,
+        employees,
+        payslips,
+        leaveRecords,
+        payPeriods,
+        documents,
+        contracts,
+        documentFiles,
     };
 }
 
@@ -1023,6 +1198,7 @@ export async function resetAllData(): Promise<void> {
         householdStore.clear(),
         auditStore.clear(),
     ]);
+    await notifyListeners();
 }
 
 export async function logAuditEvent(action: AuditLog["action"], details: string, metadata?: Record<string, unknown>): Promise<void> {
@@ -1067,6 +1243,7 @@ export async function savePayPeriod(period: PayPeriod): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
     const updated = { ...period, householdId: period.householdId || activeHouseholdId, updatedAt: new Date().toISOString() };
     await payPeriodStore.setItem(updated.id, await encodeData(updated));
+    await syncRecordToCloud("pay_periods", updated.id, updated as unknown as Record<string, unknown>);
     await logAuditEvent("CREATE_PAY_PERIOD", `Updated draft pay period: ${period.name}`, { periodId: period.id, householdId: updated.householdId });
     await notifyListeners();
 }
@@ -1084,6 +1261,7 @@ export async function lockPayPeriod(id: string): Promise<void> {
     };
 
     await payPeriodStore.setItem(id, await encodeData(locked));
+    await syncRecordToCloud("pay_periods", id, locked as unknown as Record<string, unknown>);
     await logAuditEvent("LOCK_PAY_PERIOD", `Locked pay period: ${period.name}`, { periodId: id });
     await notifyListeners();
 }
@@ -1116,6 +1294,7 @@ export async function unlockPayPeriod(id: string): Promise<void> {
     }));
 
     await logAuditEvent("LOCK_PAY_PERIOD", `Unlocked pay period: ${period.name}`, { periodId: id, action: "unlocked" });
+    await syncRecordToCloud("pay_periods", id, unlocked as unknown as Record<string, unknown>);
     await notifyListeners();
 }
 
@@ -1124,6 +1303,7 @@ export async function deletePayPeriod(id: string): Promise<void> {
     if (period?.status === "locked") throw new Error("Cannot delete a locked pay period");
     await payPeriodStore.removeItem(id);
     await logAuditEvent("DELETE_PAY_PERIOD", `Deleted pay period ID: ${id}`, { periodId: id });
+    await syncRecordDeletionToCloud("pay_periods", id);
     await notifyListeners();
 }
 
@@ -1153,19 +1333,27 @@ export async function getDocumentMeta(id: string): Promise<DocumentMeta | null> 
 
 export async function saveDocumentMeta(doc: DocumentMeta): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
-    const normalized = { ...doc, householdId: doc.householdId || activeHouseholdId };
+    const normalized = withUpdatedAt({ ...doc, householdId: doc.householdId || activeHouseholdId }) as DocumentMeta;
     await documentStore.setItem(normalized.id, await encodeData(normalized));
+    await syncRecordToCloud("documents", normalized.id, normalized as unknown as Record<string, unknown>);
     await notifyListeners();
 }
 
 export async function deleteDocumentMeta(id: string): Promise<void> {
     await documentStore.removeItem(id);
     await documentFileStore.removeItem(id);
+    await Promise.all([
+        syncRecordDeletionToCloud("documents", id),
+        syncDocumentFileDeletionToCloud(id),
+    ]);
     await notifyListeners();
 }
 
 export async function saveDocumentFile(id: string, file: Blob): Promise<void> {
     await documentFileStore.setItem(id, file);
+    const meta = await getDocumentMeta(id);
+    const mimeType = meta?.mimeType || file.type || "application/octet-stream";
+    await syncDocumentFileToCloud(id, file, mimeType);
 }
 
 export async function getDocumentFile(id: string): Promise<Blob | null> {
@@ -1194,6 +1382,7 @@ export async function saveContract(contract: Contract): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
     const normalized = { ...contract, householdId: contract.householdId || activeHouseholdId };
     await contractStore.setItem(normalized.id, await encodeData(normalized));
+    await syncRecordToCloud("contracts", normalized.id, normalized as unknown as Record<string, unknown>);
     await logAuditEvent("UPDATE_CONTRACT", `Saved contract version ${normalized.version} for employee ${normalized.employeeId}`, { contractId: normalized.id, householdId: normalized.householdId });
     await notifyListeners();
 }
@@ -1201,6 +1390,7 @@ export async function saveContract(contract: Contract): Promise<void> {
 export async function deleteContract(id: string): Promise<void> {
     await contractStore.removeItem(id);
     await logAuditEvent("UPDATE_CONTRACT", `Deleted contract ID: ${id}`, { contractId: id });
+    await syncRecordDeletionToCloud("contracts", id);
     await notifyListeners();
 }
 
@@ -1225,6 +1415,7 @@ export async function updateContractStatus(
     };
 
     await contractStore.setItem(id, await encodeData(updated));
+    await syncRecordToCloud("contracts", id, updated as unknown as Record<string, unknown>);
     await logAuditEvent("UPDATE_CONTRACT", `Contract ${id} status changed to ${status}`, { contractId: id, status });
     await notifyListeners();
 }

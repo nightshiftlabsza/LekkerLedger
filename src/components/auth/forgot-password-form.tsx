@@ -5,7 +5,19 @@ import Link from "next/link";
 import { Loader2, Mail, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-export function ForgotPasswordForm() {
+type ForgotPasswordFormProps = {
+    title?: string;
+    description?: string;
+    returnHref?: string;
+    returnLabel?: string;
+};
+
+export function ForgotPasswordForm({
+    title = "Reset password",
+    description = "Enter your email address and we'll send you a link to reset your password.",
+    returnHref = "/login",
+    returnLabel = "Back to log in",
+}: ForgotPasswordFormProps = {}) {
     const supabase = createClient();
     
     const [email, setEmail] = React.useState("");
@@ -19,7 +31,7 @@ export function ForgotPasswordForm() {
         setIsLoading(true);
 
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/api/auth/callback?redirect_to=/dashboard/settings/password`,
+            redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent("/reset-password")}`,
         });
 
         if (resetError) {
@@ -35,7 +47,7 @@ export function ForgotPasswordForm() {
     if (isSuccess) {
         return (
             <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] text-center animate-fade-in relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-[--primary]" />
+                <div className="absolute top-0 left-0 h-1 w-full bg-[var(--primary)]" />
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--success-soft)] text-[var(--primary)] mb-6 shadow-sm border border-[var(--success-border)]">
                     <CheckCircle2 className="w-7 h-7" strokeWidth={2.5} />
                 </div>
@@ -49,10 +61,10 @@ export function ForgotPasswordForm() {
                 
                 <div className="mt-6 pt-5 border-t border-[var(--border)]/50">
                     <Link 
-                        href="/login"
+                        href={returnHref}
                         className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
                     >
-                        Return to login
+                        {returnLabel}
                     </Link>
                 </div>
             </div>
@@ -63,10 +75,10 @@ export function ForgotPasswordForm() {
         <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] animate-fade-in">
             <div className="text-center mb-8">
                 <h1 className="font-serif text-3xl font-bold text-[var(--text)] mb-2 tracking-tight">
-                    Reset password
+                    {title}
                 </h1>
                 <p className="text-[var(--text-muted)] text-[0.95rem] max-w-[260px] mx-auto">
-                    Enter your email address and we&apos;ll send you a link to reset your password.
+                    {description}
                 </p>
             </div>
 
@@ -115,8 +127,8 @@ export function ForgotPasswordForm() {
             </form>
 
             <div className="mt-8 pt-6 border-t border-[var(--border)]/50 text-center">
-                <Link href="/login" className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
-                    Back to log in
+                <Link href={returnHref} className="text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
+                    {returnLabel}
                 </Link>
             </div>
         </div>

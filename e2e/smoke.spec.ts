@@ -23,13 +23,10 @@ test('calculator page loads in the browser', async ({ page }) => {
     await expect(page.locator('h1')).toContainText('Wage & UIF calculator');
 });
 
-test('homepage pricing CTA sends paid plans to upgrade flow', async ({ page }) => {
+test('homepage pricing CTA opens the paid checkout dialog', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
-    await Promise.all([
-        page.waitForURL('**/upgrade**'),
-        page.getByRole('link', { name: 'Choose Standard' }).click(),
-    ]);
-    await expect(page).toHaveURL(/\/upgrade/);
+    await page.getByRole('button', { name: /Try Standard for R1|Choose Standard/i }).click();
+    await expect(page.getByRole('heading', { name: 'Open secure payment' })).toBeVisible();
 });
 
 test('homepage "Start free" CTA sends to dashboard', async ({ page }) => {

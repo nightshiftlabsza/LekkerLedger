@@ -17,6 +17,7 @@ export function SignUpForm() {
     const [error, setError] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(false);
     const [isSuccess, setIsSuccess] = React.useState(false);
+    const reference = searchParams.get("reference")?.trim() || "";
 
     const validatePassword = (pass: string) => {
         if (pass.length < 10) return "Password must be at least 10 characters long.";
@@ -39,8 +40,7 @@ export function SignUpForm() {
         setPasswordError(null);
         setIsLoading(true);
 
-        const reference = searchParams.get("reference");
-        const next = reference ? `/billing/success?reference=${encodeURIComponent(reference)}` : '/dashboard';
+        const next = reference ? `/billing/success?reference=${encodeURIComponent(reference)}` : "/dashboard";
 
         const { error: signUpError } = await supabase.auth.signUp({
             email,
@@ -63,7 +63,7 @@ export function SignUpForm() {
     if (isSuccess) {
         return (
             <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] text-center animate-fade-in relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-[--primary]" />
+                <div className="absolute top-0 left-0 h-1 w-full bg-[var(--primary)]" />
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--success-soft)] text-[var(--primary)] mb-6 shadow-sm border border-[var(--success-border)]">
                     <CheckCircle2 className="w-7 h-7" strokeWidth={2.5} />
                 </div>
@@ -91,10 +91,12 @@ export function SignUpForm() {
         <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] animate-fade-in">
             <div className="text-center mb-8">
                 <h1 className="font-serif text-3xl font-bold text-[var(--text)] mb-2 tracking-tight">
-                    Create your account
+                    Create your secure account
                 </h1>
                 <p className="text-[var(--text-muted)] text-[0.95rem]">
-                    Store and sync your records permanently.
+                    {reference
+                        ? "Your payment is already on file. Create the account that will hold your encrypted sync access."
+                        : "Create the account that will hold your encrypted payroll backup and sync access."}
                 </p>
             </div>
 
@@ -169,9 +171,14 @@ export function SignUpForm() {
                                 Creating account...
                             </>
                         ) : (
-                            "Create account"
+                            "Create secure account"
                         )}
                     </button>
+                    {reference ? (
+                        <p className="mt-4 text-center text-xs leading-5 text-[var(--text-muted)]">
+                            After you confirm your email, LekkerLedger will return you to the payment handoff screen and finish activation automatically.
+                        </p>
+                    ) : null}
                     <p className="text-xs text-[var(--text-muted)] text-center mt-4">
                         By creating an account, you agree to our <Link href="/legal/terms" className="underline hover:text-[var(--text)]">Terms</Link> and <Link href="/legal/privacy" className="underline hover:text-[var(--text)]">Privacy Policy</Link>.
                     </p>

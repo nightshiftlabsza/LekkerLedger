@@ -5,7 +5,7 @@ import { useAppMode } from "@/lib/app-mode";
 import { RecoveryKeySetup } from "./recovery-key-setup";
 import { RecoveryKeyInput } from "./recovery-key-input";
 import { createClient } from "@/lib/supabase/client";
-import { generateValidationPayload, verifyValidationPayload, type EncryptedPayload } from "@/lib/crypto";
+import { deriveKey, generateValidationPayload, verifyValidationPayload, type EncryptedPayload } from "@/lib/crypto";
 import { Loader2 } from "lucide-react";
 
 export function RecoveryGate({ children }: { children: React.ReactNode }) {
@@ -54,27 +54,20 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            // They just generated a key. Let's derive it and save the payload.
-            const encoder = new TextEncoder();
-            const keyData = encoder.encode(keyString.replace(/-/g, '').toUpperCase());
-            const hash = await crypto.subtle.digest('SHA-256', keyData);
-            const cryptoKey = await crypto.subtle.importKey(
-                'raw',
-                hash,
-                { name: 'AES-GCM' },
-                false,
-                ['encrypt', 'decrypt']
-            );
-
+            const cryptoKey = await deriveKey(keyString);
             const payload = await generateValidationPayload(cryptoKey);
 
-            // Save to profile
-             await supabase.from('user_profiles').update({
+            const { error } = await supabase.from('user_profiles').upsert({
+                id: user.id,
                 key_setup_complete: true,
-                validation_payload: payload
-            }).eq('id', user.id);
+                validation_payload: payload,
+            });
 
-            unlockAccount(cryptoKey, user.id);
+            if (error) {
+                throw error;
+            }
+
+            await unlockAccount(cryptoKey, user.id);
         } catch (err) {
             console.error(err);
             setStatus('needs_setup'); // reset
@@ -102,7 +95,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                  }
             }
 
-            unlockAccount(cryptoKey, user.id);
+            await unlockAccount(cryptoKey, user.id);
         } catch (err) {
              console.error(err);
              alert("Error validating key.");
