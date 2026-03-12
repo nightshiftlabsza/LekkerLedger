@@ -17,6 +17,14 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   experimental: {},
+  async rewrites() {
+    return [
+      {
+        source: '/__mockup/:path*',
+        destination: 'http://localhost:3000/__mockup/:path*',
+      },
+    ];
+  },
   async redirects() {
     return [
       {
