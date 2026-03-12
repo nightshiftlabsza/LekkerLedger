@@ -246,7 +246,6 @@ export function useInlinePaidPlanCheckout({
         setRequestedPlanId(planId);
         const normalizedEmail = normalizeEmail(checkoutEmail);
         if (!isValidEmail(normalizedEmail)) {
-            setEmailError(checkoutEmail ? "Enter a valid email address to continue." : "Enter the email to use for this payment.");
             setDialogOpen(true);
             return;
         }
