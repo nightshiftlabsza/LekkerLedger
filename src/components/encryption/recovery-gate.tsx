@@ -6,7 +6,14 @@ import { RecoveryKeySetup } from "./recovery-key-setup";
 import { RecoveryKeyInput } from "./recovery-key-input";
 import { createClient } from "@/lib/supabase/client";
 import { deriveKey, generateValidationPayload, verifyValidationPayload, type EncryptedPayload } from "@/lib/crypto";
+import { getLocalRecoveryProfile, saveLocalRecoveryProfile } from "@/lib/recovery-profile-store";
 import { Loader2 } from "lucide-react";
+
+interface RecoveryProfileState {
+    keySetupComplete: boolean;
+    validationPayload: EncryptedPayload | null;
+    source: "remote" | "local" | "none";
+}
 
 export function RecoveryGate({ children }: { children: React.ReactNode }) {
     const { mode, unlockAccount } = useAppMode();
@@ -28,17 +35,11 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user || !mounted) return;
 
-            // Check if user has already set up a key
-            const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('key_setup_complete, validation_payload')
-                .eq('id', user.id)
-                .single();
+            const profile = await loadRecoveryProfileState(user.id, supabase);
             
             if (!mounted) return;
 
-            // If we don't have a record or boolean is false, they need setup
-            if (!profile || !profile.key_setup_complete) {
+            if (!profile.keySetupComplete) {
                 setSetupError(null);
                 setStatus('needs_setup');
             } else {
@@ -61,6 +62,12 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             const cryptoKey = await deriveKey(keyString);
             const payload = await generateValidationPayload(cryptoKey);
 
+            await saveLocalRecoveryProfile(user.id, {
+                keySetupComplete: true,
+                validationPayload: payload,
+                updatedAt: new Date().toISOString(),
+            });
+
             const { error } = await supabase
                 .from('user_profiles')
                 .upsert({
@@ -72,7 +79,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 });
 
             if (error) {
-                throw error;
+                console.warn("Could not save recovery profile to Supabase. Continuing with local device copy only.", error);
             }
 
             await unlockAccount(cryptoKey, user.id);
@@ -91,14 +98,10 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('validation_payload')
-                .eq('id', user.id)
-                .single();
+            const profile = await loadRecoveryProfileState(user.id, supabase);
 
-            if (profile?.validation_payload) {
-                 const isValid = await verifyValidationPayload(profile.validation_payload as unknown as EncryptedPayload, cryptoKey);
+            if (profile.validationPayload) {
+                 const isValid = await verifyValidationPayload(profile.validationPayload, cryptoKey);
                  if (!isValid) {
                      alert("Incorrect Recovery Key. Please try again.");
                      setStatus('needs_input');
@@ -219,4 +222,43 @@ function formatRecoverySetupError(error: unknown) {
     }
 
     return "Cloud sync could not finish setting up your recovery key. Please try again.";
+}
+
+async function loadRecoveryProfileState(
+    userId: string,
+    supabase: ReturnType<typeof createClient>,
+): Promise<RecoveryProfileState> {
+    const localProfile = await getLocalRecoveryProfile(userId);
+
+    const { data, error } = await supabase
+        .from("user_profiles")
+        .select("key_setup_complete, validation_payload")
+        .eq("id", userId)
+        .maybeSingle();
+
+    if (data?.key_setup_complete) {
+        return {
+            keySetupComplete: true,
+            validationPayload: (data.validation_payload as EncryptedPayload | null) ?? null,
+            source: "remote",
+        };
+    }
+
+    if (error) {
+        console.warn("Could not read recovery profile from Supabase. Falling back to local device state.", error);
+    }
+
+    if (localProfile?.keySetupComplete) {
+        return {
+            keySetupComplete: true,
+            validationPayload: localProfile.validationPayload,
+            source: "local",
+        };
+    }
+
+    return {
+        keySetupComplete: false,
+        validationPayload: null,
+        source: "none",
+    };
 }
