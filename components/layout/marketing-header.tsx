@@ -67,7 +67,7 @@ export function MarketingHeader() {
                 <button
                     onClick={() => setMenuOpen(true)}
                     aria-label="Open menu"
-                    className="lg:hidden flex h-10 w-10 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-raised)]"
+                    className="lg:hidden flex h-12 w-12 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-raised)]"
                 >
                     <Menu className="h-5 w-5" />
                 </button>
@@ -84,7 +84,7 @@ export function MarketingHeader() {
                             <button
                                 onClick={() => setMenuOpen(false)}
                                 aria-label="Close menu"
-                                className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-raised)]"
+                                className="flex h-12 w-12 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-raised)]"
                             >
                                 <X className="h-5 w-5" />
                             </button>

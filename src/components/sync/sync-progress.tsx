@@ -28,7 +28,7 @@ export function SyncProgress({ onComplete }: SyncProgressProps) {
     const handleStart = async () => {
         try {
             await syncEngine.runMigration();
-        } catch (error) {
+        } catch {
            // Error is handled in the callback
         }
     };

@@ -1,0 +1,33 @@
+
+Running 1 test using 1 worker
+
+  Γ£ÿ  1 [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip (18.5s)
+
+
+  1) [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('text=Payslip generated for')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('text=Payslip generated for')[22m
+
+
+      106 |         // Verify PDF success message
+      107 |         const successMessage = page.locator('text=Payslip generated for');
+    > 108 |         await expect(successMessage).toBeVisible({ timeout: 10000 });
+          |                                      ^
+      109 |
+      110 |         // Check if the Download button exists
+      111 |         const downloadBtn = page.locator('button:has-text("Download PDF")');
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\payslip.spec.ts:108:38
+
+    Error Context: test-results\payslip-Payslip-Generation-acac9-oyee-and-generate-a-payslip-chromium\error-context.md
+
+  1 failed
+    [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 

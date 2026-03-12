@@ -443,7 +443,7 @@ export function PricingComparisonTable() {
             <table className="min-w-[850px] w-full border-collapse">
                 <thead>
                     <tr
-                        className="border-b border-[var(--border)] bg-[var(--surface-raised)] text-left text-[10px] font-black uppercase tracking-[0.18em]"
+                        className="border-b border-[var(--border)] bg-[var(--surface-raised)] text-left text-xs font-black uppercase tracking-[0.18em]"
                         style={{ color: "var(--text-muted)" }}
                     >
                         <th
@@ -472,7 +472,7 @@ export function PricingComparisonTable() {
                             <tr key={`${group.title}-header`}>
                                 <td
                                     colSpan={4}
-                                    className="sticky left-0 z-10 border-y border-[var(--border)] bg-[var(--surface-raised)] px-6 py-4 text-[10px] font-black uppercase tracking-[0.18em]"
+                                    className="sticky left-0 z-10 border-y border-[var(--border)] bg-[var(--surface-raised)] px-6 py-4 text-xs font-black uppercase tracking-[0.18em]"
                                     style={{ color: "var(--text)" }}
                                 >
                                     {group.title}

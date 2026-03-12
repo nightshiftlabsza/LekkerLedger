@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { KeyRound, Loader2, AlertCircle } from "lucide-react";
-import { deriveKey, encryptData } from "@/lib/crypto";
+import { deriveKey } from "@/lib/crypto";
 
 interface RecoveryKeyInputProps {
     onComplete: (key: string, cryptoKey: CryptoKey) => void;

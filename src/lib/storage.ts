@@ -21,7 +21,7 @@ import {
     Household,
     HouseholdSchema,
 } from "./schema";
-import { fetchVerifiedEntitlements } from "./billing-client";
+
 import { normalizeEmployeeIdNumber } from "./employee-id";
 import { calculateAnnualLeaveSummary, getLeaveTypeLabel } from "./leave";
 
@@ -614,17 +614,6 @@ export async function getAllLeaveRecords(): Promise<LeaveRecord[]> {
 
 const SETTINGS_KEY = "employer-settings";
 
-function applyVerifiedEntitlementsToSettings(settings: EmployerSettings, entitlements: Awaited<ReturnType<typeof fetchVerifiedEntitlements>>): EmployerSettings {
-    const verifiedPlanId = entitlements?.isActive ? entitlements.planId : "free";
-    const billingCycle = entitlements?.billingCycle || settings.billingCycle || "monthly";
-    return {
-        ...settings,
-        proStatus: verifiedPlanId,
-        paidUntil: entitlements?.isActive ? entitlements.paidUntil : undefined,
-        trialExpiry: entitlements?.trialEndsAt,
-        billingCycle,
-    };
-}
 
 async function overlayVerifiedEntitlements(settings: EmployerSettings): Promise<EmployerSettings> {
     if (typeof window === "undefined") return settings;
@@ -826,7 +815,7 @@ export async function getLocalBackupPreview(): Promise<LocalBackupPreview> {
     await documentStore.iterate(() => { counts.documents++; });
     await contractStore.iterate(() => { counts.contracts++; });
     
-    const settings = await getSettings();
+
 
     return {
         employeeCount: counts.employees,

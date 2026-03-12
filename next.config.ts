@@ -26,24 +26,64 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: '/privacy-policy',
+        destination: '/legal/privacy',
+        permanent: true,
+      },
+      {
+        source: '/legal/privacy-policy',
+        destination: '/legal/privacy',
+        permanent: true,
+      },
+      {
         source: '/terms',
         destination: '/legal/terms',
         permanent: true,
       },
       {
-        source: '/sign-in',
-        destination: '/dashboard',
-        permanent: false, // Temporary until real auth happens if ever
+        source: '/terms-of-service',
+        destination: '/legal/terms',
+        permanent: true,
       },
       {
-        source: '/login',
-        destination: '/dashboard',
-        permanent: false,
+        source: '/legal/terms-of-service',
+        destination: '/legal/terms',
+        permanent: true,
+      },
+      {
+        source: '/refunds',
+        destination: '/legal/refunds',
+        permanent: true,
+      },
+      {
+        source: '/refund',
+        destination: '/legal/refunds',
+        permanent: true,
+      },
+      {
+        source: '/legal/refund',
+        destination: '/legal/refunds',
+        permanent: true,
+      },
+      {
+        source: '/sign-in',
+        destination: '/login',
+        permanent: true,
+      },
+      {
+        source: '/register',
+        destination: '/signup',
+        permanent: true,
       },
       {
         source: '/auth/login',
-        destination: '/dashboard',
-        permanent: false,
+        destination: '/login',
+        permanent: true,
+      },
+      {
+        source: '/auth/signup',
+        destination: '/signup',
+        permanent: true,
       },
     ];
   },

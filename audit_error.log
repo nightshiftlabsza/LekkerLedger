@@ -1,4 +1,26 @@
 
-Running 1 test using 1 worker
+Running 6 tests using 1 worker
 
-Starting Landing & Onboarding...
+marketing actions executed: 32
+marketing failures flagged: 20
+  Γ£ô  1 [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:13:13 ΓÇ║ Comprehensive audit matrix ΓÇ║ runs the marketing action audit (1.9m)
+onboarding-shell actions executed: 31
+onboarding-shell failures flagged: 8
+  Γ£ô  2 [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:13:13 ΓÇ║ Comprehensive audit matrix ΓÇ║ runs the onboarding-shell action audit (1.8m)
+employees-leave-contracts actions executed: 31
+employees-leave-contracts failures flagged: 4
+  Γ£ô  3 [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:13:13 ΓÇ║ Comprehensive audit matrix ΓÇ║ runs the employees-leave-contracts action audit (1.5m)
+payroll-documents-history actions executed: 41
+payroll-documents-history failures flagged: 12
+  Γ£ô  4 [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:13:13 ΓÇ║ Comprehensive audit matrix ΓÇ║ runs the payroll-documents-history action audit (2.0m)
+compliance-storage-billing actions executed: 30
+compliance-storage-billing failures flagged: 8
+  Γ£ô  5 [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:13:13 ΓÇ║ Comprehensive audit matrix ΓÇ║ runs the compliance-storage-billing action audit (42.1s)
+Audit actions executed: 165
+Audit failures flagged: 52
+Audit report written to: C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e-reports\latest-audit-report.md
+  Γ£ô  6 [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts:32:9 ΓÇ║ Comprehensive audit matrix ΓÇ║ writes the combined markdown audit report (4ms)
+
+  Slow test file: [chromium] ΓÇ║ e2e\comprehensive-audit.spec.ts (8.0m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  6 passed (8.1m)

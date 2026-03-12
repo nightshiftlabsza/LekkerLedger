@@ -94,10 +94,6 @@ function BillingSuccessPageContent() {
     const nextCharge = billingAccount?.account.nextChargeAt
         ? new Date(billingAccount.account.nextChargeAt).toLocaleDateString("en-ZA")
         : null;
-    const reference = searchParams.get("reference")?.trim() || "";
-    const successPath = reference
-        ? `/billing/success?reference=${encodeURIComponent(reference)}&claim=1`
-        : "/billing/success?claim=1";
 
     const title = status === "trial"
         ? "Thank you, your trial is active"

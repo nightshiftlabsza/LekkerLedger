@@ -1,78 +1,84 @@
 # LekkerLedger Audit Report
 
-Generated: 2026-03-07T06:54:06.132Z
+Generated: 2026-03-11T23:47:00.455Z
 Actions run: 165
-Failures: 13
+Failures: 52
 
 ## Summary
 
-- marketing: 32 actions, 3 flagged
-- onboarding-shell: 31 actions, 0 flagged
-- employees-leave-contracts: 31 actions, 1 flagged
-- payroll-documents-history: 41 actions, 4 flagged
-- compliance-storage-billing: 30 actions, 5 flagged
+- marketing: 32 actions, 20 flagged
+- onboarding-shell: 31 actions, 8 flagged
+- employees-leave-contracts: 31 actions, 4 flagged
+- payroll-documents-history: 41 actions, 12 flagged
+- compliance-storage-billing: 30 actions, 8 flagged
 
 ## Detailed Results
 
 ### Open homepage on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /
 - Device: mobile
 - Final URL: http://localhost:3002/
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-home-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open / on mobile and run the scripted steps for "Open homepage on phone".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=12, fixedBottomBars=0
+- Issues: Too many undersized tap targets (17 below 44px).
+- Metrics: overflow=false, tinyText=28, undersizedTargets=17, fixedBottomBars=0
 
 ### Open pricing page on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /pricing
 - Device: mobile
 - Final URL: http://localhost:3002/pricing
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-pricing-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Responsive Rules / Mobile layout containment
+- Recommendation: Restructure the layout at this breakpoint and remove any width assumptions that exceed the viewport.
 - Repro: Open /pricing on mobile and run the scripted steps for "Open pricing page on phone".
-- Metrics: overflow=false, tinyText=4, undersizedTargets=14, fixedBottomBars=0
+- Issues: Horizontal overflow detected. | High density of tiny text (35 visible elements below 12px).
+- Metrics: overflow=true, tinyText=35, undersizedTargets=16, fixedBottomBars=22
 
 ### Open calculator page on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /calculator
 - Device: mobile
 - Final URL: http://localhost:3002/calculator
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-calculator-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open /calculator on mobile and run the scripted steps for "Open calculator page on phone".
-- Metrics: overflow=false, tinyText=2, undersizedTargets=12, fixedBottomBars=0
+- Issues: Too many undersized tap targets (22 below 44px).
+- Metrics: overflow=false, tinyText=12, undersizedTargets=22, fixedBottomBars=0
 
 ### Open rules page on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /rules
 - Device: mobile
 - Final URL: http://localhost:3002/rules
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-rules-mobile-mobile.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /rules on mobile and run the scripted steps for "Open rules page on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=10, fixedBottomBars=0
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=9, undersizedTargets=15, fixedBottomBars=0
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open trust page on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /trust
 - Device: mobile
 - Final URL: http://localhost:3002/trust
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-trust-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open /trust on mobile and run the scripted steps for "Open trust page on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=14, fixedBottomBars=0
+- Issues: Too many undersized tap targets (23 below 44px).
+- Metrics: overflow=false, tinyText=10, undersizedTargets=23, fixedBottomBars=0
 
 ### Open support page on phone
 - Severity: info
@@ -84,108 +90,111 @@ Failures: 13
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /support on mobile and run the scripted steps for "Open support page on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=11, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=9, undersizedTargets=16, fixedBottomBars=0
 
 ### Open storage page on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /storage
 - Device: mobile
 - Final URL: http://localhost:3002/storage
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-storage-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open /storage on mobile and run the scripted steps for "Open storage page on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=12, fixedBottomBars=0
+- Issues: Too many undersized tap targets (17 below 44px).
+- Metrics: overflow=false, tinyText=9, undersizedTargets=17, fixedBottomBars=0
 
 ### Open examples page on phone
-- Severity: high
+- Severity: medium
 - Status: failed
 - Route: /examples
 - Device: mobile
 - Final URL: http://localhost:3002/examples
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-examples-mobile-mobile.png
-- UX rule: Stability and recovery states
-- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
+- UX rule: Civic Ledger readability and scanability
+- Recommendation: Condense the information architecture for phone instead of shrinking the typography.
 - Repro: Open /examples on mobile and run the scripted steps for "Open examples page on phone".
-- Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=0, undersizedTargets=0, fixedBottomBars=0
-- Page errors: page.goto: Timeout 15000ms exceeded.
-Call log:
-[2m  - navigating to "http://localhost:3002/examples", waiting until "domcontentloaded"[22m
-
+- Issues: High density of tiny text (31 visible elements below 12px).
+- Metrics: overflow=false, tinyText=31, undersizedTargets=15, fixedBottomBars=0
 
 ### Open privacy page on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /legal/privacy
 - Device: mobile
 - Final URL: http://localhost:3002/legal/privacy
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-privacy-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open /legal/privacy on mobile and run the scripted steps for "Open privacy page on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=11, fixedBottomBars=0
+- Issues: Too many undersized tap targets (19 below 44px).
+- Metrics: overflow=false, tinyText=17, undersizedTargets=19, fixedBottomBars=0
 
 ### Open terms page on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /legal/terms
 - Device: mobile
 - Final URL: http://localhost:3002/legal/terms
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-terms-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open /legal/terms on mobile and run the scripted steps for "Open terms page on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=11, fixedBottomBars=0
+- Issues: Too many undersized tap targets (19 below 44px).
+- Metrics: overflow=false, tinyText=9, undersizedTargets=19, fixedBottomBars=0
 
 ### Open refunds page on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /legal/refunds
 - Device: mobile
 - Final URL: http://localhost:3002/legal/refunds
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-refunds-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open /legal/refunds on mobile and run the scripted steps for "Open refunds page on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=11, fixedBottomBars=0
+- Issues: Too many undersized tap targets (18 below 44px).
+- Metrics: overflow=false, tinyText=9, undersizedTargets=18, fixedBottomBars=0
 
 ### Open app handoff page on phone
 - Severity: info
 - Status: passed
 - Route: /open-app
 - Device: mobile
-- Final URL: http://localhost:3002/open-app
+- Final URL: http://localhost:3002/dashboard
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-open-app-mobile-mobile.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /open-app on mobile and run the scripted steps for "Open app handoff page on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=11, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=11, undersizedTargets=3, fixedBottomBars=2
 
 ### Re-open privacy page on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /legal/privacy
 - Device: mobile
 - Final URL: http://localhost:3002/legal/privacy
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-privacy-policy-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open /legal/privacy on mobile and run the scripted steps for "Re-open privacy page on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=11, fixedBottomBars=0
+- Issues: Too many undersized tap targets (19 below 44px).
+- Metrics: overflow=false, tinyText=17, undersizedTargets=19, fixedBottomBars=0
 
 ### Open terms alias on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /legal/terms-of-service
 - Device: mobile
-- Final URL: http://localhost:3002/legal/terms
+- Final URL: http://localhost:3002/legal/terms-of-service
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-terms-alias-mobile-mobile.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /legal/terms-of-service on mobile and run the scripted steps for "Open terms alias on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=11, fixedBottomBars=0
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=0, undersizedTargets=2, fixedBottomBars=0
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open homepage on desktop
 - Severity: info
@@ -197,7 +206,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open / on desktop and run the scripted steps for "Open homepage on desktop".
-- Metrics: overflow=false, tinyText=20, undersizedTargets=21, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=40, undersizedTargets=23, fixedBottomBars=0
 
 ### Open pricing page on desktop
 - Severity: info
@@ -209,24 +218,19 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /pricing on desktop and run the scripted steps for "Open pricing page on desktop".
-- Metrics: overflow=false, tinyText=5, undersizedTargets=21, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=35, undersizedTargets=22, fixedBottomBars=22
 
 ### Open calculator page on desktop
-- Severity: high
-- Status: failed
+- Severity: info
+- Status: passed
 - Route: /calculator
 - Device: desktop
 - Final URL: http://localhost:3002/calculator
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-calculator-desktop-desktop.png
-- UX rule: Stability and recovery states
-- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
+- UX rule: No rule breach detected
+- Recommendation: No change required from this run.
 - Repro: Open /calculator on desktop and run the scripted steps for "Open calculator page on desktop".
-- Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=3, undersizedTargets=17, fixedBottomBars=0
-- Page errors: page.goto: Timeout 15000ms exceeded.
-Call log:
-[2m  - navigating to "http://localhost:3002/calculator", waiting until "domcontentloaded"[22m
-
+- Metrics: overflow=false, tinyText=12, undersizedTargets=26, fixedBottomBars=0
 
 ### Open trust page on desktop
 - Severity: info
@@ -238,7 +242,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /trust on desktop and run the scripted steps for "Open trust page on desktop".
-- Metrics: overflow=false, tinyText=2, undersizedTargets=14, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=10, undersizedTargets=27, fixedBottomBars=0
 
 ### Open support page on desktop
 - Severity: info
@@ -250,7 +254,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /support on desktop and run the scripted steps for "Open support page on desktop".
-- Metrics: overflow=false, tinyText=2, undersizedTargets=11, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=9, undersizedTargets=15, fixedBottomBars=0
 
 ### Open storage page on desktop
 - Severity: info
@@ -262,24 +266,19 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /storage on desktop and run the scripted steps for "Open storage page on desktop".
-- Metrics: overflow=false, tinyText=2, undersizedTargets=12, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=9, undersizedTargets=16, fixedBottomBars=0
 
 ### Open examples page on desktop
-- Severity: high
-- Status: failed
+- Severity: info
+- Status: passed
 - Route: /examples
 - Device: desktop
 - Final URL: http://localhost:3002/examples
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-examples-desktop-desktop.png
-- UX rule: Stability and recovery states
-- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
+- UX rule: No rule breach detected
+- Recommendation: No change required from this run.
 - Repro: Open /examples on desktop and run the scripted steps for "Open examples page on desktop".
-- Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=0, undersizedTargets=0, fixedBottomBars=0
-- Page errors: page.goto: Timeout 15000ms exceeded.
-Call log:
-[2m  - navigating to "http://localhost:3002/examples", waiting until "domcontentloaded"[22m
-
+- Metrics: overflow=false, tinyText=31, undersizedTargets=14, fixedBottomBars=0
 
 ### Open privacy page on desktop
 - Severity: info
@@ -291,7 +290,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /legal/privacy on desktop and run the scripted steps for "Open privacy page on desktop".
-- Metrics: overflow=false, tinyText=2, undersizedTargets=11, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=14, undersizedTargets=18, fixedBottomBars=0
 
 ### Open terms page on desktop
 - Severity: info
@@ -303,7 +302,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /legal/terms on desktop and run the scripted steps for "Open terms page on desktop".
-- Metrics: overflow=false, tinyText=2, undersizedTargets=11, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=9, undersizedTargets=18, fixedBottomBars=0
 
 ### Open refunds page on desktop
 - Severity: info
@@ -315,115 +314,139 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /legal/refunds on desktop and run the scripted steps for "Open refunds page on desktop".
-- Metrics: overflow=false, tinyText=2, undersizedTargets=11, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=9, undersizedTargets=17, fixedBottomBars=0
 
 ### Open the homepage mobile menu
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /
 - Device: mobile
 - Final URL: http://localhost:3002/
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-home-menu-open-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open / on mobile and run the scripted steps for "Open the homepage mobile menu".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=12, fixedBottomBars=1
+- Issues: Too many undersized tap targets (17 below 44px).
+- Metrics: overflow=false, tinyText=28, undersizedTargets=17, fixedBottomBars=1
 
 ### Close the homepage mobile menu
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /
 - Device: mobile
 - Final URL: http://localhost:3002/
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-home-menu-close-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open / on mobile and run the scripted steps for "Close the homepage mobile menu".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=12, fixedBottomBars=0
+- Issues: Too many undersized tap targets (17 below 44px).
+- Metrics: overflow=false, tinyText=28, undersizedTargets=17, fixedBottomBars=0
 
 ### Follow the homepage Start free CTA on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /
 - Device: mobile
-- Final URL: http://localhost:3002/onboarding
+- Final URL: http://localhost:3002/dashboard
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-home-start-free-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open / on mobile and run the scripted steps for "Follow the homepage Start free CTA on phone".
-- Metrics: overflow=false, tinyText=3, undersizedTargets=4, fixedBottomBars=0
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=11, undersizedTargets=3, fixedBottomBars=2
+- Page errors: page.waitForURL: Timeout 30000ms exceeded.
+=========================== logs ===========================
+waiting for navigation until "load"
+============================================================
 
 ### Follow the homepage pricing CTA on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /
 - Device: mobile
-- Final URL: http://localhost:3002/pricing
+- Final URL: http://localhost:3002/
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-home-pricing-cta-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open / on mobile and run the scripted steps for "Follow the homepage pricing CTA on phone".
-- Metrics: overflow=false, tinyText=4, undersizedTargets=14, fixedBottomBars=0
+- Issues: Too many undersized tap targets (17 below 44px). | Runtime errors present (1).
+- Metrics: overflow=false, tinyText=28, undersizedTargets=17, fixedBottomBars=0
+- Page errors: locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('link', { name: 'See full pricing' }).first() to be visible[22m
+
 
 ### Follow the homepage storage CTA on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /
 - Device: mobile
-- Final URL: http://localhost:3002/legal/privacy
+- Final URL: http://localhost:3002/
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-home-storage-cta-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open / on mobile and run the scripted steps for "Follow the homepage storage CTA on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=11, fixedBottomBars=0
+- Issues: Too many undersized tap targets (17 below 44px). | Runtime errors present (1).
+- Metrics: overflow=false, tinyText=28, undersizedTargets=17, fixedBottomBars=0
+- Page errors: locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('link', { name: 'How storage works' }).first() to be visible[22m
+
 
 ### Switch pricing to monthly on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /pricing
 - Device: mobile
 - Final URL: http://localhost:3002/pricing
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-pricing-toggle-monthly-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Responsive Rules / Mobile layout containment
+- Recommendation: Restructure the layout at this breakpoint and remove any width assumptions that exceed the viewport.
 - Repro: Open /pricing on mobile and run the scripted steps for "Switch pricing to monthly on phone".
-- Metrics: overflow=false, tinyText=4, undersizedTargets=14, fixedBottomBars=0
+- Issues: Horizontal overflow detected. | High density of tiny text (35 visible elements below 12px).
+- Metrics: overflow=true, tinyText=35, undersizedTargets=16, fixedBottomBars=22
 
 ### Switch pricing to yearly on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /pricing
 - Device: mobile
 - Final URL: http://localhost:3002/pricing
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-pricing-toggle-yearly-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Responsive Rules / Mobile layout containment
+- Recommendation: Restructure the layout at this breakpoint and remove any width assumptions that exceed the viewport.
 - Repro: Open /pricing on mobile and run the scripted steps for "Switch pricing to yearly on phone".
-- Metrics: overflow=false, tinyText=4, undersizedTargets=14, fixedBottomBars=0
+- Issues: Horizontal overflow detected. | High density of tiny text (34 visible elements below 12px).
+- Metrics: overflow=true, tinyText=34, undersizedTargets=16, fixedBottomBars=22
 
 ### Open a homepage FAQ item on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /
 - Device: mobile
 - Final URL: http://localhost:3002/
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/marketing-home-faq-open-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open / on mobile and run the scripted steps for "Open a homepage FAQ item on phone".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=12, fixedBottomBars=0
+- Issues: Too many undersized tap targets (17 below 44px). | Runtime errors present (1).
+- Metrics: overflow=false, tinyText=28, undersizedTargets=17, fixedBottomBars=0
+- Page errors: locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: 'Is my employee data stored on LekkerLedger\'s servers?' }).first() to be visible[22m
+
 
 ### Open onboarding on phone
 - Severity: info
 - Status: passed
 - Route: /onboarding
 - Device: mobile
-- Final URL: http://localhost:3002/onboarding
+- Final URL: http://localhost:3002/dashboard
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/shell-onboarding-mobile-mobile.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /onboarding on mobile and run the scripted steps for "Open onboarding on phone".
-- Metrics: overflow=false, tinyText=3, undersizedTargets=4, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=11, undersizedTargets=3, fixedBottomBars=2
 
 ### Open dashboard on phone
 - Severity: info
@@ -435,7 +458,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /dashboard on mobile and run the scripted steps for "Open dashboard on phone".
-- Metrics: overflow=false, tinyText=21, undersizedTargets=2, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=11, undersizedTargets=3, fixedBottomBars=2
 
 ### Open settings on phone
 - Severity: info
@@ -447,7 +470,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings on mobile and run the scripted steps for "Open settings on phone".
-- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=18, undersizedTargets=1, fixedBottomBars=2
 
 ### Open storage settings on phone
 - Severity: info
@@ -459,7 +482,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=storage on mobile and run the scripted steps for "Open storage settings on phone".
-- Metrics: overflow=false, tinyText=17, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=13, undersizedTargets=1, fixedBottomBars=2
 
 ### Open billing settings on phone
 - Severity: info
@@ -471,7 +494,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=plan on mobile and run the scripted steps for "Open billing settings on phone".
-- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=16, undersizedTargets=1, fixedBottomBars=2
 
 ### Open exports settings on phone
 - Severity: info
@@ -483,7 +506,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=exports on mobile and run the scripted steps for "Open exports settings on phone".
-- Metrics: overflow=false, tinyText=17, undersizedTargets=2, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=13, undersizedTargets=2, fixedBottomBars=2
 
 ### Open support settings on phone
 - Severity: info
@@ -495,31 +518,35 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=support on mobile and run the scripted steps for "Open support settings on phone".
-- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=14, undersizedTargets=1, fixedBottomBars=2
 
 ### Open onboarding on desktop
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /onboarding
 - Device: desktop
-- Final URL: http://localhost:3002/onboarding
+- Final URL: http://localhost:3002/dashboard
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/shell-onboarding-desktop-desktop.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /onboarding on desktop and run the scripted steps for "Open onboarding on desktop".
-- Metrics: overflow=false, tinyText=4, undersizedTargets=4, fixedBottomBars=0
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=8, undersizedTargets=4, fixedBottomBars=1
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open dashboard on desktop
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /dashboard
 - Device: desktop
 - Final URL: http://localhost:3002/dashboard
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/shell-dashboard-desktop-desktop.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /dashboard on desktop and run the scripted steps for "Open dashboard on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=8, undersizedTargets=4, fixedBottomBars=1
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open settings on desktop
 - Severity: info
@@ -531,7 +558,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings on desktop and run the scripted steps for "Open settings on desktop".
-- Metrics: overflow=false, tinyText=18, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=15, undersizedTargets=1, fixedBottomBars=1
 
 ### Open storage settings on desktop
 - Severity: info
@@ -543,7 +570,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=storage on desktop and run the scripted steps for "Open storage settings on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=1
 
 ### Open billing settings on desktop
 - Severity: info
@@ -555,7 +582,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=plan on desktop and run the scripted steps for "Open billing settings on desktop".
-- Metrics: overflow=false, tinyText=16, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=13, undersizedTargets=1, fixedBottomBars=1
 
 ### Open exports settings on desktop
 - Severity: info
@@ -567,7 +594,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=exports on desktop and run the scripted steps for "Open exports settings on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=10, undersizedTargets=2, fixedBottomBars=1
 
 ### Open support settings on desktop
 - Severity: info
@@ -579,55 +606,72 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=support on desktop and run the scripted steps for "Open support settings on desktop".
-- Metrics: overflow=false, tinyText=16, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=11, undersizedTargets=1, fixedBottomBars=1
 
 ### Advance onboarding to employer details on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /onboarding
 - Device: mobile
-- Final URL: http://localhost:3002/onboarding
+- Final URL: http://localhost:3002/dashboard
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/shell-onboarding-next-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /onboarding on mobile and run the scripted steps for "Advance onboarding to employer details on phone".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=1, fixedBottomBars=0
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=11, undersizedTargets=3, fixedBottomBars=2
+- Page errors: locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: 'Next: Employer Details' }).first() to be visible[22m
+
 
 ### Go back from employer details in onboarding on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /onboarding
 - Device: mobile
-- Final URL: http://localhost:3002/onboarding
+- Final URL: http://localhost:3002/dashboard
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/shell-onboarding-back-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /onboarding on mobile and run the scripted steps for "Go back from employer details in onboarding on phone".
-- Metrics: overflow=false, tinyText=3, undersizedTargets=4, fixedBottomBars=0
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=11, undersizedTargets=3, fixedBottomBars=2
+- Page errors: locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: 'Next: Employer Details' }).first() to be visible[22m
+
 
 ### Save onboarding employer details on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /onboarding
 - Device: mobile
 - Final URL: http://localhost:3002/dashboard
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/shell-onboarding-save-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /onboarding on mobile and run the scripted steps for "Save onboarding employer details on phone".
-- Metrics: overflow=false, tinyText=21, undersizedTargets=2, fixedBottomBars=1
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=11, undersizedTargets=3, fixedBottomBars=2
+- Page errors: locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: 'Next: Employer Details' }).first() to be visible[22m
+
 
 ### Open the desktop account menu
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /dashboard
 - Device: desktop
 - Final URL: http://localhost:3002/dashboard
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/shell-dashboard-open-account-desktop-desktop.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /dashboard on desktop and run the scripted steps for "Open the desktop account menu".
-- Metrics: overflow=false, tinyText=17, undersizedTargets=9, fixedBottomBars=0
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=9, undersizedTargets=4, fixedBottomBars=1
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Confirm the Home tab is visible on phone
 - Severity: info
@@ -639,7 +683,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll on mobile and run the scripted steps for "Confirm the Home tab is visible on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Use bottom nav Payroll on phone
 - Severity: info
@@ -651,7 +695,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /dashboard on mobile and run the scripted steps for "Use bottom nav Payroll on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Use bottom nav Employees on phone
 - Severity: info
@@ -663,19 +707,24 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /dashboard on mobile and run the scripted steps for "Use bottom nav Employees on phone".
-- Metrics: overflow=false, tinyText=25, undersizedTargets=1, fixedBottomBars=2
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Use bottom nav Documents on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /employees
 - Device: mobile
-- Final URL: http://localhost:3002/documents
+- Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/shell-bottom-nav-documents-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /employees on mobile and run the scripted steps for "Use bottom nav Documents on phone".
-- Metrics: overflow=false, tinyText=13, undersizedTargets=1, fixedBottomBars=1
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
+- Page errors: locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for getByTestId('bottom-nav-documents').first() to be visible[22m
+
 
 ### Use bottom nav More on phone
 - Severity: info
@@ -687,43 +736,48 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /dashboard on mobile and run the scripted steps for "Use bottom nav More on phone".
-- Metrics: overflow=false, tinyText=21, undersizedTargets=2, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=11, undersizedTargets=3, fixedBottomBars=3
 
 ### Open the global create FAB on phone
 - Severity: info
 - Status: passed
 - Route: /dashboard
 - Device: mobile
-- Final URL: http://localhost:3002/dashboard
+- Final URL: http://localhost:3002/employees/new
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/shell-global-create-open-mobile-mobile.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /dashboard on mobile and run the scripted steps for "Open the global create FAB on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Start payroll from the global create FAB on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /dashboard
 - Device: mobile
-- Final URL: http://localhost:3002/payroll
+- Final URL: http://localhost:3002/employees/new
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/shell-global-create-start-payroll-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /dashboard on mobile and run the scripted steps for "Start payroll from the global create FAB on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
+- Page errors: locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for getByTestId('global-create-start-payroll').first() to be visible[22m
+
 
 ### Reveal the Add Employee action from the global create FAB on phone
 - Severity: info
 - Status: passed
 - Route: /dashboard
 - Device: mobile
-- Final URL: http://localhost:3002/dashboard
+- Final URL: http://localhost:3002/employees/new
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/shell-global-create-add-employee-mobile-mobile.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /dashboard on mobile and run the scripted steps for "Reveal the Add Employee action from the global create FAB on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open the General settings tab on phone
 - Severity: info
@@ -735,7 +789,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings on mobile and run the scripted steps for "Open the General settings tab on phone".
-- Metrics: overflow=false, tinyText=21, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=18, undersizedTargets=1, fixedBottomBars=2
 
 ### Open the Storage settings tab on phone
 - Severity: info
@@ -747,7 +801,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings on mobile and run the scripted steps for "Open the Storage settings tab on phone".
-- Metrics: overflow=false, tinyText=17, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=13, undersizedTargets=1, fixedBottomBars=2
 
 ### Open the Billing settings tab on phone
 - Severity: info
@@ -759,7 +813,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings on mobile and run the scripted steps for "Open the Billing settings tab on phone".
-- Metrics: overflow=false, tinyText=19, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=16, undersizedTargets=1, fixedBottomBars=2
 
 ### Open the Exports settings tab on phone
 - Severity: info
@@ -771,7 +825,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings on mobile and run the scripted steps for "Open the Exports settings tab on phone".
-- Metrics: overflow=false, tinyText=17, undersizedTargets=2, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=13, undersizedTargets=2, fixedBottomBars=2
 
 ### Open the Help settings tab on phone
 - Severity: info
@@ -783,7 +837,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings on mobile and run the scripted steps for "Open the Help settings tab on phone".
-- Metrics: overflow=false, tinyText=19, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=14, undersizedTargets=1, fixedBottomBars=2
 
 ### Open employees list on phone
 - Severity: info
@@ -795,7 +849,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees on mobile and run the scripted steps for "Open employees list on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open new employee page on phone
 - Severity: info
@@ -807,43 +861,43 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/new on mobile and run the scripted steps for "Open new employee page on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open employee A detail on phone
 - Severity: info
 - Status: passed
 - Route: /employees/11111111-1111-4111-8111-111111111111
 - Device: mobile
-- Final URL: http://localhost:3002/employees/11111111-1111-4111-8111-111111111111
+- Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/employees-detail-a-mobile-mobile.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/11111111-1111-4111-8111-111111111111 on mobile and run the scripted steps for "Open employee A detail on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open employee B detail on phone
 - Severity: info
 - Status: passed
 - Route: /employees/22222222-2222-4222-8222-222222222222
 - Device: mobile
-- Final URL: http://localhost:3002/employees/22222222-2222-4222-8222-222222222222
+- Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/employees-detail-b-mobile-mobile.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/22222222-2222-4222-8222-222222222222 on mobile and run the scripted steps for "Open employee B detail on phone".
-- Metrics: overflow=false, tinyText=18, undersizedTargets=3, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open employee edit page on phone
 - Severity: info
 - Status: passed
 - Route: /employees/11111111-1111-4111-8111-111111111111/edit
 - Device: mobile
-- Final URL: http://localhost:3002/employees/11111111-1111-4111-8111-111111111111/edit
+- Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/employees-edit-a-mobile-mobile.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/11111111-1111-4111-8111-111111111111/edit on mobile and run the scripted steps for "Open employee edit page on phone".
-- Metrics: overflow=false, tinyText=14, undersizedTargets=2, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open employee history on phone
 - Severity: info
@@ -855,7 +909,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/11111111-1111-4111-8111-111111111111/history on mobile and run the scripted steps for "Open employee history on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open leave page on phone
 - Severity: info
@@ -867,7 +921,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /leave on mobile and run the scripted steps for "Open leave page on phone".
-- Metrics: overflow=false, tinyText=13, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open new leave page on phone
 - Severity: info
@@ -879,27 +933,19 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /leave/new on mobile and run the scripted steps for "Open new leave page on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open contracts page on phone
-- Severity: high
-- Status: failed
+- Severity: info
+- Status: passed
 - Route: /documents?tab=contracts
 - Device: mobile
 - Final URL: http://localhost:3002/documents?tab=contracts
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/employees-contracts-mobile-mobile.png
-- UX rule: Stability and recovery states
-- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
+- UX rule: No rule breach detected
+- Recommendation: No change required from this run.
 - Repro: Open /documents?tab=contracts on mobile and run the scripted steps for "Open contracts page on phone".
-- Issues: Runtime errors present (2).
-- Metrics: overflow=false, tinyText=0, undersizedTargets=0, fixedBottomBars=0
-- Page errors: page.goto: Timeout 15000ms exceeded.
-Call log:
-[2m  - navigating to "http://localhost:3002/documents?tab=contracts", waiting until "domcontentloaded"[22m
- | page.evaluate: TypeError: Cannot read properties of null (reading 'scrollWidth')
-    at eval (eval at evaluate (:290:30), <anonymous>:41:48)
-    at UtilityScript.evaluate (<anonymous>:292:16)
-    at UtilityScript.<anonymous> (<anonymous>:1:44)
+- Metrics: overflow=false, tinyText=10, undersizedTargets=2, fixedBottomBars=2
 
 ### Open new contract page on phone
 - Severity: info
@@ -911,7 +957,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /contracts/new on mobile and run the scripted steps for "Open new contract page on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=17, undersizedTargets=2, fixedBottomBars=2
 
 ### Re-open employees list on phone
 - Severity: info
@@ -923,7 +969,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees on mobile and run the scripted steps for "Re-open employees list on phone".
-- Metrics: overflow=false, tinyText=25, undersizedTargets=1, fixedBottomBars=2
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Re-open contracts page on phone
 - Severity: info
@@ -935,7 +981,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /documents?tab=contracts on mobile and run the scripted steps for "Re-open contracts page on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=2, fixedBottomBars=2
 
 ### Open employees list on desktop
 - Severity: info
@@ -947,7 +993,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees on desktop and run the scripted steps for "Open employees list on desktop".
-- Metrics: overflow=false, tinyText=20, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open new employee page on desktop
 - Severity: info
@@ -959,43 +1005,43 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/new on desktop and run the scripted steps for "Open new employee page on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=5, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=3, fixedBottomBars=1
 
 ### Open employee A detail on desktop
 - Severity: info
 - Status: passed
 - Route: /employees/11111111-1111-4111-8111-111111111111
 - Device: desktop
-- Final URL: http://localhost:3002/employees/11111111-1111-4111-8111-111111111111
+- Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/employees-detail-a-desktop-desktop.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/11111111-1111-4111-8111-111111111111 on desktop and run the scripted steps for "Open employee A detail on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open employee B detail on desktop
 - Severity: info
 - Status: passed
 - Route: /employees/22222222-2222-4222-8222-222222222222
 - Device: desktop
-- Final URL: http://localhost:3002/employees/22222222-2222-4222-8222-222222222222
+- Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/employees-detail-b-desktop-desktop.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/22222222-2222-4222-8222-222222222222 on desktop and run the scripted steps for "Open employee B detail on desktop".
-- Metrics: overflow=false, tinyText=13, undersizedTargets=7, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open employee edit page on desktop
 - Severity: info
 - Status: passed
 - Route: /employees/11111111-1111-4111-8111-111111111111/edit
 - Device: desktop
-- Final URL: http://localhost:3002/employees/11111111-1111-4111-8111-111111111111/edit
+- Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/employees-edit-a-desktop-desktop.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/11111111-1111-4111-8111-111111111111/edit on desktop and run the scripted steps for "Open employee edit page on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open employee history on desktop
 - Severity: info
@@ -1007,7 +1053,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/11111111-1111-4111-8111-111111111111/history on desktop and run the scripted steps for "Open employee history on desktop".
-- Metrics: overflow=false, tinyText=9, undersizedTargets=3, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open leave page on desktop
 - Severity: info
@@ -1019,7 +1065,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /leave on desktop and run the scripted steps for "Open leave page on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open new leave page on desktop
 - Severity: info
@@ -1031,7 +1077,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /leave/new on desktop and run the scripted steps for "Open new leave page on desktop".
-- Metrics: overflow=false, tinyText=15, undersizedTargets=2, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open contracts page on desktop
 - Severity: info
@@ -1043,7 +1089,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /documents?tab=contracts on desktop and run the scripted steps for "Open contracts page on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=2, fixedBottomBars=1
 
 ### Open new contract page on desktop
 - Severity: info
@@ -1055,7 +1101,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /contracts/new on desktop and run the scripted steps for "Open new contract page on desktop".
-- Metrics: overflow=false, tinyText=8, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=14, undersizedTargets=3, fixedBottomBars=1
 
 ### Re-open employees list for search on desktop
 - Severity: info
@@ -1067,7 +1113,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees on desktop and run the scripted steps for "Re-open employees list for search on desktop".
-- Metrics: overflow=false, tinyText=20, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Re-open contracts page on desktop
 - Severity: info
@@ -1079,31 +1125,41 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /documents?tab=contracts on desktop and run the scripted steps for "Re-open contracts page on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=2, fixedBottomBars=1
 
 ### Search employees for Thandi on desktop
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /employees
 - Device: desktop
 - Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/employees-search-thandi-desktop-desktop.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /employees on desktop and run the scripted steps for "Search employees for Thandi on desktop".
-- Metrics: overflow=false, tinyText=18, undersizedTargets=1, fixedBottomBars=0
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
+- Page errors: locator.fill: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[placeholder=\'Find employee...\']').first()[22m
+
 
 ### Search employees for Sipho on desktop
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /employees
 - Device: desktop
 - Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/employees-search-sipho-desktop-desktop.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /employees on desktop and run the scripted steps for "Search employees for Sipho on desktop".
-- Metrics: overflow=false, tinyText=18, undersizedTargets=1, fixedBottomBars=0
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
+- Page errors: locator.fill: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[placeholder=\'Find employee...\']').first()[22m
+
 
 ### Fill key employee fields on the new employee form on phone
 - Severity: info
@@ -1115,7 +1171,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/new on mobile and run the scripted steps for "Fill key employee fields on the new employee form on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=2, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Fill key employee fields on the new employee form on desktop
 - Severity: info
@@ -1127,31 +1183,38 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/new on desktop and run the scripted steps for "Fill key employee fields on the new employee form on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=5, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=3, fixedBottomBars=1
 
 ### Open an employee from the table on desktop
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /employees
 - Device: desktop
-- Final URL: http://localhost:3002/employees/11111111-1111-4111-8111-111111111111
+- Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/employees-open-detail-from-list-desktop-desktop.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /employees on desktop and run the scripted steps for "Open an employee from the table on desktop".
-- Metrics: overflow=false, tinyText=13, undersizedTargets=7, fixedBottomBars=0
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
+- Page errors: locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for locator('a[href=\'/employees/11111111-1111-4111-8111-111111111111\']').first() to be visible[22m
+
 
 ### Open an employee from the list on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /employees
 - Device: mobile
 - Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/employees-open-detail-from-list-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /employees on mobile and run the scripted steps for "Open an employee from the list on phone".
-- Metrics: overflow=false, tinyText=25, undersizedTargets=1, fixedBottomBars=2
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
+- Page errors: page.waitForFunction: Timeout 12000ms exceeded.
 
 ### Open leave records again on desktop
 - Severity: info
@@ -1163,72 +1226,77 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /leave on desktop and run the scripted steps for "Open leave records again on desktop".
-- Metrics: overflow=false, tinyText=8, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open payroll list on tablet
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /payroll
 - Device: tablet
 - Final URL: http://localhost:3002/payroll
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/payroll-list-tablet-tablet.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /payroll on tablet and run the scripted steps for "Open payroll list on tablet".
-- Metrics: overflow=false, tinyText=13, undersizedTargets=1, fixedBottomBars=1
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=11, undersizedTargets=1, fixedBottomBars=2
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open draft pay period on tablet
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /payroll/period-draft-april-2026
 - Device: tablet
 - Final URL: http://localhost:3002/payroll/period-draft-april-2026
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/payroll-draft-tablet-tablet.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /payroll/period-draft-april-2026 on tablet and run the scripted steps for "Open draft pay period on tablet".
-- Metrics: overflow=false, tinyText=13, undersizedTargets=1, fixedBottomBars=1
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=11, undersizedTargets=1, fixedBottomBars=2
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open payslip preview on tablet
-- Severity: high
+- Severity: medium
 - Status: failed
 - Route: /preview?payslipId=payslip-thandi-april-2026&empId=11111111-1111-4111-8111-111111111111
 - Device: tablet
 - Final URL: http://localhost:3002/preview?payslipId=payslip-thandi-april-2026&empId=11111111-1111-4111-8111-111111111111
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/payroll-preview-tablet-tablet.png
-- UX rule: Stability and recovery states
-- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
+- UX rule: No rule breach detected
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /preview?payslipId=payslip-thandi-april-2026&empId=11111111-1111-4111-8111-111111111111 on tablet and run the scripted steps for "Open payslip preview on tablet".
-- Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=0, undersizedTargets=0, fixedBottomBars=0
-- Page errors: page.goto: Timeout 15000ms exceeded.
-Call log:
-[2m  - navigating to "http://localhost:3002/preview?payslipId=payslip-thandi-april-2026&empId=11111111-1111-4111-8111-111111111111", waiting until "domcontentloaded"[22m
-
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=11, undersizedTargets=1, fixedBottomBars=2
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open documents hub on tablet
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /documents
 - Device: tablet
 - Final URL: http://localhost:3002/documents
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/payroll-documents-tablet-tablet.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /documents on tablet and run the scripted steps for "Open documents hub on tablet".
-- Metrics: overflow=false, tinyText=13, undersizedTargets=1, fixedBottomBars=1
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=11, undersizedTargets=1, fixedBottomBars=2
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open history page on tablet
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /history
 - Device: tablet
-- Final URL: http://localhost:3002/payroll
+- Final URL: http://localhost:3002/history
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/payroll-history-tablet-tablet.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /history on tablet and run the scripted steps for "Open history page on tablet".
-- Metrics: overflow=false, tinyText=15, undersizedTargets=2, fixedBottomBars=1
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=0, undersizedTargets=2, fixedBottomBars=0
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open payroll list on phone
 - Severity: info
@@ -1240,7 +1308,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll on mobile and run the scripted steps for "Open payroll list on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open new payroll wizard on phone
 - Severity: info
@@ -1252,7 +1320,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll/new on mobile and run the scripted steps for "Open new payroll wizard on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open draft pay period on phone
 - Severity: info
@@ -1264,7 +1332,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll/period-draft-april-2026 on mobile and run the scripted steps for "Open draft pay period on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open locked pay period on phone
 - Severity: info
@@ -1276,19 +1344,19 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll/period-locked-march-2026 on mobile and run the scripted steps for "Open locked pay period on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open payslip wizard on phone
 - Severity: info
 - Status: passed
 - Route: /wizard?empId=11111111-1111-4111-8111-111111111111
 - Device: mobile
-- Final URL: http://localhost:3002/wizard?empId=11111111-1111-4111-8111-111111111111
+- Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/payroll-wizard-mobile-mobile.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /wizard?empId=11111111-1111-4111-8111-111111111111 on mobile and run the scripted steps for "Open payslip wizard on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open payslip preview on phone
 - Severity: info
@@ -1300,7 +1368,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /preview?payslipId=payslip-thandi-april-2026&empId=11111111-1111-4111-8111-111111111111 on mobile and run the scripted steps for "Open payslip preview on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open documents hub on phone
 - Severity: info
@@ -1312,19 +1380,21 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /documents on mobile and run the scripted steps for "Open documents hub on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open history page on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /history
 - Device: mobile
-- Final URL: http://localhost:3002/payroll
+- Final URL: http://localhost:3002/history
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/payroll-history-mobile-mobile.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /history on mobile and run the scripted steps for "Open history page on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=0, undersizedTargets=2, fixedBottomBars=0
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open employee history from payroll context on phone
 - Severity: info
@@ -1336,7 +1406,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/11111111-1111-4111-8111-111111111111/history on mobile and run the scripted steps for "Open employee history from payroll context on phone".
-- Metrics: overflow=false, tinyText=14, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Re-open documents hub on phone
 - Severity: info
@@ -1348,7 +1418,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /documents on mobile and run the scripted steps for "Re-open documents hub on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Re-open preview page on phone
 - Severity: info
@@ -1360,7 +1430,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /preview on mobile and run the scripted steps for "Re-open preview page on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Re-open payroll list on phone
 - Severity: info
@@ -1372,7 +1442,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll on mobile and run the scripted steps for "Re-open payroll list on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Re-open draft pay period on phone
 - Severity: info
@@ -1384,7 +1454,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll/period-draft-april-2026 on mobile and run the scripted steps for "Re-open draft pay period on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open payroll list on desktop
 - Severity: info
@@ -1396,7 +1466,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll on desktop and run the scripted steps for "Open payroll list on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open new payroll wizard on desktop
 - Severity: info
@@ -1408,7 +1478,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll/new on desktop and run the scripted steps for "Open new payroll wizard on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open draft pay period on desktop
 - Severity: info
@@ -1420,7 +1490,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll/period-draft-april-2026 on desktop and run the scripted steps for "Open draft pay period on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open locked pay period on desktop
 - Severity: info
@@ -1432,19 +1502,19 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll/period-locked-march-2026 on desktop and run the scripted steps for "Open locked pay period on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open payslip wizard on desktop
 - Severity: info
 - Status: passed
 - Route: /wizard?empId=11111111-1111-4111-8111-111111111111
 - Device: desktop
-- Final URL: http://localhost:3002/wizard?empId=11111111-1111-4111-8111-111111111111
+- Final URL: http://localhost:3002/employees
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/payroll-wizard-desktop-desktop.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /wizard?empId=11111111-1111-4111-8111-111111111111 on desktop and run the scripted steps for "Open payslip wizard on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open payslip preview on desktop
 - Severity: info
@@ -1456,7 +1526,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /preview?payslipId=payslip-thandi-april-2026&empId=11111111-1111-4111-8111-111111111111 on desktop and run the scripted steps for "Open payslip preview on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open documents hub on desktop
 - Severity: info
@@ -1468,19 +1538,21 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /documents on desktop and run the scripted steps for "Open documents hub on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open history page on desktop
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /history
 - Device: desktop
-- Final URL: http://localhost:3002/payroll
+- Final URL: http://localhost:3002/history
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/payroll-history-desktop-desktop.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /history on desktop and run the scripted steps for "Open history page on desktop".
-- Metrics: overflow=false, tinyText=9, undersizedTargets=2, fixedBottomBars=0
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=0, undersizedTargets=2, fixedBottomBars=0
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open employee history from payroll context on desktop
 - Severity: info
@@ -1492,7 +1564,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /employees/11111111-1111-4111-8111-111111111111/history on desktop and run the scripted steps for "Open employee history from payroll context on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Re-open documents hub on desktop
 - Severity: info
@@ -1504,7 +1576,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /documents on desktop and run the scripted steps for "Re-open documents hub on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Re-open preview page on desktop
 - Severity: info
@@ -1516,7 +1588,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /preview on desktop and run the scripted steps for "Re-open preview page on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Re-open payroll list on desktop
 - Severity: info
@@ -1528,7 +1600,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll on desktop and run the scripted steps for "Re-open payroll list on desktop".
-- Metrics: overflow=false, tinyText=9, undersizedTargets=2, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Re-open draft pay period on desktop
 - Severity: info
@@ -1540,7 +1612,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll/period-draft-april-2026 on desktop and run the scripted steps for "Re-open draft pay period on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Start the new payroll wizard on phone
 - Severity: info
@@ -1552,7 +1624,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll/new on mobile and run the scripted steps for "Start the new payroll wizard on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Review employee choices in the new payroll wizard on phone
 - Severity: high
@@ -1565,20 +1637,25 @@ Call log:
 - Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /payroll/new on mobile and run the scripted steps for "Review employee choices in the new payroll wizard on phone".
 - Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 - Page errors: page.waitForFunction: Timeout 12000ms exceeded.
 
 ### Advance the new payroll wizard to dates on phone
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /payroll/new
 - Device: mobile
 - Final URL: http://localhost:3002/payroll/new
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/payroll-wizard-next-to-dates-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /payroll/new on mobile and run the scripted steps for "Advance the new payroll wizard to dates on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
+- Page errors: locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for getByTestId('payroll-wizard-next-to-dates').first() to be visible[22m
+
 
 ### Edit pay period dates in the wizard on phone
 - Severity: high
@@ -1591,7 +1668,7 @@ Call log:
 - Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /payroll/new on mobile and run the scripted steps for "Edit pay period dates in the wizard on phone".
 - Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 - Page errors: page.waitForFunction: Timeout 12000ms exceeded.
 
 ### Start the new payroll wizard on desktop
@@ -1604,7 +1681,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /payroll/new on desktop and run the scripted steps for "Start the new payroll wizard on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Initialize a new pay run on desktop
 - Severity: high
@@ -1617,20 +1694,25 @@ Call log:
 - Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /payroll/new on desktop and run the scripted steps for "Initialize a new pay run on desktop".
 - Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 - Page errors: page.waitForFunction: Timeout 12000ms exceeded.
 
 ### Open the current payroll period from the list on desktop
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /payroll
 - Device: desktop
-- Final URL: http://localhost:3002/payroll/period-draft-april-2026
+- Final URL: http://localhost:3002/payroll
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/payroll-open-current-period-desktop-desktop.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Stability and recovery states
+- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
 - Repro: Open /payroll on desktop and run the scripted steps for "Open the current payroll period from the list on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Issues: Runtime errors present (1).
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
+- Page errors: locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('link', { name: 'Open April 2026' }).first() to be visible[22m
+
 
 ### Inspect document actions on desktop
 - Severity: info
@@ -1642,7 +1724,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /documents on desktop and run the scripted steps for "Inspect document actions on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Inspect document actions on phone
 - Severity: info
@@ -1654,7 +1736,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /documents on mobile and run the scripted steps for "Inspect document actions on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Inspect the preview download surface on desktop
 - Severity: info
@@ -1666,24 +1748,21 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /preview?payslipId=payslip-thandi-april-2026&empId=11111111-1111-4111-8111-111111111111 on desktop and run the scripted steps for "Inspect the preview download surface on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open audit log page on phone
-- Severity: high
+- Severity: medium
 - Status: failed
 - Route: /audit
 - Device: mobile
-- Final URL: http://localhost:3002/settings
+- Final URL: http://localhost:3002/audit
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-audit-mobile-mobile.png
-- UX rule: Stability and recovery states
-- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
+- UX rule: No rule breach detected
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /audit on mobile and run the scripted steps for "Open audit log page on phone".
-- Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=0, undersizedTargets=0, fixedBottomBars=0
-- Page errors: page.goto: Timeout 15000ms exceeded.
-Call log:
-[2m  - navigating to "http://localhost:3002/audit", waiting until "domcontentloaded"[22m
-
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=0, undersizedTargets=2, fixedBottomBars=0
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open uFiling page on phone
 - Severity: info
@@ -1695,7 +1774,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /ufiling on mobile and run the scripted steps for "Open uFiling page on phone".
-- Metrics: overflow=false, tinyText=13, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=11, undersizedTargets=1, fixedBottomBars=2
 
 ### Open COIDA ROE page on phone
 - Severity: info
@@ -1707,45 +1786,47 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /compliance/coida/roe on mobile and run the scripted steps for "Open COIDA ROE page on phone".
-- Metrics: overflow=false, tinyText=13, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=12, undersizedTargets=2, fixedBottomBars=2
 
 ### Open compliance help on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /help/compliance
 - Device: mobile
-- Final URL: http://localhost:3002/help/compliance
+- Final URL: http://localhost:3002/help/admin#uif
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-help-compliance-mobile-mobile.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /help/compliance on mobile and run the scripted steps for "Open compliance help on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=5, fixedBottomBars=1
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=0, undersizedTargets=2, fixedBottomBars=0
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open COIDA help on phone
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /help/coida
 - Device: mobile
 - Final URL: http://localhost:3002/help/coida
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-help-coida-mobile-mobile.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /help/coida on mobile and run the scripted steps for "Open COIDA help on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=5, fixedBottomBars=1
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=0, undersizedTargets=2, fixedBottomBars=0
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open upgrade page on phone
-- Severity: high
-- Status: failed
+- Severity: info
+- Status: passed
 - Route: /upgrade
 - Device: mobile
 - Final URL: http://localhost:3002/upgrade
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-upgrade-mobile-mobile.png
-- UX rule: Stability and recovery states
-- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
+- UX rule: No rule breach detected
+- Recommendation: No change required from this run.
 - Repro: Open /upgrade on mobile and run the scripted steps for "Open upgrade page on phone".
-- Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
-- Page errors: Invalid or unexpected token
+- Metrics: overflow=false, tinyText=23, undersizedTargets=2, fixedBottomBars=2
 
 ### Open billing success page on phone
 - Severity: info
@@ -1757,7 +1838,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /billing/success on mobile and run the scripted steps for "Open billing success page on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=2
 
 ### Open billing cancel page on phone
 - Severity: info
@@ -1769,7 +1850,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /billing/cancel on mobile and run the scripted steps for "Open billing cancel page on phone".
-- Metrics: overflow=false, tinyText=12, undersizedTargets=2, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=10, undersizedTargets=2, fixedBottomBars=2
 
 ### Open storage settings on phone for sync review
 - Severity: info
@@ -1781,7 +1862,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=storage on mobile and run the scripted steps for "Open storage settings on phone for sync review".
-- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=13, undersizedTargets=1, fixedBottomBars=2
 
 ### Open exports settings on phone for backup review
 - Severity: info
@@ -1793,7 +1874,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=exports on mobile and run the scripted steps for "Open exports settings on phone for backup review".
-- Metrics: overflow=false, tinyText=17, undersizedTargets=2, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=13, undersizedTargets=2, fixedBottomBars=2
 
 ### Open support settings on phone for help review
 - Severity: info
@@ -1805,19 +1886,19 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=support on mobile and run the scripted steps for "Open support settings on phone for help review".
-- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=1
+- Metrics: overflow=false, tinyText=14, undersizedTargets=1, fixedBottomBars=2
 
 ### Open app handoff on phone for billing/compliance context
 - Severity: info
 - Status: passed
 - Route: /open-app
 - Device: mobile
-- Final URL: http://localhost:3002/open-app
+- Final URL: http://localhost:3002/dashboard
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-open-app-mobile-mobile.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /open-app on mobile and run the scripted steps for "Open app handoff on phone for billing/compliance context".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=11, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=11, undersizedTargets=3, fixedBottomBars=2
 
 ### Open support page on phone for contact checks
 - Severity: info
@@ -1829,101 +1910,99 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /support on mobile and run the scripted steps for "Open support page on phone for contact checks".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=11, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=9, undersizedTargets=16, fixedBottomBars=0
 
 ### Open trust page on phone for privacy checks
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /trust
 - Device: mobile
 - Final URL: http://localhost:3002/trust
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-trust-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Mobile tap target minimums from UX guidelines
+- Recommendation: Promote important links and controls to 44px touch-safe targets.
 - Repro: Open /trust on mobile and run the scripted steps for "Open trust page on phone for privacy checks".
-- Metrics: overflow=false, tinyText=1, undersizedTargets=14, fixedBottomBars=0
+- Issues: Too many undersized tap targets (23 below 44px).
+- Metrics: overflow=false, tinyText=10, undersizedTargets=23, fixedBottomBars=0
 
 ### Re-open pricing page on phone for billing comparison
-- Severity: info
-- Status: passed
+- Severity: high
+- Status: failed
 - Route: /pricing
 - Device: mobile
 - Final URL: http://localhost:3002/pricing
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-pricing-mobile-mobile.png
-- UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- UX rule: Responsive Rules / Mobile layout containment
+- Recommendation: Restructure the layout at this breakpoint and remove any width assumptions that exceed the viewport.
 - Repro: Open /pricing on mobile and run the scripted steps for "Re-open pricing page on phone for billing comparison".
-- Metrics: overflow=false, tinyText=4, undersizedTargets=14, fixedBottomBars=0
+- Issues: Horizontal overflow detected. | High density of tiny text (35 visible elements below 12px).
+- Metrics: overflow=true, tinyText=35, undersizedTargets=16, fixedBottomBars=22
 
 ### Open audit log page on desktop
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /audit
 - Device: desktop
-- Final URL: http://localhost:3002/settings
+- Final URL: http://localhost:3002/audit
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-audit-desktop-desktop.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /audit on desktop and run the scripted steps for "Open audit log page on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=0, undersizedTargets=2, fixedBottomBars=0
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open uFiling page on desktop
-- Severity: high
-- Status: failed
+- Severity: info
+- Status: passed
 - Route: /ufiling
 - Device: desktop
 - Final URL: http://localhost:3002/ufiling
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-ufiling-desktop-desktop.png
-- UX rule: Stability and recovery states
-- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
+- UX rule: No rule breach detected
+- Recommendation: No change required from this run.
 - Repro: Open /ufiling on desktop and run the scripted steps for "Open uFiling page on desktop".
-- Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=0, undersizedTargets=0, fixedBottomBars=0
-- Page errors: page.goto: Timeout 15000ms exceeded.
-Call log:
-[2m  - navigating to "http://localhost:3002/ufiling", waiting until "domcontentloaded"[22m
-
+- Metrics: overflow=false, tinyText=8, undersizedTargets=1, fixedBottomBars=1
 
 ### Open COIDA ROE page on desktop
-- Severity: high
-- Status: failed
+- Severity: info
+- Status: passed
 - Route: /compliance/coida/roe
 - Device: desktop
 - Final URL: http://localhost:3002/compliance/coida/roe
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-roe-desktop-desktop.png
-- UX rule: Stability and recovery states
-- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
-- Repro: Open /compliance/coida/roe on desktop and run the scripted steps for "Open COIDA ROE page on desktop".
-- Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=0, undersizedTargets=0, fixedBottomBars=0
-- Page errors: page.goto: Timeout 15000ms exceeded.
-Call log:
-[2m  - navigating to "http://localhost:3002/compliance/coida/roe", waiting until "domcontentloaded"[22m
-
-
-### Open compliance help on desktop
-- Severity: info
-- Status: passed
-- Route: /help/compliance
-- Device: desktop
-- Final URL: http://localhost:3002/help/compliance
-- Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-help-compliance-desktop-desktop.png
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
+- Repro: Open /compliance/coida/roe on desktop and run the scripted steps for "Open COIDA ROE page on desktop".
+- Metrics: overflow=false, tinyText=9, undersizedTargets=6, fixedBottomBars=1
+
+### Open compliance help on desktop
+- Severity: medium
+- Status: failed
+- Route: /help/compliance
+- Device: desktop
+- Final URL: http://localhost:3002/help/admin#uif
+- Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-help-compliance-desktop-desktop.png
+- UX rule: No rule breach detected
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /help/compliance on desktop and run the scripted steps for "Open compliance help on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=10, fixedBottomBars=0
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=0, undersizedTargets=2, fixedBottomBars=0
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open COIDA help on desktop
-- Severity: info
-- Status: passed
+- Severity: medium
+- Status: failed
 - Route: /help/coida
 - Device: desktop
 - Final URL: http://localhost:3002/help/coida
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-help-coida-desktop-desktop.png
 - UX rule: No rule breach detected
-- Recommendation: No change required from this run.
+- Recommendation: Investigate console failures and add focused regression coverage for this route.
 - Repro: Open /help/coida on desktop and run the scripted steps for "Open COIDA help on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=5, fixedBottomBars=0
+- Issues: Console errors present (1).
+- Metrics: overflow=false, tinyText=0, undersizedTargets=2, fixedBottomBars=0
+- Console errors: Failed to load resource: the server responded with a status of 404 (Not Found)
 
 ### Open upgrade page on desktop
 - Severity: info
@@ -1935,7 +2014,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /upgrade on desktop and run the scripted steps for "Open upgrade page on desktop".
-- Metrics: overflow=false, tinyText=9, undersizedTargets=4, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=20, undersizedTargets=4, fixedBottomBars=1
 
 ### Open billing success page on desktop
 - Severity: info
@@ -1947,24 +2026,19 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /billing/success on desktop and run the scripted steps for "Open billing success page on desktop".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=1
 
 ### Open billing cancel page on desktop
-- Severity: high
-- Status: failed
+- Severity: info
+- Status: passed
 - Route: /billing/cancel
 - Device: desktop
 - Final URL: http://localhost:3002/billing/cancel
 - Screenshot: C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/e2e-screenshots/audit/compliance-billing-cancel-desktop-desktop.png
-- UX rule: Stability and recovery states
-- Recommendation: Stabilize the route and add guard states before rendering dependent client logic.
+- UX rule: No rule breach detected
+- Recommendation: No change required from this run.
 - Repro: Open /billing/cancel on desktop and run the scripted steps for "Open billing cancel page on desktop".
-- Issues: Runtime errors present (1).
-- Metrics: overflow=false, tinyText=7, undersizedTargets=2, fixedBottomBars=0
-- Page errors: page.goto: Timeout 15000ms exceeded.
-Call log:
-[2m  - navigating to "http://localhost:3002/billing/cancel", waiting until "domcontentloaded"[22m
-
+- Metrics: overflow=false, tinyText=7, undersizedTargets=2, fixedBottomBars=1
 
 ### Open storage settings on desktop for sync review
 - Severity: info
@@ -1976,7 +2050,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=storage on desktop and run the scripted steps for "Open storage settings on desktop for sync review".
-- Metrics: overflow=false, tinyText=14, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=10, undersizedTargets=1, fixedBottomBars=1
 
 ### Open exports settings on desktop for backup review
 - Severity: info
@@ -1988,7 +2062,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=exports on desktop and run the scripted steps for "Open exports settings on desktop for backup review".
-- Metrics: overflow=false, tinyText=14, undersizedTargets=2, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=10, undersizedTargets=2, fixedBottomBars=1
 
 ### Open support settings on desktop for help review
 - Severity: info
@@ -2000,7 +2074,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /settings?tab=support on desktop and run the scripted steps for "Open support settings on desktop for help review".
-- Metrics: overflow=false, tinyText=7, undersizedTargets=1, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=11, undersizedTargets=1, fixedBottomBars=1
 
 ### Open support page on desktop for contact checks
 - Severity: info
@@ -2012,7 +2086,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /support on desktop and run the scripted steps for "Open support page on desktop for contact checks".
-- Metrics: overflow=false, tinyText=2, undersizedTargets=11, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=9, undersizedTargets=15, fixedBottomBars=0
 
 ### Open trust page on desktop for privacy checks
 - Severity: info
@@ -2024,7 +2098,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /trust on desktop and run the scripted steps for "Open trust page on desktop for privacy checks".
-- Metrics: overflow=false, tinyText=2, undersizedTargets=14, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=10, undersizedTargets=27, fixedBottomBars=0
 
 ### Re-open pricing page on desktop for billing comparison
 - Severity: info
@@ -2036,7 +2110,7 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /pricing on desktop and run the scripted steps for "Re-open pricing page on desktop for billing comparison".
-- Metrics: overflow=false, tinyText=5, undersizedTargets=21, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=35, undersizedTargets=22, fixedBottomBars=22
 
 ### Open storage explainer on desktop
 - Severity: info
@@ -2048,5 +2122,5 @@ Call log:
 - UX rule: No rule breach detected
 - Recommendation: No change required from this run.
 - Repro: Open /storage on desktop and run the scripted steps for "Open storage explainer on desktop".
-- Metrics: overflow=false, tinyText=2, undersizedTargets=12, fixedBottomBars=0
+- Metrics: overflow=false, tinyText=9, undersizedTargets=16, fixedBottomBars=0
 

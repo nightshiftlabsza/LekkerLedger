@@ -1,0 +1,32 @@
+
+Running 1 test using 1 worker
+
+  Γ£ÿ  1 [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip (14.0s)
+
+
+  1) [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/\/preview/[39m
+    Received string:  [31m"http://localhost:3002/wizard?empId=e761ff0e-080f-4608-8af9-04168b1421c2"[39m
+    Timeout: 10000ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 10000ms[22m
+    [2m    14 ├ù unexpected value "http://localhost:3002/wizard?empId=e761ff0e-080f-4608-8af9-04168b1421c2"[22m
+
+
+      94 |
+      95 |         // 7. Verify we ended up on the Preview page
+    > 96 |         await expect(page).toHaveURL(/\/preview/, { timeout: 10000 });
+         |                            ^
+      97 |
+      98 |         // Verify PDF success message
+      99 |         const successMessage = page.locator('text=Payslip generated for');
+        at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\payslip.spec.ts:96:28
+
+    Error Context: test-results\payslip-Payslip-Generation-acac9-oyee-and-generate-a-payslip-chromium\error-context.md
+
+  1 failed
+    [chromium] ΓÇ║ e2e\payslip.spec.ts:4:9 ΓÇ║ Payslip Generation Flow ΓÇ║ user can create an employee and generate a payslip 

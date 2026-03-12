@@ -1454,7 +1454,7 @@ async function handleRefundProcessed(existing: SubscriptionRecord | null): Promi
     return true;
 }
 
-export async function verifyUserFromRequest(request: Request): Promise<VerifiedUser> {
+export async function verifyUserFromRequest(_request: Request): Promise<VerifiedUser> {
     const supabase = await createClient();
     const { data: { user }, error } = await supabase.auth.getUser();
 

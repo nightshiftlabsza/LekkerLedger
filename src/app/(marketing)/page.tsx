@@ -18,7 +18,7 @@ import { HOMEPAGE_PRICING_LINK_LABEL, PRICING_PAGE_SUBTITLE, PRICING_PAGE_TITLE 
 import { useMarketingBillingCycle } from "@/src/lib/use-marketing-billing-cycle";
 import { MarketingHeader } from "../../../components/layout/marketing-header";
 
-const SAMPLE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_3.75rem_5.5rem_6rem] gap-x-4 sm:grid-cols-[minmax(0,1fr)_5rem_6.75rem_7rem]";
+const SAMPLE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-x-2 sm:gap-x-4 sm:grid-cols-[minmax(0,1fr)_5rem_6.75rem_7rem]";
 
 function formatRand(value: number) {
     return `R ${value.toFixed(2)}`;
@@ -356,14 +356,14 @@ function CompactFigureRow({
     emphasis?: boolean;
 }) {
     return (
-        <div className="flex items-start justify-between gap-4 border-b border-[var(--border)]/70 pb-3 last:border-b-0 last:pb-0">
+        <div className="flex items-start justify-between gap-2 sm:gap-4 border-b border-[var(--border)]/70 pb-3 last:border-b-0 last:pb-0">
             <div>
                 <p className="text-sm font-semibold" style={{ color: strong ? "var(--text)" : "var(--text-muted)" }}>
                     {label}
                 </p>
             </div>
             <p
-                className={`text-right font-[family:var(--font-serif)] text-lg font-semibold tabular-nums ${emphasis ? "text-[var(--primary-pressed)]" : ""}`}
+                className={`text-right font-[family:var(--font-serif)] text-base sm:text-lg font-semibold tabular-nums ${emphasis ? "text-[var(--primary-pressed)]" : ""}`}
                 style={{ color: emphasis ? "var(--primary-pressed)" : "var(--text)" }}
             >
                 {value}
@@ -571,7 +571,7 @@ function PricingPreview() {
                 </div>
 
                 <div className="mt-8 flex justify-start sm:justify-end">
-                    <Link href="/pricing" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:underline">
+                    <Link href="/pricing" aria-label="See full pricing" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:underline">
                         {HOMEPAGE_PRICING_LINK_LABEL} <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                 </div>

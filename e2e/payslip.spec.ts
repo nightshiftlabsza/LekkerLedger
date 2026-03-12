@@ -27,6 +27,14 @@ test.describe("Payslip Generation Flow", () => {
         await page.goto("/");
         await expect(page).toHaveTitle(/Next|LekkerLedger/i);
 
+        // 1.5 Setup Employer Details (Now required for payslip generation)
+        await page.goto("/settings");
+        await page.fill('input[id="ename"]', "Test Employer");
+        await page.fill('input[id="eaddr"]', "123 Test St, Cape Town");
+        await page.click('button:has-text("Save Changes")');
+        // Wait for potential toast or just small timeout
+        await page.waitForTimeout(1000);
+
         // 2. Head directly to employees/new
         await page.goto("/employees/new");
         // Wait for limit check to complete so canAdd is settled
@@ -96,11 +104,11 @@ test.describe("Payslip Generation Flow", () => {
         await expect(page).toHaveURL(/\/preview/, { timeout: 10000 });
 
         // Verify PDF success message
-        const successMessage = page.locator('text=Payslip generated for');
+        const successMessage = page.locator('text=Payslip ready to review');
         await expect(successMessage).toBeVisible({ timeout: 10000 });
 
         // Check if the Download button exists
-        const downloadBtn = page.locator('button:has-text("Download PDF")');
+        const downloadBtn = page.locator('button:has-text("Download PDF")').first();
         await expect(downloadBtn).toBeVisible();
     });
 });

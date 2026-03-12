@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Cloud, Eye, FileText, FolderOpen, HardDrive, ScrollText, Trash2, Upload } from "lucide-react";
+import { Eye, FileText, FolderOpen, HardDrive, ScrollText, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -447,7 +447,7 @@ export function EmployeeDocumentsTab({
                             {
                                 key: "storage",
                                 label: "Storage",
-                                render: (doc) => (
+                                render: (_doc) => (
                                     <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
                                         <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
                                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">
@@ -603,7 +603,7 @@ export function EmployeeDocumentsTab({
                                 {
                                     key: "storage",
                                     label: "Storage",
-                                    render: (doc) => (
+                                    render: (_doc) => (
                                         <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
                                             <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
                                             <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
@@ -698,7 +698,7 @@ export function EmployeeDocumentsTab({
                             {
                                 key: "storage",
                                 label: "Storage",
-                                render: (doc) => (
+                                render: (_doc) => (
                                     <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
                                         <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
                                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>

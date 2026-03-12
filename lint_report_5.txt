@@ -1,0 +1,20 @@
+
+> lekkerledger@0.1.0 lint
+> eslint
+
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\documents\page.tsx
+   863:54  warning  '_doc' is defined but never used  @typescript-eslint/no-unused-vars
+   949:54  warning  '_doc' is defined but never used  @typescript-eslint/no-unused-vars
+  1059:46  warning  '_doc' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\components\employees\employee-documents-tab.tsx
+  450:42  warning  '_doc' is defined but never used  @typescript-eslint/no-unused-vars
+  606:46  warning  '_doc' is defined but never used  @typescript-eslint/no-unused-vars
+  701:42  warning  '_doc' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\billing-server.ts
+  1457:45  warning  '_request' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 7 problems (0 errors, 7 warnings)
+

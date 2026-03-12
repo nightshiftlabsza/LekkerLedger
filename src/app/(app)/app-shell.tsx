@@ -3,17 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { env } from "@/lib/env";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
 import { GlobalCreateFAB } from "@/components/global-create";
-import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, LogOut, Loader2 } from "lucide-react";
+import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound } from "lucide-react";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
-import { ToastProvider } from "@/components/ui/toast";
 import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
-import { getHouseholds, getSettings, saveHousehold, saveSettings, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
+import { getHouseholds, getSettings, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
@@ -26,7 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const { network, sync, payments } = useAppConnectivity();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
-    const [syncConflict, setSyncConflict] = React.useState(false);
+    const [syncConflict] = React.useState(false);
     const [paymentsBannerDismissed, setPaymentsBannerDismissed] = React.useState(false);
     const [moreOpen, setMoreOpen] = React.useState(false);
     const [households, setHouseholds] = React.useState<Household[]>([{ id: "default", name: "Main household", createdAt: new Date(0).toISOString() }]);
@@ -38,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const [addHouseholdError, setAddHouseholdError] = React.useState("");
     const [addingHousehold, setAddingHousehold] = React.useState(false);
     const [lastLocalSaveAt, setLastLocalSaveAt] = React.useState<number | null>(null);
-    const [settingsReady, setSettingsReady] = React.useState(false);
+    const [, setSettingsReady] = React.useState(false);
     const settingsRef = React.useRef<typeof settings>(null);
     React.useEffect(() => {
         settingsRef.current = settings;
@@ -174,7 +172,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
                                 <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
                                         <SyncIndicator />
-                                        <AccountMenu settings={settings} />
+                                        <AccountMenu />
                                     <HouseholdSwitcher
                                         households={households}
                                         activeId={activeHouseholdId}
@@ -278,8 +276,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
 }
 
-function AccountMenu({ settings }: { settings: EmployerSettings | null }) {
-    const router = useRouter();
+function AccountMenu() {
     const [open, setOpen] = React.useState(false);
     const menuRef = React.useRef<HTMLDivElement | null>(null);
 

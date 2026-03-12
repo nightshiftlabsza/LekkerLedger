@@ -9,6 +9,16 @@ import {
     getContracts, saveContract, deleteContract,
     getHouseholds, saveHousehold
 } from "./storage";
+import { 
+    Employee, PayslipInput, LeaveRecord, PayPeriod, DocumentMeta, Contract, Household 
+} from "./schema";
+
+interface SyncedRecordRow {
+    table_name: string;
+    record_id: string;
+    encrypted_data?: string;
+    updated_at: string;
+}
 
 export class SyncService {
     private supabase = createClient();
@@ -62,8 +72,8 @@ export class SyncService {
     async applyRemoteChange(payload: { new?: Record<string, unknown>; old?: Record<string, unknown>; eventType: string }) {
         if (!this.userId) return;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { table_name, record_id, encrypted_data, updated_at } = (payload.new || payload.old || {}) as any;
+        const row = (payload.new || payload.old || {}) as unknown as SyncedRecordRow;
+        const { table_name, record_id, encrypted_data, updated_at } = row;
         const eventType = payload.eventType;
 
         if (!table_name || !record_id) return;
@@ -134,20 +144,13 @@ export class SyncService {
 
     private async applyLocalSave(table: string, data: Record<string, unknown>) {
         switch (table) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            case 'employees': await saveEmployee(data as any); break;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            case 'payslips': await savePayslip(data as any); break;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            case 'leave': await saveLeaveRecord(data as any); break;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            case 'pay_periods': await savePayPeriod(data as any); break;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            case 'documents': await saveDocumentMeta(data as any); break;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            case 'contracts': await saveContract(data as any); break;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            case 'households': await saveHousehold(data as any); break;
+            case 'employees': await saveEmployee(data as unknown as Employee); break;
+            case 'payslips': await savePayslip(data as unknown as PayslipInput); break;
+            case 'leave': await saveLeaveRecord(data as unknown as LeaveRecord); break;
+            case 'pay_periods': await savePayPeriod(data as unknown as PayPeriod); break;
+            case 'documents': await saveDocumentMeta(data as unknown as DocumentMeta); break;
+            case 'contracts': await saveContract(data as unknown as Contract); break;
+            case 'households': await saveHousehold(data as unknown as Household); break;
         }
     }
 

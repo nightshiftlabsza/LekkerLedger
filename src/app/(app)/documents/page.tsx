@@ -860,7 +860,7 @@ export default function DocumentsPage() {
                                         {
                                             key: "storage",
                                             label: "Storage",
-                                            render: (doc) => (
+                                            render: (_doc) => (
                                                 <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
                                                     <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
                                                     <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
@@ -946,7 +946,7 @@ export default function DocumentsPage() {
                                         {
                                             key: "storage",
                                             label: "Storage",
-                                            render: (doc) => (
+                                            render: (_doc) => (
                                                 <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
                                                     <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
                                                     <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
@@ -1056,7 +1056,7 @@ export default function DocumentsPage() {
                                 {
                                     key: "storage",
                                     label: "Storage",
-                                    render: (doc) => (
+                                    render: (_doc) => (
                                         <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
                                             <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
                                             <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>

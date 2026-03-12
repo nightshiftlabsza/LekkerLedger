@@ -40,8 +40,8 @@ function DashboardContent() {
     const [allPeriods, setAllPeriods] = React.useState<PayPeriod[]>([]);
     const searchParams = useSearchParams();
     const paidLoginRequested = searchParams.get("paidLogin") === "1";
-    const paidLoginNext = searchParams.get("next");
-    const skipPaidChecks = !!paidLoginNext && paidLoginNext.startsWith("/upgrade");
+
+
     const activationSuccess = searchParams.get("activation") === "paid-login-success";
     const activationSync = searchParams.get("sync");
 
@@ -141,7 +141,7 @@ function DashboardContent() {
                 subtitle={isSetupIncomplete ? "Let's get your household payroll set up." : "Manage your monthly payroll and records."}
             />
 
-            {activationSuccess && <ActivationAlert syncState={activationSync} settings={settings} />}
+            {activationSuccess && <ActivationAlert syncState={activationSync} />}
 
             <div className="grid gap-6 lg:grid-cols-12 items-start">
                 {/* Left Column: Primary Focus */}
@@ -173,7 +173,7 @@ function DashboardContent() {
                         <HouseholdSnapshot
                             employeeCount={employeeCount}
                             documentCount={recentDocs.length}
-                            settings={settings}
+
                         />
                     </div>
 
@@ -200,7 +200,7 @@ function DashboardContent() {
                         <HouseholdSnapshot
                             employeeCount={employeeCount}
                             documentCount={recentDocs.length}
-                            settings={settings}
+
                         />
                     </div>
 
@@ -233,7 +233,7 @@ function DashboardContent() {
 
                     {/* Help & Support */}
                     <div className="pt-4 border-t border-[var(--border)]">
-                        <Link href="/help/admin" className="group flex items-center gap-3 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
+                        <Link href="/resources/checklists" className="group flex items-center gap-3 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
                             <div className="p-1.5 rounded-lg bg-[var(--surface-2)] group-hover:bg-[var(--primary)]/10 transition-colors">
                                 <BookOpen className="h-4 w-4" />
                             </div>
@@ -246,7 +246,7 @@ function DashboardContent() {
     );
 }
 
-function ActivationAlert({ syncState, settings }: { syncState: string | null; settings: EmployerSettings | null }) {
+function ActivationAlert({ syncState }: { syncState: string | null }) {
     const backupLabel = "not yet";
 
     return (
@@ -445,7 +445,7 @@ function OnboardingChecklist({ employeeCount, isPayrollStarted, settings }: { em
     );
 }
 
-function HouseholdSnapshot({ employeeCount, documentCount, settings }: { employeeCount: number; documentCount: number; settings: EmployerSettings | null }) {
+function HouseholdSnapshot({ employeeCount, documentCount }: { employeeCount: number; documentCount: number }) {
     return (
         <Card className="glass-panel border-none shadow-sm outline outline-1 outline-[var(--border)]">
             <CardContent className="p-4 sm:p-6 space-y-4">
