@@ -11,6 +11,8 @@ import { Loader2 } from "lucide-react";
 export function RecoveryGate({ children }: { children: React.ReactNode }) {
     const { mode, unlockAccount } = useAppMode();
     const [status, setStatus] = React.useState<'checking' | 'needs_setup' | 'needs_input' | 'ready'>('ready');
+    const [setupError, setSetupError] = React.useState<string | null>(null);
+    const [isSubmittingSetup, setIsSubmittingSetup] = React.useState(false);
     const supabase = createClient();
 
     React.useEffect(() => {
@@ -37,6 +39,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
 
             // If we don't have a record or boolean is false, they need setup
             if (!profile || !profile.key_setup_complete) {
+                setSetupError(null);
                 setStatus('needs_setup');
             } else {
                 setStatus('needs_input');
@@ -49,7 +52,8 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
     }, [mode, supabase]);
 
     const handleSetupComplete = async (keyString: string) => {
-        setStatus('checking');
+        setSetupError(null);
+        setIsSubmittingSetup(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
@@ -57,11 +61,15 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             const cryptoKey = await deriveKey(keyString);
             const payload = await generateValidationPayload(cryptoKey);
 
-            const { error } = await supabase.from('user_profiles').upsert({
-                id: user.id,
-                key_setup_complete: true,
-                validation_payload: payload,
-            });
+            const { error } = await supabase
+                .from('user_profiles')
+                .upsert({
+                    id: user.id,
+                    key_setup_complete: true,
+                    validation_payload: payload,
+                }, {
+                    onConflict: 'id',
+                });
 
             if (error) {
                 throw error;
@@ -70,7 +78,10 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             await unlockAccount(cryptoKey, user.id);
         } catch (err) {
             console.error(err);
-            setStatus('needs_setup'); // reset
+            setSetupError(formatRecoverySetupError(err));
+            setStatus('needs_setup');
+        } finally {
+            setIsSubmittingSetup(false);
         }
     };
 
@@ -136,7 +147,11 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                         )}
                         
                         {status === 'needs_setup' && (
-                            <RecoveryKeySetup onComplete={handleSetupComplete} />
+                            <RecoveryKeySetup
+                                onComplete={handleSetupComplete}
+                                errorMessage={setupError}
+                                isSubmitting={isSubmittingSetup}
+                            />
                         )}
 
                         {status === 'needs_input' && (
@@ -189,4 +204,19 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             </div>
         </div>
     );
+}
+
+function formatRecoverySetupError(error: unknown) {
+    if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+        const message = error.message;
+        if (message.includes("user_profiles")) {
+            return "Cloud sync could not finish setting up your recovery key. The sync profile table is not available yet.";
+        }
+        if (message.includes("row-level security") || message.includes("permission")) {
+            return "Cloud sync could not save your recovery-key setup because this account does not have permission to write the profile record yet.";
+        }
+        return message;
+    }
+
+    return "Cloud sync could not finish setting up your recovery key. Please try again.";
 }

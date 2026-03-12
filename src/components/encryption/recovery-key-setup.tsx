@@ -6,9 +6,15 @@ import { generateRecoveryKey } from "@/lib/crypto";
 
 interface RecoveryKeySetupProps {
     onComplete: (key: string) => void;
+    errorMessage?: string | null;
+    isSubmitting?: boolean;
 }
 
-export function RecoveryKeySetup({ onComplete }: RecoveryKeySetupProps) {
+export function RecoveryKeySetup({
+    onComplete,
+    errorMessage = null,
+    isSubmitting = false,
+}: RecoveryKeySetupProps) {
     const [recoveryKey, setRecoveryKey] = React.useState<string>("");
     const [isCopied, setIsCopied] = React.useState(false);
     const [confirmationText, setConfirmationText] = React.useState("");
@@ -110,14 +116,19 @@ export function RecoveryKeySetup({ onComplete }: RecoveryKeySetupProps) {
                 <p className="text-[10px] text-center text-[var(--text-muted)] leading-tight px-4">
                     By typing this, I confirm I have securely saved my key and understand that my records cannot be recovered if this key is lost.
                 </p>
+                {errorMessage ? (
+                    <div className="rounded-xl border border-[var(--danger-border)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger)]">
+                        {errorMessage}
+                    </div>
+                ) : null}
             </div>
 
             <button
                 onClick={handleContinue}
-                disabled={!isConfirmed}
+                disabled={!isConfirmed || isSubmitting}
                 className="w-full flex justify-center items-center py-3.5 px-4 bg-[var(--primary)] text-white font-bold rounded-xl active-scale transition-all hover:bg-[var(--primary-hover)] shadow-[0_2px_10px_rgba(0,122,77,0.15)] disabled:bg-[var(--border-strong)] disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
             >
-                Continue to dashboard
+                {isSubmitting ? "Finishing setup..." : "Continue to dashboard"}
             </button>
         </div>
     );
