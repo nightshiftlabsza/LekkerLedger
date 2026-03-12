@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Mail, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { readPendingBillingReference } from "@/lib/billing-handoff";
 
 type LoginFormProps = {
     title?: string;
@@ -52,10 +53,10 @@ export function LoginForm({
             return;
         }
 
-        const reference = searchParams.get("reference")?.trim() || "";
+        const reference = searchParams.get("reference")?.trim() || readPendingBillingReference() || "";
         const next = searchParams.get("next")?.trim() || "";
         const destination = reference
-            ? `/billing/success?reference=${encodeURIComponent(reference)}`
+            ? "/billing/success"
             : next || "/dashboard";
 
         router.push(destination);

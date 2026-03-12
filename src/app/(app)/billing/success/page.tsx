@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, CheckCircle2, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,22 +12,14 @@ import {
     fetchBillingAccount,
     type BillingAccountPayload,
 } from "@/lib/billing-client";
-
-const PENDING_BILLING_REFERENCE_KEY = "lekkerledger:pending-billing-reference";
-
-function readPendingReference() {
-    if (typeof window === "undefined") return "";
-    return window.localStorage.getItem(PENDING_BILLING_REFERENCE_KEY)?.trim() || "";
-}
-
-function writePendingReference(reference: string) {
-    if (typeof window === "undefined") return;
-    if (!reference) {
-        window.localStorage.removeItem(PENDING_BILLING_REFERENCE_KEY);
-        return;
-    }
-    window.localStorage.setItem(PENDING_BILLING_REFERENCE_KEY, reference);
-}
+import { SignUpForm } from "@/components/auth/signup-form";
+import {
+    clearPendingBillingHandoff,
+    readPendingBillingEmail,
+    readPendingBillingReference,
+    writePendingBillingEmail,
+    writePendingBillingReference,
+} from "@/lib/billing-handoff";
 
 export default function BillingSuccessPage() {
     return (
@@ -38,10 +30,12 @@ export default function BillingSuccessPage() {
 }
 
 function BillingSuccessPageContent() {
+    const router = useRouter();
+    const pathname = usePathname();
     const searchParams = useSearchParams();
     const [status, setStatus] = React.useState<"checking" | "trial" | "active" | "pending" | "auth" | "error">("checking");
     const [billingAccount, setBillingAccount] = React.useState<BillingAccountPayload | null>(null);
-    const [guestEmail, setGuestEmail] = React.useState<string | null>(null);
+    const [guestEmail, setGuestEmail] = React.useState<string | null>(readPendingBillingEmail() || null);
     const [resolvedReference, setResolvedReference] = React.useState("");
     const [isRetrying, setIsRetrying] = React.useState(false);
 
@@ -55,14 +49,14 @@ function BillingSuccessPageContent() {
         if (account.entitlements.status === "trialing" && account.entitlements.planId !== "free") {
             setBillingAccount(account);
             setStatus("trial");
-            writePendingReference("");
+            clearPendingBillingHandoff();
             return true;
         }
 
         if (account.entitlements.isActive && account.entitlements.planId !== "free") {
             setBillingAccount(account);
             setStatus("active");
-            writePendingReference("");
+            clearPendingBillingHandoff();
             return true;
         }
 
@@ -84,7 +78,7 @@ function BillingSuccessPageContent() {
             return;
         }
 
-        writePendingReference(reference);
+        writePendingBillingReference(reference);
         setResolvedReference(reference);
         setStatus("checking");
 
@@ -100,6 +94,7 @@ function BillingSuccessPageContent() {
                         const guestStatus = await confirmGuestBillingTransaction(reference);
                         if (guestStatus.paid) {
                             setGuestEmail(guestStatus.email);
+                            writePendingBillingEmail(guestStatus.email);
                             setStatus("auth");
                             return;
                         }
@@ -126,21 +121,22 @@ function BillingSuccessPageContent() {
 
     React.useEffect(() => {
         const queryReference = searchParams.get("reference")?.trim() || "";
-        const storedReference = readPendingReference();
+        const storedReference = readPendingBillingReference();
         const nextReference = queryReference || storedReference;
 
         if (queryReference) {
-            writePendingReference(queryReference);
+            writePendingBillingReference(queryReference);
+            router.replace(pathname, { scroll: false });
         }
 
         void confirmPayment(nextReference);
-    }, [confirmPayment, searchParams]);
+    }, [confirmPayment, pathname, router, searchParams]);
 
     const handleRetry = React.useCallback(async () => {
         if (isRetrying) return;
         setIsRetrying(true);
         try {
-            await confirmPayment(resolvedReference || readPendingReference(), 6);
+            await confirmPayment(resolvedReference || readPendingBillingReference(), 6);
         } finally {
             setIsRetrying(false);
         }
@@ -160,7 +156,7 @@ function BillingSuccessPageContent() {
             : status === "error"
                 ? "Payment received, but setup needs a final check"
                 : status === "auth"
-                    ? "Payment confirmed. Finish your account"
+                    ? "Payment confirmed. Create your account"
                     : status === "pending"
                         ? "Still finishing activation"
                         : "Confirming your payment";
@@ -172,15 +168,10 @@ function BillingSuccessPageContent() {
             : status === "error"
                 ? billingAccount?.account.lastError || "Your card setup completed, but LekkerLedger still needs one final billing check."
                 : status === "auth"
-                    ? `We have matched this payment to ${guestEmail || "your billing email"}. Create your LekkerLedger account now to finish activation and unlock encrypted sync.`
+                    ? `We have matched this payment to ${guestEmail || "your billing email"}. Create the account here to finish activation and unlock encrypted sync.`
                     : status === "pending"
                         ? "Paystack has replied, but the final billing confirmation is still catching up. Your payment reference has been saved on this device so you can safely retry."
                         : "LekkerLedger is checking Paystack and your billing status. This usually takes a few seconds.";
-
-    const signupUrl = `/signup?email=${encodeURIComponent(guestEmail || "")}&reference=${encodeURIComponent(resolvedReference)}`;
-    const loginUrl = resolvedReference
-        ? `/login?reference=${encodeURIComponent(resolvedReference)}`
-        : "/login";
 
     return (
         <div className="min-h-[80vh] px-4 py-8 sm:px-6 lg:px-8">
@@ -217,15 +208,9 @@ function BillingSuccessPageContent() {
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                         {status === "auth" ? (
                             <>
-                                <Link href={signupUrl} className="w-full sm:w-auto">
-                                    <Button className="w-full sm:min-w-[220px]">
-                                        Create account
-                                        <ArrowRight className="h-4 w-4" />
-                                    </Button>
-                                </Link>
-                                <Link href={loginUrl} className="w-full sm:w-auto">
+                                <Link href="/login" className="w-full sm:w-auto">
                                     <Button variant="outline" className="w-full sm:min-w-[220px]">
-                                        Already have an account? Log in
+                                        Already have an account? Log in instead
                                     </Button>
                                 </Link>
                             </>
@@ -251,6 +236,18 @@ function BillingSuccessPageContent() {
                             </>
                         )}
                     </div>
+
+                    {status === "auth" ? (
+                        <div className="mt-8 border-t border-[var(--border)] pt-8">
+                            <SignUpForm
+                                initialEmail={guestEmail || ""}
+                                reference={resolvedReference}
+                                title="Create the account for this paid plan"
+                                description="Your payment is already confirmed. Set your password here and LekkerLedger will finish activation after email confirmation."
+                                showLoginFooter={false}
+                            />
+                        </div>
+                    ) : null}
                 </section>
 
                 <aside className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-sm)] sm:p-7">
@@ -271,8 +268,10 @@ function BillingSuccessPageContent() {
 
                     {resolvedReference ? (
                         <div className="mt-6 rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Saved payment reference</p>
-                            <p className="mt-2 break-all font-mono text-sm text-[var(--text)]">{resolvedReference}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Activation saved on this device</p>
+                            <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
+                                If the page refreshes, LekkerLedger keeps the payment handoff on this device until your account is finished. The raw payment reference is not shown back in the browser URL.
+                            </p>
                         </div>
                     ) : null}
                 </aside>

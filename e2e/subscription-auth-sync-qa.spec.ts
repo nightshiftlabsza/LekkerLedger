@@ -50,6 +50,7 @@ async function mockPaidSignupHandoff(page: import("@playwright/test").Page) {
 test.describe("Subscription/Auth/Sync live QA", () => {
     test("login stays directly accessible", async ({ page }) => {
         await page.goto("/login", { waitUntil: "networkidle" });
+        await expect(page.getByText("Paid access, recovery, and setup in one calm flow.")).toBeVisible();
         await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
         await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
         await expect(page).toHaveURL(/\/login$/);
@@ -90,9 +91,11 @@ test.describe("Subscription/Auth/Sync live QA", () => {
 
         await page.goto("/billing/success?reference=abc123", { waitUntil: "networkidle" });
 
-        await expect(page.getByRole("heading", { name: "Payment confirmed. Finish your account" })).toBeVisible();
-        await expect(page.getByRole("link", { name: "Create account" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Payment confirmed. Create your account" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Create the account for this paid plan" })).toBeVisible();
+        await expect(page.getByLabel("Email address")).toHaveValue("paid.user@example.com");
         await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+        await expect(page).toHaveURL(/\/billing\/success$/);
 
         const layout = await page.evaluate(() => {
             const doc = document.documentElement;
@@ -118,6 +121,7 @@ test.describe("Subscription/Auth/Sync live QA", () => {
 
         await page.goto("/billing/success?reference=wide-abc", { waitUntil: "domcontentloaded" });
         await expect(page.getByText("What happens next")).toBeVisible();
+        await expect(page).toHaveURL(/\/billing\/success$/);
 
         const layout = await page.evaluate(() => {
             const section = document.querySelector("section");

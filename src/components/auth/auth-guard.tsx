@@ -5,12 +5,13 @@ import Link from "next/link";
 import { ArrowRight, Loader2, Lock, ShieldCheck } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { confirmGuestBillingTransaction, fetchBillingAccount } from "@/lib/billing-client";
+import { readPendingBillingReference } from "@/lib/billing-handoff";
 
 export function AuthGuard({ children, type }: { children: React.ReactNode; type: "login" | "signup" }) {
     const [isChecking, setIsChecking] = React.useState(type === "signup");
     const [hasAccess, setHasAccess] = React.useState(type === "login");
     const searchParams = useSearchParams();
-    const reference = searchParams.get("reference")?.trim() || "";
+    const reference = searchParams.get("reference")?.trim() || readPendingBillingReference() || "";
 
     React.useEffect(() => {
         if (type === "login") {

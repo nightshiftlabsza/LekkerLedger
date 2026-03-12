@@ -5,19 +5,36 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Mail, Lock, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { readPendingBillingEmail, readPendingBillingReference } from "@/lib/billing-handoff";
 
-export function SignUpForm() {
+type SignUpFormProps = {
+    initialEmail?: string;
+    reference?: string;
+    title?: string;
+    description?: string;
+    showLoginFooter?: boolean;
+};
+
+export function SignUpForm({
+    initialEmail,
+    reference: referenceProp,
+    title = "Create your secure account",
+    description,
+    showLoginFooter = true,
+}: SignUpFormProps = {}) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const supabase = createClient();
-    
-    const [email, setEmail] = React.useState(searchParams.get("email") || "");
+
+    const [email, setEmail] = React.useState(
+        initialEmail || searchParams.get("email") || readPendingBillingEmail() || ""
+    );
     const [password, setPassword] = React.useState("");
     const [passwordError, setPasswordError] = React.useState<string | null>(null);
     const [error, setError] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(false);
     const [isSuccess, setIsSuccess] = React.useState(false);
-    const reference = searchParams.get("reference")?.trim() || "";
+    const reference = referenceProp || searchParams.get("reference")?.trim() || readPendingBillingReference() || "";
 
     const validatePassword = (pass: string) => {
         if (pass.length < 10) return "Password must be at least 10 characters long.";
@@ -91,12 +108,14 @@ export function SignUpForm() {
         <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] animate-fade-in">
             <div className="text-center mb-8">
                 <h1 className="font-serif text-3xl font-bold text-[var(--text)] mb-2 tracking-tight">
-                    Create your secure account
+                    {title}
                 </h1>
                 <p className="text-[var(--text-muted)] text-[0.95rem]">
-                    {reference
-                        ? "Your payment is already on file. Create the account that will hold your encrypted sync access."
-                        : "Create the account that will hold your encrypted payroll backup and sync access."}
+                    {description || (
+                        reference
+                            ? "Your payment is already on file. Create the account that will hold your encrypted sync access."
+                            : "Create the account that will hold your encrypted payroll backup and sync access."
+                    )}
                 </p>
             </div>
 
@@ -185,14 +204,16 @@ export function SignUpForm() {
                 </div>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-[var(--border)]/50 text-center">
-                <p className="text-sm text-[var(--text-muted)]">
-                    Already have an account?{" "}
-                    <Link href="/login" className="font-semibold text-[var(--primary)] hover:underline underline-offset-4">
-                        Log in
-                    </Link>
-                </p>
-            </div>
+            {showLoginFooter ? (
+                <div className="mt-8 pt-6 border-t border-[var(--border)]/50 text-center">
+                    <p className="text-sm text-[var(--text-muted)]">
+                        Already have an account?{" "}
+                        <Link href="/login" className="font-semibold text-[var(--primary)] hover:underline underline-offset-4">
+                            Log in
+                        </Link>
+                    </p>
+                </div>
+            ) : null}
         </div>
     );
 }
