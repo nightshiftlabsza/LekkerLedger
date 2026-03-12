@@ -17,6 +17,8 @@ import type { Employee, PayslipInput } from "@/lib/schema";
 import { HOMEPAGE_PRICING_LINK_LABEL, PRICING_PAGE_SUBTITLE, PRICING_PAGE_TITLE } from "@/src/config/pricing-display";
 import { useMarketingBillingCycle } from "@/src/lib/use-marketing-billing-cycle";
 import { MarketingHeader } from "../../../components/layout/marketing-header";
+import { AuthModal } from "@/components/auth/auth-modal";
+import { Suspense } from "react";
 
 const SAMPLE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-x-2 sm:gap-x-4 sm:grid-cols-[minmax(0,1fr)_5rem_6.75rem_7rem]";
 
@@ -108,6 +110,10 @@ export default function HomePage() {
                 <PricingPreview />
                 <FAQPreview />
             </main>
+
+            <Suspense fallback={null}>
+                <AuthModal />
+            </Suspense>
         </div>
     );
 }

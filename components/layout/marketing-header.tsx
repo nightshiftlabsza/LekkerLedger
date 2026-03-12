@@ -52,16 +52,16 @@ export function MarketingHeader() {
                 </nav>
 
                 <div className="hidden lg:flex items-center gap-3">
-                    <Link href="/login" className="text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text)] px-3">
+                    <Link href="/?auth=login" className="text-sm font-bold text-[var(--text)] hover:text-[var(--primary)] px-3 transition-colors">
                         Log in
                     </Link>
                     <Link href="/pricing">
-                        <Button variant="outline" className="h-11 rounded-xl px-4 font-bold">
+                        <Button variant="outline" className="h-11 rounded-xl px-4 font-bold border-2">
                             View plans
                         </Button>
                     </Link>
-                    <Link href="/dashboard">
-                        <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-sm)]">
+                    <Link href="/?auth=signup">
+                        <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-sm)] active:scale-[0.98]">
                             Start free <ArrowRight className="h-4 w-4" />
                         </Button>
                     </Link>
@@ -78,8 +78,8 @@ export function MarketingHeader() {
 
             {menuOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
-                    <div className="absolute inset-0 bg-black/30" onClick={() => setMenuOpen(false)} />
-                    <div className="absolute inset-x-0 top-0 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-lg)]">
+                    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
+                    <div className="absolute inset-x-0 top-0 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-lg)] animate-in slide-in-from-top duration-300">
                         <div className="flex items-center justify-between px-4 py-4 sm:px-6">
                             <Link href="/" onClick={() => setMenuOpen(false)} className="rounded-lg py-1">
                                 <Logo />
@@ -93,7 +93,7 @@ export function MarketingHeader() {
                             </button>
                         </div>
 
-                        <nav className="space-y-1 px-4 pb-4 sm:px-6">
+                        <nav className="space-y-1 px-4 pb-6 sm:px-6">
                             {NAV_LINKS.map(({ href, label }) => (
                                 <Link
                                     key={`${href}-${label}`}
@@ -104,19 +104,19 @@ export function MarketingHeader() {
                                     {label}
                                 </Link>
                             ))}
-                            <div className="grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-4">
-                                <Link href="/login" onClick={() => setMenuOpen(false)}>
-                                    <Button variant="ghost" className="w-full justify-center font-bold">
+                            <div className="grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-6 mt-2">
+                                <Link href="/?auth=login" onClick={() => setMenuOpen(false)}>
+                                    <Button variant="ghost" className="w-full justify-center font-bold text-[var(--text)]">
                                         Log in
                                     </Button>
                                 </Link>
                                 <Link href="/pricing" onClick={() => setMenuOpen(false)}>
-                                    <Button variant="outline" className="w-full justify-center font-bold">
+                                    <Button variant="outline" className="w-full justify-center font-bold border-2">
                                         View plans
                                     </Button>
                                 </Link>
-                                <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
-                                    <Button className="w-full justify-center font-bold">
+                                <Link href="/?auth=signup" onClick={() => setMenuOpen(false)}>
+                                    <Button className="w-full justify-center font-bold h-12">
                                         Start free <ArrowRight className="h-4 w-4" />
                                     </Button>
                                 </Link>
