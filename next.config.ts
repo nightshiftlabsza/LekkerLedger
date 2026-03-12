@@ -16,7 +16,6 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
-  turbopack: {},
   experimental: {},
   async redirects() {
     return [
