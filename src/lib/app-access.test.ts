@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldRedirectFreeUserFromApp } from "./app-access";
+import { isPaidDashboardFlow, shouldRedirectFreeUserFromApp } from "./app-access";
 
 describe("app access guard", () => {
     it("redirects free users out of app routes once settings are ready", () => {
@@ -7,7 +7,7 @@ describe("app access guard", () => {
             pathname: "/dashboard",
             planId: "free",
             settingsReady: true,
-            paidLoginRequested: false,
+            paidFlowRequested: false,
         })).toBe(true);
     });
 
@@ -16,7 +16,7 @@ describe("app access guard", () => {
             pathname: "/dashboard",
             planId: "free",
             settingsReady: true,
-            paidLoginRequested: true,
+            paidFlowRequested: true,
         })).toBe(false);
     });
 
@@ -25,7 +25,36 @@ describe("app access guard", () => {
             pathname: "/dashboard",
             planId: "free",
             settingsReady: false,
-            paidLoginRequested: false,
+            paidFlowRequested: false,
         })).toBe(false);
+    });
+});
+
+describe("paid dashboard flow detection", () => {
+    it("recognizes the initial paid login handoff", () => {
+        expect(isPaidDashboardFlow({
+            pathname: "/dashboard",
+            paidLoginParam: "1",
+            activationParam: null,
+            syncParam: null,
+        })).toBe(true);
+    });
+
+    it("recognizes the paid activation success state", () => {
+        expect(isPaidDashboardFlow({
+            pathname: "/dashboard",
+            paidLoginParam: null,
+            activationParam: "paid-login-success",
+            syncParam: null,
+        })).toBe(true);
+    });
+
+    it("recognizes dashboard sync follow-up state", () => {
+        expect(isPaidDashboardFlow({
+            pathname: "/dashboard",
+            paidLoginParam: null,
+            activationParam: null,
+            syncParam: "restored",
+        })).toBe(true);
     });
 });

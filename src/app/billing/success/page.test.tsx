@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
     let pendingReference = "";
-    let pendingEmail = "";
 
     return {
         replaceMock: vi.fn(),
@@ -12,7 +11,6 @@ const mocks = vi.hoisted(() => {
         fetchBillingAccountMock: vi.fn(),
         resetHandoff() {
             pendingReference = "";
-            pendingEmail = "";
         },
         readPendingReference() {
             return pendingReference;
@@ -20,9 +18,7 @@ const mocks = vi.hoisted(() => {
         writePendingReference(reference: string) {
             pendingReference = reference;
         },
-        writePendingEmail(email: string) {
-            pendingEmail = email;
-        },
+        writePendingEmail: vi.fn(),
     };
 });
 

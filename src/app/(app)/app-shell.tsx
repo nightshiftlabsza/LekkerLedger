@@ -14,7 +14,7 @@ import { AddHouseholdDialog } from "@/components/household/add-household-dialog"
 import { getHouseholds, getSettings, resetAllData, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
-import { shouldRedirectFreeUserFromApp } from "@/lib/app-access";
+import { isPaidDashboardFlow, shouldRedirectFreeUserFromApp } from "@/lib/app-access";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 import { AppModeProvider, useAppMode } from "@/lib/app-mode";
 import { RecoveryGate } from "@/components/encryption/recovery-gate";
@@ -55,7 +55,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         previousNetworkRef.current = network;
     }, [network]);
 
-    const paidLoginRequested = pathname === "/dashboard" && searchParams.get("paidLogin") === "1";
+    const paidFlowRequested = isPaidDashboardFlow({
+        pathname,
+        paidLoginParam: searchParams.get("paidLogin"),
+        activationParam: searchParams.get("activation"),
+        syncParam: searchParams.get("sync"),
+    });
 
     React.useEffect(() => {
         let active = true;
@@ -94,13 +99,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             pathname,
             planId,
             settingsReady,
-            paidLoginRequested,
+            paidFlowRequested,
         })) {
             return;
         }
 
         router.replace("/pricing");
-    }, [paidLoginRequested, pathname, router, settings, settingsReady]);
+    }, [paidFlowRequested, pathname, router, settings, settingsReady]);
 
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && (sync === "error" || syncConflict) && !syncBannerDismissed;
