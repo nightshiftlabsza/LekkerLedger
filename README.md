@@ -53,4 +53,5 @@ This project uses Google Analytics 4 to track conversions.
 
 ### Verification
 You can verify that events are firing by using the **GA4 Realtime report** or **DebugView**.
-Alternatively, check the Network tab in Browser DevTools for requests to `google-analytics.com/g/collect`.
+Alternatively, check the Network tab in Browser DevTools for requests to `google-analytics.com/g/collect`. 
+Ignore this line
