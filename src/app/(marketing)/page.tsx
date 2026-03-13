@@ -136,13 +136,13 @@ function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
                         </div>
 
                         <div className="space-y-3">
-                            <Link href="/dashboard">
+                            <Link href="/resources/tools/domestic-worker-payslip">
                                 <Button className="h-12 rounded-xl bg-[var(--primary)] px-7 text-base font-bold text-white shadow-[var(--shadow-2)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]">
                                     Start free <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>
                             <p className="text-xs font-medium leading-6" style={{ color: "var(--text-muted)" }}>
-                                Free to start. No account needed. Upgrade for backup and records.
+                                Free uses the public payslip tool. Paid plans unlock accounts, sync, and the dashboard.
                             </p>
                         </div>
                     </div>

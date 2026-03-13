@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
     ArrowRight, AlertTriangle,
     FileText, FolderOpen,
@@ -18,7 +18,10 @@ import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { getEmployees, getSettings, getCurrentPayPeriod, getDocuments, getLatestPayslip, subscribeToDataChanges, getPayPeriods } from "@/lib/storage";
 import { filterRecordsForArchiveWindow, isUploadedDocument } from "@/lib/archive";
 import { computeDashboardAlerts, type DashboardAlert as DashboardAlertData } from "@/lib/alerts";
+import { confirmBillingTransaction } from "@/lib/billing-client";
 import { getUserPlan } from "@/lib/entitlements";
+import { clearPendingBillingHandoff, readPendingBillingReference, writePendingBillingReference } from "@/lib/billing-handoff";
+import { buildPaidDashboardHref, PAID_LOGIN_SUCCESS_QUERY } from "@/lib/paid-activation";
 import { Employee, PayPeriod, EmployerSettings, DocumentMeta, PayslipInput } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { InlinePlanCheckoutButton } from "@/components/billing/inline-paid-plan-checkout";
@@ -31,7 +34,9 @@ interface EmployeeSummary {
 }
 
 function DashboardContent() {
+    const router = useRouter();
     const [loading, setLoading] = React.useState(true);
+    const [activationError, setActivationError] = React.useState<string | null>(null);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [currentPeriod, setCurrentPeriod] = React.useState<PayPeriod | null>(null);
@@ -40,10 +45,51 @@ function DashboardContent() {
     const [allPeriods, setAllPeriods] = React.useState<PayPeriod[]>([]);
     const searchParams = useSearchParams();
     const paidLoginRequested = searchParams.get("paidLogin") === "1";
+    const paymentReference = searchParams.get("reference")?.trim() || readPendingBillingReference() || "";
 
 
     const activationSuccess = searchParams.get("activation") === "paid-login-success";
     const activationSync = searchParams.get("sync");
+
+    React.useEffect(() => {
+        if (!paidLoginRequested) return;
+
+        let active = true;
+
+        async function completePaidLogin() {
+            if (!paymentReference) {
+                if (active) {
+                    setActivationError("We could not find your payment reference. Please log in again from the payment handoff.");
+                }
+                return;
+            }
+
+            writePendingBillingReference(paymentReference);
+            setActivationError(null);
+
+            try {
+                const account = await confirmBillingTransaction(paymentReference);
+                const hasPaidAccess = account.entitlements.planId !== "free"
+                    && (account.entitlements.isActive || account.entitlements.status === "trialing");
+
+                if (!hasPaidAccess) {
+                    throw new Error(account.account.lastError || "Your payment was found, but paid access is not active yet.");
+                }
+
+                clearPendingBillingHandoff();
+                window.location.replace(buildPaidDashboardHref({ activation: PAID_LOGIN_SUCCESS_QUERY }));
+            } catch (error) {
+                if (!active) return;
+                setActivationError(error instanceof Error ? error.message : "Paid activation could not be completed.");
+            }
+        }
+
+        void completePaidLogin();
+
+        return () => {
+            active = false;
+        };
+    }, [paidLoginRequested, paymentReference]);
 
     React.useEffect(() => {
         if (paidLoginRequested) return;
@@ -96,7 +142,31 @@ function DashboardContent() {
         return (
             <>
                 <PageHeader title="Dashboard" subtitle="Completing your setup." />
-                <p className="text-sm text-[var(--text-muted)]">Completing your setup...</p>
+                {activationError ? (
+                    <Card className="max-w-2xl border-[var(--danger-border)] bg-[var(--danger-soft)]">
+                        <CardContent className="space-y-4 p-6">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle className="mt-0.5 h-5 w-5 text-[var(--danger)]" />
+                                <div className="space-y-2">
+                                    <p className="text-base font-bold text-[var(--text)]">Paid activation needs attention</p>
+                                    <p className="text-sm leading-6 text-[var(--text-muted)]">{activationError}</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-3 sm:flex-row">
+                                <Button onClick={() => router.refresh()} className="sm:w-auto">
+                                    Try again
+                                </Button>
+                                <Link href="/pricing" className="sm:w-auto">
+                                    <Button variant="outline" className="w-full sm:w-auto">
+                                        View plans
+                                    </Button>
+                                </Link>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <p className="text-sm text-[var(--text-muted)]">Completing your setup...</p>
+                )}
             </>
         );
     }

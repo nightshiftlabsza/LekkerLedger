@@ -55,17 +55,17 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Stored on this device",
         ],
         ctaLabel: "Start free",
-        ctaSubtext: "No billing. No account required.",
+        ctaSubtext: "Public payslip tool. No billing. No account.",
         prices: {
             monthly: {
                 primary: "Free",
                 periodLabel: "",
-                helperText: "No billing. No account required.",
+                helperText: "Public payslip tool. No billing. No account.",
             },
             yearly: {
                 primary: "Free",
                 periodLabel: "",
-                helperText: "No billing. No account required.",
+                helperText: "Public payslip tool. No billing. No account.",
             },
         },
     },
@@ -198,7 +198,7 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
 
 export function getMarketingPlanHref(planId: PlanId, billingCycle: BillingCycle): string {
     if (planId === "free") {
-        return "/dashboard";
+        return "/resources/tools/domestic-worker-payslip";
     }
 
     return `/upgrade?plan=${planId}&billing=${billingCycle}&pay=1`;

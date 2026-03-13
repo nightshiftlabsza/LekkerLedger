@@ -31,13 +31,13 @@ export default function PayslipGeneratorPage() {
                             Generate legally compliant South African payslips in minutes. We handle the math for minimum wage bounds and the 1%+1% UIF calculation.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                            <Link href="/payroll/new">
+                            <Link href="#payslip-rules">
                                 <Button size="lg" className="w-full sm:w-auto h-14 px-8 text-base bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-full shadow-md">
                                     <Calculator className="mr-2 h-5 w-5" />
-                                    Generate Payslip Now
+                                    See payslip requirements
                                 </Button>
                             </Link>
-                            <span className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>No credit card required.</span>
+                            <span className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>Free path. No credit card. No dashboard account needed.</span>
                         </div>
                     </div>
                 </section>
@@ -80,7 +80,7 @@ export default function PayslipGeneratorPage() {
                 {/* SEO CONTENT SECTION */}
                 <section className="px-4 py-16 content-container sm:py-24">
                     <div className="max-w-3xl mx-auto space-y-12">
-                        <div className="space-y-6">
+                        <div id="payslip-rules" className="space-y-6">
                             <h2 className="type-h2" style={{ color: "var(--text)" }}>What must a South African payslip include?</h2>
                             <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 According to Section 33 of the Basic Conditions of Employment Act (BCEA), household employers must provide domestic workers with written particulars of payment. A compliant payslip must include:
@@ -110,10 +110,10 @@ export default function PayslipGeneratorPage() {
                         </div>
 
                         <div className="bg-[var(--surface-raised)] border border-[var(--border)] rounded-2xl p-8 text-center space-y-6">
-                            <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Ready to formalise your household payroll?</h3>
-                            <Link href="/payroll/new" className="inline-block">
+                            <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Need the full paid dashboard as well?</h3>
+                            <Link href="/pricing" className="inline-block">
                                 <Button size="lg" className="h-12 px-8 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-full">
-                                    Start Your First Payslip
+                                    View paid plans
                                 </Button>
                             </Link>
                         </div>

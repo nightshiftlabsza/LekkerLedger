@@ -7,6 +7,7 @@ import { Loader2, Mail, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getBrowserAppOrigin } from "@/lib/app-origin";
 import { readPendingBillingEmail, readPendingBillingReference } from "@/lib/billing-handoff";
+import { buildPaidDashboardHref, PAID_LOGIN_SUCCESS_QUERY } from "@/lib/paid-activation";
 
 function mapSignUpError(message: string): string {
     const lower = message.toLowerCase();
@@ -73,7 +74,9 @@ export function SignUpForm({
         setPasswordError(null);
         setIsLoading(true);
 
-        const next = reference ? `/billing/success?reference=${encodeURIComponent(reference)}` : "/dashboard";
+        const next = reference
+            ? buildPaidDashboardHref({ reference, activation: PAID_LOGIN_SUCCESS_QUERY })
+            : "/dashboard";
         const appOrigin = getBrowserAppOrigin();
 
         const { error: signUpError } = await supabase.auth.signUp({
@@ -130,7 +133,7 @@ export function SignUpForm({
                 <p className="text-[var(--text-muted)] text-[0.95rem]">
                     {description || (
                         reference
-                            ? "Your payment is already on file. Create the account that will hold your encrypted sync access."
+                            ? "Your payment is already on file. Create the paid account that will hold your encrypted sync access."
                             : "Create the account that will hold your encrypted payroll backup and sync access."
                     )}
                 </p>
@@ -213,7 +216,7 @@ export function SignUpForm({
                     </button>
                     {reference ? (
                         <p className="mt-4 text-center text-xs leading-5 text-[var(--text-muted)]">
-                            After you confirm your email, LekkerLedger will return you to the payment handoff screen and finish activation automatically.
+                            After you confirm your email, LekkerLedger will finish paid activation and open your dashboard.
                         </p>
                     ) : null}
                     <p className="text-xs text-[var(--text-muted)] text-center mt-4">

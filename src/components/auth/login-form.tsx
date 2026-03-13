@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Mail, Lock, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { readPendingBillingReference } from "@/lib/billing-handoff";
+import { buildPaidDashboardHref } from "@/lib/paid-activation";
 
 const CALLBACK_ERROR_MESSAGES: Record<string, string> = {
     invalid_or_expired_link: "That reset or confirmation link is no longer valid. Please request a fresh link.",
@@ -82,7 +83,7 @@ export function LoginForm({
         const reference = searchParams.get("reference")?.trim() || readPendingBillingReference() || "";
         const next = searchParams.get("next")?.trim() || "";
         const destination = reference
-            ? "/billing/success"
+            ? buildPaidDashboardHref({ reference })
             : next || "/dashboard";
 
         router.push(destination);

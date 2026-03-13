@@ -6,6 +6,8 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createInlineTrialIntent } from "@/lib/billing-client";
+import { writePendingBillingEmail, writePendingBillingReference } from "@/lib/billing-handoff";
+import { buildPaidDashboardHref, buildPaidLoginHref } from "@/lib/paid-activation";
 import { getSettings } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
 async function getAuthEmail() {
@@ -199,6 +201,7 @@ export function useInlinePaidPlanCheckout({
         setEmailError("");
 
         const normalizedEmail = normalizeEmail(email);
+        const isAuthenticated = Boolean(await getAuthEmail());
         writeStoredCheckoutEmail(normalizedEmail);
 
         try {
@@ -216,10 +219,16 @@ export function useInlinePaidPlanCheckout({
                 },
                 onSuccess: (response) => {
                     const reference = extractReference(response) || intent.reference;
+                    writePendingBillingReference(reference);
+                    writePendingBillingEmail(normalizedEmail);
                     setDialogOpen(false);
                     setRequestedPlanId(null);
                     setLoadingPlanId(null);
-                    router.push(`/billing/success?reference=${encodeURIComponent(reference)}`);
+                    router.push(
+                        isAuthenticated
+                            ? buildPaidDashboardHref({ reference })
+                            : buildPaidLoginHref(reference),
+                    );
                 },
                 onCancel: () => {
                     setLoadingPlanId(null);
@@ -239,7 +248,7 @@ export function useInlinePaidPlanCheckout({
 
     const startCheckout = React.useCallback((planId: PlanId) => {
         if (planId === "free") {
-            router.push("/dashboard");
+            router.push("/resources/tools/domestic-worker-payslip");
             return;
         }
 
@@ -283,7 +292,7 @@ export function useInlinePaidPlanCheckout({
                             Open secure payment
                         </h2>
                         <p className="text-sm leading-6 text-[var(--text-muted)]">
-                            Paystack will open here in a secure popup. Creating your LekkerLedger account only comes after payment on the thank-you screen.
+                            Paystack will open here in a secure popup. After payment, LekkerLedger will send you straight into paid login or dashboard activation.
                         </p>
                     </div>
 
@@ -309,7 +318,7 @@ export function useInlinePaidPlanCheckout({
                         </div>
 
                         <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--text-muted)]">
-                            You&apos;ll pay R1 now to start the 14-day paid trial. After payment, the next step is creating your account for secure cloud sync and activation.
+                            You&apos;ll pay R1 now to start the 14-day paid trial. After payment, paid users go to dashboard activation and new users go to paid login to create their account.
                         </div>
 
                         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

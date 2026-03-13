@@ -78,10 +78,10 @@ export function AuthGuard({ children, type }: { children: React.ReactNode; type:
                     </div>
 
                     <h1 className="mt-5 font-serif text-3xl font-bold tracking-tight text-[var(--text)]">
-                        New cloud accounts open after payment
+                        Accounts are for paid plans
                     </h1>
                     <p className="mt-4 max-w-[42ch] text-sm leading-7 text-[var(--text-muted)] sm:text-[0.97rem]">
-                        Pay first, then create the account that holds your encrypted sync access. If you already paid on another device, open the payment confirmation screen again or log in with your existing account instead of buying another plan.
+                        Free access stays on the public payslip tool with no sign-up. Pay first, then create the account that holds your encrypted sync access and paid dashboard.
                     </p>
 
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -102,8 +102,8 @@ export function AuthGuard({ children, type }: { children: React.ReactNode; type:
                 <aside className="mt-8 rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-5 lg:mt-0">
                     <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Best path</p>
                     <ol className="mt-4 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
-                        <li><span className="font-semibold text-[var(--text)]">1.</span> Start from pricing and complete the secure Paystack step.</li>
-                        <li><span className="font-semibold text-[var(--text)]">2.</span> Use the create-account button on the payment confirmation screen.</li>
+                        <li><span className="font-semibold text-[var(--text)]">1.</span> Use the free tool without an account, or choose a paid plan on pricing.</li>
+                        <li><span className="font-semibold text-[var(--text)]">2.</span> After paying, create your paid account or log in with the same billing email.</li>
                         <li><span className="font-semibold text-[var(--text)]">3.</span> On later devices, just log in and enter your recovery key.</li>
                     </ol>
                 </aside>

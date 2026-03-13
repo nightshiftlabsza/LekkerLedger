@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
@@ -14,6 +14,7 @@ import { AddHouseholdDialog } from "@/components/household/add-household-dialog"
 import { getHouseholds, getSettings, resetAllData, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
+import { shouldRedirectFreeUserFromApp } from "@/lib/app-access";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 import { AppModeProvider, useAppMode } from "@/lib/app-mode";
 import { RecoveryGate } from "@/components/encryption/recovery-gate";
@@ -23,6 +24,8 @@ import { createClient } from "@/lib/supabase/client";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { network, sync, payments } = useAppConnectivity();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
@@ -38,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const [addHouseholdError, setAddHouseholdError] = React.useState("");
     const [addingHousehold, setAddingHousehold] = React.useState(false);
     const [lastLocalSaveAt, setLastLocalSaveAt] = React.useState<number | null>(null);
-    const [, setSettingsReady] = React.useState(false);
+    const [settingsReady, setSettingsReady] = React.useState(false);
     const settingsRef = React.useRef<typeof settings>(null);
     React.useEffect(() => {
         settingsRef.current = settings;
@@ -51,6 +54,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
         previousNetworkRef.current = network;
     }, [network]);
+
+    const paidLoginRequested = pathname === "/dashboard" && searchParams.get("paidLogin") === "1";
 
     React.useEffect(() => {
         let active = true;
@@ -82,6 +87,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             unsubscribe();
         };
     }, []);
+
+    React.useEffect(() => {
+        const planId = getUserPlan(settings).id;
+        if (!shouldRedirectFreeUserFromApp({
+            pathname,
+            planId,
+            settingsReady,
+            paidLoginRequested,
+        })) {
+            return;
+        }
+
+        router.replace("/pricing");
+    }, [paidLoginRequested, pathname, router, settings, settingsReady]);
 
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && (sync === "error" || syncConflict) && !syncBannerDismissed;
