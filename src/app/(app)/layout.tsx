@@ -41,12 +41,12 @@ export default function AppRootLayout({
             >
                 Skip to content
             </a>
-            <AppShell>
-                <Suspense fallback={null}>
+            <Suspense fallback={null}>
+                <AppShell>
                     <AppRouteTitleSync />
                     {children}
-                </Suspense>
-            </AppShell>
+                </AppShell>
+            </Suspense>
         </>
     );
 }
