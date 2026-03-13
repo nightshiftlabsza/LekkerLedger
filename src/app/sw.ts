@@ -1,4 +1,3 @@
-import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
 import { Serwist, CacheFirst, ExpirationPlugin, StaleWhileRevalidate } from "serwist";
 
@@ -48,7 +47,6 @@ const serwist = new Serwist({
                 ],
             }),
         },
-        ...defaultCache,
     ],
 });
 
