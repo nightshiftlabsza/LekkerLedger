@@ -29,6 +29,12 @@ interface DataTableProps<T> {
 
 type SortDir = "asc" | "desc";
 
+function getAlignmentClass(align?: Column<unknown>["align"]) {
+    if (align === "right") return "text-right";
+    if (align === "center") return "text-center";
+    return "text-left";
+}
+
 export function DataTable<T>({
     columns, data, keyField, onRowClick, emptyMessage = "No data", className = "", renderCard,
 }: DataTableProps<T>) {
@@ -73,19 +79,25 @@ export function DataTable<T>({
                             {columns.map(col => (
                                 <th
                                     key={col.key}
-                                    className={`px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ${col.align === "right" ? "text-right"
-                                        : col.align === "center" ? "text-center" : "text-left"
-                                        } ${col.sortable ? "cursor-pointer select-none hover:text-[var(--text)]" : ""} ${col.className ?? ""}`}
-                                    onClick={() => col.sortable && handleSort(col.key)}
+                                    scope="col"
+                                    className={`px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ${getAlignmentClass(col.align)} ${col.className ?? ""}`}
                                 >
-                                    <span className="inline-flex items-center gap-1">
-                                        {col.label}
-                                        {col.sortable && sortKey === col.key && (
-                                            sortDir === "asc"
-                                                ? <ChevronUp className="h-3 w-3" />
-                                                : <ChevronDown className="h-3 w-3" />
-                                        )}
-                                    </span>
+                                    {col.sortable ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSort(col.key)}
+                                            className={`inline-flex w-full items-center gap-1 border-0 bg-transparent p-0 select-none hover:text-[var(--text)] ${getAlignmentClass(col.align)}`}
+                                        >
+                                            <span>{col.label}</span>
+                                            {sortKey === col.key && (
+                                                sortDir === "asc"
+                                                    ? <ChevronUp className="h-3 w-3" />
+                                                    : <ChevronDown className="h-3 w-3" />
+                                            )}
+                                        </button>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1">{col.label}</span>
+                                    )}
                                 </th>
                             ))}
                         </tr>
@@ -100,9 +112,7 @@ export function DataTable<T>({
                                 {columns.map(col => (
                                     <td
                                         key={col.key}
-                                        className={`px-4 py-3.5 text-[var(--text)] ${col.align === "right" ? "text-right"
-                                            : col.align === "center" ? "text-center" : "text-left"
-                                            } ${col.className ?? ""}`}
+                                        className={`px-4 py-3.5 text-[var(--text)] ${getAlignmentClass(col.align)} ${col.className ?? ""}`}
                                     >
                                         {col.render(item)}
                                     </td>
@@ -118,19 +128,33 @@ export function DataTable<T>({
                 {sorted.map((item, i) => (
                     <React.Fragment key={keyField(item)}>
                         {renderCard ? renderCard(item, i) : (
-                            <div
-                                className={`glass-panel rounded-xl p-4 space-y-2 ${onRowClick ? "cursor-pointer hover-lift" : ""}`}
-                                onClick={() => onRowClick?.(item)}
-                            >
-                                {columns.map(col => (
-                                    <div key={col.key} className="flex items-start justify-between gap-4 py-1 border-b border-[var(--border)]/30 last:border-0">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] pt-1 shrink-0">{col.label}</span>
-                                        <div className="text-sm font-semibold text-[var(--text)] text-right flex flex-col items-end max-w-[65%]">
-                                            {col.render(item)}
+                            onRowClick ? (
+                                <button
+                                    type="button"
+                                    className="glass-panel w-full rounded-xl border-0 p-4 space-y-2 bg-transparent text-left cursor-pointer hover-lift"
+                                    onClick={() => onRowClick(item)}
+                                >
+                                    {columns.map(col => (
+                                        <div key={col.key} className="flex items-start justify-between gap-4 py-1 border-b border-[var(--border)]/30 last:border-0">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] pt-1 shrink-0">{col.label}</span>
+                                            <div className="text-sm font-semibold text-[var(--text)] text-right flex flex-col items-end max-w-[65%]">
+                                                {col.render(item)}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </button>
+                            ) : (
+                                <div className="glass-panel rounded-xl p-4 space-y-2">
+                                    {columns.map(col => (
+                                        <div key={col.key} className="flex items-start justify-between gap-4 py-1 border-b border-[var(--border)]/30 last:border-0">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] pt-1 shrink-0">{col.label}</span>
+                                            <div className="text-sm font-semibold text-[var(--text)] text-right flex flex-col items-end max-w-[65%]">
+                                                {col.render(item)}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )
                         )}
                     </React.Fragment>
                 ))}

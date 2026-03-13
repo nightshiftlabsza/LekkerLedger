@@ -13,7 +13,7 @@ const PDF_MARGIN = PDF_LAYOUT.MARGIN;
 function formatCurrency(value: number): string {
     const rounded = value.toFixed(2);
     const [whole, cents] = rounded.split(".");
-    return `R ${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${cents}`;
+    return `R ${whole.replaceAll(/\B(?=(\d{3})+(?!\d))/g, ",")}.${cents}`;
 }
 
 function clipText(text: string, font: { widthOfTextAtSize: (value: string, size: number) => number }, size: number, maxWidth?: number): string {

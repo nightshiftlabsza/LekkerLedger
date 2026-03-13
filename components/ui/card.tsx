@@ -1,5 +1,19 @@
 import * as React from "react"
 
+type CardTitleProps = React.HTMLAttributes<HTMLHeadingElement> & {
+    children: React.ReactNode;
+};
+
+function hasReadableChildren(children: React.ReactNode): boolean {
+    return React.Children.toArray(children).some((child) => {
+        if (child == null) return false;
+        if (typeof child === "boolean") return child;
+        if (typeof child === "string") return child.trim().length > 0;
+        if (typeof child === "number" || typeof child === "bigint") return true;
+        return true;
+    });
+}
+
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, style, ...props }, ref) => (
         <div
@@ -23,15 +37,24 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 );
 CardHeader.displayName = "CardHeader";
 
-const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
-    ({ className, style, ...props }, ref) => (
-        <h3
-            ref={ref}
-            className={["type-h3 tracking-tight", className].filter(Boolean).join(" ")}
-            style={{ color: "var(--text)", ...style }}
-            {...props}
-        />
-    )
+const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
+    ({ className, style, children, ...props }, ref) => {
+        const sharedProps = {
+            className: ["type-h3 tracking-tight", className].filter(Boolean).join(" "),
+            style: { color: "var(--text)", ...style },
+            ...props,
+        };
+
+        if (!hasReadableChildren(children)) {
+            return <div {...sharedProps}>{children}</div>;
+        }
+
+        return (
+            <h3 ref={ref} {...sharedProps}>
+                {children}
+            </h3>
+        );
+    }
 );
 CardTitle.displayName = "CardTitle";
 

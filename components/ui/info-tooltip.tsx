@@ -7,6 +7,18 @@ export function InfoTooltip({ label, tooltip }: { label: string; tooltip: string
     const hoverTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const ref = React.useRef<HTMLSpanElement>(null);
 
+    const handleMouseEnter = React.useCallback(() => {
+        hoverTimer.current = setTimeout(() => setOpen(true), 150);
+    }, []);
+
+    const handleMouseLeave = React.useCallback(() => {
+        if (hoverTimer.current) {
+            clearTimeout(hoverTimer.current);
+            hoverTimer.current = null;
+        }
+        setOpen(false);
+    }, []);
+
     React.useEffect(() => {
         if (!open) return;
 
@@ -21,20 +33,7 @@ export function InfoTooltip({ label, tooltip }: { label: string; tooltip: string
     }, [open]);
 
     return (
-        <span
-            className="relative inline-flex"
-            ref={ref}
-            onMouseEnter={() => {
-                hoverTimer.current = setTimeout(() => setOpen(true), 150);
-            }}
-            onMouseLeave={() => {
-                if (hoverTimer.current) {
-                    clearTimeout(hoverTimer.current);
-                    hoverTimer.current = null;
-                }
-                setOpen(false);
-            }}
-        >
+        <span className="relative inline-flex" ref={ref}>
             <button
                 type="button"
                 className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold leading-none focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-1"
@@ -42,6 +41,8 @@ export function InfoTooltip({ label, tooltip }: { label: string; tooltip: string
                 aria-label={label}
                 aria-expanded={open}
                 onClick={() => setOpen((current) => !current)}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
             >
                 i
             </button>

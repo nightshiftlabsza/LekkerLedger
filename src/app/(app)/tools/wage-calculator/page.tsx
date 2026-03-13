@@ -29,46 +29,50 @@ export default function WageCalculatorPage() {
                 <CardContent className="p-6 space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="type-overline text-[var(--text-muted)] block mb-1">Hourly Rate (R)</label>
+                            <label htmlFor="wage-calculator-hourly-rate" className="type-overline text-[var(--text-muted)] block mb-1">Hourly Rate (R)</label>
                             <input
+                                id="wage-calculator-hourly-rate"
                                 type="number"
                                 min={0}
                                 step={0.01}
                                 value={hourlyRate || ""}
-                                onChange={e => setHourlyRate(parseFloat(e.target.value) || 0)}
+                                onChange={e => setHourlyRate(Number.parseFloat(e.target.value) || 0)}
                                 className="w-full px-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                 placeholder={nmw.toFixed(2)}
                             />
                         </div>
                         <div>
-                            <label className="type-overline text-[var(--text-muted)] block mb-1">Hours/Day</label>
+                            <label htmlFor="wage-calculator-hours-per-day" className="type-overline text-[var(--text-muted)] block mb-1">Hours/Day</label>
                             <input
+                                id="wage-calculator-hours-per-day"
                                 type="number"
                                 min={1}
                                 max={12}
                                 value={hoursPerDay}
-                                onChange={e => setHoursPerDay(parseFloat(e.target.value) || 8)}
+                                onChange={e => setHoursPerDay(Number.parseFloat(e.target.value) || 8)}
                                 className="w-full px-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                             />
                         </div>
                         <div>
-                            <label className="type-overline text-[var(--text-muted)] block mb-1">Days/Week</label>
+                            <label htmlFor="wage-calculator-days-per-week" className="type-overline text-[var(--text-muted)] block mb-1">Days/Week</label>
                             <input
+                                id="wage-calculator-days-per-week"
                                 type="number"
                                 min={1}
                                 max={7}
                                 value={daysPerWeek}
-                                onChange={e => setDaysPerWeek(parseFloat(e.target.value) || 5)}
+                                onChange={e => setDaysPerWeek(Number.parseFloat(e.target.value) || 5)}
                                 className="w-full px-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                             />
                         </div>
                         <div>
-                            <label className="type-overline text-[var(--text-muted)] block mb-1">Overtime hrs/week</label>
+                            <label htmlFor="wage-calculator-overtime-hours" className="type-overline text-[var(--text-muted)] block mb-1">Overtime hrs/week</label>
                             <input
+                                id="wage-calculator-overtime-hours"
                                 type="number"
                                 min={0}
                                 value={overtimeHours || ""}
-                                onChange={e => setOvertimeHours(parseFloat(e.target.value) || 0)}
+                                onChange={e => setOvertimeHours(Number.parseFloat(e.target.value) || 0)}
                                 className="w-full px-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                 placeholder="0"
                             />

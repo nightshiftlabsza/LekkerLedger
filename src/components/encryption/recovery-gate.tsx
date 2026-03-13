@@ -231,7 +231,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                             <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-sm)] sm:p-7">
                                 <div className="flex items-center gap-3 text-[var(--primary)] font-bold uppercase tracking-widest text-[10px]">
                                     <span className="w-8 h-px bg-[var(--primary)]/30" />
-                                    Security Standards
+                                    <span>Security Standards</span>
                                 </div>
                                 <ul className="mt-5 space-y-4 text-xs sm:text-sm">
                                     <li className="flex gap-3">

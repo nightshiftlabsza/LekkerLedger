@@ -3,6 +3,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+type AlertTitleProps = React.HTMLAttributes<HTMLHeadingElement> & {
+  children: React.ReactNode
+}
+
+function hasReadableChildren(children: React.ReactNode): boolean {
+  return React.Children.toArray(children).some((child) => {
+    if (child == null) return false
+    if (typeof child === "boolean") return child
+    if (typeof child === "string") return child.trim().length > 0
+    if (typeof child === "number" || typeof child === "bigint") return true
+    return true
+  })
+}
+
 const alertVariants = cva(
   "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
   {
@@ -33,15 +47,24 @@ const Alert = React.forwardRef<
 Alert.displayName = "Alert"
 
 const AlertTitle = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h5
-    ref={ref}
-    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
-    {...props}
-  />
-))
+  HTMLHeadingElement,
+  AlertTitleProps
+>(({ className, children, ...props }, ref) => {
+  const sharedProps = {
+    className: cn("mb-1 font-medium leading-none tracking-tight", className),
+    ...props,
+  }
+
+  if (!hasReadableChildren(children)) {
+    return <div {...sharedProps}>{children}</div>
+  }
+
+  return (
+    <h5 ref={ref} {...sharedProps}>
+      {children}
+    </h5>
+  )
+})
 AlertTitle.displayName = "AlertTitle"
 
 const AlertDescription = React.forwardRef<

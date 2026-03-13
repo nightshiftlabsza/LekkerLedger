@@ -103,7 +103,7 @@ function downloadBlob(blob: Blob, fileName: string) {
 
 
 function buildYearEndSummaryFileName(year: number, householdName?: string) {
-    const safeName = (householdName?.trim() || "Employment_Summary").replace(/\s+/g, "_");
+    const safeName = (householdName?.trim() || "Employment_Summary").replaceAll(/\s+/g, "_");
     return `${safeName}_${year}.pdf`;
 }
 
@@ -154,6 +154,8 @@ export default function DocumentsPage() {
     const [vaultCategoryFilter, setVaultCategoryFilter] = React.useState<string>("");
     const [nextVaultCategory, setNextVaultCategory] = React.useState<VaultCategory>("other");
     const [summaryYear, setSummaryYear] = React.useState<number | "">("");
+    const vaultCategorySelectId = React.useId();
+    const summaryYearSelectId = React.useId();
     const [previewDoc, setPreviewDoc] = React.useState<DocumentMeta | null>(null);
     const [previewFileName, setPreviewFileName] = React.useState<string | undefined>(undefined);
     const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
@@ -687,9 +689,10 @@ export default function DocumentsPage() {
                                         <p className="mt-1 text-sm text-[var(--text-muted)]">Store signed contracts, ID copies, and other supporting records in one place.</p>
                                     </div>
                                     {vaultUploadsAllowed && (
-                                        <label className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-                                            New uploads:
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                                            <label htmlFor={vaultCategorySelectId}>New uploads:</label>
                                             <select
+                                                id={vaultCategorySelectId}
                                                 value={nextVaultCategory}
                                                 onChange={(event) => setNextVaultCategory(event.target.value as VaultCategory)}
                                                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 text-sm text-[var(--text)]"
@@ -700,7 +703,7 @@ export default function DocumentsPage() {
                                                     </option>
                                                 ))}
                                             </select>
-                                        </label>
+                                        </div>
                                     )}
                                 </div>
 
@@ -761,9 +764,10 @@ export default function DocumentsPage() {
                                         ) : (
                                             <>
                                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                                                    <label className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-                                                        Year
+                                                    <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                                                        <label htmlFor={summaryYearSelectId}>Year</label>
                                                         <select
+                                                            id={summaryYearSelectId}
                                                             value={summaryYear}
                                                             onChange={(event) => setSummaryYear(Number(event.target.value))}
                                                             className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 text-sm text-[var(--text)]"
@@ -772,9 +776,9 @@ export default function DocumentsPage() {
                                                                 <option key={year} value={year}>
                                                                     {year}
                                                                 </option>
-                                                            ))}
-                                                        </select>
-                                                    </label>
+                                                                ))}
+                                                            </select>
+                                                    </div>
                                                     <Button
                                                         type="button"
                                                         onClick={handleGenerateYearEndSummary}

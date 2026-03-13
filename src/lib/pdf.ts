@@ -124,7 +124,7 @@ const TRANSLATIONS: Record<SupportLang, Record<string, string>> = {
 export function getPayslipFilename(employee: Employee, payslip: PayslipInput): string {
     const monthStr = format(new Date(payslip.payPeriodStart), "yyyy-MM");
     // Remove non-alphanumeric chars for safe filenames
-    const safeName = employee.name.replace(/[^a-z0-9]/gi, '_');
+    const safeName = employee.name.replaceAll(/[^a-z0-9]/gi, '_');
     // Use last 4 of ID for uniqueness in the filename
     const runId = payslip.id.slice(-4);
     return `LekkerLedger_Payslip_${safeName}_${monthStr}_${runId}.pdf`;
@@ -171,7 +171,7 @@ export async function generatePayslipPdfBytes(
         let displayTxt = String(text ?? "");
 
         // Safety: If somehow x or y is NaN, we skip to prevent crash
-        if (isNaN(x) || isNaN(y)) return;
+        if (Number.isNaN(x) || Number.isNaN(y)) return;
 
         if (opts?.maxWidth) {
             const ellipsis = "...";

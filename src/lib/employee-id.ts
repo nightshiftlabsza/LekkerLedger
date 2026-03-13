@@ -1,5 +1,5 @@
 function digitsOnly(value: string): string {
-    return value.replace(/\D/g, "");
+    return value.replaceAll(/\D/g, "");
 }
 
 function isDigitsLike(value: string): boolean {
@@ -54,7 +54,7 @@ export function normalizeEmployeeIdNumber(value: string): string {
         return digitsOnly(trimmed);
     }
 
-    return trimmed.replace(/\s+/g, " ").toUpperCase();
+    return trimmed.replaceAll(/\s+/g, " ").toUpperCase();
 }
 
 export function formatEmployeeIdNumberInput(value: string): string {
@@ -62,7 +62,7 @@ export function formatEmployeeIdNumberInput(value: string): string {
     if (!trimmed) return "";
 
     if (!isDigitsLike(trimmed)) {
-        return trimmed.replace(/\s+/g, " ").toUpperCase();
+        return trimmed.replaceAll(/\s+/g, " ").toUpperCase();
     }
 
     const digits = digitsOnly(trimmed).slice(0, 13);

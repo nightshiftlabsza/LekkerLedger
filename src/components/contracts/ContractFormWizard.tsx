@@ -50,9 +50,9 @@ function textList(value: string) {
 
 function normalisePlainText(value: string) {
     return value
-        .replace(/\r\n?/g, "\n")
-        .replace(/\u00A0/g, " ")
-        .replace(/\u2028|\u2029/g, "\n");
+        .replaceAll(/\r\n?/g, "\n")
+        .replaceAll(/\u00A0/g, " ")
+        .replaceAll(/\u2028|\u2029/g, "\n");
 }
 
 function insertPlainTextAtCursor(
@@ -95,9 +95,10 @@ export interface ContractFormWizardProps {
 const STORAGE_KEY = "lekkerledger-contract-draft-state";
 
 // Styled date input — use native picker only (single calendar icon from browser)
-function DateInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function DateInput({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) {
     return (
         <input
+            id={id}
             type="date"
             value={value}
             onChange={(e) => onChange(e.target.value)}
@@ -109,9 +110,10 @@ function DateInput({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 // Styled time input — simple 24-hour text field (hh:mm) to avoid clunky native picker UIs
-function TimeInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function TimeInput({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) {
     return (
         <input
+            id={id}
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
@@ -125,10 +127,22 @@ function TimeInput({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 // Label with optional ⓘ tooltip — compact icon with hover/click hint
-function FieldLabel({ label, tooltip }: { label: string; tooltip?: string }) {
+function FieldLabel({ label, tooltip, htmlFor }: { label: string; tooltip?: string; htmlFor?: string }) {
     const [open, setOpen] = React.useState(false);
     const hoverTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const ref = React.useRef<HTMLSpanElement>(null);
+
+    const handleMouseEnter = React.useCallback(() => {
+        hoverTimer.current = setTimeout(() => setOpen(true), 200);
+    }, []);
+
+    const handleMouseLeave = React.useCallback(() => {
+        if (hoverTimer.current) {
+            clearTimeout(hoverTimer.current);
+            hoverTimer.current = null;
+        }
+        setOpen(false);
+    }, []);
 
     React.useEffect(() => {
         if (!open) return;
@@ -141,7 +155,9 @@ function FieldLabel({ label, tooltip }: { label: string; tooltip?: string }) {
 
     if (!tooltip) {
         return (
-            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</span>
+            htmlFor
+                ? <label htmlFor={htmlFor} className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</label>
+                : <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</span>
         );
     }
 
@@ -149,21 +165,17 @@ function FieldLabel({ label, tooltip }: { label: string; tooltip?: string }) {
         <span
             className="flex items-center gap-1.5 relative"
             ref={ref}
-            onMouseEnter={() => {
-                hoverTimer.current = setTimeout(() => setOpen(true), 200);
-            }}
-            onMouseLeave={() => {
-                if (hoverTimer.current) {
-                    clearTimeout(hoverTimer.current);
-                    hoverTimer.current = null;
-                }
-                setOpen(false);
-            }}
         >
-            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</span>
+            {htmlFor ? (
+                <label htmlFor={htmlFor} className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</label>
+            ) : (
+                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</span>
+            )}
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
                 className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-bold cursor-pointer select-none shrink-0 focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:ring-offset-1"
                 style={{ color: "var(--primary)", border: "1px solid var(--primary)", lineHeight: 1 }}
                 aria-label={`Info about ${label}`}
@@ -368,8 +380,9 @@ export function ContractFormWizard({
                 {currentStep === 1 && (
                     <div className="p-8 space-y-6">
                         <div className="grid gap-4 md:grid-cols-2">
-                            <Field label="Job title">
+                            <Field label="Job title" htmlFor="contract-job-title">
                                 <input
+                                    id="contract-job-title"
                                     type="text"
                                     value={formData.jobTitle}
                                     onChange={(event) => {
@@ -380,8 +393,9 @@ export function ContractFormWizard({
                                 />
                                 {stepErrors.jobTitle ? <FieldError message={stepErrors.jobTitle} /> : null}
                             </Field>
-                            <Field label="Effective date">
+                            <Field label="Effective date" htmlFor="contract-effective-date">
                                 <DateInput
+                                    id="contract-effective-date"
                                     value={formData.effectiveDate ?? ""}
                                     onChange={(v) => {
                                         clearError("effectiveDate");
@@ -391,8 +405,9 @@ export function ContractFormWizard({
                                 {stepErrors.effectiveDate ? <FieldError message={stepErrors.effectiveDate} /> : null}
                             </Field>
                         </div>
-                        <Field label="Employee address">
+                        <Field label="Employee address" htmlFor="contract-employee-address">
                             <input
+                                id="contract-employee-address"
                                 type="text"
                                 value={formData.employeeAddress || selectedEmployee?.address || ""}
                                 onChange={(event) => {
@@ -404,8 +419,9 @@ export function ContractFormWizard({
                             />
                             {stepErrors.employeeAddress ? <FieldError message={stepErrors.employeeAddress} /> : null}
                         </Field>
-                        <Field label="Place of work">
+                        <Field label="Place of work" htmlFor="contract-place-of-work">
                             <input
+                                id="contract-place-of-work"
                                 type="text"
                                 value={formData.placeOfWork || ""}
                                 onChange={(event) => {
@@ -417,8 +433,9 @@ export function ContractFormWizard({
                             />
                             {stepErrors.placeOfWork ? <FieldError message={stepErrors.placeOfWork} /> : null}
                         </Field>
-                        <Field label="Main duties">
+                        <Field label="Main duties" htmlFor="contract-main-duties">
                             <textarea
+                                id="contract-main-duties"
                                 value={dutiesInput}
                                 onChange={(event) => {
                                     clearError("duties");
@@ -443,32 +460,35 @@ export function ContractFormWizard({
                 {currentStep === 2 && (
                     <div className="p-8 space-y-6">
                         <div className="grid gap-4 md:grid-cols-2">
-                            <Field label="Days per week">
+                            <Field label="Days per week" htmlFor="contract-days-per-week">
                                 <input
+                                    id="contract-days-per-week"
                                     type="number"
                                     value={formData.workingHours?.daysPerWeek}
                                     onChange={(event) => {
                                         clearError("daysPerWeek");
-                                        setFormData((current) => ({ ...current, workingHours: { ...current.workingHours!, daysPerWeek: parseInt(event.target.value, 10) || 0 } }));
+                                        setFormData((current) => ({ ...current, workingHours: { ...current.workingHours!, daysPerWeek: Number.parseInt(event.target.value, 10) || 0 } }));
                                     }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                     min={1} max={7}
                                 />
                                 {stepErrors.daysPerWeek ? <FieldError message={stepErrors.daysPerWeek} /> : null}
                             </Field>
-                            <Field label="Break (minutes)">
+                            <Field label="Break (minutes)" htmlFor="contract-break-duration">
                                 <input
+                                    id="contract-break-duration"
                                     type="number"
                                     value={formData.workingHours?.breakDuration}
-                                    onChange={(event) => setFormData((current) => ({ ...current, workingHours: { ...current.workingHours!, breakDuration: parseInt(event.target.value, 10) || 0 } }))}
+                                    onChange={(event) => setFormData((current) => ({ ...current, workingHours: { ...current.workingHours!, breakDuration: Number.parseInt(event.target.value, 10) || 0 } }))}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                     min={0}
                                 />
                             </Field>
                         </div>
                         <div className="grid gap-4 md:grid-cols-2">
-                            <Field label="Work starts">
+                            <Field label="Work starts" htmlFor="contract-work-starts">
                                 <TimeInput
+                                    id="contract-work-starts"
                                     value={formData.workingHours?.startAt ?? ""}
                                     onChange={(v) => {
                                         clearError("startAt");
@@ -478,8 +498,9 @@ export function ContractFormWizard({
                                 />
                                 {stepErrors.startAt ? <FieldError message={stepErrors.startAt} /> : null}
                             </Field>
-                            <Field label="Work ends">
+                            <Field label="Work ends" htmlFor="contract-work-ends">
                                 <TimeInput
+                                    id="contract-work-ends"
                                     value={formData.workingHours?.endAt ?? ""}
                                     onChange={(v) => {
                                         clearError("endAt");
@@ -498,16 +519,14 @@ export function ContractFormWizard({
                 {currentStep === 3 && (
                     <div className="p-8 space-y-6">
                         <div className="grid gap-4 md:grid-cols-2">
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
-                                    Pay amount (R / period)
-                                </label>
+                            <Field label="Pay amount (R / period)" htmlFor="contract-salary-amount">
                                 <input
+                                    id="contract-salary-amount"
                                     type="number"
                                     value={formData.salary?.amount || ""}
                                     onChange={(event) => {
                                         clearError("salaryAmount");
-                                        setFormData((current) => ({ ...current, salary: { ...current.salary!, amount: parseFloat(event.target.value) || 0 } }));
+                                        setFormData((current) => ({ ...current, salary: { ...current.salary!, amount: Number.parseFloat(event.target.value) || 0 } }));
                                     }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                                     placeholder="e.g. 5500"
@@ -520,9 +539,10 @@ export function ContractFormWizard({
                                         <span className="text-[10px] font-medium text-[var(--text-muted)]">based on hours entered</span>
                                     </p>
                                 )}
-                            </div>
-                            <Field label="Pay frequency">
+                            </Field>
+                            <Field label="Pay frequency" htmlFor="contract-pay-frequency">
                                 <select
+                                    id="contract-pay-frequency"
                                     value={formData.salary?.frequency ?? ""}
                                     onChange={(event) => {
                                         clearError("salaryFrequency");
@@ -563,15 +583,17 @@ export function ContractFormWizard({
                                 <FieldLabel
                                     label="Annual leave days"
                                     tooltip="Under the BCEA, the minimum is 21 consecutive calendar days per leave cycle (for workers on a 5-day week). You may grant more."
+                                    htmlFor="contract-annual-leave-days"
                                 />
                                 <input
+                                    id="contract-annual-leave-days"
                                     type="number"
                                     value={formData.leave?.annualDays ?? ""}
                                     onChange={(event) => {
                                         clearError("annualDays");
                                         setFormData((current) => ({
                                             ...current,
-                                            leave: { ...current.leave!, annualDays: parseInt(event.target.value, 10) || (undefined as unknown as number) },
+                                            leave: { ...current.leave!, annualDays: Number.parseInt(event.target.value, 10) || (undefined as unknown as number) },
                                         }));
                                     }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
@@ -584,15 +606,17 @@ export function ContractFormWizard({
                                 <FieldLabel
                                     label="Sick leave days"
                                     tooltip="The BCEA gives employees 30 working days per 3-year sick leave cycle. In the first 6 months of employment: 1 day per 26 days worked."
+                                    htmlFor="contract-sick-leave-days"
                                 />
                                 <input
+                                    id="contract-sick-leave-days"
                                     type="number"
                                     value={formData.leave?.sickDays ?? ""}
                                     onChange={(event) => {
                                         clearError("sickDays");
                                         setFormData((current) => ({
                                             ...current,
-                                            leave: { ...current.leave!, sickDays: parseInt(event.target.value, 10) || (undefined as unknown as number) },
+                                            leave: { ...current.leave!, sickDays: Number.parseInt(event.target.value, 10) || (undefined as unknown as number) },
                                         }));
                                     }}
                                     className="w-full h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
@@ -606,8 +630,10 @@ export function ContractFormWizard({
                             <FieldLabel
                                 label="Payment notes (optional)"
                                 tooltip="You can note here when and how wages are normally paid, for example: 'Paid on the last working day of the month by EFT.'"
+                                htmlFor="contract-payment-notes"
                             />
                             <input
+                                id="contract-payment-notes"
                                 type="text"
                                 value={formData.terms?.paymentDetails ?? ""}
                                 onChange={(event) =>
@@ -634,8 +660,9 @@ export function ContractFormWizard({
                     <div className="p-8 space-y-6">
                         <div className="grid gap-4 md:grid-cols-2">
                             <Field label="Accommodation provided?">
-                                <label className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 cursor-pointer select-none">
+                                <div className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3">
                                     <input
+                                        id="contract-accommodation-provided"
                                         type="checkbox"
                                         checked={formData.terms?.accommodationProvided}
                                         onChange={(event) => {
@@ -644,11 +671,14 @@ export function ContractFormWizard({
                                         }}
                                         className="h-4 w-4"
                                     />
-                                    <span className="text-sm text-[var(--text)]">Yes, accommodation is part of this job</span>
-                                </label>
+                                    <label htmlFor="contract-accommodation-provided" className="cursor-pointer text-sm text-[var(--text)]">
+                                        Yes, accommodation is part of this job
+                                    </label>
+                                </div>
                             </Field>
-                            <Field label="Accommodation details">
+                            <Field label="Accommodation details" htmlFor="contract-accommodation-details">
                                 <input
+                                    id="contract-accommodation-details"
                                     type="text"
                                     value={formData.terms?.accommodationDetails}
                                     onChange={(event) => {
@@ -670,8 +700,9 @@ export function ContractFormWizard({
                                 </AlertDescription>
                             </Alert>
                         )}
-                        <Field label="Overtime wording">
+                        <Field label="Overtime wording" htmlFor="contract-overtime-wording">
                             <textarea
+                                id="contract-overtime-wording"
                                 value={formData.terms?.overtimeAgreement}
                                 onChange={(event) => {
                                     clearError("overtimeAgreement");
@@ -684,8 +715,9 @@ export function ContractFormWizard({
                             <p className="text-[11px] text-[var(--text-muted)]">{TERMS_TEXT_LIMIT - (formData.terms?.overtimeAgreement?.length ?? 0)} characters left</p>
                             {stepErrors.overtimeAgreement ? <FieldError message={stepErrors.overtimeAgreement} /> : null}
                         </Field>
-                        <Field label="Sunday / public holiday wording">
+                        <Field label="Sunday / public holiday wording" htmlFor="contract-sunday-holiday-wording">
                             <textarea
+                                id="contract-sunday-holiday-wording"
                                 value={formData.terms?.sundayHolidayAgreement}
                                 onChange={(event) => {
                                     clearError("sundayHolidayAgreement");
@@ -698,8 +730,9 @@ export function ContractFormWizard({
                             <p className="text-[11px] text-[var(--text-muted)]">{TERMS_TEXT_LIMIT - (formData.terms?.sundayHolidayAgreement?.length ?? 0)} characters left</p>
                             {stepErrors.sundayHolidayAgreement ? <FieldError message={stepErrors.sundayHolidayAgreement} /> : null}
                         </Field>
-                        <Field label="Notice wording">
+                        <Field label="Notice wording" htmlFor="contract-notice-wording">
                             <textarea
+                                id="contract-notice-wording"
                                 value={formData.terms?.noticeClause}
                                 onChange={(event) => {
                                     clearError("noticeClause");
@@ -714,20 +747,23 @@ export function ContractFormWizard({
                         </Field>
 
                         {/* Single unified acknowledgement — replaces the two separate disclaimers */}
-                        <label className="flex items-start gap-3 rounded-2xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 p-4 cursor-pointer">
+                        <div className="flex items-start gap-3 rounded-2xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 p-4">
                             <input
+                                id="contract-lawyer-review-ack"
                                 type="checkbox"
                                 checked={formData.terms?.lawyerReviewAcknowledged}
                                 onChange={(event) => setFormData((current) => ({ ...current, terms: { ...current.terms!, lawyerReviewAcknowledged: event.target.checked } }))}
                                 className="mt-1 h-4 w-4 shrink-0"
                             />
                             <div>
-                                <p className="text-sm font-bold text-[var(--text)]">I understand this is a draft, not legal advice</p>
+                                <label htmlFor="contract-lawyer-review-ack" className="cursor-pointer text-sm font-bold text-[var(--text)]">
+                                    I understand this is a draft, not legal advice
+                                </label>
                                 <p className="text-xs text-[var(--text-muted)] mt-1">
                                     This template follows the DEL domestic-worker sample structure. I will review the full document carefully with the employee before anyone signs, and I understand the wording must match the real arrangement. If unsure about the final wording, I will consult a South African labour lawyer before signing.
                                 </p>
                             </div>
-                        </label>
+                        </div>
                     </div>
                 )}
 
@@ -810,10 +846,14 @@ export function ContractFormWizard({
     );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, htmlFor }: { label: string; children: React.ReactNode; htmlFor?: string }) {
     return (
         <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</label>
+            {htmlFor ? (
+                <label htmlFor={htmlFor} className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</label>
+            ) : (
+                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{label}</p>
+            )}
             {children}
         </div>
     );

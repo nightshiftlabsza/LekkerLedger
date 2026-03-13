@@ -11,10 +11,23 @@ export default function GlobalError({
     error: Error & { digest?: string };
     reset: () => void;
 }) {
+    const errorMessage = typeof error?.message === "string" && error.message.trim()
+        ? error.message.trim()
+        : "Unknown client error";
+
     React.useEffect(() => {
-        // Log the error to an error reporting service
         console.error("Global UI Crash:", error);
-    }, [error]);
+        try {
+            window.sessionStorage.setItem("ll_last_global_error", JSON.stringify({
+                message: errorMessage,
+                digest: error.digest || "local_crash",
+                stack: typeof error?.stack === "string" ? error.stack : null,
+                time: new Date().toISOString(),
+            }));
+        } catch {
+            // Best-effort only. Debug info should never cause another crash.
+        }
+    }, [error, errorMessage]);
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 bg-[var(--bg)]">
@@ -52,6 +65,13 @@ export default function GlobalError({
                 <p className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">Need a safer next step?</p>
                 <p className="text-xs leading-relaxed text-[var(--text-muted)]">
                     Local data is not deleted automatically. If the problem keeps happening, reopen the app and use Settings &gt; Storage &amp; backup to export first before using the Danger Zone.
+                </p>
+            </div>
+
+            <div className="w-full max-w-md rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)]/60 p-4 text-left">
+                <p className="text-[10px] uppercase font-black tracking-widest text-[var(--danger)]">Diagnostic</p>
+                <p className="mt-2 break-words font-mono text-xs leading-5 text-[var(--text)]">
+                    {errorMessage}
                 </p>
             </div>
 

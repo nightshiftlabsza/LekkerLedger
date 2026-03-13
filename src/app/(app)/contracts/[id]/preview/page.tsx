@@ -46,7 +46,7 @@ export default function ContractPreviewPage() {
                 setEmployee(employee);
                 setSettings(settings);
 
-                const nameStr = employee.name.replace(/\s+/g, "_");
+                const nameStr = employee.name.replaceAll(/\s+/g, "_");
                 const fName = `Contract_${nameStr}_v${contractData.version}.pdf`;
                 setFileName(fName);
 

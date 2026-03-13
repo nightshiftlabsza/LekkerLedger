@@ -71,6 +71,7 @@ export function MarketingHeader() {
                 </div>
 
                 <button
+                    type="button"
                     onClick={() => setMenuOpen(true)}
                     aria-label="Open menu"
                     className="lg:hidden flex h-12 w-12 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-raised)]"
@@ -81,13 +82,19 @@ export function MarketingHeader() {
 
             {menuOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
-                    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
+                    <button
+                        type="button"
+                        aria-label="Close menu"
+                        className="absolute inset-0 border-0 bg-black/30 p-0 backdrop-blur-sm"
+                        onClick={() => setMenuOpen(false)}
+                    />
                     <div className="absolute inset-x-0 top-0 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-lg)] animate-in slide-in-from-top duration-300">
                         <div className="flex items-center justify-between px-4 py-4 sm:px-6">
                             <Link href="/" onClick={() => setMenuOpen(false)} className="rounded-lg py-1">
                                 <Logo />
                             </Link>
                             <button
+                                type="button"
                                 onClick={() => setMenuOpen(false)}
                                 aria-label="Close menu"
                                 className="flex h-12 w-12 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-raised)]"

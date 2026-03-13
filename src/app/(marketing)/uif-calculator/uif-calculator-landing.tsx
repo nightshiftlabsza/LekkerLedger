@@ -21,7 +21,7 @@ export function UifCalculatorLanding() {
     const [monthlySalary, setMonthlySalary] = React.useState("3500");
 
     const parsedSalary = React.useMemo(() => {
-        const normalised = monthlySalary.replace(/[^\d.]/g, "");
+        const normalised = monthlySalary.replaceAll(/[^\d.]/g, "");
         const parsed = Number.parseFloat(normalised);
         return Number.isFinite(parsed) ? parsed : 0;
     }, [monthlySalary]);

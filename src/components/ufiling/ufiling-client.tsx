@@ -87,7 +87,7 @@ export function UFilingClient() {
 
         if (view === "monthly") {
             const period = payPeriods.find(p => p.id === selectedPeriodId);
-            if (period) filename = `uFiling_${period.name.replace(/\s+/g, '_')}.csv`;
+            if (period) filename = `uFiling_${period.name.replaceAll(/\s+/g, '_')}.csv`;
         } else {
             filename = `uFiling_TaxYear_${selectedTaxYear - 1}_${selectedTaxYear}.csv`;
         }

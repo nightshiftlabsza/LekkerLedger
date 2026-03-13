@@ -85,7 +85,7 @@ function getRecordSortTime(record: LeaveRecord): number {
 
 function prettifyLeaveType(type: string): string {
     if (!type) return "Leave";
-    const normalised = type.replace(/[-_]+/g, " ").trim();
+    const normalised = type.replaceAll(/[-_]+/g, " ").trim();
     return normalised.charAt(0).toUpperCase() + normalised.slice(1);
 }
 

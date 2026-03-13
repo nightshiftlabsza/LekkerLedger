@@ -123,7 +123,7 @@ function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
                     <div className="max-w-[38rem] space-y-6">
                         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em]">
                             <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
-                            For South African household employers
+                            <span>For South African household employers</span>
                         </div>
 
                         <div className="space-y-4">

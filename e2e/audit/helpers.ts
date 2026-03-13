@@ -476,7 +476,7 @@ export async function collectAuditMetrics(page: Page): Promise<AuditMetrics> {
             const rect = element.getBoundingClientRect();
             if (rect.width === 0 || rect.height === 0) return false;
             const fontSize = numeric(getComputedStyle(element).fontSize);
-            return (element.textContent || "").replace(/\s+/g, "").length >= 2 && fontSize > 0 && fontSize < 12;
+            return (element.textContent || "").replaceAll(/\s+/g, "").length >= 2 && fontSize > 0 && fontSize < 12;
         }).length;
 
         const undersizedTargetsCount = Array.from(document.querySelectorAll<HTMLElement>("a, button, input, select, textarea, [role='button'], [role='link']"))

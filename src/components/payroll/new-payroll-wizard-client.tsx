@@ -72,7 +72,7 @@ export function NewPayrollWizardClient() {
                 householdId: activeHouseholdId,
                 name: newEmpName.trim(),
                 role: "Domestic Worker",
-                hourlyRate: parseFloat(newEmpRate) || NMW_RATE,
+                hourlyRate: Number.parseFloat(newEmpRate) || NMW_RATE,
                 idNumber: "",
                 phone: "",
                 address: "",

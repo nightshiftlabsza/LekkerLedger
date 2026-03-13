@@ -69,7 +69,7 @@ function writeStoredCheckoutEmail(email: string) {
 }
 
 function loadPaystackConstructor(): Promise<new () => PaystackPopup> {
-    if (!paystackConstructorPromise) {
+    if (paystackConstructorPromise === null) {
         paystackConstructorPromise = import("@paystack/inline-js").then((paystackModule) => paystackModule.default as new () => PaystackPopup);
     }
 

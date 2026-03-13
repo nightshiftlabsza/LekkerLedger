@@ -446,7 +446,7 @@ export function RecordLeaveForm({
                                     value={formData.days}
                                     onChange={(event) => {
                                         setDaysTouched(true);
-                                        updateForm({ days: parseFloat(event.target.value) || 0, allowOverrun: false });
+                                        updateForm({ days: Number.parseFloat(event.target.value) || 0, allowOverrun: false });
                                     }}
                                     className="h-12 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-4 text-sm font-black text-[var(--text)] outline-none transition-all focus:ring-2 focus:ring-[var(--focus)]"
                                     required

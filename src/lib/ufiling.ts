@@ -22,7 +22,7 @@ export interface UFilingRow {
 }
 
 function escapeCsvValue(value: string): string {
-    return value.replace(/"/g, '""');
+    return value.replaceAll(/"/g, '""');
 }
 
 function quoteCsvValue(value: string): string {

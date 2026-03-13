@@ -51,8 +51,10 @@ export function AuthModal() {
             aria-modal="true"
             aria-label="Paid user login"
         >
-            <div
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            <button
+                type="button"
+                aria-label="Close login dialog"
+                className="absolute inset-0 border-0 bg-black/40 p-0 backdrop-blur-sm"
                 onClick={close}
             />
 

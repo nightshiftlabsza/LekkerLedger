@@ -42,7 +42,7 @@ export function generateRecoveryKey(): string {
 export async function deriveKey(recoveryKey: string): Promise<CryptoKey> {
     const subtleCrypto = getSubtleCrypto();
     const encoder = new TextEncoder();
-    const keyData = encoder.encode(recoveryKey.replace(/-/g, '').toUpperCase());
+    const keyData = encoder.encode(recoveryKey.replaceAll(/-/g, '').toUpperCase());
     
     const hash = await subtleCrypto.digest('SHA-256', keyData);
     
@@ -60,7 +60,7 @@ export function bufferToBase64(buffer: ArrayBuffer): string {
     let binary = '';
     const bytes = new Uint8Array(buffer);
     for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
+        binary += String.fromCodePoint(bytes[i]);
     }
     return btoa(binary);
 }
@@ -70,7 +70,7 @@ export function base64ToBuffer(base64: string): ArrayBuffer {
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
+        bytes[i] = binary.codePointAt(i) ?? 0;
     }
     return bytes.buffer;
 }

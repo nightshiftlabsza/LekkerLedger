@@ -536,67 +536,73 @@ export default function PayPeriodWorkspacePage() {
                                         </div>
 
                                         {/* Input fields */}
-                                        {!isLocked && (
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Ordinary hours</label>
+                                                {!isLocked && (
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                    <label htmlFor={`ordinary-hours-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Ordinary hours</label>
                                                     <input
+                                                        id={`ordinary-hours-${entry.employeeId}`}
                                                         type="number"
                                                         min={0}
                                                         value={entry.ordinaryHours}
-                                                        onChange={e => updateEntry(entry.employeeId, "ordinaryHours", parseFloat(e.target.value) || 0)}
+                                                        onChange={e => updateEntry(entry.employeeId, "ordinaryHours", Number.parseFloat(e.target.value) || 0)}
                                                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                         placeholder="0"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Overtime hours</label>
+                                                    <label htmlFor={`overtime-hours-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Overtime hours</label>
                                                     <input
+                                                        id={`overtime-hours-${entry.employeeId}`}
                                                         type="number"
                                                         min={0}
                                                         value={entry.overtimeHours}
-                                                        onChange={e => updateEntry(entry.employeeId, "overtimeHours", parseFloat(e.target.value) || 0)}
+                                                        onChange={e => updateEntry(entry.employeeId, "overtimeHours", Number.parseFloat(e.target.value) || 0)}
                                                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                         placeholder="0"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Sunday hours</label>
+                                                    <label htmlFor={`sunday-hours-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Sunday hours</label>
                                                     <input
+                                                        id={`sunday-hours-${entry.employeeId}`}
                                                         type="number"
                                                         min={0}
                                                         value={entry.sundayHours}
-                                                        onChange={e => updateEntry(entry.employeeId, "sundayHours", parseFloat(e.target.value) || 0)}
+                                                        onChange={e => updateEntry(entry.employeeId, "sundayHours", Number.parseFloat(e.target.value) || 0)}
                                                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Public holiday hours</label>
+                                                    <label htmlFor={`public-holiday-hours-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Public holiday hours</label>
                                                     <input
+                                                        id={`public-holiday-hours-${entry.employeeId}`}
                                                         type="number"
                                                         min={0}
                                                         value={entry.publicHolidayHours}
-                                                        onChange={e => updateEntry(entry.employeeId, "publicHolidayHours", parseFloat(e.target.value) || 0)}
+                                                        onChange={e => updateEntry(entry.employeeId, "publicHolidayHours", Number.parseFloat(e.target.value) || 0)}
                                                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Shortfall hours</label>
+                                                    <label htmlFor={`shortfall-hours-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Shortfall hours</label>
                                                     <input
+                                                        id={`shortfall-hours-${entry.employeeId}`}
                                                         type="number"
                                                         min={0}
                                                         value={entry.shortFallHours || 0}
-                                                        onChange={e => updateEntry(entry.employeeId, "shortFallHours", parseFloat(e.target.value) || 0)}
+                                                        onChange={e => updateEntry(entry.employeeId, "shortFallHours", Number.parseFloat(e.target.value) || 0)}
                                                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="type-overline text-[var(--text-muted)] block mb-1">Other deductions</label>
+                                                    <label htmlFor={`other-deductions-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Other deductions</label>
                                                     <input
+                                                        id={`other-deductions-${entry.employeeId}`}
                                                         type="number"
                                                         min={0}
                                                         value={entry.otherDeductions}
-                                                        onChange={e => updateEntry(entry.employeeId, "otherDeductions", parseFloat(e.target.value) || 0)}
+                                                        onChange={e => updateEntry(entry.employeeId, "otherDeductions", Number.parseFloat(e.target.value) || 0)}
                                                         className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
                                                     />
                                                 </div>

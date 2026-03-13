@@ -129,7 +129,7 @@ async function blobToBase64(blob: Blob): Promise<string> {
 
 function base64ToBlob(base64: string, mimeType: string): Blob {
     const binary = atob(base64);
-    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    const bytes = Uint8Array.from(binary, (char) => char.codePointAt(0) ?? 0);
     return new Blob([bytes], { type: mimeType });
 }
 
@@ -829,7 +829,7 @@ export async function getSecureTime(): Promise<Date> {
                     if (url.includes("cdn-cgi/trace")) {
                         const text = await response.text();
                         const tsLine = text.split("\n").find((line) => line.startsWith("ts="));
-                        return tsLine ? new Date(parseFloat(tsLine.split("=")[1]) * 1000) : null;
+                        return tsLine ? new Date(Number.parseFloat(tsLine.split("=")[1]) * 1000) : null;
                     }
                     const text = await response.text();
                     if (!text.trim()) return null;

@@ -22,7 +22,7 @@ export function RecoveryKeyInput({
         e.preventDefault();
         setLocalError(null);
 
-        const cleanKey = inputValue.trim().replace(/\s+/g, "");
+        const cleanKey = inputValue.trim().replaceAll(/\s+/g, "");
         if (!cleanKey || cleanKey.length < 32) {
             setLocalError("Please enter a valid recovery key.");
             return;

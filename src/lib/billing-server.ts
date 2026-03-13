@@ -228,7 +228,7 @@ function toIso(timestamp: number | null | undefined): string | undefined {
 
 function sanitizeReferralCode(value: string | null | undefined): string | null {
     const trimmed = value?.trim().toUpperCase() || "";
-    return trimmed ? trimmed.replace(/[^A-Z0-9]/g, "") : null;
+    return trimmed ? trimmed.replaceAll(/[^A-Z0-9]/g, "") : null;
 }
 
 function normalizeEmailAddress(value: string): string {
@@ -392,7 +392,7 @@ async function ensureColumns(tableName: string, columnsByName: Record<string, st
 }
 
 async function ensureBillingSchema() {
-    if (!schemaPromise) {
+    if (schemaPromise === null) {
         schemaPromise = (async () => {
             await queryD1(`
                 CREATE TABLE IF NOT EXISTS subscriptions (
@@ -499,7 +499,7 @@ async function ensureBillingSchema() {
 
 async function paystackRequest<T>(path: string, init: RequestInit): Promise<T> {
     const rawKey = getPaystackSecretKey();
-    const secretKey = rawKey.replace(/[^\x20-\x7E]/g, "");
+    const secretKey = rawKey.replaceAll(/[^\x20-\x7E]/g, "");
 
     if (secretKey.length !== rawKey.length) {
         console.warn(`[Billing] Stripped ${rawKey.length - secretKey.length} non-printable/non-ASCII character(s) from PAYSTACK_SECRET_KEY`);
@@ -709,7 +709,7 @@ async function ensureReferralCodeForUser(userId: string): Promise<ReferralCodeRe
     if (existing) return existing;
 
     for (let attempt = 0; attempt < 5; attempt += 1) {
-        const code = randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
+        const code = randomUUID().replaceAll(/-/g, "").slice(0, 8).toUpperCase();
         try {
             const createdAt = Date.now();
             await queryD1(

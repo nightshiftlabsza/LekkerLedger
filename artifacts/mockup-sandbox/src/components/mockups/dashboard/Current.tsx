@@ -54,7 +54,7 @@ export function Current() {
                 <div className="space-y-2">
                   <p className="type-overline flex items-center gap-2" style={{ color: "var(--primary)" }}>
                     <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--primary)", animation: "pulse 2s infinite" }} />
-                    Current Pay Period
+                    <span>Current Pay Period</span>
                   </p>
                   <div>
                     <h2 className="text-2xl md:text-3xl font-black tracking-tight mb-1.5" style={{ color: "var(--text)" }}>

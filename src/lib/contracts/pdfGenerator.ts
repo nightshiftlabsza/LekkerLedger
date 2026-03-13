@@ -442,6 +442,6 @@ export async function generateEmploymentContract(
 }
 
 export function buildContractFileName(contract: Contract, employee: Employee) {
-    const safeName = employee.name.trim().replace(/\s+/g, "_");
+    const safeName = employee.name.trim().replaceAll(/\s+/g, "_");
     return `Contract_${safeName}_v${contract.version}.pdf`;
 }

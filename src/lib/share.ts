@@ -1,7 +1,7 @@
 type ShareChannel = "whatsapp" | "email" | "system";
 
 function normalisePhone(phone: string): string {
-    const cleanPhone = phone.replace(/\D/g, "");
+    const cleanPhone = phone.replaceAll(/\D/g, "");
     if (!cleanPhone) return "";
     return cleanPhone.startsWith("0") ? `27${cleanPhone.slice(1)}` : cleanPhone;
 }
@@ -87,7 +87,7 @@ export async function shareViaWhatsApp(
     phone: string,
     periodLabel: string,
 ): Promise<"shared" | "downloaded" | "cancelled"> {
-    const fileName = `Payslip_${employeeName.replace(/\s+/g, "_")}_${periodLabel}.pdf`;
+    const fileName = `Payslip_${employeeName.replaceAll(/\s+/g, "_")}_${periodLabel}.pdf`;
     return sharePdfFile("whatsapp", pdfBytes, fileName, {
         title: `Payslip for ${employeeName}`,
         text: `Hi ${employeeName.split(" ")[0]}, here is your payslip for ${periodLabel}.`,
@@ -100,7 +100,7 @@ export async function shareViaEmail(
     employeeName: string,
     periodLabel: string,
 ): Promise<"shared" | "downloaded" | "cancelled"> {
-    const fileName = `Payslip_${employeeName.replace(/\s+/g, "_")}_${periodLabel}.pdf`;
+    const fileName = `Payslip_${employeeName.replaceAll(/\s+/g, "_")}_${periodLabel}.pdf`;
     return sharePdfFile("email", pdfBytes, fileName, {
         title: `Payslip for ${employeeName}`,
         text: `Attached is the payslip for ${employeeName} for ${periodLabel}.`,

@@ -42,8 +42,8 @@ function getFallbackTitle(pathname: string): string {
     if (pathSegments.length === 0) return APP_NAME;
 
     const readableTitle = pathSegments[pathSegments.length - 1]
-        .replace(/[-_]+/g, " ")
-        .replace(/\b\w/g, (character) => character.toUpperCase());
+        .replaceAll(/[-_]+/g, " ")
+        .replaceAll(/\b\w/g, (character) => character.toUpperCase());
 
     return readableTitle || APP_NAME;
 }
@@ -52,7 +52,7 @@ function getVisibleHeading(): string | null {
     if (typeof document === "undefined") return null;
 
     const heading = document.querySelector<HTMLElement>("[data-page-title], main h1, h1");
-    const title = heading?.textContent?.replace(/\s+/g, " ").trim();
+    const title = heading?.textContent?.replaceAll(/\s+/g, " ").trim();
 
     if (!title) return null;
     return title.length > 90 ? title.slice(0, 90).trim() : title;

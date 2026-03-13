@@ -5,6 +5,20 @@ export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
     variant?: "default" | "success" | "warning" | "error";
 }
 
+type AlertTitleProps = React.HTMLAttributes<HTMLHeadingElement> & {
+    children: React.ReactNode;
+};
+
+function hasReadableChildren(children: React.ReactNode): boolean {
+    return React.Children.toArray(children).some((child) => {
+        if (child == null) return false;
+        if (typeof child === "boolean") return child;
+        if (typeof child === "string") return child.trim().length > 0;
+        if (typeof child === "number" || typeof child === "bigint") return true;
+        return true;
+    });
+}
+
 const VARIANTS = {
     default: {
         bg: "var(--info-soft)",
@@ -55,15 +69,24 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
 );
 Alert.displayName = "Alert";
 
-const AlertTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
-    ({ className, style, ...props }, ref) => (
-        <h5
-            ref={ref}
-            className={["text-sm font-semibold leading-tight", className].filter(Boolean).join(" ")}
-            style={{ color: "var(--text)", ...style }}
-            {...props}
-        />
-    )
+const AlertTitle = React.forwardRef<HTMLHeadingElement, AlertTitleProps>(
+    ({ className, style, children, ...props }, ref) => {
+        const sharedProps = {
+            className: ["text-sm font-semibold leading-tight", className].filter(Boolean).join(" "),
+            style: { color: "var(--text)", ...style },
+            ...props,
+        };
+
+        if (!hasReadableChildren(children)) {
+            return <div {...sharedProps}>{children}</div>;
+        }
+
+        return (
+            <h5 ref={ref} {...sharedProps}>
+                {children}
+            </h5>
+        );
+    }
 );
 AlertTitle.displayName = "AlertTitle";
 

@@ -31,8 +31,10 @@ export function DocumentPreview({ url, fileName, onClose, onDownload }: Document
     return (
         <>
             {/* Backdrop (mobile) */}
-            <div
-                className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden animate-fade-in"
+            <button
+                type="button"
+                aria-label="Close preview"
+                className="fixed inset-0 z-40 border-0 bg-black/50 p-0 backdrop-blur-sm lg:hidden animate-fade-in"
                 onClick={onClose}
             />
 
@@ -59,7 +61,7 @@ export function DocumentPreview({ url, fileName, onClose, onDownload }: Document
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                         {onDownload && (
-                            <Button variant="ghost" size="sm" onClick={onDownload} className="h-8 w-8 p-0">
+                            <Button variant="ghost" size="sm" onClick={onDownload} className="h-8 w-8 p-0" aria-label="Download document">
                                 <Download className="h-4 w-4" />
                             </Button>
                         )}
@@ -67,10 +69,11 @@ export function DocumentPreview({ url, fileName, onClose, onDownload }: Document
                             variant="ghost" size="sm"
                             onClick={() => setExpanded(!expanded)}
                             className="h-8 w-8 p-0 hidden lg:flex"
+                            aria-label={expanded ? "Collapse preview" : "Expand preview"}
                         >
                             {expanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0" aria-label="Close preview">
                             <X className="h-4 w-4" />
                         </Button>
                     </div>

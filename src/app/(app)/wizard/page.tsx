@@ -34,7 +34,7 @@ const STEPS = [
 const safeDate = (s: string): Date => {
     if (!s) return new Date();
     const d = new Date(s);
-    return isNaN(d.getTime()) ? new Date() : d;
+    return Number.isNaN(d.getTime()) ? new Date() : d;
 };
 
 const FOUR_HOUR_RULE_TOOLTIP = "From 1 March 2026, if someone works for you on a day, they must be paid for at least 4 hours for that day, even if they worked less.";
@@ -44,7 +44,7 @@ const getWeekdayEstimate = (startValue: string, endValue: string): number => {
 
     const start = safeDate(startValue);
     const end = safeDate(endValue);
-    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) return 0;
 
     let count = 0;
     const cur = new Date(start);
@@ -503,7 +503,7 @@ function WizardContent() {
                                                             min="0"
                                                             placeholder="e.g. 2"
                                                             value={shortShiftCount || ""}
-                                                            onChange={(e) => setShortShiftCount(parseInt(e.target.value) || 0)}
+                                                            onChange={(e) => setShortShiftCount(Number.parseInt(e.target.value) || 0)}
                                                         />
                                                     </div>
                                                     <div className="space-y-1">
@@ -514,7 +514,7 @@ function WizardContent() {
                                                             min="0"
                                                             placeholder="e.g. 3"
                                                             value={totalWorkedInShortShifts || ""}
-                                                            onChange={(e) => setTotalWorkedInShortShifts(parseFloat(e.target.value) || 0)}
+                                                            onChange={(e) => setTotalWorkedInShortShifts(Number.parseFloat(e.target.value) || 0)}
                                                         />
                                                     </div>
                                                 </div>
@@ -525,7 +525,7 @@ function WizardContent() {
                                                     onClick={() => {
                                                         const shortfall = (shortShiftCount * 4) - totalWorkedInShortShifts;
                                                         if (shortfall > 0) {
-                                                            setShortFallHours((prev) => (parseFloat(prev || "0") + shortfall).toString());
+                                                            setShortFallHours((prev) => (Number.parseFloat(prev || "0") + shortfall).toString());
                                                             setShortShiftCount(0);
                                                             setTotalWorkedInShortShifts(0);
                                                             toast(`Added ${shortfall}h shortfall.`);
