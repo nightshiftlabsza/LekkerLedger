@@ -13,10 +13,18 @@ const recoveryProfileStore = localforage.createInstance({
 });
 
 export async function getLocalRecoveryProfile(userId: string): Promise<RecoveryProfileRecord | null> {
-    return (await recoveryProfileStore.getItem<RecoveryProfileRecord>(userId)) ?? null;
+    try {
+        return (await recoveryProfileStore.getItem<RecoveryProfileRecord>(userId)) ?? null;
+    } catch (error) {
+        console.warn("Recovery profile storage is unavailable on this device. Falling back to cloud-only lookup.", error);
+        return null;
+    }
 }
 
 export async function saveLocalRecoveryProfile(userId: string, profile: RecoveryProfileRecord) {
-    await recoveryProfileStore.setItem(userId, profile);
+    try {
+        await recoveryProfileStore.setItem(userId, profile);
+    } catch (error) {
+        console.warn("Recovery profile could not be saved on this device. Continuing without the local cache.", error);
+    }
 }
-

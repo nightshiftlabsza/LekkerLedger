@@ -276,6 +276,19 @@ type DataChangeListener = () => void | Promise<void>;
 const listeners: DataChangeListener[] = [];
 let isImporting = false;
 
+function logStorageReadError(operation: string, error: unknown) {
+    console.error(`Local storage read failed during ${operation}. Falling back to safe defaults.`, error);
+}
+
+async function withStorageReadFallback<T>(operation: string, fallback: T, reader: () => Promise<T>): Promise<T> {
+    try {
+        return await reader();
+    } catch (error) {
+        logStorageReadError(operation, error);
+        return fallback;
+    }
+}
+
 function withUpdatedAt<T extends Record<string, unknown>>(value: T): T & { updatedAt: string } {
     return {
         ...value,
@@ -329,13 +342,15 @@ export function setImportingMode(value: boolean) {
 }
 
 export async function getHouseholds(): Promise<Household[]> {
-    await ensureDefaultHousehold();
-    const households: Household[] = [];
-    await householdStore.iterate<unknown, void>((value: unknown) => {
-        const parsed = HouseholdSchema.safeParse(value);
-        if (parsed.success) households.push(parsed.data);
+    return withStorageReadFallback("getHouseholds", [buildDefaultHousehold()], async () => {
+        await ensureDefaultHousehold();
+        const households: Household[] = [];
+        await householdStore.iterate<unknown, void>((value: unknown) => {
+            const parsed = HouseholdSchema.safeParse(value);
+            if (parsed.success) households.push(parsed.data);
+        });
+        return households.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     });
-    return households.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
 export async function saveHousehold(household: Household): Promise<void> {
@@ -371,21 +386,25 @@ export async function setActiveHouseholdId(householdId: string): Promise<void> {
 }
 
 export async function getEmployees(): Promise<Employee[]> {
-    const activeHouseholdId = await getActiveHouseholdId();
-    const employees: Employee[] = [];
-    await employeeStore.iterate<unknown, void>((value: unknown) => {
-        if (!value) return;
-        const decoded = decodeData<Employee>(value);
-        if (decoded && (decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
-            employees.push(decoded);
-        }
+    return withStorageReadFallback("getEmployees", [], async () => {
+        const activeHouseholdId = await getActiveHouseholdId();
+        const employees: Employee[] = [];
+        await employeeStore.iterate<unknown, void>((value: unknown) => {
+            if (!value) return;
+            const decoded = decodeData<Employee>(value);
+            if (decoded && (decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
+                employees.push(decoded);
+            }
+        });
+        return employees.sort((a, b) => a.name.localeCompare(b.name));
     });
-    return employees.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getEmployee(id: string): Promise<Employee | null> {
-    const value = await employeeStore.getItem<unknown>(id);
-    return value ? decodeData<Employee>(value) : null;
+    return withStorageReadFallback("getEmployee", null, async () => {
+        const value = await employeeStore.getItem<unknown>(id);
+        return value ? decodeData<Employee>(value) : null;
+    });
 }
 
 export async function saveEmployee(employee: Employee): Promise<void> {
@@ -482,12 +501,14 @@ export async function savePayslip(payslip: PayslipInput): Promise<void> {
 }
 
 export async function getPayslipsForEmployee(employeeId: string): Promise<PayslipInput[]> {
-    const payslips: PayslipInput[] = [];
-    await payslipStore.iterate<unknown, void>((value: unknown) => {
-        const decoded = decodeData<PayslipInput>(value);
-        if (decoded?.employeeId === employeeId) payslips.push(decoded);
+    return withStorageReadFallback("getPayslipsForEmployee", [], async () => {
+        const payslips: PayslipInput[] = [];
+        await payslipStore.iterate<unknown, void>((value: unknown) => {
+            const decoded = decodeData<PayslipInput>(value);
+            if (decoded?.employeeId === employeeId) payslips.push(decoded);
+        });
+        return payslips.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     });
-    return payslips.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getLatestPayslip(employeeId: string): Promise<PayslipInput | null> {
@@ -501,17 +522,19 @@ export async function getTotalDaysWorkedForEmployee(employeeId: string): Promise
 }
 
 export async function getAllPayslips(): Promise<PayslipInput[]> {
-    const activeHouseholdId = await getActiveHouseholdId();
-    const activeEmployeeIds = new Set((await getEmployees()).map((employee) => employee.id));
-    const payslips: PayslipInput[] = [];
-    await payslipStore.iterate<unknown, void>((value: unknown) => {
-        if (!value) return;
-        const decoded = decodeData<PayslipInput>(value);
-        if (decoded && ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || activeEmployeeIds.has(decoded.employeeId))) {
-            payslips.push(decoded);
-        }
+    return withStorageReadFallback("getAllPayslips", [], async () => {
+        const activeHouseholdId = await getActiveHouseholdId();
+        const activeEmployeeIds = new Set((await getEmployees()).map((employee) => employee.id));
+        const payslips: PayslipInput[] = [];
+        await payslipStore.iterate<unknown, void>((value: unknown) => {
+            if (!value) return;
+            const decoded = decodeData<PayslipInput>(value);
+            if (decoded && ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || activeEmployeeIds.has(decoded.employeeId))) {
+                payslips.push(decoded);
+            }
+        });
+        return payslips.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     });
-    return payslips.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function deletePayslip(id: string): Promise<void> {
@@ -715,22 +738,27 @@ async function overlayVerifiedEntitlements(settings: EmployerSettings): Promise<
 }
 
 export async function getSettings(): Promise<EmployerSettings> {
-    await ensureDefaultHousehold();
-    const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
-    const normalizedGlobal = buildDefaultSettings(stripHouseholdScopedSettings(rawSettings ?? {}));
-    const activeHouseholdId = normalizedGlobal.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;
+    try {
+        await ensureDefaultHousehold();
+        const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
+        const normalizedGlobal = buildDefaultSettings(stripHouseholdScopedSettings(rawSettings ?? {}));
+        const activeHouseholdId = normalizedGlobal.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;
 
-    const legacySeed = activeHouseholdId === DEFAULT_HOUSEHOLD_ID
-        ? extractHouseholdScopedSettings(rawSettings ?? {})
-        : getEmptyHouseholdScopedSettings();
+        const legacySeed = activeHouseholdId === DEFAULT_HOUSEHOLD_ID
+            ? extractHouseholdScopedSettings(rawSettings ?? {})
+            : getEmptyHouseholdScopedSettings();
 
-    const householdSettings = await ensureHouseholdScopedSettings(activeHouseholdId, legacySeed);
+        const householdSettings = await ensureHouseholdScopedSettings(activeHouseholdId, legacySeed);
 
-    return overlayVerifiedEntitlements({
-        ...normalizedGlobal,
-        ...householdSettings,
-        activeHouseholdId,
-    });
+        return overlayVerifiedEntitlements({
+            ...normalizedGlobal,
+            ...householdSettings,
+            activeHouseholdId,
+        });
+    } catch (error) {
+        logStorageReadError("getSettings", error);
+        return overlayVerifiedEntitlements(buildDefaultSettings());
+    }
 }
 
 export async function saveSettings(settings: EmployerSettings): Promise<void> {
@@ -1222,21 +1250,25 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
 }
 
 export async function getPayPeriods(): Promise<PayPeriod[]> {
-    const activeHouseholdId = await getActiveHouseholdId();
-    const periods: PayPeriod[] = [];
-    await payPeriodStore.iterate<unknown, void>((value: unknown) => {
-        if (!value) return;
-        const decoded = decodeData<PayPeriod>(value);
-        if (decoded && (decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
-            periods.push(decoded);
-        }
+    return withStorageReadFallback("getPayPeriods", [], async () => {
+        const activeHouseholdId = await getActiveHouseholdId();
+        const periods: PayPeriod[] = [];
+        await payPeriodStore.iterate<unknown, void>((value: unknown) => {
+            if (!value) return;
+            const decoded = decodeData<PayPeriod>(value);
+            if (decoded && (decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
+                periods.push(decoded);
+            }
+        });
+        return periods.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
     });
-    return periods.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 }
 
 export async function getPayPeriod(id: string): Promise<PayPeriod | null> {
-    const value = await payPeriodStore.getItem<unknown>(id);
-    return value ? decodeData<PayPeriod>(value) : null;
+    return withStorageReadFallback("getPayPeriod", null, async () => {
+        const value = await payPeriodStore.getItem<unknown>(id);
+        return value ? decodeData<PayPeriod>(value) : null;
+    });
 }
 
 export async function savePayPeriod(period: PayPeriod): Promise<void> {
@@ -1313,22 +1345,26 @@ export async function getCurrentPayPeriod(): Promise<PayPeriod | null> {
 }
 
 export async function getDocuments(): Promise<DocumentMeta[]> {
-    const activeHouseholdId = await getActiveHouseholdId();
-    const activeEmployeeIds = new Set((await getEmployees()).map((employee) => employee.id));
-    const documents: DocumentMeta[] = [];
-    await documentStore.iterate<unknown, void>((value: unknown) => {
-        if (!value) return;
-        const decoded = decodeData<DocumentMeta>(value);
-        if (decoded && ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || (decoded.employeeId && activeEmployeeIds.has(decoded.employeeId)))) {
-            documents.push(decoded);
-        }
+    return withStorageReadFallback("getDocuments", [], async () => {
+        const activeHouseholdId = await getActiveHouseholdId();
+        const activeEmployeeIds = new Set((await getEmployees()).map((employee) => employee.id));
+        const documents: DocumentMeta[] = [];
+        await documentStore.iterate<unknown, void>((value: unknown) => {
+            if (!value) return;
+            const decoded = decodeData<DocumentMeta>(value);
+            if (decoded && ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || (decoded.employeeId && activeEmployeeIds.has(decoded.employeeId)))) {
+                documents.push(decoded);
+            }
+        });
+        return documents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     });
-    return documents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getDocumentMeta(id: string): Promise<DocumentMeta | null> {
-    const value = await documentStore.getItem<unknown>(id);
-    return value ? decodeData<DocumentMeta>(value) : null;
+    return withStorageReadFallback("getDocumentMeta", null, async () => {
+        const value = await documentStore.getItem<unknown>(id);
+        return value ? decodeData<DocumentMeta>(value) : null;
+    });
 }
 
 export async function saveDocumentMeta(doc: DocumentMeta): Promise<void> {
@@ -1361,16 +1397,18 @@ export async function getDocumentFile(id: string): Promise<Blob | null> {
 }
 
 export async function getContracts(): Promise<Contract[]> {
-    const activeHouseholdId = await getActiveHouseholdId();
-    const contracts: Contract[] = [];
-    await contractStore.iterate<unknown, void>((value: unknown) => {
-        if (!value) return;
-        const decoded = decodeData<Contract>(value);
-        if (decoded && (decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
-            contracts.push(decoded);
-        }
+    return withStorageReadFallback("getContracts", [], async () => {
+        const activeHouseholdId = await getActiveHouseholdId();
+        const contracts: Contract[] = [];
+        await contractStore.iterate<unknown, void>((value: unknown) => {
+            if (!value) return;
+            const decoded = decodeData<Contract>(value);
+            if (decoded && (decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
+                contracts.push(decoded);
+            }
+        });
+        return contracts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     });
-    return contracts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 }
 
 export async function getContractsForEmployee(employeeId: string): Promise<Contract[]> {
