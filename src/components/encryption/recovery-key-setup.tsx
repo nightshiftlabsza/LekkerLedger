@@ -18,12 +18,20 @@ export function RecoveryKeySetup({
     const [recoveryKey, setRecoveryKey] = React.useState<string>("");
     const [isCopied, setIsCopied] = React.useState(false);
     const [confirmationText, setConfirmationText] = React.useState("");
+    const [generationError, setGenerationError] = React.useState<string | null>(null);
     const normalizedConfirmation = confirmationText.trim().toUpperCase();
     const isConfirmed = normalizedConfirmation === "I UNDERSTAND";
+    const activeError = generationError ?? errorMessage;
 
     React.useEffect(() => {
-        // Generate once on mount
-        setRecoveryKey(generateRecoveryKey());
+        try {
+            // Generate once on mount
+            setRecoveryKey(generateRecoveryKey());
+            setGenerationError(null);
+        } catch (error) {
+            console.error("Recovery key generation failed:", error);
+            setGenerationError("This device cannot create the secure recovery key needed for encrypted login. Please update the browser or reopen the app in a normal secure tab.");
+        }
     }, []);
 
     const handleCopy = async () => {
@@ -41,7 +49,7 @@ export function RecoveryKeySetup({
         onComplete(recoveryKey);
     };
 
-    if (!recoveryKey) {
+    if (!recoveryKey && !activeError) {
         return <div className="p-8 text-center text-[var(--text-muted)]">Generating secure key...</div>;
     }
 
@@ -79,11 +87,13 @@ export function RecoveryKeySetup({
                             Save this key exactly as shown
                         </p>
                         <div className="mt-3 font-mono text-center text-lg font-bold tracking-[0.08em] text-[var(--text)] sm:text-[1.9rem] sm:leading-[1.45] break-words [overflow-wrap:anywhere]">
-                            {recoveryKey}
+                            {recoveryKey || "Recovery key unavailable on this device"}
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={handleCopy}
+                        disabled={!recoveryKey}
                         className="mt-7 flex h-11 w-11 shrink-0 items-center justify-center self-start rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-1)] hover:text-[var(--text)]"
                         title="Copy to clipboard"
                         aria-label="Copy recovery key"
@@ -116,16 +126,17 @@ export function RecoveryKeySetup({
                 <p className="text-[10px] text-center text-[var(--text-muted)] leading-tight px-4">
                     By typing this, I confirm I have securely saved my key and understand that my records cannot be recovered if this key is lost.
                 </p>
-                {errorMessage ? (
+                {activeError ? (
                     <div className="rounded-xl border border-[var(--danger-border)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger)]">
-                        {errorMessage}
+                        {activeError}
                     </div>
                 ) : null}
             </div>
 
             <button
+                type="button"
                 onClick={handleContinue}
-                disabled={!isConfirmed || isSubmitting}
+                disabled={!recoveryKey || !isConfirmed || isSubmitting}
                 className="w-full flex justify-center items-center py-3.5 px-4 bg-[var(--primary)] text-white font-bold rounded-xl active-scale transition-all hover:bg-[var(--primary-hover)] shadow-[0_2px_10px_rgba(0,122,77,0.15)] disabled:bg-[var(--border-strong)] disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
             >
                 {isSubmitting ? "Finishing setup..." : "Continue to dashboard"}

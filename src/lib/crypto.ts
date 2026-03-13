@@ -3,10 +3,28 @@
  * Uses AES-GCM for authenticated encryption.
  */
 
+function getWebCrypto(): Crypto {
+    if (typeof globalThis === "undefined" || !globalThis.crypto) {
+        throw new Error("Secure encryption is not available on this device.");
+    }
+
+    return globalThis.crypto;
+}
+
+function getSubtleCrypto(): SubtleCrypto {
+    const webCrypto = getWebCrypto();
+    if (!webCrypto.subtle) {
+        throw new Error("Secure encryption is not available on this device.");
+    }
+
+    return webCrypto.subtle;
+}
+
 // Generate a random 256-bit recovery key encoded as a readable string
 export function generateRecoveryKey(): string {
+    const webCrypto = getWebCrypto();
     const randomBytes = new Uint8Array(32);
-    crypto.getRandomValues(randomBytes);
+    webCrypto.getRandomValues(randomBytes);
     
     // Convert to a base32-like alphabet to avoid ambiguous characters
     const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -22,12 +40,13 @@ export function generateRecoveryKey(): string {
 
 // Convert string recovery key to a CryptoKey via SHA-256 for Key Derivation
 export async function deriveKey(recoveryKey: string): Promise<CryptoKey> {
+    const subtleCrypto = getSubtleCrypto();
     const encoder = new TextEncoder();
     const keyData = encoder.encode(recoveryKey.replace(/-/g, '').toUpperCase());
     
-    const hash = await crypto.subtle.digest('SHA-256', keyData);
+    const hash = await subtleCrypto.digest('SHA-256', keyData);
     
-    return crypto.subtle.importKey(
+    return subtleCrypto.importKey(
         'raw',
         hash,
         { name: 'AES-GCM' },
@@ -63,14 +82,16 @@ export interface EncryptedPayload {
 
 // Encrypt a JSON object
 export async function encryptData(data: unknown, key: CryptoKey): Promise<EncryptedPayload> {
+    const webCrypto = getWebCrypto();
+    const subtleCrypto = getSubtleCrypto();
     const encoder = new TextEncoder();
     const encodedData = encoder.encode(JSON.stringify(data));
     
     // Generate a random 12-byte IV (96 bits is recommended for AES-GCM)
     const iv = new Uint8Array(12);
-    crypto.getRandomValues(iv);
+    webCrypto.getRandomValues(iv);
     
-    const encryptedBuffer = await crypto.subtle.encrypt(
+    const encryptedBuffer = await subtleCrypto.encrypt(
         {
             name: 'AES-GCM',
             iv: iv
@@ -87,10 +108,11 @@ export async function encryptData(data: unknown, key: CryptoKey): Promise<Encryp
 
 // Decrypt back to JSON object
 export async function decryptData<T>(payload: EncryptedPayload, key: CryptoKey): Promise<T> {
+    const subtleCrypto = getSubtleCrypto();
     const ivBuffer = base64ToBuffer(payload.iv);
     const ciphertextBuffer = base64ToBuffer(payload.ciphertext);
     
-    const decryptedBuffer = await crypto.subtle.decrypt(
+    const decryptedBuffer = await subtleCrypto.decrypt(
         {
             name: 'AES-GCM',
             iv: ivBuffer
@@ -110,12 +132,14 @@ export async function decryptData<T>(payload: EncryptedPayload, key: CryptoKey):
  * but household ledger receipts shouldn't exceed memory limits.
  */
 export async function encryptFile(file: File, key: CryptoKey): Promise<{ encryptedBlob: Blob; iv: string }> {
+    const webCrypto = getWebCrypto();
+    const subtleCrypto = getSubtleCrypto();
     const arrayBuffer = await file.arrayBuffer();
     
     const iv = new Uint8Array(12);
-    crypto.getRandomValues(iv);
+    webCrypto.getRandomValues(iv);
     
-    const encryptedBuffer = await crypto.subtle.encrypt(
+    const encryptedBuffer = await subtleCrypto.encrypt(
         {
             name: 'AES-GCM',
             iv: iv
@@ -134,10 +158,11 @@ export async function encryptFile(file: File, key: CryptoKey): Promise<{ encrypt
  * Decrypt a file previously encrypted with encryptFile.
  */
 export async function decryptFile(encryptedBlob: Blob, ivBase64: string, key: CryptoKey, originalMimeType: string): Promise<Blob> {
+    const subtleCrypto = getSubtleCrypto();
     const ivBuffer = base64ToBuffer(ivBase64);
     const encryptedBuffer = await encryptedBlob.arrayBuffer();
     
-    const decryptedBuffer = await crypto.subtle.decrypt(
+    const decryptedBuffer = await subtleCrypto.decrypt(
         {
             name: 'AES-GCM',
             iv: ivBuffer
