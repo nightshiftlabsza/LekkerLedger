@@ -53,14 +53,18 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
         let mounted = true;
 
         async function initMode() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!mounted) return;
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!mounted) return;
 
-            currentUserIdRef.current = session?.user?.id ?? null;
+                currentUserIdRef.current = session?.user?.id ?? null;
 
-            if (session?.user?.id) {
-                setMode("account_locked");
-                return;
+                if (session?.user?.id) {
+                    setMode("account_locked");
+                    return;
+                }
+            } catch (error) {
+                console.warn("Could not restore Supabase session. Falling back to signed-out mode.", error);
             }
 
             transitionToGuest();

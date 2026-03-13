@@ -69,10 +69,21 @@ export function LoginForm({
         setError(null);
         setIsLoading(true);
 
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+        let signInError: { message: string } | null = null;
+
+        try {
+            const response = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+            signInError = response.error;
+        } catch (error) {
+            signInError = {
+                message: error instanceof Error
+                    ? error.message
+                    : "Something went wrong during sign-in. Please try again.",
+            };
+        }
 
         if (signInError) {
             setError(mapSignInError(signInError.message));

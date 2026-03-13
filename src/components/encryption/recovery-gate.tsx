@@ -51,27 +51,33 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         let mounted = true;
 
         async function checkState() {
-            setStatus('checking');
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!mounted) return;
+            setStatus("checking");
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!mounted) return;
 
-            if (!user) {
-                redirectToLoginForExpiredSession(setInputError, "needs_input");
-                return;
-            }
+                if (!user) {
+                    redirectToLoginForExpiredSession(setInputError, "needs_input");
+                    return;
+                }
 
-            const profile = await loadRecoveryProfileState(user.id, supabase);
-            
-            if (!mounted) return;
+                const profile = await loadRecoveryProfileState(user.id, supabase);
+                if (!mounted) return;
 
-            if (!profile.keySetupComplete) {
-                setSetupError(null);
-                setInputError(null);
-                setStatus('needs_setup');
-            } else {
-                setSetupError(null);
-                setInputError(null);
-                setStatus('needs_input');
+                if (!profile.keySetupComplete) {
+                    setSetupError(null);
+                    setInputError(null);
+                    setStatus("needs_setup");
+                } else {
+                    setSetupError(null);
+                    setInputError(null);
+                    setStatus("needs_input");
+                }
+            } catch (error) {
+                if (!mounted) return;
+                console.error("Could not check recovery-key status.", error);
+                setInputError("We could not verify your encrypted login on this device. Please sign in again.");
+                setStatus("needs_input");
             }
         }
 

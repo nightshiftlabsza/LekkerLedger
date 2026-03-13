@@ -90,9 +90,15 @@ export function useAppConnectivity() {
         let mounted = true;
 
         async function loadSession() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!mounted) return;
-            setHasAuthenticatedSession(Boolean(session?.user?.id));
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!mounted) return;
+                setHasAuthenticatedSession(Boolean(session?.user?.id));
+            } catch (error) {
+                if (!mounted) return;
+                console.warn("Could not read auth session while checking connectivity.", error);
+                setHasAuthenticatedSession(false);
+            }
         }
 
         void loadSession();
