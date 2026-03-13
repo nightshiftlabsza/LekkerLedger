@@ -2,7 +2,7 @@ import "./_group.css";
 import {
   ArrowRight, AlertTriangle, FileText, FolderOpen,
   BookOpen, ChevronRight, Banknote, ShieldCheck,
-  UserPlus, Settings, Wifi, WifiOff,
+  UserPlus, Settings, Wifi,
 } from "lucide-react";
 
 const MOCK = {
@@ -91,7 +91,7 @@ export function Current() {
                 <div className="p-2 rounded-lg" style={{ backgroundColor: "var(--warning-soft)" }}>
                   <AlertTriangle className="h-4 w-4" />
                 </div>
-                <span>Sipho Nkosi's ID number is missing from their profile.</span>
+                <span>Sipho Nkosi&apos;s ID number is missing from their profile.</span>
               </div>
               <span className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--warning)" }}>Fix Now</span>
             </div>

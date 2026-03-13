@@ -26,19 +26,22 @@ function PreviewRenderer({
   componentPath: string;
   modules: ModuleMap;
 }) {
+  const [loadedPath, setLoadedPath] = useState<string>("");
   const [Component, setComponent] = useState<ComponentType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    setComponent(null);
-    setError(null);
-
     async function loadComponent(): Promise<void> {
       const key = `./components/mockups/${componentPath}.tsx`;
       const loader = modules[key];
       if (!loader) {
+        if (cancelled) {
+          return;
+        }
+        setLoadedPath(componentPath);
+        setComponent(null);
         setError(`No component found at ${componentPath}.tsx`);
         return;
       }
@@ -51,11 +54,15 @@ function PreviewRenderer({
         const name = componentPath.split("/").pop()!;
         const comp = _resolveComponent(mod, name);
         if (!comp) {
+          setLoadedPath(componentPath);
+          setComponent(null);
           setError(
             `No exported React component found in ${componentPath}.tsx\n\nMake sure the file has at least one exported function component.`,
           );
           return;
         }
+        setLoadedPath(componentPath);
+        setError(null);
         setComponent(() => comp);
       } catch (e) {
         if (cancelled) {
@@ -63,6 +70,8 @@ function PreviewRenderer({
         }
 
         const message = e instanceof Error ? e.message : String(e);
+        setLoadedPath(componentPath);
+        setComponent(null);
         setError(`Failed to load preview.\n${message}`);
       }
     }
@@ -74,7 +83,7 @@ function PreviewRenderer({
     };
   }, [componentPath, modules]);
 
-  if (error) {
+  if (loadedPath === componentPath && error) {
     return (
       <pre style={{ color: "red", padding: "2rem", fontFamily: "system-ui" }}>
         {error}
@@ -82,7 +91,7 @@ function PreviewRenderer({
     );
   }
 
-  if (!Component) return null;
+  if (loadedPath !== componentPath || !Component) return null;
 
   return <Component />;
 }

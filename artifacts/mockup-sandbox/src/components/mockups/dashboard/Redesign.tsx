@@ -198,7 +198,7 @@ export function Redesign() {
               fontSize: "13px", fontWeight: 600, color: "var(--warning)",
             }}>
               <AlertTriangle style={{ width: "14px", height: "14px", flexShrink: 0 }} />
-              <span style={{ flex: 1 }}>Sipho Nkosi's ID number is missing — required for UIF submissions.</span>
+              <span style={{ flex: 1 }}>Sipho Nkosi&apos;s ID number is missing - required for UIF submissions.</span>
               <button style={{ fontSize: "12px", fontWeight: 800, color: "var(--warning)", background: "none", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}>Fix now →</button>
             </div>
 
