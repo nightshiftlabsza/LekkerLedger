@@ -1123,15 +1123,13 @@ async function linkReferralToTrial(intent: BillingIntentRecord): Promise<void> {
 }
 
 async function markGuestTrialIntentPaymentReceived(intent: BillingIntentRecord): Promise<boolean> {
-    if (intent.status === "payment_received") {
-        return true;
+    if (intent.status !== "payment_received") {
+        await upsertBillingIntent({
+            ...intent,
+            status: "payment_received",
+            updatedAt: Date.now(),
+        });
     }
-
-    await upsertBillingIntent({
-        ...intent,
-        status: "payment_received",
-        updatedAt: Date.now(),
-    });
     return true;
 }
 
@@ -1231,24 +1229,24 @@ async function rejectTrialIntent(intent: BillingIntentRecord, userId: string, em
     });
 }
 
-async function handleTrialChargeSuccess(data: Record<string, unknown>, intent: BillingIntentRecord): Promise<boolean> {
+async function handleTrialChargeSuccess(data: Record<string, unknown>, intent: BillingIntentRecord): Promise<void> {
     const authorization = extractAuthorization(data);
     if (!authorization?.reusable) {
         await rejectTrialIntent(intent, intent.userId, intent.email, "The card could not be saved for automatic billing. Please try another card.");
-        return true;
+        return;
     }
 
     const existing = await getSubscriptionByColumn("user_id", intent.userId);
     if (!canStartTrial(existing)) {
         await rejectTrialIntent(intent, intent.userId, intent.email, "This account has already used its free trial.");
-        return true;
+        return;
     }
 
     if (authorization.signature && !isPaystackTestMode()) {
         const signatureMatch = await getSubscriptionByColumn("paystack_authorization_signature", authorization.signature);
         if (signatureMatch && signatureMatch.userId !== intent.userId && signatureMatch.hasUsedTrial) {
             await rejectTrialIntent(intent, intent.userId, intent.email, "This card has already been used for a free trial.");
-            return true;
+            return;
         }
     }
 
@@ -1314,7 +1312,6 @@ async function handleTrialChargeSuccess(data: Record<string, unknown>, intent: B
         status: "trial_started",
         updatedAt: Date.now(),
     });
-    return true;
 }
 
 async function resolveBillingIntentForCharge(reference: string | null, metadata: Record<string, unknown>): Promise<BillingIntentRecord | null> {
@@ -1348,7 +1345,8 @@ async function processSuccessfulCharge(data: Record<string, unknown>, reference:
             if (isGuestIntentUserId(intent.userId)) {
                 return markGuestTrialIntentPaymentReceived(intent);
             }
-            return handleTrialChargeSuccess(data, intent);
+            await handleTrialChargeSuccess(data, intent);
+            return true;
         }
         return true;
     }
