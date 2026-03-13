@@ -25,7 +25,29 @@ const AppModeContext = React.createContext<AppModeContextValue | null>(null);
 
 export function AppModeProvider({ children }: { children: React.ReactNode }) {
     const [mode, setMode] = React.useState<AppMode>("local_guest");
-    const supabase = createClient();
+    const supabase = React.useMemo(() => createClient(), []);
+    const modeRef = React.useRef<AppMode>(mode);
+    const currentUserIdRef = React.useRef<string | null>(null);
+
+    React.useEffect(() => {
+        modeRef.current = mode;
+    }, [mode]);
+
+    const clearUnlockedState = React.useCallback(() => {
+        syncEngine.setCryptoKey(null);
+        syncService.clearSession();
+    }, []);
+
+    const transitionToLocked = React.useCallback(() => {
+        clearUnlockedState();
+        setMode("account_locked");
+    }, [clearUnlockedState]);
+
+    const transitionToGuest = React.useCallback(() => {
+        clearUnlockedState();
+        currentUserIdRef.current = null;
+        setMode("local_guest");
+    }, [clearUnlockedState]);
 
     React.useEffect(() => {
         let mounted = true;
@@ -33,24 +55,38 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
         async function initMode() {
             const { data: { session } } = await supabase.auth.getSession();
             if (!mounted) return;
-            
-            if (session) {
-                // They are logged in, but the key is only in memory, so it's always locked on load
+
+            currentUserIdRef.current = session?.user?.id ?? null;
+
+            if (session?.user?.id) {
                 setMode("account_locked");
-            } else {
-                setMode("local_guest");
+                return;
             }
+
+            transitionToGuest();
         }
 
         initMode();
 
-        const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+        const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+            const nextUserId = session?.user?.id ?? null;
+            const previousUserId = currentUserIdRef.current;
+            currentUserIdRef.current = nextUserId;
+
             if (event === "SIGNED_OUT") {
-                setMode("local_guest");
-                syncEngine.setCryptoKey(null);
-                syncService.clearSession();
-            } else if (event === "SIGNED_IN" && mode === "local_guest") {
-                setMode("account_locked");
+                transitionToGuest();
+                return;
+            }
+
+            if (event !== "SIGNED_IN" || !nextUserId) {
+                return;
+            }
+
+            const isFreshAuthenticatedEntry = modeRef.current === "local_guest";
+            const isDifferentUser = Boolean(previousUserId && previousUserId !== nextUserId);
+
+            if (isFreshAuthenticatedEntry || isDifferentUser) {
+                transitionToLocked();
             }
         });
 
@@ -58,9 +94,10 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
             mounted = false;
             authListener.subscription.unsubscribe();
         };
-    }, [supabase.auth, mode]);
+    }, [supabase, transitionToGuest, transitionToLocked]);
 
     const unlockAccount = React.useCallback(async (key: CryptoKey, userId: string) => {
+        currentUserIdRef.current = userId;
         syncEngine.setCryptoKey(key);
         syncService.init(userId, key);
         await syncService.reconcileAfterUnlock();
@@ -68,10 +105,8 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const lockAccount = React.useCallback(() => {
-        syncEngine.setCryptoKey(null);
-        syncService.clearSession();
-        setMode("account_locked");
-    }, []);
+        transitionToLocked();
+    }, [transitionToLocked]);
 
     return (
         <AppModeContext.Provider value={{ mode, setMode, unlockAccount, lockAccount }}>

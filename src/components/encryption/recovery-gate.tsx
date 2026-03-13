@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useAppMode } from "@/lib/app-mode";
 import { RecoveryKeySetup } from "./recovery-key-setup";
 import { RecoveryKeyInput } from "./recovery-key-input";
@@ -20,10 +21,29 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
     const [status, setStatus] = React.useState<'checking' | 'needs_setup' | 'needs_input' | 'ready'>('ready');
     const [setupError, setSetupError] = React.useState<string | null>(null);
     const [isSubmittingSetup, setIsSubmittingSetup] = React.useState(false);
-    const supabase = createClient();
+    const [inputError, setInputError] = React.useState<string | null>(null);
+    const [isSubmittingInput, setIsSubmittingInput] = React.useState(false);
+    const router = useRouter();
+    const pathname = usePathname();
+    const supabase = React.useMemo(() => createClient(), []);
+    const sessionExpiredLoginHref = React.useMemo(() => {
+        const params = new URLSearchParams({ error: "session_expired" });
+        if (pathname) {
+            params.set("next", pathname);
+        }
+        return `/login?${params.toString()}`;
+    }, [pathname]);
+
+    const redirectToLoginForExpiredSession = React.useCallback((setErrorMessage: (message: string) => void, fallbackStatus: "needs_setup" | "needs_input") => {
+        setErrorMessage("Your session expired. Please sign in again.");
+        setStatus(fallbackStatus);
+        router.replace(sessionExpiredLoginHref);
+    }, [router, sessionExpiredLoginHref]);
 
     React.useEffect(() => {
         if (mode !== "account_locked") {
+            setSetupError(null);
+            setInputError(null);
             setStatus('ready');
             return;
         }
@@ -33,7 +53,12 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         async function checkState() {
             setStatus('checking');
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user || !mounted) return;
+            if (!mounted) return;
+
+            if (!user) {
+                redirectToLoginForExpiredSession(setInputError, "needs_input");
+                return;
+            }
 
             const profile = await loadRecoveryProfileState(user.id, supabase);
             
@@ -41,8 +66,11 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
 
             if (!profile.keySetupComplete) {
                 setSetupError(null);
+                setInputError(null);
                 setStatus('needs_setup');
             } else {
+                setSetupError(null);
+                setInputError(null);
                 setStatus('needs_input');
             }
         }
@@ -50,14 +78,18 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         checkState();
 
         return () => { mounted = false; };
-    }, [mode, supabase]);
+    }, [mode, redirectToLoginForExpiredSession, supabase]);
 
     const handleSetupComplete = async (keyString: string) => {
         setSetupError(null);
+        setInputError(null);
         setIsSubmittingSetup(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+            if (!user) {
+                redirectToLoginForExpiredSession(setSetupError, "needs_setup");
+                return;
+            }
 
             const cryptoKey = await deriveKey(keyString);
             const payload = await generateValidationPayload(cryptoKey);
@@ -92,19 +124,28 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const handleInputComplete = async (keyString: string, cryptoKey: CryptoKey) => {
-        setStatus('checking');
+    const handleInputComplete = async (_keyString: string, cryptoKey: CryptoKey) => {
+        setInputError(null);
+        setIsSubmittingInput(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+            if (!user) {
+                redirectToLoginForExpiredSession(setInputError, "needs_input");
+                return;
+            }
 
             const profile = await loadRecoveryProfileState(user.id, supabase);
+
+            if (!profile.keySetupComplete) {
+                setStatus("needs_setup");
+                setSetupError("This account still needs a recovery key on this device. Save the new key once, then continue.");
+                return;
+            }
 
             if (profile.validationPayload) {
                  const isValid = await verifyValidationPayload(profile.validationPayload, cryptoKey);
                  if (!isValid) {
-                     alert("Incorrect Recovery Key. Please try again.");
-                     setStatus('needs_input');
+                     setInputError("That recovery key does not match this account. Please try again.");
                      return;
                  }
             }
@@ -112,8 +153,10 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             await unlockAccount(cryptoKey, user.id);
         } catch (err) {
              console.error(err);
-             alert("Error validating key.");
+             setInputError(formatRecoveryUnlockError(err));
              setStatus('needs_input');
+        } finally {
+            setIsSubmittingInput(false);
         }
     };
 
@@ -158,7 +201,11 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                         )}
 
                         {status === 'needs_input' && (
-                            <RecoveryKeyInput onComplete={handleInputComplete} />
+                            <RecoveryKeyInput
+                                onComplete={handleInputComplete}
+                                errorMessage={inputError}
+                                isSubmitting={isSubmittingInput}
+                            />
                         )}
                             </div>
                         </div>
@@ -212,6 +259,9 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
 function formatRecoverySetupError(error: unknown) {
     if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
         const message = error.message;
+        if (message.includes("expired") || message.includes("session")) {
+            return "Your session expired. Please sign in again.";
+        }
         if (message.includes("user_profiles")) {
             return "Cloud sync could not finish setting up your recovery key. The sync profile table is not available yet.";
         }
@@ -222,6 +272,24 @@ function formatRecoverySetupError(error: unknown) {
     }
 
     return "Cloud sync could not finish setting up your recovery key. Please try again.";
+}
+
+function formatRecoveryUnlockError(error: unknown) {
+    if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+        const message = error.message;
+        if (message.includes("expired") || message.includes("session")) {
+            return "Your session expired. Please sign in again.";
+        }
+        if (message.includes("permission") || message.includes("row-level security")) {
+            return "Cloud sync could not verify your recovery key because this account cannot read the sync profile yet.";
+        }
+        if (message.includes("user_profiles")) {
+            return "Cloud sync could not verify your recovery key because the sync profile is not available yet.";
+        }
+        return message;
+    }
+
+    return "Cloud sync could not unlock your encrypted data just now. Please try again.";
 }
 
 async function loadRecoveryProfileState(

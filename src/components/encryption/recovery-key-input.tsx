@@ -5,40 +5,39 @@ import { KeyRound, Loader2, AlertCircle } from "lucide-react";
 import { deriveKey } from "@/lib/crypto";
 
 interface RecoveryKeyInputProps {
-    onComplete: (key: string, cryptoKey: CryptoKey) => void;
-    expectedValidationToken?: string; // TBD: used if we want to validate the key immediately
+    onComplete: (key: string, cryptoKey: CryptoKey) => Promise<void> | void;
+    errorMessage?: string | null;
+    isSubmitting?: boolean;
 }
 
-export function RecoveryKeyInput({ onComplete }: RecoveryKeyInputProps) {
+export function RecoveryKeyInput({
+    onComplete,
+    errorMessage = null,
+    isSubmitting = false,
+}: RecoveryKeyInputProps) {
     const [inputValue, setInputValue] = React.useState("");
-    const [error, setError] = React.useState<string | null>(null);
-    const [isLoading, setIsLoading] = React.useState(false);
+    const [localError, setLocalError] = React.useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
-        
-        const cleanKey = inputValue.trim().replace(/\s+/g, '');
+        setLocalError(null);
+
+        const cleanKey = inputValue.trim().replace(/\s+/g, "");
         if (!cleanKey || cleanKey.length < 32) {
-            setError("Please enter a valid recovery key.");
+            setLocalError("Please enter a valid recovery key.");
             return;
         }
 
-        setIsLoading(true);
-
         try {
-            // Derive the actual Web Crypto key to ensure the format is technically somewhat valid
             const cryptoKey = await deriveKey(cleanKey);
-            
-            // Here we could technically decrypt a test payload from the server to validate it's the *correct* key.
-            // For now, assume it's valid if derivation doesn't throw.
-            onComplete(cleanKey, cryptoKey);
+            await onComplete(cleanKey, cryptoKey);
         } catch (err) {
             console.error("Key derivation error:", err);
-            setError("Invalid key format. Please check your recovery key and try again.");
-            setIsLoading(false);
+            setLocalError("Invalid key format. Please check your recovery key and try again.");
         }
     };
+
+    const activeError = localError ?? errorMessage;
 
     return (
         <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] animate-fade-in">
@@ -55,10 +54,10 @@ export function RecoveryKeyInput({ onComplete }: RecoveryKeyInputProps) {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
+                {activeError && (
                     <div className="p-4 bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] rounded-2xl text-sm flex items-start space-x-3 animate-slide-down">
                         <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                        <span className="font-medium">{error}</span>
+                        <span className="font-medium">{activeError}</span>
                     </div>
                 )}
 
@@ -69,21 +68,26 @@ export function RecoveryKeyInput({ onComplete }: RecoveryKeyInputProps) {
                     <textarea
                         id="recovery-key"
                         value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
+                        onChange={(e) => {
+                            setInputValue(e.target.value);
+                            if (localError) {
+                                setLocalError(null);
+                            }
+                        }}
                         className="w-full p-4 bg-[var(--bg)] border border-[var(--border)] rounded-2xl text-[var(--text)] font-mono text-sm leading-7 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
                         placeholder="AAAA-BBBB-CCCC-DDDD..."
                         rows={3}
                         required
-                        disabled={isLoading}
+                        disabled={isSubmitting}
                     />
                 </div>
 
                 <button
                     type="submit"
-                    disabled={isLoading || !inputValue.trim()}
+                    disabled={isSubmitting || !inputValue.trim()}
                     className="w-full flex justify-center items-center py-3.5 px-4 bg-[var(--primary)] text-white font-bold rounded-xl active-scale transition-all hover:bg-[var(--primary-hover)] shadow-[0_2px_10px_rgba(0,122,77,0.15)] disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                    {isLoading ? (
+                    {isSubmitting ? (
                         <>
                             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                             Unlocking...
