@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
+import { getRequestAppOrigin } from '@/lib/app-origin'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
+  const origin = getRequestAppOrigin(request)
   const code = searchParams.get('code')
   const next = searchParams.get('next')
   const safeNext = next && next.startsWith('/') ? next : '/dashboard'

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Mail, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { getBrowserAppOrigin } from "@/lib/app-origin";
 import { readPendingBillingEmail, readPendingBillingReference } from "@/lib/billing-handoff";
 
 function mapSignUpError(message: string): string {
@@ -73,12 +74,13 @@ export function SignUpForm({
         setIsLoading(true);
 
         const next = reference ? `/billing/success?reference=${encodeURIComponent(reference)}` : "/dashboard";
+        const appOrigin = getBrowserAppOrigin();
 
         const { error: signUpError } = await supabase.auth.signUp({
             email,
             password,
             options: {
-                emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(next)}`,
+                emailRedirectTo: `${appOrigin}/api/auth/callback?next=${encodeURIComponent(next)}`,
             },
         });
 

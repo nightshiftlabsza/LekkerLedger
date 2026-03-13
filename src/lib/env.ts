@@ -26,7 +26,9 @@ const serverSchema = z.object({
 });
 
 const publicSchema = z.object({
+    NEXT_PUBLIC_APP_URL: z.string().optional(),
     NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: z.string().optional(),
+    NEXT_PUBLIC_SITE_URL: z.string().optional(),
     NEXT_PUBLIC_SUPABASE_URL: z.string().optional(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
 });
@@ -53,14 +55,18 @@ function validateServerEnv() {
  */
 function validatePublicEnv() {
     const parsed = publicSchema.safeParse({
+        NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
         NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
         NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
         NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     });
     if (!parsed.success) {
         console.error("❌ Invalid public environment variables:", parsed.error.flatten().fieldErrors);
         return {
+            NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
             NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+            NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
             NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
             NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
         } as z.infer<typeof publicSchema>;

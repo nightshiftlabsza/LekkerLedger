@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Loader2, Mail, CheckCircle2, AlertCircle } from "lucide-react";
+import { getBrowserAppOrigin } from "@/lib/app-origin";
 import { createClient } from "@/lib/supabase/client";
 
 function mapResetError(message: string): string {
@@ -40,9 +41,10 @@ export function ForgotPasswordForm({
         e.preventDefault();
         setError(null);
         setIsLoading(true);
+        const appOrigin = getBrowserAppOrigin();
 
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent("/reset-password")}`,
+            redirectTo: `${appOrigin}/api/auth/callback?next=${encodeURIComponent("/reset-password")}`,
         });
 
         if (resetError) {

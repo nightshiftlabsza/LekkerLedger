@@ -21,6 +21,7 @@ import {
     SubscriptionRecord,
     VerifiedEntitlements,
 } from "./billing";
+import { getRequestAppOrigin } from "./app-origin";
 import { env } from "./env";
 import { createClient } from "./supabase/server";
 
@@ -159,16 +160,6 @@ function getPaystackPlanLookup() {
         [env.PAYSTACK_PLAN_PRO_MONTHLY || "", { planId: "pro", billingCycle: "monthly" }],
         [env.PAYSTACK_PLAN_PRO_YEARLY || "", { planId: "pro", billingCycle: "yearly" }],
     ]);
-}
-
-function normalizeOrigin(request: Request): string {
-    const forwardedProto = request.headers.get("x-forwarded-proto");
-    const forwardedHost = request.headers.get("x-forwarded-host") || request.headers.get("host");
-    if (forwardedHost) {
-        return `${forwardedProto || "https"}://${forwardedHost}`;
-    }
-
-    return new URL(request.url).origin;
 }
 
 function parseMetadata(value: unknown): Record<string, unknown> {
@@ -936,7 +927,7 @@ async function initializePaystackTransaction(request: Request, user: VerifiedUse
     callbackQuery?: Record<string, string>;
     reference?: string;
 }): Promise<{ authorizationUrl: string; accessCode: string; reference: string }> {
-    const origin = normalizeOrigin(request);
+    const origin = getRequestAppOrigin(request);
     const reference = input.reference || buildTrialReference(user.userId);
     const callbackUrl = new URL(`${origin}/billing/success`);
     if (input.callbackQuery) {
