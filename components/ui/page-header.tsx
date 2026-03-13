@@ -16,7 +16,7 @@ export function PageHeader({ title, subtitle, householdChip, syncBadge, actions,
         <div className={`flex flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6 md:mb-8 ${className}`}>
             <div className="min-w-0 flex-1 space-y-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                    <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[var(--text)] leading-tight">{title}</h1>
+                    <h1 data-page-title className="text-xl sm:text-2xl font-black tracking-tight text-[var(--text)] leading-tight">{title}</h1>
                     <div className="flex items-center gap-2">
                         {householdChip}
                         {syncBadge}

@@ -1,9 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { AppShell } from "./app-shell";
 import { Suspense } from "react";
+import { AppRouteTitleSync } from "@/components/app-route-title-sync";
 
 export const metadata: Metadata = {
-    title: "LekkerLedger | Dashboard",
+    title: {
+        default: "Workspace | LekkerLedger",
+        template: "%s | LekkerLedger",
+    },
     description:
         "Manage payslips, leave tracking, and household employment records in one place.",
     manifest: "/manifest.webmanifest",
@@ -39,6 +43,7 @@ export default function AppRootLayout({
             </a>
             <AppShell>
                 <Suspense fallback={null}>
+                    <AppRouteTitleSync />
                     {children}
                 </Suspense>
             </AppShell>

@@ -2,6 +2,8 @@
     "name": "LekkerLedger",
     "short_name": "LekkerLedger",
     "description": "Create a compliant payslip in under 90 seconds. Fast, reliable, and proudly South African.",
+    "id": "/",
+    "scope": "/",
     "start_url": "/?source=pwa",
     "display": "standalone",
     "orientation": "portrait",
