@@ -25,6 +25,12 @@ const PUBLIC_PREFIXES = [
   '/_next',
   '/sitemap',
   '/sw',
+  '/sw.js',
+  '/manifest.webmanifest',
+  '/theme-init.js',
+  '/ga-init.js',
+  '/icon.svg',
+  '/apple-icon.png',
 ]
 
 function isProtectedRoute(pathname: string): boolean {
