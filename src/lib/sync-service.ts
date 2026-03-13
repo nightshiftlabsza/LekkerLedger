@@ -96,7 +96,6 @@ export class SyncService {
 
     subscribe(listener: SyncServiceListener) {
         this.listeners.add(listener);
-        listener(this.getSnapshot());
         return () => {
             this.listeners.delete(listener);
         };

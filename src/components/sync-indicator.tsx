@@ -8,10 +8,14 @@ import { syncService } from "@/lib/sync-service";
 
 export function SyncIndicator() {
     const { mode } = useAppMode();
+    const subscribeToSyncService = React.useCallback((listener: () => void) => {
+        return syncService.subscribe(listener);
+    }, []);
+    const getSyncSnapshot = React.useCallback(() => syncService.getSnapshot(), []);
     const syncSnapshot = React.useSyncExternalStore(
-        (listener) => syncService.subscribe(() => listener()),
-        () => syncService.getSnapshot(),
-        () => syncService.getSnapshot(),
+        subscribeToSyncService,
+        getSyncSnapshot,
+        getSyncSnapshot,
     );
     const [recentActivityAt, setRecentActivityAt] = React.useState<number | null>(null);
 

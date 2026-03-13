@@ -32,10 +32,14 @@ export function useAppConnectivity() {
     const [payments, setPayments] = React.useState<PaymentsState>("available");
     const [hasAuthenticatedSession, setHasAuthenticatedSession] = React.useState(false);
     const supabase = React.useMemo(() => createClient(), []);
+    const subscribeToSyncService = React.useCallback((listener: () => void) => {
+        return syncService.subscribe(listener);
+    }, []);
+    const getSyncSnapshot = React.useCallback(() => syncService.getSnapshot(), []);
     const syncSnapshot = React.useSyncExternalStore(
-        (listener) => syncService.subscribe(() => listener()),
-        () => syncService.getSnapshot(),
-        () => syncService.getSnapshot(),
+        subscribeToSyncService,
+        getSyncSnapshot,
+        getSyncSnapshot,
     );
 
     React.useEffect(() => {
