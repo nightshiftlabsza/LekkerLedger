@@ -1,77 +1,73 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { syncService } from '@/lib/sync-service';
-import { useRealtimeSync } from '../hooks/use-realtime-sync';
-import { useAppMode } from '@/lib/app-mode';
-import { createClient } from '@/lib/supabase/client';
-import { Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import * as React from "react";
+import { Cloud, CloudOff, RefreshCw } from "lucide-react";
+import { useAppMode } from "@/lib/app-mode";
+import { useRealtimeSync } from "../hooks/use-realtime-sync";
+import { syncService } from "@/lib/sync-service";
 
 export function SyncIndicator() {
     const { mode } = useAppMode();
-    const [status, setStatus] = useState<"offline" | "syncing" | "synced">(
-        (mode === 'local_guest' || mode === 'account_locked') ? "offline" : "synced"
+    const syncSnapshot = React.useSyncExternalStore(
+        (listener) => syncService.subscribe(() => listener()),
+        () => syncService.getSnapshot(),
+        () => syncService.getSnapshot(),
     );
-    const [userId, setUserId] = useState<string | undefined>();
-    const supabase = createClient();
+    const [recentActivityAt, setRecentActivityAt] = React.useState<number | null>(null);
 
-    useEffect(() => {
-        let mounted = true;
-        async function checkAuth() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (mounted && user) {
-                setUserId(user.id);
-            }
-        }
-        void checkAuth();
-        return () => { mounted = false; };
-    }, [supabase]);
-
-    // Activate Realtime Listener if unlocked
-    useRealtimeSync(mode === 'account_unlocked' ? userId : undefined, () => {
-         // Data changed locally or remotely, trigger visual 
-         setStatus("syncing");
-         setTimeout(() => setStatus("synced"), 1000);
+    const handleRealtimeUpdate = React.useEffectEvent(() => {
+        setRecentActivityAt(Date.now());
     });
 
-    useEffect(() => {
-        if (mode === 'local_guest' || mode === 'account_locked') {
-            return;
-        }
+    React.useEffect(() => {
+        if (!recentActivityAt) return;
 
-        const interval = setInterval(() => {
-            if (syncService.isCurrentlySyncing()) {
-                 setStatus(prev => prev !== "syncing" ? "syncing" : prev);
-            } else {
-                 setStatus(prev => prev !== "synced" ? "synced" : prev);
-            }
-        }, 300);
+        const timeoutHandle = window.setTimeout(() => {
+            setRecentActivityAt((current) => (current === recentActivityAt ? null : current));
+        }, 1000);
 
-        return () => clearInterval(interval);
-    }, [mode]);
+        return () => {
+            window.clearTimeout(timeoutHandle);
+        };
+    }, [recentActivityAt]);
 
-    if (mode === 'local_guest' || mode === 'account_locked') {
+    useRealtimeSync(mode === "account_unlocked" ? syncSnapshot.userId ?? undefined : undefined, handleRealtimeUpdate);
+
+    const isOffline = mode === "local_guest" || mode === "account_locked";
+    const isSyncing = !isOffline && (syncSnapshot.syncing || recentActivityAt !== null);
+    const hasError = !isOffline && syncSnapshot.hasError;
+
+    if (isOffline) {
         return (
-             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-xs font-medium text-[var(--text-muted)]" title="Data stored locally">
-                <CloudOff className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 rounded-full bg-[var(--surface-raised)] px-3 py-1.5 text-xs font-medium text-[var(--text-muted)] border border-[var(--border-subtle)]" title="Data stored locally">
+                <CloudOff className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Local Only</span>
-             </div>
+            </div>
         );
     }
 
-    if (status === 'syncing') {
-         return (
-             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--surface-raised)] border border-[var(--primary)] text-xs font-medium text-[var(--primary)] shadow-[0_0_0_2px_var(--primary-transparent)]" title="Syncing with Cloud">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+    if (hasError) {
+        return (
+            <div className="flex items-center gap-2 rounded-full border border-[var(--danger-border)] bg-[var(--danger-soft)] px-3 py-1.5 text-xs font-medium text-[var(--danger)]" title={syncSnapshot.lastError || "Sync needs attention"}>
+                <CloudOff className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Sync issue</span>
+            </div>
+        );
+    }
+
+    if (isSyncing) {
+        return (
+            <div className="flex items-center gap-2 rounded-full border border-[var(--primary)] bg-[var(--surface-raised)] px-3 py-1.5 text-xs font-medium text-[var(--primary)] shadow-[0_0_0_2px_var(--primary-transparent)]" title="Syncing with cloud">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                 <span className="hidden sm:inline">Syncing...</span>
-             </div>
+            </div>
         );
     }
 
     return (
-         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--secondary-alpha)] border border-transparent text-xs font-medium text-[var(--primary)]" title="Synced with Cloud">
-            <Cloud className="w-3.5 h-3.5 text-[#007A4D]" />
+        <div className="flex items-center gap-2 rounded-full border border-transparent bg-[var(--secondary-alpha)] px-3 py-1.5 text-xs font-medium text-[var(--primary)]" title="Synced with cloud">
+            <Cloud className="h-3.5 w-3.5 text-[#007A4D]" />
             <span className="hidden sm:inline text-[#007A4D]">All Synced ✓</span>
-         </div>
+        </div>
     );
 }

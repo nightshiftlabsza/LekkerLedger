@@ -252,6 +252,18 @@ export async function cancelSubscriptionRenewal(accessToken?: string | null): Pr
     };
 }
 
+export async function clearBillingError(accessToken?: string | null): Promise<void> {
+    const authHeaders = await buildAuthHeaders(accessToken);
+    const response = await fetch("/api/billing/clear-error", {
+        method: "POST",
+        headers: authHeaders,
+    });
+
+    if (!response.ok) {
+        // Best-effort: ignore failures so retry can still proceed.
+    }
+}
+
 export async function confirmGuestBillingTransaction(reference: string): Promise<{ paid: boolean; email: string; planId?: string }> {
     const response = await fetch("/api/billing/guest-confirm", {
         method: "POST",

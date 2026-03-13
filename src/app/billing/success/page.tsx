@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, CheckCircle2, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+    clearBillingError,
     confirmBillingTransaction,
     confirmGuestBillingTransaction,
     fetchBillingAccount,
@@ -136,6 +137,7 @@ function BillingSuccessPageContent() {
         if (isRetrying) return;
         setIsRetrying(true);
         try {
+            await clearBillingError();
             await confirmPayment(resolvedReference || readPendingBillingReference(), 6);
         } finally {
             setIsRetrying(false);

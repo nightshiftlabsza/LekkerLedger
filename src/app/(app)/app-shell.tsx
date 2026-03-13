@@ -83,8 +83,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
-    // TODO: In Batch 2, implement Supabase-based encrypted sync here
-
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && (sync === "error" || syncConflict) && !syncBannerDismissed;
     const showPaymentsBanner = network === "online" && payments === "unavailable" && !paymentsBannerDismissed;

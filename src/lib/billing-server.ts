@@ -125,6 +125,10 @@ function getPaystackSecretKey(): string {
     return getRequiredEnv("PAYSTACK_SECRET_KEY");
 }
 
+function isPaystackTestMode(): boolean {
+    return (process.env.PAYSTACK_SECRET_KEY ?? "").startsWith("sk_test_");
+}
+
 function getD1Config() {
     return {
         accountId: getRequiredEnv("CLOUDFLARE_ACCOUNT_ID"),
@@ -500,8 +504,6 @@ async function paystackRequest<T>(path: string, init: RequestInit): Promise<T> {
     if (secretKey.length !== rawKey.length) {
         console.warn(`[Billing] Stripped ${rawKey.length - secretKey.length} non-printable/non-ASCII character(s) from PAYSTACK_SECRET_KEY`);
     }
-
-    console.log(`[Billing] Using Paystack key: ${secretKey.slice(0, 15)}... (length: ${secretKey.length})`);
 
     const response = await fetch(`https://api.paystack.co${path}`, {
         ...init,
@@ -1242,7 +1244,7 @@ async function handleTrialChargeSuccess(data: Record<string, unknown>, intent: B
         return true;
     }
 
-    if (authorization.signature) {
+    if (authorization.signature && !isPaystackTestMode()) {
         const signatureMatch = await getSubscriptionByColumn("paystack_authorization_signature", authorization.signature);
         if (signatureMatch && signatureMatch.userId !== intent.userId && signatureMatch.hasUsedTrial) {
             await rejectTrialIntent(intent, intent.userId, intent.email, "This card has already been used for a free trial.");
@@ -1648,6 +1650,14 @@ export async function getVerifiedEntitlementsForUser(userId: string): Promise<Ve
     const record = await getSubscriptionByColumn("user_id", userId);
     const summary = await buildBillingSummary(userId, record);
     return entitlementsFromSubscription(record, Date.now(), summary);
+}
+
+export async function clearSubscriptionLastError(userId: string): Promise<void> {
+    await ensureBillingSchema();
+    const record = await getSubscriptionByColumn("user_id", userId);
+    if (record?.lastError) {
+        await upsertSubscription({ ...record, lastError: null, updatedAt: Date.now() });
+    }
 }
 
 export async function getBillingAccountForUser(userId: string): Promise<BillingAccountResponse> {

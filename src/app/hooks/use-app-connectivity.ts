@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { createClient } from "@/lib/supabase/client";
+import { syncService } from "@/lib/sync-service";
 
 export type NetworkState = "online" | "offline" | "flaky";
 export type SyncState = "disabled" | "enabled" | "error" | "reconnecting";
@@ -27,8 +29,14 @@ async function probeSameOriginConnectivity(): Promise<boolean> {
 
 export function useAppConnectivity() {
     const [network, setNetwork] = React.useState<NetworkState>("online");
-    const [sync, setSync] = React.useState<SyncState>("disabled");
     const [payments, setPayments] = React.useState<PaymentsState>("available");
+    const [hasAuthenticatedSession, setHasAuthenticatedSession] = React.useState(false);
+    const supabase = React.useMemo(() => createClient(), []);
+    const syncSnapshot = React.useSyncExternalStore(
+        (listener) => syncService.subscribe(() => listener()),
+        () => syncService.getSnapshot(),
+        () => syncService.getSnapshot(),
+    );
 
     React.useEffect(() => {
         let active = true;
@@ -70,13 +78,6 @@ export function useAppConnectivity() {
         document.addEventListener("visibilitychange", handleVisibilityChange);
         void verifyNetwork();
 
-        async function checkSync() {
-            // TODO: In Batch 2, check Supabase auth state for sync status
-            if (active) setSync("disabled");
-        }
-
-        void checkSync();
-
         return () => {
             active = false;
             window.removeEventListener("online", handleOnline);
@@ -85,12 +86,49 @@ export function useAppConnectivity() {
         };
     }, []);
 
+    React.useEffect(() => {
+        let mounted = true;
+
+        async function loadSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!mounted) return;
+            setHasAuthenticatedSession(Boolean(session?.user?.id));
+        }
+
+        void loadSession();
+
+        const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!mounted) return;
+            setHasAuthenticatedSession(Boolean(session?.user?.id));
+        });
+
+        return () => {
+            mounted = false;
+            authListener.subscription.unsubscribe();
+        };
+    }, [supabase]);
+
+    const sync = React.useMemo<SyncState>(() => {
+        if (!hasAuthenticatedSession || !syncSnapshot.ready) {
+            return "disabled";
+        }
+
+        if (network !== "online") {
+            return "reconnecting";
+        }
+
+        if (syncSnapshot.hasError) {
+            return "error";
+        }
+
+        return "enabled";
+    }, [hasAuthenticatedSession, network, syncSnapshot.hasError, syncSnapshot.ready]);
+
     return {
         network,
         sync,
         payments,
         setNetwork,
-        setSync,
         setPayments,
     };
 }

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { MarketingFooter } from "@/components/layout/marketing-footer";
+import { AuthModal } from "@/components/auth/auth-modal";
 import { JsonLd, organizationSchema, softwareApplicationSchema } from "@/components/seo/json-ld";
 
 export const metadata: Metadata = {
@@ -34,6 +35,9 @@ export default function MarketingLayout({
       </a>
       <Suspense fallback={null}>
         {children}
+      </Suspense>
+      <Suspense fallback={null}>
+        <AuthModal />
       </Suspense>
       <MarketingFooter />
     </>

@@ -2,9 +2,15 @@ import { render, act, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import Page from "@/app/(marketing)/page";
 
-vi.mock("next/navigation", () => ({
-    useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
-}));
+vi.mock("next/navigation", async (importOriginal) => {
+    const actual = await importOriginal<typeof import("next/navigation")>();
+
+    return {
+        ...actual,
+        useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
+        usePathname: () => "/",
+    };
+});
 
 describe("Home page", () => {
     it("renders the rebuilt homepage flow", async () => {

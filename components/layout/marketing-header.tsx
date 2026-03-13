@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
@@ -16,6 +17,13 @@ const NAV_LINKS = [
 
 export function MarketingHeader() {
     const [menuOpen, setMenuOpen] = React.useState(false);
+    const pathname = usePathname();
+    const router = useRouter();
+
+    const openLogin = React.useCallback(() => {
+        setMenuOpen(false);
+        router.push(`${pathname}?auth=login`, { scroll: false });
+    }, [pathname, router]);
 
     React.useEffect(() => {
         const handler = (e: KeyboardEvent) => {
@@ -52,9 +60,9 @@ export function MarketingHeader() {
                 </nav>
 
                 <div className="hidden lg:flex items-center gap-3">
-                    <Link href="/?auth=login" className="text-sm font-bold text-[var(--text)] hover:text-[var(--primary)] px-3 transition-colors">
+                    <button type="button" onClick={openLogin} className="text-sm font-bold text-[var(--text)] hover:text-[var(--primary)] px-3 transition-colors">
                         Login (Paid users)
-                    </Link>
+                    </button>
                     <Link href="/dashboard">
                         <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-sm)] active:scale-[0.98]">
                             Start free <ArrowRight className="h-4 w-4" />
@@ -100,11 +108,9 @@ export function MarketingHeader() {
                                 </Link>
                             ))}
                             <div className="grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-6 mt-2">
-                                <Link href="/?auth=login" onClick={() => setMenuOpen(false)}>
-                                    <Button variant="ghost" className="w-full justify-center font-bold text-[var(--text)]">
-                                        Login (Paid users)
-                                    </Button>
-                                </Link>
+                                <Button variant="ghost" className="w-full justify-center font-bold text-[var(--text)]" onClick={openLogin}>
+                                    Login (Paid users)
+                                </Button>
                                 <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
                                     <Button className="w-full justify-center font-bold h-12">
                                         Start free <ArrowRight className="h-4 w-4" />

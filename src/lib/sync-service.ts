@@ -38,6 +38,14 @@ import {
 } from "./schema";
 import { syncEngine } from "./sync-engine";
 
+export interface SyncServiceSnapshot {
+    userId: string | null;
+    ready: boolean;
+    syncing: boolean;
+    hasError: boolean;
+    lastError: string | null;
+}
+
 interface SyncedRecordRow {
     table_name: string;
     record_id: string;
@@ -61,6 +69,8 @@ type SyncableRecord =
     | EmployerSettings
     | Record<string, unknown>;
 
+type SyncServiceListener = (snapshot: SyncServiceSnapshot) => void;
+
 function toTimestamp(value?: string | Date): number {
     if (!value) return 0;
     return new Date(value).getTime() || 0;
@@ -71,18 +81,62 @@ export class SyncService {
     private isSyncing = false;
     private userId: string | null = null;
     private isReconciling = false;
+    private lastError: string | null = null;
+    private listeners = new Set<SyncServiceListener>();
+
+    getSnapshot(): SyncServiceSnapshot {
+        return {
+            userId: this.userId,
+            ready: Boolean(this.userId),
+            syncing: this.isSyncing || this.isReconciling,
+            hasError: Boolean(this.lastError),
+            lastError: this.lastError,
+        };
+    }
+
+    subscribe(listener: SyncServiceListener) {
+        this.listeners.add(listener);
+        listener(this.getSnapshot());
+        return () => {
+            this.listeners.delete(listener);
+        };
+    }
+
+    private notifyListeners() {
+        const snapshot = this.getSnapshot();
+        this.listeners.forEach((listener) => {
+            listener(snapshot);
+        });
+    }
+
+    private clearError() {
+        if (!this.lastError) return;
+        this.lastError = null;
+        this.notifyListeners();
+    }
+
+    private captureError(error: unknown, fallbackMessage: string) {
+        this.lastError = error instanceof Error && error.message
+            ? error.message
+            : fallbackMessage;
+        this.notifyListeners();
+    }
 
     init(userId: string, cryptoKey: CryptoKey) {
         this.userId = userId;
+        this.lastError = null;
         cloudRepo.setCryptoKey(cryptoKey, userId);
         console.log("SyncService initialized for user", userId);
+        this.notifyListeners();
     }
 
     clearSession() {
         this.userId = null;
         this.isSyncing = false;
         this.isReconciling = false;
+        this.lastError = null;
         cloudRepo.clearCryptoKey();
+        this.notifyListeners();
     }
 
     isReady() {
@@ -90,7 +144,9 @@ export class SyncService {
     }
 
     setSyncing(value: boolean) {
+        if (this.isSyncing === value) return;
         this.isSyncing = value;
+        this.notifyListeners();
     }
 
     isCurrentlySyncing() {
@@ -106,8 +162,10 @@ export class SyncService {
                 updatedAt: typeof data.updatedAt === "string" && data.updatedAt ? data.updatedAt : new Date().toISOString(),
             };
             await cloudRepo.pushRecord(table, id, normalizedData);
+            this.clearError();
             console.log(`Pushed ${table}/${id} to cloud`);
         } catch (error) {
+            this.captureError(error, `Failed to push ${table}/${id}.`);
             console.error(`Failed to push ${table}/${id}`, error);
         }
     }
@@ -117,8 +175,10 @@ export class SyncService {
 
         try {
             await cloudRepo.deleteRecord(table, id);
+            this.clearError();
             console.log(`Deleted ${table}/${id} from cloud`);
         } catch (error) {
+            this.captureError(error, `Failed to delete ${table}/${id}.`);
             console.error(`Failed to delete ${table}/${id}`, error);
         }
     }
@@ -128,8 +188,10 @@ export class SyncService {
 
         try {
             await cloudRepo.pushFile(fileId, blob, mimeType);
+            this.clearError();
             console.log(`Pushed file ${fileId} to cloud`);
         } catch (error) {
+            this.captureError(error, `Failed to push file ${fileId}.`);
             console.error(`Failed to push file ${fileId}`, error);
         }
     }
@@ -139,8 +201,10 @@ export class SyncService {
 
         try {
             await cloudRepo.deleteFile(fileId);
+            this.clearError();
             console.log(`Deleted file ${fileId} from cloud`);
         } catch (error) {
+            this.captureError(error, `Failed to delete file ${fileId}.`);
             console.error(`Failed to delete file ${fileId}`, error);
         }
     }
@@ -164,11 +228,14 @@ export class SyncService {
             if (localHasData) {
                 await syncEngine.runMigration();
             }
+            this.clearError();
         } catch (error) {
+            this.captureError(error, "Failed to reconcile local and cloud data.");
             console.error("Failed to reconcile local and cloud data.", error);
         } finally {
             this.isReconciling = false;
             this.setSyncing(false);
+            this.notifyListeners();
         }
     }
 
@@ -202,7 +269,9 @@ export class SyncService {
                     eventType: "INSERT",
                 });
             }
+            this.clearError();
         } catch (error) {
+            this.captureError(error, "Failed to restore cloud data.");
             console.error("Failed to restore cloud data.", error);
         } finally {
             this.setSyncing(false);
@@ -232,7 +301,9 @@ export class SyncService {
             }
 
             await this.applyLocalSave(table_name, record);
+            this.clearError();
         } catch (error) {
+            this.captureError(error, `Failed to apply remote change for ${table_name}/${record_id}.`);
             console.error(`Failed to apply remote change for ${table_name}/${record_id}`, error);
         } finally {
             this.setSyncing(false);
@@ -268,7 +339,9 @@ export class SyncService {
             }
 
             await saveDocumentFile(fileId, file.blob);
+            this.clearError();
         } catch (error) {
+            this.captureError(error, `Failed to restore file ${fileId}.`);
             console.error(`Failed to restore file ${fileId}`, error);
         } finally {
             this.setSyncing(false);
