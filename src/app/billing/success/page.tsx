@@ -41,12 +41,6 @@ function BillingSuccessPageContent() {
     const [isRetrying, setIsRetrying] = React.useState(false);
 
     const applyAccount = React.useCallback((account: BillingAccountPayload): boolean => {
-        if (account.account.lastError) {
-            setBillingAccount(account);
-            setStatus("error");
-            return true;
-        }
-
         if (account.entitlements.status === "trialing" && account.entitlements.planId !== "free") {
             setBillingAccount(account);
             setStatus("trial");
@@ -58,6 +52,12 @@ function BillingSuccessPageContent() {
             setBillingAccount(account);
             setStatus("active");
             clearPendingBillingHandoff();
+            return true;
+        }
+
+        if (account.account.lastError) {
+            setBillingAccount(account);
+            setStatus("error");
             return true;
         }
 

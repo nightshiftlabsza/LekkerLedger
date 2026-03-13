@@ -70,7 +70,7 @@ vi.mock("@/lib/billing-handoff", () => ({
 
 import BillingSuccessPage from "./page";
 
-function createBillingAccount(status: "active" | "trialing" = "active") {
+function createBillingAccount(status: "active" | "trialing" = "active", accountOverrides: Record<string, unknown> = {}) {
     return {
         entitlements: {
             planId: "pro",
@@ -89,6 +89,7 @@ function createBillingAccount(status: "active" | "trialing" = "active") {
             totalReferralMonthsEarned: 0,
             nextChargeAt: "2027-03-10T21:08:55.000Z",
             trialEndsAt: status === "trialing" ? "2026-03-24T12:00:00.000Z" : undefined,
+            ...accountOverrides,
         },
     };
 }
@@ -131,5 +132,18 @@ describe("BillingSuccessPage", () => {
         expect(await screen.findByText("Payment confirmed. Create your account")).toBeInTheDocument();
         expect(await screen.findByTestId("signup-form")).toHaveTextContent("guest@example.com");
         expect(mocks.fetchBillingAccountMock).not.toHaveBeenCalled();
+    });
+
+    it("shows the active trial state even if a billing warning is still present", async () => {
+        mocks.confirmBillingTransactionMock.mockResolvedValue(
+            createBillingAccount("trialing", { lastError: "This card has already been used for a free trial." }),
+        );
+
+        render(<BillingSuccessPage />);
+
+        await waitFor(() => {
+            expect(screen.getByText("Your paid trial is ready")).toBeInTheDocument();
+            expect(screen.getByText(/Your 14-day trial is active/i)).toBeInTheDocument();
+        });
     });
 });
