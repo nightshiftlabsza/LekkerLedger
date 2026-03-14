@@ -278,7 +278,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
 
     return (
         <AppModeProvider>
-            <div className="min-h-screen flex flex-col lg:pl-64 2xl:pl-72" style={{ backgroundColor: "var(--bg)" }}>
+            <div className="min-h-screen flex flex-col lg:pl-[300px] xl:pl-[320px] 2xl:pl-[340px]" style={{ backgroundColor: "var(--bg)" }}>
                 <div className="hidden lg:block">
                     <SideDrawer
                         open={moreOpen}

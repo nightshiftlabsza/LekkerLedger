@@ -94,7 +94,7 @@ export function SideDrawer({
                 aria-modal="true"
                 aria-label="Navigation"
                 className={[
-                    "fixed top-0 left-0 h-full w-80 lg:w-64 2xl:w-72 z-50 flex flex-col",
+                    "fixed top-0 left-0 h-full w-80 lg:w-[300px] xl:w-[320px] 2xl:w-[340px] z-50 flex flex-col",
                     dashboardVariant ? "" : "glass-panel",
                     "lg:border-r lg:border-[var(--border)] lg:shadow-none",
                     "shadow-[var(--shadow-xl)] transition-transform duration-300",
