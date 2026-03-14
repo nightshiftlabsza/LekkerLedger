@@ -493,7 +493,7 @@ function SettingsContent() {
 
                                         <div className="flex flex-col gap-3 sm:flex-row">
                                             <Button
-                                                onClick={() => void handleSaveLeaveType()}
+                                                onClick={() => { handleSaveLeaveType().catch(console.error); }}
                                                 disabled={leaveTypeName.trim().length < 2 || saving}
                                                 className="flex-1 bg-[var(--primary)] text-white font-bold"
                                             >
@@ -862,7 +862,7 @@ function SettingsContent() {
                                                     variant="outline"
                                                     className="w-full font-bold"
                                                     disabled={cancelingRenewal}
-                                                    onClick={() => void handleCancelRenewal()}
+                                                    onClick={() => { handleCancelRenewal().catch(console.error); }}
                                                 >
                                                     {cancelingRenewal ? "Canceling renewal..." : "Cancel renewal"}
                                                 </Button>
@@ -894,7 +894,7 @@ function SettingsContent() {
                                                 <div className="mt-2 flex items-center gap-2">
                                                     <span className="text-lg font-black tracking-[0.18em] text-[var(--text)]">{referralCode || "Sign in to load code"}</span>
                                                     {referralCode && (
-                                                        <Button variant="outline" className="h-9 px-3 font-bold" onClick={() => void handleCopyReferralCode()}>
+                                                        <Button variant="outline" className="h-9 px-3 font-bold" onClick={() => { handleCopyReferralCode().catch(console.error); }}>
                                                             <Copy className="mr-2 h-4 w-4" /> Copy
                                                         </Button>
                                                     )}

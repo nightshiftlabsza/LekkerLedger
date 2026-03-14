@@ -360,12 +360,14 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
 
     const payload = buildSeedPayload(mode);
     await page.evaluate(async ({ storeNames, payload }) => {
-        const deleteDb = (name: string) => new Promise<void>((resolve) => {
-            const request = indexedDB.deleteDatabase(name);
-            request.onsuccess = () => resolve();
-            request.onerror = () => resolve();
-            request.onblocked = () => resolve();
-        });
+        function deleteDb(name: string) {
+            return new Promise<void>((resolve) => {
+                const request = indexedDB.deleteDatabase(name);
+                request.onsuccess = resolve as () => void;
+                request.onerror = resolve as () => void;
+                request.onblocked = resolve as () => void;
+            });
+        }
 
         const wipeIndexedDb = async () => {
             if (!("indexedDB" in globalThis) || typeof indexedDB.databases !== "function") return;

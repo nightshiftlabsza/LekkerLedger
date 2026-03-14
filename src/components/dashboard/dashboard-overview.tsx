@@ -53,12 +53,6 @@ const moneyFormatter = new Intl.NumberFormat("en-ZA", {
     maximumFractionDigits: 0,
 });
 
-const dateFormatter = new Intl.DateTimeFormat("en-ZA", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-});
-
 export function DashboardOverview({
     employees,
     settings,
@@ -82,10 +76,6 @@ export function DashboardOverview({
     const latestPeriodLocked = latestPeriod?.status === "locked" && latestPeriod?.name === currentMonth;
     const pendingEntry = currentPeriod?.entries.find((entry) => entry.status !== "complete");
     const pendingEmployee = employees.find((employee) => employee.id === pendingEntry?.employeeId);
-    const planUntilLabel = settings?.paidUntil
-        ? dateFormatter.format(new Date(settings.paidUntil))
-        : null;
-
     const hero = getHeroContent({
         currentPeriod,
         currentMonth,
@@ -98,7 +88,7 @@ export function DashboardOverview({
     });
 
     return (
-        <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-4 sm:gap-5 lg:gap-6">
+        <div className="flex w-full max-w-none flex-col gap-4 sm:gap-5 lg:gap-6">
             <PageHeader
                 title="Dashboard"
                 subtitle={hero.mobileSubtitle}
@@ -113,7 +103,7 @@ export function DashboardOverview({
                 </div>
             ) : null}
 
-            <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px] xl:gap-6 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px] 2xl:gap-7">
                 <div className="space-y-5">
                     <HeroCard
                         eyebrow={hero.eyebrow}
@@ -127,7 +117,7 @@ export function DashboardOverview({
                         progressLabel={currentPeriod ? `${completedEntries} / ${totalEntries} employees` : null}
                     />
 
-                    <div className="space-y-5 xl:hidden">
+                    <div className="space-y-5 lg:hidden">
                         <SnapshotCard
                             employeeCount={employeeCount}
                             documentCount={recentDocs.length}
@@ -164,7 +154,7 @@ export function DashboardOverview({
                     <RecentRecordsCard recentDocs={recentDocs} hasEmployees={employeeCount > 0} />
                 </div>
 
-                <aside className="hidden space-y-5 xl:block">
+                <aside className="hidden space-y-5 self-start lg:sticky lg:top-6 lg:block">
                     <SnapshotCard
                         employeeCount={employeeCount}
                         documentCount={recentDocs.length}
@@ -175,20 +165,14 @@ export function DashboardOverview({
                     <QuickActionsCard />
                     {plan.id === "free" ? (
                         <UpgradeCard />
-                    ) : (
-                        <PlanStatusCard planLabel={plan.label} planUntilLabel={planUntilLabel} />
-                    )}
+                    ) : null}
                     <ComplianceCard />
                     <SupportCard />
                 </aside>
             </div>
 
-            <div className="space-y-5 xl:hidden">
-                {plan.id === "free" ? (
-                    <UpgradeCard />
-                ) : (
-                    <PlanStatusCard planLabel={plan.label} planUntilLabel={planUntilLabel} />
-                )}
+            <div className="space-y-5 lg:hidden">
+                {plan.id === "free" ? <UpgradeCard /> : null}
                 <ComplianceCard />
                 <SupportCard />
             </div>
@@ -674,22 +658,6 @@ function UpgradeCard() {
                 >
                     Upgrade to Standard
                 </InlinePlanCheckoutButton>
-            </CardContent>
-        </Card>
-    );
-}
-
-function PlanStatusCard({ planLabel, planUntilLabel }: { planLabel: string; planUntilLabel: string | null }) {
-    return (
-        <Card className="border-[var(--border)] bg-[var(--surface-1)]">
-            <CardContent className="space-y-3 p-5">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Plan status</p>
-                <div className="rounded-2xl bg-[var(--surface-muted)] p-4">
-                    <p className="text-sm font-bold text-[var(--text)]">{planLabel} plan active</p>
-                    <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
-                        {planUntilLabel ? `Access is active until ${planUntilLabel}.` : "Your current dashboard features are ready to use."}
-                    </p>
-                </div>
             </CardContent>
         </Card>
     );

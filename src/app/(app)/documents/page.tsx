@@ -333,23 +333,23 @@ export default function DocumentsPage() {
         [payPeriods, summaryYear],
     );
 
+    const displayDocumentUrl = (url: string, mimeType?: string) => {
+        if ((mimeType || "").startsWith("application/pdf")) {
+            if (typeof globalThis.window !== "undefined") {
+                globalThis.open(url, "_blank", "noopener,noreferrer");
+            }
+        } else {
+            setPreviewUrl(url);
+        }
+    };
+
     const handlePreview = async (doc: DocumentMeta) => {
         setPreviewDoc(doc);
         setPreviewFileName(doc.fileName);
 
-        if (pdfCache.current[doc.id]) {
-            const cachedUrl = pdfCache.current[doc.id];
-
-            // For PDFs, open directly in a new tab instead of the side-panel viewer
-            if ((doc.mimeType || "").startsWith("application/pdf")) {
-                if (typeof globalThis.window !== "undefined") {
-                    globalThis.open(cachedUrl, "_blank", "noopener,noreferrer");
-                }
-                return;
-            }
-
-            setPreviewUrl(cachedUrl);
-            return;
+        const cachedUrl = pdfCache.current[doc.id];
+        if (cachedUrl) {
+            return displayDocumentUrl(cachedUrl, doc.mimeType);
         }
 
         setIsGeneratingPreview(true);
@@ -361,28 +361,14 @@ export default function DocumentsPage() {
             }
 
             const blob = await getDocumentFile(doc.id);
-            if (!blob) {
-                throw new Error("That file is not available yet.");
-            }
+            if (!blob) throw new Error("That file is not available yet.");
 
             const mimeType = blob.type || doc.mimeType || "application/octet-stream";
 
-            // PDFs: open in a proper browser tab instead of the cramped side panel
-            if (mimeType === "application/pdf") {
+            if (mimeType === "application/pdf" || isPreviewableMimeType(mimeType)) {
                 const url = URL.createObjectURL(blob);
                 pdfCache.current[doc.id] = url;
-                if (typeof globalThis.window !== "undefined") {
-                    globalThis.open(url, "_blank", "noopener,noreferrer");
-                }
-                return;
-            }
-
-            // Images and other inline-previewable types keep using the in-app preview panel
-            if (isPreviewableMimeType(mimeType)) {
-                const url = URL.createObjectURL(blob);
-                pdfCache.current[doc.id] = url;
-                setPreviewUrl(url);
-                return;
+                return displayDocumentUrl(url, mimeType);
             }
 
             setPreviewDoc(null);
@@ -810,7 +796,7 @@ export default function DocumentsPage() {
                         </Card>
                     )}
 
-                    {activeTab === "Contracts" ? (
+                    {activeTab === "Contracts" && (
                         <ContractsTab
                             contracts={filteredContracts}
                             employees={employees}
@@ -825,210 +811,218 @@ export default function DocumentsPage() {
                             handleMarkFinal={handleMarkFinal}
                             toast={toast}
                         />
-                    ) : activeTab === "Payslips" ? (
-                        filteredPayslipDocuments.length === 0 ? (
-                            <EmptyState
-                                title="No payslips yet"
-                                description="Payslip PDFs will appear here automatically after you finalise your first pay period."
-                                icon={FileText}
-                                actionLabel={employees.length === 0 ? "Add your first employee" : "Run payroll"}
-                                actionHref={employees.length === 0 ? "/employees/new" : "/payroll"}
-                            />
-                        ) : (
-                            <>
-                                <DataTable<DocumentMeta>
-                                    data={filteredPayslipDocuments}
-                                    keyField={(doc) => doc.id}
-                                    emptyMessage="No payslips match your filters."
-                                    columns={[
-                                        {
-                                            key: "fileName",
-                                            label: "File",
-                                            render: (doc) => (
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
-                                                        <FileText className="h-4 w-4 text-[var(--primary)]" />
-                                                    </div>
-                                                    <span className="type-body-bold text-[var(--text)]">{doc.fileName}</span>
+                    )}
+
+                    {activeTab === "Payslips" && filteredPayslipDocuments.length === 0 && (
+                        <EmptyState
+                            title="No payslips yet"
+                            description="Payslip PDFs will appear here automatically after you finalise your first pay period."
+                            icon={FileText}
+                            actionLabel={employees.length === 0 ? "Add your first employee" : "Run payroll"}
+                            actionHref={employees.length === 0 ? "/employees/new" : "/payroll"}
+                        />
+                    )}
+                    
+                    {activeTab === "Payslips" && filteredPayslipDocuments.length > 0 && (
+                        <>
+                            <DataTable<DocumentMeta>
+                                data={filteredPayslipDocuments}
+                                keyField={(doc) => doc.id}
+                                emptyMessage="No payslips match your filters."
+                                columns={[
+                                    {
+                                        key: "fileName",
+                                        label: "File",
+                                        render: (doc) => (
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                                    <FileText className="h-4 w-4 text-[var(--primary)]" />
                                                 </div>
-                                            ),
-                                        },
-                                        {
-                                            key: "employee",
-                                            label: "Employee",
-                                            render: (doc) => <span className="type-body text-[var(--text-muted)]">{doc.employeeId ? employeeNameById[doc.employeeId] ?? "Unknown" : "-"}</span>,
-                                        },
-                                        {
-                                            key: "storage",
-                                            label: "Storage",
-                                            render: (_doc) => (
-                                                <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
-                                                    <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
-                                                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
-                                                </div>
-                                            ),
-                                        },
-                                        {
-                                            key: "date",
-                                            label: "Added",
-                                            render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
-                                        },
-                                        {
-                                            key: "actions",
-                                            label: "",
-                                            align: "right",
-                                            render: (doc) => (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-9 px-3 gap-2 rounded-full border border-[var(--border)] hover:bg-[var(--surface-2)]"
-                                                    onClick={() => void handlePreview(doc)}
-                                                >
-                                                    <Eye className="h-4 w-4 text-[var(--primary)]" />
-                                                    <span className="text-xs font-bold">Preview</span>
-                                                </Button>
-                                            ),
-                                        },
-                                    ]}
-                                    renderCard={(doc) => (
-                                        <Card className="glass-panel border-none">
-                                            <CardContent className="p-3 space-y-2">
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
-                                                        <FileText className="h-4 w-4 text-[var(--primary)]" />
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</p>
-                                                        <p className="text-xs text-[var(--text-muted)]">{doc.employeeId ? employeeNameById[doc.employeeId] ?? "Unknown" : "-"} · {format(new Date(doc.createdAt), "d MMM yyyy")}</p>
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="w-full h-9 gap-2 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-2)]"
-                                                    onClick={() => void handlePreview(doc)}
-                                                >
-                                                    <Eye className="h-4 w-4 text-[var(--primary)]" />
-                                                    <span className="text-xs font-bold">Preview</span>
-                                                </Button>
-                                            </CardContent>
-                                        </Card>
-                                    )}
-                                />
-                                <ArchiveBanner hiddenCount={payslipArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
-                            </>
-                        )
-                    ) : activeTab === "Exports" ? (
-                        filteredExportDocuments.length === 0 ? (
-                            <EmptyState
-                                title="No exports available"
-                                description="Official documents like Year-End Summaries and UIF declarations will be generated here. Finalise a payroll month to unlock your first export."
-                                icon={FileSpreadsheet}
-                            />
-                        ) : (
-                            <>
-                                <DataTable<DocumentMeta>
-                                    data={filteredExportDocuments}
-                                    keyField={(doc) => doc.id}
-                                    emptyMessage="No exports match your filters."
-                                    columns={[
-                                        {
-                                            key: "fileName",
-                                            label: "File",
-                                            render: (doc) => (
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
-                                                        <FileSpreadsheet className="h-4 w-4 text-[var(--primary)]" />
-                                                    </div>
-                                                    <span className="type-body-bold text-[var(--text)]">{doc.fileName}</span>
-                                                </div>
-                                            ),
-                                        },
-                                        {
-                                            key: "storage",
-                                            label: "Storage",
-                                            render: (_doc) => (
-                                                <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
-                                                    <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
-                                                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
-                                                </div>
-                                            ),
-                                        },
-                                        {
-                                            key: "date",
-                                            label: "Added",
-                                            render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
-                                        },
-                                        {
-                                            key: "actions",
-                                            label: "",
-                                            align: "right",
-                                            render: (doc) => (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-9 px-3 gap-2 rounded-full border border-[var(--border)] hover:bg-[var(--surface-2)]"
-                                                    onClick={() => void handlePreview(doc)}
-                                                >
-                                                    <Eye className="h-4 w-4 text-[var(--primary)]" />
-                                                    <span className="text-xs font-bold">Preview</span>
-                                                </Button>
-                                            ),
-                                        },
-                                    ]}
-                                    renderCard={(doc) => (
-                                        <Card className="glass-panel border-none">
-                                            <CardContent className="p-3 space-y-2">
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
-                                                        <FileSpreadsheet className="h-4 w-4 text-[var(--primary)]" />
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</p>
-                                                        <p className="text-xs text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</p>
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="w-full h-9 gap-2 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-2)]"
-                                                    onClick={() => void handlePreview(doc)}
-                                                >
-                                                    <Eye className="h-4 w-4 text-[var(--primary)]" />
-                                                    <span className="text-xs font-bold">Preview</span>
-                                                </Button>
-                                            </CardContent>
-                                        </Card>
-                                    )}
-                                />
-                                <ArchiveBanner hiddenCount={exportArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
-                            </>
-                        )
-                    ) : filteredVaultDocuments.length === 0 ? (
-                        vaultUploadsAllowed ? (
-                            <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-1)] p-10 text-center">
-                                <FolderOpen className="mx-auto mb-3 h-10 w-10 text-[var(--text-muted)]" strokeWidth={1.5} />
-                                <p className="text-sm font-bold text-[var(--text)]">Secure Document Vault</p>
-                                <p className="mt-1 text-sm text-[var(--text-muted)]">A safe place to upload and store external employee records. Keep ID copies, sick notes, and compliance forms organised here.</p>
-                                <Button className="mt-4 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={handleVaultUploadClick}>
-                                    Upload document
-                                </Button>
-                            </div>
-                        ) : (
-                            <FeatureGateCard
-                                title="Secure Document Vault"
-                                description="Vault uploads are available on Pro. A safe place to upload and store external employee records. Keep ID copies, sick notes, and compliance forms organised here."
-                                ctaLabel="Upgrade to Pro"
-                                href={vaultUpgradeHref}
-                                eyebrow="Pro"
-                                benefits={[
-                                    "Private document vault with encrypted sync",
-                                    "All uploaded files stay in one place",
-                                    "Upload general household employment paperwork",
+                                                <span className="type-body-bold text-[var(--text)]">{doc.fileName}</span>
+                                            </div>
+                                        ),
+                                    },
+                                    {
+                                        key: "employee",
+                                        label: "Employee",
+                                        render: (doc) => <span className="type-body text-[var(--text-muted)]">{doc.employeeId ? employeeNameById[doc.employeeId] ?? "Unknown" : "-"}</span>,
+                                    },
+                                    {
+                                        key: "storage",
+                                        label: "Storage",
+                                        render: () => (
+                                            <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
+                                                <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
+                                                <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
+                                            </div>
+                                        ),
+                                    },
+                                    {
+                                        key: "date",
+                                        label: "Added",
+                                        render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
+                                    },
+                                    {
+                                        key: "actions",
+                                        label: "",
+                                        align: "right",
+                                        render: (doc) => (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-9 px-3 gap-2 rounded-full border border-[var(--border)] hover:bg-[var(--surface-2)]"
+                                                onClick={() => { handlePreview(doc).catch(console.error); }}
+                                            >
+                                                <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                <span className="text-xs font-bold">Preview</span>
+                                            </Button>
+                                        ),
+                                    },
                                 ]}
+                                renderCard={(doc) => (
+                                    <Card className="glass-panel border-none">
+                                        <CardContent className="p-3 space-y-2">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                                    <FileText className="h-4 w-4 text-[var(--primary)]" />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</p>
+                                                    <p className="text-xs text-[var(--text-muted)]">{doc.employeeId ? employeeNameById[doc.employeeId] ?? "Unknown" : "-"} · {format(new Date(doc.createdAt), "d MMM yyyy")}</p>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="w-full h-9 gap-2 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-2)]"
+                                                onClick={() => { handlePreview(doc).catch(console.error); }}
+                                            >
+                                                <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                <span className="text-xs font-bold">Preview</span>
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                )}
                             />
-                        )
-                    ) : (
+                            <ArchiveBanner hiddenCount={payslipArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
+                        </>
+                    )}
+
+                    {activeTab === "Exports" && filteredExportDocuments.length === 0 && (
+                        <EmptyState
+                            title="No exports available"
+                            description="Official documents like Year-End Summaries and UIF declarations will be generated here. Finalise a payroll month to unlock your first export."
+                            icon={FileSpreadsheet}
+                        />
+                    )}
+                    
+                    {activeTab === "Exports" && filteredExportDocuments.length > 0 && (
+                        <>
+                            <DataTable<DocumentMeta>
+                                data={filteredExportDocuments}
+                                keyField={(doc) => doc.id}
+                                emptyMessage="No exports match your filters."
+                                columns={[
+                                    {
+                                        key: "fileName",
+                                        label: "File",
+                                        render: (doc) => (
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                                    <FileSpreadsheet className="h-4 w-4 text-[var(--primary)]" />
+                                                </div>
+                                                <span className="type-body-bold text-[var(--text)]">{doc.fileName}</span>
+                                            </div>
+                                        ),
+                                    },
+                                    {
+                                        key: "storage",
+                                        label: "Storage",
+                                        render: () => (
+                                            <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
+                                                <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
+                                                <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
+                                            </div>
+                                        ),
+                                    },
+                                    {
+                                        key: "date",
+                                        label: "Added",
+                                        render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
+                                    },
+                                    {
+                                        key: "actions",
+                                        label: "",
+                                        align: "right",
+                                        render: (doc) => (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-9 px-3 gap-2 rounded-full border border-[var(--border)] hover:bg-[var(--surface-2)]"
+                                                onClick={() => { handlePreview(doc).catch(console.error); }}
+                                            >
+                                                <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                <span className="text-xs font-bold">Preview</span>
+                                            </Button>
+                                        ),
+                                    },
+                                ]}
+                                renderCard={(doc) => (
+                                    <Card className="glass-panel border-none">
+                                        <CardContent className="p-3 space-y-2">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                                    <FileSpreadsheet className="h-4 w-4 text-[var(--primary)]" />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</p>
+                                                    <p className="text-xs text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</p>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="w-full h-9 gap-2 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-2)]"
+                                                onClick={() => { handlePreview(doc).catch(console.error); }}
+                                            >
+                                                <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                <span className="text-xs font-bold">Preview</span>
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            />
+                            <ArchiveBanner hiddenCount={exportArchiveResult.hiddenCount} href={archiveUpgradeHref} label={archiveUpgradeLabel} />
+                        </>
+                    )}
+
+                    {activeTab === "Vault" && filteredVaultDocuments.length === 0 && vaultUploadsAllowed && (
+                        <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-1)] p-10 text-center">
+                            <FolderOpen className="mx-auto mb-3 h-10 w-10 text-[var(--text-muted)]" strokeWidth={1.5} />
+                            <p className="text-sm font-bold text-[var(--text)]">Secure Document Vault</p>
+                            <p className="mt-1 text-sm text-[var(--text-muted)]">A safe place to upload and store external employee records. Keep ID copies, sick notes, and compliance forms organised here.</p>
+                            <Button className="mt-4 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={handleVaultUploadClick}>
+                                Upload document
+                            </Button>
+                        </div>
+                    )}
+                    
+                    {activeTab === "Vault" && filteredVaultDocuments.length === 0 && !vaultUploadsAllowed && (
+                        <FeatureGateCard
+                            title="Secure Document Vault"
+                            description="Vault uploads are available on Pro. A safe place to upload and store external employee records. Keep ID copies, sick notes, and compliance forms organised here."
+                            ctaLabel="Upgrade to Pro"
+                            href={vaultUpgradeHref}
+                            eyebrow="Pro"
+                            benefits={[
+                                "Private document vault with encrypted sync",
+                                "All uploaded files stay in one place",
+                                "Upload general household employment paperwork",
+                            ]}
+                        />
+                    )}
+                    
+                    {activeTab === "Vault" && filteredVaultDocuments.length > 0 && (
                         <DataTable<DocumentMeta>
                             data={filteredVaultDocuments}
                             keyField={(doc) => doc.id}
@@ -1057,7 +1051,7 @@ export default function DocumentsPage() {
                                 {
                                     key: "storage",
                                     label: "Storage",
-                                    render: (_doc) => (
+                                    render: () => (
                                         <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
                                             <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
                                             <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
@@ -1079,7 +1073,7 @@ export default function DocumentsPage() {
                                                 variant="ghost"
                                                 size="sm"
                                                 className="h-9 px-3 gap-2 rounded-full border border-[var(--border)] hover:bg-[var(--surface-2)]"
-                                                onClick={() => void handlePreview(doc)}
+                                                onClick={() => { handlePreview(doc).catch(console.error); }}
                                             >
                                                 <Eye className="h-4 w-4 text-[var(--primary)]" />
                                                 <span className="text-xs font-bold">Preview</span>
@@ -1091,7 +1085,7 @@ export default function DocumentsPage() {
                                                     className="h-9 gap-2 rounded-full border px-3 text-[var(--danger)] hover:bg-[var(--danger-soft)]"
                                                     style={{ borderColor: "var(--danger-border)" }}
                                                     disabled={deletingDocumentId === doc.id}
-                                                    onClick={() => void handleDeleteVaultDocument(doc)}
+                                                    onClick={() => { handleDeleteVaultDocument(doc).catch(console.error); }}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                     <span className="text-xs font-bold">Delete</span>
@@ -1099,47 +1093,47 @@ export default function DocumentsPage() {
                                             ) : null}
                                         </div>
                                     ),
-                                        },
-                                    ]}
-                                    renderCard={(doc) => (
-                                        <Card className="glass-panel border-none">
-                                            <CardContent className="p-3 space-y-2">
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
-                                                        <FileText className="h-4 w-4 text-[var(--primary)]" />
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</p>
-                                                        <p className="text-xs text-[var(--text-muted)]">{VAULT_CATEGORIES.find((c) => c.value === doc.vaultCategory)?.label ?? "Other"} · {format(new Date(doc.createdAt), "d MMM yyyy")}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="flex-1 h-9 gap-2 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-2)]"
-                                                        onClick={() => void handlePreview(doc)}
-                                                    >
-                                                        <Eye className="h-4 w-4 text-[var(--primary)]" />
-                                                        <span className="text-xs font-bold">Preview</span>
-                                                    </Button>
-                                                    {vaultUploadsAllowed ? (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="flex-1 h-9 gap-2 rounded-xl border border-red-200 text-red-700 hover:text-red-800 hover:bg-red-50"
-                                                            disabled={deletingDocumentId === doc.id}
-                                                            onClick={() => void handleDeleteVaultDocument(doc)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                            <span className="text-xs font-bold">Delete</span>
-                                                        </Button>
-                                                    ) : null}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    )}
-                                />
+                                },
+                            ]}
+                            renderCard={(doc) => (
+                                <Card className="glass-panel border-none">
+                                    <CardContent className="p-3 space-y-2">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                                <FileText className="h-4 w-4 text-[var(--primary)]" />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-sm font-bold text-[var(--text)] truncate">{doc.fileName}</p>
+                                                <p className="text-xs text-[var(--text-muted)]">{VAULT_CATEGORIES.find((c) => c.value === doc.vaultCategory)?.label ?? "Other"} · {format(new Date(doc.createdAt), "d MMM yyyy")}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="flex-1 h-9 gap-2 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-2)]"
+                                                onClick={() => { handlePreview(doc).catch(console.error); }}
+                                            >
+                                                <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                                <span className="text-xs font-bold">Preview</span>
+                                            </Button>
+                                            {vaultUploadsAllowed ? (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="flex-1 h-9 gap-2 rounded-xl border border-red-200 text-red-700 hover:text-red-800 hover:bg-red-50"
+                                                    disabled={deletingDocumentId === doc.id}
+                                                    onClick={() => { handleDeleteVaultDocument(doc).catch(console.error); }}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    <span className="text-xs font-bold">Delete</span>
+                                                </Button>
+                                            ) : null}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        />
                     )}
                 </div>
                 {hasAnyContent && (

@@ -365,33 +365,19 @@ export function MarketingPlanCard({
                 className={`mt-auto space-y-2.5 border-t border-[var(--border)] ${compact ? "p-5" : "p-6 pb-5 sm:p-7 sm:pb-6"}`}
             >
                 {onSelect ? (
-                    (() => {
-                        const buttonLabel = isCurrent
-                            ? "Current plan"
-                            : isLoading
-                              ? "Opening..."
-                              : isDowngrade
-                                ? "Downgrade"
-                                : isUpgrade
-                                  ? "Upgrade"
-                                  : plan.ctaLabel;
-
-                        return (
-                            <Button
-                                className="w-full justify-center font-bold"
-                                onClick={handleAction}
-                                disabled={isCurrent || isDisabled || isLoading}
-                                variant={featured && !isDowngrade ? "default" : "outline"}
-                                style={
-                                    !isCurrent && !isDowngrade && featured
-                                        ? { backgroundColor: "var(--primary)" }
-                                        : {}
-                                }
-                            >
-                                {buttonLabel}
-                            </Button>
-                        );
-                    })()
+                    <Button
+                        className="w-full justify-center font-bold"
+                        onClick={handleAction}
+                        disabled={isCurrent || isDisabled || isLoading}
+                        variant={featured && !isDowngrade ? "default" : "outline"}
+                        style={
+                            !isCurrent && !isDowngrade && featured
+                                ? { backgroundColor: "var(--primary)" }
+                                : {}
+                        }
+                    >
+                        {isCurrent ? "Current plan" : isLoading ? "Opening..." : isDowngrade ? "Downgrade" : isUpgrade ? "Upgrade" : plan.ctaLabel}
+                    </Button>
                 ) : (
                     <Link href={href}>
                         <Button
@@ -408,17 +394,11 @@ export function MarketingPlanCard({
                 )}
 
                 {/* Billing subtext — only on upgrade CTAs */}
-                {!isCurrent &&
-                    !isDowngrade &&
-                    (() => {
-                        const subtext =
-                            plan.ctaSubtextByCycle?.[billingCycle] ?? plan.ctaSubtext;
-                        return subtext ? (
-                            <p className="text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                                {subtext}
-                            </p>
-                        ) : null;
-                    })()}
+                {!isCurrent && !isDowngrade && (plan.ctaSubtextByCycle?.[billingCycle] ?? plan.ctaSubtext) ? (
+                    <p className="text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                        {plan.ctaSubtextByCycle?.[billingCycle] ?? plan.ctaSubtext}
+                    </p>
+                ) : null}
             </div>
         </article>
     );

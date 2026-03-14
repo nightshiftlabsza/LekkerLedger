@@ -40,6 +40,18 @@ function isProtectedRoute(pathname: string): boolean {
   )
 }
 
+export function buildProtectedRouteLoginRedirect(requestUrl: URL): URL {
+  const loginUrl = new URL('/', requestUrl.origin)
+  loginUrl.searchParams.set('auth', 'login')
+
+  const nextPath = `${requestUrl.pathname}${requestUrl.search}`
+  if (nextPath && nextPath !== '/') {
+    loginUrl.searchParams.set('next', nextPath)
+  }
+
+  return loginUrl
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -70,20 +82,13 @@ export async function updateSession(request: NextRequest) {
     const { data: { user }, error } = await supabase.auth.getUser()
 
     if (isProtectedRoute(request.nextUrl.pathname) && (error || !user)) {
-      const loginUrl = request.nextUrl.clone()
-      loginUrl.pathname = '/login'
-      loginUrl.searchParams.set('error', 'session_expired')
-      loginUrl.searchParams.delete('next')
-      return NextResponse.redirect(loginUrl)
+      return NextResponse.redirect(buildProtectedRouteLoginRedirect(request.nextUrl))
     }
 
     return supabaseResponse
   } catch {
     if (isProtectedRoute(request.nextUrl.pathname)) {
-      const loginUrl = request.nextUrl.clone()
-      loginUrl.pathname = '/login'
-      loginUrl.searchParams.set('error', 'session_expired')
-      return NextResponse.redirect(loginUrl)
+      return NextResponse.redirect(buildProtectedRouteLoginRedirect(request.nextUrl))
     }
     return supabaseResponse
   }

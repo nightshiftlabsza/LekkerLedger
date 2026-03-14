@@ -136,6 +136,6 @@ export class LocalRepository implements StorageAdapter {
     }
 
     async sync(): Promise<void> {
-        return Promise.resolve();
+        // No-op for local repository
     }
 }

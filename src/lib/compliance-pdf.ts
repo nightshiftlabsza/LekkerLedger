@@ -23,9 +23,8 @@ export async function generateCertificateOfServicePdf(
 export async function generateBCEASummaryPdf(
     employee: Employee,
     payslip: PayslipInput,
-    employer: EmployerSettings
+    _employer: EmployerSettings
 ): Promise<Uint8Array> {
-    void employer;
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595.28, 841.89]);
     const { width, height } = page.getSize();

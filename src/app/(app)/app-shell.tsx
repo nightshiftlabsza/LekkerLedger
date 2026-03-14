@@ -21,7 +21,6 @@ import { RecoveryGate } from "@/components/encryption/recovery-gate";
 import { clearVerifiedEntitlementsCache, fetchBillingAccount } from "@/lib/billing-client";
 import { createClient } from "@/lib/supabase/client";
 import { deleteLocalRecoveryProfile } from "@/lib/recovery-profile-store";
-import { SyncStatusBadge, type SyncState as SyncBadgeState } from "@/components/ui/sync-status-badge";
 
 function getSyncBannerMessage(syncConflict: boolean, syncErrorMessage: string | null) {
     if (syncConflict) {
@@ -33,6 +32,87 @@ function getSyncBannerMessage(syncConflict: boolean, syncErrorMessage: string | 
     }
 
     return "Sync needs attention. Check Settings for details.";
+}
+
+function ConnectivityBanners({
+    showOfflineBanner,
+    lastLocalSaveLabel,
+    setOfflineBannerDismissed,
+    showSyncBanner,
+    syncBannerMessage,
+    setSyncBannerDismissed,
+    showPaymentsBanner,
+    setPaymentsBannerDismissed,
+}: {
+    showOfflineBanner: boolean;
+    lastLocalSaveLabel: string | null;
+    setOfflineBannerDismissed: (v: boolean) => void;
+    showSyncBanner: boolean;
+    syncBannerMessage: string;
+    setSyncBannerDismissed: (v: boolean) => void;
+    showPaymentsBanner: boolean;
+    setPaymentsBannerDismissed: (v: boolean) => void;
+}) {
+    return (
+        <>
+            {showOfflineBanner && (
+                <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold"
+                    style={{ backgroundColor: "var(--accent-subtle)", borderBottom: "1px solid var(--border)", color: "var(--primary)" }}>
+                    <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
+                        <div className="flex items-center gap-2">
+                            <CloudOff className="h-4 w-4 shrink-0" />
+                            <span>
+                                Saved locally on this device{lastLocalSaveLabel ? ` at ${lastLocalSaveLabel}` : ""}. Backup will resume when you&apos;re online.
+                            </span>
+                        </div>
+                        <button
+                            onClick={() => setOfflineBannerDismissed(true)}
+                            aria-label="Dismiss offline notice"
+                            className="shrink-0 rounded p-0.5 hover:bg-[var(--primary)]/20 transition-colors"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {showSyncBanner && (
+                <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold" style={{ backgroundColor: "rgba(180,35,24,0.06)", color: "var(--danger)", borderBottom: "1px solid var(--border)" }}>
+                    <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
+                        <div className="flex items-center gap-2">
+                            <AlertOctagon className="h-4 w-4 shrink-0" />
+                            <span>{syncBannerMessage}</span>
+                        </div>
+                        <button
+                            onClick={() => setSyncBannerDismissed(true)}
+                            aria-label="Dismiss sync notice"
+                            className="shrink-0 rounded p-0.5 hover:bg-[var(--danger)]/10 transition-colors"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {showPaymentsBanner && (
+                <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold" style={{ backgroundColor: "rgba(180,35,24,0.08)", color: "var(--danger)", borderBottom: "1px solid rgba(180,35,24,0.22)" }}>
+                    <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
+                        <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 shrink-0" />
+                            <span>Payments system currently unavailable. Check back later.</span>
+                        </div>
+                        <button
+                            onClick={() => setPaymentsBannerDismissed(true)}
+                            aria-label="Dismiss payments notice"
+                            className="shrink-0 rounded p-0.5 hover:bg-[var(--danger)]/10 transition-colors"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+        </>
+    );
 }
 
 export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -142,17 +222,6 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
         : null;
     const isDashboardShell = pathname === "/dashboard";
     const verifiedPlan = getPlanById(verifiedPlanId);
-    const syncBadgeState: SyncBadgeState = sync === "enabled"
-        ? "synced"
-        : sync === "error"
-            ? "error"
-            : sync === "reconnecting"
-                ? "offline"
-                : "disconnected";
-    const planDateLabel = settings?.paidUntil
-        ? new Intl.DateTimeFormat("en-ZA", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(settings.paidUntil))
-        : null;
-
     const handleSwitchHousehold = async (householdId: string) => {
         await setActiveHouseholdId(householdId);
         setActiveHouseholdState(householdId);
@@ -258,17 +327,13 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
                                 </span>
                             )}
 
-                            {isDashboardShell ? (
-                                <div className="hidden items-center gap-2 lg:flex">
-                                    <div className="rounded-full border border-[var(--primary)]/15 bg-[var(--primary)]/8 px-3 py-1.5 text-[11px] font-bold text-[var(--primary)]">
-                                        {verifiedPlan.label} plan{planDateLabel ? ` · until ${planDateLabel}` : ""}
-                                    </div>
-                                    <SyncStatusBadge state={syncBadgeState} />
-                                </div>
-                            ) : null}
-
                             <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
-                                <AccountMenu sync={sync} syncErrorMessage={syncErrorMessage} compact={isDashboardShell} />
+                                <AccountMenu
+                                    sync={sync}
+                                    syncErrorMessage={syncErrorMessage}
+                                    compact={isDashboardShell}
+                                    planLabel={verifiedPlan.label}
+                                />
                                 {!isDashboardShell ? (
                                     <HouseholdSwitcher
                                         households={households}
@@ -284,62 +349,17 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
                         </div>
                     </div>
                 </header>
-                    {showOfflineBanner && (
-                        <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold"
-                            style={{ backgroundColor: "var(--accent-subtle)", borderBottom: "1px solid var(--border)", color: "var(--primary)" }}>
-                            <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
-                                <div className="flex items-center gap-2">
-                                    <CloudOff className="h-4 w-4 shrink-0" />
-                                    <span>
-                                        Saved locally on this device{lastLocalSaveLabel ? ` at ${lastLocalSaveLabel}` : ""}. Backup will resume when you&apos;re online.
-                                    </span>
-                                </div>
-                                <button
-                                    onClick={() => setOfflineBannerDismissed(true)}
-                                    aria-label="Dismiss offline notice"
-                                    className="shrink-0 rounded p-0.5 hover:bg-[var(--primary)]/20 transition-colors"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
 
-                    {showSyncBanner && (
-                        <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold" style={{ backgroundColor: "rgba(180,35,24,0.06)", color: "var(--danger)", borderBottom: "1px solid var(--border)" }}>
-                            <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
-                                <div className="flex items-center gap-2">
-                                    <AlertOctagon className="h-4 w-4 shrink-0" />
-                                    <span>{syncBannerMessage}</span>
-                                </div>
-                                <button
-                                    onClick={() => setSyncBannerDismissed(true)}
-                                    aria-label="Dismiss sync notice"
-                                    className="shrink-0 rounded p-0.5 hover:bg-[var(--danger)]/10 transition-colors"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {showPaymentsBanner && (
-                        <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold" style={{ backgroundColor: "rgba(180,35,24,0.08)", color: "var(--danger)", borderBottom: "1px solid rgba(180,35,24,0.22)" }}>
-                            <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
-                                <div className="flex items-center gap-2">
-                                    <CreditCard className="h-4 w-4 shrink-0" />
-                                    <span>Payments system currently unavailable. Check back later.</span>
-                                </div>
-                                <button
-                                    onClick={() => setPaymentsBannerDismissed(true)}
-                                    aria-label="Dismiss payments notice"
-                                    className="shrink-0 rounded p-0.5 hover:bg-[var(--danger)]/10 transition-colors"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                <ConnectivityBanners
+                    showOfflineBanner={showOfflineBanner}
+                    lastLocalSaveLabel={lastLocalSaveLabel}
+                    setOfflineBannerDismissed={setOfflineBannerDismissed}
+                    showSyncBanner={showSyncBanner}
+                    syncBannerMessage={syncBannerMessage}
+                    setSyncBannerDismissed={setSyncBannerDismissed}
+                    showPaymentsBanner={showPaymentsBanner}
+                    setPaymentsBannerDismissed={setPaymentsBannerDismissed}
+                />
 
                 <main
                     id="main-content"
@@ -376,14 +396,54 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
     );
 }
 
+function getAccountSyncStatus(mode: string, sync: string, syncErrorMessage: string | null) {
+    if (mode === "account_locked") {
+        return {
+            state: "Account Locked",
+            summary: "Your encrypted data is paused until you provide your recovery key.",
+            toneClass: "text-[var(--warning)]"
+        };
+    }
+    
+    if (mode === "account_unlocked") {
+        if (sync === "error") {
+            return {
+                state: "Sync needs attention",
+                summary: syncErrorMessage ?? "Your account is connected, but the latest cloud backup hit a problem. Open Settings > Storage & backup.",
+                toneClass: "text-[var(--danger)]"
+            };
+        }
+        if (sync === "reconnecting") {
+            return {
+                state: "Sync reconnecting",
+                summary: "Your account is connected. Cloud backup will resume once this device is back online.",
+                toneClass: "text-[var(--primary)]"
+            };
+        }
+        return {
+            state: "Cloud Sync Active",
+            summary: "Your data is securely encrypted and synced to the cloud.",
+            toneClass: "text-[var(--primary)]"
+        };
+    }
+
+    return {
+        state: "Local mode",
+        summary: "Your data is stored securely on this device. No cloud sync.",
+        toneClass: "text-[var(--text)]"
+    };
+}
+
 function AccountMenu({
     sync,
     syncErrorMessage,
     compact = false,
+    planLabel,
 }: Readonly<{
     sync: "disabled" | "enabled" | "error" | "reconnecting";
     syncErrorMessage: string | null;
     compact?: boolean;
+    planLabel: string;
 }>) {
     const [open, setOpen] = React.useState(false);
     const [signOutPromptOpen, setSignOutPromptOpen] = React.useState(false);
@@ -432,29 +492,7 @@ function AccountMenu({
 
     const { mode, lockAccount } = useAppMode();
 
-    let accountState = "Local mode";
-    let accountSummary = "Your data is stored securely on this device. No cloud sync.";
-    let accountToneClass = "text-[var(--text)]";
-
-    if (mode === "account_locked") {
-        accountState = "Account Locked";
-        accountSummary = "Your encrypted data is paused until you provide your recovery key.";
-        accountToneClass = "text-[var(--warning)]";
-    } else if (mode === "account_unlocked") {
-        if (sync === "error") {
-            accountState = "Sync needs attention";
-            accountSummary = syncErrorMessage ?? "Your account is connected, but the latest cloud backup hit a problem. Open Settings > Storage & backup.";
-            accountToneClass = "text-[var(--danger)]";
-        } else if (sync === "reconnecting") {
-            accountState = "Sync reconnecting";
-            accountSummary = "Your account is connected. Cloud backup will resume once this device is back online.";
-            accountToneClass = "text-[var(--primary)]";
-        } else {
-            accountState = "Cloud Sync Active";
-            accountSummary = "Your data is securely encrypted and synced to the cloud.";
-            accountToneClass = "text-[var(--primary)]";
-        }
-    }
+    const { state: accountState, summary: accountSummary, toneClass: accountToneClass } = getAccountSyncStatus(mode, sync, syncErrorMessage);
 
     const handleSignOut = React.useCallback(async (dataMode: "keep" | "delete") => {
         if (signingOut) return;
@@ -490,18 +528,21 @@ function AccountMenu({
                     onClick={() => setOpen((current) => !current)}
                     data-testid="account-menu-toggle"
                     className={`flex items-center gap-2 rounded-xl border border-[var(--border)]/80 bg-[var(--surface-raised)] shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25 ${compact
-                        ? "min-h-[44px] px-2.5 py-1.5 sm:rounded-xl"
+                        ? "min-h-[60px] px-2.5 py-2 sm:rounded-xl"
                         : "min-h-[52px] px-2.5 py-2 sm:rounded-2xl sm:px-3.5"
                         }`}
                 >
                     <div className={`flex items-center justify-center bg-[var(--surface-2)] text-[var(--primary)] shrink-0 ${compact ? "h-8 w-8 rounded-xl" : "h-7 w-7 rounded-lg sm:h-8 sm:w-8 sm:rounded-xl"}`}>
                         <CircleUserRound className="h-4 w-4" />
                     </div>
-                    <div className={`text-left min-w-0 ${compact ? "hidden xl:block max-w-[140px]" : "hidden sm:block max-w-[180px]"}`}>
+                    <div className={`text-left min-w-0 ${compact ? "hidden xl:block max-w-[180px]" : "hidden sm:block max-w-[200px]"}`}>
                         <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[var(--text-muted)] leading-none mb-0.5">Account</p>
                         <p className={`text-xs font-semibold truncate ${accountToneClass}`}>{accountState}</p>
                         <p className="mt-0.5 text-[11px] text-[var(--text-muted)] truncate">
                             {accountEmail || "Signed in"}
+                        </p>
+                        <p className="mt-0.5 text-[11px] font-semibold text-[var(--text-muted)] truncate">
+                            {planLabel} plan
                         </p>
                     </div>
                     <ChevronDown className={`h-3 w-3 text-[var(--text-muted)] shrink-0 ${compact ? "hidden xl:block" : "hidden sm:block"}`} />
@@ -515,6 +556,7 @@ function AccountMenu({
                             <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
                                 {accountEmail ? `Signed in as ${accountEmail}` : "Signed-in account email unavailable on this device."}
                             </p>
+                            <p className="mt-1 text-xs font-semibold leading-relaxed text-[var(--text-muted)]">{planLabel} plan</p>
                             <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{accountSummary}</p>
                         </div>
 
@@ -570,7 +612,7 @@ function AccountMenu({
                                 <div className="mt-8 flex flex-col gap-3">
                                     <button
                                         type="button"
-                                        onClick={() => void handleSignOut("keep")}
+                                        onClick={() => { handleSignOut("keep").catch(console.error); }}
                                         disabled={signingOut !== null}
                                         className="flex min-h-[52px] items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-5 py-4 text-left transition-colors hover:bg-[var(--surface-2)] disabled:opacity-60"
                                     >
@@ -583,7 +625,7 @@ function AccountMenu({
 
                                     <button
                                         type="button"
-                                        onClick={() => void handleSignOut("delete")}
+                                        onClick={() => { handleSignOut("delete").catch(console.error); }}
                                         disabled={signingOut !== null}
                                         className="flex min-h-[52px] items-center justify-between rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] px-5 py-4 text-left transition-colors hover:bg-[rgba(180,35,24,0.12)] disabled:opacity-60"
                                     >
