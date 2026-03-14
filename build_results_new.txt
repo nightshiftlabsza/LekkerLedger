@@ -1,0 +1,22 @@
+
+> lekkerledger@0.1.0 build
+> next build --webpack
+
+Γû▓ Next.js 16.1.6 (webpack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô (serwist) Bundling the service worker script with the URL '/sw.js' and the scope '/'...
+Γ£ô Compiled successfully in 6.2s
+  Running TypeScript ...
+  Collecting page data using 19 workers ...
+  Generating static pages using 19 workers (0/70) ...
+  Generating static pages using 19 workers (17/70) 
+  Generating static pages using 19 workers (34/70) 
+Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: Cannot read properties of undefined (reading 'search')
+    at p (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\.next\server\chunks\936.js:1:3928) {
+  digest: '4244094351'
+}
+Export encountered an error on /(marketing)/page: /, exiting the build.
+Γ¿» Next.js build worker exited with code: 1 and signal: null

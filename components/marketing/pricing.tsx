@@ -233,9 +233,9 @@ export function MarketingPlanCard({
     const isUpgrade =
         !isCurrent && !!currentPlanId && PLAN_RANK[planId] > PLAN_RANK[currentPlanId];
     const referralCode =
-        typeof globalThis === "undefined"
+        typeof window === "undefined"
             ? null
-            : new URLSearchParams(globalThis.location.search).get("ref");
+            : new URLSearchParams(window.location.search).get("ref");
     const href = appendReferralCode(getMarketingPlanHref(planId, billingCycle), referralCode);
 
     const handleAction = () => {

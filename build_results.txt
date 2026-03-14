@@ -1,0 +1,16 @@
+
+> lekkerledger@0.1.0 build
+> next build --webpack
+
+Γû▓ Next.js 16.1.6 (webpack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ¿» Next.js can't recognize the exported `config` field in route "/src/proxy":
+Unsupported node type "TaggedTemplateExpression" at "config.matcher[0]".
+Read More - https://nextjs.org/docs/messages/invalid-page-config
+Γ£ô (serwist) Bundling the service worker script with the URL '/sw.js' and the scope '/'...
+Γ£ô Compiled successfully in 8.2s
+  Running TypeScript ...
+  Collecting page data using 19 workers ...
+Γ¿» Invalid segment configuration export detected. This can cause unexpected behavior from the configs not being applied. You should see the relevant failures in the logs above. Please fix them to continue.
