@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { isPaidDashboardFlow, shouldRedirectFreeUserFromApp } from "./app-access";
 
 describe("app access guard", () => {
-    it("redirects free users out of app routes once settings are ready", () => {
+    it("keeps signed-in users inside the app while boot stabilizes", () => {
         expect(shouldRedirectFreeUserFromApp({
             pathname: "/dashboard",
             planId: "free",
             settingsReady: true,
             paidFlowRequested: false,
-        })).toBe(true);
+        })).toBe(false);
     });
 
     it("allows the one-time paid activation step on dashboard", () => {

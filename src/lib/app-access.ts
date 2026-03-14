@@ -19,7 +19,8 @@ export function shouldRedirectFreeUserFromApp(input: {
     settingsReady: boolean;
     paidFlowRequested: boolean;
 }): boolean {
-    if (!input.settingsReady) return false;
-    if (input.pathname === "/dashboard" && input.paidFlowRequested) return false;
-    return input.planId === "free";
+    void input;
+    // Temporary safety valve: never bounce a signed-in user back to pricing while
+    // billing state and recovery/sync boot are still stabilizing after login.
+    return false;
 }
