@@ -87,6 +87,65 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         return () => { mounted = false; };
     }, [mode, redirectToLoginForExpiredSession, supabase]);
 
+    React.useEffect(() => {
+        if (mode !== "account_unlocked") {
+            return;
+        }
+
+        let mounted = true;
+
+        async function repairRemoteProfileFromLocal() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!mounted || !user) return;
+
+                const localProfile = await getLocalRecoveryProfile(user.id);
+                if (!mounted || !localProfile?.keySetupComplete || !localProfile.validationPayload) {
+                    return;
+                }
+
+                const { data, error } = await supabase
+                    .from("user_profiles")
+                    .select("key_setup_complete, validation_payload")
+                    .eq("id", user.id)
+                    .maybeSingle();
+
+                if (!mounted) return;
+
+                if (error) {
+                    console.warn("Could not verify the remote recovery profile while repairing sync setup.", error);
+                }
+
+                if (data?.key_setup_complete && data.validation_payload) {
+                    return;
+                }
+
+                const { error: upsertError } = await supabase
+                    .from("user_profiles")
+                    .upsert({
+                        id: user.id,
+                        key_setup_complete: true,
+                        validation_payload: localProfile.validationPayload,
+                    }, {
+                        onConflict: "id",
+                    });
+
+                if (upsertError) {
+                    console.warn("Could not repair the missing remote recovery profile from this device.", upsertError);
+                }
+            } catch (error) {
+                if (!mounted) return;
+                console.warn("Could not repair the missing remote recovery profile from the unlocked device.", error);
+            }
+        }
+
+        void repairRemoteProfileFromLocal();
+
+        return () => {
+            mounted = false;
+        };
+    }, [mode, supabase]);
+
     const handleSetupComplete = async (keyString: string) => {
         setSetupError(null);
         setInputError(null);

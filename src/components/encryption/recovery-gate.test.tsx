@@ -313,4 +313,42 @@ describe("RecoveryGate", () => {
         );
         expect(mocks.upsertMock).toHaveBeenCalled();
     });
+
+    it("repairs the missing remote recovery profile from an already unlocked device", async () => {
+        mocks.initialMode = "account_unlocked";
+        mocks.getLocalRecoveryProfileMock.mockResolvedValue({
+            keySetupComplete: true,
+            validationPayload: {
+                ciphertext: "ciphertext",
+                iv: "iv",
+            },
+            updatedAt: new Date().toISOString(),
+        });
+        mocks.userProfilesMaybeSingleMock.mockResolvedValue({
+            data: null,
+            error: null,
+        });
+
+        renderGate();
+
+        await waitFor(() => {
+            expect(screen.getByText("Protected child")).toBeTruthy();
+        });
+
+        await waitFor(() => {
+            expect(mocks.upsertMock).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    id: "user-1",
+                    key_setup_complete: true,
+                    validation_payload: {
+                        ciphertext: "ciphertext",
+                        iv: "iv",
+                    },
+                }),
+                expect.objectContaining({
+                    onConflict: "id",
+                }),
+            );
+        });
+    });
 });
