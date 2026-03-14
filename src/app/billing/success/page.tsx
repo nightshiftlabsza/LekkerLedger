@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { confirmGuestBillingTransaction, fetchBillingAccount } from "@/lib/billing-client";
+import { confirmBillingTransaction, confirmGuestBillingTransaction, fetchBillingAccount } from "@/lib/billing-client";
 import {
     readPendingBillingReference,
     writePendingBillingEmail,
@@ -26,6 +26,14 @@ function BillingSuccessPageContent() {
     const searchParams = useSearchParams();
     const [error, setError] = React.useState<string | null>(null);
 
+    const hasPaidAccess = React.useCallback((billingAccount: Awaited<ReturnType<typeof fetchBillingAccount>>) => {
+        return Boolean(
+            billingAccount
+            && billingAccount.entitlements.isActive
+            && billingAccount.entitlements.planId !== "free",
+        );
+    }, []);
+
     const routeToCurrentFlow = React.useCallback(async () => {
         setError(null);
 
@@ -36,9 +44,22 @@ function BillingSuccessPageContent() {
         }
 
         try {
+            if (reference) {
+                const confirmedAccount = await confirmBillingTransaction(reference).catch(() => null);
+                if (hasPaidAccess(confirmedAccount)) {
+                    router.replace(buildPaidDashboardHref({ reference }));
+                    return;
+                }
+            }
+
             const billingAccount = await fetchBillingAccount();
-            if (billingAccount) {
+            if (hasPaidAccess(billingAccount)) {
                 router.replace(reference ? buildPaidDashboardHref({ reference }) : "/dashboard");
+                return;
+            }
+
+            if (billingAccount && !reference) {
+                router.replace("/pricing");
                 return;
             }
         } catch (routeError) {
@@ -59,8 +80,8 @@ function BillingSuccessPageContent() {
             return;
         }
 
-        router.replace("/login");
-    }, [router, searchParams]);
+        router.replace("/pricing");
+    }, [hasPaidAccess, router, searchParams]);
 
     React.useEffect(() => {
         void routeToCurrentFlow();

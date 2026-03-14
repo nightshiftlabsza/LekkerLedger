@@ -141,7 +141,7 @@ export function getFeatureEntitlement(featureKey: FeatureKey): FeatureEntitlemen
 
 function normalizePlanId(planId: string | undefined | null): PlanId {
     if (!planId || planId === "free") return "free";
-    if (planId === "standard" || planId === "annual" || planId === "trial") return "standard";
+    if (planId === "standard" || planId === "annual") return "standard";
     if (planId === "pro" || planId === "lifetime") return "pro";
     return "free";
 }
@@ -152,23 +152,20 @@ export function getPlanById(planId: string | undefined | null): PlanConfig {
 
 export function applyVerifiedEntitlementsToSettings(
     userProfile: EmployerSettings | null | undefined,
-    entitlements: Pick<VerifiedEntitlements, "planId" | "status" | "paidUntil" | "trialEndsAt" | "billingCycle"> | null | undefined,
+    entitlements: Pick<VerifiedEntitlements, "planId" | "status" | "paidUntil" | "billingCycle"> | null | undefined,
 ): EmployerSettings | null | undefined {
     if (!userProfile || !entitlements) return userProfile;
 
-    const resolvedStatus: EmployerSettings["proStatus"] = entitlements.status === "trialing"
-        ? "trial"
-        : entitlements.planId === "standard"
-            ? "standard"
-            : entitlements.planId === "pro"
-                ? "pro"
-                : "free";
+    const resolvedStatus: EmployerSettings["proStatus"] = entitlements.planId === "standard"
+        ? "standard"
+        : entitlements.planId === "pro"
+            ? "pro"
+            : "free";
 
     return {
         ...userProfile,
         proStatus: resolvedStatus,
         paidUntil: entitlements.paidUntil,
-        trialExpiry: entitlements.trialEndsAt,
         billingCycle: entitlements.billingCycle ?? userProfile.billingCycle,
     };
 }

@@ -150,7 +150,7 @@ export default function AddEmployeePage() {
                                             </p>
                                             <p>
                                                 <Link href="/pricing" className="underline font-bold">View plans</Link>
-                                                <span> and remember: paid upgrades have a 14-day refund.</span>
+                                                <span> and remember: paid purchases have a 14-day refund.</span>
                                             </p>
                                         </AlertDescription>
                                     </Alert>

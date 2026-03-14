@@ -72,7 +72,7 @@ export default function PrivacyPolicy() {
                                 <li><strong>Export preparation data:</strong> UIF export files and related records you generate for your own records or for uFiling preparation. LekkerLedger does not submit to UIF on your behalf.</li>
                                 <li><strong>Product usage data:</strong> limited app and website analytics, such as page views or interaction events used to understand product usage and improve the service.</li>
                                 <li><strong>Account data:</strong> if you choose encrypted sync, your email address and sync permissions state are processed so backup and restore can work.</li>
-                                <li><strong>Subscription and transaction data:</strong> plan choice, billing status, trial timing, renewal timing, payment references, and limited payment-provider authorization metadata needed to manage paid access and prevent abuse.</li>
+                                <li><strong>Subscription and transaction data:</strong> plan choice, billing status, renewal timing, payment references, and limited payment-provider authorization metadata needed to manage paid access and prevent abuse.</li>
                                 <li><strong>Referral program data:</strong> referral codes, referral links between accounts, reward status, and related anti-fraud checks where the referral program is used.</li>
                                 <li><strong>Support communications:</strong> emails or support requests you send to us.</li>
                             </ul>
@@ -97,7 +97,7 @@ export default function PrivacyPolicy() {
                             <ul className="list-disc space-y-2 pl-6">
                                 <li>To generate payslips, exports, summaries, and supporting paperwork from the information you enter.</li>
                                 <li>To enable optional encrypted backup and restore across devices.</li>
-                                <li>To provide paid plan access, billing support, referral rewards, refund handling, and trial-abuse prevention.</li>
+                                <li>To provide paid plan access, billing support, referral rewards, refund handling, and abuse prevention.</li>
                                 <li>To operate, maintain, secure, and improve the website and app.</li>
                                 <li>To answer support requests and communicate about your account or service issues.</li>
                             </ul>

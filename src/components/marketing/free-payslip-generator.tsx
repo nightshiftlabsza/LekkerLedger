@@ -116,7 +116,6 @@ function buildPayload(form: FreePayslipFormState): { employee: Employee; payslip
         employerEmail: "",
         proStatus: "free",
         paidUntil: undefined,
-        trialExpiry: undefined,
         billingCycle: "monthly",
         activeHouseholdId: "free-tool",
         logoData: undefined,
@@ -259,7 +258,7 @@ export function FreePayslipGenerator() {
         }
     }, [supabase.auth, verificationEmail]);
 
-    const useDifferentEmail = React.useCallback(async () => {
+    const handleUseDifferentEmail = React.useCallback(async () => {
         await supabase.auth.signOut();
         setVerifiedEmail("");
         setQuota(null);
@@ -421,7 +420,7 @@ export function FreePayslipGenerator() {
                                     : "One free PDF download per verified email, per calendar month."}
                         </div>
                         {verifiedEmail ? (
-                            <Button type="button" variant="outline" onClick={() => void useDifferentEmail()}>
+                            <Button type="button" variant="outline" onClick={() => void handleUseDifferentEmail()}>
                                 <RefreshCw className="h-4 w-4" />
                                 Use a different email
                             </Button>

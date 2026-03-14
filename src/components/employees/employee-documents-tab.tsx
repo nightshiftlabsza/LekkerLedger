@@ -322,7 +322,7 @@ export function EmployeeDocumentsTab({
                     createdAt,
                 };
 
-                await saveDocumentFile(id, file);
+                await saveDocumentFile(id, file, "contracts");
                 await saveDocumentMeta(nextDocument);
                 await updateContractStatus(targetContract.id, "signed_copy_stored", { signedDocumentId: id });
                 if (onDocumentsChange) onDocumentsChange();
@@ -346,7 +346,7 @@ export function EmployeeDocumentsTab({
                 createdAt,
             };
 
-            await saveDocumentFile(id, file);
+            await saveDocumentFile(id, file, "vault");
             await saveDocumentMeta(nextDocument);
             toast("Document uploaded.", "success");
             if (onDocumentsChange) onDocumentsChange();

@@ -203,11 +203,11 @@ export class SyncService {
         }
     }
 
-    async pushLocalFile(fileId: string, blob: Blob, mimeType: string) {
+    async pushLocalFile(fileId: string, blob: Blob, mimeType: string, accessScope: "paid" | "contracts" | "vault" = "paid") {
         if (!this.userId || this.isSyncing) return;
 
         try {
-            await cloudRepo.pushFile(fileId, blob, mimeType);
+            await cloudRepo.pushFile(fileId, blob, mimeType, accessScope);
             this.clearError();
             console.log(`Pushed file ${fileId} to cloud`);
         } catch (error) {

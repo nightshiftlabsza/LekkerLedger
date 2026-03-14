@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => {
 
     return {
         replaceMock: vi.fn(),
+        confirmBillingTransactionMock: vi.fn(),
         confirmGuestBillingTransactionMock: vi.fn(),
         fetchBillingAccountMock: vi.fn(),
         resetHandoff() {
@@ -30,6 +31,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/billing-client", () => ({
+    confirmBillingTransaction: (...args: unknown[]) => mocks.confirmBillingTransactionMock(...args),
     confirmGuestBillingTransaction: (...args: unknown[]) => mocks.confirmGuestBillingTransactionMock(...args),
     fetchBillingAccount: (...args: unknown[]) => mocks.fetchBillingAccountMock(...args),
 }));
@@ -45,12 +47,42 @@ import BillingSuccessPage from "./page";
 describe("BillingSuccessPage compatibility handoff", () => {
     beforeEach(() => {
         mocks.replaceMock.mockReset();
+        mocks.confirmBillingTransactionMock.mockReset();
         mocks.confirmGuestBillingTransactionMock.mockReset();
         mocks.fetchBillingAccountMock.mockReset();
+        mocks.confirmBillingTransactionMock.mockResolvedValue(null);
         mocks.resetHandoff();
     });
 
-    it("forwards authenticated users into dashboard activation", async () => {
+    it("forwards authenticated paid users into dashboard activation", async () => {
+        mocks.confirmBillingTransactionMock.mockResolvedValue({
+            entitlements: {
+                planId: "standard",
+                billingCycle: "monthly",
+                status: "active",
+                cancelAtPeriodEnd: false,
+                availableReferralMonths: 0,
+                pendingReferralMonths: 0,
+                isActive: true,
+            },
+            account: {
+                cancelAtPeriodEnd: false,
+                availableReferralMonths: 0,
+                pendingReferralMonths: 0,
+                successfulReferralCount: 0,
+                totalReferralMonthsEarned: 0,
+            },
+        });
+
+        render(<BillingSuccessPage />);
+
+        await waitFor(() => {
+            expect(mocks.replaceMock).toHaveBeenCalledWith("/dashboard?paidLogin=1&reference=ref_123");
+        });
+    });
+
+    it("sends unpaid signed-in users to pricing instead of the dashboard", async () => {
+        mocks.confirmBillingTransactionMock.mockResolvedValue(null);
         mocks.fetchBillingAccountMock.mockResolvedValue({
             entitlements: {
                 planId: "free",
@@ -73,7 +105,7 @@ describe("BillingSuccessPage compatibility handoff", () => {
         render(<BillingSuccessPage />);
 
         await waitFor(() => {
-            expect(mocks.replaceMock).toHaveBeenCalledWith("/dashboard?paidLogin=1&reference=ref_123");
+            expect(mocks.replaceMock).toHaveBeenCalledWith("/login?reference=ref_123");
         });
     });
 

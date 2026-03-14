@@ -95,7 +95,7 @@ export default function TermsOfService() {
                                 Free, Standard, and Pro plan details are described on the pricing pages. Paid access is billed through our payment provider. We do not store your full card details ourselves.
                             </p>
                             <p>
-                                Standard and Pro may begin with a 14-day trial that requires sign-in and a small R1 card-verification charge through our payment provider so a reusable payment method can be saved. The first real subscription charge happens only after the trial unless you cancel first.
+                                Standard and Pro are billed through our payment provider when payment succeeds, then renew on the monthly or yearly cycle you selected unless you cancel renewal first.
                             </p>
                             <p>
                                 Refunds are handled according to the published refund policy. If there is a conflict between a brief summary on another page and the formal refund policy, the refund policy should control.

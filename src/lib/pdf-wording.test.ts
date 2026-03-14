@@ -36,7 +36,6 @@ const settings: EmployerSettings = {
   employerEmail: "",
   proStatus: "annual",
   paidUntil: undefined,
-  trialExpiry: undefined,
   billingCycle: "yearly",
   activeHouseholdId: "default",
   logoData: undefined,

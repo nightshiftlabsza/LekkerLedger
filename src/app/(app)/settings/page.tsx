@@ -139,7 +139,6 @@ function SettingsContent() {
     const userPlan = getUserPlan(effectiveSettings);
     const advancedLeaveEnabled = canUseAdvancedLeaveFeatures(userPlan);
     const customLeaveTypes = React.useMemo(() => settings?.customLeaveTypes ?? [], [settings?.customLeaveTypes]);
-    const trialEndsLabel = billingAccount?.account.trialEndsAt ? new Date(billingAccount.account.trialEndsAt).toLocaleDateString("en-ZA") : null;
     const nextChargeLabel = billingAccount?.account.nextChargeAt ? new Date(billingAccount.account.nextChargeAt).toLocaleDateString("en-ZA") : null;
     const billingStatus = billingAccount?.entitlements.status;
     const referralCode = billingAccount?.account.referralCode || "";
@@ -750,12 +749,10 @@ function SettingsContent() {
                                             <p className="text-xs font-bold text-[var(--primary-hover)] uppercase tracking-wider">
                                                 {currentPlan.id === "free"
                                                     ? "Free plan active"
-                                                    : billingStatus === "trialing" && trialEndsLabel
-                                                        ? `Trial active until ${trialEndsLabel}`
-                                                        : billingAccount?.account.cancelAtPeriodEnd && effectiveSettings?.paidUntil
+                                                    : billingAccount?.account.cancelAtPeriodEnd && effectiveSettings?.paidUntil
                                                             ? `Renewal canceled. Access ends ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`
                                                             : nextChargeLabel
-                                                                ? `Next charge ${nextChargeLabel}`
+                                                                ? `Next renewal ${nextChargeLabel}`
                                                                 : effectiveSettings?.paidUntil
                                                                     ? `Access until ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`
                                                                     : "Paid plan active"}
@@ -793,12 +790,12 @@ function SettingsContent() {
                                                     billingCycle={displayCycle}
                                                     className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold"
                                                 >
-                                                    {currentPlan.id === "free" ? "14 days for R1" : "Change paid plan"}
+                                                    {currentPlan.id === "free" ? "Upgrade to Standard" : "Change paid plan"}
                                                 </InlinePlanCheckoutButton>
                                             )}
                                             {currentPlan.id !== "pro" && (
                                                 <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
-                                                    Cancel before day 14 and pay nothing more.
+                                                    Paid plans start immediately and still include a 14-day refund window.
                                                 </p>
                                             )}
                                         </div>
@@ -823,19 +820,14 @@ function SettingsContent() {
                                         <div className="space-y-3 text-sm text-[var(--text-muted)]">
                                             <p>
                                                 <strong className="text-[var(--text)]">Status:</strong>{" "}
-                                                {billingStatus === "trialing"
-                                                    ? "14-day trial active"
-                                                    : billingAccount.account.cancelAtPeriodEnd
+                                                {billingAccount.account.cancelAtPeriodEnd
                                                         ? "Renewal canceled"
                                                         : billingStatus === "active"
                                                             ? "Paid subscription active"
                                                             : "Free plan"}
                                             </p>
-                                            {trialEndsLabel && (
-                                                <p><strong className="text-[var(--text)]">Trial ends:</strong> {trialEndsLabel}</p>
-                                            )}
                                             {nextChargeLabel && (
-                                                <p><strong className="text-[var(--text)]">Next real charge:</strong> {nextChargeLabel}</p>
+                                                <p><strong className="text-[var(--text)]">Next renewal:</strong> {nextChargeLabel}</p>
                                             )}
                                             {billingAccount.account.lastError && (
                                                 <p className="rounded-2xl border px-4 py-3 text-[var(--warning)]" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
@@ -855,7 +847,7 @@ function SettingsContent() {
                                         </div>
                                     ) : (
                                         <p className="text-sm text-[var(--text-muted)]">
-                                            Sign in to see your saved card, trial, and renewal details here.
+                                            Sign in to see your saved payment and renewal details here.
                                         </p>
                                     )}
                                 </Card>
@@ -907,11 +899,11 @@ function SettingsContent() {
                                             </p>
                                             <p className="text-sm text-[var(--warning)]">
                                                 This cancels your {currentPlan.label} renewal. You keep {currentPlan.label} access until your current billing period ends
-                                                {trialEndsLabel ? ` (${trialEndsLabel})` : nextChargeLabel ? ` (${nextChargeLabel})` : ""}, then move to the Free plan.
+                                                {nextChargeLabel ? ` (${nextChargeLabel})` : effectiveSettings?.paidUntil ? ` (${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")})` : ""}, then move to the Free plan.
                                             </p>
                                             {downgradingTo !== "free" && (
                                                 <p className="text-sm text-[var(--warning)]">
-                                                    After your {currentPlan.label} expires you can start a fresh {PLANS[downgradingTo as keyof typeof PLANS]?.label} trial from Free.
+                                                    After your {currentPlan.label} access ends you can choose {PLANS[downgradingTo as keyof typeof PLANS]?.label} again from pricing.
                                                 </p>
                                             )}
                                         </div>

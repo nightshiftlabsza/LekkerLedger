@@ -30,14 +30,14 @@ export default function RefundPolicy() {
                         <CreditCard className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Refund & Cancellation</h1>
-                    <p className="font-medium text-[var(--text-muted)]">Updated 10 March 2026 • 14-day refund on the first real subscription charge</p>
+                    <p className="font-medium text-[var(--text-muted)]">Updated 10 March 2026 • 14-day refund on paid charges</p>
                 </header>
 
                 <div className="policy-copy max-w-none space-y-8 leading-relaxed font-medium">
                     <SupplierDetails />
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-[var(--text)]">1. Trials, plans, and the R1 card check</h2>
+                        <h2 className="text-2xl font-black text-[var(--text)]">1. Plans and billing start dates</h2>
                         <p>
                             LekkerLedger offers two paid plans today:
                         </p>
@@ -46,17 +46,14 @@ export default function RefundPolicy() {
                             <li><strong>Pro:</strong> {proMonthlyPrice}/month or {proYearlyPrice}/year for unlimited employees, multi-household workspaces, and the deepest archive. Yearly billing works out to about {proYearlyEquivalent}/month.</li>
                         </ul>
                         <p>
-                            Standard and Pro currently begin with a 14-day trial. Starting a trial requires sign-in and a small R1 Paystack card-verification charge so a reusable payment method can be saved for automatic renewal later.
-                        </p>
-                        <p>
-                            The R1 card-verification charge is not the main subscription charge and does not start the 14-day refund window for the plan itself.
+                            Standard and Pro start immediately once payment succeeds. Charges are processed through Paystack on the monthly or yearly cycle you choose.
                         </p>
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-[var(--text)]">2. Cancellation before or after the trial</h2>
+                        <h2 className="text-2xl font-black text-[var(--text)]">2. Cancellation before or after renewal</h2>
                         <p>
-                            Monthly and yearly plans renew at the end of the billing period unless you cancel before renewal. If you cancel during the trial, the first real subscription charge will not be taken and access continues until the trial end date already shown in the app.
+                            Monthly and yearly plans renew at the end of the billing period unless you cancel before renewal. If you cancel renewal, access continues until the end of the period you have already paid for.
                         </p>
                         <p>
                             If you cancel after a paid charge has already happened, access continues until the end of the period you already paid for. There are no cancellation fees.
@@ -66,7 +63,7 @@ export default function RefundPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-[var(--text)]">3. Refund requests within 14 days</h2>
                         <p>
-                            Our 14-day refund policy applies to the first real subscription charge taken after the trial. If LekkerLedger is not the right fit, request a refund within 14 days of that charge date and we will refund you in full once we have verified the payment.
+                            Our 14-day refund policy applies to your paid charge. If LekkerLedger is not the right fit, request a refund within 14 days of that charge date and we will refund you in full once we have verified the payment.
                         </p>
                         <p>
                             Requests received after 14 days are outside the refund window and will not be processed unless required by law.
@@ -76,7 +73,7 @@ export default function RefundPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-[var(--text)]">4. Referral reward timing</h2>
                         <p>
-                            If you refer a new paying customer, the free referral month is held in a pending state until that referred customer has completed the trial, paid for one real month on Standard or Pro, and passed the same 14-day refund window without a refund or chargeback.
+                            If you refer a new paying customer, the free referral month is held in a pending state until that referred customer has paid for Standard or Pro and passed the same 14-day refund window without a refund or chargeback.
                         </p>
                         <p>
                             Referral rewards are limited to 12 free months per account. Self-referrals, duplicate referee accounts, and other abusive or fraudulent attempts can be rejected or reversed.

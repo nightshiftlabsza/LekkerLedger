@@ -486,7 +486,7 @@ export default function DocumentsPage() {
                     createdAt,
                 };
 
-                await saveDocumentFile(id, file);
+                await saveDocumentFile(id, file, "contracts");
                 await saveDocumentMeta(nextDocument);
                 await updateContractStatus(targetContract.id, "signed_copy_stored", { signedDocumentId: id });
                 setDocuments((current) => [nextDocument, ...current]);
@@ -506,7 +506,7 @@ export default function DocumentsPage() {
                 createdAt,
             };
 
-            await saveDocumentFile(id, file);
+            await saveDocumentFile(id, file, "vault");
             await saveDocumentMeta(nextDocument);
             setDocuments((current) => [nextDocument, ...current]);
             toast("Document uploaded.", "success");

@@ -90,7 +90,7 @@ export class CloudRepository {
         return data ?? [];
     }
 
-    async pushFile(fileId: string, blob: Blob, mimeType: string) {
+    async pushFile(fileId: string, blob: Blob, mimeType: string, accessScope: "paid" | "contracts" | "vault" = "paid") {
         if (!this.cryptoKey || !this.userId) throw new Error("Sync not initialized");
 
         const { encryptedBlob, iv } = await encryptFile(new File([blob], fileId, { type: mimeType }), this.cryptoKey);
@@ -108,7 +108,7 @@ export class CloudRepository {
 
         if (metadataError) throw new Error(`File metadata sync failed: ${metadataError.message}`);
 
-        const presignResponse = await fetch(`/api/storage/presign?fileId=${encodeURIComponent(fileId)}`);
+        const presignResponse = await fetch(`/api/storage/presign?fileId=${encodeURIComponent(fileId)}&scope=${encodeURIComponent(accessScope)}`);
         if (!presignResponse.ok) {
             throw new Error("Failed to get an upload URL for the document.");
         }

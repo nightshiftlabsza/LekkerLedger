@@ -196,9 +196,6 @@ export async function generatePayslipPdfBytes(
     const breakdown = calculatePayslip(payslip);
     const nmw = getNMW(payslip.payPeriodEnd);
     const requiredCopy = getPayslipPdfRequiredCopy(employee, payslip, lang);
-    const paymentDate = payslip.createdAt ? new Date(payslip.createdAt) : new Date(payslip.payPeriodEnd);
-    const employeeIdentifier = employee.idNumber?.trim() || dict.notProvided;
-
 
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 portrait

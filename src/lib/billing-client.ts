@@ -125,41 +125,6 @@ export async function createCheckoutSession(
     };
 }
 
-export async function startTrialCheckout(
-    input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; referralCode?: string | null },
-    accessToken?: string | null,
-): Promise<{ authorizationUrl: string; reference: string }> {
-    const authHeaders = await buildAuthHeaders(accessToken);
-    const response = await fetch("/api/billing/trial/start", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            ...authHeaders,
-        },
-        body: JSON.stringify(input),
-    });
-
-    if (response.status === 401) {
-        throw new Error("Sign-in is required before starting a trial.");
-    }
-
-    if (!response.ok) {
-        throw await buildErrorMessage(response, "The free trial could not be started.");
-    }
-
-    const data = await response.json();
-    return {
-        authorizationUrl: data.authorizationUrl as string,
-        reference: data.reference as string,
-    };
-}
-
-export async function createInlineTrialIntent(
-    input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; email: string; referralCode?: string | null },
-): Promise<{ reference: string; accessCode: string; amountCents: number }> {
-    return createInlinePurchaseIntent(input);
-}
-
 export async function createInlinePurchaseIntent(
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; email: string; referralCode?: string | null },
 ): Promise<{ reference: string; accessCode: string; amountCents: number }> {

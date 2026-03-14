@@ -14,7 +14,7 @@ describe("signed contract upload entitlements", () => {
         expect(() => assertCanUploadSignedContractCopies(PLANS.standard)).not.toThrow();
     });
 
-    it("overlays verified trial entitlements onto stored settings", () => {
+    it("overlays verified paid entitlements onto stored settings", () => {
         const settings = {
             employerName: "Test Employer",
             employerAddress: "",
@@ -25,7 +25,6 @@ describe("signed contract upload entitlements", () => {
             phone: "",
             logoData: "",
             paidUntil: undefined,
-            trialExpiry: undefined,
             defaultLanguage: "en" as const,
             simpleMode: false,
             advancedMode: false,
@@ -41,14 +40,12 @@ describe("signed contract upload entitlements", () => {
 
         expect(applyVerifiedEntitlementsToSettings(settings, {
             planId: "standard",
-            status: "trialing",
+            status: "active",
             paidUntil: "2026-03-28T00:00:00.000Z",
-            trialEndsAt: "2026-03-28T00:00:00.000Z",
             billingCycle: "yearly",
         })).toMatchObject({
-            proStatus: "trial",
+            proStatus: "standard",
             paidUntil: "2026-03-28T00:00:00.000Z",
-            trialExpiry: "2026-03-28T00:00:00.000Z",
             billingCycle: "yearly",
         });
     });

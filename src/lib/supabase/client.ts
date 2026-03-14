@@ -31,32 +31,6 @@ function healSupabaseSessionStorage(storageKey: string | null) {
     }
 }
 
-function createSafeStorage() {
-    return {
-        getItem(key: string) {
-            try {
-                return window.localStorage.getItem(key);
-            } catch {
-                return null;
-            }
-        },
-        setItem(key: string, value: string) {
-            try {
-                window.localStorage.setItem(key, value);
-            } catch {
-                // Ignore quota or access failures so auth reads do not hard-crash the app.
-            }
-        },
-        removeItem(key: string) {
-            try {
-                window.localStorage.removeItem(key);
-            } catch {
-                // Ignore storage access failures so cleanup remains best-effort.
-            }
-        },
-    };
-}
-
 export function createClient() {
     if (browserClient) {
         return browserClient;

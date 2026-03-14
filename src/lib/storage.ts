@@ -61,6 +61,7 @@ export interface SyncMigrationSnapshot {
         id: string;
         blob: Blob;
         mimeType: string;
+        accessScope: "paid" | "contracts" | "vault";
     }>;
 }
 
@@ -154,7 +155,6 @@ function buildDefaultSettings(overrides: Partial<EmployerSettings> = {}): Employ
         phone: "",
         logoData: "",
         paidUntil: undefined,
-        trialExpiry: undefined,
         defaultLanguage: "en",
         simpleMode: false,
         advancedMode: false,
@@ -306,9 +306,9 @@ async function syncRecordDeletionToCloud(table: string, id: string) {
     await syncService.pushLocalDelete(table, id);
 }
 
-async function syncDocumentFileToCloud(id: string, file: Blob, mimeType: string) {
+async function syncDocumentFileToCloud(id: string, file: Blob, mimeType: string, accessScope: "paid" | "contracts" | "vault" = "paid") {
     if (!syncService.isReady()) return;
-    await syncService.pushLocalFile(id, file, mimeType);
+    await syncService.pushLocalFile(id, file, mimeType, accessScope);
 }
 
 async function syncDocumentFileDeletionToCloud(id: string) {
@@ -700,7 +700,6 @@ async function overlayVerifiedEntitlements(settings: EmployerSettings): Promise<
         ...settings,
         proStatus: "pro",
         paidUntil: new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString(),
-        trialExpiry: undefined,
     };
 }
 
@@ -716,19 +715,16 @@ async function overlayVerifiedEntitlements(settings: EmployerSettings): Promise<
             return settings;
         }
 
-        const resolvedStatus = entitlements.status === "trialing"
-            ? "trial"
-            : entitlements.planId === "standard"
-                ? "standard"
-                : entitlements.planId === "pro"
-                    ? "pro"
-                    : "free";
+        const resolvedStatus = entitlements.planId === "standard"
+            ? "standard"
+            : entitlements.planId === "pro"
+                ? "pro"
+                : "free";
 
         return buildDefaultSettings({
             ...settings,
             proStatus: resolvedStatus,
             paidUntil: entitlements.paidUntil,
-            trialExpiry: entitlements.trialEndsAt,
             billingCycle: entitlements.billingCycle,
         });
     } catch (error) {
@@ -767,7 +763,6 @@ export async function saveSettings(settings: EmployerSettings): Promise<void> {
         ...settings,
         proStatus: existingStoredSettings?.proStatus ?? settings.proStatus,
         paidUntil: existingStoredSettings?.paidUntil ?? settings.paidUntil,
-        trialExpiry: existingStoredSettings?.trialExpiry ?? settings.trialExpiry,
         billingCycle: existingStoredSettings?.billingCycle ?? settings.billingCycle,
     });
     const activeHouseholdId = normalized.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;
@@ -1011,6 +1006,7 @@ export async function getSyncMigrationSnapshot(): Promise<SyncMigrationSnapshot>
             id: document.id,
             blob,
             mimeType: blob.type || document.mimeType || "application/octet-stream",
+            accessScope: document.vaultCategory && document.vaultCategory !== "contracts" ? "vault" : "contracts",
         });
     }
 
@@ -1385,11 +1381,11 @@ export async function deleteDocumentMeta(id: string): Promise<void> {
     await notifyListeners();
 }
 
-export async function saveDocumentFile(id: string, file: Blob): Promise<void> {
+export async function saveDocumentFile(id: string, file: Blob, accessScope: "paid" | "contracts" | "vault" = "paid"): Promise<void> {
     await documentFileStore.setItem(id, file);
     const meta = await getDocumentMeta(id);
     const mimeType = meta?.mimeType || file.type || "application/octet-stream";
-    await syncDocumentFileToCloud(id, file, mimeType);
+    await syncDocumentFileToCloud(id, file, mimeType, accessScope);
 }
 
 export async function getDocumentFile(id: string): Promise<Blob | null> {

@@ -57,7 +57,7 @@ export function FeatureGateCard({
                     </Button>
                 </Link>
                 <p className="text-center text-xs text-[var(--text-muted)]">
-                    14-day refund on paid upgrades
+                    14-day refund on paid purchases
                 </p>
             </CardContent>
         </Card>

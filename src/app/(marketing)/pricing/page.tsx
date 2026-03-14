@@ -90,7 +90,7 @@ export default function PricingPage() {
                                 </h3>
                                 <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Free has no billing. Standard and Pro cost R1 for your first 14 days — cancel before then and pay nothing more. After that, they renew monthly or yearly.
+                                        Free has no billing. Standard and Pro start billing immediately on the monthly or yearly cycle you choose.
                                     </p>
                                     <p>
                                         {REFUND_POLICY_SUMMARY}

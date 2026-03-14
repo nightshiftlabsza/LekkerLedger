@@ -1,8 +1,8 @@
 import { BillingCycle, PlanId } from "../config/plans";
 
-export type BillingStatus = "free" | "trialing" | "active" | "past_due" | "canceled" | "refunded" | "unknown";
-export type BillingIntentStatus = "pending" | "checkout_started" | "payment_received" | "trial_started" | "completed" | "rejected" | "canceled";
-export type ReferralStatus = "trial_started" | "qualified_pending_reward" | "reward_granted" | "reversed" | "rejected";
+export type BillingStatus = "free" | "active" | "past_due" | "canceled" | "refunded" | "unknown";
+export type BillingIntentStatus = "pending" | "checkout_started" | "payment_received" | "completed" | "rejected" | "canceled";
+export type ReferralStatus = "pending_first_charge" | "qualified_pending_reward" | "reward_granted" | "reversed" | "rejected";
 export type BillingCreditStatus = "pending" | "available" | "applied" | "reversed";
 
 export interface SubscriptionRecord {
@@ -21,10 +21,6 @@ export interface SubscriptionRecord {
     currentPeriodEnd: number;
     nextChargeAt?: number | null;
     cancelAtPeriodEnd?: boolean;
-    trialStartedAt?: number | null;
-    trialEndsAt?: number | null;
-    trialConsumedAt?: number | null;
-    hasUsedTrial?: boolean;
     lastError?: string | null;
     updatedAt: number;
 }
@@ -78,7 +74,6 @@ export interface BillingCreditRecord {
 
 export interface BillingAccountSummary {
     referralCode?: string | null;
-    trialEndsAt?: string;
     nextChargeAt?: string;
     cancelAtPeriodEnd: boolean;
     availableReferralMonths: number;
@@ -95,7 +90,6 @@ export interface VerifiedEntitlements {
     billingCycle: BillingCycle;
     status: BillingStatus;
     paidUntil?: string;
-    trialEndsAt?: string;
     nextChargeAt?: string;
     cancelAtPeriodEnd: boolean;
     availableReferralMonths: number;
@@ -114,10 +108,24 @@ export function sanitizeBillingCycle(value: string | undefined | null): BillingC
 }
 
 export function sanitizeBillingStatus(value: string | undefined | null): BillingStatus {
-    if (value === "trialing" || value === "active" || value === "past_due" || value === "canceled" || value === "refunded" || value === "free") {
+    if (value === "active" || value === "past_due" || value === "canceled" || value === "refunded" || value === "free") {
         return value;
     }
     return "unknown";
+}
+
+export function sanitizeBillingIntentStatus(value: string | undefined | null): BillingIntentStatus {
+    if (value === "pending" || value === "checkout_started" || value === "payment_received" || value === "completed" || value === "rejected" || value === "canceled") {
+        return value;
+    }
+    return "pending";
+}
+
+export function sanitizeReferralStatus(value: string | undefined | null): ReferralStatus {
+    if (value === "pending_first_charge" || value === "qualified_pending_reward" || value === "reward_granted" || value === "reversed" || value === "rejected") {
+        return value;
+    }
+    return "pending_first_charge";
 }
 
 export function isPaidPlanId(planId: PlanId): boolean {
@@ -158,24 +166,13 @@ export function isSubscriptionActive(status: BillingStatus, currentPeriodEnd: nu
     return status !== "refunded" && status !== "free";
 }
 
-export function canStartTrial(record: SubscriptionRecord | null, now = Date.now()): boolean {
+export function canAttachReferralToAccount(record: SubscriptionRecord | null, now = Date.now()): boolean {
     if (!record) return true;
-    if (record.hasUsedTrial) return false;
-    if (record.trialConsumedAt) return false;
-    if (record.status === "trialing") return false;
-    if (record.planId !== "free") return false;
-    if (record.paystackCustomerId || record.paystackSubscriptionCode || record.paystackAuthorizationCode) return false;
-    return !isSubscriptionActive(record.status, record.currentPeriodEnd, now);
-}
-
-export function canBeReferred(record: SubscriptionRecord | null): boolean {
-    if (!record) return true;
-    return !record.hasUsedTrial
-        && !record.trialConsumedAt
-        && record.planId === "free"
+    return record.planId === "free"
         && !record.paystackCustomerId
         && !record.paystackSubscriptionCode
-        && !record.paystackAuthorizationCode;
+        && !record.paystackAuthorizationCode
+        && !isSubscriptionActive(record.status, record.currentPeriodEnd, now);
 }
 
 export function getAccessEndTimestamp(record: Pick<SubscriptionRecord, "currentPeriodEnd"> | null | undefined): number {
@@ -203,7 +200,6 @@ export function entitlementsFromSubscription(
         billingCycle: record.billingCycle,
         status: record.status,
         paidUntil: record.currentPeriodEnd ? new Date(record.currentPeriodEnd).toISOString() : undefined,
-        trialEndsAt: record.trialEndsAt ? new Date(record.trialEndsAt).toISOString() : undefined,
         nextChargeAt: (record.nextChargeAt ?? record.currentPeriodEnd) ? new Date(record.nextChargeAt ?? record.currentPeriodEnd).toISOString() : undefined,
         cancelAtPeriodEnd: Boolean(record.cancelAtPeriodEnd),
         availableReferralMonths: summary?.availableReferralMonths ?? 0,

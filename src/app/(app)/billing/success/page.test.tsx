@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => {
 
     return {
         replaceMock: vi.fn(),
+        confirmBillingTransactionMock: vi.fn(),
         confirmGuestBillingTransactionMock: vi.fn(),
         fetchBillingAccountMock: vi.fn(),
         resetHandoff() {
@@ -31,6 +32,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/billing-client", () => ({
+    confirmBillingTransaction: (...args: unknown[]) => mocks.confirmBillingTransactionMock(...args),
     confirmGuestBillingTransaction: (...args: unknown[]) => mocks.confirmGuestBillingTransactionMock(...args),
     fetchBillingAccount: (...args: unknown[]) => mocks.fetchBillingAccountMock(...args),
 }));
@@ -44,21 +46,23 @@ vi.mock("@/lib/billing-handoff", () => ({
 describe("BillingSuccessPage route-group coverage", () => {
     beforeEach(() => {
         mocks.replaceMock.mockReset();
+        mocks.confirmBillingTransactionMock.mockReset();
         mocks.confirmGuestBillingTransactionMock.mockReset();
         mocks.fetchBillingAccountMock.mockReset();
+        mocks.confirmBillingTransactionMock.mockResolvedValue(null);
         mocks.resetHandoff();
     });
 
     it("routes authenticated users to dashboard activation", async () => {
-        mocks.fetchBillingAccountMock.mockResolvedValue({
+        mocks.confirmBillingTransactionMock.mockResolvedValue({
             entitlements: {
-                planId: "free",
+                planId: "standard",
                 billingCycle: "monthly",
-                status: "free",
+                status: "active",
                 cancelAtPeriodEnd: false,
                 availableReferralMonths: 0,
                 pendingReferralMonths: 0,
-                isActive: false,
+                isActive: true,
             },
             account: {
                 cancelAtPeriodEnd: false,

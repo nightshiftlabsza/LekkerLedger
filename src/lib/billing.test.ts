@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-    canBeReferred,
-    canStartTrial,
+    canAttachReferralToAccount,
     entitlementsFromSubscription,
     sanitizeBillingStatus,
     type SubscriptionRecord,
@@ -22,46 +21,31 @@ function createSubscription(overrides: Partial<SubscriptionRecord> = {}): Subscr
 
 describe("billing helpers", () => {
     it("sanitizes billing status values safely", () => {
-        expect(sanitizeBillingStatus("trialing")).toBe("trialing");
+        expect(sanitizeBillingStatus("trialing")).toBe("unknown");
         expect(sanitizeBillingStatus("active")).toBe("active");
         expect(sanitizeBillingStatus("something-else")).toBe("unknown");
         expect(sanitizeBillingStatus(null)).toBe("unknown");
     });
 
-    it("allows a first-time free user to start a trial", () => {
-        expect(canStartTrial(null)).toBe(true);
-        expect(canStartTrial(createSubscription())).toBe(true);
+    it("allows referral attachment for genuinely new free accounts", () => {
+        expect(canAttachReferralToAccount(null)).toBe(true);
+        expect(canAttachReferralToAccount(createSubscription())).toBe(true);
     });
 
-    it("blocks trial starts after prior trial or billing history", () => {
-        expect(canStartTrial(createSubscription({ hasUsedTrial: true }))).toBe(false);
-        expect(canStartTrial(createSubscription({ trialConsumedAt: Date.parse("2026-02-01T00:00:00Z") }))).toBe(false);
-        expect(canStartTrial(createSubscription({ status: "trialing", trialEndsAt: Date.parse("2026-03-24T00:00:00Z"), currentPeriodEnd: Date.parse("2026-03-24T00:00:00Z") }))).toBe(false);
-        expect(canStartTrial(createSubscription({ planId: "standard" }))).toBe(false);
-        expect(canStartTrial(createSubscription({ paystackCustomerId: "CUS_123" }))).toBe(false);
-        expect(canStartTrial(createSubscription({ paystackAuthorizationCode: "AUTH_123" }))).toBe(false);
+    it("blocks referral attachment after any real billing state exists", () => {
+        expect(canAttachReferralToAccount(createSubscription({ status: "active", currentPeriodEnd: Date.parse("2026-03-24T00:00:00Z") } as Partial<SubscriptionRecord>))).toBe(false);
+        expect(canAttachReferralToAccount(createSubscription({ planId: "standard" }))).toBe(false);
+        expect(canAttachReferralToAccount(createSubscription({ paystackCustomerId: "CUS_123" }))).toBe(false);
+        expect(canAttachReferralToAccount(createSubscription({ paystackAuthorizationCode: "AUTH_123" }))).toBe(false);
     });
 
-    it("only allows referrals for genuinely new billing accounts", () => {
-        expect(canBeReferred(null)).toBe(true);
-        expect(canBeReferred(createSubscription())).toBe(true);
-        expect(canBeReferred(createSubscription({ hasUsedTrial: true }))).toBe(false);
-        expect(canBeReferred(createSubscription({ trialConsumedAt: Date.parse("2026-02-01T00:00:00Z") }))).toBe(false);
-        expect(canBeReferred(createSubscription({ planId: "pro" }))).toBe(false);
-        expect(canBeReferred(createSubscription({ paystackSubscriptionCode: "SUB_123" }))).toBe(false);
-        expect(canBeReferred(createSubscription({ paystackAuthorizationCode: "AUTH_123" }))).toBe(false);
-    });
-
-    it("returns active trial entitlements with trial and next-charge dates", () => {
-        const trialEndsAt = Date.parse("2026-03-24T12:00:00Z");
+    it("returns active entitlements with next-charge dates", () => {
         const nextChargeAt = Date.parse("2026-03-24T12:00:00Z");
         const entitlements = entitlementsFromSubscription(
             createSubscription({
                 planId: "standard",
-                status: "trialing",
-                currentPeriodEnd: trialEndsAt,
-                trialStartedAt: Date.parse("2026-03-10T12:00:00Z"),
-                trialEndsAt,
+                status: "active",
+                currentPeriodEnd: nextChargeAt,
                 nextChargeAt,
                 cancelAtPeriodEnd: false,
             }),
@@ -70,9 +54,8 @@ describe("billing helpers", () => {
         );
 
         expect(entitlements.planId).toBe("standard");
-        expect(entitlements.status).toBe("trialing");
+        expect(entitlements.status).toBe("active");
         expect(entitlements.isActive).toBe(true);
-        expect(entitlements.trialEndsAt).toBe("2026-03-24T12:00:00.000Z");
         expect(entitlements.nextChargeAt).toBe("2026-03-24T12:00:00.000Z");
         expect(entitlements.availableReferralMonths).toBe(2);
         expect(entitlements.pendingReferralMonths).toBe(1);

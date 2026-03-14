@@ -148,10 +148,10 @@ function UpgradePageContent() {
                 <Card className="border-[var(--primary)] bg-[var(--primary)]/5">
                     <CardContent className="space-y-2 p-5 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                         <p className="font-semibold" style={{ color: "var(--text)" }}>
-                            R1 for your first 14 days.
+                            Paid plans start immediately.
                         </p>
                         <p>
-                            You&apos;ll be charged R1 today, securely via Paystack. Your normal billing rate only starts after 14 days — cancel before then and you pay nothing more.
+                            You&apos;ll be charged the full Standard or Pro price today through Paystack. The 14-day refund window starts from that purchase date.
                         </p>
                     </CardContent>
                 </Card>
@@ -273,10 +273,10 @@ function UpgradePageContent() {
                             <h3 className="type-h3" style={{ color: "var(--text)" }}>Refunds and trust</h3>
                         </div>
                         <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            If you request a refund within 14 days of the first real subscription charge, we will refund you in full once we have verified the payment. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
+                            If you request a refund within 14 days of a paid charge, we will refund you in full once we have verified the payment. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
                         </p>
                         <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            You can cancel any time in the first 14 days and keep access until day 14. Your normal billing rate only kicks in after that.
+                            You can cancel renewal at any time. Access stays on until the end of the period you have already paid for.
                         </p>
                         <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
                             View refund policy <ArrowRight className="h-4 w-4" />

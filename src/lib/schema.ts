@@ -167,9 +167,8 @@ export const EmployerSettingsSchema = z.object({
     sdlNumber: z.string().default(""),
     phone: z.string().optional(), // Employer contact phone
     employerEmail: z.string().email("Invalid email address").optional(),
-    proStatus: z.enum(["free", "standard", "pro", "trial", "annual", "lifetime"]).optional().default("free"),
+    proStatus: z.enum(["free", "standard", "pro", "annual", "lifetime"]).optional().default("free"),
     paidUntil: z.string().optional(),
-    trialExpiry: z.string().optional(),
     billingCycle: z.enum(["monthly", "yearly"]).optional().default("monthly"),
     activeHouseholdId: z.string().default("default"),
     logoData: z.string().optional(),

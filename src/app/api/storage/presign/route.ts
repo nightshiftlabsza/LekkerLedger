@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { r2 } from "@/lib/r2";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { requireStorageAccess, StorageAccessError } from "@/lib/server-storage-access";
 
 export async function GET(request: NextRequest) {
-    const supabase = await createClient();
-    const { data: { session }, error } = await supabase.auth.getSession();
-
-    if (error || !session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const searchParams = request.nextUrl.searchParams;
     const fileId = searchParams.get('fileId');
 
@@ -20,6 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        const { session } = await requireStorageAccess(request);
         // Enforce user isolation by prefixing the S3 object key with their ID
         const objectKey = `${session.user.id}/${fileId}`;
 
@@ -34,6 +28,9 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ uploadUrl });
     } catch (err: unknown) {
+        if (err instanceof StorageAccessError) {
+            return NextResponse.json({ error: err.message }, { status: err.status });
+        }
         console.error("Presign error:", err);
         return NextResponse.json({ error: "Failed to generate upload URL." }, { status: 500 });
     }

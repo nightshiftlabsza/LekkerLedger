@@ -51,7 +51,7 @@ export class SyncEngine {
                 ...snapshot.payPeriods.map((record) => ({ label: `Pay period ${record.name}`, run: () => cloudRepo.pushRecord("pay_periods", record.id, record as unknown as Record<string, unknown>) })),
                 ...snapshot.documents.map((record) => ({ label: `Document ${record.fileName}`, run: () => cloudRepo.pushRecord("documents", record.id, record as unknown as Record<string, unknown>) })),
                 ...snapshot.contracts.map((record) => ({ label: `Contract ${record.id}`, run: () => cloudRepo.pushRecord("contracts", record.id, record as unknown as Record<string, unknown>) })),
-                ...snapshot.documentFiles.map((record) => ({ label: `Uploaded file ${record.id}`, run: () => cloudRepo.pushFile(record.id, record.blob, record.mimeType) })),
+                ...snapshot.documentFiles.map((record) => ({ label: `Uploaded file ${record.id}`, run: () => cloudRepo.pushFile(record.id, record.blob, record.mimeType, record.accessScope) })),
             ];
 
             if (tasks.length === 0) {

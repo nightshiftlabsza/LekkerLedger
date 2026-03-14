@@ -91,23 +91,23 @@ export default function SupportPage() {
 
                         <div className="space-y-6">
                             <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
-                                <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-[var(--text)]"><AlertCircle className="h-4 w-4 text-[var(--danger)]" /> &quot;Why did I see an R1 charge when I started the trial?&quot;</h3>
+                                <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-[var(--text)]"><AlertCircle className="h-4 w-4 text-[var(--danger)]" /> &quot;When does a paid plan start billing?&quot;</h3>
                                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                    That R1 charge is a card-verification step through Paystack so LekkerLedger can save a reusable payment method for the end of the 14-day trial. It is not the main Standard or Pro subscription charge.
+                                    Standard and Pro bill immediately when payment succeeds through Paystack. The 14-day refund window starts from that paid charge date.
                                 </p>
                             </div>
 
                             <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
-                                <h3 className="text-lg font-bold text-[var(--text)] mb-2 flex items-center gap-2"><HelpCircle className="h-4 w-4 text-[var(--text-muted)]" /> &quot;How do I stop the first real charge after the trial?&quot;</h3>
+                                <h3 className="text-lg font-bold text-[var(--text)] mb-2 flex items-center gap-2"><HelpCircle className="h-4 w-4 text-[var(--text-muted)]" /> &quot;How do I stop renewal on a paid plan?&quot;</h3>
                                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                    Open Settings, go to Plan, and cancel renewal before the trial ends. You will keep access until the trial end date already shown in the app, but the first real subscription charge will not go through.
+                                    Open Settings, go to Plan, and cancel renewal before the next renewal date. You will keep access until the end of the period you have already paid for.
                                 </p>
                             </div>
 
                             <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
                                 <h3 className="text-lg font-bold text-[var(--text)] mb-2 flex items-center gap-2"><HelpCircle className="h-4 w-4 text-[var(--text-muted)]" /> &quot;When does a referral free month unlock?&quot;</h3>
                                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                    A referral month unlocks only after the referred person finishes the trial, has their first real paid Standard or Pro charge succeed, and then passes the 14-day refund window without a refund or chargeback.
+                                    A referral month unlocks only after the referred person has a successful paid Standard or Pro charge and then passes the 14-day refund window without a refund or chargeback.
                                 </p>
                             </div>
 
