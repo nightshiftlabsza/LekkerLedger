@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { confirmPaystackTransaction, toErrorResponse, verifyUserFromRequest } from "@/lib/billing-server";
 
+export const maxDuration = 30;
+
 export async function POST(request: Request) {
     try {
         const user = await verifyUserFromRequest(request);
