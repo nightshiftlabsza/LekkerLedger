@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const { network, sync, payments } = useAppConnectivity();
+    const { network, sync, syncErrorMessage, payments } = useAppConnectivity();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
     const [syncConflict] = React.useState(false);
@@ -196,7 +196,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
                                 <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
                                         <SyncIndicator />
-                                        <AccountMenu />
+                                        <AccountMenu sync={sync} syncErrorMessage={syncErrorMessage} />
                                     <HouseholdSwitcher
                                         households={households}
                                         activeId={activeHouseholdId}
@@ -239,7 +239,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                     <span>
                                         {syncConflict 
                                             ? "Sync conflict detected. Resolve in Settings."
-                                            : "Sync needs attention. Check Settings for details."}
+                                            : syncErrorMessage
+                                                ? `Sync needs attention: ${syncErrorMessage}`
+                                                : "Sync needs attention. Check Settings for details."}
                                     </span>
                                 </div>
                                 <button
@@ -300,7 +302,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
 }
 
-function AccountMenu() {
+function AccountMenu({
+    sync,
+    syncErrorMessage,
+}: {
+    sync: "disabled" | "enabled" | "error" | "reconnecting";
+    syncErrorMessage: string | null;
+}) {
     const [open, setOpen] = React.useState(false);
     const [signOutPromptOpen, setSignOutPromptOpen] = React.useState(false);
     const [signingOut, setSigningOut] = React.useState<"keep" | "delete" | null>(null);
@@ -334,8 +342,16 @@ function AccountMenu() {
         accountState = "Account Locked";
         accountSummary = "Your encrypted data is paused until you provide your recovery key.";
     } else if (mode === "account_unlocked") {
-        accountState = "Cloud Sync Active";
-        accountSummary = "Your data is securely encrypted and synced to the cloud.";
+        if (sync === "error") {
+            accountState = "Sync needs attention";
+            accountSummary = syncErrorMessage ?? "Your account is connected, but the latest cloud backup hit a problem. Open Settings > Storage & backup.";
+        } else if (sync === "reconnecting") {
+            accountState = "Sync reconnecting";
+            accountSummary = "Your account is connected. Cloud backup will resume once this device is back online.";
+        } else {
+            accountState = "Cloud Sync Active";
+            accountSummary = "Your data is securely encrypted and synced to the cloud.";
+        }
     }
 
     const handleSignOut = React.useCallback(async (dataMode: "keep" | "delete") => {

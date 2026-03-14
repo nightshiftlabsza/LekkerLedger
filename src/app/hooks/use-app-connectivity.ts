@@ -137,6 +137,7 @@ export function useAppConnectivity() {
     return {
         network,
         sync,
+        syncErrorMessage: syncSnapshot.lastError,
         payments,
         setNetwork,
         setPayments,

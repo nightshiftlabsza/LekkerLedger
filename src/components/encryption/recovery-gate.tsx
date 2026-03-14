@@ -6,14 +6,15 @@ import { useAppMode } from "@/lib/app-mode";
 import { RecoveryKeySetup } from "./recovery-key-setup";
 import { RecoveryKeyInput } from "./recovery-key-input";
 import { createClient } from "@/lib/supabase/client";
-import { deriveKey, generateValidationPayload, verifyValidationPayload, type EncryptedPayload } from "@/lib/crypto";
+import { decryptData, deriveKey, generateValidationPayload, verifyValidationPayload, type EncryptedPayload } from "@/lib/crypto";
 import { getLocalRecoveryProfile, saveLocalRecoveryProfile } from "@/lib/recovery-profile-store";
 import { Loader2 } from "lucide-react";
 
 interface RecoveryProfileState {
     keySetupComplete: boolean;
     validationPayload: EncryptedPayload | null;
-    source: "remote" | "local" | "none";
+    fallbackEncryptedRecord: EncryptedPayload | null;
+    source: "remote" | "local" | "cloud_data" | "none";
 }
 
 export function RecoveryGate({ children }: { children: React.ReactNode }) {
@@ -149,11 +150,22 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             }
 
             if (profile.validationPayload) {
-                 const isValid = await verifyValidationPayload(profile.validationPayload, cryptoKey);
-                 if (!isValid) {
-                     setInputError("That recovery key does not match this account. Please try again.");
-                     return;
-                 }
+                const isValid = await verifyValidationPayload(profile.validationPayload, cryptoKey);
+                if (!isValid) {
+                    setInputError("That recovery key does not match this account. Please try again.");
+                    return;
+                }
+            } else if (profile.fallbackEncryptedRecord) {
+                try {
+                    await decryptData(profile.fallbackEncryptedRecord, cryptoKey);
+                } catch {
+                    setInputError("That recovery key does not match this account. Please try again.");
+                    return;
+                }
+            }
+
+            if (profile.source === "cloud_data") {
+                await repairRemoteRecoveryProfile(user.id, cryptoKey, supabase);
             }
 
             await unlockAccount(cryptoKey, user.id);
@@ -314,6 +326,7 @@ async function loadRecoveryProfileState(
         return {
             keySetupComplete: true,
             validationPayload: (data.validation_payload as EncryptedPayload | null) ?? null,
+            fallbackEncryptedRecord: null,
             source: "remote",
         };
     }
@@ -326,13 +339,63 @@ async function loadRecoveryProfileState(
         return {
             keySetupComplete: true,
             validationPayload: localProfile.validationPayload,
+            fallbackEncryptedRecord: null,
             source: "local",
         };
+    }
+
+    const { data: syncedRecord, error: syncedRecordError } = await supabase
+        .from("synced_records")
+        .select("encrypted_data")
+        .eq("user_id", userId)
+        .limit(1)
+        .maybeSingle();
+
+    if (syncedRecord?.encrypted_data) {
+        return {
+            keySetupComplete: true,
+            validationPayload: null,
+            fallbackEncryptedRecord: syncedRecord.encrypted_data as EncryptedPayload,
+            source: "cloud_data",
+        };
+    }
+
+    if (syncedRecordError) {
+        console.warn("Could not inspect encrypted cloud records while checking recovery-key status.", syncedRecordError);
     }
 
     return {
         keySetupComplete: false,
         validationPayload: null,
+        fallbackEncryptedRecord: null,
         source: "none",
     };
+}
+
+async function repairRemoteRecoveryProfile(
+    userId: string,
+    cryptoKey: CryptoKey,
+    supabase: ReturnType<typeof createClient>,
+) {
+    const payload = await generateValidationPayload(cryptoKey);
+
+    await saveLocalRecoveryProfile(userId, {
+        keySetupComplete: true,
+        validationPayload: payload,
+        updatedAt: new Date().toISOString(),
+    });
+
+    const { error } = await supabase
+        .from("user_profiles")
+        .upsert({
+            id: userId,
+            key_setup_complete: true,
+            validation_payload: payload,
+        }, {
+            onConflict: "id",
+        });
+
+    if (error) {
+        console.warn("Could not repair the missing recovery profile in Supabase after a successful unlock.", error);
+    }
 }

@@ -26,12 +26,14 @@ import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "
 import { getArchiveCutoffDate, getArchiveUpgradeHref } from "@/lib/archive";
 import { canUseAdvancedLeaveFeatures, canUseFullHistoryExport, getUserPlan } from "@/lib/entitlements";
 import { useAppMode } from "@/lib/app-mode";
+import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 
 function SettingsContent() {
     const searchParams = useSearchParams();
     const { mode } = useAppMode();
+    const { network, sync, syncErrorMessage } = useAppConnectivity();
     const [activeTab, setActiveTab] = React.useState<SettingsTab>("general");
     const [appearanceOpen, setAppearanceOpen] = React.useState(false);
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
@@ -565,11 +567,48 @@ function SettingsContent() {
                             <Card className="glass-panel border-none p-5 space-y-3 text-sm text-[var(--text-muted)] leading-relaxed">
                                 {mode === "account_unlocked" ? (
                                     <>
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-2 w-2 rounded-full bg-[var(--primary)] animate-pulse" />
-                                            <p className="font-bold text-[var(--text)]">Cloud Sync Active</p>
-                                        </div>
-                                        <p>Your data is encrypted with your recovery key before it leaves this device. After the first backup completes, later changes sync automatically and can be restored on your other devices after login and recovery-key unlock.</p>
+                                        {sync === "error" ? (
+                                            <>
+                                                <div className="flex items-center gap-2 text-[var(--danger)]">
+                                                    <ShieldCheck className="h-4 w-4" />
+                                                    <p className="font-bold text-[var(--text)]">Sync Needs Attention</p>
+                                                </div>
+                                                <p>The account is connected, but the latest encrypted backup ran into a problem.</p>
+                                                {syncErrorMessage ? (
+                                                    <div
+                                                        className="rounded-2xl border px-4 py-3 text-xs leading-relaxed"
+                                                        style={{
+                                                            borderColor: "rgba(180,35,24,0.22)",
+                                                            backgroundColor: "rgba(180,35,24,0.08)",
+                                                            color: "var(--text)",
+                                                        }}
+                                                    >
+                                                        <p className="font-bold text-[var(--danger)]">Latest sync issue</p>
+                                                        <p className="mt-1">{syncErrorMessage}</p>
+                                                    </div>
+                                                ) : null}
+                                            </>
+                                        ) : sync === "reconnecting" ? (
+                                            <>
+                                                <div className="flex items-center gap-2 text-[var(--warning)]">
+                                                    <div className="h-2 w-2 rounded-full bg-[var(--warning)] animate-pulse" />
+                                                    <p className="font-bold text-[var(--text)]">Sync Reconnecting</p>
+                                                </div>
+                                                <p>
+                                                    {network === "online"
+                                                        ? "Cloud backup is reconnecting now. This usually clears on its own."
+                                                        : "This device is offline right now. Cloud backup will continue when the connection returns."}
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-2 w-2 rounded-full bg-[var(--primary)] animate-pulse" />
+                                                    <p className="font-bold text-[var(--text)]">Cloud Sync Active</p>
+                                                </div>
+                                                <p>Your data is encrypted with your recovery key before it leaves this device. After the first backup completes, later changes sync automatically and can be restored on your other devices after login and recovery-key unlock.</p>
+                                            </>
+                                        )}
                                     </>
                                 ) : mode === "account_locked" ? (
                                     <>

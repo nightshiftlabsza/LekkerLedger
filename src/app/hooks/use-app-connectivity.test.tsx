@@ -64,12 +64,13 @@ vi.mock("@/lib/sync-service", () => ({
 import { useAppConnectivity } from "./use-app-connectivity";
 
 function Harness() {
-    const { network, sync } = useAppConnectivity();
+    const { network, sync, syncErrorMessage } = useAppConnectivity();
 
     return (
         <div>
             <span data-testid="network">{network}</span>
             <span data-testid="sync">{sync}</span>
+            <span data-testid="sync-error">{syncErrorMessage ?? ""}</span>
         </div>
     );
 }
@@ -155,6 +156,7 @@ describe("useAppConnectivity", () => {
         await waitFor(() => {
             expect(screen.getByTestId("sync")).toHaveTextContent("error");
         });
+        expect(screen.getByTestId("sync-error")).toHaveTextContent("Push failed.");
     });
 
     it("reports reconnecting when the browser is offline but sync is ready", async () => {

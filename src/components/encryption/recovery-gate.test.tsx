@@ -7,13 +7,15 @@ const mocks = vi.hoisted(() => ({
     initialMode: "account_locked" as "local_guest" | "account_locked" | "account_unlocked",
     routerReplaceMock: vi.fn(),
     getUserMock: vi.fn(),
-    maybeSingleMock: vi.fn(),
+    userProfilesMaybeSingleMock: vi.fn(),
+    syncedRecordsMaybeSingleMock: vi.fn(),
     upsertMock: vi.fn(),
     getLocalRecoveryProfileMock: vi.fn(),
     saveLocalRecoveryProfileMock: vi.fn(),
     deriveKeyMock: vi.fn(),
     generateValidationPayloadMock: vi.fn(),
     verifyValidationPayloadMock: vi.fn(),
+    decryptDataMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -76,14 +78,24 @@ vi.mock("@/lib/supabase/client", () => ({
         auth: {
             getUser: mocks.getUserMock,
         },
-        from: () => ({
-            select: () => ({
-                eq: () => ({
-                    maybeSingle: mocks.maybeSingleMock,
+        from: (table: string) => {
+            const maybeSingle =
+                table === "synced_records"
+                    ? mocks.syncedRecordsMaybeSingleMock
+                    : mocks.userProfilesMaybeSingleMock;
+
+            return {
+                select: () => ({
+                    eq: () => ({
+                        limit: () => ({
+                            maybeSingle,
+                        }),
+                        maybeSingle,
+                    }),
                 }),
-            }),
-            upsert: mocks.upsertMock,
-        }),
+                upsert: mocks.upsertMock,
+            };
+        },
     }),
 }));
 
@@ -93,6 +105,7 @@ vi.mock("@/lib/recovery-profile-store", () => ({
 }));
 
 vi.mock("@/lib/crypto", () => ({
+    decryptData: mocks.decryptDataMock,
     deriveKey: mocks.deriveKeyMock,
     generateValidationPayload: mocks.generateValidationPayloadMock,
     verifyValidationPayload: mocks.verifyValidationPayloadMock,
@@ -164,13 +177,15 @@ describe("RecoveryGate", () => {
         mocks.initialMode = "account_locked";
         mocks.routerReplaceMock.mockReset();
         mocks.getUserMock.mockReset();
-        mocks.maybeSingleMock.mockReset();
+        mocks.userProfilesMaybeSingleMock.mockReset();
+        mocks.syncedRecordsMaybeSingleMock.mockReset();
         mocks.upsertMock.mockReset();
         mocks.getLocalRecoveryProfileMock.mockReset();
         mocks.saveLocalRecoveryProfileMock.mockReset();
         mocks.deriveKeyMock.mockReset();
         mocks.generateValidationPayloadMock.mockReset();
         mocks.verifyValidationPayloadMock.mockReset();
+        mocks.decryptDataMock.mockReset();
 
         mocks.getUserMock.mockResolvedValue({
             data: {
@@ -187,14 +202,29 @@ describe("RecoveryGate", () => {
             iv: "iv",
         });
         mocks.verifyValidationPayloadMock.mockResolvedValue(true);
+        mocks.decryptDataMock.mockResolvedValue({
+            magicWord: "ok",
+        });
+        mocks.userProfilesMaybeSingleMock.mockResolvedValue({
+            data: null,
+            error: null,
+        });
+        mocks.syncedRecordsMaybeSingleMock.mockResolvedValue({
+            data: null,
+            error: null,
+        });
     });
 
     it("unlocks directly after first-device setup without showing the recovery-key input again", async () => {
-        mocks.maybeSingleMock.mockResolvedValue({
+        mocks.userProfilesMaybeSingleMock.mockResolvedValue({
             data: null,
             error: {
                 message: "user_profiles table not available",
             },
+        });
+        mocks.syncedRecordsMaybeSingleMock.mockResolvedValue({
+            data: null,
+            error: null,
         });
 
         renderGate();
@@ -222,7 +252,7 @@ describe("RecoveryGate", () => {
     });
 
     it("asks for the recovery key on later logins when the profile already exists", async () => {
-        mocks.maybeSingleMock.mockResolvedValue({
+        mocks.userProfilesMaybeSingleMock.mockResolvedValue({
             data: {
                 key_setup_complete: true,
                 validation_payload: {
@@ -241,5 +271,46 @@ describe("RecoveryGate", () => {
 
         expect(screen.queryByText("Mock Setup")).toBeNull();
         expect(screen.queryByText("Protected child")).toBeNull();
+    });
+
+    it("asks for the existing recovery key when cloud data exists but the profile row is missing", async () => {
+        mocks.userProfilesMaybeSingleMock.mockResolvedValue({
+            data: null,
+            error: null,
+        });
+        mocks.syncedRecordsMaybeSingleMock.mockResolvedValue({
+            data: {
+                encrypted_data: {
+                    ciphertext: "ciphertext",
+                    iv: "iv",
+                },
+            },
+            error: null,
+        });
+
+        renderGate();
+
+        await waitFor(() => {
+            expect(screen.getByText("Mock Input")).toBeTruthy();
+        });
+
+        expect(screen.queryByText("Mock Setup")).toBeNull();
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "Unlock" }));
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText("Protected child")).toBeTruthy();
+        });
+
+        expect(mocks.decryptDataMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                ciphertext: "ciphertext",
+                iv: "iv",
+            }),
+            expect.anything(),
+        );
+        expect(mocks.upsertMock).toHaveBeenCalled();
     });
 });
