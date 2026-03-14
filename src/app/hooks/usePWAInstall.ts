@@ -24,10 +24,10 @@ export const usePWAInstall = () => {
             setIsInstallable(true);
         };
 
-        window.addEventListener("beforeinstallprompt", handler);
+        globalThis.addEventListener("beforeinstallprompt", handler);
 
         return () => {
-            window.removeEventListener("beforeinstallprompt", handler);
+            globalThis.removeEventListener("beforeinstallprompt", handler);
         };
     }, []);
 

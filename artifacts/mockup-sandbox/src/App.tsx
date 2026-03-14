@@ -15,17 +15,17 @@ function _resolveComponent(
     (mod.default as ComponentType) ||
     (mod.Preview as ComponentType) ||
     (mod[name] as ComponentType) ||
-    fns[fns.length - 1]
+    fns.at(-1)
   );
 }
 
 function PreviewRenderer({
   componentPath,
   modules,
-}: {
+}: Readonly<{
   componentPath: string;
   modules: ModuleMap;
-}) {
+}>) {
   const [loadedPath, setLoadedPath] = useState<string>("");
   const [Component, setComponent] = useState<ComponentType | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -128,12 +128,12 @@ function Gallery() {
 
 function getPreviewPath(): string | null {
   const basePath = getBasePath();
-  const { pathname } = window.location;
+  const { pathname } = globalThis.location;
   const local =
     basePath && pathname.startsWith(basePath)
       ? pathname.slice(basePath.length) || "/"
       : pathname;
-  const match = local.match(/^\/preview\/(.+)$/);
+  const match = /^\/preview\/(.+)$/.exec(local);
   return match ? match[1] : null;
 }
 

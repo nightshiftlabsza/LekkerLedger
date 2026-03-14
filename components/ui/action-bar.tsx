@@ -3,13 +3,13 @@
 import * as React from "react";
 
 interface ActionBarProps {
-    primaryAction?: React.ReactNode;
-    secondaryAction?: React.ReactNode;
+    readonly primaryAction?: React.ReactNode;
+    readonly secondaryAction?: React.ReactNode;
     /** Optional hint text below actions (e.g. Drive backup status) */
-    hint?: React.ReactNode;
+    readonly hint?: React.ReactNode;
     /** "paper" = Civic Ledger paper panel; "glass" = glassmorphism (default) */
-    variant?: "glass" | "paper";
-    className?: string;
+    readonly variant?: "glass" | "paper";
+    readonly className?: string;
 }
 
 /**

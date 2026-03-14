@@ -18,7 +18,7 @@ export default function GlobalError({
     React.useEffect(() => {
         console.error("Global UI Crash:", error);
         try {
-            window.sessionStorage.setItem("ll_last_global_error", JSON.stringify({
+            globalThis.sessionStorage.setItem("ll_last_global_error", JSON.stringify({
                 message: errorMessage,
                 digest: error.digest || "local_crash",
                 stack: typeof error?.stack === "string" ? error.stack : null,

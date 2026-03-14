@@ -42,7 +42,7 @@ export function generateRecoveryKey(): string {
 export async function deriveKey(recoveryKey: string): Promise<CryptoKey> {
     const subtleCrypto = getSubtleCrypto();
     const encoder = new TextEncoder();
-    const keyData = encoder.encode(recoveryKey.replaceAll(/-/g, '').toUpperCase());
+    const keyData = encoder.encode(recoveryKey.replaceAll("-", "").toUpperCase());
     
     const hash = await subtleCrypto.digest('SHA-256', keyData);
     

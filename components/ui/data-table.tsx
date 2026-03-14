@@ -125,39 +125,38 @@ export function DataTable<T>({
 
             {/* Mobile cards (<840px) */}
             <div className={`min-840:hidden space-y-2 ${className}`}>
-                {sorted.map((item, i) => (
-                    <React.Fragment key={keyField(item)}>
-                        {renderCard ? renderCard(item, i) : (
-                            onRowClick ? (
-                                <button
-                                    type="button"
-                                    className="glass-panel w-full rounded-xl border-0 p-4 space-y-2 bg-transparent text-left cursor-pointer hover-lift"
-                                    onClick={() => onRowClick(item)}
-                                >
-                                    {columns.map(col => (
-                                        <div key={col.key} className="flex items-start justify-between gap-4 py-1 border-b border-[var(--border)]/30 last:border-0">
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] pt-1 shrink-0">{col.label}</span>
-                                            <div className="text-sm font-semibold text-[var(--text)] text-right flex flex-col items-end max-w-[65%]">
-                                                {col.render(item)}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </button>
-                            ) : (
-                                <div className="glass-panel rounded-xl p-4 space-y-2">
-                                    {columns.map(col => (
-                                        <div key={col.key} className="flex items-start justify-between gap-4 py-1 border-b border-[var(--border)]/30 last:border-0">
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] pt-1 shrink-0">{col.label}</span>
-                                            <div className="text-sm font-semibold text-[var(--text)] text-right flex flex-col items-end max-w-[65%]">
-                                                {col.render(item)}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )
-                        )}
-                    </React.Fragment>
-                ))}
+                {sorted.map((item, i) => {
+                    const mobileContent = columns.map(col => (
+                        <div key={col.key} className="flex items-start justify-between gap-4 py-1 border-b border-[var(--border)]/30 last:border-0">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] pt-1 shrink-0">{col.label}</span>
+                            <div className="text-sm font-semibold text-[var(--text)] text-right flex flex-col items-end max-w-[65%]">
+                                {col.render(item)}
+                            </div>
+                        </div>
+                    ));
+
+                    let card = (
+                        <div className="glass-panel rounded-xl p-4 space-y-2">
+                            {mobileContent}
+                        </div>
+                    );
+
+                    if (renderCard) {
+                        card = <>{renderCard(item, i)}</>;
+                    } else if (onRowClick) {
+                        card = (
+                            <button
+                                type="button"
+                                className="glass-panel w-full rounded-xl border-0 p-4 space-y-2 bg-transparent text-left cursor-pointer hover-lift"
+                                onClick={() => onRowClick(item)}
+                            >
+                                {mobileContent}
+                            </button>
+                        );
+                    }
+
+                    return <React.Fragment key={keyField(item)}>{card}</React.Fragment>;
+                })}
             </div>
         </>
     );

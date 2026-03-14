@@ -21,18 +21,34 @@ export default function BillingSuccessPage() {
     );
 }
 
+function billingAccountHasPaidAccess(billingAccount: Awaited<ReturnType<typeof fetchBillingAccount>>) {
+    return Boolean(
+        billingAccount
+        && billingAccount.entitlements.isActive
+        && billingAccount.entitlements.planId !== "free",
+    );
+}
+
+async function getReferenceDashboardHref(reference: string): Promise<string | null> {
+    const confirmedAccount = await confirmBillingTransaction(reference).catch(() => null);
+    return billingAccountHasPaidAccess(confirmedAccount) ? buildPaidDashboardHref({ reference }) : null;
+}
+
+async function storeGuestBillingEmail(reference: string): Promise<void> {
+    try {
+        const guestStatus = await confirmGuestBillingTransaction(reference);
+        if (guestStatus.email) {
+            writePendingBillingEmail(guestStatus.email);
+        }
+    } catch {
+        // Keep the reference and continue to paid login even if guest verification lags.
+    }
+}
+
 function BillingSuccessPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [error, setError] = React.useState<string | null>(null);
-
-    const hasPaidAccess = React.useCallback((billingAccount: Awaited<ReturnType<typeof fetchBillingAccount>>) => {
-        return Boolean(
-            billingAccount
-            && billingAccount.entitlements.isActive
-            && billingAccount.entitlements.planId !== "free",
-        );
-    }, []);
 
     const routeToCurrentFlow = React.useCallback(async () => {
         setError(null);
@@ -45,15 +61,15 @@ function BillingSuccessPageContent() {
 
         try {
             if (reference) {
-                const confirmedAccount = await confirmBillingTransaction(reference).catch(() => null);
-                if (hasPaidAccess(confirmedAccount)) {
-                    router.replace(buildPaidDashboardHref({ reference }));
+                const referenceDashboardHref = await getReferenceDashboardHref(reference);
+                if (referenceDashboardHref) {
+                    router.replace(referenceDashboardHref);
                     return;
                 }
             }
 
             const billingAccount = await fetchBillingAccount();
-            if (hasPaidAccess(billingAccount)) {
+            if (billingAccountHasPaidAccess(billingAccount)) {
                 router.replace(reference ? buildPaidDashboardHref({ reference }) : "/dashboard");
                 return;
             }
@@ -67,24 +83,21 @@ function BillingSuccessPageContent() {
             return;
         }
 
-        if (reference) {
-            try {
-                const guestStatus = await confirmGuestBillingTransaction(reference);
-                if (guestStatus.email) {
-                    writePendingBillingEmail(guestStatus.email);
-                }
-            } catch {
-                // Keep the reference and continue to paid login even if guest verification lags.
-            }
-            router.replace(buildPaidLoginHref(reference));
+        if (!reference) {
+            router.replace("/pricing");
             return;
         }
 
-        router.replace("/pricing");
-    }, [hasPaidAccess, router, searchParams]);
+        await storeGuestBillingEmail(reference);
+        router.replace(buildPaidLoginHref(reference));
+    }, [router, searchParams]);
+
+    const handleRetry = React.useCallback(() => {
+        routeToCurrentFlow().catch(() => undefined);
+    }, [routeToCurrentFlow]);
 
     React.useEffect(() => {
-        void routeToCurrentFlow();
+        routeToCurrentFlow().catch(() => undefined);
     }, [routeToCurrentFlow]);
 
     return (
@@ -112,7 +125,7 @@ function BillingSuccessPageContent() {
                 {error ? (
                     <div className="mt-8 rounded-[1.5rem] border border-[var(--danger-border)] bg-[var(--danger-soft)] p-4">
                         <p className="text-sm leading-6 text-[var(--text-muted)]">{error}</p>
-                        <Button variant="outline" className="mt-4" onClick={() => void routeToCurrentFlow()}>
+                        <Button variant="outline" className="mt-4" onClick={handleRetry}>
                             <RefreshCw className="h-4 w-4" />
                             Try again
                         </Button>

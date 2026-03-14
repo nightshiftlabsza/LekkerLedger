@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Calculator, DollarSign, Info } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calculator, DollarSign, Info, ArrowRight } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -142,5 +142,4 @@ export default function NMW2026GuidePage() {
     );
 }
 
-// Ensure ArrowRight is imported, missed in initial import list
-import { ArrowRight } from "lucide-react";
+

@@ -1,4 +1,4 @@
-import { createHmac, randomUUID, timingSafeEqual } from "crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { BillingCycle, PlanId, getPlanPrice } from "../config/plans";
 import {
     addBillingInterval,
@@ -295,6 +295,8 @@ function rowToSubscriptionRecord(row: Record<string, unknown>): SubscriptionReco
 }
 
 function rowToBillingIntentRecord(row: Record<string, unknown>): BillingIntentRecord {
+    const status = typeof row.status === "string" ? row.status : "pending";
+
     return {
         id: String(row.id),
         reference: String(row.reference),
@@ -304,7 +306,7 @@ function rowToBillingIntentRecord(row: Record<string, unknown>): BillingIntentRe
         billingCycle: sanitizeBillingCycle(String(row.billing_cycle)),
         referralCode: row.referral_code ? String(row.referral_code) : null,
         amountCents: Number(row.amount_cents || 0),
-        status: sanitizeBillingIntentStatus(String(row.status || "pending")),
+        status: sanitizeBillingIntentStatus(status),
         createdAt: Number(row.created_at || 0),
         updatedAt: Number(row.updated_at || 0),
     };
@@ -319,6 +321,8 @@ function rowToReferralCodeRecord(row: Record<string, unknown>): ReferralCodeReco
 }
 
 function rowToReferralRecord(row: Record<string, unknown>): ReferralRecord {
+    const status = typeof row.status === "string" ? row.status : "pending_first_charge";
+
     return {
         id: String(row.id),
         referrerUserId: String(row.referrer_user_id),
@@ -327,7 +331,7 @@ function rowToReferralRecord(row: Record<string, unknown>): ReferralRecord {
         referralCode: String(row.referral_code),
         planId: sanitizePlanId(String(row.plan_id)) as Exclude<PlanId, "free">,
         billingCycle: sanitizeBillingCycle(String(row.billing_cycle)),
-        status: sanitizeReferralStatus(String(row.status || "pending_first_charge")),
+        status: sanitizeReferralStatus(status),
         qualifiedAt: row.qualified_at === null || row.qualified_at === undefined ? null : Number(row.qualified_at || 0),
         pendingUntil: row.pending_until === null || row.pending_until === undefined ? null : Number(row.pending_until || 0),
         createdAt: Number(row.created_at || 0),
@@ -402,111 +406,109 @@ async function ensureColumns(tableName: string, columnsByName: Record<string, st
 }
 
 async function ensureBillingSchema() {
-    if (schemaPromise === null) {
-        schemaPromise = (async () => {
-            try {
-                // Batch all DDL into a single multi-statement D1 call to avoid
-                // 15-20 sequential HTTP round-trips (~550 ms each) that cause
-                // Vercel serverless functions to timeout on cold starts.
-                await queryD1(`
-                    CREATE TABLE IF NOT EXISTS subscriptions (
-                        user_id TEXT PRIMARY KEY,
-                        email TEXT NOT NULL,
-                        paystack_customer_id TEXT UNIQUE,
-                        paystack_subscription_code TEXT UNIQUE,
-                        paystack_plan_code TEXT,
-                        plan_id TEXT NOT NULL,
-                        billing_cycle TEXT NOT NULL,
-                        status TEXT NOT NULL,
-                        current_period_end INTEGER NOT NULL,
-                        updated_at INTEGER NOT NULL,
-                        paystack_email_token TEXT,
-                        paystack_authorization_code TEXT,
-                        paystack_authorization_signature TEXT,
-                        paystack_authorization_last4 TEXT,
-                        next_charge_at INTEGER,
-                        cancel_at_period_end INTEGER NOT NULL DEFAULT 0,
-                        last_error TEXT
-                    );
-                    CREATE INDEX IF NOT EXISTS idx_subscriptions_customer_id ON subscriptions(paystack_customer_id);
-                    CREATE INDEX IF NOT EXISTS idx_subscriptions_subscription_code ON subscriptions(paystack_subscription_code);
-                    CREATE INDEX IF NOT EXISTS idx_subscriptions_authorization_signature ON subscriptions(paystack_authorization_signature);
-                    CREATE TABLE IF NOT EXISTS billing_intents (
-                        id TEXT PRIMARY KEY,
-                        reference TEXT NOT NULL UNIQUE,
-                        user_id TEXT NOT NULL,
-                        email TEXT NOT NULL,
-                        plan_id TEXT NOT NULL,
-                        billing_cycle TEXT NOT NULL,
-                        referral_code TEXT,
-                        amount_cents INTEGER NOT NULL,
-                        status TEXT NOT NULL,
-                        created_at INTEGER NOT NULL,
-                        updated_at INTEGER NOT NULL
-                    );
-                    CREATE INDEX IF NOT EXISTS idx_billing_intents_user_id ON billing_intents(user_id);
-                    CREATE TABLE IF NOT EXISTS billing_events (
-                        event_key TEXT PRIMARY KEY,
-                        event_name TEXT NOT NULL,
-                        reference TEXT,
-                        created_at INTEGER NOT NULL
-                    );
-                    CREATE TABLE IF NOT EXISTS referral_codes (
-                        user_id TEXT PRIMARY KEY,
-                        code TEXT NOT NULL UNIQUE,
-                        created_at INTEGER NOT NULL
-                    );
-                    CREATE TABLE IF NOT EXISTS referrals (
-                        id TEXT PRIMARY KEY,
-                        referrer_user_id TEXT NOT NULL,
-                        referee_user_id TEXT NOT NULL UNIQUE,
-                        referee_email TEXT NOT NULL,
-                        referral_code TEXT NOT NULL,
-                        plan_id TEXT NOT NULL,
-                        billing_cycle TEXT NOT NULL,
-                        status TEXT NOT NULL,
-                        qualified_at INTEGER,
-                        pending_until INTEGER,
-                        created_at INTEGER NOT NULL,
-                        updated_at INTEGER NOT NULL
-                    );
-                    CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_user_id);
-                    CREATE TABLE IF NOT EXISTS billing_credits (
-                        id TEXT PRIMARY KEY,
-                        user_id TEXT NOT NULL,
-                        referral_id TEXT NOT NULL,
-                        months INTEGER NOT NULL,
-                        status TEXT NOT NULL,
-                        available_at INTEGER,
-                        applied_at INTEGER,
-                        created_at INTEGER NOT NULL,
-                        updated_at INTEGER NOT NULL
-                    );
-                    CREATE INDEX IF NOT EXISTS idx_billing_credits_user_id ON billing_credits(user_id);
-                    UPDATE subscriptions SET status = 'active' WHERE status = 'trialing';
-                    UPDATE billing_intents SET status = 'completed' WHERE status = 'trial_started';
-                    UPDATE referrals SET status = 'pending_first_charge' WHERE status = 'trial_started';
-                `);
+    schemaPromise ??= (async () => {
+        try {
+            // Batch all DDL into a single multi-statement D1 call to avoid
+            // 15-20 sequential HTTP round-trips (~550 ms each) that cause
+            // Vercel serverless functions to timeout on cold starts.
+            await queryD1(`
+                CREATE TABLE IF NOT EXISTS subscriptions (
+                    user_id TEXT PRIMARY KEY,
+                    email TEXT NOT NULL,
+                    paystack_customer_id TEXT UNIQUE,
+                    paystack_subscription_code TEXT UNIQUE,
+                    paystack_plan_code TEXT,
+                    plan_id TEXT NOT NULL,
+                    billing_cycle TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    current_period_end INTEGER NOT NULL,
+                    updated_at INTEGER NOT NULL,
+                    paystack_email_token TEXT,
+                    paystack_authorization_code TEXT,
+                    paystack_authorization_signature TEXT,
+                    paystack_authorization_last4 TEXT,
+                    next_charge_at INTEGER,
+                    cancel_at_period_end INTEGER NOT NULL DEFAULT 0,
+                    last_error TEXT
+                );
+                CREATE INDEX IF NOT EXISTS idx_subscriptions_customer_id ON subscriptions(paystack_customer_id);
+                CREATE INDEX IF NOT EXISTS idx_subscriptions_subscription_code ON subscriptions(paystack_subscription_code);
+                CREATE INDEX IF NOT EXISTS idx_subscriptions_authorization_signature ON subscriptions(paystack_authorization_signature);
+                CREATE TABLE IF NOT EXISTS billing_intents (
+                    id TEXT PRIMARY KEY,
+                    reference TEXT NOT NULL UNIQUE,
+                    user_id TEXT NOT NULL,
+                    email TEXT NOT NULL,
+                    plan_id TEXT NOT NULL,
+                    billing_cycle TEXT NOT NULL,
+                    referral_code TEXT,
+                    amount_cents INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at INTEGER NOT NULL,
+                    updated_at INTEGER NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_billing_intents_user_id ON billing_intents(user_id);
+                CREATE TABLE IF NOT EXISTS billing_events (
+                    event_key TEXT PRIMARY KEY,
+                    event_name TEXT NOT NULL,
+                    reference TEXT,
+                    created_at INTEGER NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS referral_codes (
+                    user_id TEXT PRIMARY KEY,
+                    code TEXT NOT NULL UNIQUE,
+                    created_at INTEGER NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS referrals (
+                    id TEXT PRIMARY KEY,
+                    referrer_user_id TEXT NOT NULL,
+                    referee_user_id TEXT NOT NULL UNIQUE,
+                    referee_email TEXT NOT NULL,
+                    referral_code TEXT NOT NULL,
+                    plan_id TEXT NOT NULL,
+                    billing_cycle TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    qualified_at INTEGER,
+                    pending_until INTEGER,
+                    created_at INTEGER NOT NULL,
+                    updated_at INTEGER NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_user_id);
+                CREATE TABLE IF NOT EXISTS billing_credits (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    referral_id TEXT NOT NULL,
+                    months INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    available_at INTEGER,
+                    applied_at INTEGER,
+                    created_at INTEGER NOT NULL,
+                    updated_at INTEGER NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_billing_credits_user_id ON billing_credits(user_id);
+                UPDATE subscriptions SET status = 'active' WHERE status = 'trialing';
+                UPDATE billing_intents SET status = 'completed' WHERE status = 'trial_started';
+                UPDATE referrals SET status = 'pending_first_charge' WHERE status = 'trial_started';
+            `);
 
-                // Ensure columns that may be missing on older databases (separate
-                // call because ALTER TABLE IF NOT EXISTS is not supported by SQLite).
-                await ensureColumns("subscriptions", {
-                    paystack_email_token: "TEXT",
-                    paystack_authorization_code: "TEXT",
-                    paystack_authorization_signature: "TEXT",
-                    paystack_authorization_last4: "TEXT",
-                    next_charge_at: "INTEGER",
-                    cancel_at_period_end: "INTEGER NOT NULL DEFAULT 0",
-                    last_error: "TEXT",
-                });
-            } catch (error) {
-                // Reset the singleton so the next call retries instead of
-                // permanently caching a rejected promise ("poisoned singleton").
-                schemaPromise = null;
-                throw error;
-            }
-        })();
-    }
+            // Ensure columns that may be missing on older databases (separate
+            // call because ALTER TABLE IF NOT EXISTS is not supported by SQLite).
+            await ensureColumns("subscriptions", {
+                paystack_email_token: "TEXT",
+                paystack_authorization_code: "TEXT",
+                paystack_authorization_signature: "TEXT",
+                paystack_authorization_last4: "TEXT",
+                next_charge_at: "INTEGER",
+                cancel_at_period_end: "INTEGER NOT NULL DEFAULT 0",
+                last_error: "TEXT",
+            });
+        } catch (error) {
+            // Reset the singleton so the next call retries instead of
+            // permanently caching a rejected promise ("poisoned singleton").
+            schemaPromise = null;
+            throw error;
+        }
+    })();
 
     await schemaPromise;
 }
@@ -731,7 +733,7 @@ async function ensureReferralCodeForUser(userId: string): Promise<ReferralCodeRe
     if (existing) return existing;
 
     for (let attempt = 0; attempt < 5; attempt += 1) {
-        const code = randomUUID().replaceAll(/-/g, "").slice(0, 8).toUpperCase();
+        const code = randomUUID().replaceAll("-", "").slice(0, 8).toUpperCase();
         try {
             const createdAt = Date.now();
             await queryD1(
@@ -1173,7 +1175,7 @@ async function claimGuestPurchaseIntentForUser(intent: BillingIntentRecord, user
 
 async function qualifyReferralForFirstPaidCharge(userId: string, planId: Exclude<PlanId, "free">, billingCycle: BillingCycle, paidAt: number): Promise<void> {
     const referral = await getReferralByReferee(userId);
-    if (!referral || referral.status !== "pending_first_charge") return;
+    if (referral?.status !== "pending_first_charge") return;
 
     const referrerCredits = await summarizeCreditsForUser(referral.referrerUserId);
     if (referrerCredits.total >= REFERRAL_REWARD_CAP_MONTHS) {

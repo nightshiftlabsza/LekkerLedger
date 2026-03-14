@@ -1,3 +1,4 @@
+import type { ElementType } from "react";
 import "./_group.css";
 import {
   ArrowRight, FileText, FolderOpen, ChevronRight,
@@ -24,7 +25,18 @@ const MOCK = {
   ],
 };
 
-const NAV_GROUPS = [
+type NavItem = {
+  label: string;
+  Icon: ElementType;
+  active?: boolean;
+};
+
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
+
+const NAV_GROUPS: NavGroup[] = [
   {
     label: "Work",
     items: [
@@ -58,7 +70,7 @@ const NAV_GROUPS = [
   },
 ];
 
-const MOBILE_NAV = [
+const MOBILE_NAV: NavItem[] = [
   { label: "Home", Icon: Home },
   { label: "Payroll", Icon: Banknote },
   { label: "Employees", Icon: Users },
@@ -102,7 +114,7 @@ function Sidebar() {
         {NAV_GROUPS.map((group) => (
           <div key={group.label} style={{ marginBottom: "4px" }}>
             <p style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", padding: "8px 8px 4px" }}>{group.label}</p>
-            {group.items.map(({ label, Icon, active }: { label: string; Icon: React.ElementType; active?: boolean }) => (
+            {group.items.map(({ label, Icon, active }) => (
               <button key={label} style={{
                 width: "100%",
                 display: "flex",

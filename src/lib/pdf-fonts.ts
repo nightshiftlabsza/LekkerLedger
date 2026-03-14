@@ -63,7 +63,7 @@ export async function loadPdfFonts(pdfDoc: PDFDocument) {
                     import("node:fs/promises"),
                     import("node:path"),
                 ]);
-                const localPath = path.join(process.cwd(), "public", source.replace(/^\//, "").replaceAll(/\//g, path.sep));
+                const localPath = path.join(process.cwd(), "public", source.replace(/^\//, "").replaceAll("/", path.sep));
                 await access(localPath);
                 const buffer = await readFile(localPath);
                 const bytes = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);

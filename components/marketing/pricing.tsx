@@ -43,9 +43,9 @@ export function MarketingBillingToggle({
     onChange,
     align = "center",
 }: {
-    billingCycle: BillingCycle;
-    onChange: (cycle: BillingCycle) => void;
-    align?: "left" | "center" | "right";
+    readonly billingCycle: BillingCycle;
+    readonly onChange: (cycle: BillingCycle) => void;
+    readonly align?: "left" | "center" | "right";
 }) {
     const alignmentClass =
         align === "center" ? "items-center" : align === "right" ? "items-end" : "items-start";
@@ -166,11 +166,11 @@ export function MarketingPlanCards({
     onSelect,
     isLoadingPlanId,
 }: {
-    billingCycle: BillingCycle;
-    compact?: boolean;
-    currentPlanId?: PlanId;
-    onSelect?: (planId: PlanId) => void;
-    isLoadingPlanId?: PlanId | null;
+    readonly billingCycle: BillingCycle;
+    readonly compact?: boolean;
+    readonly currentPlanId?: PlanId;
+    readonly onSelect?: (planId: PlanId) => void;
+    readonly isLoadingPlanId?: PlanId | null;
 }) {
     return (
         <div className="space-y-6">
@@ -216,14 +216,14 @@ export function MarketingPlanCard({
     isLoading = false,
     isDisabled = false,
 }: {
-    planId: PlanId;
-    billingCycle: BillingCycle;
-    compact?: boolean;
-    isCurrent?: boolean;
-    currentPlanId?: PlanId;
-    onSelect?: (planId: PlanId) => void;
-    isLoading?: boolean;
-    isDisabled?: boolean;
+    readonly planId: PlanId;
+    readonly billingCycle: BillingCycle;
+    readonly compact?: boolean;
+    readonly isCurrent?: boolean;
+    readonly currentPlanId?: PlanId;
+    readonly onSelect?: (planId: PlanId) => void;
+    readonly isLoading?: boolean;
+    readonly isDisabled?: boolean;
 }) {
     const plan = MARKETING_PLAN_DISPLAY[planId];
     const featured = planId === "standard";
@@ -233,9 +233,9 @@ export function MarketingPlanCard({
     const isUpgrade =
         !isCurrent && !!currentPlanId && PLAN_RANK[planId] > PLAN_RANK[currentPlanId];
     const referralCode =
-        typeof window === "undefined"
+        typeof globalThis.window === "undefined"
             ? null
-            : new URLSearchParams(window.location.search).get("ref");
+            : new URLSearchParams(globalThis.window.location.search).get("ref");
     const href = appendReferralCode(getMarketingPlanHref(planId, billingCycle), referralCode);
 
     const handleAction = () => {
@@ -420,7 +420,7 @@ export function MarketingPlanCard({
 
 // ─── Early-bird badge ──────────────────────────────────────────────────────────
 
-function EarlybirdBadge({ text }: { text: string }) {
+function EarlybirdBadge({ text }: { readonly text: string }) {
     return (
         <span
             className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em]"

@@ -75,14 +75,14 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 const profile = await loadRecoveryProfileState(user.id, supabase);
                 if (!mounted) return;
 
-                if (!profile.keySetupComplete) {
-                    setSetupError(null);
-                    setInputError(null);
-                    setStatus("needs_setup");
-                } else {
+                if (profile.keySetupComplete) {
                     setSetupError(null);
                     setInputError(null);
                     setStatus("needs_input");
+                } else {
+                    setSetupError(null);
+                    setInputError(null);
+                    setStatus("needs_setup");
                 }
             } catch (error) {
                 if (!mounted) return;

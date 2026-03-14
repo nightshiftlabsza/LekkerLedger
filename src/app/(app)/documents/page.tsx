@@ -98,7 +98,7 @@ function downloadBlob(blob: Blob, fileName: string) {
     document.body.appendChild(anchor);
     anchor.click();
     document.body.removeChild(anchor);
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    globalThis.window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 
@@ -213,7 +213,7 @@ export default function DocumentsPage() {
             }
         }
 
-        void load();
+        load();
         const unsubscribe = subscribeToDataChanges(load);
         return () => {
             active = false;
@@ -345,8 +345,8 @@ export default function DocumentsPage() {
 
             // For PDFs, open directly in a new tab instead of the side-panel viewer
             if ((doc.mimeType || "").startsWith("application/pdf")) {
-                if (typeof window !== "undefined") {
-                    window.open(cachedUrl, "_blank", "noopener,noreferrer");
+                if (typeof globalThis.window !== "undefined") {
+                    globalThis.window.open(cachedUrl, "_blank", "noopener,noreferrer");
                 }
                 return;
             }
@@ -374,8 +374,8 @@ export default function DocumentsPage() {
             if (mimeType === "application/pdf") {
                 const url = URL.createObjectURL(blob);
                 pdfCache.current[doc.id] = url;
-                if (typeof window !== "undefined") {
-                    window.open(url, "_blank", "noopener,noreferrer");
+                if (typeof globalThis.window !== "undefined") {
+                    globalThis.window.open(url, "_blank", "noopener,noreferrer");
                 }
                 return;
             }
@@ -519,7 +519,7 @@ export default function DocumentsPage() {
 
     const handleDeleteVaultDocument = async (document: DocumentMeta) => {
         if (!vaultUploadsAllowed) return;
-        if (typeof window !== "undefined" && !window.confirm(`Delete ${document.fileName}?`)) {
+        if (typeof globalThis.window !== "undefined" && !globalThis.window.confirm(`Delete ${document.fileName}?`)) {
             return;
         }
 

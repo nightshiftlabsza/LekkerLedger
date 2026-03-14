@@ -65,20 +65,18 @@ function getPlanChargeLabel(planId: Exclude<PlanId, "free">, billingCycle: Billi
 }
 
 function readStoredCheckoutEmail(): string {
-    if (typeof window === "undefined") return "";
-    const stored = window.localStorage.getItem(CHECKOUT_EMAIL_STORAGE_KEY);
+    if (typeof globalThis.window === "undefined") return "";
+    const stored = globalThis.window.localStorage.getItem(CHECKOUT_EMAIL_STORAGE_KEY);
     return stored ? normalizeEmail(stored) : "";
 }
 
 function writeStoredCheckoutEmail(email: string) {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(CHECKOUT_EMAIL_STORAGE_KEY, normalizeEmail(email));
+    if (typeof globalThis.window === "undefined") return;
+    globalThis.window.localStorage.setItem(CHECKOUT_EMAIL_STORAGE_KEY, normalizeEmail(email));
 }
 
 function loadPaystackConstructor(): Promise<new () => PaystackPopup> {
-    if (paystackConstructorPromise === null) {
-        paystackConstructorPromise = import("@paystack/inline-js").then((paystackModule) => paystackModule.default as new () => PaystackPopup);
-    }
+    paystackConstructorPromise ??= import("@paystack/inline-js").then((paystackModule) => paystackModule.default as new () => PaystackPopup);
 
     return paystackConstructorPromise;
 }
@@ -150,14 +148,14 @@ export function useInlinePaidPlanCheckout({
             }
         }
 
-        void prefillEmail();
+        prefillEmail();
         return () => {
             cancelled = true;
         };
     }, []);
 
     React.useEffect(() => {
-        if (typeof window === "undefined") return;
+        if (typeof globalThis.window === "undefined") return;
 
         const cleanup: Array<() => void> = [];
         for (const href of PAYSTACK_PRECONNECT_URLS) {
@@ -175,22 +173,22 @@ export function useInlinePaidPlanCheckout({
         }
 
         const warmPaystack = () => {
-            void loadPaystackConstructor();
+            loadPaystackConstructor();
         };
 
-        if (typeof window.requestIdleCallback === "function") {
-            const idleHandle = window.requestIdleCallback(() => {
+        if (typeof globalThis.window.requestIdleCallback === "function") {
+            const idleHandle = globalThis.window.requestIdleCallback(() => {
                 warmPaystack();
             });
             cleanup.push(() => {
-                window.cancelIdleCallback?.(idleHandle);
+                globalThis.window.cancelIdleCallback?.(idleHandle);
             });
         } else {
-            const timeoutHandle = window.setTimeout(() => {
+            const timeoutHandle = globalThis.window.setTimeout(() => {
                 warmPaystack();
             }, 250);
             cleanup.push(() => {
-                window.clearTimeout(timeoutHandle);
+                globalThis.window.clearTimeout(timeoutHandle);
             });
         }
 
@@ -200,7 +198,7 @@ export function useInlinePaidPlanCheckout({
     }, []);
 
     const warmCheckout = React.useCallback(() => {
-        void loadPaystackConstructor();
+        loadPaystackConstructor();
     }, []);
 
     const openPaystackCheckout = React.useCallback(async (planId: Exclude<PlanId, "free">, email: string) => {
@@ -266,7 +264,7 @@ export function useInlinePaidPlanCheckout({
             return;
         }
 
-        void openPaystackCheckout(planId, normalizedEmail);
+        openPaystackCheckout(planId, normalizedEmail);
     }, [checkoutEmail, openPaystackCheckout, router]);
 
     const handleDialogSubmit = React.useCallback((event: React.FormEvent<HTMLFormElement>) => {
@@ -283,7 +281,7 @@ export function useInlinePaidPlanCheckout({
             return;
         }
 
-        void openPaystackCheckout(requestedPlanId, normalizedEmail);
+        openPaystackCheckout(requestedPlanId, normalizedEmail);
     }, [checkoutEmail, openPaystackCheckout, requestedPlanId]);
 
     const dialog = dialogOpen ? (

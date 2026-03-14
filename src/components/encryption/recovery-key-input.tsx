@@ -14,7 +14,7 @@ export function RecoveryKeyInput({
     onComplete,
     errorMessage = null,
     isSubmitting = false,
-}: RecoveryKeyInputProps) {
+}: Readonly<RecoveryKeyInputProps>) {
     const [inputValue, setInputValue] = React.useState("");
     const [localError, setLocalError] = React.useState<string | null>(null);
 

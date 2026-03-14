@@ -1,7 +1,7 @@
 import localforage from "localforage";
 import { type EncryptedPayload } from "./crypto";
 
-    interface RecoveryProfileRecord {
+interface RecoveryProfileRecord {
     keySetupComplete: boolean;
     validationPayload: EncryptedPayload | null;
     recoveryKey?: string; // Optional: stored locally for auto-unlock
@@ -27,5 +27,21 @@ export async function saveLocalRecoveryProfile(userId: string, profile: Recovery
         await recoveryProfileStore.setItem(userId, profile);
     } catch (error) {
         console.warn("Recovery profile could not be saved on this device. Continuing without the local cache.", error);
+    }
+}
+
+export async function deleteLocalRecoveryProfile(userId: string) {
+    try {
+        await recoveryProfileStore.removeItem(userId);
+    } catch (error) {
+        console.warn("Recovery profile could not be removed from this device. Continuing sign-out anyway.", error);
+    }
+}
+
+export async function clearAllLocalRecoveryProfiles() {
+    try {
+        await recoveryProfileStore.clear();
+    } catch (error) {
+        console.warn("Recovery profiles could not be cleared from this device. Continuing local reset anyway.", error);
     }
 }

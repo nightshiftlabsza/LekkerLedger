@@ -13,17 +13,17 @@ function getSupabaseStorageKey(supabaseUrl: string): string | null {
 }
 
 function healSupabaseSessionStorage(storageKey: string | null) {
-    if (typeof window === "undefined" || !storageKey) return;
+    if (typeof globalThis.window === "undefined" || !storageKey) return;
 
     const jsonKeys = [storageKey, `${storageKey}-user`];
     for (const key of jsonKeys) {
         try {
-            const rawValue = window.localStorage.getItem(key);
+            const rawValue = globalThis.window.localStorage.getItem(key);
             if (!rawValue) continue;
             JSON.parse(rawValue);
         } catch {
             try {
-                window.localStorage.removeItem(key);
+                globalThis.window.localStorage.removeItem(key);
             } catch {
                 // Ignore storage cleanup failures. The safe adapter below is still best-effort.
             }

@@ -17,8 +17,8 @@ export function useUnsavedChanges(isDirty: boolean, message = "You have unsaved 
             }
         };
 
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+        globalThis.addEventListener("beforeunload", handleBeforeUnload);
+        return () => globalThis.removeEventListener("beforeunload", handleBeforeUnload);
     }, [isDirty, message]);
 
     // Note: Next.js app router navigation (Link, router.push) is harder to intercept 

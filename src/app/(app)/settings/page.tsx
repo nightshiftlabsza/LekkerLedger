@@ -568,42 +568,50 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Encrypted Sync</h2>
                             <Card className="glass-panel border-none p-5 space-y-3 text-sm text-[var(--text-muted)] leading-relaxed">
-                                {mode === "account_unlocked" ? (
-                                    <>
-                                        {sync === "error" ? (
-                                            <>
-                                                <div className="flex items-center gap-2 text-[var(--danger)]">
-                                                    <ShieldCheck className="h-4 w-4" />
-                                                    <p className="font-bold text-[var(--text)]">Sync Needs Attention</p>
-                                                </div>
-                                                <p>The account is connected, but the latest encrypted backup ran into a problem.</p>
-                                                {syncErrorMessage ? (
-                                                    <div
-                                                        className="rounded-2xl border px-4 py-3 text-xs leading-relaxed"
-                                                        style={{
-                                                            borderColor: "rgba(180,35,24,0.22)",
-                                                            backgroundColor: "rgba(180,35,24,0.08)",
-                                                            color: "var(--text)",
-                                                        }}
-                                                    >
-                                                        <p className="font-bold text-[var(--danger)]">Latest sync issue</p>
-                                                        <p className="mt-1">{syncErrorMessage}</p>
+                                {(() => {
+                                    if (mode === "account_unlocked") {
+                                        if (sync === "error") {
+                                            return (
+                                                <>
+                                                    <div className="flex items-center gap-2 text-[var(--danger)]">
+                                                        <ShieldCheck className="h-4 w-4" />
+                                                        <p className="font-bold text-[var(--text)]">Sync Needs Attention</p>
                                                     </div>
-                                                ) : null}
-                                            </>
-                                        ) : sync === "reconnecting" ? (
-                                            <>
-                                                <div className="flex items-center gap-2 text-[var(--warning)]">
-                                                    <div className="h-2 w-2 rounded-full bg-[var(--warning)] animate-pulse" />
-                                                    <p className="font-bold text-[var(--text)]">Sync Reconnecting</p>
-                                                </div>
-                                                <p>
-                                                    {network === "online"
-                                                        ? "Cloud backup is reconnecting now. This usually clears on its own."
-                                                        : "This device is offline right now. Cloud backup will continue when the connection returns."}
-                                                </p>
-                                            </>
-                                        ) : (
+                                                    <p>The account is connected, but the latest encrypted backup ran into a problem.</p>
+                                                    {syncErrorMessage ? (
+                                                        <div
+                                                            className="rounded-2xl border px-4 py-3 text-xs leading-relaxed"
+                                                            style={{
+                                                                borderColor: "rgba(180,35,24,0.22)",
+                                                                backgroundColor: "rgba(180,35,24,0.08)",
+                                                                color: "var(--text)",
+                                                            }}
+                                                        >
+                                                            <p className="font-bold text-[var(--danger)]">Latest sync issue</p>
+                                                            <p className="mt-1">{syncErrorMessage}</p>
+                                                        </div>
+                                                    ) : null}
+                                                </>
+                                            );
+                                        }
+
+                                        if (sync === "reconnecting") {
+                                            const reconnectingMessage = network === "online"
+                                                ? "Cloud backup is reconnecting now. This usually clears on its own."
+                                                : "This device is offline right now. Cloud backup will continue when the connection returns.";
+
+                                            return (
+                                                <>
+                                                    <div className="flex items-center gap-2 text-[var(--warning)]">
+                                                        <div className="h-2 w-2 rounded-full bg-[var(--warning)] animate-pulse" />
+                                                        <p className="font-bold text-[var(--text)]">Sync Reconnecting</p>
+                                                    </div>
+                                                    <p>{reconnectingMessage}</p>
+                                                </>
+                                            );
+                                        }
+
+                                        return (
                                             <>
                                                 <div className="flex items-center gap-2">
                                                     <div className="h-2 w-2 rounded-full bg-[var(--primary)] animate-pulse" />
@@ -611,27 +619,33 @@ function SettingsContent() {
                                                 </div>
                                                 <p>Your data is encrypted with your recovery key before it leaves this device. After the first backup completes, later changes sync automatically and can be restored on your other devices after login and recovery-key unlock.</p>
                                             </>
-                                        )}
-                                    </>
-                                ) : mode === "account_locked" ? (
-                                    <>
-                                        <div className="flex items-center gap-2 text-[var(--warning)]">
-                                            <ShieldCheck className="h-4 w-4" />
-                                            <p className="font-bold text-[var(--text)]">Sync Paused (Key Required)</p>
-                                        </div>
-                                        <p>You are logged in, but this device stays locked until you enter your recovery key. The secure unlock screen appears before you can open protected pages.</p>
-                                    </>
-                                ) : (
-                                    <>
-                                        <p className="font-bold text-[var(--text)]">Secure Cloud Sync</p>
-                                        <p>Paid plans unlock encrypted cloud backup and restore. You pay first, then create your account, then protect sync with your recovery key.</p>
-                                        {userPlan.id === "free" && (
-                                            <Link href="/pricing" className="inline-flex items-center font-bold text-[var(--primary)] hover:underline">
-                                                Upgrade to enable sync <ArrowRight className="ml-1 h-3 w-3" />
-                                            </Link>
-                                        )}
-                                    </>
-                                )}
+                                        );
+                                    }
+
+                                    if (mode === "account_locked") {
+                                        return (
+                                            <>
+                                                <div className="flex items-center gap-2 text-[var(--warning)]">
+                                                    <ShieldCheck className="h-4 w-4" />
+                                                    <p className="font-bold text-[var(--text)]">Sync Paused (Key Required)</p>
+                                                </div>
+                                                <p>You are logged in, but this device stays locked until you enter your recovery key. The secure unlock screen appears before you can open protected pages.</p>
+                                            </>
+                                        );
+                                    }
+
+                                    return (
+                                        <>
+                                            <p className="font-bold text-[var(--text)]">Secure Cloud Sync</p>
+                                            <p>Paid plans unlock encrypted cloud backup and restore. You pay first, then create your account, then protect sync with your recovery key.</p>
+                                            {userPlan.id === "free" && (
+                                                <Link href="/pricing" className="inline-flex items-center font-bold text-[var(--primary)] hover:underline">
+                                                    Upgrade to enable sync <ArrowRight className="ml-1 h-3 w-3" />
+                                                </Link>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </Card>
                         </section>
 
@@ -733,6 +747,17 @@ function SettingsContent() {
                     const displayCycle: BillingCycle = currentPlan.id === "free" ? "monthly" : currentCycle;
                     const comparisonCycle: BillingCycle = currentPlan.id === "free" ? "yearly" : currentCycle;
                     const currentPricePresentation = getPlanPricePresentation(currentPlan, displayCycle);
+                    const currentPlanStatusLabel = (() => {
+                        if (currentPlan.id === "free") return "Free plan active";
+                        if (billingAccount?.account.cancelAtPeriodEnd && effectiveSettings?.paidUntil) {
+                            return `Renewal canceled. Access ends ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`;
+                        }
+                        if (nextChargeLabel) return `Next renewal ${nextChargeLabel}`;
+                        if (effectiveSettings?.paidUntil) {
+                            return `Access until ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`;
+                        }
+                        return "Paid plan active";
+                    })();
 
                     return (
                         <div className="space-y-6">
@@ -747,15 +772,7 @@ function SettingsContent() {
                                             <h3 className="type-h3 text-[var(--text)]">{currentPlan.bestFor}</h3>
                                             <p className="text-sm text-[var(--text-muted)] max-w-2xl">{currentPlan.description}</p>
                                             <p className="text-xs font-bold text-[var(--primary-hover)] uppercase tracking-wider">
-                                                {currentPlan.id === "free"
-                                                    ? "Free plan active"
-                                                    : billingAccount?.account.cancelAtPeriodEnd && effectiveSettings?.paidUntil
-                                                            ? `Renewal canceled. Access ends ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`
-                                                            : nextChargeLabel
-                                                                ? `Next renewal ${nextChargeLabel}`
-                                                                : effectiveSettings?.paidUntil
-                                                                    ? `Access until ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`
-                                                                    : "Paid plan active"}
+                                                {currentPlanStatusLabel}
                                             </p>
                                         </div>
                                         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 lg:min-w-[220px]">
@@ -820,11 +837,11 @@ function SettingsContent() {
                                         <div className="space-y-3 text-sm text-[var(--text-muted)]">
                                             <p>
                                                 <strong className="text-[var(--text)]">Status:</strong>{" "}
-                                                {billingAccount.account.cancelAtPeriodEnd
-                                                        ? "Renewal canceled"
-                                                        : billingStatus === "active"
-                                                            ? "Paid subscription active"
-                                                            : "Free plan"}
+                                                {(() => {
+                                                     if (billingAccount.account.cancelAtPeriodEnd) return "Renewal canceled";
+                                                     if (billingStatus === "active") return "Paid subscription active";
+                                                     return "Free plan";
+                                                 })()}
                                             </p>
                                             {nextChargeLabel && (
                                                 <p><strong className="text-[var(--text)]">Next renewal:</strong> {nextChargeLabel}</p>
@@ -899,7 +916,11 @@ function SettingsContent() {
                                             </p>
                                             <p className="text-sm text-[var(--warning)]">
                                                 This cancels your {currentPlan.label} renewal. You keep {currentPlan.label} access until your current billing period ends
-                                                {nextChargeLabel ? ` (${nextChargeLabel})` : effectiveSettings?.paidUntil ? ` (${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")})` : ""}, then move to the Free plan.
+                                                {(() => {
+                                                    if (nextChargeLabel) return ` (${nextChargeLabel})`;
+                                                    if (effectiveSettings?.paidUntil) return ` (${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")})`;
+                                                    return "";
+                                                })()}, then move to the Free plan.
                                             </p>
                                             {downgradingTo !== "free" && (
                                                 <p className="text-sm text-[var(--warning)]">
@@ -912,7 +933,9 @@ function SettingsContent() {
                                                 Keep {currentPlan.label}
                                             </Button>
                                             <Button
-                                                onClick={() => void handleCancelRenewal().then(() => setDowngradingTo(null))}
+                                                onClick={() => {
+                                                    handleCancelRenewal().then(() => setDowngradingTo(null)).catch(() => undefined);
+                                                }}
                                                 disabled={cancelingRenewal}
                                                 className="flex-1 bg-[var(--warning)] text-white hover:brightness-95 font-bold"
                                             >

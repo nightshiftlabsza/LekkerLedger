@@ -15,6 +15,6 @@ export const config = {
      * - __mockup (proxied to mockup sandbox dev server)
      * - static assets
      */
-    '/((?!_next/static|_next/image|favicon.ico|__mockup|.*\\.(?:svg|png|jpg|jpeg|gif|webp|js|webmanifest|ico|txt|xml)$).*)',
+    String.raw`/((?!_next/static|_next/image|favicon.ico|__mockup|.*\.(?:svg|png|jpg|jpeg|gif|webp|js|webmanifest|ico|txt|xml)$).*)`,
   ],
 }

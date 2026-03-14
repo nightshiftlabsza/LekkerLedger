@@ -156,11 +156,12 @@ export function applyVerifiedEntitlementsToSettings(
 ): EmployerSettings | null | undefined {
     if (!userProfile || !entitlements) return userProfile;
 
-    const resolvedStatus: EmployerSettings["proStatus"] = entitlements.planId === "standard"
-        ? "standard"
-        : entitlements.planId === "pro"
-            ? "pro"
-            : "free";
+    let resolvedStatus: EmployerSettings["proStatus"] = "free";
+    if (entitlements.planId === "standard") {
+        resolvedStatus = "standard";
+    } else if (entitlements.planId === "pro") {
+        resolvedStatus = "pro";
+    }
 
     return {
         ...userProfile,

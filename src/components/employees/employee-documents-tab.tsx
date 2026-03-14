@@ -26,7 +26,7 @@ function downloadBlob(blob: Blob, fileName: string) {
     document.body.appendChild(anchor);
     anchor.click();
     document.body.removeChild(anchor);
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    globalThis.window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function isPreviewableMimeType(mimeType: string | undefined): boolean {
@@ -156,8 +156,8 @@ export function EmployeeDocumentsTab({
             const cachedUrl = pdfCache.current[doc.id];
 
             if ((doc.mimeType || "").startsWith("application/pdf")) {
-                if (typeof window !== "undefined") {
-                    window.open(cachedUrl, "_blank", "noopener,noreferrer");
+                if (typeof globalThis.window !== "undefined") {
+                    globalThis.window.open(cachedUrl, "_blank", "noopener,noreferrer");
                 }
                 return;
             }
@@ -179,8 +179,8 @@ export function EmployeeDocumentsTab({
             if (mimeType === "application/pdf") {
                 const url = URL.createObjectURL(blob);
                 pdfCache.current[doc.id] = url;
-                if (typeof window !== "undefined") {
-                    window.open(url, "_blank", "noopener,noreferrer");
+                if (typeof globalThis.window !== "undefined") {
+                    globalThis.window.open(url, "_blank", "noopener,noreferrer");
                 }
                 return;
             }
@@ -238,7 +238,7 @@ export function EmployeeDocumentsTab({
     };
 
     const handleDeleteContract = async (contract: Contract) => {
-        if (typeof window !== "undefined" && !window.confirm("Delete this contract? This cannot be undone.")) {
+        if (typeof globalThis.window !== "undefined" && !globalThis.window.confirm("Delete this contract? This cannot be undone.")) {
             return;
         }
         try {
@@ -360,7 +360,7 @@ export function EmployeeDocumentsTab({
 
     const handleDeleteVaultDocument = async (document: DocumentMeta) => {
         if (!vaultUploadsAllowed) return;
-        if (typeof window !== "undefined" && !window.confirm(`Delete ${document.fileName}?`)) {
+        if (typeof globalThis.window !== "undefined" && !globalThis.window.confirm(`Delete ${document.fileName}?`)) {
             return;
         }
 

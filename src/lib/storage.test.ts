@@ -13,6 +13,7 @@ import {
     saveSettings,
     setActiveHouseholdId,
 } from "./storage";
+import { getLocalRecoveryProfile, saveLocalRecoveryProfile } from "./recovery-profile-store";
 import type { Employee, LeaveRecord, PayslipInput } from "./schema";
 
 const baseEmployee: Employee = {
@@ -146,6 +147,25 @@ describe("storage safeguards", () => {
         
         await resetAllData();
         expect(await hasMeaningfulLocalData()).toBe(false);
+    });
+
+    it("clears locally cached recovery keys during a full local reset", async () => {
+        await saveLocalRecoveryProfile("user-1", {
+            keySetupComplete: true,
+            validationPayload: null,
+            recoveryKey: "B5YR-35DH-8L2R-WY6R-Z5XL-2KMZ-PQWA-7EUQ",
+            updatedAt: new Date("2026-03-14T12:00:00.000Z").toISOString(),
+        });
+
+        expect(await getLocalRecoveryProfile("user-1")).toEqual(
+            expect.objectContaining({
+                recoveryKey: "B5YR-35DH-8L2R-WY6R-Z5XL-2KMZ-PQWA-7EUQ",
+            }),
+        );
+
+        await resetAllData();
+
+        expect(await getLocalRecoveryProfile("user-1")).toBeNull();
     });
 
     it("provides accurate local backup previews", async () => {

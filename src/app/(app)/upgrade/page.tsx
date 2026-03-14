@@ -47,7 +47,7 @@ function UpgradePageContent() {
     React.useEffect(() => {
         async function load() {
             const currentSettings = await getSettings();
-            setSettings(currentSettings as EmployerSettings);
+            setSettings(currentSettings);
             const requestedBilling = searchParams.get("billing");
             const requestedReferral = searchParams.get("ref");
             setBillingCycle(requestedBilling === "monthly" ? "monthly" : requestedBilling === "yearly" ? "yearly" : currentSettings.billingCycle === "monthly" ? "monthly" : "yearly");
@@ -63,7 +63,7 @@ function UpgradePageContent() {
                 // Non-critical — referral code display is optional
             }
         }
-        void load();
+        load();
     }, [searchParams]);
 
     React.useEffect(() => {
@@ -91,7 +91,7 @@ function UpgradePageContent() {
             return;
         }
         if (planId === "standard" || planId === "pro") {
-            void startCheckout(planId);
+            startCheckout(planId);
         }
     }, [currentPlan.id, startCheckout]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -112,7 +112,7 @@ function UpgradePageContent() {
             setDowngradingTo(null);
             toast("Subscription renewal canceled. You'll keep your current plan until your billing period ends.");
             const updated = await getSettings();
-            setSettings(updated as EmployerSettings);
+            setSettings(updated);
         } catch (err) {
             toast(err instanceof Error ? err.message : "Could not cancel subscription.");
         } finally {
@@ -173,7 +173,7 @@ function UpgradePageContent() {
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={() => void handleCopyOwnCode()}
+                                        onClick={() => handleCopyOwnCode()}
                                         className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-sm font-bold text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
                                     >
                                         Copy
@@ -241,7 +241,7 @@ function UpgradePageContent() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => void handleConfirmDowngrade()}
+                                onClick={() => handleConfirmDowngrade()}
                                 disabled={cancelingForDowngrade}
                                 className="flex-1 rounded-xl bg-[var(--warning)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-95 disabled:opacity-50"
                             >

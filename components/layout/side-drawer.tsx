@@ -6,18 +6,40 @@ import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/logo";
 import { Mail, Menu, X } from "lucide-react";
 import { APP_NAV_GROUPS } from "@/src/config/app-nav";
+import { HouseholdSwitcher } from "@/components/household-switcher";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 interface SideDrawerProps {
     showButton?: boolean;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    variant?: "default" | "dashboard";
+    households?: Array<{ id: string; name: string }>;
+    activeHouseholdId?: string;
+    multiHouseholdEnabled?: boolean;
+    onSwitchHousehold?: (id: string) => void;
+    onAddHousehold?: () => void;
+    employerName?: string;
+    planLabel?: string;
 }
 
-export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChange }: SideDrawerProps) {
+export function SideDrawer({
+    showButton = true,
+    open: controlledOpen,
+    onOpenChange,
+    variant = "default",
+    households = [],
+    activeHouseholdId,
+    multiHouseholdEnabled = false,
+    onSwitchHousehold,
+    onAddHousehold,
+    employerName = "",
+    planLabel = "",
+}: SideDrawerProps) {
     const [internalOpen, setInternalOpen] = React.useState(false);
     const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
     const setOpen = onOpenChange || setInternalOpen;
+    const dashboardVariant = variant === "dashboard";
 
     const pathname = usePathname();
 
@@ -68,12 +90,18 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                 aria-modal="true"
                 aria-label="Navigation"
                 className={[
-                    "fixed top-0 left-0 h-full w-80 lg:w-64 min-[1600px]:lg:w-72 z-50 flex flex-col glass-panel",
+                    "fixed top-0 left-0 h-full w-80 lg:w-64 min-[1600px]:lg:w-72 z-50 flex flex-col",
+                    dashboardVariant ? "" : "glass-panel",
                     "lg:border-r lg:border-[var(--border)] lg:shadow-none",
                     "shadow-[var(--shadow-xl)] transition-transform duration-300",
                     open ? "translate-x-0 animate-drawer-in" : "-translate-x-full lg:translate-x-0",
                 ].join(" ")}
-                style={{ backgroundColor: "var(--bg)" }}
+                style={{
+                    backgroundColor: dashboardVariant ? "var(--surface-sidebar)" : "var(--bg)",
+                    backdropFilter: dashboardVariant ? "blur(18px)" : "blur(12px)",
+                    WebkitBackdropFilter: dashboardVariant ? "blur(18px)" : "blur(12px)",
+                    borderRight: "1px solid var(--border)",
+                }}
             >
                 {/* ── Header ─────────────────────────────────────────────── */}
                 <div
@@ -94,6 +122,19 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                         <X className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     </button>
                 </div>
+
+                {dashboardVariant && households.length > 0 && activeHouseholdId && onSwitchHousehold ? (
+                    <div className="px-3 pb-3 pt-3 sm:px-4">
+                        <HouseholdSwitcher
+                            households={households}
+                            activeId={activeHouseholdId}
+                            isPro={multiHouseholdEnabled}
+                            onSwitch={onSwitchHousehold}
+                            onAddHousehold={onAddHousehold}
+                            variant="account"
+                        />
+                    </div>
+                ) : null}
 
                 {/* ── Navigation ─────────────────────────────────────────── */}
                 <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-5">
@@ -116,10 +157,12 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                                             onClick={() => setOpen(false)}
 
 
-                                            className="relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group"
+                                            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${dashboardVariant ? "hover:bg-[var(--surface-raised)]/85" : ""}`}
                                             style={{
                                                 color: active ? "var(--primary)" : "var(--text)",
-                                                backgroundColor: active ? "var(--accent-subtle)" : "transparent",
+                                                backgroundColor: active
+                                                    ? dashboardVariant ? "color-mix(in srgb, var(--primary) 10%, transparent)" : "var(--accent-subtle)"
+                                                    : "transparent",
                                                 fontWeight: active ? 700 : 500,
                                             }}
                                         >
@@ -135,7 +178,7 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                                             <span
                                                 className="h-8 w-8 flex items-center justify-center rounded-xl transition-all duration-200 shrink-0 shadow-[var(--shadow-sm)]"
                                                 style={{
-                                                    backgroundColor: active ? "var(--primary)" : "var(--surface-raised)",
+                                                    backgroundColor: active ? "var(--primary)" : dashboardVariant ? "var(--surface-raised)" : "var(--surface-raised)",
                                                     color: active ? "#ffffff" : "var(--primary)",
                                                 }}
                                             >
@@ -177,7 +220,15 @@ export function SideDrawer({ showButton = true, open: controlledOpen, onOpenChan
                 </div>
 
                 {/* ── Footer ─────────────────────────────────────────────── */}
-                <div className="px-5 pb-5 pt-3 shrink-0" style={{ borderTop: "1px solid var(--border)" }} />
+                <div className="px-5 pb-5 pt-3 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
+                    {dashboardVariant ? (
+                        <div className="rounded-2xl bg-[var(--surface-raised)] px-4 py-3">
+                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Current workspace</p>
+                            <p className="mt-1 truncate text-sm font-semibold text-[var(--text)]">{employerName || "Household payroll"}</p>
+                            <p className="mt-0.5 text-xs text-[var(--text-muted)]">{planLabel || "Dashboard"}</p>
+                        </div>
+                    ) : null}
+                </div>
             </div>
         </>
     );

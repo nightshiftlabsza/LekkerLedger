@@ -4,18 +4,18 @@ const PENDING_BILLING_REFERENCE_KEY = "lekkerledger:pending-billing-reference";
 const PENDING_BILLING_EMAIL_KEY = "lekkerledger:pending-billing-email";
 
 function readValue(key: string) {
-    if (typeof window === "undefined") return "";
-    return window.localStorage.getItem(key)?.trim() || "";
+    if (typeof globalThis.window === "undefined") return "";
+    return globalThis.localStorage.getItem(key)?.trim() || "";
 }
 
 function writeValue(key: string, value: string) {
-    if (typeof window === "undefined") return;
+    if (typeof globalThis.window === "undefined") return;
     const trimmed = value.trim();
     if (!trimmed) {
-        window.localStorage.removeItem(key);
+        globalThis.localStorage.removeItem(key);
         return;
     }
-    window.localStorage.setItem(key, trimmed);
+    globalThis.localStorage.setItem(key, trimmed);
 }
 
 export function readPendingBillingReference() {

@@ -41,8 +41,8 @@ function getFallbackTitle(pathname: string): string {
     const pathSegments = pathname.split("/").filter(Boolean);
     if (pathSegments.length === 0) return APP_NAME;
 
-    const readableTitle = pathSegments[pathSegments.length - 1]
-        .replaceAll(/[-_]+/g, " ")
+    const readableTitle = pathSegments.at(-1)
+        ?.replaceAll(/[-_]+/g, " ")
         .replaceAll(/\b\w/g, (character) => character.toUpperCase());
 
     return readableTitle || APP_NAME;
@@ -80,10 +80,10 @@ export function AppRouteTitleSync() {
 
         const scheduleTitleUpdate = () => {
             if (frameId !== null) {
-                window.cancelAnimationFrame(frameId);
+                globalThis.cancelAnimationFrame(frameId);
             }
 
-            frameId = window.requestAnimationFrame(() => {
+            frameId = globalThis.requestAnimationFrame(() => {
                 frameId = null;
                 updateTitle();
             });
@@ -104,7 +104,7 @@ export function AppRouteTitleSync() {
         return () => {
             observer.disconnect();
             if (frameId !== null) {
-                window.cancelAnimationFrame(frameId);
+                globalThis.cancelAnimationFrame(frameId);
             }
         };
     }, [pathname, search]);

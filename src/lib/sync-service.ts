@@ -82,7 +82,7 @@ export class SyncService {
     private userId: string | null = null;
     private isReconciling = false;
     private lastError: string | null = null;
-    private listeners = new Set<SyncServiceListener>();
+    private readonly listeners = new Set<SyncServiceListener>();
     private snapshot: SyncServiceSnapshot = {
         userId: null,
         ready: false,

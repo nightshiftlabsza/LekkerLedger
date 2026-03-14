@@ -51,7 +51,7 @@ function textList(value: string) {
 function normalisePlainText(value: string) {
     return value
         .replaceAll(/\r\n?/g, "\n")
-        .replaceAll(/\u00A0/g, " ")
+        .replaceAll("\u00A0", " ")
         .replaceAll(/\u2028|\u2029/g, "\n");
 }
 
@@ -110,7 +110,7 @@ function DateInput({ id, value, onChange }: { id?: string; value: string; onChan
 }
 
 // Styled time input — simple 24-hour text field (hh:mm) to avoid clunky native picker UIs
-function TimeInput({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) {
+function TimeInput({ id, value, onChange }: Readonly<{ id?: string; value: string; onChange: (v: string) => void }>) {
     return (
         <input
             id={id}
@@ -127,7 +127,7 @@ function TimeInput({ id, value, onChange }: { id?: string; value: string; onChan
 }
 
 // Label with optional ⓘ tooltip — compact icon with hover/click hint
-function FieldLabel({ label, tooltip, htmlFor }: { label: string; tooltip?: string; htmlFor?: string }) {
+function FieldLabel({ label, tooltip, htmlFor }: Readonly<{ label: string; tooltip?: string; htmlFor?: string }>) {
     const [open, setOpen] = React.useState(false);
     const hoverTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const ref = React.useRef<HTMLSpanElement>(null);
@@ -846,7 +846,7 @@ export function ContractFormWizard({
     );
 }
 
-function Field({ label, children, htmlFor }: { label: string; children: React.ReactNode; htmlFor?: string }) {
+function Field({ label, children, htmlFor }: Readonly<{ label: string; children: React.ReactNode; htmlFor?: string }>) {
     return (
         <div className="space-y-1.5">
             {htmlFor ? (

@@ -136,11 +136,11 @@ function Field({
     label,
     children,
     hint,
-}: {
+}: Readonly<{
     label: string;
     children: React.ReactNode;
     hint?: string;
-}) {
+}>) {
     return (
         <label className="space-y-2">
             <span className="block text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</span>
@@ -148,6 +148,18 @@ function Field({
             {hint ? <span className="block text-xs leading-5 text-[var(--text-muted)]">{hint}</span> : null}
         </label>
     );
+}
+
+function getQuotaMessage(checkingQuota: boolean, quota: QuotaStatus | null) {
+    if (checkingQuota) {
+        return "Checking this month's limit...";
+    }
+
+    if (quota?.usedThisMonth) {
+        return "This verified email has already used its free PDF for this month.";
+    }
+
+    return "One free PDF download per verified email, per calendar month.";
 }
 
 export function FreePayslipGenerator() {
@@ -217,11 +229,11 @@ export function FreePayslipGenerator() {
             if (user?.email) {
                 setVerifiedEmail(user.email);
                 setVerificationEmail(user.email);
-                void refreshQuota();
+                await refreshQuota();
             }
         }
 
-        void loadVerifiedState();
+        loadVerifiedState().catch(() => undefined);
         return () => {
             cancelled = true;
         };
@@ -266,6 +278,18 @@ export function FreePayslipGenerator() {
         setVerificationMessage("");
         setQuotaError("");
     }, [supabase.auth]);
+
+    const handleSendVerificationClick = React.useCallback(() => {
+        sendVerificationLink().catch(() => undefined);
+    }, [sendVerificationLink]);
+
+    const handleUseDifferentEmailClick = React.useCallback(() => {
+        handleUseDifferentEmail().catch(() => undefined);
+    }, [handleUseDifferentEmail]);
+
+    const handleDownloadClick = React.useCallback(() => {
+        handleDownload().catch(() => undefined);
+    }, [handleDownload]);
 
     const handleDownload = React.useCallback(async () => {
         if (!payload || !breakdown) {
@@ -401,7 +425,7 @@ export function FreePayslipGenerator() {
                             onChange={(event) => setVerificationEmail(event.target.value)}
                             placeholder="you@example.com"
                         />
-                        <Button type="button" size="lg" onClick={() => void sendVerificationLink()} loading={sendingVerification}>
+                        <Button type="button" size="lg" onClick={handleSendVerificationClick} loading={sendingVerification}>
                             <Mail className="h-4 w-4" />
                             Send verification link
                         </Button>
@@ -413,14 +437,10 @@ export function FreePayslipGenerator() {
 
                     <div className="mt-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text)]">
-                            {checkingQuota
-                                ? "Checking this month's limit..."
-                                : quota?.usedThisMonth
-                                    ? "This verified email has already used its free PDF for this month."
-                                    : "One free PDF download per verified email, per calendar month."}
+                            {getQuotaMessage(checkingQuota, quota)}
                         </div>
                         {verifiedEmail ? (
-                            <Button type="button" variant="outline" onClick={() => void handleUseDifferentEmail()}>
+                            <Button type="button" variant="outline" onClick={handleUseDifferentEmailClick}>
                                 <RefreshCw className="h-4 w-4" />
                                 Use a different email
                             </Button>
@@ -428,7 +448,7 @@ export function FreePayslipGenerator() {
                     </div>
 
                     <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                        <Button type="button" size="lg" onClick={() => void handleDownload()} loading={downloading} disabled={quota?.usedThisMonth}>
+                        <Button type="button" size="lg" onClick={handleDownloadClick} loading={downloading} disabled={quota?.usedThisMonth}>
                             <Download className="h-4 w-4" />
                             Download payslip PDF
                         </Button>

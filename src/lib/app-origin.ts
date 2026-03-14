@@ -42,11 +42,14 @@ export function getConfiguredAppOrigin(): string | null {
 }
 
 export function getBrowserAppOrigin(): string {
-    return (
-        getConfiguredAppOrigin() ||
-        (typeof window !== "undefined" ? normalizeAppOrigin(window.location.origin) : null) ||
-        DEFAULT_LOCAL_ORIGIN
-    );
+    const configuredOrigin = getConfiguredAppOrigin();
+    if (configuredOrigin) return configuredOrigin;
+
+    if (typeof globalThis.window === "undefined") {
+        return DEFAULT_LOCAL_ORIGIN;
+    }
+
+    return normalizeAppOrigin(globalThis.window.location.origin) || DEFAULT_LOCAL_ORIGIN;
 }
 
 export function getRequestAppOrigin(request: Request): string {

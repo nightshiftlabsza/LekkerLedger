@@ -53,7 +53,7 @@ function walk(dirPath) {
   const files = [];
   for (const entry of entries) {
     const fullPath = path.join(dirPath, entry.name);
-    const relativePath = path.relative(repoRoot, fullPath).replaceAll(/\\/g, "/");
+    const relativePath = path.relative(repoRoot, fullPath).replaceAll("\\", "/");
     if (shouldExclude(relativePath)) continue;
     if (entry.isDirectory()) {
       files.push(...walk(fullPath));
@@ -70,7 +70,7 @@ for (const root of includeRoots) {
   const fullRoot = path.join(repoRoot, root);
   if (!fs.existsSync(fullRoot)) continue;
   for (const filePath of walk(fullRoot)) {
-    const relativePath = path.relative(repoRoot, filePath).replaceAll(/\\/g, "/");
+    const relativePath = path.relative(repoRoot, filePath).replaceAll("\\", "/");
     const content = fs.readFileSync(filePath, "utf8");
     const lines = content.split(/\r?\n/);
     lines.forEach((line, index) => {

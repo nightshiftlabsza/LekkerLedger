@@ -34,10 +34,10 @@ export function AuthModal() {
         const handleEsc = (e: KeyboardEvent) => {
             if (e.key === "Escape") close();
         };
-        window.addEventListener("keydown", handleEsc);
+        globalThis.addEventListener("keydown", handleEsc);
         document.body.style.overflow = "hidden";
         return () => {
-            window.removeEventListener("keydown", handleEsc);
+            globalThis.removeEventListener("keydown", handleEsc);
             document.body.style.overflow = "";
         };
     }, [isOpen, close]);
@@ -45,10 +45,9 @@ export function AuthModal() {
     if (!isOpen) return null;
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            role="dialog"
-            aria-modal="true"
+        <dialog
+            open
+            className="fixed inset-0 z-50 flex h-full w-full max-h-none max-w-none items-center justify-center border-0 bg-transparent p-4"
             aria-label="Paid user login"
         >
             <button
@@ -121,6 +120,6 @@ export function AuthModal() {
                     </div>
                 </div>
             </div>
-        </div>
+        </dialog>
     );
 }

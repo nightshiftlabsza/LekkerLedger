@@ -92,7 +92,12 @@ describe("storage resilience", () => {
     });
 
     it("treats recovery profile cache failures as non-fatal", async () => {
-        const { getLocalRecoveryProfile, saveLocalRecoveryProfile } = await import("./recovery-profile-store");
+        const {
+            clearAllLocalRecoveryProfiles,
+            deleteLocalRecoveryProfile,
+            getLocalRecoveryProfile,
+            saveLocalRecoveryProfile,
+        } = await import("./recovery-profile-store");
 
         await expect(getLocalRecoveryProfile("user-1")).resolves.toBeNull();
         await expect(saveLocalRecoveryProfile("user-1", {
@@ -100,5 +105,7 @@ describe("storage resilience", () => {
             validationPayload: null,
             updatedAt: "2026-03-13T12:00:00.000Z",
         })).resolves.toBeUndefined();
+        await expect(deleteLocalRecoveryProfile("user-1")).resolves.toBeUndefined();
+        await expect(clearAllLocalRecoveryProfiles()).resolves.toBeUndefined();
     });
 });

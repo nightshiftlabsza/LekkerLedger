@@ -16,6 +16,8 @@
   --surface-1: #FFFFFF;
   --surface-2: #FFFFFF;
   --surface-raised: #FFFCF8;
+  --surface-muted: #F4F0E8;
+  --surface-sidebar: #F7F2E9;
   --border: #E6E0D6;
   --border-strong: #D8D0C1;
 
@@ -73,6 +75,7 @@
   --grad-primary: linear-gradient(135deg, #007A4D 0%, #009D63 100%);
   --grad-warm: linear-gradient(135deg, #C47A1C 0%, #E69D37 100%);
   --grad-surface: linear-gradient(180deg, #FFFFFF 0%, #F9F7F2 100%);
+  --dashboard-hero-gradient: linear-gradient(135deg, #007A4D 0%, #009D63 52%, #065D3F 100%);
 
   /* Spacing scale */
   --space-1: 4px;
@@ -166,6 +169,8 @@
   --surface-1: #111827;
   --surface-2: #151F2E;
   --surface-raised: #1A2638;
+  --surface-muted: #101A27;
+  --surface-sidebar: #0E1622;
   --border: #223045;
   --border-strong: #2A3A52;
 
@@ -213,6 +218,7 @@
   --amber-warn-500: var(--warning);
 
   --grad-surface: linear-gradient(180deg, #111827 0%, #0B0F14 100%);
+  --dashboard-hero-gradient: linear-gradient(135deg, #0A8B58 0%, #007A4D 48%, #054E35 100%);
 
   color-scheme: dark;
 }

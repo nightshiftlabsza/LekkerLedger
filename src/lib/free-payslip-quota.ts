@@ -105,8 +105,8 @@ function normalizeEmail(email: string): string {
 
 function rowToQuota(row: Record<string, unknown>): FreePayslipQuotaRow {
     return {
-        email: String(row.email || ""),
-        monthKey: String(row.month_key || ""),
+        email: typeof row.email === "string" ? row.email : "",
+        monthKey: typeof row.month_key === "string" ? row.month_key : "",
         downloadsUsed: Number(row.downloads_used || 0),
         verifiedAt: Number(row.verified_at || 0),
         createdAt: Number(row.created_at || 0),
@@ -115,21 +115,19 @@ function rowToQuota(row: Record<string, unknown>): FreePayslipQuotaRow {
 }
 
 async function ensureSchema() {
-    if (schemaPromise === null) {
-        schemaPromise = (async () => {
-            await queryD1(`
-                CREATE TABLE IF NOT EXISTS free_payslip_quota (
-                    email TEXT NOT NULL,
-                    month_key TEXT NOT NULL,
-                    downloads_used INTEGER NOT NULL DEFAULT 0,
-                    verified_at INTEGER NOT NULL,
-                    created_at INTEGER NOT NULL,
-                    updated_at INTEGER NOT NULL,
-                    PRIMARY KEY (email, month_key)
-                )
-            `);
-        })();
-    }
+    schemaPromise ??= (async () => {
+        await queryD1(`
+            CREATE TABLE IF NOT EXISTS free_payslip_quota (
+                email TEXT NOT NULL,
+                month_key TEXT NOT NULL,
+                downloads_used INTEGER NOT NULL DEFAULT 0,
+                verified_at INTEGER NOT NULL,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL,
+                PRIMARY KEY (email, month_key)
+            )
+        `);
+    })();
 
     await schemaPromise;
 }

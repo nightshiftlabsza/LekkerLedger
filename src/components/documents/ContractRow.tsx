@@ -6,14 +6,14 @@ import { formatDistanceToNow } from "date-fns";
 import type { Contract, Employee } from "@/lib/schema";
 
 export interface ContractRowProps {
-    contract: Contract;
-    employee?: Employee;
-    onViewPreview: (contract: Contract) => void;
-    onDownloadPdf: (contract: Contract) => void;
-    onUploadSigned: (contract: Contract) => void;
-    onViewSigned: (contract: Contract) => void;
-    onMarkFinal: (contract: Contract) => void;
-    onDelete?: (contract: Contract) => void;
+    readonly contract: Contract;
+    readonly employee?: Employee;
+    readonly onViewPreview: (contract: Contract) => void;
+    readonly onDownloadPdf: (contract: Contract) => void;
+    readonly onUploadSigned: (contract: Contract) => void;
+    readonly onViewSigned: (contract: Contract) => void;
+    readonly onMarkFinal: (contract: Contract) => void;
+    readonly onDelete?: (contract: Contract) => void;
 }
 
 const STAGES = ["Draft", "Downloaded", "Signed file", "Finalised"];

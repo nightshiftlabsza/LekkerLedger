@@ -2,6 +2,20 @@ import { useEffect, useEffectEvent, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { syncService } from "@/lib/sync-service";
 
+function getRealtimeFieldValue(
+    row: Record<string, unknown> | undefined,
+    ...keys: string[]
+): string {
+    for (const key of keys) {
+        const value = row?.[key];
+        if (typeof value === "string" || typeof value === "number") {
+            return String(value);
+        }
+    }
+
+    return "unknown";
+}
+
 export function useRealtimeSync(userId: string | undefined, onDataChanged: () => void) {
     const emitDataChanged = useEffectEvent(onDataChanged);
     const recentEventKeyRef = useRef<string | null>(null);
@@ -15,12 +29,12 @@ export function useRealtimeSync(userId: string | undefined, onDataChanged: () =>
         recentEventAtRef.current = 0;
 
         function shouldSkipDuplicateEvent(payload: { eventType: string; new?: Record<string, unknown>; old?: Record<string, unknown> }) {
-            const row = (payload.new || payload.old || {}) as Record<string, unknown>;
+            const row = payload.new ?? payload.old;
             const eventKey = [
                 payload.eventType,
-                row.table_name ?? row.file_id ?? "unknown",
-                row.record_id ?? row.file_id ?? "unknown",
-                row.updated_at ?? "unknown",
+                getRealtimeFieldValue(row, "table_name", "file_id"),
+                getRealtimeFieldValue(row, "record_id", "file_id"),
+                getRealtimeFieldValue(row, "updated_at"),
             ].join(":");
             const now = Date.now();
 

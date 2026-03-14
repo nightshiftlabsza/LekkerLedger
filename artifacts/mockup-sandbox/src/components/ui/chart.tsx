@@ -41,11 +41,12 @@ const ChartContainer = React.forwardRef<
     >["children"]
   }
 >(({ id, className, children, config, ...props }, ref) => {
+  const value = React.useMemo(() => ({ config }), [config])
   const uniqueId = React.useId()
-  const chartId = `chart-${id || uniqueId.replaceAll(/:/g, "")}`
+  const chartId = `chart-${id || uniqueId.replaceAll(":", "")}`
 
   return (
-    <ChartContext.Provider value={{ config }}>
+    <ChartContext.Provider value={value}>
       <div
         data-chart={chartId}
         ref={ref}
@@ -152,7 +153,7 @@ const ChartTooltipContent = React.forwardRef<
         )
       }
 
-      if (!value) {
+      if (value === undefined || value === null) {
         return null
       }
 
@@ -221,7 +222,7 @@ const ChartTooltipContent = React.forwardRef<
                               {
                                 "--color-bg": indicatorColor,
                                 "--color-border": indicatorColor,
-                              } as React.CSSProperties
+                              }
                             }
                           />
                         )

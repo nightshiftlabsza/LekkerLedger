@@ -9,7 +9,7 @@ import { Logo } from "@/components/ui/logo";
 
 const COMPACT_AUTH_ROUTES = new Set(["/forgot-password", "/reset-password"]);
 
-export function AuthShell({ children }: { children: React.ReactNode }) {
+export function AuthShell({ children }: Readonly<{ children: React.ReactNode }>) {
     const pathname = usePathname();
     const isCompactRoute = pathname ? COMPACT_AUTH_ROUTES.has(pathname) : false;
 
@@ -110,7 +110,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
     );
 }
 
-function AuthLayoutNote({ title, body }: { title: string; body: string }) {
+function AuthLayoutNote({ title, body }: Readonly<{ title: string; body: string }>) {
     return (
         <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-raised)] p-4 shadow-[var(--shadow-sm)]">
             <p className="text-sm font-semibold text-[var(--text)]">{title}</p>

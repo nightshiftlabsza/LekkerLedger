@@ -26,12 +26,12 @@ export function SyncIndicator() {
     React.useEffect(() => {
         if (!recentActivityAt) return;
 
-        const timeoutHandle = window.setTimeout(() => {
+        const timeoutHandle = globalThis.setTimeout(() => {
             setRecentActivityAt((current) => (current === recentActivityAt ? null : current));
         }, 1000);
 
         return () => {
-            window.clearTimeout(timeoutHandle);
+            globalThis.clearTimeout(timeoutHandle);
         };
     }, [recentActivityAt]);
 

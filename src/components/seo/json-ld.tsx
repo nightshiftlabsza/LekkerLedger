@@ -25,7 +25,7 @@ export const softwareApplicationSchema = {
     description: "Payslip generator, UIF calculator, and employment record management for South African household employers."
 };
 
-export function JsonLd({ schema }: { schema: Record<string, unknown> }) {
+export function JsonLd({ schema }: { readonly schema: Record<string, unknown> }) {
     return (
         <script
             type="application/ld+json"

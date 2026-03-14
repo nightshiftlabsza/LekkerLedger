@@ -119,7 +119,8 @@ export function NewContractPageClient() {
         if (!resolvedEmployeeAddress) missing.push("employee residential address");
 
         if (missing.length > 0) {
-            const last = missing.pop()!;
+            const last = missing.pop();
+            if (!last) return;
             const listText = missing.length ? `${missing.join(", ")} and ${last}` : last;
             setSaveError(
                 `Please add the ${listText} before generating a draft. You can update employer details under Settings and the employee's address on the Parties step.`,

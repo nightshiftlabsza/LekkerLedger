@@ -27,6 +27,7 @@ import { calculateAnnualLeaveSummary, getLeaveTypeLabel } from "./leave";
 import { fetchVerifiedEntitlements } from "./billing-client";
 import { syncService } from "./sync-service";
 import { createClient } from "./supabase/client";
+import { clearAllLocalRecoveryProfiles } from "./recovery-profile-store";
 
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
 const payslipStore = localforage.createInstance({ name: "LekkerLedger", storeName: "payslips" });
@@ -61,9 +62,11 @@ export interface SyncMigrationSnapshot {
         id: string;
         blob: Blob;
         mimeType: string;
-        accessScope: "paid" | "contracts" | "vault";
+        accessScope: DocumentAccessScope;
     }>;
 }
+
+type DocumentAccessScope = "paid" | "contracts" | "vault";
 
 
 export const DEFAULT_HOUSEHOLD_ID = "default";
@@ -306,7 +309,7 @@ async function syncRecordDeletionToCloud(table: string, id: string) {
     await syncService.pushLocalDelete(table, id);
 }
 
-async function syncDocumentFileToCloud(id: string, file: Blob, mimeType: string, accessScope: "paid" | "contracts" | "vault" = "paid") {
+async function syncDocumentFileToCloud(id: string, file: Blob, mimeType: string, accessScope: DocumentAccessScope = "paid") {
     if (!syncService.isReady()) return;
     await syncService.pushLocalFile(id, file, mimeType, accessScope);
 }
@@ -1221,6 +1224,7 @@ export async function resetAllData(): Promise<void> {
         contractStore.clear(),
         householdStore.clear(),
         auditStore.clear(),
+        clearAllLocalRecoveryProfiles(),
     ]);
     await notifyListeners();
 }
@@ -1381,7 +1385,7 @@ export async function deleteDocumentMeta(id: string): Promise<void> {
     await notifyListeners();
 }
 
-export async function saveDocumentFile(id: string, file: Blob, accessScope: "paid" | "contracts" | "vault" = "paid"): Promise<void> {
+export async function saveDocumentFile(id: string, file: Blob, accessScope: DocumentAccessScope = "paid"): Promise<void> {
     await documentFileStore.setItem(id, file);
     const meta = await getDocumentMeta(id);
     const mimeType = meta?.mimeType || file.type || "application/octet-stream";

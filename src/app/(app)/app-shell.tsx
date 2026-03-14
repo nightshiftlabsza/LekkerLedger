@@ -7,7 +7,7 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
 import { GlobalCreateFAB } from "@/components/global-create";
-import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, LogOut, ShieldCheck, Trash2, Loader2 } from "lucide-react";
+import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, LogOut, ShieldCheck, Trash2, Loader2, LayoutDashboard } from "lucide-react";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
@@ -20,8 +20,22 @@ import { AppModeProvider, useAppMode } from "@/lib/app-mode";
 import { RecoveryGate } from "@/components/encryption/recovery-gate";
 import { clearVerifiedEntitlementsCache, fetchBillingAccount } from "@/lib/billing-client";
 import { createClient } from "@/lib/supabase/client";
+import { deleteLocalRecoveryProfile } from "@/lib/recovery-profile-store";
+import { SyncStatusBadge, type SyncState as SyncBadgeState } from "@/components/ui/sync-status-badge";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+function getSyncBannerMessage(syncConflict: boolean, syncErrorMessage: string | null) {
+    if (syncConflict) {
+        return "Sync conflict detected. Resolve in Settings.";
+    }
+
+    if (syncErrorMessage) {
+        return `Sync needs attention: ${syncErrorMessage}`;
+    }
+
+    return "Sync needs attention. Check Settings for details.";
+}
+
+export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -95,7 +109,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         loadShellContext();
         const unsubscribe = subscribeToDataChanges(() => {
             setLastLocalSaveAt(Date.now());
-            void loadShellContext();
+            loadShellContext();
         });
         return () => {
             active = false;
@@ -119,11 +133,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && (sync === "error" || syncConflict) && !syncBannerDismissed;
     const showPaymentsBanner = network === "online" && payments === "unavailable" && !paymentsBannerDismissed;
+    const syncBannerMessage = getSyncBannerMessage(syncConflict, syncErrorMessage);
     const lastLocalSaveLabel = lastLocalSaveAt
         ? new Intl.DateTimeFormat("en-ZA", {
             hour: "2-digit",
             minute: "2-digit",
         }).format(lastLocalSaveAt)
+        : null;
+    const isDashboardShell = pathname === "/dashboard";
+    const verifiedPlan = getPlanById(verifiedPlanId);
+    const syncBadgeState: SyncBadgeState = sync === "enabled"
+        ? "synced"
+        : sync === "error"
+            ? "error"
+            : sync === "reconnecting"
+                ? "offline"
+                : "disconnected";
+    const planDateLabel = settings?.paidUntil
+        ? new Intl.DateTimeFormat("en-ZA", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(settings.paidUntil))
         : null;
 
     const handleSwitchHousehold = async (householdId: string) => {
@@ -182,29 +209,67 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     return (
         <AppModeProvider>
-                <div className="min-h-screen flex flex-col lg:pl-64 min-[1600px]:lg:pl-72" style={{ backgroundColor: "var(--bg)" }}>
-                    <header className="sticky top-0 z-50 glass-panel border-b border-[var(--border)] shadow-[var(--shadow-sm)] safe-area-pt">
-                        <div className="content-container-wide flex w-full items-center justify-between px-3 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-3">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                                <SideDrawer open={moreOpen} onOpenChange={setMoreOpen} showButton={true} />
-                                <Link href="/dashboard" className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-1.5 sm:px-2.5 py-1.5 sm:py-2 outline-none shadow-[0_6px_18px_rgba(16,24,40,0.05)] transition-all hover:border-[var(--primary)]/20 lg:hidden">
-                                    <Logo
-                                        iconClassName="h-6 sm:h-9 w-6 sm:w-9"
-                                        textClassName="text-[0.85rem] sm:text-[1.12rem]"
-                                        className="gap-1.5 sm:gap-2.5"
-                                    />
-                                </Link>
-                            </div>
+            <div className="min-h-screen flex flex-col lg:pl-64 min-[1600px]:lg:pl-72" style={{ backgroundColor: "var(--bg)" }}>
+                <header
+                    className={`sticky top-0 z-50 border-b border-[var(--border)] safe-area-pt ${isDashboardShell
+                        ? "bg-[color:var(--surface-sidebar)]/92 backdrop-blur-xl shadow-[0_10px_24px_rgba(16,24,40,0.06)]"
+                        : "glass-panel shadow-[var(--shadow-sm)]"
+                        }`}
+                >
+                    <div className={`content-container-wide flex w-full items-center justify-between gap-3 px-3 sm:px-6 lg:px-8 ${isDashboardShell ? "py-2.5 sm:py-3" : "py-2 sm:py-3 lg:py-3"}`}>
+                        <div className="flex items-center gap-2 sm:gap-3 lg:min-w-0">
+                            <SideDrawer
+                                open={moreOpen}
+                                onOpenChange={setMoreOpen}
+                                showButton={true}
+                                variant={isDashboardShell ? "dashboard" : "default"}
+                                households={households}
+                                activeHouseholdId={activeHouseholdId}
+                                multiHouseholdEnabled={multiHouseholdEnabled}
+                                onSwitchHousehold={handleSwitchHousehold}
+                                onAddHousehold={handleAddHousehold}
+                                employerName={settings?.employerName?.trim() || ""}
+                                planLabel={verifiedPlan.label}
+                            />
+                            <Link href="/dashboard" className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-1.5 sm:px-2.5 py-1.5 sm:py-2 outline-none shadow-[0_6px_18px_rgba(16,24,40,0.05)] transition-all hover:border-[var(--primary)]/20 lg:hidden">
+                                <Logo
+                                    iconClassName="h-6 sm:h-9 w-6 sm:w-9"
+                                    textClassName="text-[0.85rem] sm:text-[1.12rem]"
+                                    className="gap-1.5 sm:gap-2.5"
+                                />
+                            </Link>
+                            {isDashboardShell ? (
+                                <div className="hidden min-w-0 items-center gap-3 lg:flex">
+                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--surface-raised)] text-[var(--primary)] shadow-[var(--shadow-sm)]">
+                                        <LayoutDashboard className="h-5 w-5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Workspace</p>
+                                        <h1 className="truncate text-xl font-black tracking-tight text-[var(--text)]">Dashboard</h1>
+                                    </div>
+                                </div>
+                            ) : null}
+                        </div>
 
-                            <div className="ml-auto flex items-center gap-1.5 sm:gap-2 lg:gap-3">
-                                {network === "offline" && (
-                                    <span className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--focus)]/20 bg-[var(--primary)]/10 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold text-[var(--focus)]">
-                                        <CloudOff className="h-2.5 sm:h-3 w-2.5 sm:w-3" /> <span className="hidden sm:inline">Offline</span>
-                                    </span>
-                                )}
+                        <div className="ml-auto flex items-center gap-1.5 sm:gap-2 lg:gap-3">
+                            {network === "offline" && (
+                                <span className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--focus)]/20 bg-[var(--primary)]/10 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold text-[var(--focus)]">
+                                    <CloudOff className="h-2.5 sm:h-3 w-2.5 sm:w-3" /> <span className="hidden sm:inline">Offline</span>
+                                </span>
+                            )}
 
-                                <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
-                                        <AccountMenu sync={sync} syncErrorMessage={syncErrorMessage} />
+                            {isDashboardShell ? (
+                                <div className="hidden items-center gap-2 lg:flex">
+                                    <div className="rounded-full border border-[var(--primary)]/15 bg-[var(--primary)]/8 px-3 py-1.5 text-[11px] font-bold text-[var(--primary)]">
+                                        {verifiedPlan.label} plan{planDateLabel ? ` · until ${planDateLabel}` : ""}
+                                    </div>
+                                    <SyncStatusBadge state={syncBadgeState} />
+                                </div>
+                            ) : null}
+
+                            <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
+                                <AccountMenu sync={sync} syncErrorMessage={syncErrorMessage} compact={isDashboardShell} />
+                                {!isDashboardShell ? (
                                     <HouseholdSwitcher
                                         households={households}
                                         activeId={activeHouseholdId}
@@ -214,10 +279,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                         variant="account"
                                         className="hidden lg:block"
                                     />
-                                </div>
+                                ) : null}
                             </div>
                         </div>
-                    </header>
+                    </div>
+                </header>
                     {showOfflineBanner && (
                         <div className="animate-slide-down flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold"
                             style={{ backgroundColor: "var(--accent-subtle)", borderBottom: "1px solid var(--border)", color: "var(--primary)" }}>
@@ -244,13 +310,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             <div className="flex items-center gap-2 max-w-4xl mx-auto w-full justify-between">
                                 <div className="flex items-center gap-2">
                                     <AlertOctagon className="h-4 w-4 shrink-0" />
-                                    <span>
-                                        {syncConflict 
-                                            ? "Sync conflict detected. Resolve in Settings."
-                                            : syncErrorMessage
-                                                ? `Sync needs attention: ${syncErrorMessage}`
-                                                : "Sync needs attention. Check Settings for details."}
-                                    </span>
+                                    <span>{syncBannerMessage}</span>
                                 </div>
                                 <button
                                     onClick={() => setSyncBannerDismissed(true)}
@@ -281,31 +341,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         </div>
                     )}
 
-                    <main id="main-content" className="flex-1 py-4 sm:py-6 lg:py-8 content-container-wide w-full flex flex-col gap-4 sm:gap-6 lg:gap-8 pb-24 sm:pb-28 lg:pb-12 px-3 sm:px-6 lg:px-8 safe-area-pb">
-                        <RecoveryGate>
-                            {children}
-                        </RecoveryGate>
-                    </main>
+                <main
+                    id="main-content"
+                    className={`flex-1 w-full flex flex-col pb-24 sm:pb-28 lg:pb-12 safe-area-pb ${isDashboardShell
+                        ? "content-container-wide gap-4 px-3 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:gap-6 lg:px-6 lg:py-6 xl:px-8"
+                        : "content-container-wide gap-4 px-3 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:gap-8 lg:px-8 lg:py-8"
+                        }`}
+                >
+                    <RecoveryGate>
+                        {children}
+                    </RecoveryGate>
+                </main>
 
-                    <GlobalCreateFAB />
-                    <AddHouseholdDialog
-                        open={addHouseholdOpen}
-                        name={newHouseholdName}
-                        error={addHouseholdError}
-                        saving={addingHousehold}
-                        onNameChange={(value) => {
-                            setNewHouseholdName(value);
-                            if (addHouseholdError) setAddHouseholdError("");
-                        }}
-                        onClose={() => {
-                            if (addingHousehold) return;
-                            setAddHouseholdOpen(false);
-                            setAddHouseholdError("");
-                        }}
-                        onSubmit={() => void handleConfirmAddHousehold()}
-                    />
-                    <BottomNav onMore={() => setMoreOpen(true)} />
-                </div>
+                <GlobalCreateFAB />
+                <AddHouseholdDialog
+                    open={addHouseholdOpen}
+                    name={newHouseholdName}
+                    error={addHouseholdError}
+                    saving={addingHousehold}
+                    onNameChange={(value) => {
+                        setNewHouseholdName(value);
+                        if (addHouseholdError) setAddHouseholdError("");
+                    }}
+                    onClose={() => {
+                        if (addingHousehold) return;
+                        setAddHouseholdOpen(false);
+                        setAddHouseholdError("");
+                    }}
+                    onSubmit={() => handleConfirmAddHousehold()}
+                />
+                <BottomNav onMore={() => setMoreOpen(true)} />
+            </div>
         </AppModeProvider>
     );
 }
@@ -313,10 +379,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 function AccountMenu({
     sync,
     syncErrorMessage,
-}: {
+    compact = false,
+}: Readonly<{
     sync: "disabled" | "enabled" | "error" | "reconnecting";
     syncErrorMessage: string | null;
-}) {
+    compact?: boolean;
+}>) {
     const [open, setOpen] = React.useState(false);
     const [signOutPromptOpen, setSignOutPromptOpen] = React.useState(false);
     const [signingOut, setSigningOut] = React.useState<"keep" | "delete" | null>(null);
@@ -351,7 +419,7 @@ function AccountMenu({
             setAccountEmail(user?.email ?? "");
         }
 
-        void loadEmail();
+        loadEmail();
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setAccountEmail(session?.user?.email ?? "");
         });
@@ -394,6 +462,10 @@ function AccountMenu({
 
         try {
             clearVerifiedEntitlementsCache();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user?.id) {
+                await deleteLocalRecoveryProfile(user.id);
+            }
             lockAccount();
             await supabase.auth.signOut();
             if (dataMode === "delete") {
@@ -417,19 +489,22 @@ function AccountMenu({
                     type="button"
                     onClick={() => setOpen((current) => !current)}
                     data-testid="account-menu-toggle"
-                    className="flex min-h-[52px] items-center gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-2.5 sm:px-3.5 py-2 shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25"
+                    className={`flex items-center gap-2 rounded-xl border border-[var(--border)]/80 bg-[var(--surface-raised)] shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25 ${compact
+                        ? "min-h-[44px] px-2.5 py-1.5 sm:rounded-xl"
+                        : "min-h-[52px] px-2.5 py-2 sm:rounded-2xl sm:px-3.5"
+                        }`}
                 >
-                    <div className="flex h-7 sm:h-8 w-7 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl bg-[var(--surface-2)] text-[var(--primary)] shrink-0">
+                    <div className={`flex items-center justify-center bg-[var(--surface-2)] text-[var(--primary)] shrink-0 ${compact ? "h-8 w-8 rounded-xl" : "h-7 w-7 rounded-lg sm:h-8 sm:w-8 sm:rounded-xl"}`}>
                         <CircleUserRound className="h-4 w-4" />
                     </div>
-                    <div className="text-left hidden sm:block min-w-0 max-w-[180px]">
+                    <div className={`text-left min-w-0 ${compact ? "hidden xl:block max-w-[140px]" : "hidden sm:block max-w-[180px]"}`}>
                         <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[var(--text-muted)] leading-none mb-0.5">Account</p>
                         <p className={`text-xs font-semibold truncate ${accountToneClass}`}>{accountState}</p>
                         <p className="mt-0.5 text-[11px] text-[var(--text-muted)] truncate">
                             {accountEmail || "Signed in"}
                         </p>
                     </div>
-                    <ChevronDown className="h-3 w-3 text-[var(--text-muted)] shrink-0 hidden sm:block" />
+                    <ChevronDown className={`h-3 w-3 text-[var(--text-muted)] shrink-0 ${compact ? "hidden xl:block" : "hidden sm:block"}`} />
                 </button>
 
                 {open && (
