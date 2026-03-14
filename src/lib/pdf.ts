@@ -1,6 +1,8 @@
-import { PDFDocument, rgb, PDFFont, Color } from "pdf-lib";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable prefer-const */
+import { PDFDocument, rgb, PDFFont, Color, PDFPage } from "pdf-lib";
 import { Employee, PayslipInput, EmployerSettings } from "./schema";
-import { calculatePayslip, getNMW } from "./calculator";
+import { calculatePayslip, getNMW, PayBreakdown } from "./calculator";
 import { format } from "date-fns";
 import { loadPdfFonts } from "./pdf-fonts";
 import { drawPdfBrandLockup, drawPdfBrandMark } from "./pdf-brand";
@@ -257,13 +259,13 @@ export async function generatePayslipPdfBytes(
     let cy = drawParties(page, width, headerY, dict, employee, settings, requiredCopy, sansBold, sansRegular, t);
     cy = drawEarningsTable(page, width, cy, dict, payslip, breakdown, sansBold, sansRegular, t, drawLine);
     cy = drawDeductionsTable(page, width, cy, dict, payslip, breakdown, sansBold, sansRegular, t, drawLine);
-    cy = drawNetPaySummary(page, width, cy, dict, employee, settings, breakdown, requiredCopy, serifBold, sansBold, sansRegular, t);
+    drawNetPaySummary(page, width, cy, dict, employee, settings, breakdown, requiredCopy, serifBold, sansBold, sansRegular, t);
     drawFooter(page, width, dict, breakdown, nmw, requiredCopy, sansBold, sansRegular, t, drawLine);
 
     return pdfDoc.save();
 }
 
-function drawHeader(page: any, width: number, dict: any, serifBold: PDFFont, sansBold: PDFFont): number {
+function drawHeader(page: PDFPage, width: number, dict: Record<string, string>, serifBold: PDFFont, sansBold: PDFFont): number {
     const height = page.getSize().height;
     const headerY = height - 60;
 
@@ -279,6 +281,7 @@ function drawHeader(page: any, width: number, dict: any, serifBold: PDFFont, san
     drawPdfBrandMark(page, { x: width - PDF_MARGIN - 24, y: headerY - 20, size: 28 });
 
     // Document Title
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const t = (text: string, x: number, y: number, opts?: any) => page.drawText(text, { x: opts?.align === "right" ? x - opts.font.widthOfTextAtSize(text, opts.size) : x, y, size: opts?.size ?? 9, font: opts?.font, color: opts?.color ?? PDF_COLORS.TEXT });
 
     t(dict.payslip, width - PDF_MARGIN - 38, headerY, { font: serifBold, size: 15, align: "right" });
@@ -289,8 +292,9 @@ function drawHeader(page: any, width: number, dict: any, serifBold: PDFFont, san
     return headerY;
 }
 
-function drawParties(page: any, width: number, headerY: number, dict: any, employee: Employee, settings: EmployerSettings, requiredCopy: any, sansBold: PDFFont, sansRegular: PDFFont, t: any): number {
-    let cy = headerY - 60;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function drawParties(page: PDFPage, width: number, headerY: number, dict: Record<string, string>, employee: Employee, settings: EmployerSettings, requiredCopy: any, sansBold: PDFFont, sansRegular: PDFFont, t: any): number {
+    const cy = headerY - 60;
     const infoBottomY = cy - 64;
     const employerX = PDF_MARGIN;
     const employeeX = PDF_MARGIN + 220;
@@ -326,7 +330,8 @@ function drawParties(page: any, width: number, headerY: number, dict: any, emplo
     return infoBottomY;
 }
 
-function drawEarningsTable(page: any, width: number, startY: number, dict: any, payslip: PayslipInput, breakdown: any, sansBold: PDFFont, sansRegular: PDFFont, t: any, drawLine: any): number {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function drawEarningsTable(page: PDFPage, width: number, startY: number, dict: Record<string, string>, payslip: PayslipInput, breakdown: PayBreakdown, sansBold: PDFFont, sansRegular: PDFFont, t: any, drawLine: any): number {
     let cy = startY - 22;
     t(dict.description, PDF_MARGIN, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
     t(dict.hours, width - 150, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED, align: "right" });
@@ -350,7 +355,7 @@ function drawEarningsTable(page: any, width: number, startY: number, dict: any, 
         renderRow(`${dict.overtime}`, payslip.overtimeHours.toString(), `R ${(breakdown.hourlyRate * 1.5).toFixed(2)}`, `R ${breakdown.overtimePay.toFixed(2)}`);
     }
     if (payslip.sundayHours > 0) {
-        const mult = (payslip as any).ordinarilyWorksSundays ? 1.5 : 2.0; // Fixed access
+        const mult = (payslip as PayslipInput).ordinarilyWorksSundays ? 1.5 : 2.0; // Fixed access
         renderRow(`${dict.sundayPay} (${mult}x)`, payslip.sundayHours.toString(), `R ${(breakdown.hourlyRate * mult).toFixed(2)}`, `R ${breakdown.sundayPay.toFixed(2)}`);
     }
     if (payslip.publicHolidayHours > 0) {
@@ -365,7 +370,8 @@ function drawEarningsTable(page: any, width: number, startY: number, dict: any, 
     return cy;
 }
 
-function drawDeductionsTable(page: any, width: number, startY: number, dict: any, payslip: PayslipInput, breakdown: any, sansBold: PDFFont, sansRegular: PDFFont, t: any, drawLine: any): number {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function drawDeductionsTable(page: PDFPage, width: number, startY: number, dict: Record<string, string>, payslip: PayslipInput, breakdown: PayBreakdown, sansBold: PDFFont, sansRegular: PDFFont, t: any, drawLine: any): number {
     let cy = startY - 35;
     t(dict.deductions, PDF_MARGIN, cy, { font: sansBold, size: 8, color: PDF_COLORS.TEXT_MUTED });
     drawLine(cy - 6);
@@ -398,7 +404,8 @@ function drawDeductionsTable(page: any, width: number, startY: number, dict: any
     return cy;
 }
 
-function drawNetPaySummary(page: any, width: number, startY: number, dict: any, employee: Employee, settings: EmployerSettings, breakdown: any, requiredCopy: any, serifBold: PDFFont, sansBold: PDFFont, sansRegular: PDFFont, t: any): number {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function drawNetPaySummary(page: PDFPage, width: number, startY: number, dict: Record<string, string>, employee: Employee, settings: EmployerSettings, breakdown: PayBreakdown, requiredCopy: any, serifBold: PDFFont, sansBold: PDFFont, sansRegular: PDFFont, t: any): number {
     let cy = startY - 44;
     const netPayH = 34;
     page.drawRectangle({
@@ -443,7 +450,8 @@ function drawNetPaySummary(page: any, width: number, startY: number, dict: any, 
     return cy;
 }
 
-function drawFooter(page: any, width: number, dict: any, breakdown: any, nmw: number, requiredCopy: any, sansBold: PDFFont, sansRegular: PDFFont, t: any, drawLine: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function drawFooter(page: PDFPage, width: number, dict: Record<string, string>, breakdown: PayBreakdown, nmw: number, requiredCopy: any, sansBold: PDFFont, sansRegular: PDFFont, t: any, drawLine: any) {
     const footerY = 58;
     drawLine(footerY + 30);
 

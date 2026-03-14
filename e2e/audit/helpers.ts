@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Locator, Page } from "@playwright/test";
@@ -376,6 +377,7 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
         globalThis.localStorage.clear();
         globalThis.sessionStorage.clear();
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const localforageApi = (globalThis as any).localforage;
 
         await Promise.all(

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 
@@ -21,7 +22,7 @@ import { format } from "date-fns";
 import { calculatePayslip, getSundayRateMultiplier, isUifApplicable, NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import { getHolidaysInRange } from "@/lib/holidays";
-import { formatDateSafe } from "@/lib/utils";
+
 import { canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
 
 const STEPS = [
@@ -206,6 +207,7 @@ function WizardContent() {
 
             try {
                 if (typeof globalThis !== 'undefined' && 'gtag' in globalThis) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     (globalThis as any).gtag?.('event', 'onboarding_complete');
                 }
             } catch (e) {

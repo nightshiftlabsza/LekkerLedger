@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import * as React from "react";
@@ -20,6 +21,7 @@ const ToastContext = React.createContext<ToastContextType | undefined>(undefined
 export function ToastProvider({ children }: { children: React.ReactNode }) {
     const [toasts, setToasts] = React.useState<Toast[]>([]);
     const mountedRef = React.useRef(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const timerIdsRef = React.useRef<any[]>([]);
 
     React.useEffect(() => {

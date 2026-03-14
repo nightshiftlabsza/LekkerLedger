@@ -4,44 +4,23 @@
 
 
 C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\components\ui\toast.tsx
-  23:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:5  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
 
 C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\e2e\audit\helpers.ts
-  379:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  380:9  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\app\(app)\wizard\page.tsx
+  210:21  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
 
 C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\src\lib\pdf.ts
-  260:5    warning  'cy' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
-  266:27   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  266:53   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  282:59   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  292:28   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  292:71   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  292:138  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  292:187  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  293:9    error    'cy' is never reassigned. Use 'const' instead                                  prefer-const
-  329:34   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  329:76   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  329:115  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  329:164  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  329:179  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  353:34   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  368:36   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  368:78   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  368:117  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  368:166  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  368:181  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  401:34   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  401:76   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  401:140  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  401:159  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  401:228  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  446:27   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  446:53   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  446:69   error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  446:101  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  446:150  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
-  446:165  error    Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+    2:1  warning  Unused eslint-disable directive (no problems were reported from 'prefer-const')
+  284:5  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  295:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  333:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  373:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  407:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  453:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
 
-Γ£û 33 problems (32 errors, 1 warning)
-  1 error and 0 warnings potentially fixable with the `--fix` option.
+Γ£û 10 problems (0 errors, 10 warnings)
+  0 errors and 10 warnings potentially fixable with the `--fix` option.
 
