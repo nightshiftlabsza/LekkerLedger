@@ -1,9 +1,10 @@
 import localforage from "localforage";
 import { type EncryptedPayload } from "./crypto";
 
-interface RecoveryProfileRecord {
+    interface RecoveryProfileRecord {
     keySetupComplete: boolean;
     validationPayload: EncryptedPayload | null;
+    recoveryKey?: string; // Optional: stored locally for auto-unlock
     updatedAt: string;
 }
 

@@ -163,6 +163,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             await saveLocalRecoveryProfile(user.id, {
                 keySetupComplete: true,
                 validationPayload: payload,
+                recoveryKey: keyString, // Store locally for auto-unlock
                 updatedAt: new Date().toISOString(),
             });
 
@@ -190,7 +191,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const handleInputComplete = async (_keyString: string, cryptoKey: CryptoKey) => {
+    const handleInputComplete = async (keyString: string, cryptoKey: CryptoKey) => {
         setInputError(null);
         setIsSubmittingInput(true);
         try {
@@ -227,6 +228,14 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 await repairRemoteRecoveryProfile(user.id, cryptoKey, supabase);
             }
 
+            // Save the valid key locally for future auto-unlocks
+            await saveLocalRecoveryProfile(user.id, {
+                keySetupComplete: true,
+                validationPayload: profile.validationPayload,
+                recoveryKey: keyString,
+                updatedAt: new Date().toISOString(),
+            });
+
             await unlockAccount(cryptoKey, user.id);
         } catch (err) {
              console.error(err);
@@ -250,13 +259,13 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                         <div className="mx-auto w-full max-w-[44rem] xl:mx-0">
                             <div className="mb-5 rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] px-5 py-5 shadow-[var(--shadow-sm)] sm:px-6">
                                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
-                                    Secure sync unlock
+                                    Privacy & Security
                                 </p>
                                 <h2 className="mt-3 font-serif text-2xl font-bold tracking-tight text-[var(--text)] sm:text-[2rem]">
-                                    Keep this device connected to your encrypted payroll records.
+                                    Unlock your encrypted records.
                                 </h2>
                                 <p className="mt-3 max-w-[54ch] text-sm leading-7 text-[var(--text-muted)] sm:text-[0.97rem]">
-                                    This step protects your cloud sync with a recovery key only you control. The main action stays in one clear column, while the supporting guidance sits beside it on larger screens and stacks cleanly on smaller ones.
+                                    LekkerLedger uses <strong>Zero-Knowledge Encryption</strong>. This means your data is scrambled with your recovery key before it ever leaves your device. Even if our servers were compromised, your records would be unreadable to anyone without your key.
                                 </p>
                             </div>
 
@@ -289,20 +298,20 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
 
                         <div className="space-y-5 xl:sticky xl:top-6 animate-slide-right delay-200">
                             <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-sm)] sm:p-7">
-                                <div className="border-l-4 border-[var(--focus)] pl-5">
-                            <h3 className="font-serif text-xl font-bold text-[var(--text)] mb-4">Why is this locked?</h3>
-                            <div className="space-y-4 text-sm text-[var(--text-muted)] leading-relaxed">
-                                <p>
-                                    LekkerLedger uses <strong>Zero-Knowledge Encryption</strong>. This means your data is &quot;scrambled&quot; with your recovery key before it ever leaves your device.
-                                </p>
-                                <p>
-                                    Even if our servers were compromised, your payroll records would be unreadable to anyone without your key. Not even our team can see your data.
-                                </p>
-                                <p>
-                                    You only need to enter this key once per device to &quot;unlock&quot; the cloud sync.
-                                </p>
-                            </div>
-                        </div>
+                                <h3 className="text-lg font-bold text-[var(--text)]">
+                                    Important Security Note
+                                </h3>
+                                <div className="mt-3 space-y-4 text-sm leading-7 text-[var(--text-muted)]">
+                                    <p>
+                                        Because we cannot see your key, <strong>we cannot reset it for you</strong>. If you lose your recovery key, you will lose access to your synced data permanently.
+                                    </p>
+                                    <p>
+                                        We recommend storing your recovery key in a safe place, like a password manager or a secure physical location.
+                                    </p>
+                                    <p className="font-semibold text-[var(--text)]">
+                                        Once unlocked, this device will stay connected to your records unless you manually sign out.
+                                    </p>
+                                </div>
                             </div>
 
                             <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-sm)] sm:p-7">

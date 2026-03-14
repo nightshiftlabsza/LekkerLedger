@@ -57,9 +57,28 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!mounted) return;
 
-                currentUserIdRef.current = session?.user?.id ?? null;
+                const userId = session?.user?.id;
+                currentUserIdRef.current = userId ?? null;
 
-                if (session?.user?.id) {
+                if (userId) {
+                    try {
+                        const { getLocalRecoveryProfile } = await import("./recovery-profile-store");
+                        const { deriveKey } = await import("./crypto");
+                        
+                        const localProfile = await getLocalRecoveryProfile(userId);
+                        if (localProfile?.recoveryKey) {
+                            const key = await deriveKey(localProfile.recoveryKey);
+                            syncEngine.setCryptoKey(key);
+                            syncService.init(userId, key);
+                            // Not awaiting reconcile here to avoid blocking init, 
+                            // it will run when the app mounts and calls reconcileAfterUnlock
+                            setMode("account_unlocked");
+                            return;
+                        }
+                    } catch (e) {
+                        console.warn("Auto-unlock failed", e);
+                    }
+
                     setMode("account_locked");
                     return;
                 }

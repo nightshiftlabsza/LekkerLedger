@@ -60,15 +60,15 @@ export function RecoveryKeySetup({
                     <KeyRound className="w-7 h-7" strokeWidth={2.5} />
                 </div>
                 <h1 className="font-serif text-2xl font-bold text-[var(--text)] mb-3 tracking-tight">
-                    Your Recovery Key
+                    Save Your Recovery Key
                 </h1>
                 
-                <div className="text-[var(--text-muted)] text-sm leading-relaxed mb-6 space-y-3 px-2 measure-readable max-w-[40ch] mx-auto">
+                <div className="text-[var(--text-muted)] text-sm leading-relaxed mb-6 space-y-3 px-2 measure-readable max-w-[42ch] mx-auto">
                     <p>
-                        To ensure your household payroll records remain completely private, we use a security method that makes it literally impossible for LekkerLedger to see your data.
+                        LekkerLedger uses <strong>Zero-Knowledge Encryption</strong> to keep your payroll records completely private. This means only you have the key to unlock your data.
                     </p>
                     <p>
-                        Because we cannot see it, <strong className="text-[var(--text)]">we cannot recover it for you</strong>. You must save this key somewhere safe. If you ever want to log in on a second device and sync your records, you will be required to enter this key.
+                        Since we don't have a copy of this key, <strong className="text-[var(--text)]">we cannot reset it if you lose it</strong>. Please save it somewhere safe, like a password manager or a secure document.
                     </p>
                 </div>
             </div>
