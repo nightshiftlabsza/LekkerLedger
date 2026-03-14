@@ -98,7 +98,6 @@ export function LoginForm({
             : next || "/dashboard";
 
         router.push(destination);
-        router.refresh();
     };
 
     const formContent = (

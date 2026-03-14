@@ -134,7 +134,7 @@ export function SignUpForm({
                     {description || (
                         reference
                             ? "Your payment is already on file. Create the paid account that will hold your encrypted sync access."
-                            : "Create the account that will hold your encrypted payroll backup and sync access."
+                            : "Only paid accounts can enter the dashboard. Complete payment first, then create the account that will hold your encrypted sync access."
                     )}
                 </p>
             </div>

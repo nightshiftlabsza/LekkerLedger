@@ -157,7 +157,13 @@ export async function startTrialCheckout(
 export async function createInlineTrialIntent(
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; email: string; referralCode?: string | null },
 ): Promise<{ reference: string; accessCode: string; amountCents: number }> {
-    const response = await fetch("/api/billing/trial/intent", {
+    return createInlinePurchaseIntent(input);
+}
+
+export async function createInlinePurchaseIntent(
+    input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; email: string; referralCode?: string | null },
+): Promise<{ reference: string; accessCode: string; amountCents: number }> {
+    const response = await fetch("/api/billing/purchase/intent", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

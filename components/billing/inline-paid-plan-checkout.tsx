@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createInlineTrialIntent } from "@/lib/billing-client";
+import { createInlinePurchaseIntent } from "@/lib/billing-client";
 import { writePendingBillingEmail, writePendingBillingReference } from "@/lib/billing-handoff";
 import { buildPaidDashboardHref, buildPaidLoginHref } from "@/lib/paid-activation";
 import { getSettings } from "@/lib/storage";
@@ -55,6 +55,13 @@ function extractReference(value: unknown): string | null {
         return data.ref.trim();
     }
     return null;
+}
+
+function getPlanChargeLabel(planId: Exclude<PlanId, "free">, billingCycle: BillingCycle): string {
+    if (planId === "standard") {
+        return billingCycle === "monthly" ? "R29 today, then monthly" : "R249 today, then yearly";
+    }
+    return billingCycle === "monthly" ? "R49 today, then monthly" : "R399 today, then yearly";
 }
 
 function readStoredCheckoutEmail(): string {
@@ -205,7 +212,7 @@ export function useInlinePaidPlanCheckout({
         writeStoredCheckoutEmail(normalizedEmail);
 
         try {
-            const intent = await createInlineTrialIntent({
+            const intent = await createInlinePurchaseIntent({
                 planId,
                 billingCycle,
                 email: normalizedEmail,
@@ -318,8 +325,14 @@ export function useInlinePaidPlanCheckout({
                         </div>
 
                         <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--text-muted)]">
-                            You&apos;ll pay R1 now to start the 14-day paid trial. After payment, paid users go to dashboard activation and new users go to paid login to create their account.
+                            You&apos;ll pay the full plan price now through Paystack. After payment, existing customers go straight back into paid activation and new customers go to paid sign-up to create their dashboard account.
                         </div>
+
+                        {requestedPlanId ? (
+                            <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm font-semibold text-[var(--text)]">
+                                {getPlanChargeLabel(requestedPlanId, billingCycle)}
+                            </div>
+                        ) : null}
 
                         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                             <Button

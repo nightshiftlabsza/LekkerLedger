@@ -1231,85 +1231,77 @@ async function rejectTrialIntent(intent: BillingIntentRecord, userId: string, em
 
 async function handleTrialChargeSuccess(data: Record<string, unknown>, intent: BillingIntentRecord): Promise<void> {
     const authorization = extractAuthorization(data);
-    if (!authorization?.reusable) {
-        await rejectTrialIntent(intent, intent.userId, intent.email, "The card could not be saved for automatic billing. Please try another card.");
-        return;
-    }
-
     const existing = await getSubscriptionByColumn("user_id", intent.userId);
-    if (!canStartTrial(existing)) {
-        await rejectTrialIntent(intent, intent.userId, intent.email, "This account has already used its free trial.");
-        return;
-    }
-
-    if (authorization.signature && !isPaystackTestMode()) {
-        const signatureMatch = await getSubscriptionByColumn("paystack_authorization_signature", authorization.signature);
-        if (signatureMatch && signatureMatch.userId !== intent.userId && signatureMatch.hasUsedTrial) {
-            await rejectTrialIntent(intent, intent.userId, intent.email, "This card has already been used for a free trial.");
-            return;
-        }
-    }
-
     const customerId = getStringFromPaths(data, ["customer.customer_code", "customer_code"]);
+    const subscriptionCode = getStringFromPaths(data, ["subscription.subscription_code", "subscription_code"]);
     const paidAt = parseTimestamp(getStringFromPaths(data, ["paid_at", "paidAt", "created_at"])) || Date.now();
-    const trialEndsAt = paidAt + TRIAL_DURATION_MS;
+    const currentPeriodEnd = addBillingInterval(new Date(paidAt), intent.billingCycle).getTime();
 
     let record: SubscriptionRecord = {
         userId: intent.userId,
         email: intent.email,
         paystackCustomerId: customerId,
-        paystackSubscriptionCode: existing?.paystackSubscriptionCode ?? null,
-        paystackPlanCode: existing?.paystackPlanCode ?? null,
+        paystackSubscriptionCode: subscriptionCode || (existing?.paystackSubscriptionCode ?? null),
+        paystackPlanCode: getPaystackPlanCode(intent.planId, intent.billingCycle),
         paystackEmailToken: existing?.paystackEmailToken ?? null,
-        paystackAuthorizationCode: authorization.authorizationCode,
-        paystackAuthorizationSignature: authorization.signature,
-        paystackAuthorizationLast4: authorization.last4,
+        paystackAuthorizationCode: authorization?.authorizationCode || existing?.paystackAuthorizationCode || null,
+        paystackAuthorizationSignature: authorization?.signature || existing?.paystackAuthorizationSignature || null,
+        paystackAuthorizationLast4: authorization?.last4 || existing?.paystackAuthorizationLast4 || null,
         planId: intent.planId,
         billingCycle: intent.billingCycle,
-        status: "trialing",
-        currentPeriodEnd: trialEndsAt,
-        nextChargeAt: trialEndsAt,
+        status: "active",
+        currentPeriodEnd,
+        nextChargeAt: currentPeriodEnd,
         cancelAtPeriodEnd: false,
-        trialStartedAt: paidAt,
-        trialEndsAt,
-        trialConsumedAt: paidAt,
-        hasUsedTrial: true,
+        trialStartedAt: null,
+        trialEndsAt: null,
+        trialConsumedAt: existing?.trialConsumedAt ?? null,
+        hasUsedTrial: existing?.hasUsedTrial ?? false,
         lastError: null,
         updatedAt: Date.now(),
     };
     await upsertSubscription(record);
 
     try {
-        const created = await createPaystackSubscription({
-            customerId: customerId || "",
-            planId: intent.planId,
-            billingCycle: intent.billingCycle,
-            authorizationCode: authorization.authorizationCode,
-            startDate: trialEndsAt,
-        });
-        record = {
-            ...record,
-            paystackSubscriptionCode: created.subscriptionCode || null,
-            paystackEmailToken: created.emailToken,
-            paystackPlanCode: created.planCode,
-            nextChargeAt: created.nextPaymentDate || trialEndsAt,
-            currentPeriodEnd: created.nextPaymentDate || trialEndsAt,
-            updatedAt: Date.now(),
-        };
-        await upsertSubscription(record);
-        record = await applyAvailableCreditsToSubscription(record);
+        if (authorization?.reusable && customerId) {
+            const created = await createPaystackSubscription({
+                customerId,
+                planId: intent.planId,
+                billingCycle: intent.billingCycle,
+                authorizationCode: authorization.authorizationCode,
+                startDate: currentPeriodEnd,
+            });
+            record = {
+                ...record,
+                paystackSubscriptionCode: created.subscriptionCode || record.paystackSubscriptionCode || null,
+                paystackEmailToken: created.emailToken,
+                paystackPlanCode: created.planCode,
+                nextChargeAt: created.nextPaymentDate || currentPeriodEnd,
+                currentPeriodEnd: created.nextPaymentDate || currentPeriodEnd,
+                updatedAt: Date.now(),
+            };
+            await upsertSubscription(record);
+            record = await applyAvailableCreditsToSubscription(record);
+        } else {
+            await upsertSubscription({
+                ...record,
+                lastError: "Initial payment succeeded, but automatic renewal still needs a reusable payment method.",
+                updatedAt: Date.now(),
+            });
+        }
+        await linkReferralToTrial(intent);
+        await qualifyReferralForFirstPaidCharge(intent.userId, intent.planId, intent.billingCycle, paidAt);
     } catch (error) {
         await upsertSubscription({
             ...record,
-            lastError: error instanceof Error ? error.message : "The trial started, but automatic billing setup still needs attention.",
+            lastError: error instanceof Error ? error.message : "The payment succeeded, but automatic renewal still needs attention.",
             updatedAt: Date.now(),
         });
     }
 
-    await linkReferralToTrial(intent);
     await upsertBillingIntent({
         ...intent,
-        status: "trial_started",
+        status: "completed",
         updatedAt: Date.now(),
     });
 }
@@ -1339,6 +1331,7 @@ async function resolveBillingIntentForCharge(reference: string | null, metadata:
 async function processSuccessfulCharge(data: Record<string, unknown>, reference: string | null, existing: SubscriptionRecord | null): Promise<boolean> {
     const metadata = parseMetadata(data.metadata);
     const intent = await resolveBillingIntentForCharge(reference, metadata);
+    const billingMode = getMetadataValue(metadata, "billing_mode");
 
     if (intent) {
         if (intent.status === "pending" || intent.status === "checkout_started" || intent.status === "payment_received") {
@@ -1348,6 +1341,32 @@ async function processSuccessfulCharge(data: Record<string, unknown>, reference:
             await handleTrialChargeSuccess(data, intent);
             return true;
         }
+        return true;
+    }
+
+    if (billingMode === "direct_purchase") {
+        const metadataPlanId = sanitizePlanId(getMetadataValue(metadata, "plan_id"));
+        const metadataCycle = sanitizeBillingCycle(getMetadataValue(metadata, "billing_cycle"));
+        const userId = getMetadataValue(metadata, "user_id") || existing?.userId || null;
+        const email = getStringFromPaths(data, ["customer.email", "email"]) || existing?.email || null;
+
+        if (!userId || !email || metadataPlanId === "free") {
+            return false;
+        }
+
+        await handleTrialChargeSuccess(data, {
+            id: `direct-${reference || userId}`,
+            reference: reference || "",
+            userId,
+            email,
+            planId: metadataPlanId,
+            billingCycle: metadataCycle,
+            referralCode: getMetadataValue(metadata, "referral_code"),
+            amountCents: Number(getNestedValue(data, "amount")) || 0,
+            status: "payment_received",
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+        });
         return true;
     }
 
@@ -1506,6 +1525,77 @@ export async function createCheckoutSession(
     });
 }
 
+export async function createAnonymousPurchaseIntent(request: Request, input: {
+    planId: Exclude<PlanId, "free">;
+    billingCycle: BillingCycle;
+    email: string;
+    referralCode?: string | null;
+}): Promise<{ reference: string; accessCode: string; amountCents: number }> {
+    await ensureBillingSchema();
+
+    const amount = getPlanPrice(input.planId, input.billingCycle);
+    if (!amount) {
+        throw new BillingError("Pricing is not configured for that plan.", 400);
+    }
+
+    const sanitizedReferralCode = sanitizeReferralCode(input.referralCode);
+    if (sanitizedReferralCode) {
+        const codeRecord = await getReferralCodeByCode(sanitizedReferralCode);
+        if (!codeRecord) {
+            throw new BillingError("That referral code could not be found.", 404);
+        }
+    }
+
+    const normalizedEmail = normalizeEmailAddress(input.email);
+    const guestUserId = buildGuestIntentUserId();
+    const intent: BillingIntentRecord = {
+        id: randomUUID(),
+        reference: buildTrialReference(guestUserId),
+        userId: guestUserId,
+        email: normalizedEmail,
+        planId: input.planId,
+        billingCycle: input.billingCycle,
+        referralCode: sanitizedReferralCode,
+        amountCents: amount * 100,
+        status: "pending",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+    };
+    await upsertBillingIntent(intent);
+
+    const checkout = await initializePaystackTransaction(request, {
+        userId: guestUserId,
+        email: normalizedEmail,
+    }, {
+        amountCents: intent.amountCents,
+        reference: intent.reference,
+        metadata: {
+            billing_mode: "direct_purchase",
+            intent_id: intent.id,
+            plan_id: input.planId,
+            billing_cycle: input.billingCycle,
+            referral_code: sanitizedReferralCode,
+            email: normalizedEmail,
+        },
+        callbackQuery: {
+            mode: "purchase",
+        },
+    });
+
+    await upsertBillingIntent({
+        ...intent,
+        reference: checkout.reference,
+        status: "checkout_started",
+        updatedAt: Date.now(),
+    });
+
+    return {
+        reference: checkout.reference,
+        accessCode: checkout.accessCode,
+        amountCents: intent.amountCents,
+    };
+}
+
 export async function startTrialCheckout(
     request: Request,
     user: VerifiedUser,
@@ -1583,64 +1673,7 @@ export async function createAnonymousTrialIntent(request: Request, input: {
     email: string;
     referralCode?: string | null;
 }): Promise<{ reference: string; accessCode: string; amountCents: number }> {
-    await ensureBillingSchema();
-
-    const sanitizedReferralCode = sanitizeReferralCode(input.referralCode);
-    if (sanitizedReferralCode) {
-        const codeRecord = await getReferralCodeByCode(sanitizedReferralCode);
-        if (!codeRecord) {
-            throw new BillingError("That referral code could not be found.", 404);
-        }
-    }
-
-    const normalizedEmail = normalizeEmailAddress(input.email);
-    const guestUserId = buildGuestIntentUserId();
-    const intent: BillingIntentRecord = {
-        id: randomUUID(),
-        reference: buildTrialReference(guestUserId),
-        userId: guestUserId,
-        email: normalizedEmail,
-        planId: input.planId,
-        billingCycle: input.billingCycle,
-        referralCode: sanitizedReferralCode,
-        amountCents: TRIAL_VERIFICATION_AMOUNT_CENTS,
-        status: "pending",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-    };
-    await upsertBillingIntent(intent);
-
-    const checkout = await initializePaystackTransaction(request, {
-        userId: guestUserId,
-        email: normalizedEmail,
-    }, {
-        amountCents: TRIAL_VERIFICATION_AMOUNT_CENTS,
-        reference: intent.reference,
-        metadata: {
-            billing_mode: "trial_setup",
-            intent_id: intent.id,
-            plan_id: input.planId,
-            billing_cycle: input.billingCycle,
-            referral_code: sanitizedReferralCode,
-            email: normalizedEmail,
-        },
-        callbackQuery: {
-            mode: "trial",
-        },
-    });
-
-    await upsertBillingIntent({
-        ...intent,
-        reference: checkout.reference,
-        status: "checkout_started",
-        updatedAt: Date.now(),
-    });
-
-    return {
-        reference: checkout.reference,
-        accessCode: checkout.accessCode,
-        amountCents: intent.amountCents,
-    };
+    return createAnonymousPurchaseIntent(request, input);
 }
 
 export async function getVerifiedEntitlementsForUser(userId: string): Promise<VerifiedEntitlements> {

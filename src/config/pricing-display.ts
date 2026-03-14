@@ -39,7 +39,7 @@ export const MARKETING_YEARLY_BADGE = "Save up to 32%";
 export const HOMEPAGE_PRICING_LINK_LABEL = "Compare plans in detail";
 
 export const PRICING_PAGE_TITLE = "Pick the plan that fits your household.";
-export const PRICING_PAGE_SUBTITLE = "Start free. Or pay R1 for your first 14 days on Standard or Pro.";
+export const PRICING_PAGE_SUBTITLE = "Use the public free payslip tool, or pay now for Standard or Pro dashboard access.";
 export const PRICING_PAGE_NUDGE_TITLE = "Standard to Pro is less than R13/month extra.";
 export const PRICING_PAGE_NUDGE_BODY = "That's the price of a cup of coffee for full document storage, year-end summaries, and 5 years of searchable history.";
 
@@ -87,11 +87,11 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Encrypted sync",
             "12 months of history",
         ],
-        ctaLabel: "Try Standard for R1",
-        ctaSubtext: "14-day trial, then R29/month",
+        ctaLabel: "Choose Standard",
+        ctaSubtext: "Pay now. Dashboard access starts immediately.",
         ctaSubtextByCycle: {
-            monthly: "14-day trial, then R29/month",
-            yearly: "14-day trial, then R249/year",
+            monthly: "Pay R29 now, then monthly",
+            yearly: "Pay R249 now, then yearly",
         },
         prices: {
             monthly: {
@@ -124,11 +124,11 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Faster support",
             "Priority access to the Android app when available",
         ],
-        ctaLabel: "Try Pro for R1",
-        ctaSubtext: "14-day trial, then R49/month",
+        ctaLabel: "Choose Pro",
+        ctaSubtext: "Pay now. Dashboard access starts immediately.",
         ctaSubtextByCycle: {
-            monthly: "14-day trial, then R49/month",
-            yearly: "14-day trial, then R399/year",
+            monthly: "Pay R49 now, then monthly",
+            yearly: "Pay R399 now, then yearly",
         },
         prices: {
             monthly: {

@@ -1,5 +1,7 @@
 # Supabase Sync Schema
 
+If your live Supabase project already has `user_profiles`, `synced_records`, and `synced_files` but with different column names, do not try to patch the app around that older schema. If those tables are still empty, run [supabase-sync-reset.sql](/C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/docs/supabase-sync-reset.sql) to reset them to the schema the app code expects.
+
 LekkerLedger's encrypted sync depends on three Supabase tables:
 
 ## `public.user_profiles`
@@ -68,4 +70,13 @@ for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create policy "synced_files_self_access" on public.synced_files
 for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+```
+
+## Realtime
+
+Encrypted record/file changes are also consumed through Supabase Realtime, so both sync tables should be present in the realtime publication:
+
+```sql
+alter publication supabase_realtime add table public.synced_records;
+alter publication supabase_realtime add table public.synced_files;
 ```

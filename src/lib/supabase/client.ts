@@ -72,11 +72,7 @@ export function createClient() {
     const storageKey = getSupabaseStorageKey(supabaseUrl);
     healSupabaseSessionStorage(storageKey);
 
-    browserClient = createBrowserClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-            storage: typeof window === "undefined" ? undefined : createSafeStorage(),
-        },
-    });
+    browserClient = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
     return browserClient;
 }

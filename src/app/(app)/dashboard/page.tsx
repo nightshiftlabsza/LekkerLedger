@@ -72,7 +72,7 @@ function DashboardContent() {
             try {
                 const account = await confirmBillingTransaction(paymentReference);
                 const hasPaidAccess = account.entitlements.planId !== "free"
-                    && (account.entitlements.isActive || account.entitlements.status === "trialing");
+                    && account.entitlements.isActive;
 
                 if (!hasPaidAccess) {
                     throw new Error(account.account.lastError || "Your payment was found, but paid access is not active yet.");
@@ -308,7 +308,7 @@ function DashboardContent() {
                                 className="h-auto min-h-0 px-0 py-0 text-xs font-bold"
                             >
                                 <>
-                                    R1 for 14 days <ArrowRight className="h-3 w-3" />
+                                    Upgrade to Standard <ArrowRight className="h-3 w-3" />
                                 </>
                             </InlinePlanCheckoutButton>
                         </div>

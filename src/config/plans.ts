@@ -186,14 +186,14 @@ export function getPlanPricePresentation(plan: PlanId | PlanConfig, cycle: Billi
             return {
                 primaryPrice: "R20.75",
                 periodLabel: "/month",
-                helperText: "14-day trial, then R249/year",
+                helperText: "Billed at R249/year",
             };
         }
 
         return {
             primaryPrice: "R29",
             periodLabel: "/month",
-            helperText: "14-day trial, then billed monthly",
+            helperText: "Billed monthly",
         };
     }
 
@@ -201,18 +201,18 @@ export function getPlanPricePresentation(plan: PlanId | PlanConfig, cycle: Billi
         return {
             primaryPrice: "R33.25",
             periodLabel: "/month",
-            helperText: "14-day trial, then R399/year",
+            helperText: "Billed at R399/year",
         };
     }
 
     return {
         primaryPrice: "R49",
         periodLabel: "/month",
-        helperText: "14-day trial, then billed monthly",
+        helperText: "Billed monthly",
     };
 }
 
 
-export const REFUND_POLICY_SUMMARY = `The 14-day refund window starts when the first real subscription charge is taken after the trial, not when the R1 card check runs. Use the in-app Support link or email support@lekkerledger.co.za with your purchase email and date.`;
+export const REFUND_POLICY_SUMMARY = `The 14-day refund window starts on your paid purchase date. Use the in-app Support link or email support@lekkerledger.co.za with your purchase email and date.`;
 
 

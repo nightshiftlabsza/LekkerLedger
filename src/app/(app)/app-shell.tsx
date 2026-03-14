@@ -13,13 +13,13 @@ import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
 import { getHouseholds, getSettings, resetAllData, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
-import { canUseMultipleHouseholds, getUserPlan } from "@/lib/entitlements";
+import { canUseMultipleHouseholds, getPlanById } from "@/lib/entitlements";
 import { isPaidDashboardFlow, shouldRedirectFreeUserFromApp } from "@/lib/app-access";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 import { AppModeProvider, useAppMode } from "@/lib/app-mode";
 import { RecoveryGate } from "@/components/encryption/recovery-gate";
 import { SyncIndicator } from "@/components/sync-indicator";
-import { clearVerifiedEntitlementsCache } from "@/lib/billing-client";
+import { clearVerifiedEntitlementsCache, fetchBillingAccount } from "@/lib/billing-client";
 import { createClient } from "@/lib/supabase/client";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -42,6 +42,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const [addingHousehold, setAddingHousehold] = React.useState(false);
     const [lastLocalSaveAt, setLastLocalSaveAt] = React.useState<number | null>(null);
     const [settingsReady, setSettingsReady] = React.useState(false);
+    const [verifiedPlanId, setVerifiedPlanId] = React.useState<"free" | "standard" | "pro">("free");
+    const [billingReady, setBillingReady] = React.useState(false);
     const settingsRef = React.useRef<typeof settings>(null);
     React.useEffect(() => {
         settingsRef.current = settings;
@@ -67,18 +69,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         let lastLoadPromise: Promise<unknown> | null = null;
 
         async function loadShellContext() {
-            const thisPromise = Promise.all([getHouseholds(), getSettings()]);
+            const thisPromise = Promise.all([
+                getHouseholds(),
+                getSettings(),
+                fetchBillingAccount().catch(() => null),
+            ]);
             lastLoadPromise = thisPromise;
             
-            const [loadedHouseholds, settings] = await thisPromise;
+            const [loadedHouseholds, settings, billingAccount] = await thisPromise;
             if (!active || lastLoadPromise !== thisPromise) return;
 
             setHouseholds(loadedHouseholds);
             setSettingsState(settings);
             setSettingsReady(true);
+            const nextVerifiedPlanId = billingAccount?.entitlements.isActive
+                ? billingAccount.entitlements.planId
+                : "free";
+            setVerifiedPlanId(nextVerifiedPlanId);
+            setBillingReady(true);
             if (settings) {
                 setActiveHouseholdState(settings.activeHouseholdId || "default");
-                setMultiHouseholdEnabled(canUseMultipleHouseholds(getUserPlan(settings)));
+                setMultiHouseholdEnabled(canUseMultipleHouseholds(getPlanById(nextVerifiedPlanId)));
             }
         }
 
@@ -94,18 +105,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }, []);
 
     React.useEffect(() => {
-        const planId = getUserPlan(settings).id;
         if (!shouldRedirectFreeUserFromApp({
             pathname,
-            planId,
-            settingsReady,
+            planId: verifiedPlanId,
+            settingsReady: settingsReady && billingReady,
             paidFlowRequested,
         })) {
             return;
         }
 
         router.replace("/pricing");
-    }, [paidFlowRequested, pathname, router, settings, settingsReady]);
+    }, [billingReady, paidFlowRequested, pathname, router, settingsReady, verifiedPlanId]);
 
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && (sync === "error" || syncConflict) && !syncBannerDismissed;

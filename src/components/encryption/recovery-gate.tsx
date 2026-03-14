@@ -54,7 +54,17 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         async function checkState() {
             setStatus("checking");
             try {
-                const { data: { user } } = await supabase.auth.getUser();
+                // Initial check
+                let { data: { user } } = await supabase.auth.getUser();
+                
+                // If no user is found immediately, wait a moment and try one more time.
+                // This accounts for slow cookie/storage synchronization after a login navigation.
+                if (!user && mounted) {
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    const retry = await supabase.auth.getUser();
+                    user = retry.data.user;
+                }
+
                 if (!mounted) return;
 
                 if (!user) {

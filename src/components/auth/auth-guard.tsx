@@ -35,7 +35,7 @@ export function AuthGuard({ children, type }: { children: React.ReactNode; type:
 
                 const billingAccount = await fetchBillingAccount();
                 if (mounted) {
-                    setHasAccess(Boolean(billingAccount?.entitlements.isActive || billingAccount?.entitlements.status === "trialing"));
+                    setHasAccess(Boolean(billingAccount?.entitlements.isActive && billingAccount?.entitlements.planId !== "free"));
                 }
             } catch (error) {
                 console.error("Failed to verify account access.", error);
