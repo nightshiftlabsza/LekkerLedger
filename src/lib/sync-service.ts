@@ -83,15 +83,16 @@ export class SyncService {
     private isReconciling = false;
     private lastError: string | null = null;
     private listeners = new Set<SyncServiceListener>();
+    private snapshot: SyncServiceSnapshot = {
+        userId: null,
+        ready: false,
+        syncing: false,
+        hasError: false,
+        lastError: null,
+    };
 
     getSnapshot(): SyncServiceSnapshot {
-        return {
-            userId: this.userId,
-            ready: Boolean(this.userId),
-            syncing: this.isSyncing || this.isReconciling,
-            hasError: Boolean(this.lastError),
-            lastError: this.lastError,
-        };
+        return this.snapshot;
     }
 
     subscribe(listener: SyncServiceListener) {
@@ -102,7 +103,27 @@ export class SyncService {
     }
 
     private notifyListeners() {
-        const snapshot = this.getSnapshot();
+        const nextSnapshot: SyncServiceSnapshot = {
+            userId: this.userId,
+            ready: Boolean(this.userId),
+            syncing: this.isSyncing || this.isReconciling,
+            hasError: Boolean(this.lastError),
+            lastError: this.lastError,
+        };
+
+        const previous = this.snapshot;
+        const didChange = previous.userId !== nextSnapshot.userId
+            || previous.ready !== nextSnapshot.ready
+            || previous.syncing !== nextSnapshot.syncing
+            || previous.hasError !== nextSnapshot.hasError
+            || previous.lastError !== nextSnapshot.lastError;
+
+        if (!didChange) {
+            return;
+        }
+
+        this.snapshot = nextSnapshot;
+        const snapshot = this.snapshot;
         this.listeners.forEach((listener) => {
             listener(snapshot);
         });
