@@ -18,7 +18,6 @@ import { isPaidDashboardFlow, shouldRedirectFreeUserFromApp } from "@/lib/app-ac
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 import { AppModeProvider, useAppMode } from "@/lib/app-mode";
 import { RecoveryGate } from "@/components/encryption/recovery-gate";
-import { SyncIndicator } from "@/components/sync-indicator";
 import { clearVerifiedEntitlementsCache, fetchBillingAccount } from "@/lib/billing-client";
 import { createClient } from "@/lib/supabase/client";
 
@@ -205,7 +204,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 )}
 
                                 <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
-                                        <SyncIndicator />
                                         <AccountMenu sync={sync} syncErrorMessage={syncErrorMessage} />
                                     <HouseholdSwitcher
                                         households={households}
@@ -322,6 +320,7 @@ function AccountMenu({
     const [open, setOpen] = React.useState(false);
     const [signOutPromptOpen, setSignOutPromptOpen] = React.useState(false);
     const [signingOut, setSigningOut] = React.useState<"keep" | "delete" | null>(null);
+    const [accountEmail, setAccountEmail] = React.useState("");
     const menuRef = React.useRef<HTMLDivElement | null>(null);
     const router = useRouter();
     const supabase = React.useMemo(() => createClient(), []);
@@ -343,24 +342,49 @@ function AccountMenu({
         };
     }, []);
 
+    React.useEffect(() => {
+        let active = true;
+
+        async function loadEmail() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!active) return;
+            setAccountEmail(user?.email ?? "");
+        }
+
+        void loadEmail();
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setAccountEmail(session?.user?.email ?? "");
+        });
+
+        return () => {
+            active = false;
+            subscription.unsubscribe();
+        };
+    }, [supabase.auth]);
+
     const { mode, lockAccount } = useAppMode();
 
     let accountState = "Local mode";
     let accountSummary = "Your data is stored securely on this device. No cloud sync.";
+    let accountToneClass = "text-[var(--text)]";
 
     if (mode === "account_locked") {
         accountState = "Account Locked";
         accountSummary = "Your encrypted data is paused until you provide your recovery key.";
+        accountToneClass = "text-[var(--warning)]";
     } else if (mode === "account_unlocked") {
         if (sync === "error") {
             accountState = "Sync needs attention";
             accountSummary = syncErrorMessage ?? "Your account is connected, but the latest cloud backup hit a problem. Open Settings > Storage & backup.";
+            accountToneClass = "text-[var(--danger)]";
         } else if (sync === "reconnecting") {
             accountState = "Sync reconnecting";
             accountSummary = "Your account is connected. Cloud backup will resume once this device is back online.";
+            accountToneClass = "text-[var(--primary)]";
         } else {
             accountState = "Cloud Sync Active";
             accountSummary = "Your data is securely encrypted and synced to the cloud.";
+            accountToneClass = "text-[var(--primary)]";
         }
     }
 
@@ -393,14 +417,17 @@ function AccountMenu({
                     type="button"
                     onClick={() => setOpen((current) => !current)}
                     data-testid="account-menu-toggle"
-                    className="flex items-center gap-1 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-2 sm:px-3 py-1.5 sm:py-2 shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25 min-h-[40px]"
+                    className="flex min-h-[52px] items-center gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-2.5 sm:px-3.5 py-2 shadow-[var(--shadow-sm)] active-scale transition-all hover:border-[var(--primary)]/25"
                 >
                     <div className="flex h-7 sm:h-8 w-7 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl bg-[var(--surface-2)] text-[var(--primary)] shrink-0">
                         <CircleUserRound className="h-4 w-4" />
                     </div>
-                    <div className="text-left hidden sm:block max-w-[100px] md:max-w-[140px]">
+                    <div className="text-left hidden sm:block min-w-0 max-w-[180px]">
                         <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[var(--text-muted)] leading-none mb-0.5">Account</p>
-                        <p className="text-xs font-semibold text-[var(--text)] truncate">{accountState}</p>
+                        <p className={`text-xs font-semibold truncate ${accountToneClass}`}>{accountState}</p>
+                        <p className="mt-0.5 text-[11px] text-[var(--text-muted)] truncate">
+                            {accountEmail || "Signed in"}
+                        </p>
                     </div>
                     <ChevronDown className="h-3 w-3 text-[var(--text-muted)] shrink-0 hidden sm:block" />
                 </button>
@@ -409,7 +436,10 @@ function AccountMenu({
                     <div className="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-[min(20rem,calc(100vw-1.5rem))] rounded-3xl border border-[var(--border)] bg-[var(--surface-raised)] p-3 shadow-[0_18px_48px_rgba(16,24,40,0.14)]">
                         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
                             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Current setup</p>
-                            <p className="mt-1 text-sm font-semibold text-[var(--text)]">{accountState}</p>
+                            <p className={`mt-1 text-sm font-semibold ${accountToneClass}`}>{accountState}</p>
+                            <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
+                                {accountEmail ? `Signed in as ${accountEmail}` : "Signed-in account email unavailable on this device."}
+                            </p>
                             <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{accountSummary}</p>
                         </div>
 

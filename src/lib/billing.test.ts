@@ -5,6 +5,7 @@ import {
     sanitizeBillingStatus,
     type SubscriptionRecord,
 } from "./billing";
+import { paymentBelongsToDifferentAccount } from "./billing-server";
 
 function createSubscription(overrides: Partial<SubscriptionRecord> = {}): SubscriptionRecord {
     return {
@@ -78,5 +79,28 @@ describe("billing helpers", () => {
         expect(entitlements.isActive).toBe(false);
         expect(entitlements.cancelAtPeriodEnd).toBe(true);
         expect(entitlements.availableReferralMonths).toBe(1);
+    });
+
+    it("lets a signed-in user claim a successful guest checkout", () => {
+        expect(paymentBelongsToDifferentAccount({
+            metadataUserId: "guest_123",
+            intent: {
+                id: "intent-1",
+                reference: "purchase_ref",
+                userId: "guest_123",
+                email: "guest@example.com",
+                planId: "standard",
+                billingCycle: "monthly",
+                amountCents: 9900,
+                status: "payment_received",
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+            },
+            paymentEmail: "guest@example.com",
+            user: {
+                userId: "real-user",
+                email: "guest@example.com",
+            },
+        })).toBe(false);
     });
 });

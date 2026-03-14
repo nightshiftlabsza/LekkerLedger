@@ -250,6 +250,28 @@ function buildEventKey(event: string, payload: Record<string, unknown>): string 
     return [event, reference || subscriptionCode || customerCode || userId || "unknown", timestamp].join(":");
 }
 
+export function paymentBelongsToDifferentAccount(input: {
+    metadataUserId: string | null;
+    intent: BillingIntentRecord | null;
+    paymentEmail: string | null;
+    user: VerifiedUser;
+}) {
+    const guestMetadataUserId = isGuestIntentUserId(input.metadataUserId);
+    if (input.metadataUserId && input.metadataUserId !== input.user.userId && !guestMetadataUserId) {
+        return true;
+    }
+
+    if (input.intent && input.intent.userId !== input.user.userId && !isGuestIntentUserId(input.intent.userId)) {
+        return true;
+    }
+
+    if (!input.metadataUserId && !input.intent && input.paymentEmail) {
+        return input.paymentEmail.toLowerCase() !== input.user.email.toLowerCase();
+    }
+
+    return false;
+}
+
 function rowToSubscriptionRecord(row: Record<string, unknown>): SubscriptionRecord {
     return {
         userId: String(row.user_id),
@@ -1645,10 +1667,13 @@ export async function confirmPaystackTransaction(reference: string, user: Verifi
     const intent = await resolveBillingIntentForCharge(normalizedReference, metadata);
     const metadataUserId = getMetadataValue(metadata, "user_id");
     const email = getStringFromPaths(data, ["customer.email", "email"]);
-    if (metadataUserId && metadataUserId !== user.userId) {
-        throw new BillingAuthError("That payment belongs to a different account.");
-    }
-    if (!metadataUserId && !intent && email && email.toLowerCase() !== user.email.toLowerCase()) {
+
+    if (paymentBelongsToDifferentAccount({
+        metadataUserId,
+        intent,
+        paymentEmail: email,
+        user,
+    })) {
         throw new BillingAuthError("That payment belongs to a different account.");
     }
 
