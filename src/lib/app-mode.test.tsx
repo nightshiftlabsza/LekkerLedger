@@ -53,7 +53,7 @@ function Harness() {
     return (
         <div>
             <p data-testid="mode">{mode}</p>
-            <button type="button" onClick={() => void unlockAccount({} as CryptoKey, "user-1")}>
+            <button type="button" onClick={() => void unlockAccount({} as CryptoKey, "user-1").catch(() => undefined)}>
                 Unlock
             </button>
         </div>
@@ -112,5 +112,27 @@ describe("AppModeProvider", () => {
         });
 
         expect(screen.getByTestId("mode").textContent).toBe("account_unlocked");
+    });
+
+    it("stays locked when the initial cloud reconcile fails", async () => {
+        mocks.reconcileAfterUnlockMock.mockRejectedValueOnce(new Error("List failed: relation \"synced_records\" does not exist"));
+
+        render(
+            <AppModeProvider>
+                <Harness />
+            </AppModeProvider>,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId("mode").textContent).toBe("account_locked");
+        });
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "Unlock" }));
+        });
+
+        await waitFor(() => {
+            expect(screen.getByTestId("mode").textContent).toBe("account_locked");
+        });
     });
 });

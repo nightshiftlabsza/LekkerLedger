@@ -177,7 +177,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 });
 
             if (error) {
-                console.warn("Could not save recovery profile to Supabase. Continuing with local device copy only.", error);
+                throw error;
             }
 
             await unlockAccount(cryptoKey, user.id);

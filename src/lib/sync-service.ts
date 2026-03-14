@@ -252,6 +252,7 @@ export class SyncService {
         } catch (error) {
             this.captureError(error, "Failed to reconcile local and cloud data.");
             console.error("Failed to reconcile local and cloud data.", error);
+            throw error;
         } finally {
             this.isReconciling = false;
             this.setSyncing(false);
