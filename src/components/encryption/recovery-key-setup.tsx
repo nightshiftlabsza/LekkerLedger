@@ -68,7 +68,7 @@ export function RecoveryKeySetup({
                         LekkerLedger uses <strong>Zero-Knowledge Encryption</strong> to keep your payroll records completely private. This means only you have the key to unlock your data.
                     </p>
                     <p>
-                        Since we don't have a copy of this key, <strong className="text-[var(--text)]">we cannot reset it if you lose it</strong>. Please save it somewhere safe, like a password manager or a secure document.
+                        Since we don&apos;t have a copy of this key, <strong className="text-[var(--text)]">we cannot reset it if you lose it</strong>. Please save it somewhere safe, like a password manager or a secure document.
                     </p>
                 </div>
             </div>

@@ -110,7 +110,7 @@ export function RecoveryKeyInput({
                 <div className="space-y-1">
                     <p className="text-xs font-bold text-[var(--text)] uppercase tracking-wider">Quick Tip</p>
                     <p className="text-xs leading-relaxed text-[var(--text-muted)]">
-                        You can paste your key directly from your password manager. We'll automatically clean up any extra spaces or dashes for you.
+                        You can paste your key directly from your password manager. We&apos;ll automatically clean up any extra spaces or dashes for you.
                     </p>
                 </div>
             </div>
