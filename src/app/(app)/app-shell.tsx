@@ -279,6 +279,21 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
     return (
         <AppModeProvider>
             <div className="min-h-screen flex flex-col lg:pl-64 2xl:pl-72" style={{ backgroundColor: "var(--bg)" }}>
+                <div className="hidden lg:block">
+                    <SideDrawer
+                        open={moreOpen}
+                        onOpenChange={setMoreOpen}
+                        showButton={false}
+                        variant={isDashboardShell ? "dashboard" : "default"}
+                        households={households}
+                        activeHouseholdId={activeHouseholdId}
+                        multiHouseholdEnabled={multiHouseholdEnabled}
+                        onSwitchHousehold={handleSwitchHousehold}
+                        onAddHousehold={handleAddHousehold}
+                        employerName={settings?.employerName?.trim() || ""}
+                        planLabel={verifiedPlan.label}
+                    />
+                </div>
                 <header
                     className={`sticky top-0 z-50 border-b border-[var(--border)] safe-area-pt ${isDashboardShell
                         ? "bg-[color:var(--surface-sidebar)]/92 backdrop-blur-xl shadow-[0_10px_24px_rgba(16,24,40,0.06)]"
@@ -287,19 +302,21 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
                 >
                     <div className={`content-container-wide flex w-full items-center justify-between gap-3 px-3 sm:px-6 lg:px-8 ${isDashboardShell ? "py-2.5 sm:py-3" : "py-2 sm:py-3 lg:py-3"}`}>
                         <div className="flex items-center gap-2 sm:gap-3 lg:min-w-0">
-                            <SideDrawer
-                                open={moreOpen}
-                                onOpenChange={setMoreOpen}
-                                showButton={true}
-                                variant={isDashboardShell ? "dashboard" : "default"}
-                                households={households}
-                                activeHouseholdId={activeHouseholdId}
-                                multiHouseholdEnabled={multiHouseholdEnabled}
-                                onSwitchHousehold={handleSwitchHousehold}
-                                onAddHousehold={handleAddHousehold}
-                                employerName={settings?.employerName?.trim() || ""}
-                                planLabel={verifiedPlan.label}
-                            />
+                            <div className="lg:hidden">
+                                <SideDrawer
+                                    open={moreOpen}
+                                    onOpenChange={setMoreOpen}
+                                    showButton={true}
+                                    variant={isDashboardShell ? "dashboard" : "default"}
+                                    households={households}
+                                    activeHouseholdId={activeHouseholdId}
+                                    multiHouseholdEnabled={multiHouseholdEnabled}
+                                    onSwitchHousehold={handleSwitchHousehold}
+                                    onAddHousehold={handleAddHousehold}
+                                    employerName={settings?.employerName?.trim() || ""}
+                                    planLabel={verifiedPlan.label}
+                                />
+                            </div>
                             <Link href="/dashboard" className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-1.5 sm:px-2.5 py-1.5 sm:py-2 outline-none shadow-[0_6px_18px_rgba(16,24,40,0.05)] transition-all hover:border-[var(--primary)]/20 lg:hidden">
                                 <Logo
                                     iconClassName="h-6 sm:h-9 w-6 sm:w-9"
