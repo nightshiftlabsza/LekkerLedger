@@ -19,7 +19,7 @@ import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { getEmployees, getSettings, getCurrentPayPeriod, getDocuments, getLatestPayslip, subscribeToDataChanges, getPayPeriods } from "@/lib/storage";
 import { filterRecordsForArchiveWindow, isUploadedDocument } from "@/lib/archive";
 import { computeDashboardAlerts, type DashboardAlert as DashboardAlertData } from "@/lib/alerts";
-import { confirmBillingTransaction } from "@/lib/billing-client";
+import { confirmBillingTransaction, confirmGuestBillingTransaction } from "@/lib/billing-client";
 import { getUserPlan } from "@/lib/entitlements";
 import { clearPendingBillingHandoff, readPendingBillingReference, writePendingBillingReference } from "@/lib/billing-handoff";
 import { buildPaidDashboardHref, PAID_LOGIN_SUCCESS_QUERY } from "@/lib/paid-activation";
@@ -70,7 +70,28 @@ function DashboardContent() {
             setActivationError(null);
 
             try {
-                const account = await confirmBillingTransaction(paymentReference);
+                let account = null;
+                let lastError: Error | null = null;
+
+                for (let attempt = 0; attempt < 3; attempt += 1) {
+                    try {
+                        account = await confirmBillingTransaction(paymentReference);
+                        break;
+                    } catch (error) {
+                        lastError = error instanceof Error ? error : new Error("Paid activation could not be completed.");
+                        await new Promise((resolve) => window.setTimeout(resolve, 900));
+                    }
+                }
+
+                if (!account) {
+                    const guestStatus = await confirmGuestBillingTransaction(paymentReference).catch(() => null);
+                    if (guestStatus?.paid) {
+                        throw new Error(lastError?.message || "Your payment was found, but the paid account could not be activated yet.");
+                    }
+
+                    throw lastError || new Error("Paid activation could not be completed.");
+                }
+
                 const hasPaidAccess = account.entitlements.planId !== "free"
                     && account.entitlements.isActive;
 

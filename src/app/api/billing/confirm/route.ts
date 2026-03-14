@@ -25,6 +25,7 @@ export async function POST(request: Request) {
             },
         });
     } catch (error) {
+        console.error("[billing/confirm] activation failed", error);
         const { status, message } = toErrorResponse(error);
         return NextResponse.json({ error: message }, { status });
     }

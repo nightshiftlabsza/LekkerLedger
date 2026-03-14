@@ -47,11 +47,18 @@ async function buildAuthHeaders(accessToken?: string | null): Promise<Record<str
 }
 
 async function buildErrorMessage(response: Response, fallback: string): Promise<Error> {
+    const responseText = await response.text();
+
     try {
-        const data = await response.json();
+        const data = JSON.parse(responseText);
         return new Error(typeof data?.error === "string" ? data.error : fallback);
     } catch {
-        return new Error(fallback);
+        const trimmed = responseText.trim();
+        if (trimmed && !trimmed.startsWith("<")) {
+            return new Error(trimmed);
+        }
+
+        return new Error(`${fallback} (HTTP ${response.status})`);
     }
 }
 

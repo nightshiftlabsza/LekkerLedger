@@ -1437,9 +1437,16 @@ async function handleRefundProcessed(existing: SubscriptionRecord | null): Promi
     return true;
 }
 
-export async function verifyUserFromRequest(_request: Request): Promise<VerifiedUser> {
+export async function verifyUserFromRequest(request: Request): Promise<VerifiedUser> {
     const supabase = await createClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const authorization = request.headers.get("authorization") || request.headers.get("Authorization") || "";
+    const bearerToken = authorization.startsWith("Bearer ") ? authorization.slice("Bearer ".length).trim() : "";
+
+    const authResult = bearerToken
+        ? await supabase.auth.getUser(bearerToken)
+        : await supabase.auth.getUser();
+
+    const { data: { user }, error } = authResult;
 
     if (error || !user || !user.email) {
         throw new BillingAuthError("Sign-in is required.");
