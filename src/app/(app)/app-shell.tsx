@@ -278,7 +278,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
 
     return (
         <AppModeProvider>
-            <div className="min-h-screen flex flex-col lg:pl-64 min-[1600px]:lg:pl-72" style={{ backgroundColor: "var(--bg)" }}>
+            <div className="min-h-screen flex flex-col lg:pl-64 2xl:pl-72" style={{ backgroundColor: "var(--bg)" }}>
                 <header
                     className={`sticky top-0 z-50 border-b border-[var(--border)] safe-area-pt ${isDashboardShell
                         ? "bg-[color:var(--surface-sidebar)]/92 backdrop-blur-xl shadow-[0_10px_24px_rgba(16,24,40,0.06)]"

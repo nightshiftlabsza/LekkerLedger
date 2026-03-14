@@ -89,16 +89,15 @@ export function SideDrawer({
             )}
 
             {/* Drawer panel */}
-            <dialog
-                open
+            <div
+                role="dialog"
                 aria-modal="true"
                 aria-label="Navigation"
                 className={[
-                    "fixed top-0 left-0 h-full w-80 lg:w-64 min-[1600px]:lg:w-72 z-50 flex flex-col",
+                    "fixed top-0 left-0 h-full w-80 lg:w-64 2xl:w-72 z-50 flex flex-col",
                     dashboardVariant ? "" : "glass-panel",
                     "lg:border-r lg:border-[var(--border)] lg:shadow-none",
                     "shadow-[var(--shadow-xl)] transition-transform duration-300",
-                    "p-0 m-0 border-none max-w-none max-h-none", // Reset dialog defaults
                     open ? "translate-x-0 animate-drawer-in" : "-translate-x-full lg:translate-x-0",
                 ].join(" ")}
                 style={{
@@ -106,7 +105,6 @@ export function SideDrawer({
                     backdropFilter: dashboardVariant ? "blur(18px)" : "blur(12px)",
                     WebkitBackdropFilter: dashboardVariant ? "blur(18px)" : "blur(12px)",
                     borderRight: "1px solid var(--border)",
-                    display: "flex", // Ensure it's not hidden by default dialog styles
                 }}
             >
                 {/* ── Header ─────────────────────────────────────────────── */}
@@ -233,7 +231,7 @@ export function SideDrawer({
                         </div>
                     ) : null}
                 </div>
-            </dialog>
+            </div>
         </>
     );
 }
