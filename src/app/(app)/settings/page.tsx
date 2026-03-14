@@ -24,7 +24,7 @@ import { useUI } from "@/components/theme-provider";
 import { InlinePlanCheckoutButton } from "@/components/billing/inline-paid-plan-checkout";
 import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "@/src/config/plans";
 import { getArchiveCutoffDate, getArchiveUpgradeHref } from "@/lib/archive";
-import { canUseAdvancedLeaveFeatures, canUseFullHistoryExport, getUserPlan } from "@/lib/entitlements";
+import { applyVerifiedEntitlementsToSettings, canUseAdvancedLeaveFeatures, canUseFullHistoryExport, getUserPlan } from "@/lib/entitlements";
 import { useAppMode } from "@/lib/app-mode";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 
@@ -132,7 +132,11 @@ function SettingsContent() {
         }
     }, [saving, setDensity, settings, toast]);
 
-    const userPlan = getUserPlan(settings);
+    const effectiveSettings = React.useMemo(
+        () => applyVerifiedEntitlementsToSettings(settings, billingAccount?.entitlements) ?? settings,
+        [billingAccount?.entitlements, settings],
+    );
+    const userPlan = getUserPlan(effectiveSettings);
     const advancedLeaveEnabled = canUseAdvancedLeaveFeatures(userPlan);
     const customLeaveTypes = React.useMemo(() => settings?.customLeaveTypes ?? [], [settings?.customLeaveTypes]);
     const trialEndsLabel = billingAccount?.account.trialEndsAt ? new Date(billingAccount.account.trialEndsAt).toLocaleDateString("en-ZA") : null;
@@ -725,8 +729,8 @@ function SettingsContent() {
                 )}
 
                 {activeTab === "plan" && (() => {
-                    const currentPlan = getUserPlan(settings);
-                    const currentCycle = settings.billingCycle === "monthly" ? "monthly" : "yearly";
+                    const currentPlan = getUserPlan(effectiveSettings);
+                    const currentCycle = effectiveSettings?.billingCycle === "monthly" ? "monthly" : "yearly";
                     const displayCycle: BillingCycle = currentPlan.id === "free" ? "monthly" : currentCycle;
                     const comparisonCycle: BillingCycle = currentPlan.id === "free" ? "yearly" : currentCycle;
                     const currentPricePresentation = getPlanPricePresentation(currentPlan, displayCycle);
@@ -748,12 +752,12 @@ function SettingsContent() {
                                                     ? "Free plan active"
                                                     : billingStatus === "trialing" && trialEndsLabel
                                                         ? `Trial active until ${trialEndsLabel}`
-                                                        : billingAccount?.account.cancelAtPeriodEnd && settings.paidUntil
-                                                            ? `Renewal canceled. Access ends ${new Date(settings.paidUntil).toLocaleDateString("en-ZA")}`
+                                                        : billingAccount?.account.cancelAtPeriodEnd && effectiveSettings?.paidUntil
+                                                            ? `Renewal canceled. Access ends ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`
                                                             : nextChargeLabel
                                                                 ? `Next charge ${nextChargeLabel}`
-                                                                : settings.paidUntil
-                                                                    ? `Access until ${new Date(settings.paidUntil).toLocaleDateString("en-ZA")}`
+                                                                : effectiveSettings?.paidUntil
+                                                                    ? `Access until ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`
                                                                     : "Paid plan active"}
                                             </p>
                                         </div>
@@ -1009,7 +1013,7 @@ function SettingsContent() {
                 {activeTab === "exports" && (
                     <div className="space-y-6">
                         {(() => {
-                            const plan = getUserPlan(settings);
+                            const plan = getUserPlan(effectiveSettings);
                             const fullHistoryExport = canUseFullHistoryExport(plan);
                             return (
                                 <section className="space-y-4">
@@ -1063,7 +1067,7 @@ function SettingsContent() {
                                     <Button variant="outline" className="flex-1 gap-2 text-xs h-12 font-black rounded-xl border-[var(--border)]"
                                         onClick={async () => {
                                             try {
-                                                const plan = getUserPlan(settings);
+                                                const plan = getUserPlan(effectiveSettings);
                                                 const json = await exportData({
                                                     generatedRecordsSince: canUseFullHistoryExport(plan) ? null : getArchiveCutoffDate(plan),
                                                 });
@@ -1075,7 +1079,7 @@ function SettingsContent() {
                                                 URL.revokeObjectURL(url);
                                             } catch { alert("Export failed."); }
                                         }}>
-                                        <Download className="h-4 w-4 text-[var(--primary)]" /> {canUseFullHistoryExport(getUserPlan(settings)) ? "Export all records" : "Download JSON export"}
+                                        <Download className="h-4 w-4 text-[var(--primary)]" /> {canUseFullHistoryExport(getUserPlan(effectiveSettings)) ? "Export all records" : "Download JSON export"}
                                     </Button>
                                     <label className="flex-1">
                                         <div className="flex items-center justify-center gap-2 text-xs h-12 font-black border border-[var(--border)] rounded-xl px-4 cursor-pointer hover:bg-[var(--surface-2)] transition-all">

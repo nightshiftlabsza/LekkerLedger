@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getVerifiedEntitlementsForUser, verifyUserFromRequest } from "@/lib/billing-server";
-import { getFreeEntitlements } from "@/lib/billing";
+import { getVerifiedEntitlementsForUser, toErrorResponse, verifyUserFromRequest } from "@/lib/billing-server";
 
 export async function GET(request: Request) {
     try {
@@ -19,13 +18,9 @@ export async function GET(request: Request) {
             },
         });
     } catch (error) {
-        console.warn("Entitlement verification deferred to fallback:", error instanceof Error ? error.message : error);
-        
-        // Graceful fallback for Free/Guest mode
-        return NextResponse.json({
-            entitlements: getFreeEntitlements()
-        }, { 
-            status: 200,
+        const { status, message } = toErrorResponse(error);
+        return NextResponse.json({ error: message }, {
+            status,
             headers: {
                 "Cache-Control": "no-store",
             },

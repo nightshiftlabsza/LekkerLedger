@@ -1,5 +1,5 @@
 import { PLANS, PlanId, PlanConfig } from "../config/plans";
-import { isPaidPlanId } from "./billing";
+import { isPaidPlanId, type VerifiedEntitlements } from "./billing";
 import { EmployerSettings } from "./schema";
 
 export type FeatureKey =
@@ -148,6 +148,29 @@ function normalizePlanId(planId: string | undefined | null): PlanId {
 
 export function getPlanById(planId: string | undefined | null): PlanConfig {
     return PLANS[normalizePlanId(planId)];
+}
+
+export function applyVerifiedEntitlementsToSettings(
+    userProfile: EmployerSettings | null | undefined,
+    entitlements: Pick<VerifiedEntitlements, "planId" | "status" | "paidUntil" | "trialEndsAt" | "billingCycle"> | null | undefined,
+): EmployerSettings | null | undefined {
+    if (!userProfile || !entitlements) return userProfile;
+
+    const resolvedStatus: EmployerSettings["proStatus"] = entitlements.status === "trialing"
+        ? "trial"
+        : entitlements.planId === "standard"
+            ? "standard"
+            : entitlements.planId === "pro"
+                ? "pro"
+                : "free";
+
+    return {
+        ...userProfile,
+        proStatus: resolvedStatus,
+        paidUntil: entitlements.paidUntil,
+        trialExpiry: entitlements.trialEndsAt,
+        billingCycle: entitlements.billingCycle ?? userProfile.billingCycle,
+    };
 }
 
 export function getUserPlan(userProfile: EmployerSettings | null | undefined, now = new Date()): PlanConfig {
