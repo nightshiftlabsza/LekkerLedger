@@ -526,7 +526,7 @@ async function paystackRequest<T>(path: string, init: RequestInit): Promise<T> {
         headers: {
             Authorization: `Bearer ${secretKey}`,
             "Content-Type": "application/json",
-            ...(init.headers || {}),
+            ...init.headers,
         },
         cache: "no-store",
     });
@@ -1261,7 +1261,7 @@ async function handleInitialPurchaseSuccess(data: Record<string, unknown>, inten
                 updatedAt: Date.now(),
             };
             await upsertSubscription(record);
-            record = await applyAvailableCreditsToSubscription(record);
+            await applyAvailableCreditsToSubscription(record);
         } else {
             await upsertSubscription({
                 ...record,
@@ -1372,7 +1372,7 @@ async function handleRecurringChargeSuccess(data: Record<string, unknown>, exist
         parseTimestamp(getStringFromPaths(data, ["next_payment_date", "subscription.next_payment_date"])) ||
         addBillingInterval(new Date(paidAt), mappedPlan.billingCycle).getTime();
 
-    let record: SubscriptionRecord = {
+    const record: SubscriptionRecord = {
         userId,
         email,
         paystackCustomerId: customerId || existing?.paystackCustomerId || null,
@@ -1394,7 +1394,7 @@ async function handleRecurringChargeSuccess(data: Record<string, unknown>, exist
     await upsertSubscription(record);
 
     await qualifyReferralForFirstPaidCharge(userId, mappedPlan.planId, mappedPlan.billingCycle, paidAt);
-    record = await applyAvailableCreditsToSubscription(record);
+    await applyAvailableCreditsToSubscription(record);
     await releaseMaturedCreditsForUser(userId);
     return true;
 }

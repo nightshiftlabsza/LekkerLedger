@@ -233,9 +233,9 @@ export function MarketingPlanCard({
     const isUpgrade =
         !isCurrent && !!currentPlanId && PLAN_RANK[planId] > PLAN_RANK[currentPlanId];
     const referralCode =
-        typeof globalThis.window === "undefined"
+        typeof globalThis === "undefined"
             ? null
-            : new URLSearchParams(globalThis.window.location.search).get("ref");
+            : new URLSearchParams(globalThis.location.search).get("ref");
     const href = appendReferralCode(getMarketingPlanHref(planId, billingCycle), referralCode);
 
     const handleAction = () => {
@@ -365,18 +365,8 @@ export function MarketingPlanCard({
                 className={`mt-auto space-y-2.5 border-t border-[var(--border)] ${compact ? "p-5" : "p-6 pb-5 sm:p-7 sm:pb-6"}`}
             >
                 {onSelect ? (
-                    <Button
-                        className="w-full justify-center font-bold"
-                        onClick={handleAction}
-                        disabled={isCurrent || isDisabled || isLoading}
-                        variant={isDowngrade ? "outline" : featured ? "default" : "outline"}
-                        style={
-                            !isCurrent && !isDowngrade && featured
-                                ? { backgroundColor: "var(--primary)" }
-                                : {}
-                        }
-                    >
-                        {isCurrent
+                    (() => {
+                        const buttonLabel = isCurrent
                             ? "Current plan"
                             : isLoading
                               ? "Opening..."
@@ -384,8 +374,24 @@ export function MarketingPlanCard({
                                 ? "Downgrade"
                                 : isUpgrade
                                   ? "Upgrade"
-                                  : plan.ctaLabel}
-                    </Button>
+                                  : plan.ctaLabel;
+
+                        return (
+                            <Button
+                                className="w-full justify-center font-bold"
+                                onClick={handleAction}
+                                disabled={isCurrent || isDisabled || isLoading}
+                                variant={featured && !isDowngrade ? "default" : "outline"}
+                                style={
+                                    !isCurrent && !isDowngrade && featured
+                                        ? { backgroundColor: "var(--primary)" }
+                                        : {}
+                                }
+                            >
+                                {buttonLabel}
+                            </Button>
+                        );
+                    })()
                 ) : (
                     <Link href={href}>
                         <Button

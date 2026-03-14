@@ -85,8 +85,8 @@ export function SideDrawer({
             )}
 
             {/* Drawer panel */}
-            <div
-                role="dialog"
+            <dialog
+                open
                 aria-modal="true"
                 aria-label="Navigation"
                 className={[
@@ -94,6 +94,7 @@ export function SideDrawer({
                     dashboardVariant ? "" : "glass-panel",
                     "lg:border-r lg:border-[var(--border)] lg:shadow-none",
                     "shadow-[var(--shadow-xl)] transition-transform duration-300",
+                    "p-0 m-0 border-none max-w-none max-h-none", // Reset dialog defaults
                     open ? "translate-x-0 animate-drawer-in" : "-translate-x-full lg:translate-x-0",
                 ].join(" ")}
                 style={{
@@ -101,6 +102,7 @@ export function SideDrawer({
                     backdropFilter: dashboardVariant ? "blur(18px)" : "blur(12px)",
                     WebkitBackdropFilter: dashboardVariant ? "blur(18px)" : "blur(12px)",
                     borderRight: "1px solid var(--border)",
+                    display: "flex", // Ensure it's not hidden by default dialog styles
                 }}
             >
                 {/* ── Header ─────────────────────────────────────────────── */}
@@ -150,19 +152,19 @@ export function SideDrawer({
                             <div className="space-y-0.5">
                                 {group.links.map(({ href, label, sublabel, icon: Icon }) => {
                                     const active = isActive(href);
+                                    const backgroundColor = active
+                                        ? (dashboardVariant ? "color-mix(in srgb, var(--primary) 10%, transparent)" : "var(--accent-subtle)")
+                                        : "transparent";
+
                                     return (
                                         <Link
                                             key={href}
                                             href={href}
                                             onClick={() => setOpen(false)}
-
-
                                             className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${dashboardVariant ? "hover:bg-[var(--surface-raised)]/85" : ""}`}
                                             style={{
                                                 color: active ? "var(--primary)" : "var(--text)",
-                                                backgroundColor: active
-                                                    ? dashboardVariant ? "color-mix(in srgb, var(--primary) 10%, transparent)" : "var(--accent-subtle)"
-                                                    : "transparent",
+                                                backgroundColor,
                                                 fontWeight: active ? 700 : 500,
                                             }}
                                         >
@@ -207,8 +209,6 @@ export function SideDrawer({
                 <div className="px-4 py-4 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
                     <a
                         href="mailto:support@lekkerledger.co.za?subject=LekkerLedger%20Support%20Request"
-
-
                         className="flex items-center gap-3 text-sm font-medium rounded-lg px-2 py-2 transition-colors hover:bg-[var(--surface-2)]"
                         style={{ color: "var(--text-muted)" }}
                     >
@@ -229,7 +229,7 @@ export function SideDrawer({
                         </div>
                     ) : null}
                 </div>
-            </div>
+            </dialog>
         </>
     );
 }

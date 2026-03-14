@@ -235,37 +235,18 @@ export function NewPayrollWizardClient() {
                         ) : (
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    {employees.map(emp => {
-                                        const isSelected = selectedEmployeeIds.includes(emp.id);
-                                        return (
-                                            <button
-                                                key={emp.id}
-                                                onClick={() => {
-                                                    if (isSelected) {
-                                                        setSelectedEmployeeIds(prev => prev.filter(id => id !== emp.id));
-                                                    } else {
-                                                        setSelectedEmployeeIds(prev => [...prev, emp.id]);
-                                                    }
-                                                }}
-                                                data-testid={`payroll-wizard-employee-${emp.id}`}
-                                                className={`w-full flex items-center justify-between p-4 rounded-xl transition-all border-2 text-left ${isSelected ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-[var(--border)] bg-[var(--surface-1)] hover:border-[var(--primary)]/50'}`}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full font-bold text-white transition-colors ${isSelected ? 'bg-[var(--primary)]' : 'bg-[var(--text-muted)]'}`}>
-                                                        {emp.name.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-bold text-[var(--text)]">{emp.name}</h3>
-                                                        <p className="text-xs text-[var(--text-muted)]">{emp.role} · R{emp.hourlyRate}/hr</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-[var(--primary)] bg-[var(--primary)]' : 'border-[var(--text-muted)]'}`}>
-                                                    {isSelected && <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white" strokeWidth="3" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
+                                    {employees.map(emp => (
+                                        <WizardEmployeeRow
+                                            key={emp.id}
+                                            employee={emp}
+                                            isSelected={selectedEmployeeIds.includes(emp.id)}
+                                            onToggle={() => setSelectedEmployeeIds(prev =>
+                                                prev.includes(emp.id)
+                                                    ? prev.filter(id => id !== emp.id)
+                                                    : [...prev, emp.id]
+                                            )}
+                                        />
+                                    ))}
                                 </div>
 
                                 <div className="pt-4 border-t border-[var(--border)] flex gap-3">
@@ -346,6 +327,30 @@ export function NewPayrollWizardClient() {
             )}
 
         </div>
+    );
+}
+
+function WizardEmployeeRow({ employee, isSelected, onToggle }: { employee: Employee; isSelected: boolean; onToggle: () => void }) {
+    return (
+        <button
+            onClick={onToggle}
+            data-testid={`payroll-wizard-employee-${employee.id}`}
+            className={`w-full flex items-center justify-between p-4 rounded-xl transition-all border-2 text-left ${isSelected ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-[var(--border)] bg-[var(--surface-1)] hover:border-[var(--primary)]/50'}`}
+        >
+            <div className="flex items-center gap-3">
+                <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full font-bold text-white transition-colors ${isSelected ? 'bg-[var(--primary)]' : 'bg-[var(--text-muted)]'}`}>
+                    {employee.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                    <h3 className="font-bold text-[var(--text)]">{employee.name}</h3>
+                    <p className="text-xs text-[var(--text-muted)]">{employee.role} · R{employee.hourlyRate}/hr</p>
+                </div>
+            </div>
+
+            <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-[var(--primary)] bg-[var(--primary)]' : 'border-[var(--text-muted)]'}`}>
+                {isSelected && <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white" strokeWidth="3" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+            </div>
+        </button>
     );
 }
 

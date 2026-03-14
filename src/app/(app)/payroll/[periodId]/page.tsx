@@ -28,7 +28,7 @@ import { track } from "@/lib/analytics";
 import { PLANS, PlanConfig } from "../../../../config/plans";
 
 function openWhatsAppDesktop(): void {
-    window.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
+    globalThis.window.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
 }
 
 export default function PayPeriodWorkspacePage() {
@@ -47,7 +47,7 @@ export default function PayPeriodWorkspacePage() {
     const [generatingPdfs, setGeneratingPdfs] = React.useState(false);
     const [saveAcknowledged, setSaveAcknowledged] = React.useState(false);
     const { toast } = useToast();
-    const saveAcknowledgedTimerRef = React.useRef<number | null>(null);
+    const saveAcknowledgedTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
     React.useEffect(() => {
         async function load() {
@@ -82,7 +82,7 @@ export default function PayPeriodWorkspacePage() {
         load();
         return () => {
             if (saveAcknowledgedTimerRef.current) {
-                window.clearTimeout(saveAcknowledgedTimerRef.current);
+                globalThis.clearTimeout(saveAcknowledgedTimerRef.current);
             }
         };
     }, [periodId]);
@@ -107,9 +107,9 @@ export default function PayPeriodWorkspacePage() {
             await savePayPeriod(period);
             setSaveAcknowledged(true);
             if (saveAcknowledgedTimerRef.current) {
-                window.clearTimeout(saveAcknowledgedTimerRef.current);
+                globalThis.clearTimeout(saveAcknowledgedTimerRef.current);
             }
-            saveAcknowledgedTimerRef.current = window.setTimeout(() => {
+            saveAcknowledgedTimerRef.current = globalThis.setTimeout(() => {
                 setSaveAcknowledged(false);
                 saveAcknowledgedTimerRef.current = null;
             }, 2200);
@@ -349,7 +349,7 @@ export default function PayPeriodWorkspacePage() {
     const isLocked = period.status === "locked";
     const completedCount = period.entries.filter(e => e.status === "complete").length;
     const totalCount = period.entries.length;
-    const allComplete = totalCount > 0;
+    const allComplete = totalCount > 0 && completedCount === totalCount;
 
     // Wizard steps
     const steps: Step[] = [

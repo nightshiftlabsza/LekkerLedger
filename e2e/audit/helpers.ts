@@ -359,25 +359,24 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
 
     const payload = buildSeedPayload(mode);
     await page.evaluate(async ({ storeNames, payload }) => {
+        const deleteDb = (name: string) => new Promise<void>((resolve) => {
+            const request = indexedDB.deleteDatabase(name);
+            request.onsuccess = () => resolve();
+            request.onerror = () => resolve();
+            request.onblocked = () => resolve();
+        });
+
         const wipeIndexedDb = async () => {
-            if (!("indexedDB" in window) || typeof indexedDB.databases !== "function") return;
+            if (!("indexedDB" in globalThis) || typeof indexedDB.databases !== "function") return;
             const databases = await indexedDB.databases();
-            await Promise.all(databases.map((db) => {
-                if (!db.name) return Promise.resolve();
-                return new Promise<void>((resolve) => {
-                    const request = indexedDB.deleteDatabase(db.name!);
-                    request.onsuccess = () => resolve();
-                    request.onerror = () => resolve();
-                    request.onblocked = () => resolve();
-                });
-            }));
+            await Promise.all(databases.map((db) => db.name ? deleteDb(db.name) : Promise.resolve()));
         };
 
         await wipeIndexedDb();
-        window.localStorage.clear();
-        window.sessionStorage.clear();
+        globalThis.localStorage.clear();
+        globalThis.sessionStorage.clear();
 
-        const localforageApi = (window as typeof window & { localforage: typeof import("localforage") }).localforage;
+        const localforageApi = (globalThis as any).localforage;
 
         await Promise.all(
             storeNames.map(async (storeName) => {

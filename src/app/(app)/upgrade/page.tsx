@@ -50,7 +50,11 @@ function UpgradePageContent() {
             setSettings(currentSettings);
             const requestedBilling = searchParams.get("billing");
             const requestedReferral = searchParams.get("ref");
-            setBillingCycle(requestedBilling === "monthly" ? "monthly" : requestedBilling === "yearly" ? "yearly" : currentSettings.billingCycle === "monthly" ? "monthly" : "yearly");
+            let initialBilling = currentSettings.billingCycle === "monthly" ? "monthly" : "yearly";
+            if (requestedBilling === "monthly" || requestedBilling === "yearly") {
+                initialBilling = requestedBilling;
+            }
+            setBillingCycle(initialBilling as BillingCycle);
             setReferralCode(requestedReferral ? requestedReferral.toUpperCase() : "");
             // Load the logged-in user's own referral code so they can share it
             // TODO: Batch 2 — gate behind Supabase auth session check

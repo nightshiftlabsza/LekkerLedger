@@ -279,18 +279,6 @@ export function FreePayslipGenerator() {
         setQuotaError("");
     }, [supabase.auth]);
 
-    const handleSendVerificationClick = React.useCallback(() => {
-        sendVerificationLink().catch(() => undefined);
-    }, [sendVerificationLink]);
-
-    const handleUseDifferentEmailClick = React.useCallback(() => {
-        handleUseDifferentEmail().catch(() => undefined);
-    }, [handleUseDifferentEmail]);
-
-    const handleDownloadClick = React.useCallback(() => {
-        handleDownload().catch(() => undefined);
-    }, [handleDownload]);
-
     const handleDownload = React.useCallback(async () => {
         if (!payload || !breakdown) {
             setQuotaError("Complete the form first so the payslip preview can be prepared.");
@@ -329,6 +317,18 @@ export function FreePayslipGenerator() {
             setDownloading(false);
         }
     }, [breakdown, payload, quota?.usedThisMonth, verifiedEmail]);
+
+    const handleSendVerificationClick = React.useCallback(() => {
+        sendVerificationLink().catch(() => undefined);
+    }, [sendVerificationLink]);
+
+    const handleUseDifferentEmailClick = React.useCallback(() => {
+        handleUseDifferentEmail().catch(() => undefined);
+    }, [handleUseDifferentEmail]);
+
+    const handleDownloadClick = React.useCallback(() => {
+        handleDownload().catch(() => undefined);
+    }, [handleDownload]);
 
     return (
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1.4fr)_minmax(22rem,0.8fr)]">

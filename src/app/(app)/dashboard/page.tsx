@@ -29,7 +29,7 @@ import { calculatePayslip } from "@/lib/calculator";
 import { DashboardOverview, type EmployeeSummary } from "@/components/dashboard/dashboard-overview";
 
 type DashboardSyncState = "disabled" | "enabled" | "error" | "reconnecting";
-type DashboardNetworkState = "online" | "offline";
+type DashboardNetworkState = "online" | "offline" | "flaky";
 
 function waitForRetry(delayMs: number) {
     return new Promise((resolve) => {
@@ -95,16 +95,20 @@ function getDashboardSyncDetails(sync: DashboardSyncState, network: DashboardNet
         };
     }
 
-    if (network === "offline") {
+    if (sync === "reconnecting") {
         return {
             state: "offline" as const,
-            summary: "Offline right now. Sync will resume when the connection returns.",
+            summary: network === "offline"
+                ? "Offline right now. Sync will resume when the connection returns."
+                : "Cloud sync is not active on this device yet.",
         };
     }
 
     return {
-        state: sync === "reconnecting" ? "offline" as const : "disconnected" as const,
-        summary: "Cloud sync is not active on this device yet.",
+        state: "disconnected" as const,
+        summary: network === "offline"
+            ? "Offline right now. Sync will resume when the connection returns."
+            : "Cloud sync is not active on this device yet.",
     };
 }
 

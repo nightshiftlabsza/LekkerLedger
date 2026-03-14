@@ -34,9 +34,11 @@ export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, 
         : 0;
     const meetsUifCheck = Math.abs(breakdown.deductions.uifEmployee - expectedUIF) < 0.01;
     const thresholdUnit = periodUifThreshold >= 24 ? "month" : "period";
-    const uifStatusText = isUifApplicable(totalHours, breakdown.periodStart, breakdown.periodEnd)
-        ? (meetsUifCheck ? "Matches the 1% deduction check" : "Differs from the 1% deduction check")
-        : `Not Applicable (< ${periodUifThreshold.toFixed(1)}hrs/${thresholdUnit})`;
+    const uifStatusText = !isUifApplicable(totalHours, breakdown.periodStart, breakdown.periodEnd)
+        ? `Not Applicable (< ${periodUifThreshold.toFixed(1)}hrs/${thresholdUnit})`
+        : meetsUifCheck
+            ? "Matches the 1% deduction check"
+            : "Differs from the 1% deduction check";
 
     // 3. Accommodation deduction check (Max 10% of gross pay)
     const accommodationValue = breakdown.deductions.accommodation ?? 0;
