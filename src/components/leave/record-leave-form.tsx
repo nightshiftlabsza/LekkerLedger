@@ -17,6 +17,7 @@ import {
     formatLeaveValue,
     getLeaveAllowanceForType,
     getLeaveTypeLabel,
+    hasManualAnnualLeaveBalance,
 } from "@/lib/leave";
 import { Contract, CustomLeaveType, Employee, LeaveRecord, LeaveType } from "@/lib/schema";
 import { getContractsForEmployee, getEmployees, getLeaveForEmployee, getSettings, saveLeaveRecord } from "@/lib/storage";
@@ -249,8 +250,13 @@ export function RecordLeaveForm({
         ];
     }, [advancedLeaveEnabled, customLeaveTypes]);
 
-    const annualSummary = selectedEmployee?.startDate
-        ? calculateAnnualLeaveSummary(selectedEmployee.startDate, selectedRecords, selectedContracts, parseISO(formData.startDate))
+    const annualSummary = selectedEmployee && (
+        selectedEmployee.startDate
+        || hasManualAnnualLeaveBalance(selectedEmployee)
+        || selectedEmployee.leaveCycleStartDate
+        || selectedEmployee.leaveCycleEndDate
+    )
+        ? calculateAnnualLeaveSummary(selectedEmployee, selectedRecords, selectedContracts, parseISO(formData.startDate))
         : null;
 
     const leaveBalance = getLeaveAllowanceForType(
@@ -259,7 +265,7 @@ export function RecordLeaveForm({
         selectedContracts,
         parseISO(formData.startDate),
         customLeaveTypes,
-        selectedEmployee?.startDate,
+        selectedEmployee,
     );
     const exceedsAllowance = Number.isFinite(leaveBalance.remaining) && formData.days > Math.max(leaveBalance.remaining, 0);
     const customType = customLeaveTypes.find((type) => type.id === formData.type);
@@ -465,6 +471,11 @@ export function RecordLeaveForm({
                                 {formData.type === "annual" && advancedLeaveEnabled && (annualSummary?.remainingCarryOver ?? 0) > 0 ? (
                                     <p className="mt-2 w-fit rounded-lg bg-[var(--accent-subtle)] px-2 py-1 text-xs font-semibold text-[var(--primary)]">
                                         Carry-over days are used first
+                                    </p>
+                                ) : null}
+                                {formData.type === "annual" && hasManualAnnualLeaveBalance(selectedEmployee ?? "") ? (
+                                    <p className="mt-2 text-xs text-[var(--text-muted)]">
+                                        This balance is based on the manual leave amount saved on the employee profile.
                                     </p>
                                 ) : null}
                             </div>

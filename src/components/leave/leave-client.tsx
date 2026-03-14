@@ -14,7 +14,15 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { PLANS, type PlanConfig } from "@/config/plans";
 import { filterRecordsForArchiveWindow, getArchiveUpgradeHref, getArchiveUpgradeLabel, getArchiveUpgradeMessage } from "@/lib/archive";
 import { canBrowseLeaveHistory, canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
-import { calculateAnnualLeaveSummary, formatLeaveRange, formatLeaveValue, getCarryOverNudge, getLeaveTypeLabel } from "@/lib/leave";
+import {
+    calculateAnnualLeaveSummary,
+    formatLeaveRange,
+    formatLeaveValue,
+    getCarryOverNudge,
+    getLeaveTypeLabel,
+    hasCustomAnnualLeaveCycle,
+    hasManualAnnualLeaveBalance,
+} from "@/lib/leave";
 import { Contract, CustomLeaveType, Employee, LeaveRecord } from "@/lib/schema";
 import { getAllLeaveRecords, getContractsForEmployee, getEmployees, getSettings, subscribeToDataChanges } from "@/lib/storage";
 
@@ -100,8 +108,10 @@ export function LeaveClient() {
         return employees.map((employee) => {
             const employeeRecords = records.filter((record) => record.employeeId === employee.id);
             const employeeContracts = contractsByEmployee[employee.id] ?? [];
-            const annualSummary = employee.startDate
-                ? calculateAnnualLeaveSummary(employee.startDate, employeeRecords, employeeContracts, new Date())
+            const hasManualBalance = hasManualAnnualLeaveBalance(employee);
+            const hasCustomCycle = hasCustomAnnualLeaveCycle(employee);
+            const annualSummary = (employee.startDate || hasManualBalance || hasCustomCycle)
+                ? calculateAnnualLeaveSummary(employee, employeeRecords, employeeContracts, new Date())
                 : null;
 
             const availableNow = annualSummary?.totalRemainingAvailable ?? 0;
@@ -112,15 +122,22 @@ export function LeaveClient() {
             let status: LeaveStatus = "ok";
             let statusText = "On track";
 
-            if (!employee.startDate) {
+            const cycleEnded = annualSummary?.currentCycle ? annualSummary.currentCycle.end < new Date() : false;
+
+            if (!employee.startDate && !hasManualBalance && !hasCustomCycle) {
                 status = "needs-attention";
-                statusText = "Start date missing";
+                statusText = "Leave setup needed";
+            } else if (cycleEnded) {
+                status = "needs-attention";
+                statusText = "Cycle ended";
             } else if (carryOverNudge) {
                 status = "needs-attention";
                 statusText = "Carry-over review";
             } else if (availableNow <= 2) {
                 status = "needs-attention";
                 statusText = "Low balance";
+            } else if (hasManualBalance) {
+                statusText = "Manual balance";
             }
 
             return {
@@ -132,7 +149,9 @@ export function LeaveClient() {
                 statusText,
                 currentCycleLabel: annualSummary?.currentCycle
                     ? `${format(annualSummary.currentCycle.start, "dd MMM yyyy")} to ${format(annualSummary.currentCycle.end, "dd MMM yyyy")}`
-                    : "Cycle unavailable",
+                    : hasManualBalance
+                        ? "Manual balance entered"
+                        : "Cycle unavailable",
             };
         });
     }, [contractsByEmployee, employees, records]);

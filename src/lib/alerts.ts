@@ -8,6 +8,7 @@
 import { format, differenceInDays } from "date-fns";
 import type { Employee, PayslipInput, EmployerSettings, LeaveRecord } from "./schema";
 import { calculateLeaveBalances } from "./leave";
+import { hasRequiredEmployerDetails } from "./employer-details";
 
 export type AlertSeverity = "info" | "warning" | "urgent";
 
@@ -40,12 +41,12 @@ export function computeDashboardAlerts({ employees, summaries, settings, now, le
     const currentMonth = format(now, "yyyy-MM");
 
     // 1. Employer details missing
-    if (!settings?.employerName?.trim()) {
+    if (!hasRequiredEmployerDetails(settings)) {
         alerts.push({
             id: "employer-missing",
             severity: "warning",
-            message: "Employer details missing — payslips will have a blank header",
-            action: { label: "Fix it →", href: "/settings" },
+            message: "Employer details missing — complete Settings before generating payslips",
+            action: { label: "Open settings →", href: "/settings?tab=general" },
         });
     }
 

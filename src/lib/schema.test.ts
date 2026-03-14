@@ -74,4 +74,40 @@ describe("schema validation", () => {
         expect(parsed.success).toBe(false);
         expect(parsed.error?.issues.some((issue) => issue.path.join(".") === "email")).toBe(true);
     });
+
+    it("accepts optional manual leave setup fields", () => {
+        const parsed = EmployeeSchema.safeParse({
+            id: crypto.randomUUID(),
+            name: "Leave Setup Worker",
+            role: "Domestic Worker",
+            hourlyRate: 30.23,
+            ordinaryHoursPerDay: 8,
+            frequency: "Monthly",
+            ordinarilyWorksSundays: false,
+            startDate: "2026-03-01",
+            startDateIsApproximate: true,
+            leaveCycleStartDate: "2026-03-01",
+            leaveCycleEndDate: "2027-02-28",
+            annualLeaveDaysRemaining: 12.5,
+            annualLeaveBalanceAsOfDate: "2026-03-14",
+        });
+
+        expect(parsed.success).toBe(true);
+    });
+
+    it("rejects a partial leave cycle override", () => {
+        const parsed = EmployeeSchema.safeParse({
+            id: crypto.randomUUID(),
+            name: "Partial Cycle Worker",
+            role: "Domestic Worker",
+            hourlyRate: 30.23,
+            ordinaryHoursPerDay: 8,
+            frequency: "Monthly",
+            ordinarilyWorksSundays: false,
+            leaveCycleStartDate: "2026-03-01",
+        });
+
+        expect(parsed.success).toBe(false);
+        expect(parsed.error?.issues.some((issue) => issue.path.join(".") === "leaveCycleEndDate")).toBe(true);
+    });
 });

@@ -160,7 +160,12 @@ function EmployeeDetailContent() {
     if (!employee) return null;
 
     const visibleTabs = TABS.filter((tab) => (tab.id !== "leave" || showLeaveTab) && (tab.id !== "documents" || showDocumentsTab));
-    const formattedStartDate = employee.startDate ? format(new Date(employee.startDate), "dd MMM yyyy") : "Not set";
+    const formattedStartDate = employee.startDate
+        ? `${format(new Date(employee.startDate), "dd MMM yyyy")}${employee.startDateIsApproximate ? " (estimate)" : ""}`
+        : "Not set";
+    const manualLeaveBalance = typeof employee.annualLeaveDaysRemaining === "number"
+        ? `${employee.annualLeaveDaysRemaining} days remaining`
+        : "Not entered";
     const employeeRole = employee.role || "Domestic Worker";
     const latestPayslip = payslips[0] ?? null;
     const latestBreakdown = latestPayslip ? calculatePayslip(latestPayslip) : null;
@@ -340,6 +345,7 @@ function EmployeeDetailContent() {
                                                 <p>{employeeId}</p>
                                                 <p>{employeePhone}</p>
                                                 <p>Started {formattedStartDate}</p>
+                                                <p>Leave balance {manualLeaveBalance}</p>
                                                 <p>{employee.frequency} pay schedule</p>
                                             </>
                                         }

@@ -31,8 +31,6 @@ describe("rowsToCsv()", () => {
             activeHouseholdId: "default",
             logoData: "",
             defaultLanguage: "en",
-            simpleMode: false,
-            advancedMode: false,
             density: "comfortable",
             piiObfuscationEnabled: true,
             installationId: "",

@@ -24,6 +24,7 @@ import { useToast } from "@/components/ui/toast";
 import { getHolidaysInRange } from "@/lib/holidays";
 
 import { canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
+import { getEmployerDetailsSettingsHref, hasRequiredEmployerDetails } from "@/lib/employer-details";
 
 const STEPS = [
     { label: "Hours", description: "Ordinary & overtime" },
@@ -72,7 +73,6 @@ function WizardContent() {
     const [currentStep, setCurrentStep] = React.useState<number>(0);
     const [loading, setLoading] = React.useState(false);
     const [duplicateId, setDuplicateId] = React.useState<string | null>(null);
-    const [employerDetailsGate, setEmployerDetailsGate] = React.useState(false);
 
     const now = new Date();
     const defaultStart = (new Date(now.getFullYear(), now.getMonth(), 1)).toISOString().split('T')[0];
@@ -121,6 +121,12 @@ function WizardContent() {
             active = false;
         };
     }, [empId, router]);
+
+    const redirectToEmployerSettings = React.useCallback(() => {
+        const nextPath = empId ? `/wizard?empId=${encodeURIComponent(empId)}` : "/wizard";
+        toast("Add your employer name and address in Settings before generating a payslip.", "info");
+        router.push(getEmployerDetailsSettingsHref(nextPath));
+    }, [empId, router, toast]);
 
     const enteredDaysWorked = Number(daysWorked) || 0;
     const totalHours =
@@ -207,7 +213,6 @@ function WizardContent() {
 
             try {
                 if (typeof globalThis !== 'undefined' && 'gtag' in globalThis) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     (globalThis as any).gtag?.('event', 'onboarding_complete');
                 }
             } catch (e) {
@@ -246,8 +251,8 @@ function WizardContent() {
 
         // Save & navigate to preview — check for duplicates first
         if (!employee) return;
-        if (!settings?.employerName?.trim() || !settings?.employerAddress?.trim()) {
-            setEmployerDetailsGate(true);
+        if (!hasRequiredEmployerDetails(settings)) {
+            redirectToEmployerSettings();
             return;
         }
         setLoading(true);
@@ -672,17 +677,6 @@ function WizardContent() {
                         {/* STEP 3 — Review */}
                         {currentStep === 3 && breakdown && (
                             <div className="space-y-4 animate-fade-in">
-                                {!!employerDetailsGate && (
-                                    <Alert variant="warning">
-                                        <AlertDescription>
-                                            Add your employer name and address before saving the first final payslip.
-                                            {" "}
-                                            <Link href="/settings" className="font-bold underline">
-                                                Open Settings
-                                            </Link>
-                                        </AlertDescription>
-                                    </Alert>
-                                )}
                                 {/* Duplicate payslip warning */}
                                 {!!duplicateId && (
                                     <div className="p-4 rounded-xl border border-[var(--focus)]/40 bg-[var(--primary)]/5 space-y-3">
@@ -711,10 +705,10 @@ function WizardContent() {
                                 <div className="p-4 rounded-xl space-y-2.5" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface-2)" }}>
                                     <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Payroll Check</p>
                                     <ComplianceRow
-                                        pass={!!settings?.employerName?.trim() && !!settings?.employerAddress?.trim()}
+                                        pass={hasRequiredEmployerDetails(settings)}
                                         passText="Employer name and address set"
-                                        failText="Employer details missing — add them before you save the final payslip"
-                                        failHref="/settings"
+                                        failText="Employer details missing — complete Settings before you generate the payslip"
+                                        failHref={getEmployerDetailsSettingsHref(empId ? `/wizard?empId=${encodeURIComponent(empId)}` : "/wizard")}
                                     />
                                     <ComplianceRow
                                         pass={employee.hourlyRate >= NMW_RATE}

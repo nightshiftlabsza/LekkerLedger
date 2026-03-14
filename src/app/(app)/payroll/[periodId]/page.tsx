@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Save, Lock, FileText, AlertTriangle, ArrowLeft, Download, Loader2, Palmtree, AlertCircle, Mail, MessageCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +26,7 @@ import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
 import { getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
 import { track } from "@/lib/analytics";
 import { PLANS, PlanConfig } from "../../../../config/plans";
+import { EMPLOYER_DETAILS_REQUIRED_ERROR, getEmployerDetailsSettingsHref, hasRequiredEmployerDetails } from "@/lib/employer-details";
 
 function openWhatsAppDesktop(): void {
     globalThis.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
@@ -33,6 +34,7 @@ function openWhatsAppDesktop(): void {
 
 export default function PayPeriodWorkspacePage() {
     const params = useParams();
+    const router = useRouter();
     const periodId = params.periodId as string;
 
     const [loading, setLoading] = React.useState(true);
@@ -48,6 +50,11 @@ export default function PayPeriodWorkspacePage() {
     const [saveAcknowledged, setSaveAcknowledged] = React.useState(false);
     const { toast } = useToast();
     const saveAcknowledgedTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const redirectToEmployerSettings = React.useCallback(() => {
+        toast("Add your employer name and address in Settings before generating payslips.", "info");
+        router.push(getEmployerDetailsSettingsHref(`/payroll/${periodId}`));
+    }, [periodId, router, toast]);
 
     React.useEffect(() => {
         async function load() {
@@ -132,6 +139,10 @@ export default function PayPeriodWorkspacePage() {
 
     const handleLock = async () => {
         if (!period) return;
+        if (!hasRequiredEmployerDetails(settings)) {
+            redirectToEmployerSettings();
+            return;
+        }
         setSaving(true);
         try {
             // Generate payslips and document metadata so they appear in /documents
@@ -232,6 +243,11 @@ export default function PayPeriodWorkspacePage() {
             throw new Error("Missing settings or employee data.");
         }
 
+        if (!hasRequiredEmployerDetails(settings)) {
+            redirectToEmployerSettings();
+            throw new Error(EMPLOYER_DETAILS_REQUIRED_ERROR);
+        }
+
         if (!isRecordWithinArchive(plan, period.endDate)) {
             throw new Error("This month is outside your archive window.");
         }
@@ -281,6 +297,9 @@ export default function PayPeriodWorkspacePage() {
             toast("Payslips downloaded", "success");
         } catch (error) {
             console.error("Batch PDF generation failed:", error);
+            if (error instanceof Error && error.message === EMPLOYER_DETAILS_REQUIRED_ERROR) {
+                return;
+            }
             toast(error instanceof Error ? error.message : "Could not generate payslips", "error");
         } finally {
             setGeneratingPdfs(false);
@@ -316,6 +335,9 @@ export default function PayPeriodWorkspacePage() {
             }
         } catch (error) {
             console.error("Sharing payslips failed:", error);
+            if (error instanceof Error && error.message === EMPLOYER_DETAILS_REQUIRED_ERROR) {
+                return;
+            }
             toast(error instanceof Error ? error.message : "Could not prepare the payslips", "error");
         } finally {
             setGeneratingPdfs(false);
@@ -350,6 +372,7 @@ export default function PayPeriodWorkspacePage() {
     const completedCount = period.entries.filter(e => e.status === "complete").length;
     const totalCount = period.entries.length;
     const allComplete = totalCount > 0 && completedCount === totalCount;
+    const employerDetailsReady = hasRequiredEmployerDetails(settings);
 
     // Wizard status logic
     let enterHoursStatus: Step["status"] = "upcoming";
@@ -391,6 +414,22 @@ export default function PayPeriodWorkspacePage() {
             {/* Review mode */}
             {showReview && !isLocked && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                    {!employerDetailsReady && (
+                        <Card className="border border-[var(--focus)]/40 bg-[var(--primary)]/5">
+                            <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex items-start gap-3">
+                                    <AlertTriangle className="mt-0.5 h-5 w-5 text-[var(--primary)]" />
+                                    <div>
+                                        <p className="text-sm font-bold text-[var(--text)]">Employer details required before finalising</p>
+                                        <p className="text-sm text-[var(--text-muted)]">Complete your employer name and address in Settings before this month can generate payslips.</p>
+                                    </div>
+                                </div>
+                                <Link href={getEmployerDetailsSettingsHref(`/payroll/${periodId}`)}>
+                                    <Button variant="outline" className="font-bold">Open Settings</Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+                    )}
                     <Card className="glass-panel border-2 border-[var(--primary)]/30 overflow-hidden">
                         <CardContent className="p-6">
                             <div className="flex items-center gap-3 mb-4">

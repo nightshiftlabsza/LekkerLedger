@@ -9,7 +9,7 @@ const APP_ROUTE_TITLES: Array<{ pattern: RegExp; title: string }> = [
     { pattern: /^\/dashboard$/, title: "Dashboard" },
     { pattern: /^\/billing$/, title: "Billing" },
     { pattern: /^\/billing\/cancel$/, title: "Billing Cancelled" },
-    { pattern: /^\/compliance\/coida\/roe$/, title: "COIDA ROE" },
+    { pattern: /^\/compliance\/coida\/roe$/, title: "Return of Earnings (ROE)" },
     { pattern: /^\/contracts$/, title: "Employment Contracts" },
     { pattern: /^\/contracts\/new$/, title: "New Contract" },
     { pattern: /^\/contracts\/[^/]+\/edit$/, title: "Edit Contract" },

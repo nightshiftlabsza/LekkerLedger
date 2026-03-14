@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 import { EmployeeSchema, Employee } from "@/lib/schema";
 import { saveEmployee, getEmployees, getSettings } from "@/lib/storage";
 import { getUserPlan, canCreateEmployee } from "@/lib/entitlements";
@@ -29,11 +30,16 @@ export default function AddEmployeePage() {
         role: "",
         phone: "",
         email: "",
-        startDate: new Date().toISOString().slice(0, 10),
+        startDate: "",
+        startDateIsApproximate: false,
+        leaveCycleStartDate: "",
+        leaveCycleEndDate: "",
+        annualLeaveDaysRemaining: "",
         ordinarilyWorksSundays: false,
         ordinaryHoursPerDay: "8",
         frequency: "Monthly",
     });
+    const [enableLeaveSetup, setEnableLeaveSetup] = React.useState(false);
     const [isDirty, setIsDirty] = React.useState(false);
     const [errors, setErrors] = React.useState<Record<string, string>>({});
     const [canAdd, setCanAdd] = React.useState(true);
@@ -73,6 +79,14 @@ export default function AddEmployeePage() {
             idNumber: normalizeEmployeeIdNumber(formData.idNumber),
             hourlyRate: Number.parseFloat(formData.hourlyRate),
             ordinaryHoursPerDay: Number(formData.ordinaryHoursPerDay) || 8,
+            annualLeaveDaysRemaining: enableLeaveSetup && formData.annualLeaveDaysRemaining !== ""
+                ? Number.parseFloat(formData.annualLeaveDaysRemaining)
+                : undefined,
+            annualLeaveBalanceAsOfDate: enableLeaveSetup && formData.annualLeaveDaysRemaining !== ""
+                ? new Date().toISOString().slice(0, 10)
+                : "",
+            leaveCycleStartDate: enableLeaveSetup ? formData.leaveCycleStartDate : "",
+            leaveCycleEndDate: enableLeaveSetup ? formData.leaveCycleEndDate : "",
         };
 
         const parsed = EmployeeSchema.safeParse(submissionData);
@@ -228,14 +242,100 @@ export default function AddEmployeePage() {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="startDate">Employment Start</Label>
+                                    <Label htmlFor="startDate">Employment start date</Label>
                                     <Input
                                         id="startDate"
                                         type="date"
                                         value={formData.startDate}
                                         onChange={(e) => updateForm({ startDate: e.target.value })}
+                                        error={errors.startDate}
                                         disabled={loading}
                                     />
+                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                                        Optional. Use the exact date if you know it, or your best estimate if you do not.
+                                    </p>
+                                </div>
+
+                                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div>
+                                            <p className="font-bold text-sm text-[var(--text)]">Start date is an estimate</p>
+                                            <p className="mt-1 text-xs text-[var(--text-muted)]">
+                                                Turn this on if the date above is approximate.
+                                            </p>
+                                        </div>
+                                        <Switch
+                                            checked={formData.startDateIsApproximate}
+                                            onCheckedChange={(checked) => updateForm({ startDateIsApproximate: checked })}
+                                            disabled={loading || !formData.startDate}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-5">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div>
+                                            <p className="font-bold text-sm text-[var(--text)]">Set current leave details now</p>
+                                            <p className="mt-1 text-xs text-[var(--text-muted)]">
+                                                Optional. Use this if you already know the current leave year or remaining leave and do not want the app to guess.
+                                            </p>
+                                        </div>
+                                        <Switch
+                                            checked={enableLeaveSetup}
+                                            onCheckedChange={(checked) => {
+                                                setEnableLeaveSetup(checked);
+                                                setIsDirty(true);
+                                            }}
+                                            disabled={loading}
+                                        />
+                                    </div>
+
+                                    {enableLeaveSetup ? (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="leaveCycleStartDate">Current leave year starts</Label>
+                                                    <Input
+                                                        id="leaveCycleStartDate"
+                                                        type="date"
+                                                        value={formData.leaveCycleStartDate}
+                                                        onChange={(e) => updateForm({ leaveCycleStartDate: e.target.value })}
+                                                        error={errors.leaveCycleStartDate}
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="leaveCycleEndDate">Current leave year ends</Label>
+                                                    <Input
+                                                        id="leaveCycleEndDate"
+                                                        type="date"
+                                                        value={formData.leaveCycleEndDate}
+                                                        onChange={(e) => updateForm({ leaveCycleEndDate: e.target.value })}
+                                                        error={errors.leaveCycleEndDate}
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="annualLeaveDaysRemaining">Annual leave remaining now</Label>
+                                                <Input
+                                                    id="annualLeaveDaysRemaining"
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.5"
+                                                    placeholder="e.g. 12.5"
+                                                    value={formData.annualLeaveDaysRemaining}
+                                                    onChange={(e) => updateForm({ annualLeaveDaysRemaining: e.target.value })}
+                                                    error={errors.annualLeaveDaysRemaining}
+                                                    disabled={loading}
+                                                />
+                                                <p className="text-xs text-[var(--text-muted)]">
+                                                    Leave this blank if you only want to save the dates for now.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ) : null}
                                 </div>
 
                                 <div className="space-y-2">

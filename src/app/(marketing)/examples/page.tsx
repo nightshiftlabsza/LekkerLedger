@@ -22,7 +22,11 @@ export default function ExamplesPage() {
             ordinarilyWorksSundays: false,
             ordinaryHoursPerDay: 8,
             frequency: "Monthly",
-            startDate: "2024-01-01"
+            startDate: "2024-01-01",
+            startDateIsApproximate: false,
+            leaveCycleStartDate: "",
+            leaveCycleEndDate: "",
+            annualLeaveBalanceAsOfDate: "",
         };
 
         const samplePayslip: PayslipInput = {
@@ -66,8 +70,6 @@ export default function ExamplesPage() {
             defaultLanguage: "en",
             density: "comfortable",
             piiObfuscationEnabled: true,
-            advancedMode: false,
-            simpleMode: false,
             customLeaveTypes: [],
         };
 

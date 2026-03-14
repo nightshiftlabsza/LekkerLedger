@@ -2,10 +2,15 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
     exportData,
     getAllLeaveRecords,
+    getDocumentFile,
+    getDocuments,
     getLocalBackupPreview,
     getSettings,
     hasMeaningfulLocalData,
+    purgeDocumentMetas,
     resetAllData,
+    saveDocumentFile,
+    saveDocumentMeta,
     saveEmployee,
     saveHousehold,
     saveLeaveRecord,
@@ -14,7 +19,7 @@ import {
     setActiveHouseholdId,
 } from "./storage";
 import { getLocalRecoveryProfile, saveLocalRecoveryProfile } from "./recovery-profile-store";
-import type { Employee, LeaveRecord, PayslipInput } from "./schema";
+import type { DocumentMeta, Employee, LeaveRecord, PayslipInput } from "./schema";
 
 const baseEmployee: Employee = {
     id: "00000000-0000-4000-8000-000000000001",
@@ -27,6 +32,10 @@ const baseEmployee: Employee = {
     email: "",
     address: "",
     startDate: "2026-03-01",
+    startDateIsApproximate: false,
+    leaveCycleStartDate: "",
+    leaveCycleEndDate: "",
+    annualLeaveBalanceAsOfDate: "",
     ordinarilyWorksSundays: false,
     ordinaryHoursPerDay: 8,
     frequency: "Monthly",
@@ -60,6 +69,12 @@ const basePayslip: PayslipInput = {
 describe("storage safeguards", () => {
     beforeEach(async () => {
         await resetAllData();
+        const settings = await getSettings();
+        await saveSettings({
+            ...settings,
+            employerName: "Main household",
+            employerAddress: "1 Example Street",
+        });
     });
 
     it("rejects duplicate employee ID numbers", async () => {
@@ -79,6 +94,17 @@ describe("storage safeguards", () => {
             ...basePayslip,
             id: "payslip-2",
         })).rejects.toThrow(/already exists/i);
+    });
+
+    it("rejects payslips when employer details are missing", async () => {
+        const settings = await getSettings();
+        await saveSettings({
+            ...settings,
+            employerName: "",
+            employerAddress: "",
+        });
+
+        await expect(savePayslip(basePayslip)).rejects.toThrow(/employer name and address/i);
     });
 
     it("keeps employer settings scoped to each household", async () => {
@@ -198,5 +224,41 @@ describe("storage safeguards", () => {
 
         const reloadedSettings = await getSettings();
         expect(reloadedSettings.paidUntil).toBe(paidUntil);
+    });
+
+    it("persists the Standard retention dismissal timestamp in account settings", async () => {
+        const settings = await getSettings();
+        await saveSettings({
+            ...settings,
+            standardRetentionNoticeDismissedAt: "2026-03-15T09:00:00.000Z",
+        });
+
+        const reloadedSettings = await getSettings();
+        expect(reloadedSettings.standardRetentionNoticeDismissedAt).toBe("2026-03-15T09:00:00.000Z");
+    });
+
+    it("purges document metadata and backing files together", async () => {
+        const documentMeta: DocumentMeta = {
+            id: "doc-retention-1",
+            householdId: "default",
+            type: "payslip",
+            employeeId: baseEmployee.id,
+            fileName: "Historic payslip.pdf",
+            mimeType: "application/pdf",
+            source: "generated",
+            createdAt: "2025-03-01T00:00:00.000Z",
+        };
+
+        await saveDocumentMeta(documentMeta);
+        await saveDocumentFile(documentMeta.id, new Blob(["historic"], { type: "application/pdf" }));
+
+        expect((await getDocuments()).map((document) => document.id)).toContain(documentMeta.id);
+        expect(await getDocumentFile(documentMeta.id)).not.toBeNull();
+
+        const purgedCount = await purgeDocumentMetas([documentMeta.id]);
+
+        expect(purgedCount).toBe(1);
+        expect((await getDocuments()).map((document) => document.id)).not.toContain(documentMeta.id);
+        expect(await getDocumentFile(documentMeta.id)).toBeNull();
     });
 });

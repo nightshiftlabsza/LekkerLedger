@@ -27,6 +27,7 @@ import { SyncStatusBadge, type SyncState as SyncBadgeState } from "@/components/
 import { InlinePlanCheckoutButton } from "@/components/billing/inline-paid-plan-checkout";
 import { getUserPlan } from "@/lib/entitlements";
 import type { DashboardAlert as DashboardAlertData } from "@/lib/alerts";
+import { hasRequiredEmployerDetails } from "@/lib/employer-details";
 import type { DocumentMeta, Employee, EmployerSettings, PayPeriod, PayslipInput } from "@/lib/schema";
 
 export interface EmployeeSummary {
@@ -138,7 +139,7 @@ export function DashboardOverview({
                     ) : (
                         <OnboardingChecklist
                             employeeCount={employeeCount}
-                            hasEmployerDetails={Boolean(settings?.employerName?.trim())}
+                            hasEmployerDetails={hasRequiredEmployerDetails(settings)}
                             hasCurrentPeriod={Boolean(currentPeriod)}
                         />
                     )}
@@ -146,7 +147,7 @@ export function DashboardOverview({
                     {!setupIncomplete && !currentPeriod ? (
                         <OnboardingChecklist
                             employeeCount={employeeCount}
-                            hasEmployerDetails={Boolean(settings?.employerName?.trim())}
+                            hasEmployerDetails={hasRequiredEmployerDetails(settings)}
                             hasCurrentPeriod={Boolean(currentPeriod)}
                         />
                     ) : null}

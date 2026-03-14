@@ -47,6 +47,10 @@ function buildHomepageSample(referenceDate: Date) {
         phone: "",
         address: "",
         startDate: payPeriodStart.toISOString(),
+        startDateIsApproximate: false,
+        leaveCycleStartDate: "",
+        leaveCycleEndDate: "",
+        annualLeaveBalanceAsOfDate: "",
         ordinarilyWorksSundays: false,
         ordinaryHoursPerDay: 8,
         frequency: "Monthly"

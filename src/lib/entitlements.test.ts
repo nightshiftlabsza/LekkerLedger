@@ -26,8 +26,6 @@ describe("signed contract upload entitlements", () => {
             logoData: "",
             paidUntil: undefined,
             defaultLanguage: "en" as const,
-            simpleMode: false,
-            advancedMode: false,
             density: "comfortable" as const,
             piiObfuscationEnabled: true,
             installationId: "abc",

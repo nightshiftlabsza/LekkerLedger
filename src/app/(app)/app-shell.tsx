@@ -6,11 +6,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
-import { GlobalCreateFAB } from "@/components/global-create";
-import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, LogOut, ShieldCheck, Trash2, Loader2, LayoutDashboard } from "lucide-react";
+import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, LogOut, ShieldCheck, Trash2, Loader2, LayoutDashboard, Monitor, Moon, Sun } from "lucide-react";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
+import { useUI } from "@/components/theme-provider";
 import { getHouseholds, getSettings, resetAllData, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
 import { canUseMultipleHouseholds, getPlanById } from "@/lib/entitlements";
@@ -389,8 +389,6 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
                         {children}
                     </RecoveryGate>
                 </main>
-
-                <GlobalCreateFAB />
                 <AddHouseholdDialog
                     open={addHouseholdOpen}
                     name={newHouseholdName}
@@ -469,6 +467,12 @@ function AccountMenu({
     const menuRef = React.useRef<HTMLDivElement | null>(null);
     const router = useRouter();
     const supabase = React.useMemo(() => createClient(), []);
+    const { theme, resolvedTheme, setTheme } = useUI();
+    const themeOptions = [
+        { value: "system" as const, label: "System", icon: Monitor },
+        { value: "light" as const, label: "Light", icon: Sun },
+        { value: "dark" as const, label: "Dark", icon: Moon },
+    ];
 
     React.useEffect(() => {
         function handleClick(event: MouseEvent) {
@@ -575,6 +579,39 @@ function AccountMenu({
                             </p>
                             <p className="mt-1 text-xs font-semibold leading-relaxed text-[var(--text-muted)]">{planLabel} plan</p>
                             <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{accountSummary}</p>
+                        </div>
+
+                        <div className="mt-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/45 p-3">
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Theme</p>
+                                    <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
+                                        {theme === "system" ? `Following system (${resolvedTheme} now)` : `Using ${theme} mode`}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="mt-3 flex items-center gap-1 rounded-2xl bg-[var(--surface-1)] p-1">
+                                {themeOptions.map(({ value, label, icon: Icon }) => {
+                                    const active = theme === value;
+                                    return (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            aria-pressed={active}
+                                            onClick={() => setTheme(value)}
+                                            className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-semibold transition-all"
+                                            style={{
+                                                backgroundColor: active ? "var(--surface-raised)" : "transparent",
+                                                color: active ? "var(--primary)" : "var(--text-muted)",
+                                                boxShadow: active ? "var(--shadow-sm)" : "none",
+                                            }}
+                                        >
+                                            <Icon className="h-3.5 w-3.5" />
+                                            <span>{label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         <div className="mt-3 space-y-1">

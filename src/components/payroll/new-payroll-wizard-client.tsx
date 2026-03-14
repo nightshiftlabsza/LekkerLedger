@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowRight, UserPlus, Calendar, Plus, Save } from "lucide-react";
+import { Loader2, ArrowRight, UserPlus, Calendar } from "lucide-react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +20,7 @@ export function NewPayrollWizardClient() {
 
     const [isClient, setIsClient] = React.useState(false);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
-    const [step, setStep] = React.useState(0);
+    const [step, setStep] = React.useState(1);
     const [saving, setSaving] = React.useState(false);
     const [activeHouseholdId, setActiveHouseholdId] = React.useState<string>("default");
 
@@ -77,6 +77,10 @@ export function NewPayrollWizardClient() {
                 phone: "",
                 address: "",
                 startDate: new Date().toISOString().split('T')[0],
+                startDateIsApproximate: false,
+                leaveCycleStartDate: "",
+                leaveCycleEndDate: "",
+                annualLeaveBalanceAsOfDate: "",
                 ordinarilyWorksSundays: false,
                 ordinaryHoursPerDay: 8,
                 frequency: "Monthly"
@@ -150,46 +154,6 @@ export function NewPayrollWizardClient() {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-            {/* Step 0: Mode Selection */}
-            {step === 0 && (
-                <Card className="glass-panel overflow-hidden shadow-xl">
-                    <CardContent className="p-4 sm:p-6 md:p-8 space-y-5">
-                        <div className="text-center space-y-2 mb-4 sm:mb-6">
-                            <h2 className="text-xl sm:text-2xl font-black text-[var(--text)]">How do you want to start?</h2>
-                            <p className="type-body text-[var(--text-muted)]">
-                                All payroll data is stored securely on your device.
-                            </p>
-                        </div>
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <button
-                                onClick={() => setStep(1)}
-                                data-testid="payroll-wizard-start"
-                                className="flex flex-col items-center gap-3 p-6 text-center rounded-2xl border-2 border-[var(--primary)] bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 transition-all group"
-                            >
-                                <div className="h-12 w-12 rounded-full bg-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] group-hover:scale-110 transition-transform">
-                                    <Plus className="h-6 w-6" />
-                                </div>
-                                <h3 className="type-h3 text-[var(--text)]">Create Payroll</h3>
-                                <p className="text-xs text-[var(--text-muted)] mt-1">
-                                    Start a new monthly payroll on this device.
-                                </p>
-                            </button>
-
-                            <Link href="/settings?tab=storage" className="flex flex-col items-center gap-3 p-6 text-center rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-all group">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--text-muted)] transition-transform group-hover:scale-110">
-                                    <Save className="h-6 w-6" />
-                                </div>
-                                <h3 className="type-h3 text-[var(--text)]">Restore Backup</h3>
-                                <p className="text-xs text-[var(--text-muted)] mt-1">
-                                    Load previous data from a backup file.
-                                </p>
-                            </Link>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
             {/* Step 1: Choose Employee(s) */}
             {step === 1 && isClient && (
                 <Card className="glass-panel border-[var(--primary)]/30 border-2 shadow-2xl">

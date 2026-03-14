@@ -23,6 +23,7 @@ import {
 } from "./schema";
 
 import { normalizeEmployeeIdNumber } from "./employee-id";
+import { EMPLOYER_DETAILS_REQUIRED_ERROR, hasRequiredEmployerDetails } from "./employer-details";
 import { calculateAnnualLeaveSummary, getLeaveTypeLabel } from "./leave";
 import { fetchVerifiedEntitlements } from "./billing-client";
 import { syncService } from "./sync-service";
@@ -159,9 +160,8 @@ function buildDefaultSettings(overrides: Partial<EmployerSettings> = {}): Employ
         logoData: "",
         paidUntil: undefined,
         defaultLanguage: "en",
-        simpleMode: false,
-        advancedMode: false,
         density: "comfortable",
+        standardRetentionNoticeDismissedAt: undefined,
 
         piiObfuscationEnabled: true,
         installationId: "",
@@ -475,6 +475,12 @@ export async function deleteEmployee(id: string): Promise<void> {
 
 export async function savePayslip(payslip: PayslipInput): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
+    const settings = await getSettings();
+
+    if (!hasRequiredEmployerDetails(settings)) {
+        throw new Error(EMPLOYER_DETAILS_REQUIRED_ERROR);
+    }
+
     const duplicate = (await getAllPayslips()).find((existing) =>
         existing.id !== payslip.id &&
         existing.employeeId === payslip.employeeId &&
@@ -597,11 +603,11 @@ async function synchronizeEmployeeLeaveLedger(employeeId: string, providedCustom
         getLeaveCarryOversForEmployeeRaw(employeeId),
     ]);
 
-    if (!employee?.startDate) return;
+    if (!employee) return;
 
     const customLeaveTypes = normaliseCustomLeaveTypes(providedCustomLeaveTypes ?? settings?.customLeaveTypes ?? []);
     const updatedRecords = records.map((record) => applyLeaveTypeMetadata(record, customLeaveTypes));
-    const summary = calculateAnnualLeaveSummary(employee.startDate, updatedRecords, contracts, new Date());
+    const summary = calculateAnnualLeaveSummary(employee, updatedRecords, contracts, new Date());
     const syncedRecords = summary.updatedRecords.map((record) => ({
         ...applyLeaveTypeMetadata(record, customLeaveTypes),
         householdId: record.householdId || employee.householdId || DEFAULT_HOUSEHOLD_ID,
@@ -1383,6 +1389,22 @@ export async function deleteDocumentMeta(id: string): Promise<void> {
         syncDocumentFileDeletionToCloud(id),
     ]);
     await notifyListeners();
+}
+
+export async function purgeDocumentMetas(ids: string[]): Promise<number> {
+    const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
+    if (uniqueIds.length === 0) return 0;
+
+    await Promise.all(uniqueIds.map(async (id) => {
+        await documentStore.removeItem(id);
+        await documentFileStore.removeItem(id);
+    }));
+    await Promise.all(uniqueIds.flatMap((id) => [
+        syncRecordDeletionToCloud("documents", id),
+        syncDocumentFileDeletionToCloud(id),
+    ]));
+    await notifyListeners();
+    return uniqueIds.length;
 }
 
 export async function saveDocumentFile(id: string, file: Blob, accessScope: DocumentAccessScope = "paid"): Promise<void> {

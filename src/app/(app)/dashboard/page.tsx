@@ -15,10 +15,12 @@ import {
     getCurrentPayPeriod,
     getDocuments,
     getLatestPayslip,
+    purgeDocumentMetas,
+    saveSettings,
     subscribeToDataChanges,
     getPayPeriods,
 } from "@/lib/storage";
-import { filterRecordsForArchiveWindow, isUploadedDocument } from "@/lib/archive";
+import { filterRecordsForArchiveWindow, getStandardRetentionStatus, isUploadedDocument, type StandardRetentionStatus } from "@/lib/archive";
 import { computeDashboardAlerts } from "@/lib/alerts";
 import { confirmBillingTransaction, confirmGuestBillingTransaction } from "@/lib/billing-client";
 import { getUserPlan } from "@/lib/entitlements";
@@ -131,6 +133,7 @@ function DashboardContent() {
     const [recentDocs, setRecentDocs] = React.useState<DocumentMeta[]>([]);
     const [summaries, setSummaries] = React.useState<EmployeeSummary[]>([]);
     const [allPeriods, setAllPeriods] = React.useState<PayPeriod[]>([]);
+    const [retentionStatus, setRetentionStatus] = React.useState<StandardRetentionStatus | null>(null);
     const searchParams = useSearchParams();
     const paidLoginRequested = searchParams.get("paidLogin") === "1";
     const paymentReference = searchParams.get("reference")?.trim() || readPendingBillingReference() || "";
@@ -179,6 +182,23 @@ function DashboardContent() {
                 getDocuments(),
                 getPayPeriods(),
             ]);
+            const plan = getUserPlan(loadedSettings);
+            let nextDocs = docs;
+            let nextRetentionStatus = getStandardRetentionStatus({
+                plan,
+                documents: nextDocs,
+                dismissedAt: loadedSettings?.standardRetentionNoticeDismissedAt,
+            });
+
+            if (nextRetentionStatus.purgeCount > 0) {
+                await purgeDocumentMetas(nextRetentionStatus.purgeCandidates.map((document) => document.id));
+                nextDocs = await getDocuments();
+                nextRetentionStatus = getStandardRetentionStatus({
+                    plan,
+                    documents: nextDocs,
+                    dismissedAt: loadedSettings?.standardRetentionNoticeDismissedAt,
+                });
+            }
 
             const nextSummaries: EmployeeSummary[] = [];
             for (const employee of loadedEmployees) {
@@ -192,8 +212,7 @@ function DashboardContent() {
 
             if (!active) return;
 
-            const plan = getUserPlan(loadedSettings);
-            const visibleRecentDocs = filterRecordsForArchiveWindow(docs, plan, (doc) => doc.createdAt, {
+            const visibleRecentDocs = filterRecordsForArchiveWindow(nextDocs, plan, (doc) => doc.createdAt, {
                 alwaysVisible: isUploadedDocument,
             }).visible;
 
@@ -203,6 +222,7 @@ function DashboardContent() {
             setAllPeriods(periods);
             setRecentDocs(visibleRecentDocs.slice(0, 5));
             setSummaries(nextSummaries);
+            setRetentionStatus(nextRetentionStatus);
             setLoading(false);
         }
 
@@ -214,6 +234,24 @@ function DashboardContent() {
             unsubscribe();
         };
     }, [paidLoginRequested]);
+
+    const handleDismissRetentionReminder = async () => {
+        if (!settings || retentionStatus?.isStandard !== true) return;
+        const dismissedAt = new Date().toISOString();
+
+        await saveSettings({
+            ...settings,
+            standardRetentionNoticeDismissedAt: dismissedAt,
+        });
+        setSettings((current) => current ? {
+            ...current,
+            standardRetentionNoticeDismissedAt: dismissedAt,
+        } : current);
+        setRetentionStatus((current) => current ? {
+            ...current,
+            showReminder: false,
+        } : current);
+    };
 
     if (paidLoginRequested) {
         return (
@@ -284,6 +322,26 @@ function DashboardContent() {
     return (
         <div className="pb-6">
             {activationSuccess ? <ActivationAlert syncState={activationSync} syncBadgeState={syncBadgeState} /> : null}
+            {retentionStatus?.showElevenMonthWarning ? (
+                <RetentionAlertCard
+                    title="Some payroll documents are nearing the 12-month limit"
+                    body="One or more generated payslips or exports are now 11 months old. Save offline or printed copies now. On Standard, generated payroll documents are permanently deleted once they pass 12 months."
+                    actionHref="/documents"
+                    actionLabel="Open Documents"
+                    tone="warning"
+                />
+            ) : null}
+            {retentionStatus?.showReminder ? (
+                <RetentionAlertCard
+                    title="Standard keeps 12 months in-app"
+                    body="Save generated payroll documents as you go. Older generated payslips and exports are not kept in-app on Standard after 12 months."
+                    actionLabel="Hide for 30 days"
+                    onAction={() => {
+                        handleDismissRetentionReminder().catch(console.error);
+                    }}
+                    tone="info"
+                />
+            ) : null}
             <DashboardOverview
                 employees={employees}
                 settings={settings}
@@ -322,6 +380,60 @@ function ActivationAlert({
                     </div>
                 </div>
                 <SyncStatusBadge state={syncBadgeState} />
+            </CardContent>
+        </Card>
+    );
+}
+
+function RetentionAlertCard({
+    title,
+    body,
+    actionLabel,
+    actionHref,
+    onAction,
+    tone,
+}: Readonly<{
+    title: string;
+    body: string;
+    actionLabel: string;
+    actionHref?: string;
+    onAction?: () => void;
+    tone: "info" | "warning";
+}>) {
+    const toneClasses = tone === "warning"
+        ? {
+            border: "var(--warning-border)",
+            background: "var(--warning-soft)",
+        }
+        : {
+            border: "var(--focus)",
+            background: "var(--focus-soft, rgba(196,122,28,0.08))",
+        };
+
+    const actionButton = actionHref ? (
+        <Link href={actionHref}>
+            <Button className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]">{actionLabel}</Button>
+        </Link>
+    ) : (
+        <Button variant="outline" className="font-bold" onClick={onAction}>
+            {actionLabel}
+        </Button>
+    );
+
+    return (
+        <Card
+            className="mx-auto mb-5 w-full max-w-[1180px] overflow-hidden"
+            style={{
+                borderColor: toneClasses.border,
+                backgroundColor: toneClasses.background,
+            }}
+        >
+            <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="max-w-[75ch]">
+                    <p className="text-base font-bold text-[var(--text)]">{title}</p>
+                    <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">{body}</p>
+                </div>
+                <div className="shrink-0">{actionButton}</div>
             </CardContent>
         </Card>
     );

@@ -7,6 +7,18 @@ export interface ArchiveFilterResult<T> {
     hiddenCount: number;
 }
 
+export interface StandardRetentionStatus {
+    isStandard: boolean;
+    showReminder: boolean;
+    showElevenMonthWarning: boolean;
+    purgeCandidates: DocumentMeta[];
+    purgeCount: number;
+    warningCount: number;
+    oldestAffectedAt?: string;
+}
+
+const RETENTION_REMINDER_INTERVAL_DAYS = 30;
+
 export function getUpgradePlanForArchive(planId: PlanId): Exclude<PlanId, "free"> | null {
     if (planId === "free") return "standard";
     if (planId === "standard") return "pro";
@@ -74,5 +86,75 @@ export function filterRecordsForArchiveWindow<T>(
         visible,
         hidden,
         hiddenCount: hidden.length,
+    };
+}
+
+export function isGeneratedPayrollDocument(document: DocumentMeta): boolean {
+    if (document.source === "uploaded") return false;
+    return document.type === "payslip" || document.type === "export";
+}
+
+function addMonths(date: Date, months: number): Date {
+    return new Date(date.getFullYear(), date.getMonth() + months, date.getDate(), 0, 0, 0, 0);
+}
+
+function subtractDays(date: Date, days: number): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() - days, 0, 0, 0, 0);
+}
+
+function getOldestCreatedAt(documents: DocumentMeta[]): string | undefined {
+    const sorted = [...documents].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    return sorted[0]?.createdAt;
+}
+
+export function getStandardRetentionStatus({
+    plan,
+    documents,
+    dismissedAt,
+    now = new Date(),
+}: {
+    plan: PlanConfig;
+    documents: DocumentMeta[];
+    dismissedAt?: string;
+    now?: Date;
+}): StandardRetentionStatus {
+    const isStandard = plan.id === "standard";
+    if (!isStandard) {
+        return {
+            isStandard: false,
+            showReminder: false,
+            showElevenMonthWarning: false,
+            purgeCandidates: [],
+            purgeCount: 0,
+            warningCount: 0,
+        };
+    }
+
+    const generatedDocuments = documents.filter(isGeneratedPayrollDocument);
+    const purgeCutoff = addMonths(now, -12);
+    const warningCutoff = addMonths(now, -11);
+
+    const purgeCandidates = generatedDocuments.filter((document) => {
+        const createdAt = new Date(document.createdAt);
+        return !Number.isNaN(createdAt.getTime()) && createdAt < purgeCutoff;
+    });
+
+    const warningCandidates = generatedDocuments.filter((document) => {
+        const createdAt = new Date(document.createdAt);
+        return !Number.isNaN(createdAt.getTime()) && createdAt >= purgeCutoff && createdAt < warningCutoff;
+    });
+
+    const dismissalDate = dismissedAt ? new Date(dismissedAt) : null;
+    const reminderVisibleAt = subtractDays(now, RETENTION_REMINDER_INTERVAL_DAYS);
+    const showReminder = !dismissalDate || Number.isNaN(dismissalDate.getTime()) || dismissalDate <= reminderVisibleAt;
+
+    return {
+        isStandard,
+        showReminder,
+        showElevenMonthWarning: warningCandidates.length > 0,
+        purgeCandidates,
+        purgeCount: purgeCandidates.length,
+        warningCount: warningCandidates.length,
+        oldestAffectedAt: getOldestCreatedAt([...purgeCandidates, ...warningCandidates]),
     };
 }

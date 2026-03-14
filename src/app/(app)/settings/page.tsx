@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
     CheckCircle2, FileText, BookOpen, ArrowRight, Upload,
-    ChevronRight, Building2, Save, Smartphone, Database, Loader2, Zap,
+    ChevronRight, Building2, Save, Database, Loader2, Zap,
     AlignVerticalJustifyCenter, Moon, Sun, Monitor,
     ShieldCheck, Download, HelpCircle, Copy, Gift, Clock3
 } from "lucide-react";
@@ -295,47 +295,6 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">App experience</h2>
                             <Card className="glass-panel border-none p-1 overflow-hidden shadow-sm">
-                                <div className="p-4 border-b border-[var(--border)] space-y-3">
-                                    <div className="flex items-start gap-3">
-                                        <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--focus)]"><Smartphone className="h-4 w-4" /></div>
-                                        <div>
-                                            <p className="text-sm font-bold">View style</p>
-                                            <p className="text-[10px] text-[var(--text-muted)]">Start with the simpler view. Open the detailed view only when you need extra context.</p>
-                                        </div>
-                                    </div>
-                                    <div className="grid gap-3 md:grid-cols-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleSave({ simpleMode: true, advancedMode: false })}
-                                            className="rounded-2xl border p-4 text-left transition-colors"
-                                            style={{
-                                                borderColor: !settings.advancedMode ? "var(--primary)" : "var(--border)",
-                                                backgroundColor: !settings.advancedMode ? "rgba(0,122,77,0.06)" : "var(--surface-1)",
-                                            }}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <Smartphone className="h-4 w-4 text-[var(--primary)]" />
-                                                <p className="text-sm font-bold text-[var(--text)]">Basic view</p>
-                                            </div>
-                                            <p className="mt-2 text-xs text-[var(--text-muted)]">Cleaner screens with the main tasks first and less extra detail.</p>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleSave({ simpleMode: false, advancedMode: true })}
-                                            className="rounded-2xl border p-4 text-left transition-colors"
-                                            style={{
-                                                borderColor: settings.advancedMode ? "var(--primary)" : "var(--border)",
-                                                backgroundColor: settings.advancedMode ? "rgba(0,122,77,0.06)" : "var(--surface-1)",
-                                            }}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <Zap className="h-4 w-4 text-[var(--primary)]" />
-                                                <p className="text-sm font-bold text-[var(--text)]">Detailed view (optional)</p>
-                                            </div>
-                                            <p className="mt-2 text-xs text-[var(--text-muted)]">Show fuller checks, help notes, and more of the record detail when you need it.</p>
-                                        </button>
-                                    </div>
-                                </div>
                                 <div className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] transition-colors border-b border-[var(--border)]">
                                     <div className="flex items-center gap-3">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--info-soft)] text-[var(--info)]"><AlignVerticalJustifyCenter className="h-4 w-4" /></div>

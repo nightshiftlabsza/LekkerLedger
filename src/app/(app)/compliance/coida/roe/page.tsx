@@ -139,7 +139,7 @@ export default function RoePackPage() {
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
-            <div className="w-full max-w-[1200px] mx-auto mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-3 sm:p-4 shadow-[var(--shadow-sm)]">
+            <div className="w-full max-w-[1580px] mx-auto mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-3 sm:p-4 shadow-[var(--shadow-sm)]">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <button
                         onClick={() => step > 1 ? setStep(step - 1) : router.push("/dashboard")}
@@ -150,16 +150,22 @@ export default function RoePackPage() {
                         <ArrowLeft className="h-4 w-4" />
                     </button>
                     <div className="min-w-0">
-                        <h1 className="font-bold text-sm sm:text-base tracking-tight truncate" style={{ color: "var(--text)" }}>
-                            {step === 1 ? "Compensation Fund Return" : `CF Return — ${selectedYear}/${selectedYear + 1}`}
+                        <h1
+                            data-page-title
+                            className="font-bold text-sm sm:text-base tracking-tight truncate"
+                            style={{ color: "var(--text)" }}
+                        >
+                            {step === 1 ? "Return of Earnings (ROE)" : `ROE — ${selectedYear}/${selectedYear + 1}`}
                         </h1>
-                        {step > 1 && <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold">Assessment Year</p>}
+                        <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold">
+                            {step === 1 ? "Annual Compensation Fund Return" : "Assessment Year"}
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <main className="flex-1 w-full px-4 py-6">
-                <div className="w-full max-w-[1400px] mx-auto space-y-6">
+            <main className="flex-1 w-full px-4 py-6 sm:px-6 lg:px-8">
+                <div className="w-full max-w-[1580px] mx-auto space-y-6">
 
                     {/* Progress Indicator */}
                     <div className="flex items-center justify-between px-2">
@@ -199,15 +205,16 @@ export default function RoePackPage() {
                                 </div>
                             </div>
 
-                            {/* Two-column layout on large screens */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-
-                                {/* Left: Year picker */}
-                                <div className="space-y-4">
-                                    <div className="space-y-1">
-                                        <h2 className="type-h3 text-[var(--text)]">Select Assessment Year</h2>
-                                        <p className="type-body text-[var(--text-muted)] text-sm">
-                                            The Compensation Fund year runs from <strong>1 March</strong> to <strong>28 February</strong>.
+                            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 2xl:gap-8 items-start">
+                                <div className="xl:col-span-7 2xl:col-span-8 space-y-4">
+                                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-sm)] sm:p-6">
+                                        <p className="type-overline text-[var(--text-muted)]">Annual Return</p>
+                                        <h2 className="type-h3 mt-2 text-[var(--text)]">Choose the COIDA year</h2>
+                                        <p className="mt-3 max-w-[65ch] text-sm leading-7 text-[var(--text-muted)]">
+                                            ROE stands for Return of Earnings. It is the yearly return employers submit to the Compensation Fund so the Fund can work out your assessment for the year that ended and record your estimate for the year ahead.
+                                        </p>
+                                        <p className="mt-2 max-w-[65ch] text-sm leading-7 text-[var(--text-muted)]">
+                                            The Compensation Fund year runs from <strong>1 March</strong> to the end of <strong>February</strong>.
                                         </p>
                                     </div>
 
@@ -230,12 +237,12 @@ export default function RoePackPage() {
                                                                     setSelectedYear(year);
                                                                 }
                                                             }}
-                                                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedYear === year ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)] hover:border-[var(--primary)]/30"}`}
+                                                            className={`rounded-2xl border-2 p-4 cursor-pointer transition-all ${selectedYear === year ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)] hover:border-[var(--primary)]/30"}`}
                                                         >
-                                                            <div className="flex items-center justify-between">
-                                                                <div>
-                                                                    <p className="font-bold text-[var(--text)]">{year}/{year + 1} Year</p>
-                                                                    <p className="text-xs text-[var(--text-muted)]">1 Mar {year} – {endDay} Feb {year + 1}</p>
+                                                            <div className="flex items-center justify-between gap-4">
+                                                                <div className="min-w-0">
+                                                                    <p className="text-sm font-bold text-[var(--text)]">{year}/{year + 1} Year</p>
+                                                                    <p className="text-xs leading-6 text-[var(--text-muted)]">1 Mar {year} to {endDay} Feb {year + 1}</p>
                                                                 </div>
                                                                 {selectedYear === year && <div className="h-5 w-5 rounded-full bg-[var(--primary)] flex items-center justify-center"><Check className="h-3 w-3 text-white" /></div>}
                                                             </div>
@@ -255,70 +262,110 @@ export default function RoePackPage() {
                                         </CardContent>
                                     </Card>
 
-                                    <Alert className="bg-[var(--surface-2)] border-none">
-                                        <AlertDescription className="text-xs text-[var(--text-muted)] ml-2">
-                                            We use your saved payslips to calculate these totals. Missing months will lower your totals.
+                                    <Alert className="border border-[var(--border)] bg-[var(--surface-2)]">
+                                        <AlertDescription className="text-xs leading-6 text-[var(--text-muted)] ml-2">
+                                            We use your saved payslips to calculate these totals. If some months are missing, your ROE figures may be lower than they should be.
                                         </AlertDescription>
                                     </Alert>
                                 </div>
 
-                                {/* Right: ROE explainer */}
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-2">
-                                        <HelpCircle className="h-4 w-4 text-[var(--primary)]" />
-                                        <h3 className="text-sm font-bold text-[var(--text)]">What is the ROE?</h3>
-                                    </div>
-                                    <div className="prose prose-sm max-w-none text-[var(--text-muted)] space-y-3 text-xs leading-relaxed">
-                                        <p>
-                                            The <strong>Return of Earnings (ROE)</strong> is a mandatory annual declaration that every registered South African employer must submit to the <strong>Compensation Fund</strong>. It&apos;s how the government calculates how much your business owes to cover injured or ill workers.
-                                        </p>
-                                        <div className="bg-[var(--surface-2)] p-4 rounded-xl space-y-2 border border-[var(--border)]">
-                                            <p className="font-bold text-[var(--text)]">What You&apos;re Declaring:</p>
-                                            <ul className="list-disc pl-4 space-y-1">
-                                                <li><strong>Actual earnings:</strong> Total wages paid last year (1 March – 28 February).</li>
-                                                <li><strong>Provisional earnings:</strong> Estimated wages for the coming year.</li>
-                                            </ul>
-                                        </div>
-                                        <div className="flex items-start gap-3 p-3 bg-[var(--primary)]/5 rounded-xl border border-[var(--primary)]/10">
-                                            <ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
-                                            <p>
-                                                Submitting ROE is the gateway to a <strong>Letter of Good Standing (LOGS)</strong> — required for tenders, contracts, and government work.
-                                            </p>
-                                        </div>
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-left border-collapse">
-                                                <thead>
-                                                    <tr className="border-b border-[var(--border)]">
-                                                        <th className="py-2 font-bold text-[var(--text)]">Period</th>
-                                                        <th className="py-2 font-bold text-[var(--text)]">Max Earnings Cap</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr className="border-b border-[var(--border)]/50">
-                                                        <td className="py-2">2024/2025 (actual)</td>
-                                                        <td className="py-2 font-mono">R597,328</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="py-2">2025/2026 (provisional)</td>
-                                                        <td className="py-2 font-mono">R633,168</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <p className="italic text-[10px]">
-                                            *Earnings above the cap are excluded. LekkerLedger applies this automatically.
-                                        </p>
-                                        <a
-                                            href="https://roe.labour.gov.za"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1.5 text-[var(--primary)] font-bold hover:underline"
-                                        >
-                                            Official ROE Online Portal <ExternalLink className="h-3 w-3" />
-                                        </a>
-                                    </div>
-                                </div>
+                                <aside className="xl:col-span-5 2xl:col-span-4 xl:sticky xl:top-6">
+                                    <Card className="border-none glass-panel overflow-hidden shadow-[var(--shadow-sm)]">
+                                        <CardContent className="p-0">
+                                            <div className="border-b border-[var(--border)] p-5 sm:p-6">
+                                                <div className="flex items-center gap-2">
+                                                    <HelpCircle className="h-4 w-4 text-[var(--primary)]" />
+                                                    <p className="type-overline text-[var(--text-muted)]">Guide</p>
+                                                </div>
+                                                <h3 className="type-h3 mt-3 text-[var(--text)]">What is the ROE?</h3>
+                                                <div className="mt-3 space-y-3 text-sm leading-7 text-[var(--text-muted)]">
+                                                    <p className="max-w-[62ch]">
+                                                        ROE stands for <strong>Return of Earnings</strong>. It is the yearly return employers submit to the <strong>Compensation Fund</strong> to show what they paid workers in the last COIDA year, and what they expect to pay in the next one.
+                                                    </p>
+                                                    <p className="max-w-[62ch]">
+                                                        The Fund uses this information to calculate your assessment and keep your employer record up to date.
+                                                    </p>
+                                                </div>
+                                            </div>
 
+                                            <div className="grid gap-4 p-5 sm:p-6">
+                                                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-4 sm:p-5">
+                                                    <p className="type-overline text-[var(--text-muted)]">What you need to declare</p>
+                                                    <div className="mt-3 grid gap-3">
+                                                        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-3">
+                                                            <p className="text-sm font-semibold text-[var(--text)]">Actual earnings</p>
+                                                            <p className="mt-1 text-xs leading-6 text-[var(--text-muted)]">
+                                                                What you really paid employees from 1 March to the end of February.
+                                                            </p>
+                                                        </div>
+                                                        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-3">
+                                                            <p className="text-sm font-semibold text-[var(--text)]">Provisional earnings</p>
+                                                            <p className="mt-1 text-xs leading-6 text-[var(--text-muted)]">
+                                                                What you expect to pay employees in the next COIDA year.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div
+                                                    className="rounded-2xl border p-4 sm:p-5"
+                                                    style={{ borderColor: "var(--success-border)", backgroundColor: "var(--success-soft)" }}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--success)]" />
+                                                        <p className="text-sm leading-7 text-[var(--text)]">
+                                                            Keeping your ROE up to date also helps you stay ready to request a <strong>Letter of Good Standing</strong> when you need one.
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div
+                                                    className="rounded-2xl border p-4 sm:p-5"
+                                                    style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" />
+                                                        <div className="space-y-2">
+                                                            <p className="text-sm font-semibold text-[var(--text)]">Submit carefully and on time</p>
+                                                            <p className="text-xs leading-6 text-[var(--text-muted)]">
+                                                                If an ROE is late, missing, or incorrect, the Compensation Fund may estimate the assessment and may charge a penalty. A 30 January 2026 Compensation Fund notice also reminded employers that the penalty can be up to 10% of the final assessment.
+                                                            </p>
+                                                            <p className="text-xs leading-6 text-[var(--text-muted)]">
+                                                                This matters more in 2026 because the COIDA amendments started taking effect on <strong>23 January 2026</strong>, with further compliance and penalty changes from <strong>1 April 2026</strong>.
+                                                            </p>
+                                                            <a
+                                                                href="https://www.polity.org.za/article/coida-amendments-take-effect-what-employers-need-to-know-2026-01-27"
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--primary)] hover:underline"
+                                                            >
+                                                                Read the 2026 summary article <ExternalLink className="h-3 w-3" />
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-4 sm:p-5">
+                                                    <div className="flex items-center gap-2">
+                                                        <Info className="h-4 w-4 text-[var(--primary)]" />
+                                                        <p className="type-overline text-[var(--text-muted)]">Helpful links</p>
+                                                    </div>
+                                                    <p className="mt-3 text-xs leading-6 text-[var(--text-muted)]">
+                                                        Annual earnings caps can change. LekkerLedger applies the cap automatically in your ROE calculation where it is relevant.
+                                                    </p>
+                                                    <a
+                                                        href="https://roe.labour.gov.za"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--primary)] hover:underline"
+                                                    >
+                                                        Official ROE Online Portal <ExternalLink className="h-3.5 w-3.5" />
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </aside>
                             </div>
                         </div>
                     )}

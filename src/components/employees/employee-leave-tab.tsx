@@ -8,7 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { filterRecordsForArchiveWindow, getArchiveUpgradeHref, getArchiveUpgradeLabel, getArchiveUpgradeMessage } from "@/lib/archive";
 import { canUseLeaveTracking } from "@/lib/entitlements";
-import { calculateAnnualLeaveSummary, formatLeaveRange, formatLeaveValue, getCarryOverNudge, getLeaveAllowanceForType, getLeaveTypeLabel } from "@/lib/leave";
+import {
+    calculateAnnualLeaveSummary,
+    formatLeaveRange,
+    formatLeaveValue,
+    getCarryOverNudge,
+    getLeaveAllowanceForType,
+    getLeaveTypeLabel,
+    hasCustomAnnualLeaveCycle,
+    hasManualAnnualLeaveBalance,
+} from "@/lib/leave";
 import { Contract, CustomLeaveType, Employee, LeaveCarryOver, LeaveRecord } from "@/lib/schema";
 import type { PlanConfig } from "@/config/plans";
 
@@ -54,11 +63,13 @@ export function EmployeeLeaveTab({
         [leaveArchiveResult.visible],
     );
 
-    const annualSummary = employee.startDate
-        ? calculateAnnualLeaveSummary(employee.startDate, leaveRecords, contracts, new Date())
+    const hasManualBalance = hasManualAnnualLeaveBalance(employee);
+    const hasCustomCycle = hasCustomAnnualLeaveCycle(employee);
+    const annualSummary = (employee.startDate || hasManualBalance || hasCustomCycle)
+        ? calculateAnnualLeaveSummary(employee, leaveRecords, contracts, new Date())
         : null;
 
-    const annualBalance = getLeaveAllowanceForType("annual", leaveRecords, contracts, new Date(), customLeaveTypes, employee.startDate);
+    const annualBalance = getLeaveAllowanceForType("annual", leaveRecords, contracts, new Date(), customLeaveTypes, employee);
     const availableNow = annualSummary?.totalRemainingAvailable ?? annualBalance.remaining;
     const entitlementThisCycle = annualSummary?.currentCycleAllowance ?? annualBalance.allowance;
     const usedThisCycle = annualSummary?.usedInCurrentCycle ?? annualBalance.used;
@@ -85,8 +96,10 @@ export function EmployeeLeaveTab({
                             <p className="mt-2 text-sm text-[var(--text-muted)]">Annual leave available for {employee.name} right now.</p>
                             {annualSummary?.currentCycle ? (
                                 <p className="mt-2 text-xs text-[var(--text-muted)]">
-                                    Current cycle: {format(annualSummary.currentCycle.start, "dd MMM yyyy")} to {format(annualSummary.currentCycle.end, "dd MMM yyyy")}
+                                    {hasCustomCycle ? "Manual leave cycle" : "Current cycle"}: {format(annualSummary.currentCycle.start, "dd MMM yyyy")} to {format(annualSummary.currentCycle.end, "dd MMM yyyy")}
                                 </p>
+                            ) : hasManualBalance ? (
+                                <p className="mt-2 text-xs text-[var(--text-muted)]">Using the manual balance saved on this employee profile.</p>
                             ) : (
                                 <p className="mt-2 text-xs text-[var(--text-muted)]">Add a start date on the profile to calculate leave cycle boundaries.</p>
                             )}
@@ -113,7 +126,7 @@ export function EmployeeLeaveTab({
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-3">
-                        <SupportingMetric label="Entitlement this cycle" value={formatLeaveValue(entitlementThisCycle)} cardClass={cardClass} />
+                        <SupportingMetric label={hasManualBalance ? "Balance entered" : "Entitlement this cycle"} value={formatLeaveValue(entitlementThisCycle)} cardClass={cardClass} />
                         <SupportingMetric label="Used this cycle" value={formatLeaveValue(usedThisCycle)} cardClass={cardClass} />
                         <SupportingMetric label="Carry-over" value={formatLeaveValue(carryOverRemaining)} cardClass={cardClass} />
                     </div>

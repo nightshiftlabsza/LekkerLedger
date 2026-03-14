@@ -17,6 +17,7 @@ import {
     LeaveAllocation,
     LeaveCarryOver,
     LeaveRecord,
+    type Employee,
 } from "./schema";
 import { toIsoDate, isValidDate } from "./utils";
 
@@ -79,8 +80,130 @@ const DEFAULT_ALLOWANCE: Record<DefaultLeaveType, number> = {
     family: 3,
 };
 
+type AnnualLeaveSource = string | Pick<Employee, "startDate" | "leaveCycleStartDate" | "leaveCycleEndDate" | "annualLeaveDaysRemaining" | "annualLeaveBalanceAsOfDate">;
+
+type NormalizedAnnualLeaveSource = {
+    startDate: string;
+    leaveCycleStartDate: string;
+    leaveCycleEndDate: string;
+    annualLeaveDaysRemaining?: number;
+    annualLeaveBalanceAsOfDate: string;
+};
+
 function getRecordSortTime(record: LeaveRecord): number {
     return normaliseLeaveDate(record).start.getTime();
+}
+
+function normaliseAnnualLeaveSource(source: AnnualLeaveSource): NormalizedAnnualLeaveSource {
+    if (typeof source === "string") {
+        return {
+            startDate: source,
+            leaveCycleStartDate: "",
+            leaveCycleEndDate: "",
+            annualLeaveBalanceAsOfDate: "",
+        };
+    }
+
+    return {
+        startDate: source.startDate || "",
+        leaveCycleStartDate: source.leaveCycleStartDate || "",
+        leaveCycleEndDate: source.leaveCycleEndDate || "",
+        annualLeaveDaysRemaining: source.annualLeaveDaysRemaining,
+        annualLeaveBalanceAsOfDate: source.annualLeaveBalanceAsOfDate || "",
+    };
+}
+
+function getManualLeaveCycle(source: NormalizedAnnualLeaveSource): LeaveCycle | null {
+    const start = parseISO(source.leaveCycleStartDate);
+    const end = parseISO(source.leaveCycleEndDate);
+    if (!isValidDate(start) || !isValidDate(end) || end < start) return null;
+
+    return {
+        start,
+        end,
+        startIso: toIsoDate(start),
+        endIso: toIsoDate(end),
+    };
+}
+
+function getManualLeaveBalanceAsOf(source: NormalizedAnnualLeaveSource): Date | null {
+    const balanceAsOf = parseISO(source.annualLeaveBalanceAsOfDate);
+    return isValidDate(balanceAsOf) ? balanceAsOf : null;
+}
+
+export function hasCustomAnnualLeaveCycle(source: AnnualLeaveSource): boolean {
+    return getManualLeaveCycle(normaliseAnnualLeaveSource(source)) !== null;
+}
+
+export function hasManualAnnualLeaveBalance(source: AnnualLeaveSource): boolean {
+    const normalized = normaliseAnnualLeaveSource(source);
+    return Number.isFinite(normalized.annualLeaveDaysRemaining);
+}
+
+function calculateManualAnnualLeaveSummary(
+    source: NormalizedAnnualLeaveSource,
+    records: LeaveRecord[],
+    contracts: Contract[],
+    referenceDate: Date,
+): AnnualLeaveSummary {
+    const currentCycle = getManualLeaveCycle(source);
+    const annualRecords = records
+        .filter((record) => record.type === "annual")
+        .sort((a, b) => getRecordSortTime(a) - getRecordSortTime(b));
+    const manualBalance = hasManualAnnualLeaveBalance(source) ? Math.max(source.annualLeaveDaysRemaining ?? 0, 0) : null;
+    const balanceAsOf = getManualLeaveBalanceAsOf(source);
+    const usageWindowStart = currentCycle?.start && balanceAsOf
+        ? new Date(Math.max(currentCycle.start.getTime(), balanceAsOf.getTime()))
+        : currentCycle?.start ?? balanceAsOf ?? referenceDate;
+    const usageWindowEnd = currentCycle?.end && currentCycle.end < referenceDate ? currentCycle.end : referenceDate;
+
+    const usedInWindow = annualRecords
+        .filter((record) => {
+            const recordDate = normaliseLeaveDate(record).start;
+            return recordDate >= usageWindowStart && recordDate <= usageWindowEnd;
+        })
+        .reduce((sum, record) => sum + record.days, 0);
+
+    const currentCycleAllowance = manualBalance !== null
+        ? manualBalance + usedInWindow
+        : resolveLeaveAllowance("annual", contracts, { referenceDate: currentCycle?.start ?? referenceDate });
+
+    const remainingInCurrentCycle = manualBalance !== null
+        ? Math.max(manualBalance - usedInWindow, 0)
+        : currentCycleAllowance - usedInWindow;
+
+    const updatedRecords = records.map((record) => {
+        if (record.type !== "annual") return record;
+        if (!currentCycle) {
+            return { ...record, allocations: [] };
+        }
+
+        const recordDate = normaliseLeaveDate(record).start;
+        const inCycle = recordDate >= currentCycle.start && recordDate <= currentCycle.end;
+        const allocations: LeaveAllocation[] = inCycle
+            ? [{
+                source: "current-cycle",
+                days: record.days,
+                cycleStart: currentCycle.startIso,
+                cycleEnd: currentCycle.endIso,
+            }]
+            : [];
+        return {
+            ...record,
+            allocations,
+        };
+    });
+
+    return {
+        currentCycle,
+        currentCycleAllowance,
+        usedInCurrentCycle: usedInWindow,
+        remainingInCurrentCycle,
+        carryOvers: [],
+        remainingCarryOver: 0,
+        totalRemainingAvailable: remainingInCurrentCycle,
+        updatedRecords,
+    };
 }
 
 function prettifyLeaveType(type: string): string {
@@ -179,8 +302,12 @@ export function resolveLeaveAllowance(
     return customType.annualAllowance;
 }
 
-export function getLeaveCycleForDate(employeeStartDate: string, referenceDate: Date): LeaveCycle | null {
-    const start = parseISO(employeeStartDate);
+export function getLeaveCycleForDate(employeeSource: AnnualLeaveSource, referenceDate: Date): LeaveCycle | null {
+    const normalized = normaliseAnnualLeaveSource(employeeSource);
+    const manualCycle = getManualLeaveCycle(normalized);
+    if (manualCycle) return manualCycle;
+
+    const start = parseISO(normalized.startDate);
     if (!isValidDate(start) || referenceDate < start) return null;
 
     let cycleStart = start;
@@ -204,7 +331,11 @@ export function getLeaveCycleForDate(employeeStartDate: string, referenceDate: D
 }
 
 export function listLeaveCycles(employeeStartDate: string, referenceDate: Date): LeaveCycle[] {
-    const start = parseISO(employeeStartDate);
+    const normalized = normaliseAnnualLeaveSource(employeeStartDate);
+    const manualCycle = getManualLeaveCycle(normalized);
+    if (manualCycle) return [manualCycle];
+
+    const start = parseISO(normalized.startDate);
     if (!isValidDate(start) || referenceDate < start) return [];
 
     const cycles: LeaveCycle[] = [];
@@ -228,12 +359,17 @@ export function listLeaveCycles(employeeStartDate: string, referenceDate: Date):
 }
 
 export function calculateAnnualLeaveSummary(
-    employeeStartDate: string,
+    employeeSource: AnnualLeaveSource,
     records: LeaveRecord[],
     contracts: Contract[],
     referenceDate: Date = new Date()
 ): AnnualLeaveSummary {
-    const currentCycle = getLeaveCycleForDate(employeeStartDate, referenceDate);
+    const normalized = normaliseAnnualLeaveSource(employeeSource);
+    if (getManualLeaveCycle(normalized) || hasManualAnnualLeaveBalance(normalized)) {
+        return calculateManualAnnualLeaveSummary(normalized, records, contracts, referenceDate);
+    }
+
+    const currentCycle = getLeaveCycleForDate(normalized.startDate, referenceDate);
     if (!currentCycle) {
         return {
             currentCycle: null,
@@ -247,14 +383,14 @@ export function calculateAnnualLeaveSummary(
         };
     }
 
-    const cycles = listLeaveCycles(employeeStartDate, referenceDate);
+    const cycles = listLeaveCycles(normalized.startDate, referenceDate);
     const annualRecords = records
         .filter((record) => record.type === "annual")
         .sort((a, b) => getRecordSortTime(a) - getRecordSortTime(b));
 
     const recordsByCycle = new Map<string, LeaveRecord[]>();
     for (const record of annualRecords) {
-        const cycle = getLeaveCycleForDate(employeeStartDate, normaliseLeaveDate(record).start);
+        const cycle = getLeaveCycleForDate(normalized.startDate, normaliseLeaveDate(record).start);
         if (!cycle) continue;
         const existing = recordsByCycle.get(cycle.endIso) ?? [];
         existing.push(record);
@@ -360,12 +496,12 @@ export function getCarryOverNudge(carryOvers: LeaveCarryOver[], referenceDate: D
 }
 
 export function calculateAnnualLeaveForecast(
-    employeeStartDate: string,
+    employeeSource: AnnualLeaveSource,
     records: LeaveRecord[],
     contracts: Contract[],
     referenceDate: Date = new Date()
 ): AnnualLeaveForecast {
-    const summary = calculateAnnualLeaveSummary(employeeStartDate, records, contracts, referenceDate);
+    const summary = calculateAnnualLeaveSummary(employeeSource, records, contracts, referenceDate);
     if (!summary.currentCycle || differenceInCalendarMonths(referenceDate, summary.currentCycle.start) < 3) {
         return {
             status: "not-enough-data",
@@ -421,10 +557,16 @@ export function getLeaveAllowanceForType(
     contracts: Contract[],
     referenceDate: Date = new Date(),
     customLeaveTypes: CustomLeaveType[] = [],
-    employeeStartDate?: string
+    employeeAnnualLeaveSource?: AnnualLeaveSource
 ): LeaveAllowance {
-    if (type === "annual" && employeeStartDate) {
-        const summary = calculateAnnualLeaveSummary(employeeStartDate, records, contracts, referenceDate);
+    const annualSource = employeeAnnualLeaveSource ? normaliseAnnualLeaveSource(employeeAnnualLeaveSource) : null;
+    if (type === "annual" && annualSource && (
+        annualSource.startDate
+        || annualSource.leaveCycleStartDate
+        || annualSource.leaveCycleEndDate
+        || hasManualAnnualLeaveBalance(annualSource)
+    )) {
+        const summary = calculateAnnualLeaveSummary(annualSource, records, contracts, referenceDate);
         return {
             allowance: summary.currentCycleAllowance + summary.remainingCarryOver,
             used: summary.usedInCurrentCycle + summary.carryOvers.reduce((sum, bucket) => sum + bucket.daysUsedFromCarry, 0),

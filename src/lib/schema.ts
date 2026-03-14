@@ -16,6 +16,11 @@ export const EmployeeSchema = z.object({
     email: z.union([z.literal(""), z.string().email("Invalid email address")]).optional(),
     address: z.string().optional(),
     startDate: z.string().optional().default(""), // ISO date string - when employment began
+    startDateIsApproximate: z.boolean().default(false),
+    leaveCycleStartDate: z.string().optional().default(""),
+    leaveCycleEndDate: z.string().optional().default(""),
+    annualLeaveDaysRemaining: z.number().min(0).optional(),
+    annualLeaveBalanceAsOfDate: z.string().optional().default(""),
     ordinarilyWorksSundays: z.boolean().default(false),
     ordinaryHoursPerDay: z.number().min(1).max(24).default(8),
     frequency: z.enum(["Weekly", "Fortnightly", "Monthly"]).default("Monthly"),
@@ -40,6 +45,34 @@ export const EmployeeSchema = z.object({
             path: ["idNumber"],
             message: idNumberMessage,
         });
+    }
+
+    const hasCycleStart = Boolean(employee.leaveCycleStartDate);
+    const hasCycleEnd = Boolean(employee.leaveCycleEndDate);
+    if (hasCycleStart !== hasCycleEnd) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [hasCycleStart ? "leaveCycleEndDate" : "leaveCycleStartDate"],
+            message: "Add both leave cycle start and leave cycle end, or leave both blank.",
+        });
+    }
+
+    if (hasCycleStart && hasCycleEnd) {
+        const cycleStart = new Date(employee.leaveCycleStartDate!);
+        const cycleEnd = new Date(employee.leaveCycleEndDate!);
+        if (Number.isNaN(cycleStart.getTime()) || Number.isNaN(cycleEnd.getTime())) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["leaveCycleStartDate"],
+                message: "Use valid dates for the leave cycle.",
+            });
+        } else if (cycleEnd < cycleStart) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["leaveCycleEndDate"],
+                message: "Leave cycle end must be on or after the leave cycle start.",
+            });
+        }
     }
 });
 
@@ -171,10 +204,9 @@ export const EmployerSettingsSchema = z.object({
     paidUntil: z.string().optional(),
     billingCycle: z.enum(["monthly", "yearly"]).optional().default("monthly"),
     activeHouseholdId: z.string().default("default"),
+    standardRetentionNoticeDismissedAt: z.string().optional(),
     logoData: z.string().optional(),
     defaultLanguage: z.enum(["en", "zu", "xh"]).optional().default("en"),
-    simpleMode: z.boolean().default(false),
-    advancedMode: z.boolean().default(false),
     density: z.enum(["comfortable", "compact"]).default("comfortable"),
 
     piiObfuscationEnabled: z.boolean().default(true),
