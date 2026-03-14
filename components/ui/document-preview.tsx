@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 
 interface DocumentPreviewProps {
     /** URL of the document to preview (e.g. blob URL or PDF) */
-    url: string | null;
-    fileName?: string;
-    onClose: () => void;
-    onDownload?: () => void;
+    readonly url: string | null;
+    readonly fileName?: string;
+    readonly onClose: () => void;
+    readonly onDownload?: () => void;
 }
 
 export function DocumentPreview({ url, fileName, onClose, onDownload }: DocumentPreviewProps) {

@@ -624,19 +624,20 @@ function AccountMenu({
         </>
     );
 }
+
 function MenuLink({
     href,
     icon: Icon,
     label,
     sublabel,
     onNavigate,
-}: {
+}: Readonly<{
     href: string;
     icon: React.ElementType;
     label: string;
     sublabel: string;
     onNavigate: () => void;
-}) {
+}>) {
     return (
         <Link
             href={href}
@@ -653,4 +654,3 @@ function MenuLink({
         </Link>
     );
 }
-

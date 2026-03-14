@@ -35,7 +35,7 @@ export const LEGAL_REGISTRY = {
 
 export function getNMWRecordForDate(date: Date = new Date()) {
     const applicable = SORTED_NMW.find((rate) => date.getTime() >= new Date(rate.effectiveDate).getTime());
-    const record = applicable ?? SORTED_NMW[SORTED_NMW.length - 1];
+    const record = applicable ?? SORTED_NMW.at(-1);
 
     return {
         ...record,

@@ -38,7 +38,7 @@ const serwist = new Serwist({
                     }),
                     {
                         cacheWillUpdate: async ({ response }) => {
-                            if (response && response.status === 200) {
+                            if (response?.status === 200) {
                                 return response;
                             }
                             return null;

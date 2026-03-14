@@ -1,7 +1,7 @@
 // worker file
 import { generatePayslipPdfBytes } from "../lib/pdf";
 
-self.onmessage = async (evt: MessageEvent) => {
+globalThis.onmessage = async (evt: MessageEvent) => {
     const { employee, payslip, settings, msgId, isLimited } = evt.data;
     try {
         const bytes = await generatePayslipPdfBytes(employee, payslip, settings, settings.defaultLanguage, isLimited);

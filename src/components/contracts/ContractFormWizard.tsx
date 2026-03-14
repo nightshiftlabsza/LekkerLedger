@@ -833,7 +833,10 @@ export function ContractFormWizard({
                             className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] gap-2"
                         >
                             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                            {saving ? (saveLabel.startsWith("Update") ? "Updating..." : "Generating...") : saveLabel}
+                            {(() => {
+                                if (!saving) return saveLabel;
+                                return saveLabel.startsWith("Update") ? "Updating..." : "Generating...";
+                            })()}
                         </Button>
                     ) : (
                         <Button onClick={handleNext} className="bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] gap-2">

@@ -1,6 +1,6 @@
 "use client";
 
-// import "../pdf.worker.ts";
+
 
 import * as React from "react";
 import Link from "next/link";
@@ -74,8 +74,8 @@ function WizardContent() {
     const [employerDetailsGate, setEmployerDetailsGate] = React.useState(false);
 
     const now = new Date();
-    const defaultStart = formatDateSafe(new Date(now.getFullYear(), now.getMonth(), 1));
-    const defaultEnd = formatDateSafe(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    const defaultStart = (new Date(now.getFullYear(), now.getMonth(), 1)).toISOString().split('T')[0];
+    const defaultEnd = (new Date(now.getFullYear(), now.getMonth() + 1, 0)).toISOString().split('T')[0];
 
     const [hours, setHours] = React.useState({ ordinary: "", overtime: "", sunday: "", holiday: "" });
     const [shortFallHours, setShortFallHours] = React.useState("");
@@ -165,9 +165,7 @@ function WizardContent() {
         setLoading(true);
         try {
             // Validate against secure time before save
-            const [_settingsCheck, nowSafe] = await Promise.all([getSettings(), getSecureTime()]);
-            void _settingsCheck;
-            void nowSafe;
+            await Promise.all([getSettings(), getSecureTime()]);
 
             const payslipInput: PayslipInput = {
                 id: crypto.randomUUID(),
@@ -206,10 +204,9 @@ function WizardContent() {
                 createdAt: new Date().toISOString(),
             });
 
-            // GA4 conversion tracking
             try {
-                if (typeof window !== 'undefined' && 'gtag' in window) {
-                    (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.('event', 'onboarding_complete');
+                if (typeof globalThis !== 'undefined' && 'gtag' in globalThis) {
+                    (globalThis as any).gtag?.('event', 'onboarding_complete');
                 }
             } catch (e) {
                 console.error('GA4 tracking failed:', e);
@@ -341,7 +338,7 @@ function WizardContent() {
                     <Stepper steps={STEPS} currentStep={currentStep} />
                 </div>
                 {/* National Minimum Wage notice */}
-                {employee.hourlyRate <= NMW_RATE && (
+                {!!employee && employee.hourlyRate <= NMW_RATE && (
                     <Alert variant="warning">
                         <AlertDescription>
                             Using National Minimum Wage (R{NMW_RATE}/hr).
@@ -503,7 +500,7 @@ function WizardContent() {
                                                             min="0"
                                                             placeholder="e.g. 2"
                                                             value={shortShiftCount || ""}
-                                                            onChange={(e) => setShortShiftCount(Number.parseInt(e.target.value) || 0)}
+                                                            onChange={(e) => setShortShiftCount(Number.parseInt(e.target.value, 10) || 0)}
                                                         />
                                                     </div>
                                                     <div className="space-y-1">
@@ -673,7 +670,7 @@ function WizardContent() {
                         {/* STEP 3 — Review */}
                         {currentStep === 3 && breakdown && (
                             <div className="space-y-4 animate-fade-in">
-                                {employerDetailsGate && (
+                                {!!employerDetailsGate && (
                                     <Alert variant="warning">
                                         <AlertDescription>
                                             Add your employer name and address before saving the first final payslip.
@@ -685,7 +682,7 @@ function WizardContent() {
                                     </Alert>
                                 )}
                                 {/* Duplicate payslip warning */}
-                                {duplicateId && (
+                                {!!duplicateId && (
                                     <div className="p-4 rounded-xl border border-[var(--focus)]/40 bg-[var(--primary)]/5 space-y-3">
                                         <div className="flex items-center gap-2 text-sm font-bold" style={{ color: "var(--primary)" }}>
                                             <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -836,7 +833,9 @@ function ComplianceRow({
     failHref?: string;
     isInfo?: boolean;
 }) {
-    const color = pass ? "var(--success)" : isInfo ? "var(--info)" : "var(--warning)";
+    let color = "var(--warning)";
+    if (pass) color = "var(--success)";
+    else if (isInfo) color = "var(--info)";
     return (
         <div className="flex items-start gap-2.5 text-xs">
             {pass
@@ -870,7 +869,11 @@ function Row({
                 {label}
             </span>
             <span
-                className={`tabular-nums ${red ? "text-[var(--danger)]" : bold ? "text-[var(--text)] font-bold" : "text-[var(--text-muted)]"}`}
+                className={`tabular-nums ${(() => {
+                    if (red) return "text-[var(--danger)]";
+                    if (bold) return "text-[var(--text)] font-bold";
+                    return "text-[var(--text-muted)]";
+                })()}`}
             >
                 {value}
             </span>

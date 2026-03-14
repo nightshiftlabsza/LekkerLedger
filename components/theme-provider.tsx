@@ -6,11 +6,11 @@ type Theme = "light" | "dark" | "system";
 type Density = "comfortable" | "compact";
 
 interface UIContextValue {
-    theme: Theme;
-    resolvedTheme: "light" | "dark";
-    setTheme: (t: Theme) => void;
-    density: Density;
-    setDensity: (d: Density) => void;
+    readonly theme: Theme;
+    readonly resolvedTheme: "light" | "dark";
+    readonly setTheme: (t: Theme) => void;
+    readonly density: Density;
+    readonly setDensity: (d: Density) => void;
 }
 
 const UIContext = React.createContext<UIContextValue>({
@@ -34,8 +34,8 @@ export function useTheme() {
 /** Resolve "system" to the actual OS preference */
 function resolveTheme(t: Theme): "light" | "dark" {
     if (t === "system") {
-        if (typeof window === "undefined") return "light";
-        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        if (typeof globalThis.window === "undefined") return "light";
+        return globalThis.window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
     return t;
 }
@@ -95,7 +95,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Watch OS preference changes when theme === "system"
     React.useEffect(() => {
         if (theme !== "system") return;
-        const mq = window.matchMedia("(prefers-color-scheme: dark)");
+        const mq = globalThis.window.matchMedia("(prefers-color-scheme: dark)");
         const handler = (e: MediaQueryListEvent) => {
             const resolved = e.matches ? "dark" : "light";
             setResolvedTheme(resolved);
@@ -108,8 +108,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const setTheme = (t: Theme) => setThemeState(t);
     const setDensity = (d: Density) => setDensityState(d);
 
+    const contextValue = React.useMemo(() => ({ theme, resolvedTheme, setTheme, density, setDensity }), [theme, resolvedTheme, density]);
+
     return (
-        <UIContext.Provider value={{ theme, resolvedTheme, setTheme, density, setDensity }}>
+        <UIContext.Provider value={contextValue}>
             {children}
         </UIContext.Provider>
     );

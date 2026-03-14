@@ -9,7 +9,7 @@
 export function track(eventName: string, params: Record<string, any> = {}): void {
     try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const w = window as any;
+        const w = globalThis as any;
         w.dataLayer = w.dataLayer || [];
 
         if (typeof w.gtag === "function") {

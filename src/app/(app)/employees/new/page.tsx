@@ -60,7 +60,7 @@ export default function AddEmployeePage() {
         checkLimit();
     }, []);
 
-    const hourlyRateNum = parseFloat(formData.hourlyRate) || 0;
+    const hourlyRateNum = Number.parseFloat(formData.hourlyRate) || 0;
     const belowNMW = hourlyRateNum > 0 && hourlyRateNum < NMW_RATE;
 
     const handleSave = async (e: React.FormEvent) => {
@@ -71,7 +71,7 @@ export default function AddEmployeePage() {
             id: crypto.randomUUID(),
             ...formData,
             idNumber: normalizeEmployeeIdNumber(formData.idNumber),
-            hourlyRate: parseFloat(formData.hourlyRate),
+            hourlyRate: Number.parseFloat(formData.hourlyRate),
             ordinaryHoursPerDay: Number(formData.ordinaryHoursPerDay) || 8,
         };
 

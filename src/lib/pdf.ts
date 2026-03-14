@@ -448,7 +448,7 @@ function drawFooter(page: any, width: number, dict: any, breakdown: any, nmw: nu
     drawLine(footerY + 30);
 
     t(dict.employerContributions, PDF_MARGIN, footerY + 15, { font: sansBold, size: 7, color: PDF_COLORS.TEXT_MUTED });
-    t(`${dict.uifEmployer}: R ${breakdown.employerContributions.uifEmployer.toFixed(2)} · ${dict.sdlEmployer}: R 0.00`, PDF_MARGIN, footerY + 5, { size: 7, color: PDF_COLORS.TEXT_MUTED });
+    t(`${dict.uifEmployer}: R ${breakdown.employerContributions.uifEmployer.toFixed(2)} · ${dict.sdlEmployer}: R 0`, PDF_MARGIN, footerY + 5, { size: 7, color: PDF_COLORS.TEXT_MUTED });
 
     const leaveItems = [
         breakdown.leaveTaken.annual > 0 ? `${dict.annual}: ${breakdown.leaveTaken.annual} days` : null,

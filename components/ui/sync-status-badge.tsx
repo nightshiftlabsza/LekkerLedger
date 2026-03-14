@@ -6,9 +6,9 @@ import { Cloud, CloudOff, Loader2, AlertTriangle, Check } from "lucide-react";
 export type SyncState = "synced" | "syncing" | "error" | "offline" | "disconnected";
 
 interface SyncStatusBadgeProps {
-    state: SyncState;
-    lastSync?: string;  // e.g. "14:32"
-    className?: string;
+    readonly state: SyncState;
+    readonly lastSync?: string;  // e.g. "14:32"
+    readonly className?: string;
 }
 
 const STATES: Record<SyncState, { icon: React.ElementType; label: string; color: string }> = {

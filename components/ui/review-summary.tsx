@@ -5,23 +5,23 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { NMW_RATE } from "@/lib/calculator";
 
 export interface ReviewItem {
-    label: string;
-    value: string | number;
-    highlight?: boolean;
-    isError?: boolean;
+    readonly label: string;
+    readonly value: string | number;
+    readonly highlight?: boolean;
+    readonly isError?: boolean;
 }
 
 export interface ReviewSection {
-    title: string;
-    items: ReviewItem[];
-    editAction?: () => void;
+    readonly title: string;
+    readonly items: readonly ReviewItem[];
+    readonly editAction?: () => void;
 }
 
 export interface ReviewSummaryProps {
-    sections: ReviewSection[];
-    totalCost?: number;
-    warnings?: string[];
-    errors?: string[];
+    readonly sections: readonly ReviewSection[];
+    readonly totalCost?: number;
+    readonly warnings?: readonly string[];
+    readonly errors?: readonly string[];
 }
 
 export function ReviewSummary({ sections, totalCost, warnings = [], errors = [] }: ReviewSummaryProps) {
@@ -37,7 +37,7 @@ export function ReviewSummary({ sections, totalCost, warnings = [], errors = [] 
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
                         <ul className="list-disc pl-4 space-y-1">
-                            {errors.map((err, i) => <li key={i}><strong>Error:</strong> {err}</li>)}
+                            {errors.map((err) => <li key={err}><strong>Error:</strong> {err}</li>)}
                         </ul>
                     </AlertDescription>
                 </Alert>
@@ -48,7 +48,7 @@ export function ReviewSummary({ sections, totalCost, warnings = [], errors = [] 
                     <Info className="h-4 w-4" />
                     <AlertDescription>
                         <ul className="list-disc pl-4 space-y-1">
-                            {warnings.map((warn, i) => <li key={i}>{warn}</li>)}
+                            {warnings.map((warn) => <li key={warn}>{warn}</li>)}
                         </ul>
                     </AlertDescription>
                 </Alert>
@@ -75,8 +75,8 @@ export function ReviewSummary({ sections, totalCost, warnings = [], errors = [] 
 
             {/* Detailed Sections */}
             <div className="grid gap-6 sm:grid-cols-2">
-                {sections.map((section, idx) => (
-                    <Card key={idx} className="glass-panel overflow-hidden border-[var(--border)]">
+                {sections.map((section) => (
+                    <Card key={section.title} className="glass-panel overflow-hidden border-[var(--border)]">
                         <div className="px-5 py-3 border-b border-[var(--border)] bg-[var(--surface-1)]/50 flex items-center justify-between">
                             <h4 className="font-bold" style={{ color: "var(--text)" }}>
                                 {section.title}
@@ -92,9 +92,9 @@ export function ReviewSummary({ sections, totalCost, warnings = [], errors = [] 
                         </div>
                         <CardContent className="p-0">
                             <dl className="divide-y divide-[var(--border)]">
-                                {section.items.map((item, itemIdx) => (
+                                {section.items.map((item) => (
                                     <div
-                                        key={itemIdx}
+                                        key={item.label}
                                         className={`px-5 py-3 flex items-center justify-between gap-4 ${item.highlight ? 'bg-[var(--surface-2)]' : ''}`}
                                     >
                                         <dt className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>

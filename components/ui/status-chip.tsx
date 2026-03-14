@@ -17,15 +17,9 @@ const VARIANTS: Record<ChipVariant, { bg: string; text: string; icon: React.Elem
 };
 
 interface StatusChipProps {
-    variant: ChipVariant;
-    label?: string;
-    className?: string;
-};
-
-interface StatusChipProps {
-    variant: ChipVariant;
-    label?: string;
-    className?: string;
+    readonly variant: ChipVariant;
+    readonly label?: string;
+    readonly className?: string;
 }
 
 export function StatusChip({ variant, label, className = "" }: StatusChipProps) {

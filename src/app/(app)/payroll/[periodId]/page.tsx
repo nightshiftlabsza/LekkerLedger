@@ -28,7 +28,7 @@ import { track } from "@/lib/analytics";
 import { PLANS, PlanConfig } from "../../../../config/plans";
 
 function openWhatsAppDesktop(): void {
-    globalThis.window.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
+    globalThis.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
 }
 
 export default function PayPeriodWorkspacePage() {
@@ -59,7 +59,7 @@ export default function PayPeriodWorkspacePage() {
             setPlan(getUserPlan(s));
 
             // Auto-populate leave days from leave records within this period
-            if (p && p.status === "draft") {
+            if (p?.status === "draft") {
                 const periodStart = new Date(p.startDate).getTime();
                 const periodEnd = new Date(p.endDate).getTime();
                 const lmap: Record<string, LeaveRecord[]> = {};
@@ -308,7 +308,7 @@ export default function PayPeriodWorkspacePage() {
 
             await downloadFiles(files);
             if (channel === "email") {
-                window.location.href = `mailto:?subject=${encodeURIComponent(`${period?.name} payslips`)}&body=${encodeURIComponent("Your payslip PDFs have been downloaded. Attach them from your Downloads folder before sending.")}`;
+                globalThis.location.href = `mailto:?subject=${encodeURIComponent(`${period?.name} payslips`)}&body=${encodeURIComponent("Your payslip PDFs have been downloaded. Attach them from your Downloads folder before sending.")}`;
                 toast("Payslips downloaded. Attach them from Downloads in your email app.", "info");
             } else {
                 openWhatsAppDesktop();
@@ -351,10 +351,19 @@ export default function PayPeriodWorkspacePage() {
     const totalCount = period.entries.length;
     const allComplete = totalCount > 0 && completedCount === totalCount;
 
+    // Wizard status logic
+    let enterHoursStatus: Step["status"] = "upcoming";
+    if (allComplete) enterHoursStatus = "complete";
+    else if (completedCount > 0) enterHoursStatus = "active";
+
+    let reviewStatus: Step["status"] = "upcoming";
+    if (period.status === "review" || isLocked) reviewStatus = "complete";
+    else if (allComplete) reviewStatus = "active";
+
     // Wizard steps
     const steps: Step[] = [
-        { label: "Enter Hours", status: allComplete ? "complete" : completedCount > 0 ? "active" : "upcoming" },
-        { label: "Review", status: period.status === "review" || isLocked ? "complete" : allComplete ? "active" : "upcoming" },
+        { label: "Enter Hours", status: enterHoursStatus },
+        { label: "Review", status: reviewStatus },
         { label: "Generate", status: isLocked ? "complete" : "upcoming" },
         { label: "Lock", status: isLocked ? "complete" : "upcoming" },
     ];
@@ -663,8 +672,12 @@ export default function PayPeriodWorkspacePage() {
                             variant="paper"
                             secondaryAction={
                                 <Button onClick={handleSave} disabled={saving} variant="outline" className="flex-1 sm:flex-none gap-3 px-5 font-bold">
-                                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saveAcknowledged ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-                                    {saving ? "Saving..." : saveAcknowledged ? "Changes Saved" : "Save Progress"}
+                                    {(() => {
+                                        if (saving) return <Loader2 className="h-4 w-4 animate-spin" />;
+                                        if (saveAcknowledged) return <CheckCircle2 className="h-4 w-4" />;
+                                        return <Save className="h-4 w-4" />;
+                                    })()}
+                                    {saving ? "Saving..." : (saveAcknowledged ? "Changes Saved" : "Save Progress")}
                                 </Button>
                             }
                             primaryAction={
@@ -700,13 +713,15 @@ export default function PayPeriodWorkspacePage() {
                                 disabled={generatingPdfs}
                                 className={`w-full gap-2 h-12 text-base font-bold ${!isRecordWithinArchive(plan, period.endDate) ? 'cursor-not-allowed border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-muted)] hover:bg-[var(--surface-2)]' : 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]'}`}
                             >
-                                {!isRecordWithinArchive(plan, period.endDate) ? (
-                                    <><Lock className="h-5 w-5" /> Upgrade to Export</>
-                                ) : generatingPdfs ? (
-                                    <><Loader2 className="h-5 w-5 animate-spin" /> Preparing…</>
-                                ) : (
-                                    <><Download className="h-5 w-5" /> Download all ({totalCount})</>
-                                )}
+                                {(() => {
+                                    if (!isRecordWithinArchive(plan, period.endDate)) {
+                                        return <><Lock className="h-5 w-5" /> Upgrade to Export</>;
+                                    }
+                                    if (generatingPdfs) {
+                                        return <><Loader2 className="h-5 w-5 animate-spin" /> Preparing…</>;
+                                    }
+                                    return <><Download className="h-5 w-5" /> Download all ({totalCount})</>;
+                                })()}
                             </Button>
                             <Button
                                 type="button"

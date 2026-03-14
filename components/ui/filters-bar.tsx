@@ -8,26 +8,26 @@ import { Search, X, SlidersHorizontal, ChevronDown } from "lucide-react";
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export interface FilterChip {
-    key: string;
-    label: string;
-    active: boolean;
+    readonly key: string;
+    readonly label: string;
+    readonly active: boolean;
 }
 
 export interface SortOption {
-    key: string;
-    label: string;
+    readonly key: string;
+    readonly label: string;
 }
 
 interface FiltersBarProps {
-    searchValue: string;
-    onSearchChange: (value: string) => void;
-    searchPlaceholder?: string;
-    filters?: FilterChip[];
-    onFilterToggle?: (key: string) => void;
-    sortOptions?: SortOption[];
-    activeSort?: string;
-    onSortChange?: (key: string) => void;
-    className?: string;
+    readonly searchValue: string;
+    readonly onSearchChange: (value: string) => void;
+    readonly searchPlaceholder?: string;
+    readonly filters?: readonly FilterChip[];
+    readonly onFilterToggle?: (key: string) => void;
+    readonly sortOptions?: readonly SortOption[];
+    readonly activeSort?: string;
+    readonly onSortChange?: (key: string) => void;
+    readonly className?: string;
 }
 
 export function FiltersBar({

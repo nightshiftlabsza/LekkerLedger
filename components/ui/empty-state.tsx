@@ -5,16 +5,16 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export interface EmptyStateProps {
-    title: string;
-    description: string;
-    icon: LucideIcon;
-    actionLabel?: string;
-    actionHref?: string;
-    actionOnClick?: () => void;
-    secondaryActionLabel?: string;
-    secondaryActionHref?: string;
-    requirements?: string[];
-    highlights?: string[];
+    readonly title: string;
+    readonly description: string;
+    readonly icon: LucideIcon;
+    readonly actionLabel?: string;
+    readonly actionHref?: string;
+    readonly actionOnClick?: () => void;
+    readonly secondaryActionLabel?: string;
+    readonly secondaryActionHref?: string;
+    readonly requirements?: readonly string[];
+    readonly highlights?: readonly string[];
 }
 
 export function EmptyState({
@@ -50,10 +50,10 @@ export function EmptyState({
                             What you&apos;ll need
                         </p>
                         <ul className="space-y-4">
-                            {requirements.map((req, i) => (
-                                <li key={i} className="flex items-start gap-3 text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+                            {requirements.map((req) => (
+                                <li key={req} className="flex items-start gap-3 text-sm font-medium" style={{ color: "var(--text-muted)" }}>
                                     <div className="h-5 w-5 rounded-full bg-[var(--primary)] flex items-center justify-center text-white shrink-0 mt-0.5" style={{ fontSize: "11px", fontWeight: "bold" }}>
-                                        {i + 1}
+                                        {requirements.indexOf(req) + 1}
                                     </div>
                                     <span className="leading-tight pt-0.5">{req}</span>
                                 </li>
@@ -68,8 +68,8 @@ export function EmptyState({
                             What shows up here
                         </p>
                         <ul className="space-y-3">
-                            {highlights.map((item, index) => (
-                                <li key={index} className="flex items-start gap-3 text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+                            {highlights.map((item) => (
+                                <li key={item} className="flex items-start gap-3 text-sm font-medium" style={{ color: "var(--text-muted)" }}>
                                     <div className="mt-1 h-2.5 w-2.5 rounded-full bg-[var(--primary)] shrink-0" />
                                     <span className="leading-relaxed">{item}</span>
                                 </li>
@@ -109,9 +109,9 @@ export function EmptyState({
 }
 
 export interface ErrorStateProps {
-    title?: string;
-    description?: string;
-    onRetry?: () => void;
+    readonly title?: string;
+    readonly description?: string;
+    readonly onRetry?: () => void;
 }
 
 export function ErrorState({ title = "Something went wrong", description, onRetry }: ErrorStateProps) {
@@ -119,7 +119,7 @@ export function ErrorState({ title = "Something went wrong", description, onRetr
         <Card className="overflow-hidden border-2 border-dashed" style={{ borderColor: "var(--danger-border)", backgroundColor: "var(--danger-soft)" }}>
             <CardContent className="flex flex-col items-center justify-center p-8 text-center">
                 <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl" style={{ backgroundColor: "var(--surface-1)" }}>
-                    <Icon className="h-7 w-7 text-[var(--danger)]" />
+                    <AlertIcon className="h-7 w-7 text-[var(--danger)]" />
                 </div>
                 <h3 className="mb-2 text-lg font-bold text-[var(--text)]">{title}</h3>
                 {description && <p className="mb-6 max-w-xs text-sm text-[var(--danger)]">{description}</p>}
@@ -134,4 +134,4 @@ export function ErrorState({ title = "Something went wrong", description, onRetr
 }
 
 // Helper to keep Icon available for common error state
-import { AlertCircle as Icon } from "lucide-react";
+import { AlertCircle as AlertIcon } from "lucide-react";

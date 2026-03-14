@@ -8,23 +8,23 @@ import { ChevronUp, ChevronDown } from "lucide-react";
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export interface Column<T> {
-    key: string;
-    label: string;
-    render: (item: T) => React.ReactNode;
-    sortable?: boolean;
-    align?: "left" | "right" | "center";
-    className?: string;
+    readonly key: string;
+    readonly label: string;
+    readonly render: (item: T) => React.ReactNode;
+    readonly sortable?: boolean;
+    readonly align?: "left" | "right" | "center";
+    readonly className?: string;
 }
 
 interface DataTableProps<T> {
-    columns: Column<T>[];
-    data: T[];
-    keyField: (item: T) => string;
-    onRowClick?: (item: T) => void;
-    emptyMessage?: string;
-    className?: string;
+    readonly columns: readonly Column<T>[];
+    readonly data: readonly T[];
+    readonly keyField: (item: T) => string;
+    readonly onRowClick?: (item: T) => void;
+    readonly emptyMessage?: string;
+    readonly className?: string;
     /** Render function for mobile card layout (< 960px) */
-    renderCard?: (item: T, index: number) => React.ReactNode;
+    readonly renderCard?: (item: T, index: number) => React.ReactNode;
 }
 
 type SortDir = "asc" | "desc";

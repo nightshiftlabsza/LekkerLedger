@@ -16,11 +16,11 @@ function openWhatsAppChat(phone?: string, text?: string): void {
 
     if (intlPhone) {
         const query = message ? `?text=${encodeURIComponent(message)}` : "";
-        window.open(`https://wa.me/${intlPhone}${query}`, "_blank", "noopener,noreferrer");
+        globalThis.open(`https://wa.me/${intlPhone}${query}`, "_blank", "noopener,noreferrer");
         return;
     }
 
-    window.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
+    globalThis.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
 }
 
 export function downloadPdf(pdfBytes: Uint8Array, fileName: string): void {
@@ -31,8 +31,8 @@ export function downloadPdf(pdfBytes: Uint8Array, fileName: string): void {
     anchor.download = fileName;
     document.body.appendChild(anchor);
     anchor.click();
-    document.body.removeChild(anchor);
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    anchor.remove();
+    globalThis.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export async function sharePdfFile(
@@ -75,7 +75,7 @@ export async function sharePdfFile(
     if (channel === "email") {
         const subject = encodeURIComponent(options.emailSubject || options.title);
         const body = encodeURIComponent(`${options.text}\n\nThe PDF has been downloaded to this device. Attach it from your downloads folder before sending.`);
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        globalThis.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
 
     return "downloaded";

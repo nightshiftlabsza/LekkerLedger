@@ -27,14 +27,13 @@ export function AnalyticsPageView() {
         }
 
         try {
-            const w = window as any; // eslint-disable-line @typescript-eslint/no-explicit-any
-            if (typeof w.gtag !== "function") return;
+            if (typeof globalThis.gtag !== "function") return;
 
             const search = searchParams?.toString();
             const pagePath = pathname + (search ? `?${search}` : "");
 
-            w.gtag("event", "page_view", {
-                page_location: window.location.href,
+            globalThis.gtag("event", "page_view", {
+                page_location: globalThis.location.href,
                 page_path: pagePath,
             });
         } catch {

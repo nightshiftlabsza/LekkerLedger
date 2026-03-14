@@ -12,13 +12,13 @@ import { getNMW, isUifApplicable, UIF_MONTHLY_CAP, UIF_RATE } from "@/lib/calcul
 import { roundTo } from "@/lib/money";
 import { COMPLIANCE } from "@/lib/compliance-constants";
 
-export function CalculatorHero({ onStart, startHref = "/payroll/new" }: { onStart?: () => void | Promise<void>; startHref?: string }) {
+export function CalculatorHero({ onStart, startHref = "/payroll/new" }: Readonly<{ onStart?: () => void | Promise<void>; startHref?: string }>) {
     const [hours, setHours] = React.useState("160");
     const [rate, setRate] = React.useState(COMPLIANCE.NMW.RATE_PER_HOUR.toString());
 
     const nmwRate = React.useMemo(() => getNMW(), []);
-    const rateNum = parseFloat(rate) || 0;
-    const hoursNum = parseFloat(hours) || 0;
+    const rateNum = Number.parseFloat(rate) || 0;
+    const hoursNum = Number.parseFloat(hours) || 0;
     const belowNMW = rateNum > 0 && rateNum < nmwRate;
 
     const preview = React.useMemo(() => {
@@ -116,8 +116,8 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: { onStar
                             await onStart();
                             return;
                         }
-                        if (typeof window !== "undefined") {
-                            window.location.assign(startHref);
+                        if (typeof globalThis.window !== "undefined") {
+                            globalThis.location.assign(startHref);
                         }
                     }}
                 >

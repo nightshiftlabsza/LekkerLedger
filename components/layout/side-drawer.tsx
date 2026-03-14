@@ -81,6 +81,10 @@ export function SideDrawer({
                 <div
                     className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in lg:hidden"
                     onClick={() => setOpen(false)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setOpen(false); }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Close menu"
                 />
             )}
 

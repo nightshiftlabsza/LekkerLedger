@@ -74,7 +74,7 @@ export default function EditEmployeePage() {
         load();
     }, [id, router]);
 
-    const hourlyRateNum = parseFloat(formData.hourlyRate) || 0;
+    const hourlyRateNum = Number.parseFloat(formData.hourlyRate) || 0;
     const belowNMW = hourlyRateNum > 0 && hourlyRateNum < NMW_RATE;
 
     const handleSave = async (e: React.FormEvent) => {
@@ -85,7 +85,7 @@ export default function EditEmployeePage() {
             id,
             ...formData,
             idNumber: normalizeEmployeeIdNumber(formData.idNumber),
-            hourlyRate: parseFloat(formData.hourlyRate),
+            hourlyRate: Number.parseFloat(formData.hourlyRate),
             ordinaryHoursPerDay: Number(formData.ordinaryHoursPerDay) || 8,
             startDate: startDateLocked ? lockedStartDate : formData.startDate,
         };

@@ -79,29 +79,33 @@ export default function EmployeeHistoryPage() {
         setDownloading(ps.id);
         try {
             const bytes: Uint8Array = await new Promise((resolve, reject) => {
-                const worker = new Worker(new URL("../../../../pdf.worker.ts", import.meta.url));
+                const worker = new globalThis.Worker(new URL("../../../../pdf.worker.ts", import.meta.url));
                 worker.onmessage = (e) => {
                     const { bytes, error } = e.data;
                     if (error) reject(new Error(error));
                     else resolve(bytes);
                     worker.terminate();
                 };
-                worker.onerror = (e) => { reject(new Error(e.message)); worker.terminate(); };
+                worker.onerror = (e) => {
+                    reject(new Error(e.message));
+                    worker.terminate();
+                };
                 worker.postMessage({ employee, payslip: ps, settings, msgId: "hist", isLimited: false });
             });
             const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
             const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
+            const link = globalThis.document.createElement("a");
             link.href = url;
             link.download = `Payslip_${employee.name.replace(/\s+/g, "_")}_${format(new Date(ps.payPeriodStart), "MMM_yyyy")}.pdf`;
-            document.body.appendChild(link);
+            globalThis.document.body.appendChild(link);
             // GA4: fire before browser download
             track("payslip_export", { method: "download_pdf" });
             link.click();
-            document.body.removeChild(link);
+            link.remove();
             URL.revokeObjectURL(url);
         } catch (e) {
             console.error("PDF generation failed:", e);
+            // Ignore non-blocking failure
         } finally {
             setDownloading(null);
         }
@@ -245,4 +249,3 @@ export default function EmployeeHistoryPage() {
         </div>
     );
 }
-

@@ -5,14 +5,14 @@ import * as React from "react";
 type ToastType = "success" | "error" | "info";
 
 interface Toast {
-    id: string;
-    message: string;
-    type: ToastType;
+    readonly id: string;
+    readonly message: string;
+    readonly type: ToastType;
 }
 
 interface ToastContextType {
-    toast: (message: string, type?: ToastType) => void;
-    toasts: Toast[];
+    readonly toast: (message: string, type?: ToastType) => void;
+    readonly toasts: readonly Toast[];
 }
 
 const ToastContext = React.createContext<ToastContextType | undefined>(undefined);
@@ -45,8 +45,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         timerIdsRef.current.push(timerId);
     }, [removeToast]);
 
+    const contextValue = React.useMemo(() => ({ toast, toasts }), [toast, toasts]);
+
     return (
-        <ToastContext.Provider value={{ toast, toasts }}>
+        <ToastContext.Provider value={contextValue}>
             {children}
             <Toaster toasts={toasts} />
         </ToastContext.Provider>

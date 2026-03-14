@@ -15,12 +15,12 @@ export async function POST(request: Request) {
         const billingAccount = await confirmPaystackTransaction(body.reference, user);
 
         return NextResponse.json({
-            entitlements: {
+            entitlements: billingAccount ? {
                 ...billingAccount.entitlements,
                 userId: user.userId,
                 email: user.email,
-            },
-            account: billingAccount.account,
+            } : null,
+            account: billingAccount?.account,
         }, {
             headers: {
                 "Cache-Control": "no-store",

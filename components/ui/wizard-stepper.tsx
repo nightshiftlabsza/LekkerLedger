@@ -6,13 +6,13 @@ import { Check, AlertCircle } from "lucide-react";
 export type StepStatus = "complete" | "active" | "upcoming" | "error";
 
 export interface Step {
-    label: string;
-    status: StepStatus;
+    readonly label: string;
+    readonly status: StepStatus;
 }
 
 interface WizardStepperProps {
-    steps: Step[];
-    className?: string;
+    readonly steps: readonly Step[];
+    readonly className?: string;
 }
 
 const STATUS_STYLES: Record<StepStatus, { bg: string; text: string; border: string; label: string }> = {
@@ -28,7 +28,7 @@ export function WizardStepper({ steps, className = "" }: WizardStepperProps) {
             {steps.map((step, i) => {
                 const s = STATUS_STYLES[step.status];
                 return (
-                    <React.Fragment key={i}>
+                    <React.Fragment key={step.label}>
                         <div className="flex items-center gap-2 shrink-0">
                             {/* Circle indicator */}
                             <div
@@ -54,9 +54,7 @@ export function WizardStepper({ steps, className = "" }: WizardStepperProps) {
                             <div
                                 className="flex-1 h-0.5 min-w-[16px] rounded-full transition-colors"
                                 style={{
-                                    backgroundColor: step.status === "complete"
-                                        ? "var(--success)"
-                                        : "var(--border)",
+                                    backgroundColor: step.status === "complete" ? "var(--success)" : "var(--border)",
                                 }}
                             />
                         )}

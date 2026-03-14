@@ -233,34 +233,42 @@ export function UFilingClient() {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            {view === "monthly" ? (
-                                payPeriods.length > 0 ? (
-                                    <select
-                                        value={selectedPeriodId}
-                                        onChange={e => setSelectedPeriodId(e.target.value)}
-                                        className="min-w-[200px] h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
-                                    >
-                                        {payPeriods.map(p => (
-                                            <option key={p.id} value={p.id}>{p.name}</option>
-                                        ))}
-                                    </select>
-                                ) : (
+                            {(() => {
+                                if (view !== "monthly") {
+                                    return (
+                                        <select
+                                            value={selectedTaxYear}
+                                            onChange={e => setSelectedTaxYear(Number(e.target.value))}
+                                            className="min-w-[200px] h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
+                                        >
+                                            {[2024, 2025, 2026, 2027].map(y => (
+                                                <option key={y} value={y}>{y - 1}/{y} Tax Year</option>
+                                            ))}
+                                        </select>
+                                    );
+                                }
+
+                                if (payPeriods.length > 0) {
+                                    return (
+                                        <select
+                                            value={selectedPeriodId}
+                                            onChange={e => setSelectedPeriodId(e.target.value)}
+                                            className="min-w-[200px] h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
+                                        >
+                                            {payPeriods.map(p => (
+                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                    );
+                                }
+
+                                return (
                                     <div className="text-right">
                                         <p className="text-xs font-bold text-[var(--danger)]">No locked periods yet</p>
                                         <Link href="/payroll" className="text-[10px] text-[var(--primary-hover)] underline">Go to Payroll</Link>
                                     </div>
-                                )
-                            ) : (
-                                <select
-                                    value={selectedTaxYear}
-                                    onChange={e => setSelectedTaxYear(Number(e.target.value))}
-                                    className="min-w-[200px] h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
-                                >
-                                    {[2024, 2025, 2026, 2027].map(y => (
-                                        <option key={y} value={y}>{y - 1}/{y} Tax Year</option>
-                                    ))}
-                                </select>
-                            )}
+                                );
+                            })()}
                         </div>
                     </div>
                 </CardContent>

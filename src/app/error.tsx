@@ -54,7 +54,7 @@ export default function GlobalError({
                 </Button>
                 <Button
                     variant="outline"
-                    onClick={() => window.location.href = "/"}
+                    onClick={() => globalThis.location.href = "/"}
                     className="h-12"
                 >
                     <Home className="h-4 w-4 mr-2" /> Back to Safety

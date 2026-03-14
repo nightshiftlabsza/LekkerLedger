@@ -252,7 +252,7 @@ async function ensureDefaultHousehold(): Promise<void> {
     }
 }
 
-async function encodeData(data: unknown): Promise<string | unknown> {
+async function encodeData(data: unknown): Promise<unknown> {
     const settings = await getSettings();
     if (settings.piiObfuscationEnabled === false) return data;
     // Handle UTF-8 safely with encodeURIComponent (robust to emoji and non-ASCII)

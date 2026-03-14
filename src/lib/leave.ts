@@ -134,7 +134,7 @@ export function normaliseLeaveDate(record: LeaveRecord): { start: Date; end: Dat
     const end = parseISO(record.endDate || record.startDate || record.date);
     return {
         start,
-        end: end < start ? start : end,
+        end: new Date(Math.max(start.getTime(), end.getTime())),
     };
 }
 
@@ -150,7 +150,7 @@ export function estimateLeaveDays(startDate: string, endDate: string): number {
     const start = parseISO(startDate);
     const end = parseISO(endDate);
     if (!isValidDate(start) || !isValidDate(end)) return 0;
-    const safeEnd = end < start ? start : end;
+    const safeEnd = new Date(Math.max(start.getTime(), end.getTime()));
     const days = eachDayOfInterval({ start, end: safeEnd }).filter((day) => !isWeekend(day)).length;
     return days > 0 ? days : differenceInCalendarDays(safeEnd, start) + 1;
 }

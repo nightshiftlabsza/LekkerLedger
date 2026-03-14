@@ -95,7 +95,7 @@ function SettingsContent() {
         return () => {
             active = false;
             if (savedTimerRef.current) {
-                window.clearTimeout(savedTimerRef.current);
+                globalThis.clearTimeout(savedTimerRef.current);
             }
         };
     }, [searchParams]);
@@ -113,16 +113,18 @@ function SettingsContent() {
                 employerEmail: (updated.employerEmail ?? settings.employerEmail ?? "").trim(),
             };
             if (updated.density) setDensity(updated.density);
+            globalThis.dispatchEvent(new Event("storage"));
+            globalThis.dispatchEvent(new Event("local-storage-sync"));
             setSettings(newSettings);
             await saveSettings(newSettings);
             setSaved(true);
             if (savedTimerRef.current) {
-                window.clearTimeout(savedTimerRef.current);
+                globalThis.clearTimeout(savedTimerRef.current);
             }
-            savedTimerRef.current = window.setTimeout(() => {
+            savedTimerRef.current = globalThis.setTimeout(() => {
                 setSaved(false);
                 savedTimerRef.current = null;
-            }, 2000);
+            }, 2000) as unknown as number;
             toast("Settings saved successfully!", "success");
         } catch (error) {
             console.error("Failed to save settings", error);
@@ -518,7 +520,11 @@ function SettingsContent() {
                                                         <div className="space-y-1">
                                                             <p className="text-sm font-bold text-[var(--text)]">{leaveType.name}</p>
                                                             <p className="text-xs text-[var(--text-muted)]">
-                                                                {leaveType.annualAllowance === undefined ? "Unlimited / uncapped" : `${leaveType.annualAllowance} days per year`} · {leaveType.isPaid ? "Paid" : "Unpaid"}
+                                                                {(() => {
+                                                                    const allowance = leaveType.annualAllowance === undefined ? "Unlimited / uncapped" : `${leaveType.annualAllowance} days per year`;
+                                                                    const payment = leaveType.isPaid ? "Paid" : "Unpaid";
+                                                                    return `${allowance} · ${payment}`;
+                                                                })()}
                                                             </p>
                                                             {leaveType.note && (
                                                                 <p className="text-xs text-[var(--text-muted)]">{leaveType.note}</p>
@@ -528,7 +534,7 @@ function SettingsContent() {
                                                             <Button variant="outline" size="sm" onClick={() => startEditingLeaveType(leaveType)} className="font-bold">
                                                                 Edit
                                                             </Button>
-                                                            <Button variant="outline" size="sm" onClick={() => void handleDeleteLeaveType(leaveType.id)} className="font-bold text-[var(--danger)]" style={{ borderColor: "var(--danger-border)", backgroundColor: "transparent" }}>
+                                                            <Button variant="outline" size="sm" onClick={() => { handleDeleteLeaveType(leaveType.id); }} className="font-bold text-[var(--danger)]" style={{ borderColor: "var(--danger-border)", backgroundColor: "transparent" }}>
                                                                 Delete
                                                             </Button>
                                                         </div>
@@ -728,7 +734,7 @@ function SettingsContent() {
                                                 onClick={async () => {
                                                     setWiping(true);
                                                     await resetAllData();
-                                                    window.location.href = "/";
+                                                    globalThis.location.href = "/";
                                                 }}
                                             >
                                                 {wiping ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete local data"}
@@ -1088,9 +1094,12 @@ function SettingsContent() {
                                                 });
                                                 const blob = new Blob([json], { type: "application/json" });
                                                 const url = URL.createObjectURL(blob);
-                                                const a = document.createElement("a"); a.href = url;
-                                                a.download = `lekkerledger-backup-${new Date().toISOString().split('T')[0]}.json`;
-                                                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                                                const link = globalThis.document.createElement("a");
+                                                link.href = url;
+                                                link.download = `lekker-ledger-backup-${new Date().toISOString().split("T")[0]}.json`;
+                                                globalThis.document.body.appendChild(link);
+                                                link.click();
+                                                link.remove();
                                                 URL.revokeObjectURL(url);
                                             } catch { alert("Export failed."); }
                                         }}>
@@ -1105,19 +1114,18 @@ function SettingsContent() {
                                                 const file = e.target.files?.[0];
                                                 if (!file) return;
                                                 if (!confirm("This will replace ALL your current data. Are you sure?")) return;
-                                                const reader = new FileReader();
-                                                reader.onload = async (ev) => {
-                                                    try {
-                                                        const res = await importData(ev.target?.result as string);
-                                                        if (res.success) {
-                                                            alert("Restored successfully. Reloading...");
-                                                            window.location.reload();
-                                                        } else {
-                                                            alert(res.error || "Restore failed.");
-                                                        }
-                                                    } catch { alert("Restore failed — check the file."); }
-                                                };
-                                                reader.readAsText(file);
+                                                try {
+                                                    const text = await file.text();
+                                                    const res = await importData(text);
+                                                    if (res.success) {
+                                                        alert("Restored successfully. Reloading...");
+                                                        globalThis.location.reload();
+                                                    } else {
+                                                        alert(res.error || "Restore failed.");
+                                                    }
+                                                } catch {
+                                                    alert("Restore failed — check the file.");
+                                                }
                                             }} />
                                     </label>
                                 </div>

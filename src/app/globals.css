@@ -630,11 +630,6 @@ p,
   position: relative;
 }
 
-/* Safe area padding for mobile sticky bars */
-.safe-area-pb {
-  padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
-}
-
 .safe-area-pl {
   padding-left: max(var(--space-4), env(safe-area-inset-left));
 }

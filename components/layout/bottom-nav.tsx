@@ -7,7 +7,7 @@ import { Menu } from "lucide-react";
 import { MOBILE_NAV_ITEMS } from "@/src/config/app-nav";
 
 interface BottomNavProps {
-    onMore?: () => void;
+    readonly onMore?: () => void;
 }
 
 export function BottomNav({ onMore }: BottomNavProps) {

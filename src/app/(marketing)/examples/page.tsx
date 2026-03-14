@@ -266,8 +266,8 @@ export default function ExamplesPage() {
                                     { title: "Hourly Breakdown", desc: "Clearly distinguishing between ordinary time, overtime, and public holidays." },
                                     { title: "Statutory deductions", desc: "UIF calculations are shown clearly so you can review them before use." },
                                     { title: "Leave Summary", desc: "Built-in tracking for annual, sick, and family responsibility leave." }
-                                ].map((item, i) => (
-                                    <li key={i} className="flex gap-4">
+                                ].map((item) => (
+                                    <li key={item.title} className="flex gap-4">
                                         <div className="h-6 w-6 rounded-full bg-[var(--primary)]/10 flex items-center justify-center shrink-0 mt-1">
                                             <CheckCircle2 className="h-4 w-4 text-[var(--primary)]" />
                                         </div>

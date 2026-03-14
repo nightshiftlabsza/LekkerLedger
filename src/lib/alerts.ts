@@ -38,14 +38,6 @@ export function computeDashboardAlerts({ employees, summaries, settings, now, le
     if (employees.length === 0) return alerts;
 
     const currentMonth = format(now, "yyyy-MM");
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const daysLeft = daysInMonth - now.getDate();
-
-    // Employees whose latest payslip is NOT in the current month (or have no payslip at all)
-    const unpaidThisMonth = summaries.filter(s =>
-        !s.latestPayslip ||
-        format(new Date(s.latestPayslip.payPeriodStart), "yyyy-MM") !== currentMonth
-    );
 
     // 1. Employer details missing
     if (!settings?.employerName?.trim()) {
@@ -57,7 +49,34 @@ export function computeDashboardAlerts({ employees, summaries, settings, now, le
         });
     }
 
-    // 2. Payday due (urgent, aggregate — suppresses per-employee warnings to avoid spam)
+    // 2. Payday due (urgent, aggregate)
+    const paydayAlert = checkPaydayDue(summaries, now, currentMonth);
+    if (paydayAlert) {
+        alerts.push(paydayAlert);
+        return alerts; // Return early for urgent aggregate alert
+    }
+
+    // 3. Per-employee missing payslip
+    checkMissingPayslips(summaries, currentMonth, alerts);
+
+    // 4. Leave balance over-accrual
+    checkLeaveOveraccrual(leaveContexts, now, alerts);
+
+    // 5. Contract expiry
+    checkContractExpiry(employees, now, alerts);
+
+    return alerts;
+}
+
+function checkPaydayDue(summaries: AlertParams["summaries"], now: Date, currentMonth: string): DashboardAlert | null {
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysLeft = daysInMonth - now.getDate();
+
+    const unpaidThisMonth = summaries.filter(s =>
+        !s.latestPayslip ||
+        format(new Date(s.latestPayslip.payPeriodStart), "yyyy-MM") !== currentMonth
+    );
+
     if (daysLeft <= 5 && unpaidThisMonth.length > 0) {
         const n = unpaidThisMonth.length;
         const plural = n === 1 ? "" : "s";
@@ -66,20 +85,18 @@ export function computeDashboardAlerts({ employees, summaries, settings, now, le
             ? { label: "Create now →", href: `/wizard?empId=${unpaidThisMonth[0].employee.id}` }
             : { label: "Bulk run →", href: "#bulk" };
 
-        alerts.push({
+        return {
             id: "payday-due",
             severity: "urgent",
             message: `Payroll due — ${n} employee${plural} haven't been paid this month (${daysLeft} day${dayPlural} left)`,
             action,
-        });
-
-        // Return early — don't stack per-employee warnings on top of the aggregate urgent alert
-        return alerts;
+        };
     }
+    return null;
+}
 
-    // 3. Per-employee missing payslip (only outside month-end window)
+function checkMissingPayslips(summaries: AlertParams["summaries"], currentMonth: string, alerts: DashboardAlert[]) {
     for (const s of summaries) {
-        // Only warn about employees who have PRIOR payslips (not brand-new employees)
         if (!s.latestPayslip) continue;
         if (format(new Date(s.latestPayslip.payPeriodStart), "yyyy-MM") !== currentMonth) {
             alerts.push({
@@ -90,8 +107,9 @@ export function computeDashboardAlerts({ employees, summaries, settings, now, le
             });
         }
     }
+}
 
-    // 4. Leave balance — annual leave over 15 days (BCEA carry-over risk)
+function checkLeaveOveraccrual(leaveContexts: EmployeeLeaveContext[], now: Date, alerts: DashboardAlert[]) {
     for (const ctx of leaveContexts) {
         if (!ctx.employee.startDate) continue;
         const balances = calculateLeaveBalances(ctx.employee.startDate, ctx.totalDaysWorked, ctx.leaveRecords, now);
@@ -104,11 +122,10 @@ export function computeDashboardAlerts({ employees, summaries, settings, now, le
             });
         }
     }
+}
 
-    // 5. Contract expiry — employees with an endDate (fixed-term) within 30 days
+function checkContractExpiry(employees: Employee[], now: Date, alerts: DashboardAlert[]) {
     for (const emp of employees) {
-        // Fixed-term contracts store an optional endDate on the employee.
-        // Cast to any to access it gracefully if it exists.
         const endDate = (emp as Record<string, unknown>).endDate as string | undefined;
         if (!endDate) continue;
         const end = new Date(endDate);
@@ -122,7 +139,5 @@ export function computeDashboardAlerts({ employees, summaries, settings, now, le
             });
         }
     }
-
-    return alerts;
 }
 

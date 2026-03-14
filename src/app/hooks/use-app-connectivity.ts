@@ -12,7 +12,7 @@ async function probeSameOriginConnectivity(): Promise<boolean> {
     if (typeof window === "undefined") return true;
 
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 4000);
+    const timeout = globalThis.setTimeout(() => controller.abort(), 4000);
 
     try {
         const response = await fetch(`/manifest.webmanifest?check=${Date.now()}`, {
@@ -23,7 +23,7 @@ async function probeSameOriginConnectivity(): Promise<boolean> {
     } catch {
         return false;
     } finally {
-        window.clearTimeout(timeout);
+        globalThis.clearTimeout(timeout);
     }
 }
 
@@ -114,7 +114,7 @@ export function useAppConnectivity() {
 
         return () => {
             mounted = false;
-            authListener.subscription.unsubscribe();
+            authListener?.subscription?.unsubscribe();
         };
     }, [supabase]);
 

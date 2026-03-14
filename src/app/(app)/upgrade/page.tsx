@@ -88,7 +88,7 @@ function UpgradePageContent() {
     const PLAN_RANK: Record<PlanId, number> = { free: 0, standard: 1, pro: 2 };
 
     const handlePlanSelect = React.useCallback((planId: PlanId) => {
-        const currentRank = PLAN_RANK[currentPlan.id as PlanId] ?? 0;
+        const currentRank = PLAN_RANK[currentPlan.id] ?? 0;
         const targetRank = PLAN_RANK[planId] ?? 0;
         if (targetRank < currentRank) {
             setDowngradingTo(planId);
@@ -177,7 +177,7 @@ function UpgradePageContent() {
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={() => handleCopyOwnCode()}
+                                        onClick={handleCopyOwnCode}
                                         className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-sm font-bold text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
                                     >
                                         Copy
@@ -212,7 +212,7 @@ function UpgradePageContent() {
 
                     <MarketingPlanCards
                         billingCycle={billingCycle}
-                        currentPlanId={currentPlan.id as PlanId}
+                        currentPlanId={currentPlan.id}
                         onSelect={handlePlanSelect}
                         isLoadingPlanId={loadingPlanId}
                     />
@@ -245,7 +245,7 @@ function UpgradePageContent() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => handleConfirmDowngrade()}
+                                onClick={handleConfirmDowngrade}
                                 disabled={cancelingForDowngrade}
                                 className="flex-1 rounded-xl bg-[var(--warning)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-95 disabled:opacity-50"
                             >

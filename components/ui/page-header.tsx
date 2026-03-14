@@ -3,12 +3,12 @@
 import * as React from "react";
 
 interface PageHeaderProps {
-    title: string;
-    subtitle?: string;
-    householdChip?: React.ReactNode;
-    syncBadge?: React.ReactNode;
-    actions?: React.ReactNode;
-    className?: string;
+    readonly title: string;
+    readonly subtitle?: string;
+    readonly householdChip?: React.ReactNode;
+    readonly syncBadge?: React.ReactNode;
+    readonly actions?: React.ReactNode;
+    readonly className?: string;
 }
 
 export function PageHeader({ title, subtitle, householdChip, syncBadge, actions, className = "" }: PageHeaderProps) {

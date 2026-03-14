@@ -113,7 +113,7 @@ export default function HomePage() {
     );
 }
 
-function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
+function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSample> }>) {
     return (
         <section className="relative overflow-hidden border-b border-[var(--border)]" style={{ backgroundColor: "var(--bg)" }}>
             <div className="absolute inset-x-0 top-24 h-px bg-[var(--border)]" />
@@ -157,7 +157,7 @@ function Hero({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
     );
 }
 
-function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepageSample> }) {
+function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSample> }>) {
     return (
         <div className="overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]" data-testid="sample-payslip-card">
             <div className="sm:hidden">
@@ -329,7 +329,7 @@ function SamplePayslipCard({ sample }: { sample: ReturnType<typeof buildHomepage
     );
 }
 
-function CompactPartyBlock({ label, value, detail }: { label: string; value: string; detail: string }) {
+function CompactPartyBlock({ label, value, detail }: Readonly<{ label: string; value: string; detail: string }>) {
     return (
         <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
             <p className="text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
@@ -350,12 +350,12 @@ function CompactFigureRow({
     value,
     strong = false,
     emphasis = false,
-}: {
+}: Readonly<{
     label: string;
     value: string;
     strong?: boolean;
     emphasis?: boolean;
-}) {
+}>) {
     return (
         <div className="flex items-start justify-between gap-2 sm:gap-4 border-b border-[var(--border)]/70 pb-3 last:border-b-0 last:pb-0">
             <div>
@@ -373,7 +373,7 @@ function CompactFigureRow({
     );
 }
 
-function SamplePartyBlock({ label, value, detail }: { label: string; value: string; detail?: React.ReactNode }) {
+function SamplePartyBlock({ label, value, detail }: Readonly<{ label: string; value: string; detail?: React.ReactNode }>) {
     return (
         <div
             className="rounded-[18px] border border-[var(--border)] px-4 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
@@ -394,7 +394,7 @@ function SamplePartyBlock({ label, value, detail }: { label: string; value: stri
     );
 }
 
-function SampleFigureRow({ label, hours, rate, total, bold = false }: { label: string; hours: string; rate: string; total: string; bold?: boolean }) {
+function SampleFigureRow({ label, hours, rate, total, bold = false }: Readonly<{ label: string; hours: string; rate: string; total: string; bold?: boolean }>) {
     return (
         <div className={`${SAMPLE_FIGURE_GRID} items-baseline py-2 text-[13px] sm:text-sm`}>
             <span className={`pr-2 ${bold ? "font-semibold" : ""}`} style={{ color: bold ? "var(--text)" : "var(--text-muted)" }}>
@@ -631,7 +631,7 @@ function FAQPreview() {
     );
 }
 
-function FAQItem({ question, answer }: { question: string; answer: string }) {
+function FAQItem({ question, answer }: Readonly<{ question: string; answer: string }>) {
     return (
         <details
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5 transition-all hover:border-[var(--primary)]/30"

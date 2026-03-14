@@ -18,7 +18,7 @@ export async function generateCertificateOfService(
     const MARGIN = 50;
 
     const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
-    let cy = PAGE_H - 120;
+    let cy: number;
 
     // Civic Ledger BACKGROUND
     page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: PDF_COLORS.PAPER });
@@ -136,4 +136,3 @@ export async function generateCertificateOfService(
 
     return pdfDoc.save();
 }
-

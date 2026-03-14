@@ -3,8 +3,8 @@
 import * as React from "react";
 
 interface StickyBottomBarProps {
-    children: React.ReactNode;
-    className?: string;
+    readonly children: React.ReactNode;
+    readonly className?: string;
 }
 
 /**

@@ -105,13 +105,13 @@ function PreviewContent() {
             if (nextAction === "download") {
                 const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
                 const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
+                const link = globalThis.document.createElement("a");
                 link.href = url;
                 link.download = fileName;
-                document.body.appendChild(link);
+                globalThis.document.body.appendChild(link);
                 link.click();
-                document.body.removeChild(link);
-                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+                link.remove();
+                globalThis.setTimeout(() => URL.revokeObjectURL(url), 1000);
                 track("payslip_export", { method: "download_pdf" });
                 toast("Payslip downloaded.", "success");
                 return;
@@ -327,4 +327,3 @@ export default function PreviewPage() {
         </React.Suspense>
     );
 }
-

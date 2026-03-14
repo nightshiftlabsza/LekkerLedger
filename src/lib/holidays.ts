@@ -149,14 +149,14 @@ const HOLIDAYS: PublicHoliday[] = [
     { date: "2032-12-27", name: "Day of Goodwill Observed" },
 ];
 
-import { formatDateSafe } from "./utils";
+import { toIsoDate } from "./utils";
 
 /**
  * Returns list of holidays that fall between start and end dates (inclusive).
  */
 export function getHolidaysInRange(start: string | Date, end: string | Date): PublicHoliday[] {
-    const s = formatDateSafe(new Date(start));
-    const e = formatDateSafe(new Date(end));
+    const s = toIsoDate(new Date(start));
+    const e = toIsoDate(new Date(end));
 
     return HOLIDAYS.filter(h => h.date >= s && h.date <= e);
 }

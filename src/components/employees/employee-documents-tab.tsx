@@ -20,13 +20,13 @@ import { useRouter } from "next/navigation";
 
 function downloadBlob(blob: Blob, fileName: string) {
     const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
+    const anchor = globalThis.document.createElement("a");
     anchor.href = url;
     anchor.download = fileName;
-    document.body.appendChild(anchor);
+    globalThis.document.body.appendChild(anchor);
     anchor.click();
-    document.body.removeChild(anchor);
-    globalThis.window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    globalThis.document.body.removeChild(anchor);
+    globalThis.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function isPreviewableMimeType(mimeType: string | undefined): boolean {
@@ -59,14 +59,14 @@ export function EmployeeDocumentsTab({
     settings,
     currentPlan,
     onDocumentsChange,
-}: {
+}: Readonly<{
     employee: Employee;
     contracts: Contract[];
     documents: DocumentMeta[];
     settings: EmployerSettings;
     currentPlan: PlanConfig;
     onDocumentsChange?: () => void;
-}) {
+}>) {
     const { toast } = useToast();
     const router = useRouter();
     const [activeTab, setActiveTab] = React.useState<Tab>("Payslips");

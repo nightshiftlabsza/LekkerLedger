@@ -97,8 +97,8 @@ function downloadBlob(blob: Blob, fileName: string) {
     anchor.download = fileName;
     document.body.appendChild(anchor);
     anchor.click();
-    document.body.removeChild(anchor);
-    globalThis.window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    anchor.remove();
+    globalThis.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 
@@ -131,13 +131,10 @@ export default function DocumentsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const initialTab = (searchParams.get("tab") || "").toLowerCase();
-    const defaultTab = initialTab === "contracts"
-        ? "Contracts"
-        : initialTab === "vault"
-            ? "Vault"
-            : initialTab === "exports"
-                ? "Exports"
-                : "Payslips";
+    let defaultTab: Tab = "Payslips";
+    if (initialTab === "contracts") defaultTab = "Contracts";
+    else if (initialTab === "vault") defaultTab = "Vault";
+    else if (initialTab === "exports") defaultTab = "Exports";
 
     const [activeTab, setActiveTab] = React.useState<Tab>(defaultTab as Tab);
     const [loading, setLoading] = React.useState(true);
@@ -346,7 +343,7 @@ export default function DocumentsPage() {
             // For PDFs, open directly in a new tab instead of the side-panel viewer
             if ((doc.mimeType || "").startsWith("application/pdf")) {
                 if (typeof globalThis.window !== "undefined") {
-                    globalThis.window.open(cachedUrl, "_blank", "noopener,noreferrer");
+                    globalThis.open(cachedUrl, "_blank", "noopener,noreferrer");
                 }
                 return;
             }
@@ -375,7 +372,7 @@ export default function DocumentsPage() {
                 const url = URL.createObjectURL(blob);
                 pdfCache.current[doc.id] = url;
                 if (typeof globalThis.window !== "undefined") {
-                    globalThis.window.open(url, "_blank", "noopener,noreferrer");
+                    globalThis.open(url, "_blank", "noopener,noreferrer");
                 }
                 return;
             }
@@ -519,7 +516,7 @@ export default function DocumentsPage() {
 
     const handleDeleteVaultDocument = async (document: DocumentMeta) => {
         if (!vaultUploadsAllowed) return;
-        if (typeof globalThis.window !== "undefined" && !globalThis.window.confirm(`Delete ${document.fileName}?`)) {
+        if (typeof globalThis.window !== "undefined" && !globalThis.confirm(`Delete ${document.fileName}?`)) {
             return;
         }
 
