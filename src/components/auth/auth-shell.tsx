@@ -18,8 +18,7 @@ export function AuthShell({ children }: Readonly<{ children: React.ReactNode }>)
             <div className="min-h-screen bg-[var(--bg)]">
                 <a
                     href="#main-content"
-                    className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[200] focus:rounded-lg focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:shadow-lg"
-                    style={{ backgroundColor: "var(--surface-1)", color: "var(--text)", outline: "2px solid var(--primary)", outlineOffset: "2px" }}
+                    className="skip-link"
                 >
                     Skip to content
                 </a>
@@ -50,8 +49,7 @@ export function AuthShell({ children }: Readonly<{ children: React.ReactNode }>)
         <div className="min-h-screen bg-[var(--bg)]">
             <a
                 href="#main-content"
-                className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[200] focus:rounded-lg focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:shadow-lg"
-                style={{ backgroundColor: "var(--surface-1)", color: "var(--text)", outline: "2px solid var(--primary)", outlineOffset: "2px" }}
+                className="skip-link"
             >
                 Skip to content
             </a>

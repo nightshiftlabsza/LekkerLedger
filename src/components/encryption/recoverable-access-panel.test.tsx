@@ -37,8 +37,9 @@ describe("RecoverableAccessPanel", () => {
             />,
         );
 
-        fireEvent.change(screen.getByLabelText("Password"), { target: { value: "Password123!" } });
-        fireEvent.click(screen.getByRole("button", { name: "Unlock records" }));
+        expect(screen.getByRole("heading", { name: "Finish opening this device" })).toBeTruthy();
+        fireEvent.change(screen.getByLabelText("Confirm your password"), { target: { value: "Password123!" } });
+        fireEvent.click(screen.getByRole("button", { name: "Open records on this device" }));
 
         await waitFor(() => {
             expect(onSubmit).toHaveBeenCalledWith({

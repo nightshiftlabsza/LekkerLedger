@@ -1,3 +1,5 @@
+import { SUPPORT_EMAIL } from "./brand";
+
 export type PlanId = "free" | "standard" | "pro";
 export type BillingCycle = "monthly" | "yearly";
 
@@ -212,7 +214,14 @@ export function getPlanPricePresentation(plan: PlanId | PlanConfig, cycle: Billi
     };
 }
 
-
-export const REFUND_POLICY_SUMMARY = `The 14-day refund window starts on your paid purchase date. Use the in-app Support link or email support@lekkerledger.co.za with your purchase email and date.`;
+export const REFUND_WINDOW_DAYS = 7;
+export const REFUND_WINDOW_LABEL = `${REFUND_WINDOW_DAYS}-day`;
+export const REFUND_POLICY_SHORT_LABEL = `${REFUND_WINDOW_LABEL} refund on paid charges`;
+export const PAID_PLAN_START_SUMMARY = "Paid plans start immediately when payment succeeds through Paystack.";
+export const PAID_PLAN_START_AND_REFUND_SUMMARY = `${PAID_PLAN_START_SUMMARY} The ${REFUND_WINDOW_LABEL} refund window starts from that paid charge date.`;
+export const CANCEL_RENEWAL_SUMMARY = "Cancel renewal at any time. Paid access stays on until the end of the billing period you have already paid for.";
+export const REFUND_POLICY_SENTENCE = `If you request a refund within ${REFUND_WINDOW_DAYS} days of your purchase date, we will refund you in full once we have verified the payment. Requests received after ${REFUND_WINDOW_DAYS} days are outside the refund window and will not be processed unless required by law.`;
+export const REFERRAL_REWARD_PENDING_SUMMARY = `A referral month unlocks only after the referred person has a successful paid Standard or Pro charge and then passes the same ${REFUND_WINDOW_LABEL} refund window without a refund or chargeback.`;
+export const REFUND_POLICY_SUMMARY = `The ${REFUND_WINDOW_LABEL} refund window starts on your paid purchase date. Use the in-app Support link or email ${SUPPORT_EMAIL} with your purchase email and date.`;
 
 

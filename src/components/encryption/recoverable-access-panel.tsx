@@ -26,10 +26,10 @@ export function RecoverableAccessPanel({
 }: Readonly<RecoverableAccessPanelProps>) {
     const [password, setPassword] = React.useState("");
 
-    const heading = purpose === "setup" ? "Finish secure setup" : "Unlock your records";
+    const heading = purpose === "setup" ? "Finish secure setup" : "Finish opening this device";
     const body = purpose === "setup"
         ? "Recoverable Encryption keeps your records encrypted before upload and lets you restore access later."
-        : "This account uses Recoverable Encryption. Confirm your password to open the records on this device.";
+        : "You are signed in. Confirm your password once so this device can open the encrypted records locally.";
 
     async function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
@@ -61,12 +61,12 @@ export function RecoverableAccessPanel({
 
                 {hasSavedPassword ? (
                     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 text-sm leading-7 text-[var(--text-muted)]">
-                        We can use the password you just entered in this tab for this one step. It will be cleared straight after use.
+                        We can use the password you just entered to finish opening this device. It will be cleared straight after use.
                     </div>
                 ) : (
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-[var(--text)]" htmlFor="recoverable-password">
-                            {purpose === "setup" ? "Confirm your password" : "Password"}
+                            Confirm your password
                         </label>
                         <input
                             id="recoverable-password"
@@ -90,10 +90,10 @@ export function RecoverableAccessPanel({
                     {isSubmitting ? (
                         <>
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            {purpose === "setup" ? "Securing account..." : "Unlocking..."}
+                            {purpose === "setup" ? "Securing account..." : "Opening records..."}
                         </>
                     ) : (
-                        purpose === "setup" ? "Finish setup" : "Unlock records"
+                        purpose === "setup" ? "Finish setup" : "Open records on this device"
                     )}
                 </Button>
             </form>

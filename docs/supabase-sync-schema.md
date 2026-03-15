@@ -1,6 +1,6 @@
 # Supabase Sync Schema
 
-If your live Supabase project already has `user_profiles`, `synced_records`, and `synced_files` with real data, run [supabase-sync-migrate-recoverable.sql](/C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/docs/supabase-sync-migrate-recoverable.sql) first. If those tables are still empty and you want a clean reset, run [supabase-sync-reset.sql](/C:/Users/mzaka.ZAK-PC/Documents/Apps/LekkerLedger-1/docs/supabase-sync-reset.sql) instead.
+If your live Supabase project already has `user_profiles`, `synced_records`, and `synced_files` with real data, run [supabase-sync-migrate-recoverable.sql](./supabase-sync-migrate-recoverable.sql) first. If those tables are still empty and you want a clean reset, run [supabase-sync-reset.sql](./supabase-sync-reset.sql) instead.
 
 LekkerLedger's encrypted sync now depends on four Supabase tables:
 

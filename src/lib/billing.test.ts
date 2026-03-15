@@ -5,6 +5,7 @@ import {
     sanitizeBillingStatus,
     type SubscriptionRecord,
 } from "./billing";
+import { REFUND_WINDOW_DAYS } from "../config/plans";
 import { paymentBelongsToDifferentAccount } from "./billing-server";
 
 function createSubscription(overrides: Partial<SubscriptionRecord> = {}): SubscriptionRecord {
@@ -79,6 +80,27 @@ describe("billing helpers", () => {
         expect(entitlements.isActive).toBe(false);
         expect(entitlements.cancelAtPeriodEnd).toBe(true);
         expect(entitlements.availableReferralMonths).toBe(1);
+    });
+
+    it("keeps canceled subscriptions active until the paid period ends", () => {
+        const entitlements = entitlementsFromSubscription(
+            createSubscription({
+                planId: "pro",
+                status: "canceled",
+                currentPeriodEnd: Date.parse("2026-03-20T00:00:00Z"),
+                cancelAtPeriodEnd: true,
+            }),
+            Date.parse("2026-03-10T00:00:00Z"),
+        );
+
+        expect(entitlements.planId).toBe("pro");
+        expect(entitlements.status).toBe("canceled");
+        expect(entitlements.isActive).toBe(true);
+        expect(entitlements.cancelAtPeriodEnd).toBe(true);
+    });
+
+    it("uses the 7-day refund window constant for launch policy", () => {
+        expect(REFUND_WINDOW_DAYS).toBe(7);
     });
 
     it("lets a signed-in user claim a successful guest checkout", () => {

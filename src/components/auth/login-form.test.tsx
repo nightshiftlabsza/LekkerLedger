@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
     pushMock: vi.fn(),
     signInWithPasswordMock: vi.fn(),
     startAppMetricMock: vi.fn(),
+    storePasswordHandoffMock: vi.fn(),
     searchParamsValue: "",
 }));
 
@@ -34,6 +35,10 @@ vi.mock("@/lib/app-performance", () => ({
     startAppMetric: (...args: unknown[]) => mocks.startAppMetricMock(...args),
 }));
 
+vi.mock("@/lib/password-handoff", () => ({
+    storePasswordHandoff: (...args: unknown[]) => mocks.storePasswordHandoffMock(...args),
+}));
+
 vi.mock("@/lib/billing-handoff", () => ({
     readPendingBillingReference: () => "",
 }));
@@ -49,6 +54,7 @@ describe("LoginForm paid access enforcement", () => {
         mocks.pushMock.mockReset();
         mocks.signInWithPasswordMock.mockReset();
         mocks.startAppMetricMock.mockReset();
+        mocks.storePasswordHandoffMock.mockReset();
         mocks.searchParamsValue = "";
     });
 
@@ -64,6 +70,8 @@ describe("LoginForm paid access enforcement", () => {
         await waitFor(() => {
             expect(mocks.pushMock).toHaveBeenCalledWith("/dashboard");
         });
+
+        expect(mocks.storePasswordHandoffMock).toHaveBeenCalledWith("person@example.com", "Password123!");
     });
 
     it("continues paid users into dashboard activation when a payment reference is present", async () => {

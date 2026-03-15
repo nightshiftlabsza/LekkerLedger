@@ -12,7 +12,14 @@ import { getSettings } from "@/lib/storage";
 import { useToast } from "@/components/ui/toast";
 import { cancelSubscriptionRenewal, fetchBillingAccount } from "@/lib/billing-client";
 // TODO: Batch 2 — gate referral code loading behind Supabase auth
-import { type BillingCycle, PLANS, type PlanId } from "@/src/config/plans";
+import {
+    CANCEL_RENEWAL_SUMMARY,
+    PAID_PLAN_START_AND_REFUND_SUMMARY,
+    REFUND_POLICY_SENTENCE,
+    type BillingCycle,
+    PLANS,
+    type PlanId,
+} from "@/src/config/plans";
 import { EmployerSettings } from "@/lib/schema";
 import { getUserPlan, ENTITLEMENTS, type FeatureKey } from "@/lib/entitlements";
 import { MarketingBillingToggle, MarketingPlanCards } from "@/components/marketing/pricing";
@@ -155,7 +162,7 @@ function UpgradePageContent() {
                             Paid plans start immediately.
                         </p>
                         <p>
-                            You&apos;ll be charged the full Standard or Pro price today through Paystack. The 14-day refund window starts from that purchase date.
+                            You&apos;ll be charged the full Standard or Pro price today through Paystack. {PAID_PLAN_START_AND_REFUND_SUMMARY}
                         </p>
                     </CardContent>
                 </Card>
@@ -278,10 +285,10 @@ function UpgradePageContent() {
                             <h3 className="type-h3" style={{ color: "var(--text)" }}>Refunds and trust</h3>
                         </div>
                         <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            If you request a refund within 14 days of a paid charge, we will refund you in full once we have verified the payment. The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
+                            {REFUND_POLICY_SENTENCE} The goal is to keep the decision low-risk, not to push hard-sell billing language through the app.
                         </p>
                         <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            You can cancel renewal at any time. Access stays on until the end of the period you have already paid for.
+                            {CANCEL_RENEWAL_SUMMARY}
                         </p>
                         <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
                             View refund policy <ArrowRight className="h-4 w-4" />

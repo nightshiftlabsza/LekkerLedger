@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { r2 } from "@/lib/r2";
+import { R2_BUCKET_NAME, r2 } from "@/lib/r2";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { requireStorageAccess, StorageAccessError } from "@/lib/server-storage-access";
 
@@ -13,7 +13,7 @@ export async function DELETE(request: NextRequest) {
         const { session } = await requireStorageAccess(request);
         const objectKey = `${session.user.id}/${fileId}`;
         await r2.send(new DeleteObjectCommand({
-            Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME!,
+            Bucket: R2_BUCKET_NAME,
             Key: objectKey,
         }));
 

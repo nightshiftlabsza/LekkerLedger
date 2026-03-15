@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { r2 } from "@/lib/r2";
+import { R2_BUCKET_NAME, r2 } from "@/lib/r2";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { requireStorageAccess, StorageAccessError } from "@/lib/server-storage-access";
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
         const objectKey = `${session.user.id}/${fileId}`;
 
         const command = new PutObjectCommand({
-            Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME!,
+            Bucket: R2_BUCKET_NAME,
             Key: objectKey,
             ContentType: 'application/octet-stream', // Everything is encrypted binary blobs
         });

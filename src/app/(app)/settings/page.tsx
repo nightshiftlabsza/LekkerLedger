@@ -22,7 +22,7 @@ import { CustomLeaveType, EmployerSettings, Employee } from "@/lib/schema";
 import { cancelSubscriptionRenewal, fetchBillingAccount, type BillingAccountPayload } from "@/lib/billing-client";
 import { useUI } from "@/components/theme-provider";
 import { InlinePlanCheckoutButton } from "@/components/billing/inline-paid-plan-checkout";
-import { type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "@/src/config/plans";
+import { REFUND_WINDOW_DAYS, type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "@/src/config/plans";
 import { getArchiveCutoffDate, getArchiveUpgradeHref } from "@/lib/archive";
 import { applyVerifiedEntitlementsToSettings, canUseAdvancedLeaveFeatures, canUseFullHistoryExport, getUserPlan } from "@/lib/entitlements";
 import { useAppMode } from "@/lib/app-mode";
@@ -896,7 +896,7 @@ function SettingsContent() {
                                             )}
                                             {currentPlan.id !== "pro" && (
                                                 <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
-                                                    Paid plans start immediately and still include a 14-day refund window.
+                                                    Paid plans start immediately and still include a {REFUND_WINDOW_DAYS}-day refund window.
                                                 </p>
                                             )}
                                         </div>
@@ -1095,7 +1095,7 @@ function SettingsContent() {
                                                         )}
                                                         {isUpgrade && (
                                                             <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
-                                                                Cancel before day 14 and pay nothing more.
+                                                                You can request a refund within {REFUND_WINDOW_DAYS} days if the upgrade is not the right fit.
                                                             </p>
                                                         )}
                                                     </div>

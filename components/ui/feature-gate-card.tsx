@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { REFUND_WINDOW_LABEL } from "@/src/config/plans";
 
 interface FeatureGateCardProps {
     readonly title: string;
@@ -57,7 +58,7 @@ export function FeatureGateCard({
                     </Button>
                 </Link>
                 <p className="text-center text-xs text-[var(--text-muted)]">
-                    14-day refund on paid purchases
+                    {REFUND_WINDOW_LABEL} refund on paid purchases
                 </p>
             </CardContent>
         </Card>

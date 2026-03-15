@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { COMPLIANCE } from "@/lib/compliance-constants";
 import { getNMWRecordForDate } from "@/lib/legal/registry";
-import { PLANS, getPlanPricePresentation } from "@/config/plans";
+import { PLANS, REFUND_POLICY_SENTENCE, REFUND_POLICY_SHORT_LABEL, getPlanPricePresentation } from "@/config/plans";
+import { PRIVACY_EMAIL } from "@/config/brand";
 
 export default function TrustCenterPage() {
     const nmwRecord = getNMWRecordForDate(new Date());
@@ -108,7 +109,7 @@ export default function TrustCenterPage() {
                             <Bug className="mb-3 h-5 w-5 text-[var(--danger)]" />
                             <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Report problems quickly</h4>
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                If you spot a privacy or security issue, email <a href="mailto:support@lekkerledger.co.za" className="font-semibold text-[var(--primary)] hover:underline">support@lekkerledger.co.za</a> with what happened, what device/browser you used, and how to reproduce it.
+                                If you spot a privacy or security issue, email <a href={`mailto:${PRIVACY_EMAIL}`} className="font-semibold text-[var(--primary)] hover:underline">{PRIVACY_EMAIL}</a> with what happened, what device or browser you used, and how to reproduce it.
                             </p>
                         </div>
                     </div>
@@ -195,9 +196,9 @@ export default function TrustCenterPage() {
                             </div>
                         </div>
                         <div className="p-8 rounded-2xl border border-[var(--primary)] bg-[var(--primary)]/5">
-                            <h3 className="text-xl font-black mb-3" style={{ color: "var(--text)" }}>14-Day Refund Policy</h3>
+                            <h3 className="text-xl font-black mb-3" style={{ color: "var(--text)" }}>{REFUND_POLICY_SHORT_LABEL}</h3>
                             <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-muted)" }}>
-                                If you request a refund within 14 days of your purchase date, we will refund you in full once we have verified the payment. Requests received after 14 days are outside the refund window and will not be processed.
+                                {REFUND_POLICY_SENTENCE}
                             </p>
                             <Link href="/legal/refunds">
                                 <Button className="w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white">Full Refund Policy</Button>

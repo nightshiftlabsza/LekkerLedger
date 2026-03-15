@@ -356,7 +356,7 @@ function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
 
                 <main
                     id="main-content"
-                    className={`flex-1 w-full flex flex-col pb-24 sm:pb-28 lg:pb-12 safe-area-pb ${isDashboardShell
+                    className={`mobile-app-main flex w-full flex-1 flex-col ${isDashboardShell
                         ? "content-container-wide min-w-0 gap-4 px-3 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:gap-6 lg:px-6 lg:py-6 xl:px-8"
                         : "content-container-wide min-w-0 gap-4 px-3 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:gap-8 lg:px-8 lg:py-8"
                         }`}

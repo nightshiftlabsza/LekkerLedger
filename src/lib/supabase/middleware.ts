@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getRequiredEnvValue } from '../env'
 
 const E2E_AUTH_BYPASS_COOKIE = 'll-e2e-auth-bypass'
 
@@ -66,6 +67,8 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
+  const supabaseUrl = getRequiredEnvValue("NEXT_PUBLIC_SUPABASE_URL")
+  const supabaseAnonKey = getRequiredEnvValue("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 
   if (isProtectedRoute(request.nextUrl.pathname) && hasE2EAuthBypass(request)) {
     return supabaseResponse
@@ -73,8 +76,8 @@ export async function updateSession(request: NextRequest) {
 
   try {
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      supabaseUrl,
+      supabaseAnonKey,
       {
         cookies: {
           getAll() {

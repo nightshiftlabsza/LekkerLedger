@@ -1,5 +1,5 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
-import { BillingCycle, PlanId, getPlanPrice } from "../config/plans";
+import { BillingCycle, PlanId, REFUND_WINDOW_DAYS, getPlanPrice } from "../config/plans";
 import {
     addBillingInterval,
     addCalendarMonths,
@@ -25,7 +25,7 @@ import { createClient } from "./supabase/server";
 
 type QueryParam = string | number | null;
 
-const REFUND_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+const REFUND_WINDOW_MS = REFUND_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 const REFERRAL_REWARD_MONTHS = 1;
 const REFERRAL_REWARD_CAP_MONTHS = 12;
 const GUEST_INTENT_USER_PREFIX = "guest_";

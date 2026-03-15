@@ -17,6 +17,7 @@ import { NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import { formatEmployeeIdNumberInput, normalizeEmployeeIdNumber } from "@/src/lib/employee-id";
 import { useUnsavedChanges } from "@/app/hooks/use-unsaved-changes";
+import { REFUND_WINDOW_LABEL } from "@/config/plans";
 
 export default function AddEmployeePage() {
     const router = useRouter();
@@ -164,7 +165,7 @@ export default function AddEmployeePage() {
                                             </p>
                                             <p>
                                                 <Link href="/pricing" className="underline font-bold">View plans</Link>
-                                                <span> and remember: paid purchases have a 14-day refund.</span>
+                                                <span> and remember: paid purchases have a {REFUND_WINDOW_LABEL} refund window.</span>
                                             </p>
                                         </AlertDescription>
                                     </Alert>

@@ -11,6 +11,13 @@ test("home page contains a main element", async ({ page }) => {
     await expect(main).toBeVisible();
 });
 
+test("home page scrolls with wheel input", async ({ page }) => {
+    await page.goto("/");
+    await page.mouse.move(720, 450);
+    await page.mouse.wheel(0, 1200);
+    await expect.poll(async () => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+});
+
 test("home page hero shows new headline and CTAs", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: /Payslips and household employment records in one place\./i })).toBeVisible();

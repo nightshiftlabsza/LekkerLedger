@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { ChevronLeft, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COMPANY_NAME } from "@/src/config/brand";
+import { COMPANY_NAME, PRIVACY_EMAIL, SUPPORT_EMAIL } from "@/src/config/brand";
 import { SupplierDetails } from "@/components/legal/supplier-details";
 
 const UPDATED_DATE = "10 March 2026";
@@ -156,7 +156,10 @@ export default function TermsOfService() {
                         <Section title="11. Governing law and contact">
                             <p>These terms are governed by the laws of the Republic of South Africa.</p>
                             <p>
-                                For product or legal-policy questions, contact <a href="mailto:support@lekkerledger.co.za">support@lekkerledger.co.za</a>.
+                                For product or legal-policy questions, contact <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
+                            </p>
+                            <p>
+                                For privacy, data-rights, or security matters, contact <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>.
                             </p>
                         </Section>
                     </div>

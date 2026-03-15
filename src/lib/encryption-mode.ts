@@ -55,7 +55,7 @@ export function getActiveSyncSummary(mode: EncryptionMode | null): string {
 
 export function getLockedSummary(mode: EncryptionMode | null): string {
     if (mode === "recoverable") {
-        return "Your records stay locked on this device until you confirm your password.";
+        return "You are signed in, but this device still needs one local password check before the encrypted records open.";
     }
 
     if (mode === "maximum_privacy") {
@@ -67,13 +67,13 @@ export function getLockedSummary(mode: EncryptionMode | null): string {
 
 export function getUnlockHelpText(mode: EncryptionMode): string {
     return mode === "recoverable"
-        ? "Your records are encrypted before upload. Confirm your password to open them on this device."
+        ? "You are signed in. Confirm your password once so this device can open the encrypted records locally."
         : "Your records are encrypted with your recovery key. Enter it to open them on this device.";
 }
 
 export function getLockedDeviceSummary(mode: EncryptionMode | null): string {
     if (mode === "recoverable") {
-        return "You are logged in, but this device stays locked until you confirm your password. The secure unlock screen appears before protected pages open.";
+        return "Sign-in worked, but this device still needs one local password check before the encrypted records can open.";
     }
 
     if (mode === "maximum_privacy") {
@@ -103,7 +103,7 @@ export function getRecoveryCompletedText(mode: EncryptionMode): string {
 
 export function getAccountStatusSummary(mode: EncryptionMode | null): string {
     if (mode === "recoverable") {
-        return "This account uses Recoverable Encryption. Records stay encrypted before upload, and access can be restored after password loss.";
+        return "This account uses Recoverable Encryption. Records stay encrypted before upload, and each new device opens them by confirming your password locally.";
     }
 
     if (mode === "maximum_privacy") {

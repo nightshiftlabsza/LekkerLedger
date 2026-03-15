@@ -303,12 +303,12 @@ describe("RecoveryGate", () => {
         renderGate();
 
         await waitFor(() => {
-            expect(screen.getByLabelText("Password")).toBeTruthy();
+            expect(screen.getByRole("heading", { name: "Finish opening this device" })).toBeTruthy();
         });
 
         await act(async () => {
-            fireEvent.change(screen.getByLabelText("Password"), { target: { value: "Password123!" } });
-            fireEvent.click(screen.getByRole("button", { name: "Unlock records" }));
+            fireEvent.change(screen.getByLabelText("Confirm your password"), { target: { value: "Password123!" } });
+            fireEvent.click(screen.getByRole("button", { name: "Open records on this device" }));
         });
 
         await waitFor(() => {
@@ -327,6 +327,39 @@ describe("RecoveryGate", () => {
             encryptionMode: "recoverable",
             cachedMasterKey: "cached-master-key",
         }));
+    });
+
+    it("auto-opens recoverable accounts when the login password handoff is available", async () => {
+        mocks.hasPasswordHandoffMock.mockReturnValue(true);
+        mocks.loadEncryptionProfileStateMock.mockResolvedValue({
+            encryptionMode: "recoverable",
+            modeVersion: 1,
+            keySetupComplete: true,
+            validationPayload: {
+                ciphertext: "ciphertext",
+                iv: "iv",
+            },
+            wrappedMasterKeyUser: {
+                ciphertext: "ciphertext",
+                iv: "iv",
+                salt: "salt",
+                kdf: "PBKDF2-SHA-256-310000",
+                algorithm: "AES-GCM",
+            },
+            recentRecoveryNoticeAt: null,
+            recentRecoveryEventKind: null,
+            source: "remote",
+            fallbackEncryptedRecord: null,
+        });
+
+        renderGate();
+
+        await waitFor(() => {
+            expect(screen.getByText("Protected child")).toBeTruthy();
+        });
+
+        expect(mocks.consumePasswordHandoffMock).toHaveBeenCalledWith("owner@example.com");
+        expect(screen.queryByRole("heading", { name: "Finish opening this device" })).toBeNull();
     });
 
     it("completes recoverable recovery after a password reset", async () => {
@@ -353,7 +386,7 @@ describe("RecoveryGate", () => {
 
         renderGate();
 
-        const passwordInput = await screen.findByLabelText("Password");
+        const passwordInput = await screen.findByLabelText("Confirm your password");
         const recoverButton = await screen.findByRole("button", { name: "Recover this account" });
 
         await act(async () => {

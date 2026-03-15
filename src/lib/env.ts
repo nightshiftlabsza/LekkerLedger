@@ -75,6 +75,14 @@ function validatePublicEnv() {
     return parsed.data;
 }
 
+export function getRequiredEnvValue(name: string): string {
+    const value = process.env[name]?.trim();
+    if (!value || value === "undefined" || value === "null") {
+        throw new Error(`Missing required environment variable: ${name}`);
+    }
+    return value;
+}
+
 export const env = {
     ...validateServerEnv(),
     ...validatePublicEnv(),

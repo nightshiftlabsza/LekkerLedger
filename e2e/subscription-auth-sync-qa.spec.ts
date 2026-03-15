@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { generateAccountMasterKey, generateValidationPayload, wrapMasterKeyWithPassword } from "../src/lib/crypto";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://mdqzuspgjstzliodzyzy.supabase.co";
 const supabaseProjectRef = new URL(supabaseUrl).hostname.split(".")[0];
@@ -64,6 +65,14 @@ function buildFakeSupabaseSession() {
     };
 }
 
+async function buildRecoverableProfile(password: string) {
+    const masterKey = await generateAccountMasterKey();
+    return {
+        validationPayload: await generateValidationPayload(masterKey),
+        wrappedMasterKeyUser: await wrapMasterKeyWithPassword(masterKey, password),
+    };
+}
+
 async function clearSupabaseBrowserState(page: import("@playwright/test").Page) {
     await page.context().clearCookies();
     await page.addInitScript((storageKey) => {
@@ -126,6 +135,111 @@ async function mockFirstDeviceRecoveryFlow(page: import("@playwright/test").Page
             headers: supabaseCorsHeaders,
             body: JSON.stringify({
                 message: "user_profiles table not available",
+            }),
+        });
+    });
+
+    await page.route("**/rest/v1/synced_records*", async (route) => {
+        if (route.request().method() === "OPTIONS") {
+            await route.fulfill({
+                status: 204,
+                headers: supabaseCorsHeaders,
+            });
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            headers: supabaseCorsHeaders,
+            body: JSON.stringify([]),
+        });
+    });
+}
+
+async function mockRecoverableLoginFlow(page: import("@playwright/test").Page, password: string) {
+    const fakeSession = buildFakeSupabaseSession();
+    const recoverableProfile = await buildRecoverableProfile(password);
+
+    await clearSupabaseBrowserState(page);
+    await page.context().addCookies([
+        {
+            name: "ll-e2e-auth-bypass",
+            value: "1",
+            url: "http://localhost:3002",
+        },
+    ]);
+    await page.addInitScript(({ storageKey, session, password: nextPassword }) => {
+        window.localStorage.setItem(storageKey, JSON.stringify({
+            currentSession: session,
+            expiresAt: session.expires_at * 1000,
+        }));
+        window.sessionStorage.setItem("lekkerledger:password-handoff", JSON.stringify({
+            email: (session.user.email ?? "").toLowerCase(),
+            password: nextPassword,
+            createdAt: Date.now(),
+        }));
+    }, {
+        storageKey: supabaseStorageKey,
+        session: fakeSession,
+        password,
+    });
+
+    await page.route("**/auth/v1/user*", async (route) => {
+        if (route.request().method() === "OPTIONS") {
+            await route.fulfill({
+                status: 204,
+                headers: supabaseCorsHeaders,
+            });
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            headers: supabaseCorsHeaders,
+            body: JSON.stringify(fakeSession.user),
+        });
+    });
+
+    await page.route("**/auth/v1/token*", async (route) => {
+        if (route.request().method() === "OPTIONS") {
+            await route.fulfill({
+                status: 204,
+                headers: supabaseCorsHeaders,
+            });
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            headers: supabaseCorsHeaders,
+            body: JSON.stringify(fakeSession),
+        });
+    });
+
+    await page.route("**/rest/v1/user_profiles*", async (route) => {
+        if (route.request().method() === "OPTIONS") {
+            await route.fulfill({
+                status: 204,
+                headers: supabaseCorsHeaders,
+            });
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            headers: supabaseCorsHeaders,
+            body: JSON.stringify({
+                encryption_mode: "recoverable",
+                mode_version: 1,
+                key_setup_complete: true,
+                validation_payload: recoverableProfile.validationPayload,
+                wrapped_master_key_user: recoverableProfile.wrappedMasterKeyUser,
+                recent_recovery_notice_at: null,
+                recent_recovery_event_kind: null,
             }),
         });
     });
@@ -307,6 +421,17 @@ test.describe("Subscription/Auth/Sync live QA", () => {
         expect(layout?.hasOverflow).toBe(false);
         expect(layout?.sameRow).toBe(true);
         expect(layout?.asideToRight).toBe(true);
+    });
+
+    test("recoverable login opens the dashboard without showing the manual unlock panel", async ({ page }) => {
+        const password = "ValidPass123!";
+        await mockRecoverableLoginFlow(page, password);
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+        await expect(page.getByTestId("account-menu-toggle")).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Finish opening this device" })).toHaveCount(0);
+        await expect(page.getByRole("heading", { name: "Opening this device" })).toHaveCount(0);
     });
 
     test("settings storage tab remains readable on mobile", async ({ page }) => {

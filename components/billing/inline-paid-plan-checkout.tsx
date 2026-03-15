@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PaidPlanCheckoutDialog } from "@/components/billing/paid-plan-checkout-dialog";
 import { createInlinePurchaseIntent } from "@/lib/billing-client";
 import { writePendingBillingEmail, writePendingBillingReference } from "@/lib/billing-handoff";
 import { buildPaidDashboardHref, buildPaidLoginHref } from "@/lib/paid-activation";
@@ -146,6 +147,7 @@ export function useInlinePaidPlanCheckout({
     const [loadingPlanId, setLoadingPlanId] = React.useState<Exclude<PlanId, "free"> | null>(null);
     const preparedIntentRef = React.useRef<PreparedIntent | null>(null);
     const prepareRequestIdRef = React.useRef(0);
+    const checkoutEmailInputRef = React.useRef<HTMLInputElement | null>(null);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -311,6 +313,21 @@ export function useInlinePaidPlanCheckout({
         };
     }, [checkoutEmail, prepareCheckout, requestedPlanId]);
 
+    React.useEffect(() => {
+        if (!dialogOpen) {
+            return;
+        }
+
+        const timeoutHandle = globalThis.window.setTimeout(() => {
+            checkoutEmailInputRef.current?.focus();
+            checkoutEmailInputRef.current?.select();
+        }, 0);
+
+        return () => {
+            globalThis.window.clearTimeout(timeoutHandle);
+        };
+    }, [dialogOpen]);
+
     const openPaystackCheckout = React.useCallback(async (planId: Exclude<PlanId, "free">, email: string) => {
         setLoadingPlanId(planId);
         setEmailError("");
@@ -429,82 +446,95 @@ export function useInlinePaidPlanCheckout({
         openPaystackCheckout(requestedPlanId, normalizedEmail);
     }, [checkoutEmail, openPaystackCheckout, requestedPlanId]);
 
-    const dialog = dialogOpen ? (
-        <dialog open className="fixed inset-0 z-[70] flex items-center justify-center bg-black/45 px-4 py-6" aria-modal="true">
-            <div className="w-full max-w-md rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_24px_70px_rgba(15,23,42,0.24)]">
-                <div className="space-y-4 p-6 sm:p-7">
-                    <div className="space-y-2">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--primary)]/15 bg-[var(--primary)]/8 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">
-                            <ShieldCheck className="h-3.5 w-3.5" />
-                            Payment first
-                        </div>
-                        <h2 className="text-2xl font-black text-[var(--text)]">
-                            Open secure payment
-                        </h2>
-                        <p className="text-sm leading-6 text-[var(--text-muted)]">
-                            Paystack will open here in a secure popup. After payment, LekkerLedger will send you straight into paid login or dashboard activation.
-                        </p>
+    const dialog = (
+        <PaidPlanCheckoutDialog
+            open={dialogOpen}
+            title="Open secure payment"
+            description="Paystack will open here in a secure popup. After payment, LekkerLedger will send you straight into paid login or dashboard activation."
+            onOpenChange={(nextOpen) => {
+                if (loadingPlanId) {
+                    return;
+                }
+
+                setDialogOpen(nextOpen);
+                if (!nextOpen) {
+                    setEmailError("");
+                }
+            }}
+        >
+            <div className="min-w-0 space-y-4">
+                <div className="space-y-2">
+                    <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-[var(--primary)]/15 bg-[var(--primary)]/8 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">
+                        <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">Payment first</span>
+                    </div>
+                    <h2 className="text-2xl font-black text-[var(--text)]">
+                        Open secure payment
+                    </h2>
+                    <p className="text-sm leading-6 text-[var(--text-muted)]">
+                        Paystack will open here in a secure popup. After payment, LekkerLedger will send you straight into paid login or dashboard activation.
+                    </p>
+                </div>
+
+                <form className="min-w-0 space-y-4" onSubmit={handleDialogSubmit}>
+                    <div className="space-y-2 min-w-0">
+                        <label htmlFor="checkout-email" className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                            Billing email
+                        </label>
+                        <Input
+                            ref={checkoutEmailInputRef}
+                            id="checkout-email"
+                            type="email"
+                            autoComplete="email"
+                            placeholder="name@example.com"
+                            value={checkoutEmail}
+                            error={emailError}
+                            onChange={(event) => {
+                                const nextEmail = event.target.value;
+                                setCheckoutEmail(nextEmail);
+                                if (emailError) {
+                                    setEmailError("");
+                                }
+                                if (requestedPlanId) {
+                                    void prepareCheckout(requestedPlanId, nextEmail);
+                                }
+                            }}
+                        />
                     </div>
 
-                    <form className="space-y-4" onSubmit={handleDialogSubmit}>
-                        <div className="space-y-2">
-                            <label htmlFor="checkout-email" className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                                Billing email
-                            </label>
-                            <Input
-                                id="checkout-email"
-                                type="email"
-                                autoComplete="email"
-                                placeholder="name@example.com"
-                                value={checkoutEmail}
-                                error={emailError}
-                                onChange={(event) => {
-                                    const nextEmail = event.target.value;
-                                    setCheckoutEmail(nextEmail);
-                                    if (emailError) {
-                                        setEmailError("");
-                                    }
-                                    if (requestedPlanId) {
-                                        void prepareCheckout(requestedPlanId, nextEmail);
-                                    }
-                                }}
-                            />
-                        </div>
+                    <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--text-muted)]">
+                        You&apos;ll pay the full plan price now through Paystack. After payment, existing customers go straight back into paid activation and new customers go to paid sign-up to create their dashboard account.
+                    </div>
 
-                        <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--text-muted)]">
-                            You&apos;ll pay the full plan price now through Paystack. After payment, existing customers go straight back into paid activation and new customers go to paid sign-up to create their dashboard account.
+                    {requestedPlanId ? (
+                        <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm font-semibold text-[var(--text)]">
+                            {getPlanChargeLabel(requestedPlanId, billingCycle)}
                         </div>
+                    ) : null}
 
-                        {requestedPlanId ? (
-                            <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm font-semibold text-[var(--text)]">
-                                {getPlanChargeLabel(requestedPlanId, billingCycle)}
-                            </div>
-                        ) : null}
-
-                        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full sm:w-auto"
-                                disabled={!!loadingPlanId}
-                                onClick={() => {
-                                    if (loadingPlanId) return;
-                                    setDialogOpen(false);
-                                    setEmailError("");
-                                }}
-                            >
-                                Cancel
-                            </Button>
-                            <Button type="submit" className="w-full sm:w-auto min-w-[180px]" disabled={!!loadingPlanId}>
-                                {loadingPlanId ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                                {loadingPlanId ? "Opening Paystack..." : "Continue to payment"}
-                            </Button>
-                        </div>
-                    </form>
-                </div>
+                    <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full sm:w-auto"
+                            disabled={!!loadingPlanId}
+                            onClick={() => {
+                                if (loadingPlanId) return;
+                                setDialogOpen(false);
+                                setEmailError("");
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="submit" className="w-full sm:w-auto sm:min-w-[180px]" disabled={!!loadingPlanId}>
+                            {loadingPlanId ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                            {loadingPlanId ? "Opening Paystack..." : "Continue to payment"}
+                        </Button>
+                    </div>
+                </form>
             </div>
-        </dialog>
-    ) : null;
+        </PaidPlanCheckoutDialog>
+    );
 
     return {
         startCheckout,

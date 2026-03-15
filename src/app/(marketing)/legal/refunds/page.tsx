@@ -5,7 +5,17 @@ import Link from "next/link";
 import { ChevronLeft, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SupplierDetails } from "@/components/legal/supplier-details";
-import { PLANS, getPlanPricePresentation } from "@/config/plans";
+import {
+    PAID_PLAN_START_SUMMARY,
+    PLANS,
+    REFERRAL_REWARD_PENDING_SUMMARY,
+    REFUND_POLICY_SENTENCE,
+    REFUND_POLICY_SHORT_LABEL,
+    REFUND_WINDOW_DAYS,
+    REFUND_WINDOW_LABEL,
+    getPlanPricePresentation,
+} from "@/config/plans";
+import { SUPPORT_EMAIL } from "@/config/brand";
 
 export default function RefundPolicy() {
     const currentYear = new Date().getFullYear();
@@ -30,7 +40,7 @@ export default function RefundPolicy() {
                         <CreditCard className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Refund & Cancellation</h1>
-                    <p className="font-medium text-[var(--text-muted)]">Updated 10 March 2026 • 14-day refund on paid charges</p>
+                    <p className="font-medium text-[var(--text-muted)]">Updated 15 March 2026 • {REFUND_POLICY_SHORT_LABEL}</p>
                 </header>
 
                 <div className="policy-copy max-w-none space-y-8 leading-relaxed font-medium">
@@ -46,7 +56,7 @@ export default function RefundPolicy() {
                             <li><strong>Pro:</strong> {proMonthlyPrice}/month or {proYearlyPrice}/year for unlimited employees, multi-household workspaces, and the deepest archive. Yearly billing works out to about {proYearlyEquivalent}/month.</li>
                         </ul>
                         <p>
-                            Standard and Pro start immediately once payment succeeds. Charges are processed through Paystack on the monthly or yearly cycle you choose.
+                            {PAID_PLAN_START_SUMMARY} Charges are processed through Paystack on the monthly or yearly cycle you choose.
                         </p>
                     </section>
 
@@ -61,19 +71,16 @@ export default function RefundPolicy() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-[var(--text)]">3. Refund requests within 14 days</h2>
+                        <h2 className="text-2xl font-black text-[var(--text)]">3. Refund requests within {REFUND_WINDOW_DAYS} days</h2>
                         <p>
-                            Our 14-day refund policy applies to your paid charge. If LekkerLedger is not the right fit, request a refund within 14 days of that charge date and we will refund you in full once we have verified the payment.
-                        </p>
-                        <p>
-                            Requests received after 14 days are outside the refund window and will not be processed unless required by law.
+                            Our {REFUND_WINDOW_LABEL} refund policy applies to your paid charge. {REFUND_POLICY_SENTENCE}
                         </p>
                     </section>
 
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-[var(--text)]">4. Referral reward timing</h2>
                         <p>
-                            If you refer a new paying customer, the free referral month is held in a pending state until that referred customer has paid for Standard or Pro and passed the same 14-day refund window without a refund or chargeback.
+                            {REFERRAL_REWARD_PENDING_SUMMARY}
                         </p>
                         <p>
                             Referral rewards are limited to 12 free months per account. Self-referrals, duplicate referee accounts, and other abusive or fraudulent attempts can be rejected or reversed.
@@ -83,7 +90,7 @@ export default function RefundPolicy() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-black text-[var(--text)]">5. How to Request a Refund</h2>
                         <p>
-                            To request a refund, email support@lekkerledger.co.za with your transaction details. We review refund requests within 1-4 business days (Monday to Friday, South African Standard Time, excluding public holidays) after we receive the information needed to verify the payment.
+                            To request a refund, email <a href={`mailto:${SUPPORT_EMAIL}`} className="font-semibold text-[var(--primary)] hover:underline">{SUPPORT_EMAIL}</a> with your transaction details. We review refund requests within 1-4 business days (Monday to Friday, South African Standard Time, excluding public holidays) after we receive the information needed to verify the payment.
                         </p>
                     </section>
                 </div>
@@ -95,5 +102,3 @@ export default function RefundPolicy() {
         </div>
     );
 }
-
-

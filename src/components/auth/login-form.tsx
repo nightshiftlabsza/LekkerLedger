@@ -46,7 +46,7 @@ type LoginFormProps = {
 
 export function LoginForm({
     title = "Welcome back",
-    description = "Log in to restore your paid access and continue with the secure unlock step on this device.",
+    description = "Log in to restore your paid access. Most devices open straight into the dashboard, and we will only prompt again if this browser needs a local encryption check.",
     forgotPasswordHref = "/forgot-password",
     showSignupFooter = true,
     embedded = false,

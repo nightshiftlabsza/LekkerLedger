@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { COMPANY_NAME } from "@/src/config/brand";
+import { COMPANY_NAME, PRIVACY_EMAIL, SUPPORT_EMAIL } from "@/src/config/brand";
 
 const FOOTER_GROUPS = [
     {
@@ -93,12 +93,21 @@ export function MarketingFooter() {
                                 {group.title === "Connect" ? (
                                     <div className="space-y-3 border-t border-[var(--border)] pt-4">
                                         <a
-                                            href="mailto:support@lekkerledger.co.za"
+                                            href={`mailto:${SUPPORT_EMAIL}`}
                                             className={footerLinkClass}
                                         >
                                             <span className="flex min-h-[28px] items-center gap-2">
                                                 <Mail className="h-3.5 w-3.5" />
                                                 Email support
+                                            </span>
+                                        </a>
+                                        <a
+                                            href={`mailto:${PRIVACY_EMAIL}`}
+                                            className={footerLinkClass}
+                                        >
+                                            <span className="flex min-h-[28px] items-center gap-2">
+                                                <Mail className="h-3.5 w-3.5" />
+                                                Privacy & data
                                             </span>
                                         </a>
                                         <p className="max-w-[24ch] text-xs leading-6" style={{ color: "var(--text-muted)" }}>

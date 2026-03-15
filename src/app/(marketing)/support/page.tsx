@@ -4,6 +4,12 @@ import React from "react";
 import Link from "next/link";
 import { ChevronLeft, LifeBuoy, Mail, HelpCircle, BookOpen, AlertCircle, FolderSync, WalletCards } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+    PAID_PLAN_START_AND_REFUND_SUMMARY,
+    REFERRAL_REWARD_PENDING_SUMMARY,
+    REFUND_WINDOW_LABEL,
+} from "@/config/plans";
+import { PRIVACY_EMAIL, SUPPORT_EMAIL } from "@/config/brand";
 
 export default function SupportPage() {
     return (
@@ -41,7 +47,7 @@ export default function SupportPage() {
                     </Link>
 
                     {/* App Usage/Bugs Help */}
-                    <a href="mailto:support@lekkerledger.co.za?subject=App%20Support" className="block group">
+                    <a href={`mailto:${SUPPORT_EMAIL}?subject=App%20Support`} className="block group">
                         <div className="rounded-2xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 p-6 h-full transition-all group-hover:border-[var(--primary)] group-hover:shadow-[var(--shadow-md)]">
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
@@ -52,7 +58,11 @@ export default function SupportPage() {
                             <p className="text-sm text-[var(--text-muted)] leading-relaxed mb-4">
                                 Found a bug? Confused about backup, payslips, or billing? Our team replies within 1-4 business days in South Africa, Monday to Friday, excluding public holidays.
                             </p>
-                            <span className="text-[var(--primary)] font-bold text-sm">support@lekkerledger.co.za &rarr;</span>
+                            <p className="text-xs text-[var(--text-muted)] leading-relaxed mb-2">
+                                Privacy, data-rights, or security reports should go to{" "}
+                                <a href={`mailto:${PRIVACY_EMAIL}`} className="font-semibold text-[var(--primary)] hover:underline">{PRIVACY_EMAIL}</a>.
+                            </p>
+                            <span className="text-[var(--primary)] font-bold text-sm">{SUPPORT_EMAIL} &rarr;</span>
                         </div>
                     </a>
 
@@ -79,7 +89,7 @@ export default function SupportPage() {
                                 <h3 className="text-xl font-bold text-[var(--text)]">Refunds & Billing</h3>
                             </div>
                             <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                Read the 14-day refund policy, billing basics, and what happens when you cancel a paid plan.
+                                Read the {REFUND_WINDOW_LABEL} refund policy, billing basics, and what happens when you cancel a paid plan.
                             </p>
                         </div>
                     </Link>
@@ -94,7 +104,7 @@ export default function SupportPage() {
                             <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
                                 <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-[var(--text)]"><AlertCircle className="h-4 w-4 text-[var(--danger)]" /> &quot;When does a paid plan start billing?&quot;</h3>
                                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                    Standard and Pro bill immediately when payment succeeds through Paystack. The 14-day refund window starts from that paid charge date.
+                                    {PAID_PLAN_START_AND_REFUND_SUMMARY}
                                 </p>
                             </div>
 
@@ -108,7 +118,7 @@ export default function SupportPage() {
                             <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
                                 <h3 className="text-lg font-bold text-[var(--text)] mb-2 flex items-center gap-2"><HelpCircle className="h-4 w-4 text-[var(--text-muted)]" /> &quot;When does a referral free month unlock?&quot;</h3>
                                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                    A referral month unlocks only after the referred person has a successful paid Standard or Pro charge and then passes the 14-day refund window without a refund or chargeback.
+                                    {REFERRAL_REWARD_PENDING_SUMMARY}
                                 </p>
                             </div>
 

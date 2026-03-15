@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { getRequiredEnvValue } from "../env";
 
 let browserClient: ReturnType<typeof createBrowserClient> | null = null;
 
@@ -36,12 +37,8 @@ export function createClient() {
         return browserClient;
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error("Supabase client configuration is missing.");
-    }
+    const supabaseUrl = getRequiredEnvValue("NEXT_PUBLIC_SUPABASE_URL");
+    const supabaseAnonKey = getRequiredEnvValue("NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
     const storageKey = getSupabaseStorageKey(supabaseUrl);
     healSupabaseSessionStorage(storageKey);
