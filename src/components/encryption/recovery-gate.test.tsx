@@ -353,13 +353,12 @@ describe("RecoveryGate", () => {
 
         renderGate();
 
-        await waitFor(() => {
-            expect(screen.getByLabelText("Password")).toBeTruthy();
-        });
+        const passwordInput = await screen.findByLabelText("Password");
+        const recoverButton = await screen.findByRole("button", { name: "Recover this account" });
 
         await act(async () => {
-            fireEvent.change(screen.getByLabelText("Password"), { target: { value: "Password123!" } });
-            fireEvent.click(screen.getByRole("button", { name: "Recover this account" }));
+            fireEvent.change(passwordInput, { target: { value: "Password123!" } });
+            fireEvent.click(recoverButton);
         });
 
         await waitFor(() => {
