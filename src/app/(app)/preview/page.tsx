@@ -235,10 +235,16 @@ function PreviewContent() {
                     <Card className="glass-panel border-none overflow-hidden">
                         <CardContent className="p-5">
                             <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-[var(--focus)]">Earnings</p>
-                            <Row label={`Ordinary (${payslip.ordinaryHours}h)`} value={`R ${breakdown.ordinaryPay.toFixed(2)}`} />
+                            <Row
+                                label={`Ordinary (${payslip.ordinaryHours}h${breakdown.topUps.fourHourMinimumHours > 0 ? ` + ${breakdown.topUps.fourHourMinimumHours}h 4-hr top-up` : ""})`}
+                                value={`R ${breakdown.ordinaryPay.toFixed(2)}`}
+                            />
                             {payslip.overtimeHours > 0 && <Row label={`Overtime (${payslip.overtimeHours}h @ 1.5x)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}
                             {payslip.sundayHours > 0 && <Row label={`Sunday (${payslip.sundayHours}h @ ${getSundayRateMultiplier(payslip.ordinarilyWorksSundays).toFixed(1)}x)`} value={`R ${breakdown.sundayPay.toFixed(2)}`} />}
                             {payslip.publicHolidayHours > 0 && <Row label={`Public holiday (${payslip.publicHolidayHours}h @ 2x)`} value={`R ${breakdown.publicHolidayPay.toFixed(2)}`} />}
+                            {breakdown.topUps.fourHourMinimumHours > 0 && (
+                                <Row label="4-hour minimum top-up included" value={`${breakdown.topUps.fourHourMinimumHours}h`} />
+                            )}
                             <Row label="Gross pay" value={`R ${breakdown.grossPay.toFixed(2)}`} bold />
 
                             <p className="mb-2 mt-6 text-[10px] font-black uppercase tracking-widest text-[var(--focus)]">Deductions</p>
@@ -248,7 +254,6 @@ function PreviewContent() {
                                 red
                             />
                             {breakdown.deductions.accommodation ? <Row label="Accommodation" value={`-R ${breakdown.deductions.accommodation.toFixed(2)}`} red /> : null}
-                            {breakdown.deductions.shortfall ? <Row label="Shortfall" value={`-R ${breakdown.deductions.shortfall.toFixed(2)}`} red /> : null}
                             {breakdown.deductions.advance ? <Row label="Advance" value={`-R ${breakdown.deductions.advance.toFixed(2)}`} red /> : null}
                             {breakdown.deductions.other ? <Row label="Other deductions" value={`-R ${breakdown.deductions.other.toFixed(2)}`} red /> : null}
                             <Row label="Total deductions" value={`R ${breakdown.deductions.total.toFixed(2)}`} bold />

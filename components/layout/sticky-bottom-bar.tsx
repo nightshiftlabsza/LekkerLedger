@@ -21,7 +21,7 @@ export function StickyBottomBar({ children, className = "" }: StickyBottomBarPro
                 paddingBottom: "env(safe-area-inset-bottom, 0px)",
             }}
         >
-            <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+            <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
                 {children}
             </div>
         </div>

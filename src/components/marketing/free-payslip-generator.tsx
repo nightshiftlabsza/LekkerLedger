@@ -2,13 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { format } from "date-fns";
 import { ArrowRight, BadgeCheck, Download, FileLock2, Mail, MoonStar, RefreshCw, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { createClient } from "@/lib/supabase/client";
 import { getBrowserAppOrigin } from "@/lib/app-origin";
 import { calculatePayslip } from "@/lib/calculator";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
+import { derivePayslipDraft, getMonthBounds, getMonthKey, normalizePayslipDraftToInput } from "@/lib/payslip-draft";
 import { downloadPdf } from "@/lib/share";
 import type { Employee, EmployerSettings, PayslipInput } from "@/lib/schema";
 
@@ -19,13 +22,14 @@ type FreePayslipFormState = {
     employeeId: string;
     employeeRole: string;
     hourlyRate: string;
-    payPeriodStart: string;
-    payPeriodEnd: string;
-    daysWorked: string;
-    ordinaryHours: string;
+    monthKey: string;
+    standardWorkingDaysThisMonth: string;
+    ordinaryHoursOverride: string;
     overtimeHours: string;
     sundayHours: string;
     publicHolidayHours: string;
+    shortShiftCount: string;
+    shortShiftWorkedHours: string;
     otherDeductions: string;
 };
 
@@ -44,13 +48,14 @@ const DEFAULT_FORM: FreePayslipFormState = {
     employeeId: "",
     employeeRole: "Domestic Worker",
     hourlyRate: "30.23",
-    payPeriodStart: "",
-    payPeriodEnd: "",
-    daysWorked: "22",
-    ordinaryHours: "176",
+    monthKey: "",
+    standardWorkingDaysThisMonth: "22",
+    ordinaryHoursOverride: "",
     overtimeHours: "0",
     sundayHours: "0",
     publicHolidayHours: "0",
+    shortShiftCount: "0",
+    shortShiftWorkedHours: "0",
     otherDeductions: "0",
 };
 
@@ -60,10 +65,11 @@ function parseNumber(value: string): number {
 }
 
 function buildPayload(form: FreePayslipFormState): { employee: Employee; payslip: PayslipInput; settings: EmployerSettings } | null {
-    if (!form.employerName.trim() || !form.employeeName.trim() || !form.payPeriodStart || !form.payPeriodEnd) {
+    if (!form.employerName.trim() || !form.employeeName.trim() || !form.monthKey) {
         return null;
     }
 
+    const monthBounds = getMonthBounds(form.monthKey);
     const employee: Employee = {
         id: crypto.randomUUID(),
         householdId: "free-tool",
@@ -74,7 +80,7 @@ function buildPayload(form: FreePayslipFormState): { employee: Employee; payslip
         phone: "",
         email: "",
         address: "",
-        startDate: form.payPeriodStart,
+        startDate: monthBounds.start.toISOString().slice(0, 10),
         startDateIsApproximate: false,
         leaveCycleStartDate: "",
         leaveCycleEndDate: "",
@@ -84,30 +90,29 @@ function buildPayload(form: FreePayslipFormState): { employee: Employee; payslip
         frequency: "Monthly",
     };
 
-    const payslip: PayslipInput = {
+    const payslip: PayslipInput = normalizePayslipDraftToInput({
         id: crypto.randomUUID(),
         householdId: "free-tool",
         employeeId: employee.id,
-        payPeriodStart: new Date(form.payPeriodStart),
-        payPeriodEnd: new Date(form.payPeriodEnd),
-        ordinaryHours: parseNumber(form.ordinaryHours),
+        monthKey: form.monthKey,
+        standardWorkingDaysThisMonth: parseNumber(form.standardWorkingDaysThisMonth),
+        ordinaryHoursPerDay: 8,
+        ordinaryHoursOverride: form.ordinaryHoursOverride.trim() ? parseNumber(form.ordinaryHoursOverride) : null,
         overtimeHours: parseNumber(form.overtimeHours),
         sundayHours: parseNumber(form.sundayHours),
         publicHolidayHours: parseNumber(form.publicHolidayHours),
-        daysWorked: parseNumber(form.daysWorked),
-        shortFallHours: 0,
+        shortShiftCount: parseNumber(form.shortShiftCount),
+        shortShiftWorkedHours: parseNumber(form.shortShiftWorkedHours),
         hourlyRate: parseNumber(form.hourlyRate),
+        ordinarilyWorksSundays: false,
         includeAccommodation: false,
         accommodationCost: undefined,
-        advanceAmount: 0,
         otherDeductions: parseNumber(form.otherDeductions),
         createdAt: new Date(),
-        ordinarilyWorksSundays: false,
-        ordinaryHoursPerDay: 8,
         annualLeaveTaken: 0,
         sickLeaveTaken: 0,
         familyLeaveTaken: 0,
-    };
+    });
 
     const settings: EmployerSettings = {
         employerName: form.employerName.trim(),
@@ -168,12 +173,9 @@ export function FreePayslipGenerator() {
     const supabase = React.useMemo(() => createClient(), []);
     const [form, setForm] = React.useState<FreePayslipFormState>(() => {
         const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
         return {
             ...DEFAULT_FORM,
-            payPeriodStart: start,
-            payPeriodEnd: end,
+            monthKey: getMonthKey(now),
         };
     });
     const [verificationEmail, setVerificationEmail] = React.useState("");
@@ -184,6 +186,24 @@ export function FreePayslipGenerator() {
     const [sendingVerification, setSendingVerification] = React.useState(false);
     const [downloading, setDownloading] = React.useState(false);
     const [checkingQuota, setCheckingQuota] = React.useState(false);
+
+    const derivedDraft = React.useMemo(() => derivePayslipDraft({
+        householdId: "free-tool",
+        employeeId: "preview",
+        monthKey: form.monthKey,
+        standardWorkingDaysThisMonth: parseNumber(form.standardWorkingDaysThisMonth),
+        ordinaryHoursPerDay: 8,
+        ordinaryHoursOverride: form.ordinaryHoursOverride.trim() ? parseNumber(form.ordinaryHoursOverride) : null,
+        overtimeHours: parseNumber(form.overtimeHours),
+        sundayHours: parseNumber(form.sundayHours),
+        publicHolidayHours: parseNumber(form.publicHolidayHours),
+        shortShiftCount: parseNumber(form.shortShiftCount),
+        shortShiftWorkedHours: parseNumber(form.shortShiftWorkedHours),
+        hourlyRate: parseNumber(form.hourlyRate),
+        ordinarilyWorksSundays: false,
+        includeAccommodation: false,
+        otherDeductions: parseNumber(form.otherDeductions),
+    }), [form]);
 
     const payload = React.useMemo(() => buildPayload(form), [form]);
     const breakdown = React.useMemo(() => (payload ? calculatePayslip(payload.payslip) : null), [payload]);
@@ -374,20 +394,38 @@ export function FreePayslipGenerator() {
                                 <Input value={form.employeeId} onChange={(event) => updateField("employeeId", event.target.value)} placeholder="ID or passport number" />
                             </Field>
                         </div>
-                        <Field label="Pay period start">
-                            <Input type="date" value={form.payPeriodStart} onChange={(event) => updateField("payPeriodStart", event.target.value)} />
+                        <Field label="Payslip month" hint="The period start and end dates are filled in automatically from this month.">
+                            <Input type="month" value={form.monthKey} onChange={(event) => updateField("monthKey", event.target.value)} />
                         </Field>
-                        <Field label="Pay period end">
-                            <Input type="date" value={form.payPeriodEnd} onChange={(event) => updateField("payPeriodEnd", event.target.value)} />
+                        <Field label="Period dates">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <Input type="date" value={format(derivedDraft.payPeriodStart, "yyyy-MM-dd")} readOnly />
+                                <Input type="date" value={format(derivedDraft.payPeriodEnd, "yyyy-MM-dd")} readOnly />
+                            </div>
                         </Field>
                         <Field label="Hourly rate (R)">
                             <Input type="number" step="0.01" value={form.hourlyRate} onChange={(event) => updateField("hourlyRate", event.target.value)} />
                         </Field>
-                        <Field label="Days worked">
-                            <Input type="number" value={form.daysWorked} onChange={(event) => updateField("daysWorked", event.target.value)} />
+                        <Field
+                            label="Standard Working Days This Month"
+                            hint="Enter the normal number of workdays for this payslip month. LekkerLedger uses this to calculate ordinary hours automatically."
+                        >
+                            <Input type="number" value={form.standardWorkingDaysThisMonth} onChange={(event) => updateField("standardWorkingDaysThisMonth", event.target.value)} />
                         </Field>
-                        <Field label="Ordinary hours">
-                            <Input type="number" step="0.01" value={form.ordinaryHours} onChange={(event) => updateField("ordinaryHours", event.target.value)} />
+                        <Field
+                            label="Ordinary hours"
+                            hint={derivedDraft.hasManualOrdinaryHoursOverride
+                                ? `Manual override in use. Auto-calculated hours would be ${derivedDraft.autoOrdinaryHours}.`
+                                : `Auto-calculated as ${derivedDraft.autoOrdinaryHours} hours from ${parseNumber(form.standardWorkingDaysThisMonth)} standard days x 8 hours.`}
+                        >
+                            <div className="space-y-2">
+                                <Input type="number" step="0.01" value={form.ordinaryHoursOverride || (derivedDraft.autoOrdinaryHours ? derivedDraft.autoOrdinaryHours.toString() : "")} onChange={(event) => updateField("ordinaryHoursOverride", event.target.value)} />
+                                {derivedDraft.hasManualOrdinaryHoursOverride ? (
+                                    <button type="button" className="text-xs font-semibold text-[var(--primary)] hover:underline" onClick={() => updateField("ordinaryHoursOverride", "")}>
+                                        Use auto-calculated ordinary hours
+                                    </button>
+                                ) : null}
+                            </div>
                         </Field>
                         <Field label="Overtime hours">
                             <Input type="number" step="0.01" value={form.overtimeHours} onChange={(event) => updateField("overtimeHours", event.target.value)} />
@@ -395,9 +433,30 @@ export function FreePayslipGenerator() {
                         <Field label="Sunday hours">
                             <Input type="number" step="0.01" value={form.sundayHours} onChange={(event) => updateField("sundayHours", event.target.value)} />
                         </Field>
-                        <Field label="Public holiday hours">
+                        <Field label="Public holiday hours" hint="Only include hours actually worked on the public holiday. Do not use this for a paid day off.">
                             <Input type="number" step="0.01" value={form.publicHolidayHours} onChange={(event) => updateField("publicHolidayHours", event.target.value)} />
                         </Field>
+                        <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-4 md:col-span-2">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Short Shifts (4-hour rule)</span>
+                                <InfoTooltip
+                                    label="Explain the 4-hour rule"
+                                    tooltip="If someone worked less than 4 hours on a day, South African law from March 2026 says they must still be paid for at least 4 hours for that day. Example: if they worked 2 hours on one Saturday, LekkerLedger adds 2 more paid hours."
+                                />
+                            </div>
+                            <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Had any shifts under 4 hours this month? Add them here.</p>
+                            <div className="mt-4 grid gap-5 md:grid-cols-2">
+                                <Field label="How many short shifts?">
+                                    <Input type="number" value={form.shortShiftCount} onChange={(event) => updateField("shortShiftCount", event.target.value)} />
+                                </Field>
+                                <Field label="Hours actually worked across them">
+                                    <Input type="number" step="0.01" value={form.shortShiftWorkedHours} onChange={(event) => updateField("shortShiftWorkedHours", event.target.value)} />
+                                </Field>
+                            </div>
+                            <div className="mt-3 rounded-[1rem] border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-sm text-[var(--text)]">
+                                4-hour top-up that will be added: <strong>{derivedDraft.shortFallHours.toFixed(2)}h</strong>
+                            </div>
+                        </div>
                         <Field label="Other agreed deductions (R)" hint="Only include deductions you have already agreed and recorded separately.">
                             <Input type="number" step="0.01" value={form.otherDeductions} onChange={(event) => updateField("otherDeductions", event.target.value)} />
                         </Field>
@@ -489,7 +548,8 @@ export function FreePayslipGenerator() {
                             <div className="flex items-center justify-between"><span>Gross pay</span><strong>{breakdown ? `R ${breakdown.grossPay.toFixed(2)}` : "R 0.00"}</strong></div>
                             <div className="flex items-center justify-between"><span>Employee UIF</span><strong>{breakdown ? `R ${breakdown.deductions.uifEmployee.toFixed(2)}` : "R 0.00"}</strong></div>
                             <div className="flex items-center justify-between"><span>Other deductions</span><strong>R {parseNumber(form.otherDeductions).toFixed(2)}</strong></div>
-                            <div className="flex items-center justify-between"><span>Ordinary hours</span><strong>{parseNumber(form.ordinaryHours).toFixed(2)}h</strong></div>
+                            <div className="flex items-center justify-between"><span>Ordinary hours</span><strong>{derivedDraft.ordinaryHours.toFixed(2)}h</strong></div>
+                            <div className="flex items-center justify-between"><span>4-hour top-up</span><strong>{derivedDraft.shortFallHours.toFixed(2)}h</strong></div>
                             <div className="flex items-center justify-between"><span>Overtime hours</span><strong>{parseNumber(form.overtimeHours).toFixed(2)}h</strong></div>
                         </div>
                     </div>

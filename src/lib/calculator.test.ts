@@ -79,5 +79,22 @@ describe("calculatePayslip() - Complex SD7 Edge Cases", () => {
         expect(result.effectiveOrdinaryHours).toBe(2);
         expect(result.grossPay).toBe(500);
     });
+
+    it("7. preserves full ordinary hours when overtime, Sunday, and holiday hours are also entered", () => {
+        const result = calculatePayslip({
+            ...mockInput,
+            hourlyRate: 40,
+            ordinaryHours: 160,
+            overtimeHours: 8,
+            sundayHours: 8,
+            publicHolidayHours: 8,
+            daysWorked: 20,
+            ordinarilyWorksSundays: true,
+        });
+
+        expect(result.effectiveOrdinaryHours).toBe(160);
+        expect(result.ordinaryPay).toBe(6400);
+        expect(result.grossPay).toBe(8000);
+    });
 });
 

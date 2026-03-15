@@ -36,10 +36,13 @@ describe("Compliance Logic (SD7 & NMW)", () => {
         deductions: {
             uifEmployee: 48.37,
             accommodation: undefined,
-            shortfall: 0,
             advance: 0,
             other: 0,
             total: 48.37,
+        },
+        topUps: {
+            fourHourMinimumHours: 0,
+            fourHourMinimumPay: 0,
         },
         employerContributions: {
             uifEmployer: 48.37,

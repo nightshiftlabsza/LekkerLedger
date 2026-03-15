@@ -68,4 +68,19 @@ test.describe("Mobile UX regressions", () => {
         expect(positions?.sameRow).toBe(false);
         expect(positions?.leftDelta).toBeLessThan(10);
     });
+
+    test("free payslip generator fits on phone without horizontal overflow", async ({ page }) => {
+        await page.goto("/resources/tools/domestic-worker-payslip");
+        await page.locator('input[type="month"]').waitFor({ state: "visible" });
+
+        const metrics = await page.evaluate(() => ({
+            bodyOverflowing: document.body.scrollWidth > window.innerWidth + 1,
+            mainOverflowing: Array.from(document.querySelectorAll<HTMLElement>("main, section, aside")).some(
+                (element) => element.scrollWidth > window.innerWidth + 1,
+            ),
+        }));
+
+        expect(metrics.bodyOverflowing).toBe(false);
+        expect(metrics.mainOverflowing).toBe(false);
+    });
 });

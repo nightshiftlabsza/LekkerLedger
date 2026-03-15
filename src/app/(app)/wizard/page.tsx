@@ -6,7 +6,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, Loader2, Check, Clock, Sparkles, AlertCircle, Info, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, ChevronUp, Loader2, Check, Clock, AlertCircle, Info, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Stepper } from "@/components/ui/stepper";
@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Switch } from "@/components/ui/switch";
 import { StickyBottomBar } from "@/components/layout/sticky-bottom-bar";
 import { getEmployees, savePayslip, getSecureTime, getSettings, getAllPayslips, deletePayslip, saveDocumentMeta } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
@@ -22,43 +21,31 @@ import { format } from "date-fns";
 import { calculatePayslip, getSundayRateMultiplier, isUifApplicable, NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import { getHolidaysInRange } from "@/lib/holidays";
+import {
+    derivePayslipDraft,
+    getMonthBounds,
+    getMonthKey,
+    normalizePayslipDraftToInput,
+} from "@/lib/payslip-draft";
 
 import { canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
 import { getEmployerDetailsSettingsHref, hasRequiredEmployerDetails } from "@/lib/employer-details";
 
 const STEPS = [
-    { label: "Hours", description: "Ordinary & overtime" },
-    { label: "Sundays & Holidays", description: "Special rates" },
+    { label: "Hours", description: "Period & ordinary time" },
+    { label: "Extra Pay", description: "Overtime, Sundays & holidays" },
     { label: "Deductions", description: "UIF & accommodation" },
     { label: "Review", description: "Final confirmation" },
 ];
+
+const FOUR_HOUR_RULE_TOOLTIP = "From 1 March 2026, if someone works on a day, they must be paid for at least 4 hours for that day. Example: if they worked 2 hours on one short shift, add 2 shortfall hours so the payslip pays 4 hours for that day.";
+const OVERTIME_TOOLTIP = "As at March 2026 in South Africa, overtime is usually paid at 1.5x. Double pay is generally for Sundays when the worker does not normally work Sundays, or for hours actually worked on a public holiday.";
+const PUBLIC_HOLIDAY_TOOLTIP = "Only enter hours actually worked on a public holiday. These hours pay at 2x. Do not use this field for a paid day off on a holiday, and it does not add to overtime automatically.";
 
 const safeDate = (s: string): Date => {
     if (!s) return new Date();
     const d = new Date(s);
     return Number.isNaN(d.getTime()) ? new Date() : d;
-};
-
-const FOUR_HOUR_RULE_TOOLTIP = "From 1 March 2026, if someone works for you on a day, they must be paid for at least 4 hours for that day, even if they worked less.";
-
-const getWeekdayEstimate = (startValue: string, endValue: string): number => {
-    if (!startValue || !endValue) return 0;
-
-    const start = safeDate(startValue);
-    const end = safeDate(endValue);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) return 0;
-
-    let count = 0;
-    const cur = new Date(start);
-    let safety = 0;
-
-    while (cur <= end && safety < 100) {
-        if (cur.getDay() !== 0) count++;
-        cur.setDate(cur.getDate() + 1);
-        safety++;
-    }
-
-    return count;
 };
 
 function WizardContent() {
@@ -75,32 +62,23 @@ function WizardContent() {
     const [duplicateId, setDuplicateId] = React.useState<string | null>(null);
 
     const now = new Date();
-    const defaultStart = (new Date(now.getFullYear(), now.getMonth(), 1)).toISOString().split('T')[0];
-    const defaultEnd = (new Date(now.getFullYear(), now.getMonth() + 1, 0)).toISOString().split('T')[0];
-
-    const [hours, setHours] = React.useState({ ordinary: "", overtime: "", sunday: "", holiday: "" });
-    const [shortFallHours, setShortFallHours] = React.useState("");
-    const [daysWorked, setDaysWorked] = React.useState("");
-    const [dates, setDates] = React.useState({ start: defaultStart, end: defaultEnd });
-
-    // Automation States
-    const [showShortfallHelper, setShowShortfallHelper] = React.useState(false);
+    const [monthKey, setMonthKey] = React.useState(getMonthKey(now));
+    const [standardWorkingDaysThisMonth, setStandardWorkingDaysThisMonth] = React.useState("");
+    const [ordinaryHoursOverride, setOrdinaryHoursOverride] = React.useState("");
+    const [hours, setHours] = React.useState({ overtime: "", sunday: "", holiday: "" });
     const [shortShiftCount, setShortShiftCount] = React.useState(0);
     const [totalWorkedInShortShifts, setTotalWorkedInShortShifts] = React.useState(0);
+    const [showShortShiftHelper, setShowShortShiftHelper] = React.useState(false);
 
-    const detectedHolidays = getHolidaysInRange(dates.start, dates.end);
-
-    const applyHolidays = () => {
-        const total = (detectedHolidays.length * 8).toString();
-        setHours(prev => ({ ...prev, holiday: total }));
-        toast(`Applied ${total} hours for ${detectedHolidays.length} holidays.`);
-    };
+    const monthBounds = React.useMemo(() => getMonthBounds(monthKey), [monthKey]);
+    const payPeriodStartLabel = React.useMemo(() => format(monthBounds.start, "yyyy-MM-dd"), [monthBounds.start]);
+    const payPeriodEndLabel = React.useMemo(() => format(monthBounds.end, "yyyy-MM-dd"), [monthBounds.end]);
+    const detectedHolidays = React.useMemo(() => getHolidaysInRange(monthBounds.start, monthBounds.end), [monthBounds.end, monthBounds.start]);
     const [periodError, setPeriodError] = React.useState("");
     const [hoursError, setHoursError] = React.useState("");
     const [includeAccommodation, setIncludeAccommodation] = React.useState(false);
     const [accommodationCost, setAccommodationCost] = React.useState("");
     const leaveTrackingEnabled = settings ? canUseLeaveTracking(getUserPlan(settings)) : false;
-    const weekdayEstimate = React.useMemo(() => getWeekdayEstimate(dates.start, dates.end), [dates.start, dates.end]);
 
     React.useEffect(() => {
         let active = true;
@@ -128,32 +106,55 @@ function WizardContent() {
         router.push(getEmployerDetailsSettingsHref(nextPath));
     }, [empId, router, toast]);
 
-    const enteredDaysWorked = Number(daysWorked) || 0;
+    const [leave, setLeave] = React.useState({ annual: "", sick: "", family: "" });
+    const enteredDaysWorked = Number(standardWorkingDaysThisMonth) || 0;
+    const monthlyDraft = employee
+        ? derivePayslipDraft({
+            householdId: employee.householdId ?? "default",
+            employeeId: employee.id,
+            monthKey,
+            standardWorkingDaysThisMonth: enteredDaysWorked,
+            ordinaryHoursPerDay: employee.ordinaryHoursPerDay ?? 8,
+            ordinaryHoursOverride: ordinaryHoursOverride.trim() ? Number(ordinaryHoursOverride) : null,
+            overtimeHours: Number(hours.overtime) || 0,
+            sundayHours: Number(hours.sunday) || 0,
+            publicHolidayHours: Number(hours.holiday) || 0,
+            shortShiftCount,
+            shortShiftWorkedHours: totalWorkedInShortShifts,
+            hourlyRate: employee.hourlyRate,
+            ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
+            includeAccommodation,
+            accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
+            otherDeductions: 0,
+            annualLeaveTaken: leaveTrackingEnabled ? Number(leave.annual) || 0 : 0,
+            sickLeaveTaken: leaveTrackingEnabled ? Number(leave.sick) || 0 : 0,
+            familyLeaveTaken: leaveTrackingEnabled ? Number(leave.family) || 0 : 0,
+        })
+        : null;
+    const ordinaryHours = monthlyDraft?.ordinaryHours ?? 0;
     const totalHours =
-        (Number(hours.ordinary) || 0) +
+        ordinaryHours +
         (Number(hours.overtime) || 0) +
         (Number(hours.sunday) || 0) +
         (Number(hours.holiday) || 0);
     const sundayRateLabel = employee ? `${getSundayRateMultiplier(employee.ordinarilyWorksSundays ?? false).toFixed(1)}x` : "2.0x";
 
-    const [leave, setLeave] = React.useState({ annual: "", sick: "", family: "" });
-
     const breakdown = employee
-        ? calculatePayslip({
+        ? calculatePayslip(normalizePayslipDraftToInput({
             id: "preview",
             householdId: employee.householdId ?? "default",
             employeeId: employee.id,
-            payPeriodStart: safeDate(dates.start),
-            payPeriodEnd: safeDate(dates.end),
-            ordinaryHours: Number(hours.ordinary) || 0,
+            monthKey,
+            standardWorkingDaysThisMonth: enteredDaysWorked,
+            ordinaryHoursPerDay: employee.ordinaryHoursPerDay ?? 8,
+            ordinaryHoursOverride: ordinaryHoursOverride.trim() ? Number(ordinaryHoursOverride) : null,
             overtimeHours: Number(hours.overtime) || 0,
             sundayHours: Number(hours.sunday) || 0,
             publicHolidayHours: Number(hours.holiday) || 0,
-            daysWorked: enteredDaysWorked,
-            shortFallHours: Number(shortFallHours) || 0,
+            shortShiftCount,
+            shortShiftWorkedHours: totalWorkedInShortShifts,
             hourlyRate: employee.hourlyRate,
             ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
-            ordinaryHoursPerDay: employee.ordinaryHoursPerDay ?? 8,
             includeAccommodation,
             accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
             otherDeductions: 0,
@@ -161,10 +162,13 @@ function WizardContent() {
             sickLeaveTaken: leaveTrackingEnabled ? Number(leave.sick) || 0 : 0,
             familyLeaveTaken: leaveTrackingEnabled ? Number(leave.family) || 0 : 0,
             createdAt: new Date(),
-        })
+        }))
         : null;
     const uifApplicable = breakdown
         ? isUifApplicable(breakdown.totalHours, breakdown.periodStart, breakdown.periodEnd)
+        : false;
+    const hasFourHourTopUp = breakdown
+        ? breakdown.topUps.fourHourMinimumHours > 0
         : false;
 
     const doSave = React.useCallback(async () => {
@@ -174,22 +178,21 @@ function WizardContent() {
             // Validate against secure time before save
             await Promise.all([getSettings(), getSecureTime()]);
 
-            const payslipInput: PayslipInput = {
+            const payslipInput: PayslipInput = normalizePayslipDraftToInput({
                 id: crypto.randomUUID(),
                 householdId: employee.householdId ?? "default",
                 employeeId: employee.id,
-                payPeriodStart: safeDate(dates.start),
-                payPeriodEnd: safeDate(dates.end),
-                ordinaryHours: Number(hours.ordinary) || 0,
+                monthKey,
+                standardWorkingDaysThisMonth: enteredDaysWorked,
+                ordinaryHoursPerDay: employee.ordinaryHoursPerDay ?? 8,
+                ordinaryHoursOverride: ordinaryHoursOverride.trim() ? Number(ordinaryHoursOverride) : null,
                 overtimeHours: Number(hours.overtime) || 0,
                 sundayHours: Number(hours.sunday) || 0,
                 publicHolidayHours: Number(hours.holiday) || 0,
-                daysWorked: enteredDaysWorked,
-                shortFallHours: Number(shortFallHours) || 0,
+                shortShiftCount,
+                shortShiftWorkedHours: totalWorkedInShortShifts,
                 hourlyRate: employee.hourlyRate,
-                advanceAmount: 0,
                 ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
-                ordinaryHoursPerDay: employee.ordinaryHoursPerDay ?? 8,
                 includeAccommodation,
                 accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
                 otherDeductions: 0,
@@ -197,7 +200,7 @@ function WizardContent() {
                 sickLeaveTaken: leaveTrackingEnabled ? Number(leave.sick) || 0 : 0,
                 familyLeaveTaken: leaveTrackingEnabled ? Number(leave.family) || 0 : 0,
                 createdAt: new Date(),
-            };
+            });
 
             await savePayslip(payslipInput);
 
@@ -206,7 +209,7 @@ function WizardContent() {
                 householdId: employee.householdId ?? "default",
                 type: "payslip",
                 employeeId: employee.id,
-                fileName: `${employee.name.split(' ')[0]}_Payslip_${format(safeDate(dates.start), "MMM_yyyy")}.pdf`,
+                fileName: `${employee.name.split(' ')[0]}_Payslip_${format(monthBounds.start, "MMM_yyyy")}.pdf`,
                 source: "generated",
                 createdAt: new Date().toISOString(),
             });
@@ -227,17 +230,17 @@ function WizardContent() {
         } finally {
             setLoading(false);
         }
-    }, [employee, dates, hours, enteredDaysWorked, shortFallHours, includeAccommodation, accommodationCost, leave, leaveTrackingEnabled, router, toast]);
+    }, [employee, monthKey, enteredDaysWorked, ordinaryHoursOverride, hours, shortShiftCount, totalWorkedInShortShifts, includeAccommodation, accommodationCost, leave, leaveTrackingEnabled, router, toast, monthBounds.start]);
 
     const handleNext = async () => {
         if (currentStep === 0) {
-            if (!dates.start || !dates.end) { setPeriodError("Please select the pay period."); return; }
-            if (!hours.ordinary && !hours.overtime && !hours.sunday && !hours.holiday) {
-                setHoursError("Please enter at least some hours worked.");
+            if (!monthKey) { setPeriodError("Please select the month for this payslip."); return; }
+            if (enteredDaysWorked === 0 && !hours.overtime && !hours.sunday && !hours.holiday) {
+                setHoursError("Enter the standard working days for this month, or add premium hours if this month had no ordinary schedule.");
                 return;
             }
-            if ((Number(hours.ordinary) || 0) > 0 && enteredDaysWorked === 0) {
-                setHoursError("Enter the actual days worked. This should not be auto-guessed because it affects the 4-hour minimum rule.");
+            if (enteredDaysWorked > 0 && ordinaryHours <= 0) {
+                setHoursError("Ordinary hours must be greater than 0 when standard working days are entered.");
                 return;
             }
             setPeriodError("");
@@ -259,7 +262,7 @@ function WizardContent() {
 
         try {
             const allPayslips = await getAllPayslips();
-            const currentMonth = format(safeDate(dates.start), "yyyy-MM");
+            const currentMonth = monthKey;
             const dup = allPayslips.find(
                 p => p.employeeId === empId &&
                     format(new Date(p.payPeriodStart), "yyyy-MM") === currentMonth
@@ -280,7 +283,7 @@ function WizardContent() {
         return (
             <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
                 <div className="mb-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
-                    <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
+                    <div className="mx-auto w-full max-w-5xl flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
                             <div className="space-y-2">
@@ -290,7 +293,7 @@ function WizardContent() {
                         </div>
                     </div>
                 </div>
-                <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 space-y-5 flex flex-col">
+                <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col space-y-5 px-4 py-6 pb-28">
                     <div className="h-24 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse border border-[var(--border)]" />
                     <div className="flex-1 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse border border-[var(--border)]" />
                 </main>
@@ -304,7 +307,7 @@ function WizardContent() {
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
             <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
-                <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
+                <div className="mx-auto w-full max-w-5xl flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Link href="/employees">
                             <button
@@ -332,7 +335,7 @@ function WizardContent() {
                 </div>
             </div>
 
-            <main className="flex-1 content-container">
+            <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col space-y-5 px-4 py-6 pb-28">
                 {/* Stepper */}
                 <div
                     className="p-5 rounded-2xl"
@@ -364,183 +367,174 @@ function WizardContent() {
                         {/* STEP 0 — Hours & Period */}
                         {currentStep === 0 && (
                             <div className="space-y-6">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="start">Period Start</Label>
-                                        <Input
-                                            id="start"
-                                            type="date"
-                                            value={dates.start}
-                                            onChange={(e) => setDates({ ...dates, start: e.target.value })}
-                                            error={periodError || undefined}
-                                        />
+                                <div className="grid gap-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)]">
+                                    <div className="space-y-3">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="month">Payslip Month</Label>
+                                            <Input
+                                                id="month"
+                                                type="month"
+                                                value={monthKey}
+                                                onChange={(e) => setMonthKey(e.target.value)}
+                                                error={periodError || undefined}
+                                            />
+                                        </div>
+                                        <div className="grid gap-3 sm:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="start">Period Start</Label>
+                                                <Input
+                                                    id="start"
+                                                    type="date"
+                                                    value={payPeriodStartLabel}
+                                                    readOnly
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="end">Period End</Label>
+                                                <Input
+                                                    id="end"
+                                                    type="date"
+                                                    value={payPeriodEndLabel}
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="end">Period End</Label>
-                                        <Input
-                                            id="end"
-                                            type="date"
-                                            value={dates.end}
-                                            onChange={(e) => setDates({ ...dates, end: e.target.value })}
-                                        />
+                                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-4 space-y-3">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Monthly setup</p>
+                                        <p className="text-sm font-semibold text-[var(--text)]">Choose the month once.</p>
+                                        <p className="text-sm leading-6 text-[var(--text-muted)]">
+                                            LekkerLedger fills the first and last day of that month automatically so the main job here is just the work schedule and any extra pay.
+                                        </p>
                                     </div>
                                 </div>
 
                                 <div className="pt-4 space-y-5" style={{ borderTop: "1px solid var(--border)" }}>
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-[var(--text-muted)]">
                                             <Clock className="w-4 h-4 text-[var(--focus)]" />
-                                            Work Schedule
+                                            Standard Time
                                         </h3>
-                                        <div className="flex gap-2">
-                                            {detectedHolidays.length > 0 && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-8 border-[var(--focus)]/30 text-[var(--focus)] bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 text-[10px] gap-1.5 px-2"
-                                                    onClick={applyHolidays}
-                                                >
-                                                    <Sparkles className="w-3 h-3" />
-                                                    Apply Holidays
-                                                </Button>
+                                        <div className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-[11px] font-semibold text-[var(--text-muted)]">
+                                            {employee.ordinaryHoursPerDay ?? 8} hours per standard day
+                                        </div>
+                                    </div>
+
+                                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Label htmlFor="standardWorkingDays" className="text-xs">Standard Working Days This Month</Label>
+                                                    <InfoTooltip
+                                                        label="Explain standard working days this month"
+                                                        tooltip="Enter the normal number of workdays for this payslip month. LekkerLedger uses this to calculate ordinary hours automatically from the employee's standard hours per day."
+                                                    />
+                                                </div>
+                                                <Input
+                                                    id="standardWorkingDays"
+                                                    type="number"
+                                                    min="0"
+                                                    placeholder="e.g. 20"
+                                                    value={standardWorkingDaysThisMonth}
+                                                    onChange={(e) => setStandardWorkingDaysThisMonth(e.target.value)}
+                                                />
+                                                <p className="text-[11px] leading-5 text-[var(--text-muted)]">
+                                                    Example: if the employee usually works Monday to Friday and worked 20 normal days this month, enter 20.
+                                                </p>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <Label htmlFor="ordinary" className="text-xs">Ordinary Hours</Label>
+                                                        <InfoTooltip
+                                                            label="Explain ordinary hours"
+                                                            tooltip="These are the normal paid hours for the month before overtime, Sundays, and public-holiday work. LekkerLedger calculates this automatically, but you can adjust it if the month was unusual."
+                                                        />
+                                                    </div>
+                                                    {monthlyDraft?.hasManualOrdinaryHoursOverride && (
+                                                        <button
+                                                            type="button"
+                                                            className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+                                                            onClick={() => setOrdinaryHoursOverride("")}
+                                                        >
+                                                            Use auto hours
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <Input
+                                                    id="ordinary"
+                                                    type="number"
+                                                    min="0"
+                                                    placeholder="0"
+                                                    value={ordinaryHoursOverride !== "" ? ordinaryHoursOverride : (monthlyDraft?.autoOrdinaryHours ? monthlyDraft.autoOrdinaryHours.toString() : "")}
+                                                    onChange={(e) => setOrdinaryHoursOverride(e.target.value)}
+                                                />
+                                                <p className="text-[11px] leading-5 text-[var(--text-muted)]">
+                                                    {monthlyDraft?.hasManualOrdinaryHoursOverride
+                                                        ? `Manual ordinary-hours override in use. Auto-calculated hours for this month would be ${monthlyDraft.autoOrdinaryHours}.`
+                                                        : `Auto-calculated as ${monthlyDraft?.autoOrdinaryHours ?? 0} hours from ${enteredDaysWorked} standard day${enteredDaysWorked === 1 ? "" : "s"} x ${employee.ordinaryHoursPerDay ?? 8} hours.`}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-4 space-y-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowShortShiftHelper((current) => !current)}
+                                                className="flex w-full items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3 text-left hover:bg-[var(--surface-raised)]"
+                                            >
+                                                <div className="space-y-1">
+                                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Short Shifts (4-hour rule)</p>
+                                                    <p className="text-sm font-semibold text-[var(--text)]">Had any shifts under 4 hours this month? Add them here.</p>
+                                                </div>
+                                                {showShortShiftHelper ? <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />}
+                                            </button>
+
+                                            {showShortShiftHelper && (
+                                                <div className="space-y-4 animate-fade-in">
+                                                    <div className="rounded-xl border border-[var(--focus)]/20 bg-[var(--primary)]/[0.03] p-3 text-sm leading-6 text-[var(--text-muted)]">
+                                                        If someone worked on a day for less than 4 hours, South African law from March 2026 says they must still be paid for at least 4 hours for that day. Example: if they worked 2 hours on one Saturday, LekkerLedger adds 2 more paid hours.
+                                                    </div>
+                                                    <div className="grid gap-3 sm:grid-cols-2">
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[10px] font-bold uppercase text-[var(--text-muted)]">How many short shifts?</Label>
+                                                            <Input
+                                                                type="number"
+                                                                min="0"
+                                                                placeholder="e.g. 1"
+                                                                value={shortShiftCount || ""}
+                                                                onChange={(e) => setShortShiftCount(Number.parseInt(e.target.value, 10) || 0)}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[10px] font-bold uppercase text-[var(--text-muted)]">Hours actually worked across them</Label>
+                                                            <Input
+                                                                type="number"
+                                                                min="0"
+                                                                placeholder="e.g. 2"
+                                                                value={totalWorkedInShortShifts || ""}
+                                                                onChange={(e) => setTotalWorkedInShortShifts(Number.parseFloat(e.target.value) || 0)}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3">
+                                                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">4-hour top-up</p>
+                                                        <p className="mt-1 text-base font-semibold text-[var(--text)]">
+                                                            {monthlyDraft?.shortFallHours ?? 0} hour{(monthlyDraft?.shortFallHours ?? 0) === 1 ? "" : "s"} will be added
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="ordinary" className="text-xs">Ordinary Hours</Label>
-                                            <Input
-                                                id="ordinary"
-                                                type="number"
-                                                min="0"
-                                                placeholder="160"
-                                                value={hours.ordinary}
-                                                onChange={(e) => setHours({ ...hours, ordinary: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <Label htmlFor="daysWorked" className="text-xs">Actual Days Worked</Label>
-                                                {weekdayEstimate > 0 && (
-                                                    <button
-                                                        type="button"
-                                                        className="text-[10px] font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
-                                                        onClick={() => setDaysWorked(weekdayEstimate.toString())}
-                                                    >
-                                                        Use weekday estimate ({weekdayEstimate})
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <Input
-                                                id="daysWorked"
-                                                type="number"
-                                                min="0"
-                                                placeholder={weekdayEstimate > 0 ? weekdayEstimate.toString() : "20"}
-                                                value={daysWorked}
-                                                onChange={(e) => setDaysWorked(e.target.value)}
-                                            />
-                                            <p className="text-[10px] text-[var(--text-muted)]">
-                                                Enter the real number of days worked in this period. We do not auto-fill this because it affects the 4-hour minimum rule.
-                                            </p>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="overtime" className="text-xs">Overtime (1.5x)</Label>
-                                            <Input
-                                                id="overtime"
-                                                type="number"
-                                                min="0"
-                                                placeholder="0"
-                                                value={hours.overtime}
-                                                onChange={(e) => setHours({ ...hours, overtime: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <Label htmlFor="shortFallHours" className="text-xs">Shortfall (4-hr rule)</Label>
-                                                <InfoTooltip
-                                                    label="Explain the 4-hour minimum rule"
-                                                    tooltip={FOUR_HOUR_RULE_TOOLTIP}
-                                                />
-                                            </div>
-                                            <Input
-                                                id="shortFallHours"
-                                                type="number"
-                                                min="0"
-                                                placeholder="0"
-                                                value={shortFallHours}
-                                                onChange={(e) => setShortFallHours(e.target.value)}
-                                            />
-                                        </div>
+                                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">What happens next</p>
+                                        <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">
+                                            Overtime, Sunday hours, and public-holiday work are entered separately on the next step so the ordinary monthly hours stay clear.
+                                        </p>
                                     </div>
-
-                                    {/* Hours error */}
                                     {hoursError && (
                                         <p className="text-xs font-medium text-[var(--danger)]">{hoursError}</p>
                                     )}
-
-                                    {/* 4-Hour Rule Assistant */}
-                                    <div className="p-4 rounded-xl border border-[var(--focus)]/10 bg-[var(--primary)]/[0.02] space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <Info className="w-3.5 h-3.5 text-[var(--focus)]" />
-                                                <Label htmlFor="assistant-switch" className="cursor-pointer text-[11px] font-bold uppercase tracking-tight text-[var(--text-secondary)]">4-Hour Rule Assistant</Label>
-                                                <InfoTooltip
-                                                    label="Explain the 4-hour minimum rule assistant"
-                                                    tooltip={FOUR_HOUR_RULE_TOOLTIP}
-                                                />
-                                            </div>
-                                            <Switch
-                                                id="assistant-switch"
-                                                checked={showShortfallHelper}
-                                                onCheckedChange={setShowShortfallHelper}
-                                            />
-                                        </div>
-                                        {showShortfallHelper && (
-                                            <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-1">
-                                                        <Label className="text-[10px] font-bold uppercase text-[var(--text-muted)]">Short Shifts</Label>
-                                                        <Input
-                                                            type="number"
-                                                            className="h-11 text-xs"
-                                                            min="0"
-                                                            placeholder="e.g. 2"
-                                                            value={shortShiftCount || ""}
-                                                            onChange={(e) => setShortShiftCount(Number.parseInt(e.target.value, 10) || 0)}
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <Label className="text-[10px] font-bold uppercase text-[var(--text-muted)]">Hrs Worked</Label>
-                                                        <Input
-                                                            type="number"
-                                                            className="h-11 text-xs"
-                                                            min="0"
-                                                            placeholder="e.g. 3"
-                                                            value={totalWorkedInShortShifts || ""}
-                                                            onChange={(e) => setTotalWorkedInShortShifts(Number.parseFloat(e.target.value) || 0)}
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    className="w-full text-xs h-11 font-bold bg-[var(--primary)]/10 text-[var(--focus)] hover:bg-[var(--primary)]/20"
-                                                    onClick={() => {
-                                                        const shortfall = (shortShiftCount * 4) - totalWorkedInShortShifts;
-                                                        if (shortfall > 0) {
-                                                            setShortFallHours((prev) => (Number.parseFloat(prev || "0") + shortfall).toString());
-                                                            setShortShiftCount(0);
-                                                            setTotalWorkedInShortShifts(0);
-                                                            toast(`Added ${shortfall}h shortfall.`);
-                                                        }
-                                                    }}
-                                                >
-                                                    Calculate & Add
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
                                 </div>
                             </div>
                         )}
@@ -556,6 +550,23 @@ function WizardContent() {
                                     </AlertDescription>
                                 </Alert>
                                 <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Label htmlFor="overtime">Overtime (1.5x)</Label>
+                                        <InfoTooltip
+                                            label="Explain overtime pay"
+                                            tooltip={OVERTIME_TOOLTIP}
+                                        />
+                                    </div>
+                                    <Input
+                                        id="overtime"
+                                        type="number"
+                                        min="0"
+                                        placeholder="0"
+                                        value={hours.overtime}
+                                        onChange={(e) => setHours((prev) => ({ ...prev, overtime: e.target.value }))}
+                                    />
+                                </div>
+                                <div className="space-y-2">
                                     <Label htmlFor="sunday">Sunday Hours ({sundayRateLabel} rate)</Label>
                                     <Input
                                         id="sunday"
@@ -563,23 +574,46 @@ function WizardContent() {
                                         min="0"
                                         placeholder="0"
                                         value={hours.sunday}
-                                        onChange={(e) => setHours({ ...hours, sunday: e.target.value })}
+                                        onChange={(e) => setHours((prev) => ({ ...prev, sunday: e.target.value }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="holiday">Public Holiday Hours (2× rate)</Label>
+                                    <div className="flex items-center gap-2">
+                                        <Label htmlFor="holiday">Public Holiday Hours (2× rate)</Label>
+                                        <InfoTooltip
+                                            label="Explain public holiday hours"
+                                            tooltip={PUBLIC_HOLIDAY_TOOLTIP}
+                                        />
+                                    </div>
                                     <Input
                                         id="holiday"
                                         type="number"
                                         min="0"
-                                        placeholder={detectedHolidays.length > 0 ? `Suggested: ${detectedHolidays.length * 8}` : "0"}
+                                        placeholder="0"
                                         value={hours.holiday}
-                                        onChange={(e) => setHours({ ...hours, holiday: e.target.value })}
+                                        onChange={(e) => setHours((prev) => ({ ...prev, holiday: e.target.value }))}
                                     />
                                     {detectedHolidays.length > 0 && (
-                                        <p className="text-[10px] font-medium animate-fade-in" style={{ color: "var(--primary)" }}>
-                                            Found {detectedHolidays.length} holiday{detectedHolidays.length > 1 ? 's' : ''}: {detectedHolidays.map(h => h.name).join(", ")}.
-                                        </p>
+                                        <div className="rounded-xl border border-[var(--focus)]/15 bg-[var(--primary)]/[0.03] p-3 space-y-2">
+                                            <p className="text-[11px] font-semibold" style={{ color: "var(--primary)" }}>
+                                                Public holiday{detectedHolidays.length > 1 ? "s" : ""} in this period:
+                                            </p>
+                                            <ul className="space-y-1 text-[11px] text-[var(--text-muted)]">
+                                                {detectedHolidays.map((holiday) => {
+                                                    const holidayDate = safeDate(holiday.date);
+                                                    return (
+                                                        <li key={holiday.date}>
+                                                            {format(holidayDate, "EEE d MMM yyyy")}: {holiday.name}
+                                                            {holidayDate.getDay() === 6 ? " (falls on Saturday)" : ""}
+                                                            {holidayDate.getDay() === 0 ? " (falls on Sunday)" : ""}
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>
+                                            <p className="text-[11px] text-[var(--text-muted)]">
+                                                Enter hours here only if the employee actually worked on that public holiday. If they did not work, do not add hours here.
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -610,7 +644,7 @@ function WizardContent() {
                                                     min="0"
                                                     placeholder="0"
                                                     value={leave.annual}
-                                                    onChange={(e) => setLeave({ ...leave, annual: e.target.value })}
+                                                    onChange={(e) => setLeave((prev) => ({ ...prev, annual: e.target.value }))}
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
@@ -621,7 +655,7 @@ function WizardContent() {
                                                     min="0"
                                                     placeholder="0"
                                                     value={leave.sick}
-                                                    onChange={(e) => setLeave({ ...leave, sick: e.target.value })}
+                                                    onChange={(e) => setLeave((prev) => ({ ...prev, sick: e.target.value }))}
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
@@ -632,7 +666,7 @@ function WizardContent() {
                                                     min="0"
                                                     placeholder="0"
                                                     value={leave.family}
-                                                    onChange={(e) => setLeave({ ...leave, family: e.target.value })}
+                                                    onChange={(e) => setLeave((prev) => ({ ...prev, family: e.target.value }))}
                                                 />
                                             </div>
                                         </div>
@@ -682,7 +716,7 @@ function WizardContent() {
                                     <div className="p-4 rounded-xl border border-[var(--focus)]/40 bg-[var(--primary)]/5 space-y-3">
                                         <div className="flex items-center gap-2 text-sm font-bold" style={{ color: "var(--primary)" }}>
                                             <AlertTriangle className="h-4 w-4 shrink-0" />
-                                            <span>A payslip for {employee.name} already exists for {format(safeDate(dates.start), "MMMM yyyy")}.</span>
+                                            <span>A payslip for {employee.name} already exists for {format(monthBounds.start, "MMMM yyyy")}.</span>
                                         </div>
                                         <div className="flex gap-2">
                                             <Button
@@ -722,9 +756,10 @@ function WizardContent() {
                                         isInfo={!uifApplicable}
                                     />
                                     <ComplianceRow
-                                        pass={enteredDaysWorked === 0 || (Number(hours.ordinary) / Math.max(enteredDaysWorked, 1)) >= 4}
-                                        passText="Hours meet 4-hr minimum shift rule"
-                                        failText="Some shifts may be below 4 hrs — calculator tops up automatically"
+                                        pass={!hasFourHourTopUp}
+                                        passText="No 4-hour minimum top-up added"
+                                        failText="This payslip includes a 4-hour minimum top-up"
+                                        isInfo={hasFourHourTopUp}
                                     />
                                 </div>
 
@@ -749,9 +784,15 @@ function WizardContent() {
                                     <div className="px-4 pt-4 pb-2 space-y-2">
                                         <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--primary)" }}>Earnings</p>
                                         <Row
-                                            label={`Ordinary (${breakdown.effectiveOrdinaryHours}h${Number(shortFallHours) > 0 ? " inc. 4-hr minimum top-up" : ""})`}
+                                            label={`Ordinary (${ordinaryHours}h${hasFourHourTopUp ? ` + ${breakdown.topUps.fourHourMinimumHours}h 4-hr top-up` : ""})`}
                                             value={`R ${breakdown.ordinaryPay.toFixed(2)}`}
                                         />
+                                        {hasFourHourTopUp && (
+                                            <Row
+                                                label="4-hour minimum top-up"
+                                                value={`${breakdown.topUps.fourHourMinimumHours}h included`}
+                                            />
+                                        )}
                                         {(Number(hours.overtime) || 0) > 0 && <Row label={`Overtime (${Number(hours.overtime)}h @ 1.5x)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}
                                         {(Number(hours.sunday) || 0) > 0 && <Row label={`Sunday (${Number(hours.sunday)}h @ ${sundayRateLabel})`} value={`R ${breakdown.sundayPay.toFixed(2)}`} />}
                                         {(Number(hours.holiday) || 0) > 0 && <Row label={`Public Holiday (${Number(hours.holiday)}h @ 2x)`} value={`R ${breakdown.publicHolidayPay.toFixed(2)}`} />}

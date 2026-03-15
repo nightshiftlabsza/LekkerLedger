@@ -21,6 +21,7 @@ import {
     savePayslip, saveDocumentMeta
 } from "@/lib/storage";
 import { calculatePayslip } from "@/lib/calculator";
+import { getMonthKey, normalizePayslipDraftToInput } from "@/lib/payslip-draft";
 import { PayPeriod, Employee, EmployeeEntry, PayslipInput, EmployerSettings, LeaveRecord } from "@/lib/schema";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
 import { getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
@@ -213,27 +214,32 @@ export default function PayPeriodWorkspacePage() {
         const family = records.filter(r => r.type === "family").reduce((s, r) => s + r.days, 0);
 
         return {
-            id: `${period!.id}-${entry.employeeId}`,
-            householdId: period!.householdId || emp.householdId || "default",
-            employeeId: entry.employeeId,
+            ...normalizePayslipDraftToInput({
+                id: `${period!.id}-${entry.employeeId}`,
+                householdId: period!.householdId || emp.householdId || "default",
+                employeeId: entry.employeeId,
+                monthKey: getMonthKey(new Date(period!.startDate)),
+                standardWorkingDaysThisMonth: Math.ceil(entry.ordinaryHours / (emp.ordinaryHoursPerDay || 8)),
+                ordinaryHoursPerDay: emp.ordinaryHoursPerDay ?? 8,
+                ordinaryHoursOverride: entry.ordinaryHours,
+                overtimeHours: entry.overtimeHours,
+                sundayHours: entry.sundayHours,
+                publicHolidayHours: entry.publicHolidayHours,
+                shortShiftCount: 0,
+                shortShiftWorkedHours: 0,
+                shortFallHoursOverride: entry.shortFallHours || 0,
+                hourlyRate: entry.rateOverride ?? emp.hourlyRate,
+                includeAccommodation: false,
+                otherDeductions: entry.otherDeductions,
+                annualLeaveTaken: annual,
+                sickLeaveTaken: sick,
+                familyLeaveTaken: family,
+                ordinarilyWorksSundays: emp.ordinarilyWorksSundays ?? false,
+                createdAt: new Date(),
+            }),
+            advanceAmount: entry.advanceAmount || 0,
             payPeriodStart: new Date(period!.startDate),
             payPeriodEnd: new Date(period!.endDate),
-            ordinaryHours: entry.ordinaryHours,
-            overtimeHours: entry.overtimeHours,
-            sundayHours: entry.sundayHours,
-            publicHolidayHours: entry.publicHolidayHours,
-            daysWorked: Math.ceil(entry.ordinaryHours / (emp.ordinaryHoursPerDay || 8)),
-            shortFallHours: entry.shortFallHours || 0,
-            hourlyRate: entry.rateOverride ?? emp.hourlyRate,
-            includeAccommodation: false,
-            advanceAmount: entry.advanceAmount || 0,
-            otherDeductions: entry.otherDeductions,
-            createdAt: new Date(),
-            ordinarilyWorksSundays: emp.ordinarilyWorksSundays ?? false,
-            ordinaryHoursPerDay: emp.ordinaryHoursPerDay ?? 8,
-            annualLeaveTaken: annual,
-            sickLeaveTaken: sick,
-            familyLeaveTaken: family,
         };
     };
 
@@ -453,13 +459,14 @@ export default function PayPeriodWorkspacePage() {
                                     return {
                                         title: emp.name,
                                         items: [
-                                            { label: `Ordinary Pay (${input.ordinaryHours}h)`, value: `R${calc.ordinaryPay.toFixed(2)}` },
+                                            { label: `Ordinary Pay (${input.ordinaryHours}h${calc.topUps.fourHourMinimumHours > 0 ? ` + ${calc.topUps.fourHourMinimumHours}h 4-hr top-up` : ""})`, value: `R${calc.ordinaryPay.toFixed(2)}` },
                                             ...(input.overtimeHours > 0 ? [{ label: `Overtime Pay (${input.overtimeHours}h @ 1.5×)`, value: `R${(input.overtimeHours * (entry.rateOverride ?? emp.hourlyRate) * 1.5).toFixed(2)}` }] : []),
                                             ...(input.sundayHours > 0 ? [{ label: `Sunday Pay (${input.sundayHours}h @ ${sundayRate}×)`, value: `R${(input.sundayHours * (entry.rateOverride ?? emp.hourlyRate) * sundayRate).toFixed(2)}` }] : []),
                                             ...(input.publicHolidayHours > 0 ? [{ label: `Public Holiday Pay (${input.publicHolidayHours}h @ 2.0×)`, value: `R${(input.publicHolidayHours * (entry.rateOverride ?? emp.hourlyRate) * 2.0).toFixed(2)}` }] : []),
+                                            ...(calc.topUps.fourHourMinimumHours > 0 ? [{ label: "4-hour minimum top-up included", value: `${calc.topUps.fourHourMinimumHours}h`, highlight: true }] : []),
                                             { label: "Total Gross", value: `R${calc.grossPay.toFixed(2)}`, highlight: true },
                                             ...(calc.deductions.uifEmployee > 0 ? [{ label: "Employee UIF (1%)", value: `-R${calc.deductions.uifEmployee.toFixed(2)}` }] : []),
-                                            ...(calc.deductions.shortfall > 0 ? [{ label: "Shortfall Deduction", value: `-R${calc.deductions.shortfall.toFixed(2)}` }] : []),
+                                            ...(calc.deductions.advance && calc.deductions.advance > 0 ? [{ label: "Advance", value: `-R${calc.deductions.advance.toFixed(2)}` }] : []),
                                             ...(calc.deductions.other > 0 ? [{ label: "Other Deductions", value: `-R${calc.deductions.other.toFixed(2)}` }] : []),
                                             ...(calc.deductions.total > 0 ? [{ label: "Total Deductions", value: `-R${calc.deductions.total.toFixed(2)}` }] : []),
                                             ...(calc.employerContributions.uifEmployer > 0 ? [{ label: "Employer UIF (1%)", value: `R${calc.employerContributions.uifEmployer.toFixed(2)}` }] : []),

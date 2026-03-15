@@ -34,10 +34,13 @@ export interface PayBreakdown {
     deductions: {
         uifEmployee: number;
         accommodation: number | undefined;
-        shortfall?: number;
         advance?: number;
         other: number;
         total: number;
+    };
+    topUps: {
+        fourHourMinimumHours: number;
+        fourHourMinimumPay: number;
     };
     employerContributions: {
         uifEmployer: number;
@@ -125,9 +128,12 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
     const sdlEmployer = 0;
     const accommodationLimit = roundTo(grossPay * ACCOMMODATION_MAX_PCT);
     const accommodation = input.includeAccommodation ? roundTo(Math.min(input.accommodationCost ?? accommodationLimit, accommodationLimit)) : undefined;
+    const advanceAmount = roundTo(input.advanceAmount ?? 0);
     const otherDeductions = roundTo(input.otherDeductions ?? 0);
-    const totalDeductions = roundTo(uifContribution + (accommodation ?? 0) + otherDeductions);
+    const totalDeductions = roundTo(uifContribution + (accommodation ?? 0) + advanceAmount + otherDeductions);
     const netPay = Math.max(0, roundTo(grossPay - totalDeductions));
+    const fourHourMinimumHours = Math.max(effectiveOrdinaryHours - input.ordinaryHours, 0);
+    const fourHourMinimumPay = roundTo(fourHourMinimumHours * rate);
 
     const complianceWarnings: string[] = [];
     if (input.hourlyRate < activeNmwRate) {
@@ -156,10 +162,13 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
         deductions: {
             uifEmployee: uifContribution,
             accommodation,
-            shortfall: roundTo((input.shortFallHours ?? 0) * rate),
-            advance: roundTo(input.advanceAmount ?? 0),
+            advance: advanceAmount,
             other: otherDeductions,
-            total: roundTo(uifContribution + (accommodation ?? 0) + roundTo((input.shortFallHours ?? 0) * rate) + roundTo(input.advanceAmount ?? 0) + otherDeductions),
+            total: totalDeductions,
+        },
+        topUps: {
+            fourHourMinimumHours,
+            fourHourMinimumPay,
         },
         employerContributions: {
             uifEmployer: uifContribution,

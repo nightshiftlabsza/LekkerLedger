@@ -68,15 +68,11 @@ test.describe("Payslip Generation Flow", () => {
 
         // 6. We should be on the Wizard
         await expect(page).toHaveURL(/\/wizard/, { timeout: 10000 });
-        await page.waitForSelector('input[id="start"]');
+        await page.waitForSelector('input[id="month"]');
 
-        // Fill dates
-        await page.fill('input[id="start"]', "2025-01-01");
-        await page.fill('input[id="end"]', "2025-01-31");
-
-        // Fill days worked and hours
-        await page.fill('input[id="daysWorked"]', "22");
-        await page.fill('input[id="ordinary"]', "176");
+        // Fill monthly standard-time flow
+        await page.fill('input[id="month"]', "2025-01");
+        await page.fill('input[id="standardWorkingDays"]', "22");
 
         // Next -> Sundays & Holidays
         await page.getByRole('button', { name: /Next/i }).first().click({ force: true });
