@@ -9,7 +9,7 @@ import {
     FileText,
     Users,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useInlinePaidPlanCheckout } from "@/components/billing/inline-paid-plan-checkout";
 import { MarketingBillingToggle, MarketingPlanCards } from "@/components/marketing/pricing";
 import { calculatePayslip } from "@/lib/calculator";
 import { getNMWForDate } from "@/lib/legal/registry";
@@ -18,7 +18,12 @@ import { HOMEPAGE_PRICING_LINK_LABEL, PRICING_PAGE_SUBTITLE, PRICING_PAGE_TITLE 
 import { useMarketingBillingCycle } from "@/src/lib/use-marketing-billing-cycle";
 import { MarketingHeader } from "../../../components/layout/marketing-header";
 
-const SAMPLE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-x-2 sm:gap-x-4 sm:grid-cols-[minmax(0,1fr)_5rem_6.75rem_7rem]";
+const SAMPLE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_3.6rem_5.25rem_6rem] gap-x-2 sm:grid-cols-[minmax(0,1fr)_4.25rem_5.75rem_6.75rem] sm:gap-x-3";
+const HERO_TRUST_POINTS = [
+    "UIF deductions are clearly shown on each payslip.",
+    "Contracts, exports, and payroll records stay together.",
+    "Paid plans add accounts, sync, and dashboard access.",
+] as const;
 
 function formatRand(value: number) {
     return `R ${value.toFixed(2)}`;
@@ -112,7 +117,6 @@ export default function HomePage() {
                 <PricingPreview />
                 <FAQPreview />
             </main>
-
         </div>
     );
 }
@@ -120,10 +124,13 @@ export default function HomePage() {
 function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSample> }>) {
     return (
         <section className="relative overflow-hidden border-b border-[var(--border)]" style={{ backgroundColor: "var(--bg)" }}>
-            <div className="absolute inset-x-0 top-24 h-px bg-[var(--border)]" />
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute left-1/2 top-0 h-64 w-[min(92vw,72rem)] -translate-x-1/2 bg-[radial-gradient(circle,rgba(196,122,28,0.12)_0%,rgba(250,247,240,0)_72%)]" />
+                <div className="absolute inset-x-0 top-24 h-px bg-[var(--border)]" />
+            </div>
 
-            <div className="relative content-container-wide px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-                <div className="grid gap-10 xl:grid-cols-[minmax(0,38rem)_minmax(0,1fr)] xl:items-center 2xl:gap-16">
+            <div className="marketing-shell relative py-8 sm:py-10 lg:py-12 xl:py-14">
+                <div className="grid gap-8 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] lg:items-center xl:grid-cols-[minmax(0,34rem)_minmax(0,1fr)] xl:gap-12">
                     <div className="max-w-[38rem] space-y-6">
                         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em]">
                             <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
@@ -140,19 +147,32 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
                         </div>
 
                         <div className="space-y-3">
-                            <Link href="/resources/tools/domestic-worker-payslip" className="inline-flex min-h-[44px] items-stretch self-start">
-                                <Button className="h-12 rounded-xl bg-[var(--primary)] px-7 text-base font-bold text-white shadow-[var(--shadow-2)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]">
-                                    Start free <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
+                            <Link
+                                href="/resources/tools/domestic-worker-payslip"
+                                className="inline-flex min-h-[44px] items-center gap-2 self-start rounded-xl bg-[var(--primary)] px-7 py-3 text-base font-bold text-white shadow-[var(--shadow-2)] transition-colors hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]"
+                            >
+                                Generate free payslip <ArrowRight className="h-4 w-4" />
                             </Link>
                             <p className="text-xs font-medium leading-6" style={{ color: "var(--text-muted)" }}>
                                 Free uses the public payslip tool. Paid plans unlock accounts, sync, and the dashboard.
                             </p>
                         </div>
+
+                        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                            {HERO_TRUST_POINTS.map((point) => (
+                                <div
+                                    key={point}
+                                    className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 text-sm leading-6 shadow-[var(--shadow-sm)]"
+                                    style={{ color: "var(--text-muted)" }}
+                                >
+                                    <span className="mb-2 block h-2 w-2 rounded-full bg-[var(--primary)]" />
+                                    {point}
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="w-full max-w-[46rem] xl:justify-self-end">
-
+                    <div className="w-full lg:justify-self-end">
                         <SamplePayslipCard sample={sample} />
                     </div>
                 </div>
@@ -163,101 +183,69 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
 
 function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSample> }>) {
     return (
-        <div className="overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]" data-testid="sample-payslip-card">
-            <div className="sm:hidden">
-                <div
-                    className="border-b border-[var(--border)] px-5 py-4"
-                    style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.10) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
-                >
-                    <div className="flex items-center justify-between gap-3">
-                        <div>
-                            <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
-                                LekkerLedger
-                            </p>
-                            <p className="mt-1 text-sm font-semibold" style={{ color: "var(--text)" }}>
-                                Sample payroll record
-                            </p>
-                        </div>
-                        <p className="rounded-full border border-[var(--focus)]/20 bg-[var(--surface-1)] px-3 py-1.5 text-sm font-semibold shadow-sm" style={{ color: "var(--text)" }}>
-                            {sample.monthLabel}
-                        </p>
-                    </div>
-                    <p className="mt-3 max-w-[28ch] text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                        A calmer mobile preview: the real document keeps the official layout, but the phone preview focuses on the key figures first.
-                    </p>
-                </div>
-
-                <div className="space-y-4 p-5">
-                    <div className="grid gap-3">
-                        <CompactPartyBlock label="Employer" value={sample.employer.name} detail={sample.employer.address} />
-                        <CompactPartyBlock label="Employee" value={sample.employee.name} detail={`${sample.employee.role} · ${sample.payslip.daysWorked} days worked`} />
-                        <CompactPartyBlock label="Pay period" value={sample.periodLabel} detail={`${sample.leaveDaysRemaining.toFixed(1)} leave days remaining`} />
-                    </div>
-
-                    <div className="rounded-[22px] border border-[var(--border)] p-4" style={{ background: "linear-gradient(180deg, rgba(255, 252, 248, 0.96) 0%, rgba(0, 122, 77, 0.03) 100%)" }}>
-                        <p className="text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                            This month
-                        </p>
-                        <div className="mt-3 space-y-3">
-                            <CompactFigureRow label="Ordinary hours" value={`${sample.payslip.ordinaryHours}h @ ${formatRand(sample.breakdown.hourlyRate)}/hr`} />
-                            <CompactFigureRow label="Gross earnings" value={formatRand(sample.breakdown.grossPay)} strong />
-                            <CompactFigureRow label="UIF deduction" value={`- ${formatRand(sample.breakdown.deductions.uifEmployee)}`} />
-                            <CompactFigureRow label="Net pay" value={formatRand(sample.breakdown.netPay)} strong emphasis />
-                        </div>
-                    </div>
-
-                    <p className="text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                        Sample only. Real payslips keep the full official layout when you open or download the document.
-                    </p>
-                </div>
-            </div>
-
-            <div className="hidden sm:block">
-                <div
-                    className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4"
-                    style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.10) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
-                >
+        <div
+            className="marketing-proof-shell mx-auto overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]"
+            data-testid="sample-payslip-card"
+        >
+            <div
+                className="border-b border-[var(--border)] px-5 py-4 sm:px-6 sm:py-5"
+                style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.10) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
+            >
+                <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
                             LekkerLedger
                         </p>
-                        <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
-                            Payroll sample
+                        <p className="mt-1 text-sm font-semibold" style={{ color: "var(--text)" }}>
+                            Sample payslip preview
                         </p>
                     </div>
-                    <p
-                        className="rounded-full border border-[var(--focus)]/20 bg-[var(--surface-1)] px-3 py-1.5 text-xs font-semibold shadow-sm"
-                        style={{ color: "var(--text)" }}
-                    >
+                    <p className="rounded-full border border-[var(--focus)]/20 bg-[var(--surface-1)] px-3 py-1.5 text-sm font-semibold shadow-sm" style={{ color: "var(--text)" }}>
                         {sample.monthLabel}
                     </p>
                 </div>
+                <p className="mt-3 max-w-[38ch] text-sm leading-6" style={{ color: "var(--text-muted)" }}>
+                    Gross earnings, UIF deduction, and net pay stay easy to scan before you download the full document.
+                </p>
+            </div>
 
-                <div className="p-4 sm:p-5">
-                    <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-4">
+            <div className="grid gap-5 p-5 sm:p-6 xl:grid-cols-[minmax(0,1fr)_14rem] xl:gap-6">
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--border)] pb-4">
                         <div>
-                            <h2 className="font-[family:var(--font-serif)] text-xl font-semibold" style={{ color: "var(--text)" }}>
+                            <h2
+                                className="font-[family:var(--font-serif)] font-semibold"
+                                style={{ color: "var(--text)", fontSize: "clamp(1.5rem, 1.25rem + 0.7vw, 2rem)" }}
+                            >
                                 PAYSLIP
                             </h2>
                             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
                                 Household payroll record
                             </p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-left sm:text-right">
                             <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                                 Pay period
                             </p>
-                            <p className="mt-2 rounded-full bg-[var(--accent-subtle)] px-3 py-1.5 text-sm font-semibold" style={{ color: "var(--text)" }}>
+                            <p
+                                className="mt-2 rounded-full bg-[var(--accent-subtle)] px-3 py-1.5 font-semibold"
+                                style={{ color: "var(--text)", fontSize: "clamp(0.82rem, 0.76rem + 0.15vw, 0.95rem)" }}
+                            >
                                 {sample.periodLabel}
                             </p>
                         </div>
                     </div>
 
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
                         <SamplePartyBlock
                             label="Employer"
                             value={sample.employer.name}
-                            detail={<p>{sample.employer.address}</p>}
+                            detail={
+                                <>
+                                    <p className="sm:hidden">Johannesburg household employer</p>
+                                    <p className="hidden sm:block">{sample.employer.address}</p>
+                                </>
+                            }
                         />
                         <SamplePartyBlock
                             label="Employee"
@@ -265,11 +253,12 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                             detail={
                                 <>
                                     <p>{sample.employee.role}</p>
-                                    <p className="tabular-nums">ID {formatIdNumber(sample.employee.idNumber)}</p>
+                                    <p className="hidden sm:block tabular-nums">ID {formatIdNumber(sample.employee.idNumber)}</p>
                                 </>
                             }
                         />
                         <SamplePartyBlock
+                            className="sm:col-span-2 2xl:col-span-1"
                             label="Month"
                             value={sample.monthLabel}
                             detail={
@@ -282,10 +271,13 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                     </div>
 
                     <div
-                        className="mt-4 rounded-[22px] border border-[var(--border)] p-4"
+                        className="mt-4 rounded-[22px] border border-[var(--border)] p-4 sm:p-5"
                         style={{ background: "linear-gradient(180deg, rgba(255, 252, 248, 0.96) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
                     >
-                        <div className={`${SAMPLE_FIGURE_GRID} border-b border-[var(--border)] pb-2 text-[10px] font-black uppercase tracking-[0.16em]`} style={{ color: "var(--text-muted)" }}>
+                        <div
+                            className={`${SAMPLE_FIGURE_GRID} border-b border-[var(--border)] pb-2 text-[10px] font-black uppercase tracking-[0.16em]`}
+                            style={{ color: "var(--text-muted)" }}
+                        >
                             <span>Description</span>
                             <span className="text-right">Hours</span>
                             <span className="text-right">Rate</span>
@@ -305,71 +297,58 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                         </div>
                     </div>
 
+                    <p className="mt-4 text-xs leading-6" style={{ color: "var(--text-muted)" }}>
+                        Sample only. Your real payslips are generated from your own payroll records and kept with the rest of your monthly admin trail.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-1 xl:border-l xl:border-[var(--border)] xl:pl-5">
+                    <ProofMetric label="Gross earnings" value={formatRand(sample.breakdown.grossPay)} />
+                    <ProofMetric label="UIF deduction" value={`- ${formatRand(sample.breakdown.deductions.uifEmployee)}`} />
+                    <ProofMetric className="col-span-2 sm:col-span-1" label="Net pay" value={formatRand(sample.breakdown.netPay)} emphasis />
                     <div
-                        className="mt-3 rounded-[22px] border border-[var(--focus)]/20 p-4"
+                        className="hidden rounded-[20px] border border-[var(--focus)]/20 p-4 sm:col-span-3 sm:block xl:col-span-1"
                         style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.08) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
                     >
-                        <div className="flex items-end justify-between gap-4">
-                            <div>
-                                <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                                    Net amount paid
-                                </p>
-                                <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-                                    Based on the payroll details above.
-                                </p>
-                            </div>
-                            <p className="font-[family:var(--font-serif)] text-2xl font-semibold tabular-nums" style={{ color: "var(--primary-pressed)" }}>
-                                {formatRand(sample.breakdown.netPay)}
-                            </p>
-                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                            Why this matters
+                        </p>
+                        <p className="mt-2 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
+                            The paid app keeps payslips, contracts, exports, and backup access in one calm workspace.
+                        </p>
                     </div>
-
-                    <p className="mt-4 text-xs leading-5" style={{ color: "var(--text-muted)" }}>
-                        Sample only. Your real payslips are generated from your own payroll records.
-                    </p>
                 </div>
             </div>
         </div>
     );
 }
 
-function CompactPartyBlock({ label, value, detail }: Readonly<{ label: string; value: string; detail: string }>) {
-    return (
-        <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
-            <p className="text-xs font-black uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
-                {label}
-            </p>
-            <p className="mt-2 text-base font-semibold leading-6" style={{ color: "var(--text)" }}>
-                {value}
-            </p>
-            <p className="mt-1 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                {detail}
-            </p>
-        </div>
-    );
-}
-
-function CompactFigureRow({
+function ProofMetric({
+    className,
     label,
     value,
-    strong = false,
     emphasis = false,
 }: Readonly<{
+    className?: string;
     label: string;
     value: string;
-    strong?: boolean;
     emphasis?: boolean;
 }>) {
     return (
-        <div className="flex items-start justify-between gap-2 sm:gap-4 border-b border-[var(--border)]/70 pb-3 last:border-b-0 last:pb-0">
-            <div>
-                <p className="text-sm font-semibold" style={{ color: strong ? "var(--text)" : "var(--text-muted)" }}>
-                    {label}
-                </p>
-            </div>
+        <div
+            className={`rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)] ${className ?? ""}`}
+            style={emphasis ? { background: "linear-gradient(135deg, rgba(0, 122, 77, 0.08) 0%, rgba(255, 252, 248, 1) 100%)" } : undefined}
+        >
+            <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: emphasis ? "var(--primary)" : "var(--text-muted)" }}>
+                {label}
+            </p>
             <p
-                className={`text-right font-[family:var(--font-serif)] text-base sm:text-lg font-semibold tabular-nums ${emphasis ? "text-[var(--primary-pressed)]" : ""}`}
-                style={{ color: emphasis ? "var(--primary-pressed)" : "var(--text)" }}
+                className="mt-2 font-[family:var(--font-serif)] font-semibold tabular-nums"
+                style={{
+                    color: emphasis ? "var(--primary-pressed)" : "var(--text)",
+                    fontSize: "clamp(1.15rem, 1rem + 0.5vw, 1.55rem)",
+                    lineHeight: 1.2,
+                }}
             >
                 {value}
             </p>
@@ -377,10 +356,20 @@ function CompactFigureRow({
     );
 }
 
-function SamplePartyBlock({ label, value, detail }: Readonly<{ label: string; value: string; detail?: React.ReactNode }>) {
+function SamplePartyBlock({
+    className,
+    label,
+    value,
+    detail,
+}: Readonly<{
+    className?: string;
+    label: string;
+    value: string;
+    detail?: React.ReactNode;
+}>) {
     return (
         <div
-            className="rounded-[18px] border border-[var(--border)] px-4 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+            className={`rounded-[18px] border border-[var(--border)] px-4 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)] ${className ?? ""}`}
             style={{ background: "linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
         >
             <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
@@ -400,7 +389,10 @@ function SamplePartyBlock({ label, value, detail }: Readonly<{ label: string; va
 
 function SampleFigureRow({ label, hours, rate, total, bold = false }: Readonly<{ label: string; hours: string; rate: string; total: string; bold?: boolean }>) {
     return (
-        <div className={`${SAMPLE_FIGURE_GRID} items-baseline py-2 text-[13px] sm:text-sm`}>
+        <div
+            className={`${SAMPLE_FIGURE_GRID} items-baseline py-2`}
+            style={{ fontSize: "clamp(0.76rem, 0.72rem + 0.16vw, 0.92rem)" }}
+        >
             <span className={`pr-2 ${bold ? "font-semibold" : ""}`} style={{ color: bold ? "var(--text)" : "var(--text-muted)" }}>
                 {label}
             </span>
@@ -422,7 +414,7 @@ function HowItWorks() {
         {
             icon: Users,
             title: "Add your worker",
-            body: "Save the worker’s details and pay setup so it can be reused each month.",
+            body: "Save the worker's details and pay setup so it can be reused each month.",
         },
         {
             icon: Calendar,
@@ -432,23 +424,24 @@ function HowItWorks() {
         {
             icon: FileText,
             title: "Keep the record trail",
-            body: "Payslips and related documents stay organised so they’re easy to retrieve later when needed for UIF submissions or other employment paperwork.",
+            body: "Payslips and related documents stay organised so they're easy to retrieve later for UIF submissions or other household employment paperwork.",
         },
     ];
 
     return (
         <section id="how-it-works" style={{ backgroundColor: "var(--bg)" }}>
-            <div className="content-container-wide px-4 py-10 sm:px-6 lg:px-8 lg:py-14">                <div className="max-w-3xl space-y-3">
-                <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                    How it works
-                </p>
-                <h2 className="type-h2 max-w-[28ch]" style={{ color: "var(--text)" }}>
-                    Set up once. Generate payslips. Keep the records together.
-                </h2>
-                <p className="max-w-[44rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                    LekkerLedger helps household employers record pay, generate payslips, and keep the employment documents that may be needed later for UIF submissions or other household employment administration.
-                </p>
-            </div>
+            <div className="marketing-shell marketing-section">
+                <div className="max-w-3xl space-y-3">
+                    <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
+                        How it works
+                    </p>
+                    <h2 className="type-h2 max-w-[28ch]" style={{ color: "var(--text)" }}>
+                        Set up once. Generate payslips. Keep the records together.
+                    </h2>
+                    <p className="max-w-[44rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
+                        LekkerLedger helps household employers record pay, generate payslips, and keep the employment documents that may be needed later for UIF submissions or other household employment administration.
+                    </p>
+                </div>
 
                 <div className="mt-6 grid gap-4 lg:grid-cols-3">
                     {steps.map((step, index) => {
@@ -509,8 +502,8 @@ function WhatYouKeep() {
 
     return (
         <section style={{ backgroundColor: "var(--bg)" }}>
-            <div className="content-container-wide px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-                <div className="grid gap-6 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] xl:items-start">
+            <div className="marketing-shell marketing-section">
+                <div className="grid gap-6 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:items-start">
                     <div className="space-y-4">
                         <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                             What you keep
@@ -518,8 +511,8 @@ function WhatYouKeep() {
                         <h2 className="type-h2 max-w-[14ch]" style={{ color: "var(--text)" }}>
                             Not just a payslip. Your household record trail.
                         </h2>
-                        <p className="text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            LekkerLedger ensures your monthly payslips and supporting documents stay together, organized, and ready for any future requirement.
+                        <p className="max-w-[34rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
+                            LekkerLedger keeps your monthly payslips and supporting documents together, organised, and ready when a future requirement appears.
                         </p>
                     </div>
 
@@ -541,15 +534,13 @@ function WhatYouKeep() {
     );
 }
 
-import { useInlinePaidPlanCheckout } from "@/components/billing/inline-paid-plan-checkout";
-
 function PricingPreview() {
     const [billingCycle, setBillingCycle] = useMarketingBillingCycle();
     const { startCheckout, loadingPlanId, dialog, warmCheckout } = useInlinePaidPlanCheckout({ billingCycle });
 
     return (
         <section id="pricing-preview" className="scroll-mt-24" style={{ backgroundColor: "var(--surface-2)" }}>
-            <div className="content-container-wide px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+            <div className="marketing-shell marketing-section">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div className="max-w-2xl space-y-3">
                         <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
@@ -613,7 +604,7 @@ function FAQPreview() {
 
     return (
         <section id="faq" style={{ backgroundColor: "var(--bg)" }}>
-            <div className="content-container-reading px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+            <div className="marketing-reading-shell marketing-section">
                 <div className="mb-6 max-w-2xl space-y-3">
                     <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                         FAQ
@@ -654,12 +645,3 @@ function FAQItem({ question, answer }: Readonly<{ question: string; answer: stri
         </details>
     );
 }
-
-
-
-
-
-
-
-
-

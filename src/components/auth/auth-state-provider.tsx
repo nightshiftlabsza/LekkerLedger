@@ -13,6 +13,7 @@ interface AuthStateContextValue {
     user: AuthUserSnapshot | null;
     isLoading: boolean;
     refreshUser: () => Promise<void>;
+    signOut: () => Promise<void>;
 }
 
 const AuthStateContext = React.createContext<AuthStateContextValue | null>(null);
@@ -59,6 +60,15 @@ export function AuthStateProvider({
         }
     }, [applyUserSnapshot, supabase]);
 
+    const signOut = React.useCallback(async () => {
+        try {
+            await supabase.auth.signOut();
+            applyUserSnapshot(null);
+        } catch (error) {
+            console.warn("Could not sign out of Supabase.", error);
+        }
+    }, [applyUserSnapshot, supabase]);
+
     React.useEffect(() => {
         let mounted = true;
 
@@ -99,7 +109,8 @@ export function AuthStateProvider({
         user,
         isLoading,
         refreshUser,
-    }), [user, isLoading, refreshUser]);
+        signOut,
+    }), [user, isLoading, refreshUser, signOut]);
     
     return (
         <AuthStateContext.Provider value={contextValue}>
@@ -119,5 +130,6 @@ export function useAuthState(): AuthStateContextValue {
         user: null,
         isLoading: false,
         refreshUser: async () => undefined,
+        signOut: async () => undefined,
     };
 }

@@ -20,7 +20,7 @@ export default defineConfig({
     webServer: {
         command: "node scripts/playwright-server.mjs",
         url: "http://localhost:3002",
-        reuseExistingServer: false,
-        timeout: 120000,
+        reuseExistingServer: !process.env.CI,
+        timeout: 240000,
     },
 });

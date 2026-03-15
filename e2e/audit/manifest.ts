@@ -74,12 +74,12 @@ const marketingActions: AuditAction[] = [
     {
         id: "marketing-home-start-free-mobile",
         group: "marketing",
-        label: "Follow the homepage Start free CTA on phone",
+        label: "Follow the homepage Generate free payslip CTA on phone",
         route: "/",
         device: "mobile",
         seed: "empty",
         steps: [
-            { type: "clickByRole", role: "link", name: "Start free" },
+            { type: "clickByRole", role: "link", name: "Generate free payslip" },
             { type: "waitForUrl", pattern: "/resources/tools/domestic-worker-payslip" },
         ],
     },

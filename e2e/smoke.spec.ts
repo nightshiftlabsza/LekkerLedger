@@ -29,13 +29,13 @@ test('homepage pricing CTA opens the paid checkout dialog', async ({ page }) => 
     await expect(page.getByRole('heading', { name: 'Open secure payment' })).toBeVisible();
 });
 
-test('homepage "Start free" CTA sends to dashboard', async ({ page }) => {
+test('homepage "Generate free payslip" CTA sends to the free payslip generator', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await Promise.all([
-        page.waitForURL('**/dashboard'),
-        page.getByRole('link', { name: 'Start free' }).first().click(),
+        page.waitForURL('**/resources/tools/domestic-worker-payslip'),
+        page.getByRole('link', { name: 'Generate free payslip' }).click(),
     ]);
-    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page).toHaveURL(/\/resources\/tools\/domestic-worker-payslip$/);
 });
 
 test('support page loads', async ({ page }) => {

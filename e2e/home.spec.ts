@@ -15,8 +15,8 @@ test("home page hero shows new headline and CTAs", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: /Payslips and household employment records in one place\./i })).toBeVisible();
     await expect(page.getByText(/Track monthly pay, show UIF deductions clearly on payslips, and keep records available when you need them\./i)).toBeVisible();
-    await expect(page.getByRole("link", { name: /Start free/i }).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: "Login (Paid users)" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Generate free payslip/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();
 });
 
 test("home page does not contain old fear messaging", async ({ page }) => {
@@ -48,14 +48,14 @@ test("home page has all major sections", async ({ page }) => {
 
 test("paid login opens an in-page auth area with inline password reset", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: "Login (Paid users)" }).click();
+    await page.getByRole("button", { name: "Log in" }).click();
 
-    await expect(page.getByRole("region", { name: "Paid user login area" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Paid account login" })).toBeVisible();
-    await expect(page.getByText(/Password reset stays in this browser/i)).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Paid user login" })).toBeVisible();
+    await expect(page.getByText("Paid account login")).toBeVisible();
+    await expect(page.getByText(/Log in to restore your cloud-synced records on this device\./i)).toBeVisible();
 
     await page.getByRole("link", { name: "Forgot password?" }).click();
-    await expect(page.getByRole("heading", { name: "Password reset" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Back to paid login" })).toBeVisible();
+    await expect(page.getByText("Reset password")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Back to login" })).toBeVisible();
 });
 

@@ -1,0 +1,1718 @@
+[
+  {
+    "width": 360,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 328,
+      "sampleHeight": 1599,
+      "footerColumns": "328px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 16,
+              "y": 8874,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 16,
+              "y": 8924,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 16,
+              "y": 8974,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 16,
+              "y": 9024,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 16,
+              "y": 9142,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 16,
+              "y": 9192,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 16,
+              "y": 9242,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 16,
+              "y": 9292,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 16,
+              "y": 9410,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 16,
+              "y": 9460,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 16,
+              "y": 9510,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 16,
+              "y": 9560,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 16,
+              "y": 9679,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 16,
+              "y": 9756,
+              "width": 328,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "width": 390,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 358,
+      "sampleHeight": 1583,
+      "footerColumns": "358px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 16,
+              "y": 8483,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 16,
+              "y": 8533,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 16,
+              "y": 8583,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 16,
+              "y": 8633,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 16,
+              "y": 8751,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 16,
+              "y": 8801,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 16,
+              "y": 8851,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 16,
+              "y": 8901,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 16,
+              "y": 9020,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 16,
+              "y": 9070,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 16,
+              "y": 9120,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 16,
+              "y": 9170,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 16,
+              "y": 9288,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 16,
+              "y": 9365,
+              "width": 358,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "width": 430,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 398,
+      "sampleHeight": 1536,
+      "footerColumns": "398px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 16,
+              "y": 8171,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 16,
+              "y": 8221,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 16,
+              "y": 8271,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 16,
+              "y": 8321,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 16,
+              "y": 8439,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 16,
+              "y": 8489,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 16,
+              "y": 8539,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 16,
+              "y": 8589,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 16,
+              "y": 8707,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 16,
+              "y": 8757,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 16,
+              "y": 8807,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 16,
+              "y": 8857,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 16,
+              "y": 8975,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 16,
+              "y": 9052,
+              "width": 398,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "width": 768,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 672,
+      "sampleHeight": 1062,
+      "footerColumns": "349.578px 349.578px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 18,
+              "y": 6807,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 18,
+              "y": 6857,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 18,
+              "y": 6907,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 18,
+              "y": 6957,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 400,
+              "y": 6807,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 400,
+              "y": 6857,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 400,
+              "y": 6907,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 400,
+              "y": 6957,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 18,
+              "y": 7073,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 18,
+              "y": 7123,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 18,
+              "y": 7173,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 18,
+              "y": 7223,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 400,
+              "y": 7073,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 400,
+              "y": 7150,
+              "width": 350,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "width": 1024,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 463,
+      "sampleHeight": 1240,
+      "footerColumns": "279.438px 279.438px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 409,
+              "y": 4961,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 409,
+              "y": 5011,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 409,
+              "y": 5061,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 409,
+              "y": 5111,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 720,
+              "y": 4961,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 720,
+              "y": 5011,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 720,
+              "y": 5061,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 720,
+              "y": 5111,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 409,
+              "y": 5227,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 409,
+              "y": 5277,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 409,
+              "y": 5327,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 409,
+              "y": 5377,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 720,
+              "y": 5227,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 720,
+              "y": 5304,
+              "width": 279,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "width": 1280,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 627,
+      "sampleHeight": 1112,
+      "footerColumns": "184.641px 184.641px 184.641px 184.641px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 415,
+              "y": 4523,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 415,
+              "y": 4573,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 415,
+              "y": 4623,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 415,
+              "y": 4673,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 631,
+              "y": 4523,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 631,
+              "y": 4573,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 631,
+              "y": 4623,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 631,
+              "y": 4673,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 848,
+              "y": 4523,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 848,
+              "y": 4573,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 848,
+              "y": 4623,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 848,
+              "y": 4673,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 1065,
+              "y": 4523,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 1065,
+              "y": 4600,
+              "width": 185,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "width": 1366,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 672,
+      "sampleHeight": 1075,
+      "footerColumns": "205.5px 205.5px 205.5px 205.5px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 416,
+              "y": 4516,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 416,
+              "y": 4566,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 416,
+              "y": 4616,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 416,
+              "y": 4666,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 654,
+              "y": 4516,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 654,
+              "y": 4566,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 654,
+              "y": 4616,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 654,
+              "y": 4666,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 891,
+              "y": 4516,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 891,
+              "y": 4566,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 891,
+              "y": 4616,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 891,
+              "y": 4666,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 1129,
+              "y": 4516,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 1129,
+              "y": 4593,
+              "width": 206,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "width": 1440,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 672,
+      "sampleHeight": 1078,
+      "footerColumns": "224px 224px 224px 224px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 416,
+              "y": 4602,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 416,
+              "y": 4652,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 416,
+              "y": 4702,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 416,
+              "y": 4752,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 672,
+              "y": 4602,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 672,
+              "y": 4652,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 672,
+              "y": 4702,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 672,
+              "y": 4752,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 928,
+              "y": 4602,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 928,
+              "y": 4652,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 928,
+              "y": 4702,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 928,
+              "y": 4752,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 1184,
+              "y": 4602,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 1184,
+              "y": 4679,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "width": 1536,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 672,
+      "sampleHeight": 1007,
+      "footerColumns": "224px 224px 224px 224px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 464,
+              "y": 4577,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 464,
+              "y": 4627,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 464,
+              "y": 4677,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 464,
+              "y": 4727,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 720,
+              "y": 4577,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 720,
+              "y": 4627,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 720,
+              "y": 4677,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 720,
+              "y": 4727,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 976,
+              "y": 4577,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 976,
+              "y": 4627,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 976,
+              "y": 4677,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 976,
+              "y": 4727,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 1232,
+              "y": 4577,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 1232,
+              "y": 4654,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "width": 1728,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 672,
+      "sampleHeight": 1014,
+      "footerColumns": "224px 224px 224px 224px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 560,
+              "y": 4583,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 560,
+              "y": 4633,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 560,
+              "y": 4683,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 560,
+              "y": 4733,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 816,
+              "y": 4583,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 816,
+              "y": 4633,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 816,
+              "y": 4683,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 816,
+              "y": 4733,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 1072,
+              "y": 4583,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 1072,
+              "y": 4633,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 1072,
+              "y": 4683,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 1072,
+              "y": 4733,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 1328,
+              "y": 4583,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 1328,
+              "y": 4660,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "width": 1920,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 672,
+      "sampleHeight": 1019,
+      "footerColumns": "224px 224px 224px 224px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 656,
+              "y": 4588,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 656,
+              "y": 4638,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 656,
+              "y": 4688,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 656,
+              "y": 4738,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 912,
+              "y": 4588,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 912,
+              "y": 4638,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 912,
+              "y": 4688,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 912,
+              "y": 4738,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 1168,
+              "y": 4588,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 1168,
+              "y": 4638,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 1168,
+              "y": 4688,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 1168,
+              "y": 4738,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 1424,
+              "y": 4588,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 1424,
+              "y": 4665,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "width": 2560,
+    "metrics": {
+      "title": "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+      "sampleWidth": 672,
+      "sampleHeight": 1021,
+      "footerColumns": "224px 224px 224px 224px",
+      "footerSections": [
+        {
+          "heading": "Product",
+          "links": [
+            {
+              "text": "How it works",
+              "x": 976,
+              "y": 4590,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Pricing",
+              "x": 976,
+              "y": 4640,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Wage & UIF calculator",
+              "x": 976,
+              "y": 4690,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Log in",
+              "x": 976,
+              "y": 4740,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Resources",
+          "links": [
+            {
+              "text": "Payslip Generator",
+              "x": 1232,
+              "y": 4590,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "UIF Guide",
+              "x": 1232,
+              "y": 4640,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "NMW Rules 2026",
+              "x": 1232,
+              "y": 4690,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Monthly Checklist",
+              "x": 1232,
+              "y": 4740,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Legal",
+          "links": [
+            {
+              "text": "Privacy Policy",
+              "x": 1488,
+              "y": 4590,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Terms of Service",
+              "x": 1488,
+              "y": 4640,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Refund Policy",
+              "x": 1488,
+              "y": 4690,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Trust Center",
+              "x": 1488,
+              "y": 4740,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        },
+        {
+          "heading": "Connect",
+          "links": [
+            {
+              "text": "Support Center",
+              "x": 1744,
+              "y": 4590,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            },
+            {
+              "text": "Email support",
+              "x": 1744,
+              "y": 4667,
+              "width": 224,
+              "height": 44,
+              "display": "block"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

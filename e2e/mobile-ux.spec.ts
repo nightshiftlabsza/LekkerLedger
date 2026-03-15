@@ -22,13 +22,13 @@ test.describe("Mobile UX regressions", () => {
     test("homepage paid login panel fits on phone without horizontal overflow", async ({ page }) => {
         await page.goto("/");
         await page.getByRole("button", { name: "Open menu" }).click();
-        await page.getByRole("button", { name: "Login (Paid users)" }).click();
+        await page.getByRole("button", { name: "Log in" }).click();
 
-        await expect(page.getByRole("region", { name: "Paid user login area" })).toBeVisible();
+        await expect(page.getByRole("dialog", { name: "Paid user login" })).toBeVisible();
         await expect(page.getByRole("heading", { name: "Paid account login" })).toBeVisible();
 
         const metrics = await page.evaluate(() => ({
-            panelWidth: document.querySelector<HTMLElement>("#homepage-auth-panel")?.scrollWidth ?? 0,
+            panelWidth: document.querySelector<HTMLElement>("dialog[aria-label='Paid user login'] > div")?.scrollWidth ?? 0,
             viewportWidth: window.innerWidth,
             bodyOverflowing: document.body.scrollWidth > window.innerWidth + 1,
         }));

@@ -52,32 +52,34 @@ async function mockSupabasePublicAuth(page: Page) {
 
 async function completeWizardToReview(page: Page) {
     await page.goto("/resources/tools/domestic-worker-payslip");
-    await expect(page.getByRole("heading", { name: "Create a domestic worker payslip for this month" })).toBeVisible({ timeout: 20000 });
-    await expect(page.getByRole("heading", { name: "Create this month's payslip step by step" })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole("heading", { name: "Create free payslip PDF" })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText("Before you start")).toHaveCount(0);
+    await expect(page.getByText("Start payslip")).toHaveCount(0);
+    await expect(page.getByText("Create this month's payslip step by step")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Continue" })).toHaveCount(1);
     await page.getByLabel("Employer name").fill("Nomsa Dlamini");
     await page.getByLabel("Worker name").fill("Thandi Maseko");
     await page.getByLabel("Employer address").fill("18 Acacia Avenue, Northcliff, Johannesburg");
     await page.getByRole("button", { name: "Continue" }).click();
 
-    await expect(page.getByText("Which month is this payslip for?")).toBeVisible();
+    await expect(page.getByText("Set the month and ordinary time")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Continue" })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Back" })).toHaveCount(1);
     await page.getByRole("button", { name: "Continue" }).click();
 
-    await expect(page.getByText("How much did they work?")).toBeVisible();
+    await expect(page.getByText("Add overtime and premium hours")).toBeVisible();
     await page.getByRole("button", { name: "Continue" }).click();
 
-    await expect(page.getByText("Any deductions to show?")).toBeVisible();
+    await expect(page.getByText("Add any agreed deductions")).toBeVisible();
     await page.getByRole("button", { name: "Continue" }).click();
 
-    await expect(page.getByText("Review the payslip and download it")).toBeVisible();
+    await expect(page.getByText("Review and generate the PDF")).toBeVisible();
 }
 
 async function simulateSameDeviceCallback(page: Page, email: string) {
     await page.goto(
-        `/api/auth/callback?e2eFreePayslipEmail=${encodeURIComponent(email)}&next=%2Fresources%2Ftools%2Fdomestic-worker-payslip%3FfreePayslipVerification%3Dsuccess`,
-        { waitUntil: "commit" },
-    ).catch(() => undefined);
-
-    await page.waitForURL("**/resources/tools/domestic-worker-payslip*");
+        `/resources/tools/domestic-worker-payslip?freePayslipVerification=success&verifiedEmail=${encodeURIComponent(email)}`,
+    );
 }
 
 test.describe("Free public payslip flow", () => {
@@ -152,7 +154,7 @@ test.describe("Free public payslip flow", () => {
         await expect(page.getByText("Verified as")).toContainText("owner@example.com");
         expect(quotaGetCount).toBeGreaterThan(0);
 
-        await page.getByRole("button", { name: "Download payslip PDF" }).click();
+        await page.getByRole("button", { name: "Generate payslip PDF" }).click();
 
         await expect(page.getByTestId("free-payslip-gate-success")).toBeVisible();
         await expect(page.getByText("Want this saved and ready next month?")).toBeVisible();
@@ -253,8 +255,10 @@ test.describe("Free public payslip flow", () => {
         await page.setViewportSize({ width: 390, height: 844 });
         await page.goto("/resources/tools/domestic-worker-payslip");
 
-        await expect(page.getByRole("heading", { name: "Create a domestic worker payslip for this month" })).toBeVisible({ timeout: 20000 });
-        await expect(page.getByRole("heading", { name: "Create this month's payslip step by step" })).toBeVisible({ timeout: 20000 });
+        await expect(page.getByRole("heading", { name: "Create free payslip PDF" })).toBeVisible({ timeout: 20000 });
+        await expect(page.getByText("Before you start")).toHaveCount(0);
+        await expect(page.getByText("Start payslip")).toHaveCount(0);
+        await expect(page.getByRole("button", { name: "Continue" })).toHaveCount(1);
 
         const metrics = await page.evaluate(() => ({
             bodyOverflowing: document.body.scrollWidth > window.innerWidth + 1,

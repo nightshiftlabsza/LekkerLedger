@@ -3,92 +3,125 @@ import { Mail } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { COMPANY_NAME } from "@/src/config/brand";
 
+const FOOTER_GROUPS = [
+    {
+        title: "Product",
+        links: [
+            { href: "/#how-it-works", label: "How it works" },
+            { href: "/pricing", label: "Pricing" },
+            { href: "/calculator", label: "Wage & UIF calculator" },
+            { href: "/login", label: "Log in" },
+        ],
+    },
+    {
+        title: "Resources",
+        links: [
+            { href: "/resources/tools/domestic-worker-payslip", label: "Payslip Generator" },
+            { href: "/resources/guides/uif-for-domestic-workers", label: "UIF Guide" },
+            { href: "/resources/guides/domestic-worker-minimum-wage-2026", label: "NMW Rules 2026" },
+            { href: "/resources/checklists/household-employer-monthly", label: "Monthly Checklist" },
+        ],
+    },
+    {
+        title: "Legal",
+        links: [
+            { href: "/legal/privacy", label: "Privacy Policy" },
+            { href: "/legal/terms", label: "Terms of Service" },
+            { href: "/legal/refunds", label: "Refund Policy" },
+            { href: "/trust", label: "Trust Center", accent: true },
+        ],
+    },
+    {
+        title: "Connect",
+        links: [
+            { href: "/support", label: "Support Center", accent: true },
+        ],
+    },
+] as const;
+
 export function MarketingFooter() {
     const currentYear = new Date().getFullYear();
-    const footerLinkClass = "inline-flex min-h-[44px] items-center text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]";
-    const footerAccentLinkClass = "inline-flex min-h-[44px] items-center text-sm font-bold text-[var(--primary)] transition-colors hover:underline";
+    const footerLinkClass = "block min-h-[44px] rounded-lg py-2 text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]";
+    const footerAccentLinkClass = "block min-h-[44px] rounded-lg py-2 text-sm font-bold text-[var(--primary)] transition-colors hover:underline";
 
     return (
-        <footer className="relative mt-12 border-t border-[var(--border)] bg-[var(--surface-2)] overflow-hidden">
-            {/* Subtle top gradient bar */}
-            <div 
-                className="h-1 w-full" 
-                style={{ background: "linear-gradient(90deg, var(--primary) 0%, #C47A1C 100%)", opacity: 0.15 }} 
+        <footer className="relative mt-12 overflow-hidden border-t border-[var(--border)] bg-[var(--surface-2)]">
+            <div
+                className="h-1 w-full"
+                style={{ background: "linear-gradient(90deg, var(--primary) 0%, #C47A1C 100%)", opacity: 0.15 }}
             />
-            
-            <div className="content-container-wide px-4 py-10 sm:px-6 lg:px-8">
-                <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,2.8fr)] lg:items-start">
-                    <div className="flex flex-col gap-3">
-                        <Link href="/" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl px-1 py-1 outline-none transition-transform hover:scale-[1.01] active:scale-[0.99]">
+
+            <div className="marketing-shell py-10 sm:py-12">
+                <div className="grid gap-10 border-b border-[var(--border)] pb-10 lg:grid-cols-[minmax(0,21rem)_minmax(0,1fr)] lg:gap-12">
+                    <div className="space-y-4">
+                        <Link href="/" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl py-1 outline-none transition-transform hover:scale-[1.01] active:scale-[0.99]">
                             <Logo iconClassName="h-9 w-9" textClassName="text-[1.12rem]" className="gap-2" />
                         </Link>
-                        <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+
+                        <p className="max-w-[34ch] text-sm leading-7" style={{ color: "var(--text-muted)" }}>
                             Household payroll records, calmer monthly admin, and organised annual paperwork.
                         </p>
-                        <div className="mt-2 flex flex-col gap-1.5">
-                            <p className="text-[11px] font-bold" style={{ color: "var(--text)" }}>© {currentYear} LekkerLedger. All rights reserved.</p>
-                            <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Built by {COMPANY_NAME}.</p>
-                            <div className="mt-1 flex items-center gap-2">
-                                <span className="h-1 w-1 rounded-full bg-[var(--primary)]" />
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Made in South Africa</p>
-                            </div>
+
+                        <div className="space-y-1.5 text-[11px] leading-5" style={{ color: "var(--text-muted)" }}>
+                            <p className="font-semibold" style={{ color: "var(--text)" }}>
+                                Copyright {currentYear} LekkerLedger. All rights reserved.
+                            </p>
+                            <p>Built by {COMPANY_NAME}.</p>
+                            <p className="font-semibold uppercase tracking-[0.18em]">Made for South African household employers.</p>
                         </div>
                     </div>
 
-                    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-                        <div>
-                            <h4 className="mb-3 text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Product</h4>
-                            <div className="space-y-1">
-                                <Link href="/#how-it-works" className={footerLinkClass}>How it works</Link>
-                                <Link href="/pricing" className={footerLinkClass}>Pricing</Link>
-                                <Link href="/calculator" className={footerLinkClass}>Wage & UIF calculator</Link>
-                                <Link href="/login" className={footerLinkClass}>Log in</Link>
-                            </div>
-                        </div>
-                        <div>
-                            <h4 className="mb-3 text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Resources</h4>
-                            <div className="space-y-1">
-                                <Link href="/resources/tools/domestic-worker-payslip" className={footerLinkClass}>Payslip Generator</Link>
-                                <Link href="/resources/guides/uif-for-domestic-workers" className={footerLinkClass}>UIF Guide</Link>
-                                <Link href="/resources/guides/domestic-worker-minimum-wage-2026" className={footerLinkClass}>NMW Rules 2026</Link>
-                                <Link href="/resources/checklists/household-employer-monthly" className={footerLinkClass}>Monthly Checklist</Link>
-                            </div>
-                        </div>
-                        <div>
-                            <h4 className="mb-3 text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Legal</h4>
-                            <div className="space-y-1">
-                                <Link href="/legal/privacy" className={footerLinkClass}>Privacy Policy</Link>
-                                <Link href="/legal/terms" className={footerLinkClass}>Terms of Service</Link>
-                                <Link href="/legal/refunds" className={footerLinkClass}>Refund Policy</Link>
-                                <Link href="/trust" className={footerAccentLinkClass}>Trust Center</Link>
-                            </div>
-                        </div>
-                        <div>
-                            <h4 className="mb-3 text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Connect</h4>
-                            <div className="space-y-1">
-                                <Link href="/support" className={footerAccentLinkClass}>
-                                    Support Center
-                                </Link>
-                                <a
-                                    href="mailto:support@lekkerledger.co.za"
-                                    className={`${footerLinkClass} gap-2`}
-                                >
-                                    <Mail className="h-3.5 w-3.5" />
-                                    Email support
-                                </a>
-                                <p className="max-w-[18rem] text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    Reply within 1-4 business days in South African time (Mon-Fri).
-                                </p>
-                            </div>
-                        </div>
+                    <div className="grid gap-x-8 gap-y-10 md:grid-cols-2 xl:grid-cols-4">
+                        {FOOTER_GROUPS.map((group) => (
+                            <section key={group.title} className="space-y-4">
+                                <h2 className="text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>
+                                    {group.title}
+                                </h2>
+
+                                <nav className="space-y-1.5">
+                                    {group.links.map((link) => (
+                                        <Link
+                                            key={link.href}
+                                            href={link.href}
+                                            className={link.accent ? footerAccentLinkClass : footerLinkClass}
+                                        >
+                                            {link.label}
+                                        </Link>
+                                    ))}
+                                </nav>
+
+                                {group.title === "Connect" ? (
+                                    <div className="space-y-3 border-t border-[var(--border)] pt-4">
+                                        <a
+                                            href="mailto:support@lekkerledger.co.za"
+                                            className={footerLinkClass}
+                                        >
+                                            <span className="flex min-h-[28px] items-center gap-2">
+                                                <Mail className="h-3.5 w-3.5" />
+                                                Email support
+                                            </span>
+                                        </a>
+                                        <p className="max-w-[24ch] text-xs leading-6" style={{ color: "var(--text-muted)" }}>
+                                            Replies usually land within 1 to 4 business days in South African time, Monday to Friday.
+                                        </p>
+                                    </div>
+                                ) : null}
+                            </section>
+                        ))}
                     </div>
                 </div>
 
-                <div className="mt-10 border-t border-[var(--border)] pt-6">
-                    <div className="max-w-3xl space-y-2">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text)]">Disclaimer</p>
-                        <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            LekkerLedger provides administrative tools for household record-keeping. Calculations and templates are based on general South African labor guidelines but do not constitute legal or tax advice. While we strive for accuracy, the application is not a substitute for professional counsel. Always verify specific or unusual employment situations against official Department of Employment and Labour or SARS documentation before final submission.
+                <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,44rem)] lg:items-start">
+                    <div className="max-w-[30rem] text-xs leading-6" style={{ color: "var(--text-muted)" }}>
+                        Keep payslips, contracts, exports, backup access, and support information in one place so the practical and legal details stay easy to find.
+                    </div>
+
+                    <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-raised)] p-5 sm:p-6">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--text)" }}>
+                            Disclaimer
+                        </p>
+                        <p className="mt-3 max-w-[62ch] text-[11px] leading-6" style={{ color: "var(--text-muted)" }}>
+                            LekkerLedger provides administrative tools for household record-keeping. Calculations and templates follow general South African labour guidance, but they are not legal or tax advice. Please verify unusual employment situations against official Department of Employment and Labour, uFiling, or SARS guidance before final submission.
                         </p>
                     </div>
                 </div>

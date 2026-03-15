@@ -17,6 +17,8 @@
 /blob-report/
 /e2e-screenshots/
 devserver*.log
+.next-playwright/
+codex-*.log
 
 # next.js
 /.next/

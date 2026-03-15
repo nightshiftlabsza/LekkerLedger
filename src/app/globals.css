@@ -91,6 +91,12 @@
   --container-standard: 84rem;
   --container-wide: 108rem;
   --container-ultrawide: 118rem;
+  --marketing-shell-max: 90rem;
+  --marketing-reading-max: 48rem;
+  --marketing-media-max: 42rem;
+  --marketing-shell-gutter: clamp(1rem, 2.4vw, 2rem);
+  --marketing-section-y: clamp(3.75rem, 6vw, 5.75rem);
+  --marketing-section-y-tight: clamp(3rem, 5vw, 4.5rem);
   --app-shell-width: clamp(17.75rem, 18vw, 20.5rem);
   --app-shell-rail-width: clamp(17.5rem, 21vw, 21rem);
   --touch-target-min: 44px;
@@ -538,6 +544,32 @@ p,
   width: min(100%, var(--container-reading));
   margin-left: auto;
   margin-right: auto;
+}
+
+.marketing-shell {
+  width: min(100%, var(--marketing-shell-max));
+  margin-left: auto;
+  margin-right: auto;
+  padding-inline: var(--marketing-shell-gutter);
+}
+
+.marketing-reading-shell {
+  width: min(100%, var(--marketing-reading-max));
+  margin-left: auto;
+  margin-right: auto;
+  padding-inline: var(--marketing-shell-gutter);
+}
+
+.marketing-proof-shell {
+  width: min(100%, var(--marketing-media-max));
+}
+
+.marketing-section {
+  padding-block: var(--marketing-section-y);
+}
+
+.marketing-section-tight {
+  padding-block: var(--marketing-section-y-tight);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

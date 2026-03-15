@@ -21,6 +21,7 @@ vi.mock("@/lib/supabase/client", () => ({
                     },
                 },
             }),
+            signOut: vi.fn().mockResolvedValue({ error: null }),
         },
     }),
 }));
@@ -30,13 +31,13 @@ vi.mock("next/navigation", async (importOriginal) => {
 
     return {
         ...actual,
-        useRouter: () => ({ push: vi.fn() }),
+        useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
         usePathname: () => "/",
     };
 });
 
 describe("MarketingHeader", () => {
-    it("shows the authenticated email instead of the login CTA when a session is present", () => {
+    it("shows an account menu instead of the login CTA when a session is present", () => {
         render(
             <AuthStateProvider initialUser={{ id: "user-1", email: "paid.user@example.com" }}>
                 <MarketingHeader />
@@ -44,7 +45,14 @@ describe("MarketingHeader", () => {
         );
 
         expect(screen.getByText("paid.user@example.com")).toBeTruthy();
-        expect(screen.queryByText("Login (Paid users)")).toBeNull();
-        expect(screen.getByRole("link", { name: /open dashboard/i })).toBeTruthy();
+        expect(screen.queryByText("Log in")).toBeNull();
+        expect(screen.getByRole("button", { name: /open account menu/i })).toBeTruthy();
+    });
+
+    it("shows a single login action when logged out", () => {
+        render(<MarketingHeader />);
+
+        expect(screen.getAllByText("Log in").length).toBeGreaterThan(0);
+        expect(screen.queryByText("Start free")).toBeNull();
     });
 });
