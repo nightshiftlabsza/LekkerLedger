@@ -83,7 +83,7 @@ export default function ExamplesPage() {
             a.download = "LekkerLedger_Sample_Payslip.pdf";
             document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
+            a.remove();
             URL.revokeObjectURL(url);
         } catch (error) {
             console.error("PDF Generation failed:", error);

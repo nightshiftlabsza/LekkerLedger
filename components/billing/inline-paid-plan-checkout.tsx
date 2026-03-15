@@ -10,6 +10,7 @@ import { writePendingBillingEmail, writePendingBillingReference } from "@/lib/bi
 import { buildPaidDashboardHref, buildPaidLoginHref } from "@/lib/paid-activation";
 import { getSettings } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
+import { endAppMetric, startAppMetric } from "@/lib/app-performance";
 async function getAuthEmail() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -22,6 +23,7 @@ const PAYSTACK_PRECONNECT_URLS = [
     "https://checkout.paystack.com",
     "https://api.paystack.co",
 ] as const;
+const PREPARED_INTENT_TTL_MS = 90_000;
 
 type PaystackPopup = {
     resumeTransaction: (
@@ -33,6 +35,18 @@ type PaystackPopup = {
             onError: (error: { message?: string } | undefined) => void;
         },
     ) => void;
+};
+
+type InlinePurchaseIntent = {
+    reference: string;
+    accessCode: string;
+    amountCents: number;
+};
+
+type PreparedIntent = {
+    cacheKey: string;
+    preparedAt: number;
+    intent: InlinePurchaseIntent;
 };
 
 let paystackConstructorPromise: Promise<new () => PaystackPopup> | null = null;
@@ -62,6 +76,20 @@ function getPlanChargeLabel(planId: Exclude<PlanId, "free">, billingCycle: Billi
         return billingCycle === "monthly" ? "R29 today, then monthly" : "R249 today, then yearly";
     }
     return billingCycle === "monthly" ? "R49 today, then monthly" : "R399 today, then yearly";
+}
+
+function getIntentCacheKey(input: {
+    planId: Exclude<PlanId, "free">;
+    billingCycle: BillingCycle;
+    email: string;
+    referralCode?: string | null;
+}) {
+    return JSON.stringify({
+        planId: input.planId,
+        billingCycle: input.billingCycle,
+        email: normalizeEmail(input.email),
+        referralCode: input.referralCode?.trim()?.toUpperCase() || "",
+    });
 }
 
 function readStoredCheckoutEmail(): string {
@@ -116,6 +144,8 @@ export function useInlinePaidPlanCheckout({
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [requestedPlanId, setRequestedPlanId] = React.useState<Exclude<PlanId, "free"> | null>(null);
     const [loadingPlanId, setLoadingPlanId] = React.useState<Exclude<PlanId, "free"> | null>(null);
+    const preparedIntentRef = React.useRef<PreparedIntent | null>(null);
+    const prepareRequestIdRef = React.useRef(0);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -173,7 +203,7 @@ export function useInlinePaidPlanCheckout({
         }
 
         const warmPaystack = () => {
-            loadPaystackConstructor();
+            void loadPaystackConstructor();
         };
 
         if (typeof globalThis.window.requestIdleCallback === "function") {
@@ -197,17 +227,28 @@ export function useInlinePaidPlanCheckout({
         };
     }, []);
 
-    const warmCheckout = React.useCallback(() => {
-        loadPaystackConstructor();
-    }, []);
+    const prepareCheckout = React.useCallback(async (
+        planId: Exclude<PlanId, "free">,
+        emailOverride?: string,
+    ) => {
+        const normalizedEmail = normalizeEmail(emailOverride ?? checkoutEmail);
+        if (!isValidEmail(normalizedEmail)) {
+            return;
+        }
 
-    const openPaystackCheckout = React.useCallback(async (planId: Exclude<PlanId, "free">, email: string) => {
-        setLoadingPlanId(planId);
-        setEmailError("");
+        const cacheKey = getIntentCacheKey({
+            planId,
+            billingCycle,
+            email: normalizedEmail,
+            referralCode,
+        });
+        const cached = preparedIntentRef.current;
+        if (cached && cached.cacheKey === cacheKey && (Date.now() - cached.preparedAt) < PREPARED_INTENT_TTL_MS) {
+            return;
+        }
 
-        const normalizedEmail = normalizeEmail(email);
-        const isAuthenticated = Boolean(await getAuthEmail());
-        writeStoredCheckoutEmail(normalizedEmail);
+        const requestId = prepareRequestIdRef.current + 1;
+        prepareRequestIdRef.current = requestId;
 
         try {
             const intent = await createInlinePurchaseIntent({
@@ -217,10 +258,99 @@ export function useInlinePaidPlanCheckout({
                 referralCode: referralCode?.trim() || null,
             });
 
+            if (prepareRequestIdRef.current !== requestId) {
+                return;
+            }
+
+            preparedIntentRef.current = {
+                cacheKey,
+                preparedAt: Date.now(),
+                intent,
+            };
+        } catch {
+            if (prepareRequestIdRef.current === requestId) {
+                preparedIntentRef.current = null;
+            }
+        }
+    }, [billingCycle, checkoutEmail, referralCode]);
+
+    const warmCheckout = React.useCallback((planId?: Exclude<PlanId, "free">) => {
+        void loadPaystackConstructor();
+        if (planId) {
+            void prepareCheckout(planId);
+        }
+    }, [prepareCheckout]);
+
+    React.useEffect(() => {
+        if (!isValidEmail(checkoutEmail)) {
+            preparedIntentRef.current = null;
+            return;
+        }
+
+        if (typeof globalThis.window === "undefined") {
+            return;
+        }
+
+        const defaultPlanId: Exclude<PlanId, "free"> = requestedPlanId ?? "standard";
+        if (typeof globalThis.window.requestIdleCallback === "function") {
+            const idleHandle = globalThis.window.requestIdleCallback(() => {
+                void prepareCheckout(defaultPlanId);
+            });
+
+            return () => {
+                globalThis.window.cancelIdleCallback?.(idleHandle);
+            };
+        }
+
+        const timeoutHandle = globalThis.window.setTimeout(() => {
+            void prepareCheckout(defaultPlanId);
+        }, 200);
+
+        return () => {
+            globalThis.window.clearTimeout(timeoutHandle);
+        };
+    }, [checkoutEmail, prepareCheckout, requestedPlanId]);
+
+    const openPaystackCheckout = React.useCallback(async (planId: Exclude<PlanId, "free">, email: string) => {
+        setLoadingPlanId(planId);
+        setEmailError("");
+        startAppMetric("paystack_open_latency");
+
+        const normalizedEmail = normalizeEmail(email);
+        const isAuthenticated = Boolean(await getAuthEmail());
+        writeStoredCheckoutEmail(normalizedEmail);
+
+        try {
+            const cacheKey = getIntentCacheKey({
+                planId,
+                billingCycle,
+                email: normalizedEmail,
+                referralCode,
+            });
+            const cached = preparedIntentRef.current;
+            const intent = cached && cached.cacheKey === cacheKey && (Date.now() - cached.preparedAt) < PREPARED_INTENT_TTL_MS
+                ? cached.intent
+                : await createInlinePurchaseIntent({
+                    planId,
+                    billingCycle,
+                    email: normalizedEmail,
+                    referralCode: referralCode?.trim() || null,
+                });
+
+            preparedIntentRef.current = {
+                cacheKey,
+                preparedAt: Date.now(),
+                intent,
+            };
+
             await openInlinePaystackPayment({
                 accessCode: intent.accessCode,
                 onLoad: () => {
                     setLoadingPlanId(null);
+                    endAppMetric("paystack_open_latency", {
+                        plan_id: planId,
+                        billing_cycle: billingCycle,
+                    });
                 },
                 onSuccess: (response) => {
                     const reference = extractReference(response) || intent.reference;
@@ -237,10 +367,20 @@ export function useInlinePaidPlanCheckout({
                 },
                 onCancel: () => {
                     setLoadingPlanId(null);
+                    endAppMetric("paystack_open_latency", {
+                        plan_id: planId,
+                        billing_cycle: billingCycle,
+                        status: "cancelled",
+                    });
                 },
                 onError: (message) => {
                     setLoadingPlanId(null);
                     setEmailError(message);
+                    endAppMetric("paystack_open_latency", {
+                        plan_id: planId,
+                        billing_cycle: billingCycle,
+                        status: "error",
+                    });
                 },
             });
         } catch (error) {
@@ -248,6 +388,11 @@ export function useInlinePaidPlanCheckout({
             const message = error instanceof Error ? error.message : "The payment popup could not be opened.";
             setEmailError(message);
             setDialogOpen(true);
+            endAppMetric("paystack_open_latency", {
+                plan_id: planId,
+                billing_cycle: billingCycle,
+                status: "failed_before_open",
+            });
         }
     }, [billingCycle, referralCode, router]);
 
@@ -285,7 +430,7 @@ export function useInlinePaidPlanCheckout({
     }, [checkoutEmail, openPaystackCheckout, requestedPlanId]);
 
     const dialog = dialogOpen ? (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/45 px-4 py-6" role="dialog" aria-modal="true">
+        <dialog open className="fixed inset-0 z-[70] flex items-center justify-center bg-black/45 px-4 py-6" aria-modal="true">
             <div className="w-full max-w-md rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_24px_70px_rgba(15,23,42,0.24)]">
                 <div className="space-y-4 p-6 sm:p-7">
                     <div className="space-y-2">
@@ -314,9 +459,13 @@ export function useInlinePaidPlanCheckout({
                                 value={checkoutEmail}
                                 error={emailError}
                                 onChange={(event) => {
-                                    setCheckoutEmail(event.target.value);
+                                    const nextEmail = event.target.value;
+                                    setCheckoutEmail(nextEmail);
                                     if (emailError) {
                                         setEmailError("");
+                                    }
+                                    if (requestedPlanId) {
+                                        void prepareCheckout(requestedPlanId, nextEmail);
                                     }
                                 }}
                             />
@@ -354,7 +503,7 @@ export function useInlinePaidPlanCheckout({
                     </form>
                 </div>
             </div>
-        </div>
+        </dialog>
     ) : null;
 
     return {
@@ -362,6 +511,7 @@ export function useInlinePaidPlanCheckout({
         loadingPlanId,
         dialog,
         warmCheckout,
+        prepareCheckout,
     };
 }
 
@@ -396,15 +546,15 @@ export function InlinePlanCheckoutButton({
                 }}
                 onPointerEnter={(event) => {
                     buttonProps.onPointerEnter?.(event);
-                    warmCheckout();
+                    warmCheckout(planId);
                 }}
                 onFocus={(event) => {
                     buttonProps.onFocus?.(event);
-                    warmCheckout();
+                    warmCheckout(planId);
                 }}
                 onTouchStart={(event) => {
                     buttonProps.onTouchStart?.(event);
-                    warmCheckout();
+                    warmCheckout(planId);
                 }}
             >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}

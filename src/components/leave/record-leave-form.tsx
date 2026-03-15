@@ -19,12 +19,12 @@ import {
     getLeaveTypeLabel,
     hasManualAnnualLeaveBalance,
 } from "@/lib/leave";
-import { Contract, CustomLeaveType, Employee, LeaveRecord, LeaveType } from "@/lib/schema";
+import { Contract, CustomLeaveType, Employee, LeaveRecord } from "@/lib/schema";
 import { getContractsForEmployee, getEmployees, getLeaveForEmployee, getSettings, saveLeaveRecord } from "@/lib/storage";
 
 type LeaveFormData = {
     employeeId: string;
-    type: LeaveType;
+    type: string;
     startDate: string;
     endDate: string;
     days: number;
@@ -407,7 +407,7 @@ export function RecordLeaveForm({
                                 <select
                                     id="leave-type"
                                     value={formData.type}
-                                    onChange={(event) => updateForm({ type: event.target.value as LeaveType, allowOverrun: false })}
+                                    onChange={(event) => updateForm({ type: event.target.value as string, allowOverrun: false })}
                                     className="h-12 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-4 text-sm font-bold text-[var(--text)] outline-none transition-all focus:ring-2 focus:ring-[var(--focus)]"
                                     required
                                 >

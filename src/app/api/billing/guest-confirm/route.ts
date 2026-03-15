@@ -5,7 +5,7 @@ export async function POST(request: Request) {
     try {
         const body = await request.json() as { reference?: string };
 
-        if (!body.reference || !body.reference.trim()) {
+        if (!body.reference?.trim()) {
             return NextResponse.json({ error: "Payment reference is required." }, { status: 400 });
         }
 

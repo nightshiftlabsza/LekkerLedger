@@ -283,7 +283,7 @@ export default function PayPeriodWorkspacePage() {
             anchor.download = file.name;
             document.body.appendChild(anchor);
             anchor.click();
-            document.body.removeChild(anchor);
+            anchor.remove();
             URL.revokeObjectURL(url);
             await new Promise((resolve) => setTimeout(resolve, 300));
         }

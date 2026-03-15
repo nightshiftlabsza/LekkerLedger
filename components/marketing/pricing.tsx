@@ -71,9 +71,8 @@ export function MarketingBillingToggle({
     return (
         <div className={`flex w-full flex-col gap-2 lg:w-auto ${alignmentClass}`}>
             {/* Toggle row */}
-            <div
+            <fieldset
                 className={`flex flex-col items-center gap-3 sm:flex-row ${justifyClass}`}
-                role="group"
                 aria-label="Billing cycle"
             >
                 {/* Pill toggle */}
@@ -156,7 +155,7 @@ export function MarketingBillingToggle({
                         </span>
                     )}
                 </div>
-            </div>
+            </fieldset>
 
             {/* Currency note */}
             <p
@@ -176,12 +175,14 @@ export function MarketingPlanCards({
     compact = false,
     currentPlanId,
     onSelect,
+    onWarmSelect,
     isLoadingPlanId,
 }: {
     readonly billingCycle: BillingCycle;
     readonly compact?: boolean;
     readonly currentPlanId?: PlanId;
     readonly onSelect?: (planId: PlanId) => void;
+    readonly onWarmSelect?: (planId: Exclude<PlanId, "free">) => void;
     readonly isLoadingPlanId?: PlanId | null;
 }) {
     return (
@@ -196,6 +197,7 @@ export function MarketingPlanCards({
                         isCurrent={currentPlanId === planId}
                         currentPlanId={currentPlanId}
                         onSelect={onSelect}
+                        onWarmSelect={onWarmSelect}
                         isLoading={isLoadingPlanId === planId}
                         isDisabled={!!isLoadingPlanId && isLoadingPlanId !== planId}
                     />
@@ -225,6 +227,7 @@ export function MarketingPlanCard({
     isCurrent = false,
     currentPlanId,
     onSelect,
+    onWarmSelect,
     isLoading = false,
     isDisabled = false,
 }: {
@@ -234,6 +237,7 @@ export function MarketingPlanCard({
     readonly isCurrent?: boolean;
     readonly currentPlanId?: PlanId;
     readonly onSelect?: (planId: PlanId) => void;
+    readonly onWarmSelect?: (planId: Exclude<PlanId, "free">) => void;
     readonly isLoading?: boolean;
     readonly isDisabled?: boolean;
 }) {
@@ -254,6 +258,14 @@ export function MarketingPlanCard({
         if (onSelect) {
             onSelect(planId);
         }
+    };
+
+    const handleWarm = () => {
+        if (planId === "free" || !onWarmSelect) {
+            return;
+        }
+
+        onWarmSelect(planId);
     };
 
     return (
@@ -380,6 +392,9 @@ export function MarketingPlanCard({
                     <Button
                         className="min-h-[48px] w-full justify-center font-bold"
                         onClick={handleAction}
+                        onPointerEnter={handleWarm}
+                        onFocus={handleWarm}
+                        onTouchStart={handleWarm}
                         disabled={isCurrent || isDisabled || isLoading}
                         variant={featured && !isDowngrade ? "default" : "outline"}
                         style={
@@ -388,7 +403,13 @@ export function MarketingPlanCard({
                                 : {}
                         }
                     >
-                        {isCurrent ? "Current plan" : isLoading ? "Opening..." : isDowngrade ? "Downgrade" : isUpgrade ? "Upgrade" : plan.ctaLabel}
+                        {(() => {
+                            if (isCurrent) return "Current plan";
+                            if (isLoading) return "Opening...";
+                            if (isDowngrade) return "Downgrade";
+                            if (isUpgrade) return "Upgrade";
+                            return plan.ctaLabel;
+                        })()}
                     </Button>
                 ) : (
                     <Link href={href}>

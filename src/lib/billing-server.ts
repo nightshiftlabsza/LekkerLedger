@@ -409,8 +409,8 @@ async function ensureBillingSchema() {
     schemaPromise ??= (async () => {
         try {
             // Batch all DDL into a single multi-statement D1 call to avoid
-            // 15-20 sequential HTTP round-trips (~550 ms each) that cause
-            // Vercel serverless functions to timeout on cold starts.
+            // 15-20 sequential HTTP round-trips (~550 ms each) that can make
+            // hosted server runtimes time out on cold starts.
             await queryD1(`
                 CREATE TABLE IF NOT EXISTS subscriptions (
                     user_id TEXT PRIMARY KEY,

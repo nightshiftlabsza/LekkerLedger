@@ -6,15 +6,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, ChevronDown, ChevronUp, Loader2, Check, Clock, AlertCircle, Info, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, ChevronUp, Loader2, Check, Clock, AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Stepper } from "@/components/ui/stepper";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { InfoTooltip } from "@/components/ui/info-tooltip";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { formatCurrency } from "@/lib/money";
 import { StickyBottomBar } from "@/components/layout/sticky-bottom-bar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { getEmployees, savePayslip, getSecureTime, getSettings, getAllPayslips, deletePayslip, saveDocumentMeta } from "@/lib/storage";
 import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { format } from "date-fns";
@@ -38,7 +39,7 @@ const STEPS = [
     { label: "Review", description: "Final confirmation" },
 ];
 
-const FOUR_HOUR_RULE_TOOLTIP = "From 1 March 2026, if someone works on a day, they must be paid for at least 4 hours for that day. Example: if they worked 2 hours on one short shift, add 2 shortfall hours so the payslip pays 4 hours for that day.";
+
 const OVERTIME_TOOLTIP = "As at March 2026 in South Africa, overtime is usually paid at 1.5x. Double pay is generally for Sundays when the worker does not normally work Sundays, or for hours actually worked on a public holiday.";
 const PUBLIC_HOLIDAY_TOOLTIP = "Only enter hours actually worked on a public holiday. These hours pay at 2x. Do not use this field for a paid day off on a holiday, and it does not add to overtime automatically.";
 
@@ -351,7 +352,7 @@ function WizardContent() {
                 {!!employee && employee.hourlyRate <= NMW_RATE && (
                     <Alert variant="warning">
                         <AlertDescription>
-                            Using National Minimum Wage (R{NMW_RATE}/hr).
+                            Using National Minimum Wage ({formatCurrency(NMW_RATE)}/hr).
                         </AlertDescription>
                     </Alert>
                 )}
@@ -746,8 +747,8 @@ function WizardContent() {
                                     />
                                     <ComplianceRow
                                         pass={employee.hourlyRate >= NMW_RATE}
-                                        passText={`Rate meets NMW (R${NMW_RATE.toFixed(2)}/hr)`}
-                                        failText={`Rate below NMW — calculator auto-corrects to R${NMW_RATE.toFixed(2)}/hr`}
+                                        passText={`Rate meets NMW (${formatCurrency(NMW_RATE)}/hr)`}
+                                        failText={`Rate below NMW — calculator auto-corrects to ${formatCurrency(NMW_RATE)}/hr`}
                                     />
                                     <ComplianceRow
                                         pass={uifApplicable}
@@ -777,7 +778,7 @@ function WizardContent() {
                                         }}
                                     >
                                         <span>Payslip Summary</span>
-                                        <span>R{employee.hourlyRate.toFixed(2)}/hr</span>
+                                        <span>{formatCurrency(employee.hourlyRate)}/hr</span>
                                     </div>
 
                                     {/* Earnings */}
@@ -785,7 +786,7 @@ function WizardContent() {
                                         <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--primary)" }}>Earnings</p>
                                         <Row
                                             label={`Ordinary (${ordinaryHours}h${hasFourHourTopUp ? ` + ${breakdown.topUps.fourHourMinimumHours}h 4-hr top-up` : ""})`}
-                                            value={`R ${breakdown.ordinaryPay.toFixed(2)}`}
+                                            value={formatCurrency(breakdown.ordinaryPay)}
                                         />
                                         {hasFourHourTopUp && (
                                             <Row
@@ -793,10 +794,10 @@ function WizardContent() {
                                                 value={`${breakdown.topUps.fourHourMinimumHours}h included`}
                                             />
                                         )}
-                                        {(Number(hours.overtime) || 0) > 0 && <Row label={`Overtime (${Number(hours.overtime)}h @ 1.5x)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}
-                                        {(Number(hours.sunday) || 0) > 0 && <Row label={`Sunday (${Number(hours.sunday)}h @ ${sundayRateLabel})`} value={`R ${breakdown.sundayPay.toFixed(2)}`} />}
-                                        {(Number(hours.holiday) || 0) > 0 && <Row label={`Public Holiday (${Number(hours.holiday)}h @ 2x)`} value={`R ${breakdown.publicHolidayPay.toFixed(2)}`} />}
-                                        <Row label="Gross Pay" value={`R ${breakdown.grossPay.toFixed(2)}`} bold />
+                                        {(Number(hours.overtime) || 0) > 0 && <Row label={`Overtime (${Number(hours.overtime)}h @ 1.5x)`} value={formatCurrency(breakdown.overtimePay)} />}
+                                        {(Number(hours.sunday) || 0) > 0 && <Row label={`Sunday (${Number(hours.sunday)}h @ ${sundayRateLabel})`} value={formatCurrency(breakdown.sundayPay)} />}
+                                        {(Number(hours.holiday) || 0) > 0 && <Row label={`Public Holiday (${Number(hours.holiday)}h @ 2x)`} value={formatCurrency(breakdown.publicHolidayPay)} />}
+                                        <Row label="Gross Pay" value={formatCurrency(breakdown.grossPay)} bold />
                                     </div>
 
                                     <div style={{ borderTop: "1px solid var(--border)" }} />
@@ -804,11 +805,11 @@ function WizardContent() {
                                     {/* Deductions */}
                                     <div className="px-4 pt-3 pb-2 space-y-2">
                                         <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--primary)" }}>Deductions</p>
-                                        <Row label={`UIF ${uifApplicable ? "(1%)" : "(n/a)"}`} value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`} red />
+                                        <Row label={`UIF ${uifApplicable ? "(1%)" : "(n/a)"}`} value={formatCurrency(breakdown.deductions.uifEmployee)} red />
                                         {includeAccommodation && breakdown.deductions.accommodation && (
-                                            <Row label="Accommodation (10%)" value={`-R ${breakdown.deductions.accommodation.toFixed(2)}`} red />
+                                            <Row label="Accommodation (10%)" value={formatCurrency(breakdown.deductions.accommodation)} red />
                                         )}
-                                        <Row label="Total Deductions" value={`R ${breakdown.deductions.total.toFixed(2)}`} bold />
+                                        <Row label="Total Deductions" value={formatCurrency(breakdown.deductions.total)} bold />
                                     </div>
 
                                     {/* Net Pay bar */}
@@ -818,7 +819,7 @@ function WizardContent() {
                                     >
                                         <span className="font-bold text-lg text-white">Net Pay</span>
                                         <span className="font-extrabold text-2xl text-white tabular-nums">
-                                            R {breakdown.netPay.toFixed(2)}
+                                            {formatCurrency(breakdown.netPay)}
                                         </span>
                                     </div>
                                 </div>
@@ -863,13 +864,13 @@ function ComplianceRow({
     failText,
     failHref,
     isInfo,
-}: {
+}: Readonly<{
     pass: boolean;
     passText: string;
     failText: string;
     failHref?: string;
     isInfo?: boolean;
-}) {
+}>) {
     let color = "var(--warning)";
     if (pass) color = "var(--success)";
     else if (isInfo) color = "var(--info)";
@@ -894,12 +895,12 @@ function Row({
     value,
     bold,
     red,
-}: {
+}: Readonly<{
     label: string;
     value: string;
     bold?: boolean;
     red?: boolean;
-}) {
+}>) {
     return (
         <div className="flex justify-between items-center text-sm">
             <span className={bold ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]"}>
@@ -931,14 +932,3 @@ export default function WizardPage() {
         </React.Suspense>
     );
 }
-
-
-
-
-
-
-
-
-
-
-

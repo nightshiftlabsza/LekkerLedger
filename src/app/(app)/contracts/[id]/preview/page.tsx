@@ -78,7 +78,7 @@ export default function ContractPreviewPage() {
         anchor.download = fileName;
         document.body.appendChild(anchor);
         anchor.click();
-        document.body.removeChild(anchor);
+        anchor.remove();
 
         if (contract.status === "draft") {
             await updateContractStatus(contract.id, "awaiting_signed_copy");

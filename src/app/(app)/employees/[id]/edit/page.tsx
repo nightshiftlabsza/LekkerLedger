@@ -106,13 +106,13 @@ export default function EditEmployeePage() {
             annualLeaveDaysRemaining: enableLeaveSetup && formData.annualLeaveDaysRemaining !== ""
                 ? Number.parseFloat(formData.annualLeaveDaysRemaining)
                 : undefined,
-            annualLeaveBalanceAsOfDate: enableLeaveSetup && formData.annualLeaveDaysRemaining !== ""
-                ? (
-                    formData.annualLeaveDaysRemaining === initialAnnualLeaveDaysRemaining && formData.annualLeaveBalanceAsOfDate
-                        ? formData.annualLeaveBalanceAsOfDate
-                        : new Date().toISOString().slice(0, 10)
-                )
-                : "",
+            annualLeaveBalanceAsOfDate: (() => {
+                if (!enableLeaveSetup || formData.annualLeaveDaysRemaining === "") return "";
+                if (formData.annualLeaveDaysRemaining === initialAnnualLeaveDaysRemaining && formData.annualLeaveBalanceAsOfDate) {
+                    return formData.annualLeaveBalanceAsOfDate;
+                }
+                return new Date().toISOString().slice(0, 10);
+            })(),
             leaveCycleStartDate: enableLeaveSetup ? formData.leaveCycleStartDate : "",
             leaveCycleEndDate: enableLeaveSetup ? formData.leaveCycleEndDate : "",
         };

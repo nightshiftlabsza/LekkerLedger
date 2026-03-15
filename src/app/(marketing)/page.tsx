@@ -545,7 +545,7 @@ import { useInlinePaidPlanCheckout } from "@/components/billing/inline-paid-plan
 
 function PricingPreview() {
     const [billingCycle, setBillingCycle] = useMarketingBillingCycle();
-    const { startCheckout, loadingPlanId, dialog } = useInlinePaidPlanCheckout({ billingCycle });
+    const { startCheckout, loadingPlanId, dialog, warmCheckout } = useInlinePaidPlanCheckout({ billingCycle });
 
     return (
         <section id="pricing-preview" className="scroll-mt-24" style={{ backgroundColor: "var(--surface-2)" }}>
@@ -571,6 +571,7 @@ function PricingPreview() {
                         billingCycle={billingCycle}
                         compact
                         onSelect={startCheckout}
+                        onWarmSelect={warmCheckout}
                         isLoadingPlanId={loadingPlanId}
                     />
                 </div>

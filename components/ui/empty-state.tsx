@@ -1,5 +1,5 @@
 import * as React from "react";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, AlertCircle as AlertIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -133,5 +133,4 @@ export function ErrorState({ title = "Something went wrong", description, onRetr
     );
 }
 
-// Helper to keep Icon available for common error state
-import { AlertCircle as AlertIcon } from "lucide-react";
+

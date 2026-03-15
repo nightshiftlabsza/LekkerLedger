@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-export function InfoTooltip({ label, tooltip }: { label: string; tooltip: string }) {
+export function InfoTooltip({ label, tooltip }: { readonly label: string; readonly tooltip: string }) {
     const [open, setOpen] = React.useState(false);
     const hoverTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const ref = React.useRef<HTMLSpanElement>(null);

@@ -12,7 +12,7 @@ export interface SyncProgressData {
 type ProgressCallback = (data: SyncProgressData) => void;
 
 export class SyncEngine {
-    private supabase = createClient();
+    private readonly supabase = createClient();
     private cryptoKey: CryptoKey | null = null;
     private onProgress?: ProgressCallback;
 

@@ -7,7 +7,7 @@ export const maxDuration = 30;
 export async function POST(request: Request) {
     if (hasE2EBillingBypass(request)) {
         const body = await request.json() as { reference?: string };
-        if (!body.reference || !body.reference.trim()) {
+        if (!body.reference?.trim()) {
             return NextResponse.json({ error: "Payment reference is required." }, { status: 400 });
         }
 
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         const user = await verifyUserFromRequest(request);
         const body = await request.json() as { reference?: string };
 
-        if (!body.reference || !body.reference.trim()) {
+        if (!body.reference?.trim()) {
             return NextResponse.json({ error: "Payment reference is required." }, { status: 400 });
         }
 

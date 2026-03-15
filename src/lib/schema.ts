@@ -133,7 +133,6 @@ export type PayslipInput = z.infer<typeof PayslipInputSchema>;
 export const DEFAULT_LEAVE_TYPE_IDS = ["annual", "sick", "family"] as const;
 
 export type DefaultLeaveType = typeof DEFAULT_LEAVE_TYPE_IDS[number];
-export type LeaveType = string;
 
 export const LeaveAllocationSchema = z.object({
     source: z.enum(["carry-over", "current-cycle"]),

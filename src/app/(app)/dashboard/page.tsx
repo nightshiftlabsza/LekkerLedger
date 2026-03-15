@@ -2,16 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
+import { useAppBootstrap } from "@/components/app-bootstrap-provider";
 import { SyncStatusBadge, type SyncState as SyncBadgeState } from "@/components/ui/sync-status-badge";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import {
     getEmployees,
-    getSettings,
     getCurrentPayPeriod,
     getDocuments,
     getLatestPayslip,
@@ -22,65 +22,15 @@ import {
 } from "@/lib/storage";
 import { filterRecordsForArchiveWindow, getStandardRetentionStatus, isUploadedDocument, type StandardRetentionStatus } from "@/lib/archive";
 import { computeDashboardAlerts } from "@/lib/alerts";
-import { confirmBillingTransaction, confirmGuestBillingTransaction } from "@/lib/billing-client";
 import { getUserPlan } from "@/lib/entitlements";
-import { clearPendingBillingHandoff, readPendingBillingReference, writePendingBillingReference } from "@/lib/billing-handoff";
-import { buildPaidDashboardHref, PAID_LOGIN_SUCCESS_QUERY } from "@/lib/paid-activation";
-import type { DocumentMeta, Employee, EmployerSettings, PayPeriod } from "@/lib/schema";
+import { PAID_LOGIN_SUCCESS_QUERY } from "@/lib/paid-activation";
+import { endAppMetric, recordAppMetric } from "@/lib/app-performance";
+import type { DocumentMeta, Employee, PayPeriod } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
 import { DashboardOverview, type EmployeeSummary } from "@/components/dashboard/dashboard-overview";
 
 type DashboardSyncState = "disabled" | "enabled" | "error" | "reconnecting";
 type DashboardNetworkState = "online" | "offline" | "flaky";
-
-function waitForRetry(delayMs: number) {
-    return new Promise((resolve) => {
-        globalThis.setTimeout(resolve, delayMs);
-    });
-}
-
-async function confirmPaidAccountWithRetries(paymentReference: string) {
-    let lastError: Error | null = null;
-
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-        try {
-            const account = await confirmBillingTransaction(paymentReference);
-            return { account, lastError };
-        } catch (error) {
-            lastError = error instanceof Error ? error : new Error("Paid activation could not be completed.");
-            if (attempt < 2) {
-                await waitForRetry(900);
-            }
-        }
-    }
-
-    return { account: null, lastError };
-}
-
-async function completePaidLoginFlow(paymentReference: string): Promise<string> {
-    if (!paymentReference) {
-        throw new Error("We could not find your payment reference. Please log in again from the payment handoff.");
-    }
-
-    writePendingBillingReference(paymentReference);
-    const { account, lastError } = await confirmPaidAccountWithRetries(paymentReference);
-
-    if (!account) {
-        const guestStatus = await confirmGuestBillingTransaction(paymentReference).catch(() => null);
-        if (guestStatus?.paid) {
-            throw new Error(lastError?.message || "Your payment was found, but the paid account could not be activated yet.");
-        }
-
-        throw lastError || new Error("Paid activation could not be completed.");
-    }
-
-    if (account.entitlements.planId === "free" || !account.entitlements.isActive) {
-        throw new Error(account.account.lastError || "Your payment was found, but paid access is not active yet.");
-    }
-
-    clearPendingBillingHandoff();
-    return buildPaidDashboardHref({ activation: PAID_LOGIN_SUCCESS_QUERY });
-}
 
 function getDashboardSyncDetails(sync: DashboardSyncState, network: DashboardNetworkState) {
     if (sync === "enabled") {
@@ -123,12 +73,16 @@ function getActivationAlertMessage(syncState: string | null) {
 }
 
 function DashboardContent() {
-    const router = useRouter();
     const { network, sync } = useAppConnectivity();
+    const {
+        activationError,
+        activationStatus,
+        effectiveSettings,
+        isReadyForDashboard,
+        subscriptionStatus,
+    } = useAppBootstrap();
     const [loading, setLoading] = React.useState(true);
-    const [activationError, setActivationError] = React.useState<string | null>(null);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
-    const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
     const [currentPeriod, setCurrentPeriod] = React.useState<PayPeriod | null>(null);
     const [recentDocs, setRecentDocs] = React.useState<DocumentMeta[]>([]);
     const [summaries, setSummaries] = React.useState<EmployeeSummary[]>([]);
@@ -136,37 +90,20 @@ function DashboardContent() {
     const [retentionStatus, setRetentionStatus] = React.useState<StandardRetentionStatus | null>(null);
     const searchParams = useSearchParams();
     const paidLoginRequested = searchParams.get("paidLogin") === "1";
-    const paymentReference = searchParams.get("reference")?.trim() || readPendingBillingReference() || "";
-    const activationSuccess = searchParams.get("activation") === "paid-login-success";
+    const activationSuccess = searchParams.get("activation") === PAID_LOGIN_SUCCESS_QUERY;
     const activationSync = searchParams.get("sync");
+    const renderCountRef = React.useRef(0);
+    const recordedMountRef = React.useRef(false);
 
     React.useEffect(() => {
-        if (!paidLoginRequested) return;
+        renderCountRef.current += 1;
+    });
 
-        let active = true;
-
-        async function handlePaidLoginCompletion() {
-            setActivationError(null);
-
-            try {
-                const nextHref = await completePaidLoginFlow(paymentReference);
-                if (!active) return;
-                globalThis.location.replace(nextHref);
-            } catch (error) {
-                if (!active) return;
-                setActivationError(error instanceof Error ? error.message : "Paid activation could not be completed.");
-            }
+    React.useEffect(() => {
+        if (paidLoginRequested || !isReadyForDashboard || !effectiveSettings) {
+            setLoading(true);
+            return;
         }
-
-        handlePaidLoginCompletion().catch(() => undefined);
-
-        return () => {
-            active = false;
-        };
-    }, [paidLoginRequested, paymentReference]);
-
-    React.useEffect(() => {
-        if (paidLoginRequested) return;
 
         let active = true;
 
@@ -175,19 +112,18 @@ function DashboardContent() {
                 setLoading(true);
             }
 
-            const [loadedEmployees, loadedSettings, period, docs, periods] = await Promise.all([
+            const [loadedEmployees, period, docs, periods] = await Promise.all([
                 getEmployees(),
-                getSettings(),
                 getCurrentPayPeriod(),
                 getDocuments(),
                 getPayPeriods(),
             ]);
-            const plan = getUserPlan(loadedSettings);
+            const plan = getUserPlan(effectiveSettings);
             let nextDocs = docs;
             let nextRetentionStatus = getStandardRetentionStatus({
                 plan,
                 documents: nextDocs,
-                dismissedAt: loadedSettings?.standardRetentionNoticeDismissedAt,
+                dismissedAt: effectiveSettings.standardRetentionNoticeDismissedAt,
             });
 
             if (nextRetentionStatus.purgeCount > 0) {
@@ -196,7 +132,7 @@ function DashboardContent() {
                 nextRetentionStatus = getStandardRetentionStatus({
                     plan,
                     documents: nextDocs,
-                    dismissedAt: loadedSettings?.standardRetentionNoticeDismissedAt,
+                    dismissedAt: effectiveSettings.standardRetentionNoticeDismissedAt,
                 });
             }
 
@@ -217,13 +153,15 @@ function DashboardContent() {
             }).visible;
 
             setEmployees(loadedEmployees);
-            setSettings(loadedSettings);
             setCurrentPeriod(period);
             setAllPeriods(periods);
             setRecentDocs(visibleRecentDocs.slice(0, 5));
             setSummaries(nextSummaries);
             setRetentionStatus(nextRetentionStatus);
             setLoading(false);
+            endAppMetric("login_to_interactive", {
+                route: "dashboard",
+            });
         }
 
         void load();
@@ -233,27 +171,35 @@ function DashboardContent() {
             active = false;
             unsubscribe();
         };
-    }, [paidLoginRequested]);
+    }, [effectiveSettings, isReadyForDashboard, paidLoginRequested]);
+
+    React.useEffect(() => {
+        if (loading || recordedMountRef.current) {
+            return;
+        }
+
+        recordedMountRef.current = true;
+        recordAppMetric("dashboard_mount_renders", {
+            render_count: renderCountRef.current,
+            subscription_status: subscriptionStatus,
+        });
+    }, [loading, subscriptionStatus]);
 
     const handleDismissRetentionReminder = async () => {
-        if (!settings || retentionStatus?.isStandard !== true) return;
+        if (!effectiveSettings || retentionStatus?.isStandard !== true) return;
         const dismissedAt = new Date().toISOString();
 
         await saveSettings({
-            ...settings,
+            ...effectiveSettings,
             standardRetentionNoticeDismissedAt: dismissedAt,
         });
-        setSettings((current) => current ? {
-            ...current,
-            standardRetentionNoticeDismissedAt: dismissedAt,
-        } : current);
         setRetentionStatus((current) => current ? {
             ...current,
             showReminder: false,
         } : current);
     };
 
-    if (paidLoginRequested) {
+    if (paidLoginRequested || activationStatus === "pending") {
         return (
             <div className="mx-auto flex w-full max-w-[960px] flex-col gap-4 py-2">
                 {activationError ? (
@@ -267,7 +213,7 @@ function DashboardContent() {
                                 </div>
                             </div>
                             <div className="flex flex-col gap-3 sm:flex-row">
-                                <Button onClick={() => router.refresh()}>
+                                <Button onClick={() => globalThis.location.reload()}>
                                     Try again
                                 </Button>
                                 <Link href="/pricing">
@@ -295,7 +241,7 @@ function DashboardContent() {
         );
     }
 
-    if (loading) {
+    if (loading || !effectiveSettings) {
         return (
             <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5">
                 <CardSkeleton />
@@ -314,7 +260,7 @@ function DashboardContent() {
     }
 
     const now = new Date();
-    const alerts = computeDashboardAlerts({ employees, summaries, settings, now });
+    const alerts = computeDashboardAlerts({ employees, summaries, settings: effectiveSettings, now });
     const syncDetails = getDashboardSyncDetails(sync, network);
     const syncBadgeState: SyncBadgeState = syncDetails.state;
     const syncSummary = syncDetails.summary;
@@ -344,7 +290,7 @@ function DashboardContent() {
             ) : null}
             <DashboardOverview
                 employees={employees}
-                settings={settings}
+                settings={effectiveSettings}
                 currentPeriod={currentPeriod}
                 recentDocs={recentDocs}
                 summaries={summaries}

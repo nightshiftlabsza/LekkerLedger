@@ -5,14 +5,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
     pushMock: vi.fn(),
     signInWithPasswordMock: vi.fn(),
-    fetchVerifiedEntitlementsMock: vi.fn(),
+    startAppMetricMock: vi.fn(),
+    searchParamsValue: "",
 }));
 
 vi.mock("next/navigation", () => ({
     useRouter: () => ({
         push: mocks.pushMock,
     }),
-    useSearchParams: () => new URLSearchParams(""),
+    useSearchParams: () => new URLSearchParams(mocks.searchParamsValue),
 }));
 
 vi.mock("next/link", () => ({
@@ -29,8 +30,8 @@ vi.mock("@/lib/supabase/client", () => ({
     }),
 }));
 
-vi.mock("@/lib/billing-client", () => ({
-    fetchVerifiedEntitlements: (...args: unknown[]) => mocks.fetchVerifiedEntitlementsMock(...args),
+vi.mock("@/lib/app-performance", () => ({
+    startAppMetric: (...args: unknown[]) => mocks.startAppMetricMock(...args),
 }));
 
 vi.mock("@/lib/billing-handoff", () => ({
@@ -47,43 +48,12 @@ describe("LoginForm paid access enforcement", () => {
     beforeEach(() => {
         mocks.pushMock.mockReset();
         mocks.signInWithPasswordMock.mockReset();
-        mocks.fetchVerifiedEntitlementsMock.mockReset();
+        mocks.startAppMetricMock.mockReset();
+        mocks.searchParamsValue = "";
     });
 
-    it("redirects unpaid users to pricing after successful sign-in", async () => {
+    it("routes signed-in users into the dashboard bootstrap path", async () => {
         mocks.signInWithPasswordMock.mockResolvedValue({ error: null });
-        mocks.fetchVerifiedEntitlementsMock.mockResolvedValue({
-            planId: "free",
-            billingCycle: "monthly",
-            status: "free",
-            cancelAtPeriodEnd: false,
-            availableReferralMonths: 0,
-            pendingReferralMonths: 0,
-            isActive: false,
-        });
-
-        render(<LoginForm />);
-
-        fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "person@example.com" } });
-        fireEvent.change(screen.getByLabelText("Password"), { target: { value: "Password123!" } });
-        fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
-
-        await waitFor(() => {
-            expect(mocks.pushMock).toHaveBeenCalledWith("/pricing");
-        });
-    });
-
-    it("continues paid users into the dashboard", async () => {
-        mocks.signInWithPasswordMock.mockResolvedValue({ error: null });
-        mocks.fetchVerifiedEntitlementsMock.mockResolvedValue({
-            planId: "standard",
-            billingCycle: "monthly",
-            status: "active",
-            cancelAtPeriodEnd: false,
-            availableReferralMonths: 0,
-            pendingReferralMonths: 0,
-            isActive: true,
-        });
 
         render(<LoginForm />);
 
@@ -93,6 +63,21 @@ describe("LoginForm paid access enforcement", () => {
 
         await waitFor(() => {
             expect(mocks.pushMock).toHaveBeenCalledWith("/dashboard");
+        });
+    });
+
+    it("continues paid users into dashboard activation when a payment reference is present", async () => {
+        mocks.signInWithPasswordMock.mockResolvedValue({ error: null });
+        mocks.searchParamsValue = "reference=ref_123";
+
+        render(<LoginForm />);
+
+        fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "person@example.com" } });
+        fireEvent.change(screen.getByLabelText("Password"), { target: { value: "Password123!" } });
+        fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+        await waitFor(() => {
+            expect(mocks.pushMock).toHaveBeenCalledWith("/dashboard?paidLogin=1&reference=ref_123");
         });
     });
 });

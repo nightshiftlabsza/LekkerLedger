@@ -160,9 +160,12 @@ function EmployeeDetailContent() {
     if (!employee) return null;
 
     const visibleTabs = TABS.filter((tab) => (tab.id !== "leave" || showLeaveTab) && (tab.id !== "documents" || showDocumentsTab));
-    const formattedStartDate = employee.startDate
-        ? `${format(new Date(employee.startDate), "dd MMM yyyy")}${employee.startDateIsApproximate ? " (estimate)" : ""}`
-        : "Not set";
+    let formattedStartDate = "Not set";
+    if (employee.startDate) {
+        const dateStr = format(new Date(employee.startDate), "dd MMM yyyy");
+        const suffix = employee.startDateIsApproximate ? " (estimate)" : "";
+        formattedStartDate = `${dateStr}${suffix}`;
+    }
     const manualLeaveBalance = typeof employee.annualLeaveDaysRemaining === "number"
         ? `${employee.annualLeaveDaysRemaining} days remaining`
         : "Not entered";

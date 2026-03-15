@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getE2EFreePayslipEmail } from "@/lib/e2e-free-payslip";
 import { createClient } from "@/lib/supabase/server";
 import {
     consumeFreePayslipQuota,
@@ -6,7 +7,12 @@ import {
     toFreePayslipQuotaErrorResponse,
 } from "@/lib/free-payslip-quota";
 
-async function getVerifiedEmail() {
+async function getVerifiedEmail(request: Request) {
+    const e2eEmail = getE2EFreePayslipEmail(request);
+    if (e2eEmail) {
+        return e2eEmail;
+    }
+
     const supabase = await createClient();
     const { data: { user }, error } = await supabase.auth.getUser();
 
@@ -17,9 +23,9 @@ async function getVerifiedEmail() {
     return user.email;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
-        const email = await getVerifiedEmail();
+        const email = await getVerifiedEmail(request);
         const status = await getFreePayslipQuotaStatus(email);
         return NextResponse.json(status, {
             headers: {
@@ -32,9 +38,9 @@ export async function GET() {
     }
 }
 
-export async function POST() {
+export async function POST(request: Request) {
     try {
-        const email = await getVerifiedEmail();
+        const email = await getVerifiedEmail(request);
         const status = await consumeFreePayslipQuota(email);
         return NextResponse.json(status, {
             headers: {

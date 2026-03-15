@@ -58,7 +58,7 @@ export function SignUpForm({
         if (pass.length < 10) return "Password must be at least 10 characters long.";
         if (!/[A-Z]/.test(pass)) return "Password must include at least one uppercase letter.";
         if (!/[a-z]/.test(pass)) return "Password must include at least one lowercase letter.";
-        if (!/[0-9]/.test(pass)) return "Password must include at least one number.";
+        if (!/\d/.test(pass)) return "Password must include at least one number.";
         if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass)) return "Password must include at least one special character.";
         return null;
     };

@@ -4,8 +4,6 @@ import { act } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-    getUserMock: vi.fn(),
-    unsubscribeMock: vi.fn(),
     setCryptoKeyMock: vi.fn(),
     syncInitMock: vi.fn(),
     reconcileAfterUnlockMock: vi.fn(),
@@ -15,29 +13,26 @@ const mocks = vi.hoisted(() => ({
     deriveKeyMock: vi.fn(),
     importAccountMasterKeyMock: vi.fn(),
     loadEncryptionProfileStateMock: vi.fn(),
-    authStateChangeHandler: null as ((event: string, session: { user?: { id: string } } | null) => void) | null,
+    authStateSnapshot: {
+        user: {
+            id: "user-1",
+            email: null as string | null,
+        },
+        isLoading: false,
+        refreshUser: vi.fn(),
+    },
 }));
 
 vi.mock("../hooks/use-realtime-sync", () => ({
     useRealtimeSync: () => undefined,
 }));
 
+vi.mock("@/components/auth/auth-state-provider", () => ({
+    useAuthState: () => mocks.authStateSnapshot,
+}));
+
 vi.mock("./supabase/client", () => ({
-    createClient: () => ({
-        auth: {
-            getUser: mocks.getUserMock,
-            onAuthStateChange: (callback: (event: string, session: { user?: { id: string } } | null) => void) => {
-                mocks.authStateChangeHandler = callback;
-                return {
-                    data: {
-                        subscription: {
-                            unsubscribe: mocks.unsubscribeMock,
-                        },
-                    },
-                };
-            },
-        },
-    }),
+    createClient: () => ({}),
 }));
 
 vi.mock("./sync-engine", () => ({
@@ -86,8 +81,6 @@ function Harness() {
 
 describe("AppModeProvider", () => {
     beforeEach(() => {
-        mocks.getUserMock.mockReset();
-        mocks.unsubscribeMock.mockReset();
         mocks.setCryptoKeyMock.mockReset();
         mocks.syncInitMock.mockReset();
         mocks.reconcileAfterUnlockMock.mockReset();
@@ -97,15 +90,12 @@ describe("AppModeProvider", () => {
         mocks.deriveKeyMock.mockReset();
         mocks.importAccountMasterKeyMock.mockReset();
         mocks.loadEncryptionProfileStateMock.mockReset();
-        mocks.authStateChangeHandler = null;
-
-        mocks.getUserMock.mockResolvedValue({
-            data: {
-                user: {
-                    id: "user-1",
-                },
-            },
-        });
+        mocks.authStateSnapshot.user = {
+            id: "user-1",
+            email: null,
+        };
+        mocks.authStateSnapshot.isLoading = false;
+        mocks.authStateSnapshot.refreshUser.mockReset();
         mocks.loadEncryptionProfileStateMock.mockResolvedValue({
             encryptionMode: "recoverable",
             modeVersion: 1,
@@ -124,8 +114,8 @@ describe("AppModeProvider", () => {
         mocks.restoreFromCloudMock.mockResolvedValue(undefined);
     });
 
-    it("stays unlocked after a successful unlock and ignores same-user sign-in events", async () => {
-        render(
+    it("stays unlocked after a successful unlock while the auth snapshot stays the same", async () => {
+        const { rerender } = render(
             <AppModeProvider>
                 <Harness />
             </AppModeProvider>,
@@ -143,13 +133,11 @@ describe("AppModeProvider", () => {
             expect(screen.getByTestId("mode").textContent).toBe("account_unlocked");
         });
 
-        act(() => {
-            mocks.authStateChangeHandler?.("SIGNED_IN", {
-                user: {
-                    id: "user-1",
-                },
-            });
-        });
+        rerender(
+            <AppModeProvider>
+                <Harness />
+            </AppModeProvider>,
+        );
 
         expect(screen.getByTestId("mode").textContent).toBe("account_unlocked");
     });

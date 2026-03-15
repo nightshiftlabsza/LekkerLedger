@@ -224,7 +224,8 @@ export default function RoePackPage() {
                                                 {availableYears.map((year) => {
                                                     const endDay = ((year + 1) % 4 === 0 && ((year + 1) % 100 !== 0 || (year + 1) % 400 === 0)) ? 29 : 28;
                                                     return (
-                                                        <div
+                                                        <button
+                                                            type="button"
                                                             key={year}
                                                             onClick={() => {
                                                                 if (selectedYear !== year && step > 1) {
@@ -237,7 +238,7 @@ export default function RoePackPage() {
                                                                     setSelectedYear(year);
                                                                 }
                                                             }}
-                                                            className={`rounded-2xl border-2 p-4 cursor-pointer transition-all ${selectedYear === year ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)] hover:border-[var(--primary)]/30"}`}
+                                                            className={`block w-full text-left rounded-2xl border-2 p-4 cursor-pointer transition-all ${selectedYear === year ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)] hover:border-[var(--primary)]/30"}`}
                                                         >
                                                             <div className="flex items-center justify-between gap-4">
                                                                 <div className="min-w-0">
@@ -246,7 +247,7 @@ export default function RoePackPage() {
                                                                 </div>
                                                                 {selectedYear === year && <div className="h-5 w-5 rounded-full bg-[var(--primary)] flex items-center justify-center"><Check className="h-3 w-3 text-white" /></div>}
                                                             </div>
-                                                        </div>
+                                                        </button>
                                                     );
                                                 })}
                                             </div>

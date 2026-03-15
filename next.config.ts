@@ -2,6 +2,8 @@ import withSerwistInit from "@serwist/next";
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
+const ignoreBuildTypeErrorsForE2E = process.env.PLAYWRIGHT_BUILD === "1";
+const playwrightDistDir = process.env.PLAYWRIGHT_BUILD === "1" ? ".next-playwright" : undefined;
 
 const withSerwist = withSerwistInit({
   swSrc: "src/app/sw.ts",
@@ -17,7 +19,11 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["*.replit.dev"],
+  distDir: playwrightDistDir,
   experimental: {},
+  typescript: {
+    ignoreBuildErrors: ignoreBuildTypeErrorsForE2E,
+  },
   async rewrites() {
     return [
       {

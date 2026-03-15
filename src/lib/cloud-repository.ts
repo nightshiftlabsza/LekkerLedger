@@ -2,7 +2,7 @@ import { createClient } from "./supabase/client";
 import { decryptData, decryptFile, encryptData, encryptFile } from "./crypto";
 
 export class CloudRepository {
-    private supabase = createClient();
+    private readonly supabase = createClient();
     private cryptoKey: CryptoKey | null = null;
     private userId: string | null = null;
 
@@ -152,9 +152,12 @@ export class CloudRepository {
 
         const encryptedBlob = await encryptedResponse.blob();
         const decryptedBlob = await decryptFile(encryptedBlob, data.iv, this.cryptoKey, data.mime_type || "application/octet-stream");
+        
+        const resolvedMimeType = data.mime_type || decryptedBlob.type || "application/octet-stream";
+        
         return {
             blob: decryptedBlob,
-            mimeType: data.mime_type || decryptedBlob.type || "application/octet-stream",
+            mimeType: resolvedMimeType,
         };
     }
 

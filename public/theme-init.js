@@ -5,10 +5,10 @@
             storedTheme === "light" || storedTheme === "dark" || storedTheme === "system"
                 ? storedTheme
                 : "system";
-        const resolvedTheme =
-            theme === "system"
-                ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-                : theme;
+        let resolvedTheme = theme;
+        if (theme === "system") {
+            resolvedTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
 
         document.documentElement.dataset.theme = resolvedTheme;
 

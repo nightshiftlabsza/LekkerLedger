@@ -9,7 +9,7 @@ export type SyncState = "disabled" | "enabled" | "error" | "reconnecting";
 export type PaymentsState = "available" | "unavailable";
 
 async function probeSameOriginConnectivity(): Promise<boolean> {
-    if (typeof window === "undefined") return true;
+    if (typeof globalThis.window === "undefined") return true;
 
     const controller = new AbortController();
     const timeout = globalThis.setTimeout(() => controller.abort(), 4000);

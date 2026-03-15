@@ -140,6 +140,14 @@ export function LeaveClient() {
                 statusText = "Manual balance";
             }
 
+            const currentCycleLabel = (() => {
+                if (annualSummary?.currentCycle) {
+                    return `${format(annualSummary.currentCycle.start, "dd MMM yyyy")} to ${format(annualSummary.currentCycle.end, "dd MMM yyyy")}`;
+                }
+                if (hasManualBalance) return "Manual balance entered";
+                return "Cycle unavailable";
+            })();
+
             return {
                 employee,
                 availableNow,
@@ -147,11 +155,7 @@ export function LeaveClient() {
                 carryOver,
                 status,
                 statusText,
-                currentCycleLabel: annualSummary?.currentCycle
-                    ? `${format(annualSummary.currentCycle.start, "dd MMM yyyy")} to ${format(annualSummary.currentCycle.end, "dd MMM yyyy")}`
-                    : hasManualBalance
-                        ? "Manual balance entered"
-                        : "Cycle unavailable",
+                currentCycleLabel,
             };
         });
     }, [contractsByEmployee, employees, records]);
@@ -417,4 +421,3 @@ export function LeaveClient() {
         </div>
     );
 }
-

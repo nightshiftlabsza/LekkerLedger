@@ -36,7 +36,7 @@ function UpgradePageContent() {
     const [downgradingTo, setDowngradingTo] = React.useState<PlanId | null>(null);
     const [cancelingForDowngrade, setCancelingForDowngrade] = React.useState(false);
     const [ownReferralCode, setOwnReferralCode] = React.useState<string | null>(null);
-    const { startCheckout, loadingPlanId, dialog } = useInlinePaidPlanCheckout({ billingCycle, referralCode });
+    const { startCheckout, loadingPlanId, dialog, warmCheckout } = useInlinePaidPlanCheckout({ billingCycle, referralCode });
 
     const sourceKey = searchParams.get("source") as FeatureKey | null;
 
@@ -214,6 +214,7 @@ function UpgradePageContent() {
                         billingCycle={billingCycle}
                         currentPlanId={currentPlan.id}
                         onSelect={handlePlanSelect}
+                        onWarmSelect={warmCheckout}
                         isLoadingPlanId={loadingPlanId}
                     />
                 </div>

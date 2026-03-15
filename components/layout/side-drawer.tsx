@@ -10,17 +10,17 @@ import { HouseholdSwitcher } from "@/components/household-switcher";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 interface SideDrawerProps {
-    showButton?: boolean;
-    open?: boolean;
-    onOpenChange?: (open: boolean) => void;
-    variant?: "default" | "dashboard";
-    households?: Array<{ id: string; name: string }>;
-    activeHouseholdId?: string;
-    multiHouseholdEnabled?: boolean;
-    onSwitchHousehold?: (id: string) => void;
-    onAddHousehold?: () => void;
-    employerName?: string;
-    planLabel?: string;
+    readonly showButton?: boolean;
+    readonly open?: boolean;
+    readonly onOpenChange?: (open: boolean) => void;
+    readonly variant?: "default" | "dashboard";
+    readonly households?: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+    readonly activeHouseholdId?: string;
+    readonly multiHouseholdEnabled?: boolean;
+    readonly onSwitchHousehold?: (id: string) => void;
+    readonly onAddHousehold?: () => void;
+    readonly employerName?: string;
+    readonly planLabel?: string | null;
 }
 
 export function SideDrawer({
@@ -34,10 +34,10 @@ export function SideDrawer({
     onSwitchHousehold,
     onAddHousehold,
     employerName = "",
-    planLabel = "",
+    planLabel = null,
 }: SideDrawerProps) {
     const [internalOpen, setInternalOpen] = React.useState(false);
-    const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+    const open = controlledOpen ?? internalOpen;
     const setOpen = onOpenChange || setInternalOpen;
     const dashboardVariant = variant === "dashboard";
 
@@ -78,19 +78,16 @@ export function SideDrawer({
 
             {/* Backdrop (mobile only) */}
             {open && (
-                <div
-                    className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in lg:hidden"
+                <button
+                    type="button"
+                    className="fixed inset-0 z-40 w-full bg-black/40 backdrop-blur-sm animate-fade-in lg:hidden border-none"
                     onClick={() => setOpen(false)}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setOpen(false); }}
-                    role="button"
-                    tabIndex={0}
                     aria-label="Close menu"
                 />
             )}
 
             {/* Drawer panel */}
-            <div
-                role="dialog"
+            <dialog open
                 aria-modal="true"
                 aria-label="Navigation"
                 className={[
@@ -154,9 +151,10 @@ export function SideDrawer({
                             <div className="space-y-0.5">
                                 {group.links.map(({ href, label, sublabel, icon: Icon }) => {
                                     const active = isActive(href);
-                                    const backgroundColor = active
-                                        ? (dashboardVariant ? "color-mix(in srgb, var(--primary) 10%, transparent)" : "var(--accent-subtle)")
-                                        : "transparent";
+                                    let backgroundColor = "transparent";
+                                    if (active) {
+                                        backgroundColor = dashboardVariant ? "color-mix(in srgb, var(--primary) 10%, transparent)" : "var(--accent-subtle)";
+                                    }
 
                                     return (
                                         <Link
@@ -182,7 +180,7 @@ export function SideDrawer({
                                             <span
                                                 className="h-8 w-8 flex items-center justify-center rounded-xl transition-all duration-200 shrink-0 shadow-[var(--shadow-sm)]"
                                                 style={{
-                                                    backgroundColor: active ? "var(--primary)" : dashboardVariant ? "var(--surface-raised)" : "var(--surface-raised)",
+                                                    backgroundColor: active ? "var(--primary)" : "var(--surface-raised)",
                                                     color: active ? "#ffffff" : "var(--primary)",
                                                 }}
                                             >
@@ -227,11 +225,11 @@ export function SideDrawer({
                         <div className="rounded-2xl bg-[var(--surface-raised)] px-4 py-3">
                             <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Current workspace</p>
                             <p className="mt-1 truncate text-sm font-semibold text-[var(--text)]">{employerName || "Household payroll"}</p>
-                            <p className="mt-0.5 text-xs text-[var(--text-muted)]">{planLabel || "Dashboard"}</p>
+                            <p className="mt-0.5 text-xs text-[var(--text-muted)]">{planLabel || "Plan loading"}</p>
                         </div>
                     ) : null}
                 </div>
-            </div>
+            </dialog>
         </>
     );
 }

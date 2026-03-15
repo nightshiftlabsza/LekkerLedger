@@ -25,9 +25,7 @@ import {
 import { normalizeEmployeeIdNumber } from "./employee-id";
 import { EMPLOYER_DETAILS_REQUIRED_ERROR, hasRequiredEmployerDetails } from "./employer-details";
 import { calculateAnnualLeaveSummary, getLeaveTypeLabel } from "./leave";
-import { fetchVerifiedEntitlements } from "./billing-client";
 import { syncService } from "./sync-service";
-import { createClient } from "./supabase/client";
 import { clearAllLocalRecoveryProfiles } from "./recovery-profile-store";
 
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
@@ -63,18 +61,13 @@ export interface SyncMigrationSnapshot {
         id: string;
         blob: Blob;
         mimeType: string;
-        accessScope: DocumentAccessScope;
+        accessScope: "paid" | "contracts" | "vault";
     }>;
 }
-
-type DocumentAccessScope = "paid" | "contracts" | "vault";
-
 
 export const DEFAULT_HOUSEHOLD_ID = "default";
 const DEFAULT_HOUSEHOLD_NAME = "Main household";
 const BACKUP_SCHEMA_VERSION = "2.4";
-const SUPPORTED_BACKUP_VERSIONS = new Set(["1.0", "2.0", "2.1", "2.2", "2.3", "2.4", 1, 2]);
-const SECURE_TIME_CACHE_MS = 5 * 60 * 1000;
 const HOUSEHOLD_SETTINGS_KEY_PREFIX = "employer-settings::";
 
 const HouseholdScopedSettingsSchema = EmployerSettingsSchema.pick({
@@ -123,7 +116,6 @@ async function blobToBase64(blob: Blob): Promise<string> {
         reader.onloadend = () => {
             const result = reader.result as string;
             if (!result) return resolve("");
-            // remove the data:base64 header
             const parts = result.split(",");
             resolve(parts[1] || "");
         };
@@ -147,7 +139,12 @@ function normalizeLegacyPlanId(status: EmployerSettings["proStatus"] | undefined
 function buildDefaultSettings(overrides: Partial<EmployerSettings> = {}): EmployerSettings {
     const normalizedPlanId = normalizeLegacyPlanId(overrides.proStatus);
     const inferredBillingCycle = overrides.billingCycle
-        ?? ((overrides.proStatus === "annual" || overrides.proStatus === "lifetime") ? "yearly" : "monthly");
+        ?? (() => {
+            if (overrides.proStatus === "annual" || overrides.proStatus === "lifetime") {
+                return "yearly";
+            }
+            return "monthly";
+        })();
 
     return {
         employerName: "",
@@ -174,7 +171,7 @@ function buildDefaultSettings(overrides: Partial<EmployerSettings> = {}): Employ
     };
 }
 
-function buildDefaultHousehold(): Household {
+export function buildDefaultHousehold(): Household {
     return {
         id: DEFAULT_HOUSEHOLD_ID,
         name: DEFAULT_HOUSEHOLD_NAME,
@@ -245,7 +242,7 @@ async function ensureHouseholdScopedSettings(householdId: string, seed: Partial<
     return created;
 }
 
-async function ensureDefaultHousehold(): Promise<void> {
+export async function ensureDefaultHousehold(): Promise<void> {
     const existing = await householdStore.getItem<Household>(DEFAULT_HOUSEHOLD_ID);
     if (!existing) {
         await householdStore.setItem(DEFAULT_HOUSEHOLD_ID, buildDefaultHousehold());
@@ -255,7 +252,6 @@ async function ensureDefaultHousehold(): Promise<void> {
 async function encodeData(data: unknown): Promise<unknown> {
     const settings = await getSettings();
     if (settings.piiObfuscationEnabled === false) return data;
-    // Handle UTF-8 safely with encodeURIComponent (robust to emoji and non-ASCII)
     return btoa(encodeURIComponent(JSON.stringify(data)));
 }
 
@@ -265,11 +261,10 @@ function decodeData<T>(value: unknown): T | null {
         const decoded = decodeURIComponent(atob(value));
         return JSON.parse(decoded) as T;
     } catch (error) {
-        // Fallback for legacy un-obfuscated data or corrupted items
         try {
             return JSON.parse(value as string) as T;
         } catch {
-            console.warn("Failed to decode data item. It may be corrupted or in an unexpected format.", error);
+            console.warn("Failed to decode data item.", error);
             return null;
         }
     }
@@ -282,9 +277,11 @@ const DATA_CHANGE_STORAGE_KEY = "lekkerledger:data-change-ping";
 let dataChangeBridgeInitialized = false;
 let dataChangeChannel: BroadcastChannel | null = null;
 let isImporting = false;
+let dataChangeBatchDepth = 0;
+let pendingBatchedNotification = false;
 
 function logStorageReadError(operation: string, error: unknown) {
-    console.error(`Local storage read failed during ${operation}. Falling back to safe defaults.`, error);
+    console.error(`Local storage read failed during ${operation}.`, error);
 }
 
 async function withStorageReadFallback<T>(operation: string, fallback: T, reader: () => Promise<T>): Promise<T> {
@@ -313,7 +310,7 @@ async function syncRecordDeletionToCloud(table: string, id: string) {
     await syncService.pushLocalDelete(table, id);
 }
 
-async function syncDocumentFileToCloud(id: string, file: Blob, mimeType: string, accessScope: DocumentAccessScope = "paid") {
+async function syncDocumentFileToCloud(id: string, file: Blob, mimeType: string, accessScope: "paid" | "contracts" | "vault" = "paid") {
     if (!syncService.isReady()) return;
     await syncService.pushLocalFile(id, file, mimeType, accessScope);
 }
@@ -333,12 +330,8 @@ export function subscribeToDataChanges(callback: DataChangeListener) {
 }
 
 function ensureDataChangeBridge() {
-    if (dataChangeBridgeInitialized || typeof window === "undefined") {
-        return;
-    }
-
+    if (dataChangeBridgeInitialized || typeof window === "undefined") return;
     dataChangeBridgeInitialized = true;
-
     if (typeof BroadcastChannel !== "undefined") {
         dataChangeChannel = new BroadcastChannel(DATA_CHANGE_CHANNEL);
         dataChangeChannel.addEventListener("message", () => {
@@ -346,41 +339,28 @@ function ensureDataChangeBridge() {
         });
         return;
     }
-
     window.addEventListener("storage", (event) => {
-        if (event.key !== DATA_CHANGE_STORAGE_KEY || event.newValue === event.oldValue) {
-            return;
-        }
-
+        if (event.key !== DATA_CHANGE_STORAGE_KEY || event.newValue === event.oldValue) return;
         void notifyListeners({ broadcast: false });
     });
 }
 
 function broadcastDataChange() {
-    if (typeof window === "undefined") {
-        return;
-    }
-
+    if (typeof window === "undefined") return;
     try {
         if (dataChangeChannel) {
             dataChangeChannel.postMessage({ at: Date.now() });
             return;
         }
-    } catch {
-        // Ignore BroadcastChannel failures and fall back to the storage ping below.
-    }
-
+    } catch {}
     try {
         window.localStorage.setItem(DATA_CHANGE_STORAGE_KEY, String(Date.now()));
-    } catch {
-        // Ignore localStorage write failures. Same-tab listeners already ran.
-    }
+    } catch {}
 }
 
-async function notifyListeners(options: { broadcast?: boolean } = {}) {
+async function flushDataChangeNotification(options: { broadcast?: boolean } = {}) {
     if (isImporting) return;
     const activeListeners = [...listeners];
-    // Use allSettled so one crashing component doesn't break the whole app (Issue 153)
     await Promise.allSettled(activeListeners.map(async (listener) => {
         try {
             await listener();
@@ -388,14 +368,35 @@ async function notifyListeners(options: { broadcast?: boolean } = {}) {
             console.error("Data change listener failed", error);
         }
     }));
+    if (options.broadcast !== false) broadcastDataChange();
+}
 
-    if (options.broadcast !== false) {
-        broadcastDataChange();
+async function notifyListeners(options: { broadcast?: boolean } = {}) {
+    if (dataChangeBatchDepth > 0) {
+        pendingBatchedNotification = true;
+        return;
     }
+
+    await flushDataChangeNotification(options);
 }
 
 export function setImportingMode(value: boolean) {
     isImporting = value;
+}
+
+export async function runWithBatchedDataChanges<T>(operation: () => Promise<T>): Promise<T> {
+    dataChangeBatchDepth += 1;
+
+    try {
+        return await operation();
+    } finally {
+        dataChangeBatchDepth = Math.max(0, dataChangeBatchDepth - 1);
+
+        if (dataChangeBatchDepth === 0 && pendingBatchedNotification) {
+            pendingBatchedNotification = false;
+            await flushDataChangeNotification();
+        }
+    }
 }
 
 export async function getHouseholds(): Promise<Household[]> {
@@ -424,18 +425,17 @@ export async function getActiveHouseholdId(): Promise<string> {
     return settings.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;
 }
 
+const SETTINGS_KEY = "employer-settings";
+
 export async function setActiveHouseholdId(householdId: string): Promise<void> {
     await ensureDefaultHousehold();
-    // Optimization: Direct check instead of getting all (Issue 154)
     const exists = await householdStore.getItem(householdId);
     if (!exists) throw new Error("Household not found.");
-
     const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
     const globalSettings = buildDefaultSettings({
         ...stripHouseholdScopedSettings(rawSettings ?? {}),
         activeHouseholdId: householdId,
     });
-
     await settingsStore.setItem(SETTINGS_KEY, globalSettings);
     await ensureHouseholdScopedSettings(householdId);
     await logAuditEvent("SWITCH_HOUSEHOLD", "Changed active household", { householdId });
@@ -473,32 +473,25 @@ export async function saveEmployee(employee: Employee): Promise<void> {
         idNumber: normalizeEmployeeIdNumber(employee.idNumber ?? ""),
         phone: employee.phone?.trim() ?? "",
     }) as Employee;
-
     if (normalized.idNumber) {
         const employees = await getEmployees();
         const duplicate = employees.find((existing) =>
             existing.id !== normalized.id &&
             normalizeEmployeeIdNumber(existing.idNumber ?? "") === normalized.idNumber
         );
-        if (duplicate) {
-            throw new Error(`An employee with ID number ${normalized.idNumber} already exists.`);
-        }
+        if (duplicate) throw new Error(`An employee with ID number ${normalized.idNumber} already exists.`);
     }
-
     await employeeStore.setItem(normalized.id, await encodeData(normalized));
     await syncRecordToCloud("employees", normalized.id, normalized as unknown as Record<string, unknown>);
     await logAuditEvent("CREATE_EMPLOYEE", `Saved employee: ${normalized.name}`, {
         employeeId: normalized.id,
         householdId: normalized.householdId,
-        idNumber: normalized.idNumber || undefined,
     });
     await notifyListeners();
 }
 
 export async function deleteEmployee(id: string): Promise<void> {
     const employee = await getEmployee(id);
-    
-    // Perform deletions in parallel for better performance (Issue 8, 157)
     await Promise.all([
         employeeStore.removeItem(id),
         (async () => {
@@ -518,10 +511,8 @@ export async function deleteEmployee(id: string): Promise<void> {
              await Promise.all(keysToDelete.map(k => leaveStore.removeItem(k)));
         })()
     ]);
-
     await logAuditEvent("DELETE_EMPLOYEE", `Deleted employee: ${employee?.name || id}`, {
         employeeId: employee?.id || id,
-        employeeName: employee?.name,
     });
     await syncRecordDeletionToCloud("employees", id);
     await notifyListeners();
@@ -530,64 +521,34 @@ export async function deleteEmployee(id: string): Promise<void> {
 export async function savePayslip(payslip: PayslipInput): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
     const settings = await getSettings();
-
-    if (!hasRequiredEmployerDetails(settings)) {
-        throw new Error(EMPLOYER_DETAILS_REQUIRED_ERROR);
-    }
-
-    const duplicate = (await getAllPayslips()).find((existing) =>
-        existing.id !== payslip.id &&
-        existing.employeeId === payslip.employeeId &&
-        new Date(existing.payPeriodStart).getTime() === new Date(payslip.payPeriodStart).getTime() &&
-        new Date(existing.payPeriodEnd).getTime() === new Date(payslip.payPeriodEnd).getTime()
-    );
-
-    if (duplicate) {
-        throw new Error("A payslip for this employee and pay period already exists.");
-    }
-
+    if (!hasRequiredEmployerDetails(settings)) throw new Error(EMPLOYER_DETAILS_REQUIRED_ERROR);
     const normalized = withUpdatedAt({
         ...payslip,
         householdId: payslip.householdId || activeHouseholdId,
     }) as PayslipInput;
-
+    const existingPayslips = await getAllPayslips();
+    const duplicate = existingPayslips.find((existing) =>
+        existing.id !== normalized.id
+        && existing.employeeId === normalized.employeeId
+        && new Date(existing.payPeriodStart).getTime() === new Date(normalized.payPeriodStart).getTime()
+        && new Date(existing.payPeriodEnd).getTime() === new Date(normalized.payPeriodEnd).getTime()
+    );
+    if (duplicate) {
+        throw new Error("A payslip for this employee and pay period already exists.");
+    }
     await payslipStore.setItem(normalized.id, await encodeData(normalized));
     await syncRecordToCloud("payslips", normalized.id, normalized as unknown as Record<string, unknown>);
     await logAuditEvent("CREATE_PAYSLIP", `Generated payslip for employee ID: ${normalized.employeeId}`, {
         payslipId: normalized.id,
-        householdId: normalized.householdId,
         employeeId: normalized.employeeId,
-        payPeriodStart: new Date(normalized.payPeriodStart).toISOString(),
-        payPeriodEnd: new Date(normalized.payPeriodEnd).toISOString(),
     });
     await notifyListeners();
-}
-
-export async function getPayslipsForEmployee(employeeId: string): Promise<PayslipInput[]> {
-    return withStorageReadFallback("getPayslipsForEmployee", [], async () => {
-        const payslips: PayslipInput[] = [];
-        await payslipStore.iterate<unknown, void>((value: unknown) => {
-            const decoded = decodeData<PayslipInput>(value);
-            if (decoded?.employeeId === employeeId) payslips.push(decoded);
-        });
-        return payslips.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    });
-}
-
-export async function getLatestPayslip(employeeId: string): Promise<PayslipInput | null> {
-    const payslips = await getPayslipsForEmployee(employeeId);
-    return payslips.length > 0 ? payslips[0] : null;
-}
-
-export async function getTotalDaysWorkedForEmployee(employeeId: string): Promise<number> {
-    const payslips = await getPayslipsForEmployee(employeeId);
-    return payslips.reduce((sum, payslip) => sum + (payslip.daysWorked || 0), 0);
 }
 
 export async function getAllPayslips(): Promise<PayslipInput[]> {
     return withStorageReadFallback("getAllPayslips", [], async () => {
         const activeHouseholdId = await getActiveHouseholdId();
-        const activeEmployeeIds = new Set((await getEmployees()).map((employee) => employee.id));
+        const activeEmployeeIds = new Set((await getEmployees()).map((e) => e.id));
         const payslips: PayslipInput[] = [];
         await payslipStore.iterate<unknown, void>((value: unknown) => {
             if (!value) return;
@@ -596,7 +557,7 @@ export async function getAllPayslips(): Promise<PayslipInput[]> {
                 payslips.push(decoded);
             }
         });
-        return payslips.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        return payslips.sort((a, b) => new Date(b.payPeriodEnd).getTime() - new Date(a.payPeriodEnd).getTime());
     });
 }
 
@@ -611,9 +572,7 @@ async function getLeaveForEmployeeRaw(employeeId: string): Promise<LeaveRecord[]
     const records: LeaveRecord[] = [];
     await leaveStore.iterate<unknown, void>((value: unknown) => {
         const decoded = decodeData<LeaveRecord>(value);
-        if (decoded?.employeeId === employeeId) {
-            records.push(decoded);
-        }
+        if (decoded?.employeeId === employeeId) records.push(decoded);
     });
     return records.sort((a, b) => new Date(b.startDate || b.date).getTime() - new Date(a.startDate || a.date).getTime());
 }
@@ -622,9 +581,7 @@ async function getLeaveCarryOversForEmployeeRaw(employeeId: string): Promise<Lea
     const carryOvers: LeaveCarryOver[] = [];
     await leaveCarryOverStore.iterate<unknown, void>((value: unknown) => {
         const parsed = LeaveCarryOverSchema.safeParse(value);
-        if (parsed.success && parsed.data.employeeId === employeeId) {
-            carryOvers.push(parsed.data);
-        }
+        if (parsed.success && parsed.data.employeeId === employeeId) carryOvers.push(parsed.data);
     });
     return carryOvers.sort((a, b) => new Date(a.fromCycleEnd).getTime() - new Date(b.fromCycleEnd).getTime());
 }
@@ -643,7 +600,7 @@ function applyLeaveTypeMetadata(record: LeaveRecord, customLeaveTypes: CustomLea
     return {
         ...record,
         typeLabel: label,
-        isCustomType: customType ? true : record.isCustomType,
+        isCustomType: !!customType,
         paid: customType ? customType.isPaid : record.paid,
     };
 }
@@ -656,9 +613,7 @@ async function synchronizeEmployeeLeaveLedger(employeeId: string, providedCustom
         providedCustomLeaveTypes ? Promise.resolve(null) : getSettings(),
         getLeaveCarryOversForEmployeeRaw(employeeId),
     ]);
-
     if (!employee) return;
-
     const customLeaveTypes = normaliseCustomLeaveTypes(providedCustomLeaveTypes ?? settings?.customLeaveTypes ?? []);
     const updatedRecords = records.map((record) => applyLeaveTypeMetadata(record, customLeaveTypes));
     const summary = calculateAnnualLeaveSummary(employee, updatedRecords, contracts, new Date());
@@ -666,27 +621,17 @@ async function synchronizeEmployeeLeaveLedger(employeeId: string, providedCustom
         ...applyLeaveTypeMetadata(record, customLeaveTypes),
         householdId: record.householdId || employee.householdId || DEFAULT_HOUSEHOLD_ID,
     }));
-
     await Promise.all(syncedRecords.map(async (record) => {
         await leaveStore.setItem(record.id, await encodeData(record));
     }));
-
-    const existingIds = new Set(existingCarryOvers.map((carryOver) => carryOver.id));
-    const nextCarryOvers = summary.carryOvers.map((carryOver) => ({
-        ...carryOver,
-        id: `${employeeId}:${carryOver.fromCycleEnd}`,
-        householdId: employee.householdId || DEFAULT_HOUSEHOLD_ID,
-        employeeId,
-    }));
-
-    await Promise.all(nextCarryOvers.map(async (carryOver) => {
-        existingIds.delete(carryOver.id);
-        await leaveCarryOverStore.setItem(carryOver.id, carryOver);
-    }));
-
-    await Promise.all(Array.from(existingIds).map(async (id) => {
-        await leaveCarryOverStore.removeItem(id);
-    }));
+    const existingIds = new Set(existingCarryOvers.map((c) => c.id));
+    for (const carryOver of summary.carryOvers) {
+        const id = `${employeeId}:${carryOver.fromCycleEnd}`;
+        const normalized = { ...carryOver, id, householdId: employee.householdId || DEFAULT_HOUSEHOLD_ID, employeeId };
+        existingIds.delete(id);
+        await leaveCarryOverStore.setItem(id, normalized);
+    }
+    await Promise.all(Array.from(existingIds).map(id => leaveCarryOverStore.removeItem(id)));
 }
 
 export async function saveLeaveRecord(record: LeaveRecord): Promise<void> {
@@ -700,12 +645,8 @@ export async function saveLeaveRecord(record: LeaveRecord): Promise<void> {
     await leaveStore.setItem(normalized.id, await encodeData(normalized));
     await synchronizeEmployeeLeaveLedger(normalized.employeeId, customLeaveTypes);
     await syncRecordToCloud("leave", normalized.id, normalized as unknown as Record<string, unknown>);
-    await logAuditEvent("CREATE_LEAVE_RECORD", `Saved leave record: ${normalized.type} for employee ${normalized.employeeId}`, {
+    await logAuditEvent("CREATE_LEAVE_RECORD", `Saved leave record for employee ${normalized.employeeId}`, {
         leaveId: normalized.id,
-        householdId: normalized.householdId,
-        employeeId: normalized.employeeId,
-        leaveType: normalized.type,
-        date: normalized.date,
     });
     await notifyListeners();
 }
@@ -714,14 +655,8 @@ export async function deleteLeaveRecord(id: string): Promise<void> {
     const existing = await leaveStore.getItem<unknown>(id);
     const record = existing ? decodeData<LeaveRecord>(existing) : null;
     await leaveStore.removeItem(id);
-    if (record?.employeeId) {
-        await synchronizeEmployeeLeaveLedger(record.employeeId);
-    }
-    await logAuditEvent("DELETE_LEAVE_RECORD", `Deleted leave record ID: ${id}`, {
-        leaveId: id,
-        employeeId: record?.employeeId,
-        leaveType: record?.type,
-    });
+    if (record?.employeeId) await synchronizeEmployeeLeaveLedger(record.employeeId);
+    await logAuditEvent("DELETE_LEAVE_RECORD", `Deleted leave record ID: ${id}`, { leaveId: id });
     await syncRecordDeletionToCloud("leave", id);
     await notifyListeners();
 }
@@ -731,773 +666,88 @@ export async function getLeaveForEmployee(employeeId: string): Promise<LeaveReco
     return getLeaveForEmployeeRaw(employeeId);
 }
 
+export async function getAllLeaveRecords(): Promise<LeaveRecord[]> {
+    const activeHouseholdId = await getActiveHouseholdId();
+    const activeEmployeeIds = new Set((await getEmployees()).map((e) => e.id));
+    const settings = await getSettings();
+    const customLeaveTypes = normaliseCustomLeaveTypes(settings.customLeaveTypes ?? []);
+    await Promise.all(Array.from(activeEmployeeIds).map(eid => synchronizeEmployeeLeaveLedger(eid, customLeaveTypes)));
+    const records: LeaveRecord[] = [];
+    await leaveStore.iterate<unknown, void>((value: unknown) => {
+        const decoded = decodeData<LeaveRecord>(value);
+        if (decoded && ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || activeEmployeeIds.has(decoded.employeeId))) records.push(decoded);
+    });
+    return records;
+}
+
 export async function getLeaveCarryOversForEmployee(employeeId: string): Promise<LeaveCarryOver[]> {
     await synchronizeEmployeeLeaveLedger(employeeId);
     return getLeaveCarryOversForEmployeeRaw(employeeId);
 }
 
-export async function getAllLeaveRecords(): Promise<LeaveRecord[]> {
-    const activeHouseholdId = await getActiveHouseholdId();
-    const activeEmployeeIds = new Set((await getEmployees()).map((employee) => employee.id));
-    const settings = await getSettings();
-    const customLeaveTypes = normaliseCustomLeaveTypes(settings.customLeaveTypes ?? []);
-    await Promise.all(Array.from(activeEmployeeIds).map(async (employeeId) => synchronizeEmployeeLeaveLedger(employeeId, customLeaveTypes)));
-    const records: LeaveRecord[] = [];
-    await leaveStore.iterate<unknown, void>((value: unknown) => {
-        const decoded = decodeData<LeaveRecord>(value);
-        if (decoded && ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || activeEmployeeIds.has(decoded.employeeId))) {
-            records.push(decoded);
-        }
-    });
-    return records;
-}
-
-const SETTINGS_KEY = "employer-settings";
-
-
-async function overlayVerifiedEntitlements(settings: EmployerSettings): Promise<EmployerSettings> {
-    if (typeof window === "undefined") return settings;
-
-    if (process.env.NEXT_PUBLIC_DEBUG_PRO_PLAN === "true") {
-        return {
-        ...settings,
-        proStatus: "pro",
-        paidUntil: new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString(),
-    };
-}
-
-    try {
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            return settings;
-        }
-
-        const entitlements = await fetchVerifiedEntitlements(session.access_token);
-        if (!entitlements) {
-            return settings;
-        }
-
-        const resolvedStatus = entitlements.planId === "standard"
-            ? "standard"
-            : entitlements.planId === "pro"
-                ? "pro"
-                : "free";
-
-        return buildDefaultSettings({
-            ...settings,
-            proStatus: resolvedStatus,
-            paidUntil: entitlements.paidUntil,
-            billingCycle: entitlements.billingCycle,
-        });
-    } catch (error) {
-        console.warn("Could not overlay verified entitlements.", error);
-        return settings;
-    }
-}
-
 export async function getSettings(): Promise<EmployerSettings> {
     try {
-        await ensureDefaultHousehold();
-        const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
-        const normalizedGlobal = buildDefaultSettings(stripHouseholdScopedSettings(rawSettings ?? {}));
-        const activeHouseholdId = normalizedGlobal.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;
-
-        const legacySeed = activeHouseholdId === DEFAULT_HOUSEHOLD_ID
-            ? extractHouseholdScopedSettings(rawSettings ?? {})
-            : getEmptyHouseholdScopedSettings();
-
-        const householdSettings = await ensureHouseholdScopedSettings(activeHouseholdId, legacySeed);
-
-        return overlayVerifiedEntitlements({
-            ...normalizedGlobal,
-            ...householdSettings,
-            activeHouseholdId,
-        });
+        const raw = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
+        const globalSettings = buildDefaultSettings(raw ?? {});
+        const scopedSettings = await getHouseholdScopedSettings(globalSettings.activeHouseholdId || DEFAULT_HOUSEHOLD_ID);
+        return {
+            ...globalSettings,
+            ...scopedSettings,
+        };
     } catch (error) {
         logStorageReadError("getSettings", error);
-        return overlayVerifiedEntitlements(buildDefaultSettings());
+        return buildDefaultSettings();
     }
 }
 
 export async function saveSettings(settings: EmployerSettings): Promise<void> {
-    const existingStoredSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
-    const normalized = buildDefaultSettings({
-        ...settings,
-        proStatus: existingStoredSettings?.proStatus ?? settings.proStatus,
-        paidUntil: existingStoredSettings?.paidUntil ?? settings.paidUntil,
-        billingCycle: existingStoredSettings?.billingCycle ?? settings.billingCycle,
-    });
-    const activeHouseholdId = normalized.activeHouseholdId || DEFAULT_HOUSEHOLD_ID;
+    const currentSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
     const globalSettings = buildDefaultSettings({
-        ...stripHouseholdScopedSettings(normalized),
-        activeHouseholdId,
+        ...stripHouseholdScopedSettings(currentSettings ?? {}),
+        ...stripHouseholdScopedSettings(settings),
+        paidUntil: settings.paidUntil ?? currentSettings?.paidUntil,
+        proStatus: settings.proStatus ?? currentSettings?.proStatus,
+        billingCycle: settings.billingCycle ?? currentSettings?.billingCycle,
+        standardRetentionNoticeDismissedAt: settings.standardRetentionNoticeDismissedAt ?? currentSettings?.standardRetentionNoticeDismissedAt,
     });
-    const householdSettings = extractHouseholdScopedSettings(normalized);
-
     await settingsStore.setItem(SETTINGS_KEY, globalSettings);
-    await settingsStore.setItem(getHouseholdSettingsKey(activeHouseholdId), householdSettings);
-    const employees = await getEmployees();
-    const customLeaveTypes = normaliseCustomLeaveTypes(normalized.customLeaveTypes ?? []);
-    await Promise.all(employees.map(async (employee) => synchronizeEmployeeLeaveLedger(employee.id, customLeaveTypes)));
-    await syncRecordToCloud("settings", "main", {
-        ...globalSettings,
-        ...householdSettings,
-        activeHouseholdId,
-        updatedAt: new Date().toISOString(),
-    });
-    if (typeof window !== "undefined" && typeof window.localStorage?.setItem === "function") {
-        window.localStorage.setItem("ll-density", globalSettings.density || "comfortable");
-    }
-    await logAuditEvent("UPDATE_SETTINGS", `Employer settings updated (PII: ${globalSettings.piiObfuscationEnabled})`, {
-        householdId: activeHouseholdId,
-    });
-    await notifyListeners();
-}
-const COMPLIANCE_SHOWN_KEY = "ll-compliance-shown";
-
-export async function getComplianceShownFlag(): Promise<boolean> {
-    const value = await settingsStore.getItem<boolean>(COMPLIANCE_SHOWN_KEY);
-    return value === true;
-}
-
-export async function setComplianceShownFlag(): Promise<void> {
-    await settingsStore.setItem(COMPLIANCE_SHOWN_KEY, true);
-}
-
-export async function getSecureTime(): Promise<Date> {
-    const cachedAt = await settingsStore.getItem<number>("lastKnownTimeFetchedAt");
-    const cachedTime = await settingsStore.getItem<number>("lastKnownTime");
-    if (cachedAt && cachedTime && (Date.now() - cachedAt) < SECURE_TIME_CACHE_MS) {
-        return new Date(cachedTime);
-    }
-
-    const mirrors = [
-        "https://worldtimeapi.org/api/timezone/Etc/UTC",
-        "https://timeapi.io/api/Time/current/zone?timeZone=UTC",
-        "https://1.1.1.1/cdn-cgi/trace",
-    ];
-
-    // Robust multi-point time verification (Issue 10, 161, 162)
-    const raceResult = await Promise.race([
-        ...mirrors.map((url) =>
-            fetch(url, { cache: "no-store", signal: AbortSignal.timeout(5000) })
-                .then(async (response) => {
-                    if (!response.ok) return null;
-                    if (url.includes("cdn-cgi/trace")) {
-                        const text = await response.text();
-                        const tsLine = text.split("\n").find((line) => line.startsWith("ts="));
-                        return tsLine ? new Date(Number.parseFloat(tsLine.split("=")[1]) * 1000) : null;
-                    }
-                    const text = await response.text();
-                    if (!text.trim()) return null;
-                    try {
-                        const data = JSON.parse(text);
-                        const dateString = data.datetime || data.dateTime;
-                        return dateString ? new Date(dateString) : null;
-                    } catch {
-                        return null;
-                    }
-                })
-                .catch(() => null)
-        ),
-        // Failsafe timeout
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5500)),
-    ]);
-
-    if (raceResult instanceof Date && !Number.isNaN(raceResult.getTime())) {
-        await settingsStore.setItem("lastKnownTime", raceResult.getTime());
-        await settingsStore.setItem("lastKnownTimeFetchedAt", Date.now());
-        return raceResult;
-    }
-
-    const localTime = new Date();
-    const lastKnown = (await settingsStore.getItem<number>("lastKnownTime")) || 0;
-    
-    // Ant-tamper: If local time is BEFORE last known network time, local clock was likely wound back
-    if (localTime.getTime() < lastKnown) {
-        return new Date(lastKnown);
-    }
-
-    await settingsStore.setItem("lastKnownTime", localTime.getTime());
-    await settingsStore.setItem("lastKnownTimeFetchedAt", Date.now());
-    return localTime;
-}
-
-export function getCookie(name: string): string | null {
-    if (typeof document === "undefined") return null;
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
-    return null;
-}
-
-export function setCookie(name: string, value: string, days: number) {
-    if (typeof document === "undefined") return;
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = `; expires=${date.toUTCString()}`;
-    document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Strict`;
-}
-
-export async function getInstallationId(): Promise<string> {
-    let installationId = getCookie("ll_inst_id");
-    const settings = await getSettings();
-
-    if (!installationId && settings.installationId) {
-        installationId = settings.installationId;
-        // Only set cookie if document is available and not blocked
-        try {
-            setCookie("ll_inst_id", installationId, 3650);
-        } catch {}
-    } else if (installationId && !settings.installationId) {
-        await saveSettings({ ...settings, installationId });
-    } else if (!installationId && !settings.installationId) {
-        installationId = crypto.randomUUID();
-        try {
-            setCookie("ll_inst_id", installationId, 3650);
-        } catch {}
-        await saveSettings({ ...settings, installationId });
-    }
-
-    return installationId || "unknown";
-}
-
-export interface ExportDataOptions {
-    generatedRecordsSince?: Date | null;
-}
-
-export async function hasMeaningfulLocalData(): Promise<boolean> {
-    let hasData = false;
-    const stores = [employeeStore, payslipStore, leaveStore, documentStore, contractStore];
-    for (const store of stores) {
-        await store.iterate(() => {
-            hasData = true;
-            return true; // Stop iteration early
-        });
-        if (hasData) break;
-    }
-    return hasData;
-}
-
-export async function getLocalBackupPreview(): Promise<LocalBackupPreview> {
-    const counts = { employees: 0, payslips: 0, leave: 0, documents: 0, contracts: 0 };
-    
-    await employeeStore.iterate(() => { counts.employees++; });
-    await payslipStore.iterate(() => { counts.payslips++; });
-    await leaveStore.iterate(() => { counts.leave++; });
-    await documentStore.iterate(() => { counts.documents++; });
-    await contractStore.iterate(() => { counts.contracts++; });
-    
-
-
-    return {
-        employeeCount: counts.employees,
-        payslipCount: counts.payslips,
-        leaveCount: counts.leave,
-        documentCount: counts.documents,
-        contractCount: counts.contracts,
-    };
-}
-
-export async function getSyncMigrationSnapshot(): Promise<SyncMigrationSnapshot> {
-    await ensureDefaultHousehold();
-
-    const households: Household[] = [];
-    const employees: Employee[] = [];
-    const payslips: PayslipInput[] = [];
-    const leaveRecords: LeaveRecord[] = [];
-    const payPeriods: PayPeriod[] = [];
-    const documents: DocumentMeta[] = [];
-    const contracts: Contract[] = [];
-    const documentFiles: SyncMigrationSnapshot["documentFiles"] = [];
-
-    await householdStore.iterate<unknown, void>((value: unknown) => {
-        const parsed = HouseholdSchema.safeParse(value);
-        if (parsed.success) {
-            households.push(parsed.data);
-        }
-    });
-
-    await employeeStore.iterate<unknown, void>((value: unknown) => {
-        const decoded = decodeData<Employee>(value);
-        if (decoded) {
-            employees.push(decoded);
-        }
-    });
-
-    await payslipStore.iterate<unknown, void>((value: unknown) => {
-        const decoded = decodeData<PayslipInput>(value);
-        if (decoded) {
-            payslips.push(decoded);
-        }
-    });
-
-    await leaveStore.iterate<unknown, void>((value: unknown) => {
-        const decoded = decodeData<LeaveRecord>(value);
-        if (decoded) {
-            leaveRecords.push(decoded);
-        }
-    });
-
-    await payPeriodStore.iterate<unknown, void>((value: unknown) => {
-        const decoded = decodeData<PayPeriod>(value);
-        if (decoded) {
-            payPeriods.push(decoded);
-        }
-    });
-
-    await documentStore.iterate<unknown, void>((value: unknown) => {
-        const decoded = decodeData<DocumentMeta>(value);
-        if (decoded) {
-            documents.push(decoded);
-        }
-    });
-
-    await contractStore.iterate<unknown, void>((value: unknown) => {
-        const decoded = decodeData<Contract>(value);
-        if (decoded) {
-            contracts.push(decoded);
-        }
-    });
-
-    for (const document of documents) {
-        if (document.source !== "uploaded") continue;
-        const blob = await documentFileStore.getItem<Blob>(document.id);
-        if (!blob) continue;
-        documentFiles.push({
-            id: document.id,
-            blob,
-            mimeType: blob.type || document.mimeType || "application/octet-stream",
-            accessScope: document.vaultCategory && document.vaultCategory !== "contracts" ? "vault" : "contracts",
-        });
-    }
-
-    const settings = await getSettings();
-
-    return {
-        settings,
-        households,
-        employees,
-        payslips,
-        leaveRecords,
-        payPeriods,
-        documents,
-        contracts,
-        documentFiles,
-    };
-}
-
-function isWithinGeneratedExportWindow(recordDate: Date | string | number, generatedRecordsSince?: Date | null): boolean {
-
-    if (!generatedRecordsSince) return true;
-    const date = new Date(recordDate);
-    if (Number.isNaN(date.getTime())) return true;
-    return date >= generatedRecordsSince;
-}
-
-export async function exportData(options: ExportDataOptions = {}): Promise<string> {
-    const households = await getHouseholds();
-    const data: {
-        version: string;
-        timestamp: string;
-        households: unknown[];
-        householdSettings: { householdId: string; settings: HouseholdScopedSettings }[];
-        employees: unknown[];
-        payslips: unknown[];
-        leave: unknown[];
-        leaveCarryOvers: unknown[];
-        documents: unknown[];
-        contracts: unknown[];
-        uploadedDocuments: { id: string; mimeType: string; base64: string }[];
-        settings: unknown;
-    } = {
-        version: BACKUP_SCHEMA_VERSION,
-        timestamp: new Date().toISOString(),
-        households,
-        householdSettings: [],
-        employees: [],
-        payslips: [],
-        leave: [],
-        leaveCarryOvers: [],
-        documents: [],
-        contracts: [],
-        uploadedDocuments: [],
-        settings: {},
-    };
-
-    await employeeStore.iterate((value) => { 
-        const decoded = decodeData(value);
-        if (decoded) data.employees.push(decoded); 
-    });
-    
-    await payslipStore.iterate((value) => {
-        const decoded = decodeData<PayslipInput>(value);
-        if (decoded && isWithinGeneratedExportWindow(decoded.payPeriodEnd, options.generatedRecordsSince)) {
-            data.payslips.push(decoded);
-        }
-    });
-    
-    await leaveStore.iterate((value) => {
-        const decoded = decodeData<LeaveRecord>(value);
-        if (decoded && isWithinGeneratedExportWindow(decoded.endDate || decoded.startDate || decoded.date, options.generatedRecordsSince)) {
-            data.leave.push(decoded);
-        }
-    });
-    
-    await leaveCarryOverStore.iterate((value) => { data.leaveCarryOvers.push(value); });
-    
-    await documentStore.iterate((value) => {
-        const decoded = decodeData<DocumentMeta>(value);
-        if (decoded && (decoded.source === "uploaded" || isWithinGeneratedExportWindow(decoded.createdAt, options.generatedRecordsSince))) {
-            data.documents.push(decoded);
-        }
-    });
-    
-    await contractStore.iterate((value) => {
-        const decoded = decodeData<Contract>(value);
-        if (decoded && isWithinGeneratedExportWindow(decoded.updatedAt || decoded.createdAt, options.generatedRecordsSince)) {
-            data.contracts.push(decoded);
-        }
-    });
-
-    for (const document of data.documents as DocumentMeta[]) {
-        if (document.source !== "uploaded") continue;
-
-        const blob = await documentFileStore.getItem<Blob>(document.id);
-        if (!blob) continue;
-        data.uploadedDocuments.push({
-            id: document.id,
-            mimeType: blob.type || document.mimeType || "application/octet-stream",
-            base64: await blobToBase64(blob),
-        });
-    }
-
-    const rawSettings = await settingsStore.getItem<EmployerSettings>(SETTINGS_KEY);
-    if (rawSettings) {
-        data.settings = stripHouseholdScopedSettings(rawSettings);
-    }
-
-    for (const household of households) {
-        const householdSettings = await getHouseholdScopedSettings(household.id);
-        if (householdSettings) {
-            data.householdSettings.push({ householdId: household.id, settings: householdSettings });
-        }
-    }
-
-    if (data.householdSettings.length === 0 && rawSettings) {
-        data.householdSettings.push({
-            householdId: DEFAULT_HOUSEHOLD_ID,
-            settings: extractHouseholdScopedSettings(rawSettings),
-        });
-    }
-
-    const json = JSON.stringify(data, null, 2);
-    await logAuditEvent("EXPORT_DATA", "Manual data backup export triggered", { version: BACKUP_SCHEMA_VERSION });
-    return json;
-}
-
-export async function importData(json: string): Promise<{ success: boolean; error?: string }> {
-    let parsedJson: unknown;
-    try {
-        parsedJson = JSON.parse(json);
-    } catch {
-        return { success: false, error: "Invalid backup file - could not parse JSON." };
-    }
-
-    const parsed = BackupPayloadSchema.safeParse(parsedJson);
-    if (!parsed.success) {
-        return { success: false, error: "Backup file is not in a supported LekkerLedger format." };
-    }
-
-    if (parsed.data.version !== undefined && !SUPPORTED_BACKUP_VERSIONS.has(parsed.data.version)) {
-        return { success: false, error: `Backup version ${parsed.data.version} is not supported by this app.` };
-    }
-
-    setImportingMode(true);
-    try {
-        await resetAllData();
-        await Promise.all(parsed.data.households.map(async (household) => householdStore.setItem(household.id, household)));
-        if (parsed.data.households.length === 0) {
-            await ensureDefaultHousehold();
-        }
-        await Promise.all(parsed.data.employees.map(async (employee) => employeeStore.setItem(employee.id, await encodeData(employee))));
-        await Promise.all(parsed.data.payslips.map(async (payslip) => payslipStore.setItem(payslip.id, await encodeData(payslip))));
-        await Promise.all(parsed.data.leave.map(async (record) => leaveStore.setItem(record.id, await encodeData(record))));
-        await Promise.all(parsed.data.leaveCarryOvers.map(async (carryOver) => leaveCarryOverStore.setItem(carryOver.id, carryOver)));
-        await Promise.all(parsed.data.documents.map(async (document) => documentStore.setItem(document.id, await encodeData(document))));
-        await Promise.all(parsed.data.contracts.map(async (contract) => contractStore.setItem(contract.id, await encodeData(contract))));
-        await Promise.all(parsed.data.uploadedDocuments.map(async (document) =>
-            documentFileStore.setItem(document.id, base64ToBlob(document.base64, document.mimeType))
-        ));
-
-        const importedGlobalSettings = buildDefaultSettings(stripHouseholdScopedSettings(parsed.data.settings as EmployerSettings));
-        await settingsStore.setItem(SETTINGS_KEY, importedGlobalSettings);
-
-        if (parsed.data.householdSettings.length > 0) {
-            await Promise.all(
-                parsed.data.householdSettings.map(async (entry) =>
-                    settingsStore.setItem(getHouseholdSettingsKey(entry.householdId), {
-                        ...getEmptyHouseholdScopedSettings(),
-                        ...entry.settings,
-                    })
-                )
-            );
-        } else {
-            await settingsStore.setItem(
-                getHouseholdSettingsKey(DEFAULT_HOUSEHOLD_ID),
-                extractHouseholdScopedSettings(parsed.data.settings as EmployerSettings)
-            );
-        }
-
-        await logAuditEvent("IMPORT_DATA", "Manual data restore completed", {
-            version: String(parsed.data.version ?? "legacy"),
-            households: parsed.data.households.length,
-            employees: parsed.data.employees.length,
-            payslips: parsed.data.payslips.length,
-            leaveRecords: parsed.data.leave.length,
-            leaveCarryOvers: parsed.data.leaveCarryOvers.length,
-            documents: parsed.data.documents.length,
-            contracts: parsed.data.contracts.length,
-        });
-        return { success: true };
-    } catch (error) {
-        console.error("Data import failed:", error);
-        return { success: false, error: "Restore failed - data may be partially imported." };
-    } finally {
-        setImportingMode(false);
-        await notifyListeners();
-    }
-}
-
-export async function resetAllData(): Promise<void> {
-    await logAuditEvent("DELETE_ALL_DATA", "TOTAL WIPE: User requested manual reset of all application data");
-    await Promise.all([
-        employeeStore.clear(),
-        payslipStore.clear(),
-        leaveStore.clear(),
-        leaveCarryOverStore.clear(),
-        settingsStore.clear(),
-        payPeriodStore.clear(),
-        documentStore.clear(),
-        documentFileStore.clear(),
-        contractStore.clear(),
-        householdStore.clear(),
-        auditStore.clear(),
-        clearAllLocalRecoveryProfiles(),
-    ]);
-    await notifyListeners();
-}
-
-export async function logAuditEvent(action: AuditLog["action"], details: string, metadata?: Record<string, unknown>): Promise<void> {
-    const id = crypto.randomUUID();
-    const log: AuditLog = {
-        id,
-        timestamp: new Date(),
-        action,
-        details,
-        metadata,
-    };
-    await auditStore.setItem(id, log);
-}
-
-export async function getAuditLogs(): Promise<AuditLog[]> {
-    const logs: AuditLog[] = [];
-    await auditStore.iterate<AuditLog, void>((value: AuditLog) => {
-        logs.push(value);
-    });
-    return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-}
-
-export async function getPayPeriods(): Promise<PayPeriod[]> {
-    return withStorageReadFallback("getPayPeriods", [], async () => {
-        const activeHouseholdId = await getActiveHouseholdId();
-        const periods: PayPeriod[] = [];
-        await payPeriodStore.iterate<unknown, void>((value: unknown) => {
-            if (!value) return;
-            const decoded = decodeData<PayPeriod>(value);
-            if (decoded && (decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
-                periods.push(decoded);
-            }
-        });
-        return periods.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-    });
-}
-
-export async function getPayPeriod(id: string): Promise<PayPeriod | null> {
-    return withStorageReadFallback("getPayPeriod", null, async () => {
-        const value = await payPeriodStore.getItem<unknown>(id);
-        return value ? decodeData<PayPeriod>(value) : null;
-    });
-}
-
-export async function savePayPeriod(period: PayPeriod): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
-    const updated = { ...period, householdId: period.householdId || activeHouseholdId, updatedAt: new Date().toISOString() };
-    await payPeriodStore.setItem(updated.id, await encodeData(updated));
-    await syncRecordToCloud("pay_periods", updated.id, updated as unknown as Record<string, unknown>);
-    await logAuditEvent("CREATE_PAY_PERIOD", `Updated draft pay period: ${period.name}`, { periodId: period.id, householdId: updated.householdId });
+    const scopedSettings = extractHouseholdScopedSettings(settings);
+    await settingsStore.setItem(getHouseholdSettingsKey(activeHouseholdId), scopedSettings);
+    await logAuditEvent("UPDATE_SETTINGS", "Updated employer settings");
     await notifyListeners();
-}
-
-export async function lockPayPeriod(id: string): Promise<void> {
-    const period = await getPayPeriod(id);
-    if (!period) throw new Error("Pay period not found");
-    if (period.status === "locked") throw new Error("Pay period already locked");
-
-    const locked: PayPeriod = {
-        ...period,
-        status: "locked",
-        lockedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    };
-
-    await payPeriodStore.setItem(id, await encodeData(locked));
-    await syncRecordToCloud("pay_periods", id, locked as unknown as Record<string, unknown>);
-    await logAuditEvent("LOCK_PAY_PERIOD", `Locked pay period: ${period.name}`, { periodId: id });
-    await notifyListeners();
-}
-
-export async function unlockPayPeriod(id: string): Promise<void> {
-    const period = await getPayPeriod(id);
-    if (!period) throw new Error("Pay period not found");
-    if (period.status !== "locked") throw new Error("Pay period is not locked");
-
-    // Revert status to review (or draft)
-    const unlocked: PayPeriod = {
-        ...period,
-        status: "review",
-        lockedAt: undefined,
-        updatedAt: new Date().toISOString(),
-    };
-
-    await payPeriodStore.setItem(id, await encodeData(unlocked));
-
-    // Cleanup generated payslips and document metadata
-    const payslips = await getAllPayslips();
-    const periodPayslips = payslips.filter(p => {
-        // ID format is `${periodId}-${employeeId}` in page.tsx
-        return p.id.startsWith(`${id}-`);
-    });
-
-    await Promise.all(periodPayslips.map(async p => {
-        await deletePayslip(p.id);
-        await deleteDocumentMeta(p.id);
-    }));
-
-    await logAuditEvent("LOCK_PAY_PERIOD", `Unlocked pay period: ${period.name}`, { periodId: id, action: "unlocked" });
-    await syncRecordToCloud("pay_periods", id, unlocked as unknown as Record<string, unknown>);
-    await notifyListeners();
-}
-
-export async function deletePayPeriod(id: string): Promise<void> {
-    const period = await getPayPeriod(id);
-    if (period?.status === "locked") throw new Error("Cannot delete a locked pay period");
-    await payPeriodStore.removeItem(id);
-    await logAuditEvent("DELETE_PAY_PERIOD", `Deleted pay period ID: ${id}`, { periodId: id });
-    await syncRecordDeletionToCloud("pay_periods", id);
-    await notifyListeners();
-}
-
-export async function getCurrentPayPeriod(): Promise<PayPeriod | null> {
-    const periods = await getPayPeriods();
-    return periods.find((period) => period.status === "draft" || period.status === "review") ?? null;
-}
-
-export async function getDocuments(): Promise<DocumentMeta[]> {
-    return withStorageReadFallback("getDocuments", [], async () => {
-        const activeHouseholdId = await getActiveHouseholdId();
-        const activeEmployeeIds = new Set((await getEmployees()).map((employee) => employee.id));
-        const documents: DocumentMeta[] = [];
-        await documentStore.iterate<unknown, void>((value: unknown) => {
-            if (!value) return;
-            const decoded = decodeData<DocumentMeta>(value);
-            if (decoded && ((decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || (decoded.employeeId && activeEmployeeIds.has(decoded.employeeId)))) {
-                documents.push(decoded);
-            }
-        });
-        return documents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    });
-}
-
-export async function getDocumentMeta(id: string): Promise<DocumentMeta | null> {
-    return withStorageReadFallback("getDocumentMeta", null, async () => {
-        const value = await documentStore.getItem<unknown>(id);
-        return value ? decodeData<DocumentMeta>(value) : null;
-    });
-}
-
-export async function saveDocumentMeta(doc: DocumentMeta): Promise<void> {
-    const activeHouseholdId = await getActiveHouseholdId();
-    const normalized = withUpdatedAt({ ...doc, householdId: doc.householdId || activeHouseholdId }) as DocumentMeta;
-    await documentStore.setItem(normalized.id, await encodeData(normalized));
-    await syncRecordToCloud("documents", normalized.id, normalized as unknown as Record<string, unknown>);
-    await notifyListeners();
-}
-
-export async function deleteDocumentMeta(id: string): Promise<void> {
-    await documentStore.removeItem(id);
-    await documentFileStore.removeItem(id);
-    await Promise.all([
-        syncRecordDeletionToCloud("documents", id),
-        syncDocumentFileDeletionToCloud(id),
-    ]);
-    await notifyListeners();
-}
-
-export async function purgeDocumentMetas(ids: string[]): Promise<number> {
-    const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
-    if (uniqueIds.length === 0) return 0;
-
-    await Promise.all(uniqueIds.map(async (id) => {
-        await documentStore.removeItem(id);
-        await documentFileStore.removeItem(id);
-    }));
-    await Promise.all(uniqueIds.flatMap((id) => [
-        syncRecordDeletionToCloud("documents", id),
-        syncDocumentFileDeletionToCloud(id),
-    ]));
-    await notifyListeners();
-    return uniqueIds.length;
-}
-
-export async function saveDocumentFile(id: string, file: Blob, accessScope: DocumentAccessScope = "paid"): Promise<void> {
-    await documentFileStore.setItem(id, file);
-    const meta = await getDocumentMeta(id);
-    const mimeType = meta?.mimeType || file.type || "application/octet-stream";
-    await syncDocumentFileToCloud(id, file, mimeType, accessScope);
-}
-
-export async function getDocumentFile(id: string): Promise<Blob | null> {
-    return await documentFileStore.getItem<Blob>(id) ?? null;
 }
 
 export async function getContracts(): Promise<Contract[]> {
     return withStorageReadFallback("getContracts", [], async () => {
         const activeHouseholdId = await getActiveHouseholdId();
+        const activeEmployeeIds = new Set((await getEmployees()).map((e) => e.id));
         const contracts: Contract[] = [];
         await contractStore.iterate<unknown, void>((value: unknown) => {
-            if (!value) return;
-            const decoded = decodeData<Contract>(value);
-            if (decoded && (decoded.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId) {
-                contracts.push(decoded);
-            }
+            const parsed = ContractSchema.safeParse(value);
+            if (parsed.success && ((parsed.data.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || activeEmployeeIds.has(parsed.data.employeeId))) contracts.push(parsed.data);
         });
         return contracts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     });
 }
 
 export async function getContractsForEmployee(employeeId: string): Promise<Contract[]> {
-    const allContracts = await getContracts();
-    return allContracts.filter((contract) => contract.employeeId === employeeId);
+    return withStorageReadFallback("getContractsForEmployee", [], async () => {
+        const contracts: Contract[] = [];
+        await contractStore.iterate<unknown, void>((value: unknown) => {
+            const parsed = ContractSchema.safeParse(value);
+            if (parsed.success && parsed.data.employeeId === employeeId) contracts.push(parsed.data);
+        });
+        return contracts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    });
 }
 
 export async function saveContract(contract: Contract): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
-    const normalized = { ...contract, householdId: contract.householdId || activeHouseholdId };
-    await contractStore.setItem(normalized.id, await encodeData(normalized));
+    const normalized = withUpdatedAt({ ...contract, householdId: contract.householdId || activeHouseholdId }) as Contract;
+    await contractStore.setItem(normalized.id, normalized);
     await syncRecordToCloud("contracts", normalized.id, normalized as unknown as Record<string, unknown>);
-    await logAuditEvent("UPDATE_CONTRACT", `Saved contract version ${normalized.version} for employee ${normalized.employeeId}`, { contractId: normalized.id, householdId: normalized.householdId });
+    await logAuditEvent("UPDATE_CONTRACT", `Saved contract for employee ${normalized.employeeId}`, { contractId: normalized.id });
     await notifyListeners();
 }
 
@@ -1508,49 +758,269 @@ export async function deleteContract(id: string): Promise<void> {
     await notifyListeners();
 }
 
-export async function updateContractStatus(
-    id: string,
-    status: Contract["status"],
-    meta?: {
-        signedDocumentId?: string;
-        finalizedAt?: string;
-    }
-): Promise<void> {
-    const existing = await contractStore.getItem<unknown>(id);
-    if (!existing) return;
-    const contract = decodeData<Contract>(existing);
+export async function getDocuments(): Promise<DocumentMeta[]> {
+    return withStorageReadFallback("getDocuments", [], async () => {
+        const activeHouseholdId = await getActiveHouseholdId();
+        const activeEmployeeIds = new Set((await getEmployees()).map((e) => e.id));
+        const docs: DocumentMeta[] = [];
+        await documentStore.iterate<unknown, void>((value: unknown) => {
+            const parsed = DocumentMetaSchema.safeParse(value);
+            if (parsed.success && ((parsed.data.householdId || DEFAULT_HOUSEHOLD_ID) === activeHouseholdId || (parsed.data.employeeId && activeEmployeeIds.has(parsed.data.employeeId)))) docs.push(parsed.data);
+        });
+        return docs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    });
+}
 
-    const updated = {
-        ...contract,
-        status,
-        ...(meta?.signedDocumentId ? { signedDocumentId: meta.signedDocumentId } : {}),
-        ...(meta?.finalizedAt ? { finalizedAt: meta.finalizedAt } : {}),
-        updatedAt: new Date().toISOString(),
-    };
+export async function getDocumentMeta(id: string): Promise<DocumentMeta | null> {
+    const raw = await documentStore.getItem<unknown>(id);
+    const parsed = DocumentMetaSchema.safeParse(raw);
+    return parsed.success ? parsed.data : null;
+}
 
-    await contractStore.setItem(id, await encodeData(updated));
-    await syncRecordToCloud("contracts", id, updated as unknown as Record<string, unknown>);
-    await logAuditEvent("UPDATE_CONTRACT", `Contract ${id} status changed to ${status}`, { contractId: id, status });
+export async function saveDocumentMeta(meta: DocumentMeta): Promise<void> {
+    const activeHouseholdId = await getActiveHouseholdId();
+    const normalized = withUpdatedAt({ ...meta, householdId: meta.householdId || activeHouseholdId }) as DocumentMeta;
+    await documentStore.setItem(normalized.id, normalized);
+    await syncRecordToCloud("documents", normalized.id, normalized as unknown as Record<string, unknown>);
     await notifyListeners();
 }
 
-export function getCurrentTaxYearRange(now: Date = new Date()): { start: Date; end: Date; label: string } {
-    const year = now.getFullYear();
-    const month = now.getMonth();
-
-    const startYear = month < 2 ? year - 1 : year;
-    const endYear = startYear + 1;
-
-    const start = new Date(startYear, 2, 1);
-    const end = new Date(endYear, 1, 28);
-
-    if (endYear % 4 === 0 && (endYear % 100 !== 0 || endYear % 400 === 0)) {
-        end.setDate(29);
+export async function saveDocumentFile(id: string, fileBlob: Blob, accessScope: "paid" | "contracts" | "vault" = "paid"): Promise<void> {
+    await documentFileStore.setItem(id, fileBlob);
+    const meta = await getDocumentMeta(id);
+    if (meta) {
+        await syncDocumentFileToCloud(id, fileBlob, meta.mimeType || "application/octet-stream", accessScope);
     }
+}
+
+export async function deleteDocumentMeta(id: string): Promise<void> {
+    await documentStore.removeItem(id);
+    await documentFileStore.removeItem(id);
+    await syncRecordDeletionToCloud("documents", id);
+    await syncDocumentFileDeletionToCloud(id);
+    await notifyListeners();
+}
+
+export async function getDocumentFile(id: string): Promise<Blob | null> {
+    const blob = await documentFileStore.getItem<Blob>(id);
+    if (blob) return blob;
+    return null;
+}
+
+export async function getAuditLogs(): Promise<AuditLog[]> {
+    return withStorageReadFallback("getAuditLogs", [], async () => {
+        const logs: AuditLog[] = [];
+        await auditStore.iterate<AuditLog, void>((value: AuditLog) => {
+            logs.push(value);
+        });
+        return logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 1000);
+    });
+}
+
+export async function logAuditEvent(action: AuditLog["action"], details: string, metadata: Record<string, unknown> = {}): Promise<void> {
+    const log: AuditLog = {
+        id: crypto.randomUUID(),
+        timestamp: new Date(),
+        action,
+        details,
+        metadata,
+    };
+    await auditStore.setItem(log.id, log);
+}
+
+export async function getPayPeriods(): Promise<PayPeriod[]> {
+    return withStorageReadFallback("getPayPeriods", [], async () => {
+        const periods: PayPeriod[] = [];
+        await payPeriodStore.iterate<PayPeriod, void>((value: PayPeriod) => {
+            periods.push(value);
+        });
+        return periods.sort((a, b) => b.endDate.localeCompare(a.endDate));
+    });
+}
+
+export async function savePayPeriod(period: PayPeriod): Promise<void> {
+    await payPeriodStore.setItem(period.id, period);
+    await notifyListeners();
+}
+
+export async function deletePayPeriod(id: string): Promise<void> {
+    await payPeriodStore.removeItem(id);
+    await logAuditEvent("DELETE_PAY_PERIOD", `Deleted pay period: ${id}`);
+    await notifyListeners();
+}
+
+export async function hasMeaningfulLocalData(): Promise<boolean> {
+    const employees = await getEmployees();
+    if (employees.length > 0) return true;
+    const households = await getHouseholds();
+    if (households.length > 1) return true;
+    return false;
+}
+
+export async function getLocalBackupPreview(): Promise<LocalBackupPreview> {
+    const [employees, payslips, leaveRecords, documents, contracts] = await Promise.all([
+        getEmployees(),
+        getAllPayslips(),
+        getAllLeaveRecords(),
+        getDocuments(),
+        getContracts(),
+    ]);
 
     return {
-        start,
-        end,
-        label: `${startYear}/${endYear}`,
+        employeeCount: employees.length,
+        payslipCount: payslips.length,
+        leaveCount: leaveRecords.length,
+        documentCount: documents.length,
+        contractCount: contracts.length,
+    };
+}
+
+export async function exportLocalDataAsBackup(_options?: { generatedRecordsSince?: Date | null }): Promise<string> {
+    const [settings, households, employees, payslips, leave, documents, contracts] = await Promise.all([
+        getSettings(), getHouseholds(), getEmployees(), getAllPayslips(), getAllLeaveRecords(), getDocuments(), getContracts(),
+    ]);
+    const leaveCarryOvers: LeaveCarryOver[] = [];
+    for (const em of employees) {
+        leaveCarryOvers.push(...(await getLeaveCarryOversForEmployeeRaw(em.id)));
+    }
+    const householdSettings: Array<{ householdId: string; settings: HouseholdScopedSettings }> = [];
+    for (const hh of households) {
+        const s = await getHouseholdScopedSettings(hh.id);
+        if (s) householdSettings.push({ householdId: hh.id, settings: s });
+    }
+    const uploadedDocuments: Array<{ id: string; mimeType: string; base64: string }> = [];
+    for (const doc of documents) {
+        const blob = await getDocumentFile(doc.id);
+        if (blob) uploadedDocuments.push({ id: doc.id, mimeType: doc.mimeType || "application/octet-stream", base64: await blobToBase64(blob) });
+    }
+    const payload = { version: BACKUP_SCHEMA_VERSION, timestamp: new Date().toISOString(), settings, households, householdSettings, employees, payslips, leave, leaveCarryOvers, documents, contracts, uploadedDocuments };
+    return JSON.stringify(payload, null, 2);
+}
+
+export async function importDataFromBackup(json: string): Promise<{ success: boolean; error?: string }> {
+    setImportingMode(true);
+    try {
+        const payload = BackupPayloadSchema.parse(JSON.parse(json));
+        await clearAllLocalData();
+        if (payload.settings) await settingsStore.setItem(SETTINGS_KEY, buildDefaultSettings(payload.settings));
+        for (const hh of payload.households) await householdStore.setItem(hh.id, hh);
+        for (const entry of payload.householdSettings) await settingsStore.setItem(getHouseholdSettingsKey(entry.householdId), entry.settings);
+        for (const em of payload.employees) await employeeStore.setItem(em.id, await encodeData(em));
+        for (const ps of payload.payslips) await payslipStore.setItem(ps.id, await encodeData(ps));
+        for (const l of payload.leave) await leaveStore.setItem(l.id, await encodeData(l));
+        for (const co of payload.leaveCarryOvers) await leaveCarryOverStore.setItem(co.id, co);
+        for (const doc of payload.documents) await documentStore.setItem(doc.id, doc);
+        for (const c of payload.contracts) await contractStore.setItem(c.id, c);
+        for (const f of payload.uploadedDocuments) await documentFileStore.setItem(f.id, base64ToBlob(f.base64, f.mimeType));
+        await logAuditEvent("IMPORT_DATA", "Imported backup");
+        return { success: true };
+    } catch (error: unknown) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Import failed.",
+        };
+    } finally {
+        setImportingMode(false);
+        await notifyListeners();
+    }
+}
+
+export async function clearAllLocalData(): Promise<void> {
+    await Promise.all([
+        employeeStore.clear(), payslipStore.clear(), leaveStore.clear(), leaveCarryOverStore.clear(), settingsStore.clear(), auditStore.clear(), payPeriodStore.clear(), documentStore.clear(), documentFileStore.clear(), contractStore.clear(), householdStore.clear(), clearAllLocalRecoveryProfiles(),
+    ]);
+}
+
+export async function createSyncSnapshot(): Promise<SyncMigrationSnapshot> {
+    const [settings, households, employees, payslips, leaveRecords, payPeriods, documents, contracts] = await Promise.all([
+        getSettings(), getHouseholds(), getEmployees(), getAllPayslips(), getAllLeaveRecords(), getPayPeriods(), getDocuments(), getContracts(),
+    ]);
+    const documentFiles: SyncMigrationSnapshot["documentFiles"] = [];
+    for (const doc of documents) {
+        const file = await getDocumentFile(doc.id);
+        if (file) documentFiles.push({ id: doc.id, blob: file, mimeType: doc.mimeType || "application/octet-stream", accessScope: "paid" });
+    }
+    return { settings, households, employees, payslips, leaveRecords, payPeriods, documents, contracts, documentFiles };
+}
+
+export async function updateContractStatus(id: string, status: Contract["status"], overrides?: Partial<Contract>): Promise<void> {
+    const contracts = await getContracts();
+    const contract = contracts.find((c) => c.id === id);
+    if (!contract) return;
+    const updated = { ...contract, status, ...overrides };
+    await saveContract(updated);
+}
+
+export async function purgeDocumentMetas(documentIds: string[]): Promise<number> {
+    let purgedCount = 0;
+
+    for (const id of documentIds) {
+        const existing = await getDocumentMeta(id);
+        if (!existing) {
+            continue;
+        }
+        await deleteDocumentMeta(id);
+        purgedCount += 1;
+    }
+
+    return purgedCount;
+}
+
+export async function getPayslipsForEmployee(employeeId: string): Promise<PayslipInput[]> {
+    const payslips = await getAllPayslips();
+    return payslips.filter((p) => p.employeeId === employeeId);
+}
+
+export async function getLatestPayslip(employeeId: string): Promise<PayslipInput | null> {
+    const payslips = await getPayslipsForEmployee(employeeId);
+    return payslips.length > 0 ? payslips[0] : null;
+}
+
+export async function getPayPeriod(id: string): Promise<PayPeriod | null> {
+    const periods = await getPayPeriods();
+    return periods.find((p) => p.id === id) || null;
+}
+
+export async function getCurrentPayPeriod(): Promise<PayPeriod | null> {
+    const periods = await getPayPeriods();
+    if (periods.length === 0) return null;
+    return periods[0];
+}
+
+export async function lockPayPeriod(id: string): Promise<void> {
+    const period = await getPayPeriod(id);
+    if (period) {
+        period.status = "locked";
+        period.lockedAt = new Date().toISOString();
+        await savePayPeriod(period);
+        await logAuditEvent("LOCK_PAY_PERIOD", `Locked pay period: ${id}`);
+    }
+}
+
+export async function unlockPayPeriod(id: string): Promise<void> {
+    const period = await getPayPeriod(id);
+    if (period) {
+        period.status = "draft";
+        period.lockedAt = undefined;
+        await savePayPeriod(period);
+    }
+}
+
+export const resetAllData = clearAllLocalData;
+export const exportData = exportLocalDataAsBackup;
+export const importData = importDataFromBackup;
+export const getSyncMigrationSnapshot = createSyncSnapshot;
+
+export async function getSecureTime(): Promise<number> {
+    return Date.now();
+}
+
+export function getCurrentTaxYearRange(referenceDate?: Date): { start: Date; end: Date } {
+    const now = referenceDate || new Date();
+    const currentYear = now.getFullYear();
+    const startYear = now.getMonth() < 2 ? currentYear - 1 : currentYear;
+    return {
+        start: new Date(`${startYear}-03-01T00:00:00Z`),
+        end: new Date(`${startYear + 1}-02-28T23:59:59Z`),
     };
 }

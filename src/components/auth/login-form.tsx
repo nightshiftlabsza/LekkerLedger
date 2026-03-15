@@ -7,8 +7,8 @@ import { Loader2, Mail, Lock, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { readPendingBillingReference } from "@/lib/billing-handoff";
 import { buildPaidDashboardHref } from "@/lib/paid-activation";
-import { fetchVerifiedEntitlements } from "@/lib/billing-client";
 import { storePasswordHandoff } from "@/lib/password-handoff";
+import { startAppMetric } from "@/lib/app-performance";
 
 const CALLBACK_ERROR_MESSAGES: Record<string, string> = {
     invalid_or_expired_link: "That reset or confirmation link is no longer valid. Please request a fresh link.",
@@ -94,23 +94,11 @@ export function LoginForm({
         }
 
         storePasswordHandoff(email, password);
+        startAppMetric("login_to_interactive");
+        startAppMetric("auth_resolved_after_login");
 
         const reference = searchParams.get("reference")?.trim() || readPendingBillingReference() || "";
         const next = searchParams.get("next")?.trim() || "";
-
-        if (!reference) {
-            try {
-                const entitlements = await fetchVerifiedEntitlements(undefined, true);
-                if (!entitlements?.isActive || entitlements.planId === "free") {
-                    router.push("/pricing");
-                    return;
-                }
-            } catch {
-                setError("Your billing access could not be verified right now. Please try again.");
-                setIsLoading(false);
-                return;
-            }
-        }
 
         const destination = reference
             ? buildPaidDashboardHref({ reference })

@@ -4,18 +4,18 @@ import * as React from "react";
 import { Home, Sparkles, ChevronDown, Plus, Check } from "lucide-react";
 
 interface Household {
-    id: string;
-    name: string;
+    readonly id: string;
+    readonly name: string;
 }
 
 interface HouseholdSwitcherProps {
-    households: Household[];
-    activeId: string;
-    isPro: boolean;
-    onSwitch: (id: string) => void;
-    onAddHousehold?: () => void;
-    className?: string;
-    variant?: "default" | "account";
+    readonly households: readonly Household[];
+    readonly activeId: string;
+    readonly isPro: boolean;
+    readonly onSwitch: (id: string) => void;
+    readonly onAddHousehold?: () => void;
+    readonly className?: string;
+    readonly variant?: "default" | "account";
 }
 
 export function HouseholdSwitcher({
@@ -52,7 +52,7 @@ export function HouseholdSwitcher({
                 ].join(" ")}
                 style={{ color: variant === "account" ? "var(--text)" : "var(--text-muted)" }}
                 aria-expanded={open}
-                aria-haspopup="listbox"
+                aria-haspopup="menu"
             >
                 {variant === "account" ? (
                     <>
@@ -77,30 +77,30 @@ export function HouseholdSwitcher({
             </button>
 
             {open && (
-                <div
+                <ul
                     className={[
                         "absolute top-full mt-1 glass-panel border border-[var(--border)] py-1 shadow-[var(--shadow-lg)] z-50 animate-slide-down",
                         variant === "account" ? "right-0 w-72 rounded-2xl" : "left-0 w-56 rounded-xl",
                     ].join(" ")}
-                    role="listbox"
                 >
                     {households.map(h => (
-                        <button
+                        <li
                             key={h.id}
-                            role="option"
-                            aria-selected={h.id === activeId}
-                            onClick={() => { onSwitch(h.id); setOpen(false); }}
-                            className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--surface-2)]"
-                            style={{ color: h.id === activeId ? "var(--primary)" : "var(--text)" }}
                         >
-                            <div className="flex items-center gap-2 truncate">
-                                <Home className="h-3.5 w-3.5 shrink-0" />
-                                <span className="truncate">{h.name}</span>
-                            </div>
-                            {h.id === activeId && <Check className="h-3.5 w-3.5 shrink-0" />}
-                        </button>
+                            <button
+                                onClick={() => { onSwitch(h.id); setOpen(false); }}
+                                className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--surface-2)]"
+                                aria-label={`Switch to ${h.name}`}
+                                style={{ color: h.id === activeId ? "var(--primary)" : "var(--text)" }}
+                            >
+                                <div className="flex items-center gap-2 truncate">
+                                    <Home className="h-3.5 w-3.5 shrink-0" />
+                                    <span className="truncate">{h.name}</span>
+                                </div>
+                                {h.id === activeId && <Check className="h-3 w-3" />}
+                            </button>
+                        </li>
                     ))}
-
                     <div className="mt-1 border-t border-[var(--border)] pt-1">
                         <button
                             onClick={() => { setOpen(false); onAddHousehold?.(); }}
@@ -115,7 +115,7 @@ export function HouseholdSwitcher({
                             {isPro ? "Add household" : "Add household (Pro)"}
                         </button>
                     </div>
-                </div>
+                </ul>
             )}
         </div>
     );

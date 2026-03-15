@@ -763,7 +763,7 @@ export function EmployeeDocumentsTab({
                         anchor.download = previewFileName ?? previewDoc?.fileName ?? "document.pdf";
                         document.body.appendChild(anchor);
                         anchor.click();
-                        document.body.removeChild(anchor);
+                        anchor.remove();
                     }}
                 />
             )}

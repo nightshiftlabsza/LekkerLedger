@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface FeatureGateCardProps {
-    title: string;
-    description: string;
-    ctaLabel?: string;
-    href?: string;
-    eyebrow?: string;
-    benefits?: string[];
+    readonly title: string;
+    readonly description: string;
+    readonly ctaLabel?: string;
+    readonly href?: string;
+    readonly eyebrow?: string;
+    readonly benefits?: readonly string[];
 }
 
 export function FeatureGateCard({

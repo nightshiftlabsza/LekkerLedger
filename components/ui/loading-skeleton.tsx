@@ -41,7 +41,7 @@ export function RowSkeleton({ columns = 4, className = "" }: SkeletonProps & { c
     return (
         <div className={`flex items-center gap-4 py-3 px-4 border-b border-[var(--border)] ${className}`}>
             {Array.from({ length: columns }).map((_, i) => (
-                <Skeleton key={`row-skel-${i}`} className={`h-4 ${i === 0 ? "w-1/3" : "flex-1"}`} />
+                <Skeleton key={`row-skel-${i.toString()}`} className={`h-4 ${i === 0 ? "w-1/3" : "flex-1"}`} />
             ))}
         </div>
     );

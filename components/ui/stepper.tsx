@@ -16,28 +16,35 @@ export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperP
                 const isCurrent = index === currentStep;
                 const isClickable = isCompleted && onStepClick;
 
-                const circleEl = isCompleted ? (
-                    <div
-                        className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200"
-                        style={{ backgroundColor: "var(--primary)" }}
-                    >
-                        <Check className="h-4 w-4 text-white" strokeWidth={2.5} />
-                    </div>
-                ) : isCurrent ? (
-                    <div
-                        className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200"
-                        style={{ backgroundColor: "var(--primary)", boxShadow: "0 0 0 4px color-mix(in srgb, var(--primary) 15%, transparent)" }}
-                    >
-                        <span className="text-sm font-bold text-white">{index + 1}</span>
-                    </div>
-                ) : (
-                    <div
-                        className="flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all duration-200"
-                        style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-1)" }}
-                    >
-                        <span className="text-sm font-bold" style={{ color: "var(--text-muted)" }}>{index + 1}</span>
-                    </div>
-                );
+                let circleEl;
+                if (isCompleted) {
+                    circleEl = (
+                        <div
+                            className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200"
+                            style={{ backgroundColor: "var(--primary)" }}
+                        >
+                            <Check className="h-4 w-4 text-white" strokeWidth={2.5} />
+                        </div>
+                    );
+                } else if (isCurrent) {
+                    circleEl = (
+                        <div
+                            className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200"
+                            style={{ backgroundColor: "var(--primary)", boxShadow: "0 0 0 4px color-mix(in srgb, var(--primary) 15%, transparent)" }}
+                        >
+                            <span className="text-sm font-bold text-white">{index + 1}</span>
+                        </div>
+                    );
+                } else {
+                    circleEl = (
+                        <div
+                            className="flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all duration-200"
+                            style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-1)" }}
+                        >
+                            <span className="text-sm font-bold" style={{ color: "var(--text-muted)" }}>{index + 1}</span>
+                        </div>
+                    );
+                }
 
                 return (
                     <React.Fragment key={step.label}>

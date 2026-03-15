@@ -356,6 +356,10 @@ export async function setViewportForDevice(page: Page, device: AuditAction["devi
     await page.setViewportSize(sizes[device]);
 }
 
+function encodeStoredRecord(value: unknown) {
+    return btoa(encodeURIComponent(JSON.stringify(value)));
+}
+
 export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
     await page.context().addCookies([
         {
@@ -369,9 +373,6 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
 
     const payload = buildSeedPayload(mode);
     await page.evaluate(async ({ storeNames, payload }) => {
-        function encodeStoredRecord(value: unknown) {
-            return btoa(encodeURIComponent(JSON.stringify(value)));
-        }
 
         function deleteDb(name: string) {
             return new Promise<void>((resolve) => {
@@ -382,25 +383,19 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
             });
         }
 
+        const localforageApi = (window as any).localforage;
+
         const wipeIndexedDb = async () => {
-            if (!("indexedDB" in globalThis) || typeof indexedDB.databases !== "function") return;
-            const databases = await indexedDB.databases();
-            await Promise.all(databases.map((db) => db.name ? deleteDb(db.name) : Promise.resolve()));
+            await Promise.all(storeNames.map(async (name: any) => {
+                const store = localforageApi.createInstance({ name: "LekkerLedger", storeName: name });
+                await store.clear();
+            }));
+            await Promise.all(["LekkerLedger", "localforage"].map(name => deleteDb(name)));
+            localStorage.clear();
+            sessionStorage.clear();
         };
 
         await wipeIndexedDb();
-        globalThis.localStorage.clear();
-        globalThis.sessionStorage.clear();
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const localforageApi = (globalThis as any).localforage;
-
-        await Promise.all(
-            storeNames.map(async (storeName) => {
-                const store = localforageApi.createInstance({ name: "LekkerLedger", storeName });
-                await store.clear();
-            })
-        );
 
         const settingsStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "settings" });
         const householdStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "households" });

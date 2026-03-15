@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     "playwright-report/**",
     "test-results/**",
     "e2e-screenshots/**",
+    "artifacts/**",
     // Third-party minified service worker — not our source code:
     "public/sw.js",
   ]),

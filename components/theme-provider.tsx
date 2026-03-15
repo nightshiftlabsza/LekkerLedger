@@ -34,7 +34,7 @@ export function useTheme() {
 /** Resolve "system" to the actual OS preference */
 function resolveTheme(t: Theme): "light" | "dark" {
     if (t === "system") {
-        if (typeof globalThis.window === "undefined") return "light";
+        if (globalThis.window === undefined) return "light";
         return globalThis.window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
     return t;
@@ -58,23 +58,23 @@ function applyDensity(d: Density) {
     }
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({ children }: { readonly children: React.ReactNode }) {
     // Initialise from localStorage — same key as the inline script in layout.tsx
     const [theme, setThemeState] = React.useState<Theme>(() => {
-        if (typeof window === "undefined") return "system";
+        if (typeof globalThis.window === "undefined") return "system";
         const stored = localStorage.getItem("ll-theme") as Theme | null;
         return stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
     });
 
     const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(() => {
-        if (typeof window === "undefined") return "light";
+        if (typeof globalThis.window === "undefined") return "light";
         return resolveTheme(
             (localStorage.getItem("ll-theme") as Theme | null) ?? "system"
         );
     });
 
     const [density, setDensityState] = React.useState<Density>(() => {
-        if (typeof window === "undefined") return "comfortable";
+        if (typeof globalThis.window === "undefined") return "comfortable";
         const stored = localStorage.getItem("ll-density") as Density | null;
         return stored === "comfortable" || stored === "compact" ? stored : "comfortable";
     });

@@ -16,6 +16,7 @@ import {
     getHouseholds,
     getPayPeriods,
     hasMeaningfulLocalData,
+    runWithBatchedDataChanges,
     saveContract,
     saveDocumentFile,
     saveDocumentMeta,
@@ -77,7 +78,7 @@ function toTimestamp(value?: string | Date): number {
 }
 
 export class SyncService {
-    private supabase = createClient();
+    private readonly supabase = createClient();
     private isSyncing = false;
     private userId: string | null = null;
     private isReconciling = false;
@@ -246,7 +247,9 @@ export class SyncService {
             }
 
             if (localHasData) {
-                await syncEngine.runMigration();
+                await runWithBatchedDataChanges(async () => {
+                    await syncEngine.runMigration();
+                });
             }
             this.clearError();
         } catch (error) {
@@ -265,31 +268,33 @@ export class SyncService {
 
         this.setSyncing(true);
         try {
-            const records = remoteRows ?? await cloudRepo.listRecords();
-            for (const row of records) {
-                const record = await cloudRepo.pullRecord(row.table_name, row.record_id);
-                if (!record) continue;
-                if (!(await this.isRemoteNewer(row.table_name, row.record_id, row.updated_at))) {
-                    continue;
+            await runWithBatchedDataChanges(async () => {
+                const records = remoteRows ?? await cloudRepo.listRecords();
+                for (const row of records) {
+                    const record = await cloudRepo.pullRecord(row.table_name, row.record_id);
+                    if (!record) continue;
+                    if (!(await this.isRemoteNewer(row.table_name, row.record_id, row.updated_at))) {
+                        continue;
+                    }
+                    await this.applyLocalSave(row.table_name, record);
                 }
-                await this.applyLocalSave(row.table_name, record);
-            }
 
-            const { data: fileRows, error } = await this.supabase
-                .from("synced_files")
-                .select("file_id, updated_at")
-                .eq("user_id", this.userId);
+                const { data: fileRows, error } = await this.supabase
+                    .from("synced_files")
+                    .select("file_id, updated_at")
+                    .eq("user_id", this.userId);
 
-            if (error) {
-                throw error;
-            }
+                if (error) {
+                    throw error;
+                }
 
-            for (const fileRow of (fileRows ?? []) as SyncedFileRow[]) {
-                await this.applyRemoteFileChange({
-                    new: fileRow as unknown as Record<string, unknown>,
-                    eventType: "INSERT",
-                });
-            }
+                for (const fileRow of (fileRows ?? []) as SyncedFileRow[]) {
+                    await this.applyRemoteFileChange({
+                        new: fileRow as unknown as Record<string, unknown>,
+                        eventType: "INSERT",
+                    });
+                }
+            });
             this.clearError();
         } catch (error) {
             this.captureError(error, "Failed to restore cloud data.");
@@ -400,7 +405,7 @@ export class SyncService {
                 localRecord = undefined;
         }
 
-        if (!localRecord || !localRecord.updatedAt) return true;
+        if (!localRecord?.updatedAt) return true;
         return toTimestamp(remoteUpdatedAt) > toTimestamp(localRecord.updatedAt);
     }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAuthState } from "@/components/auth/auth-state-provider";
 import { useRealtimeSync } from "../hooks/use-realtime-sync";
 import { loadEncryptionProfileState } from "./encryption-profile";
 import { type EncryptionMode } from "./encryption-mode";
@@ -34,12 +35,8 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
     const [encryptionMode, setEncryptionMode] = React.useState<EncryptionMode | null>(null);
     const [authenticatedUserId, setAuthenticatedUserId] = React.useState<string | null>(null);
     const supabase = React.useMemo(() => createClient(), []);
-    const modeRef = React.useRef<AppMode>(mode);
     const currentUserIdRef = React.useRef<string | null>(null);
-
-    React.useEffect(() => {
-        modeRef.current = mode;
-    }, [mode]);
+    const { user, isLoading: authLoading } = useAuthState();
 
     const clearUnlockedState = React.useCallback(() => {
         syncEngine.setCryptoKey(null);
@@ -66,86 +63,69 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
         let mounted = true;
 
         async function initMode() {
+            if (authLoading) {
+                return;
+            }
+
             try {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!mounted) return;
+                const userId = user?.id ?? null;
+                currentUserIdRef.current = userId;
+                setAuthenticatedUserId(userId);
 
-                const userId = user?.id;
-                currentUserIdRef.current = userId ?? null;
-                setAuthenticatedUserId(userId ?? null);
-
-                if (userId) {
-                    try {
-                        const profileState = await loadEncryptionProfileState(userId, supabase);
-                        const storedRecoveryProfile = await getLocalRecoveryProfile(userId);
-                        setEncryptionMode(profileState.source === "none" ? null : profileState.encryptionMode);
-
-                        if (profileState.keySetupComplete && profileState.encryptionMode === "recoverable" && storedRecoveryProfile?.cachedMasterKey) {
-                            const key = await importAccountMasterKey(storedRecoveryProfile.cachedMasterKey);
-                            syncEngine.setCryptoKey(key);
-                            syncService.init(userId, key);
-                            setMode("account_unlocked");
-                            void syncService.reconcileAfterUnlock().catch((error) => {
-                                console.warn("Could not refresh cloud data during automatic unlock.", error);
-                            });
-                            return;
-                        }
-
-                        const canUseLegacyRecoveryKey = profileState.encryptionMode === "maximum_privacy" || profileState.source === "legacy_local" || profileState.source === "cloud_data";
-                        if (canUseLegacyRecoveryKey && storedRecoveryProfile?.recoveryKey) {
-                            const key = await deriveKey(storedRecoveryProfile.recoveryKey);
-                            syncEngine.setCryptoKey(key);
-                            syncService.init(userId, key);
-                            setMode("account_unlocked");
-                            void syncService.reconcileAfterUnlock().catch((error) => {
-                                console.warn("Could not refresh cloud data during automatic unlock.", error);
-                            });
-                            return;
-                        }
-                    } catch (e) {
-                        console.warn("Auto-unlock failed", e);
-                    }
-
-                    setMode("account_locked");
+                if (!userId) {
+                    transitionToGuest();
                     return;
                 }
-            } catch (error) {
-                console.warn("Could not restore Supabase session. Falling back to signed-out mode.", error);
-            }
 
-            transitionToGuest();
+                try {
+                    const profileState = await loadEncryptionProfileState(userId, supabase);
+                    const storedRecoveryProfile = await getLocalRecoveryProfile(userId);
+                    if (!mounted) return;
+
+                    setEncryptionMode(profileState.source === "none" ? null : profileState.encryptionMode);
+
+                    if (profileState.keySetupComplete && profileState.encryptionMode === "recoverable" && storedRecoveryProfile?.cachedMasterKey) {
+                        const key = await importAccountMasterKey(storedRecoveryProfile.cachedMasterKey);
+                        syncEngine.setCryptoKey(key);
+                        syncService.init(userId, key);
+                        setMode("account_unlocked");
+                        void syncService.reconcileAfterUnlock().catch((error) => {
+                            console.warn("Could not refresh cloud data during automatic unlock.", error);
+                        });
+                        return;
+                    }
+
+                    const canUseLegacyRecoveryKey = profileState.encryptionMode === "maximum_privacy" || profileState.source === "legacy_local" || profileState.source === "cloud_data";
+                    if (canUseLegacyRecoveryKey && storedRecoveryProfile?.recoveryKey) {
+                        const key = await deriveKey(storedRecoveryProfile.recoveryKey);
+                        syncEngine.setCryptoKey(key);
+                        syncService.init(userId, key);
+                        setMode("account_unlocked");
+                        void syncService.reconcileAfterUnlock().catch((error) => {
+                            console.warn("Could not refresh cloud data during automatic unlock.", error);
+                        });
+                        return;
+                    }
+                } catch (e) {
+                    if (!mounted) return;
+                    console.warn("Auto-unlock failed", e);
+                }
+
+                if (!mounted) return;
+                setMode("account_locked");
+            } catch (error) {
+                if (!mounted) return;
+                console.warn("Could not restore encrypted account mode. Falling back to signed-out mode.", error);
+                transitionToGuest();
+            }
         }
 
-        initMode();
-
-        const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-            const nextUserId = session?.user?.id ?? null;
-            const previousUserId = currentUserIdRef.current;
-            currentUserIdRef.current = nextUserId;
-            setAuthenticatedUserId(nextUserId);
-
-            if (event === "SIGNED_OUT") {
-                transitionToGuest();
-                return;
-            }
-
-            if (event !== "SIGNED_IN" || !nextUserId) {
-                return;
-            }
-
-            const isFreshAuthenticatedEntry = modeRef.current === "local_guest";
-            const isDifferentUser = Boolean(previousUserId && previousUserId !== nextUserId);
-
-            if (isFreshAuthenticatedEntry || isDifferentUser) {
-                transitionToLocked();
-            }
-        });
+        void initMode();
 
         return () => {
             mounted = false;
-            authListener.subscription.unsubscribe();
         };
-    }, [supabase, transitionToGuest, transitionToLocked]);
+    }, [authLoading, supabase, transitionToGuest, transitionToLocked, user?.id]);
 
     React.useEffect(() => {
         if (mode !== "account_unlocked" || !authenticatedUserId) {
@@ -190,13 +170,21 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
         transitionToLocked();
     }, [transitionToLocked]);
 
+    const contextValue = React.useMemo(() => ({
+        mode,
+        encryptionMode,
+        setEncryptionMode,
+        setMode,
+        unlockAccount,
+        lockAccount,
+    }), [mode, encryptionMode, setEncryptionMode, setMode, unlockAccount, lockAccount]);
+
     return (
-        <AppModeContext.Provider value={{ mode, encryptionMode, setEncryptionMode, setMode, unlockAccount, lockAccount }}>
+        <AppModeContext.Provider value={contextValue}>
             {children}
         </AppModeContext.Provider>
     );
 }
-
 export function useAppMode() {
     const context = React.useContext(AppModeContext);
     if (!context) {

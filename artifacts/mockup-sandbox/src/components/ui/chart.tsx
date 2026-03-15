@@ -7,25 +7,25 @@ import { cn } from "@/lib/utils"
 const THEMES = { light: "", dark: ".dark" } as const
 
 export type ChartConfig = {
-  [k in string]: {
-    label?: React.ReactNode
-    icon?: React.ComponentType
+  readonly [k in string]: {
+    readonly label?: React.ReactNode
+    readonly icon?: React.ComponentType
   } & (
-    | { color?: string; theme?: never }
-    | { color?: never; theme: Record<keyof typeof THEMES, string> }
+    | { readonly color?: string; readonly theme?: never }
+    | { readonly color?: never; readonly theme: Readonly<Record<keyof typeof THEMES, string>> }
   )
 }
 
-type ChartContextProps = {
+type ChartContextProps = Readonly<{
   config: ChartConfig
-}
+}>
 
 const ChartContext = React.createContext<ChartContextProps | null>(null)
 
 function useChart() {
   const context = React.useContext(ChartContext)
 
-  if (!context) {
+  if (context === null) {
     throw new Error("useChart must be used within a <ChartContainer />")
   }
 
@@ -34,12 +34,12 @@ function useChart() {
 
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div"> & {
+  Readonly<React.ComponentProps<"div"> & {
     config: ChartConfig
     children: React.ComponentProps<
       typeof RechartsPrimitive.ResponsiveContainer
     >["children"]
-  }
+  }>
 >(({ id, className, children, config, ...props }, ref) => {
   const value = React.useMemo(() => ({ config }), [config])
   const uniqueId = React.useId()
@@ -66,12 +66,12 @@ const ChartContainer = React.forwardRef<
 })
 ChartContainer.displayName = "Chart"
 
-const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
+const ChartStyle = ({ id, config }: Readonly<{ id: string; config: ChartConfig }>) => {
   const colorConfig = Object.entries(config).filter(
     ([, config]) => config.theme || config.color
   )
 
-  if (!colorConfig.length) {
+  if (colorConfig.length === 0) {
     return null
   }
 
@@ -103,14 +103,14 @@ const ChartTooltip = RechartsPrimitive.Tooltip
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+  Readonly<React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
     React.ComponentProps<"div"> & {
       hideLabel?: boolean
       hideIndicator?: boolean
       indicator?: "line" | "dot" | "dashed"
       nameKey?: string
       labelKey?: string
-    }
+    }>
 >(
   (
     {
@@ -133,11 +133,11 @@ const ChartTooltipContent = React.forwardRef<
     const { config } = useChart()
 
     const tooltipLabel = React.useMemo(() => {
-      if (hideLabel || !payload?.length) {
+      if (hideLabel || payload?.length === 0 || payload === undefined || payload === null) {
         return null
       }
 
-      const [item] = payload
+      const [item] = payload as any[]
       const key = `${labelKey || item?.dataKey || item?.name || "value"}`
       const itemConfig = getPayloadConfigFromPayload(config, item, key)
       const value =
@@ -168,7 +168,7 @@ const ChartTooltipContent = React.forwardRef<
       labelKey,
     ])
 
-    if (!active || !payload?.length) {
+    if (!active || payload?.length === 0 || payload === undefined || payload === null) {
       return null
     }
 
@@ -182,11 +182,11 @@ const ChartTooltipContent = React.forwardRef<
           className
         )}
       >
-        {!nestLabel ? tooltipLabel : null}
+        {nestLabel ? null : tooltipLabel}
         <div className="grid gap-1.5">
           {payload
-            .filter((item) => item.type !== "none")
-            .map((item, index) => {
+            .filter((item: any) => item.type !== "none")
+            .map((item: any, index: number) => {
               const key = `${nameKey || item.name || item.dataKey || "value"}`
               const itemConfig = getPayloadConfigFromPayload(config, item, key)
               const indicatorColor = color || item.payload.fill || item.color
@@ -222,7 +222,7 @@ const ChartTooltipContent = React.forwardRef<
                               {
                                 "--color-bg": indicatorColor,
                                 "--color-border": indicatorColor,
-                              }
+                              } as React.CSSProperties
                             }
                           />
                         )
@@ -261,11 +261,11 @@ const ChartLegend = RechartsPrimitive.Legend
 
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div"> &
+  Readonly<React.ComponentProps<"div"> &
     Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
       hideIcon?: boolean
       nameKey?: string
-    }
+    }>
 >(
   (
     { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },
@@ -273,7 +273,7 @@ const ChartLegendContent = React.forwardRef<
   ) => {
     const { config } = useChart()
 
-    if (!payload?.length) {
+    if (payload?.length === 0 || payload === undefined || payload === null) {
       return null
     }
 
@@ -287,8 +287,8 @@ const ChartLegendContent = React.forwardRef<
         )}
       >
         {payload
-          .filter((item) => item.type !== "none")
-          .map((item) => {
+          .filter((item: any) => item.type !== "none")
+          .map((item: any) => {
             const key = `${nameKey || item.dataKey || "value"}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
@@ -325,32 +325,30 @@ function getPayloadConfigFromPayload(
   payload: unknown,
   key: string
 ) {
-  if (typeof payload !== "object" || payload === null) {
+  if (payload === null || typeof payload !== "object") {
     return undefined
   }
 
   const payloadPayload =
     "payload" in payload &&
-    typeof payload.payload === "object" &&
-    payload.payload !== null
-      ? payload.payload
+    typeof (payload as any).payload === "object" &&
+    (payload as any).payload !== null
+      ? (payload as any).payload
       : undefined
 
   let configLabelKey: string = key
 
   if (
     key in payload &&
-    typeof payload[key as keyof typeof payload] === "string"
+    typeof (payload as any)[key] === "string"
   ) {
-    configLabelKey = payload[key as keyof typeof payload] as string
+    configLabelKey = (payload as any)[key] as string
   } else if (
     payloadPayload &&
     key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
+    typeof payloadPayload[key] === "string"
   ) {
-    configLabelKey = payloadPayload[
-      key as keyof typeof payloadPayload
-    ] as string
+    configLabelKey = payloadPayload[key] as string
   }
 
   return configLabelKey in config

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import * as React from "react";
 import { format } from "date-fns";
 import {
     ArrowRight,
@@ -286,7 +287,7 @@ function EmployeeRunCard({
     currentPeriod: PayPeriod | null;
     currentMonth: string;
 }) {
-    const summaryMap = new Map(summaries.map((summary) => [summary.employee.id, summary]));
+    const summaryMap = React.useMemo(() => new Map(summaries.map((summary) => [summary.employee.id, summary])), [summaries]);
 
     return (
         <Card className="border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-sm)]">
@@ -319,15 +320,15 @@ function EmployeeRunCard({
                         const entry = currentPeriod?.entries.find((item) => item.employeeId === employee.id);
                         const status = entry?.status ?? (summary?.latestPayslip ? "complete" : "empty");
                         const rowHref = currentPeriod ? `/payroll/${currentPeriod.id}` : `/employees/${employee.id}`;
-                        const actionLabel = currentPeriod
-                            ? status === "complete"
-                                ? "Review"
-                                : status === "blocked"
-                                    ? "Fix entry"
-                                    : "Enter hours"
-                            : summary?.latestPayslip
-                                ? "Open profile"
-                                : "Finish setup";
+                        const actionLabel = (() => {
+                            if (currentPeriod) {
+                                if (status === "complete") return "Review";
+                                if (status === "blocked") return "Fix entry";
+                                return "Enter hours";
+                            }
+                            if (summary?.latestPayslip) return "Open profile";
+                            return "Finish setup";
+                        })();
 
                         return (
                             <div key={employee.id} className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center">
@@ -780,11 +781,11 @@ function getHeroContent({
         return {
             eyebrow: "Current pay period",
             title: reviewMode ? `${currentPeriod.name} is ready to finalise` : `${currentPeriod.name} is in progress`,
-            subtitle: reviewMode
-                ? "All available entries are complete. Review the pay run, finalise it, and generate payslips."
-                : pendingEmployeeName
-                    ? `${pendingEmployeeName} still needs hours captured before you can finalise this month.`
-                    : `You have completed ${completedEntries} of ${totalEntries} employee entries so far.`,
+            subtitle: (() => {
+                if (reviewMode) return "All available entries are complete. Review the pay run, finalise it, and generate payslips.";
+                if (pendingEmployeeName) return `${pendingEmployeeName} still needs hours captured before you can finalise this month.`;
+                return `You have completed ${completedEntries} of ${totalEntries} employee entries so far.`;
+            })(),
             mobileSubtitle: "Manage this month's payroll and follow the next actions below.",
             primaryHref: `/payroll/${currentPeriod.id}`,
             primaryLabel: reviewMode ? "Review & Finalise" : "Continue Payroll",

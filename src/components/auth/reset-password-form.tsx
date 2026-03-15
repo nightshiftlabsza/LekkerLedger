@@ -41,7 +41,7 @@ export function ResetPasswordForm() {
         if (value.length < 10) return "Password must be at least 10 characters long.";
         if (!/[A-Z]/.test(value)) return "Password must include at least one uppercase letter.";
         if (!/[a-z]/.test(value)) return "Password must include at least one lowercase letter.";
-        if (!/[0-9]/.test(value)) return "Password must include at least one number.";
+        if (!/\d/.test(value)) return "Password must include at least one number.";
         if (!/[!@#$%^&*(),.?\":{}|<>]/.test(value)) return "Password must include at least one special character.";
         return null;
     }, []);

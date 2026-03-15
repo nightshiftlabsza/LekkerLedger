@@ -1,6 +1,6 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
-const fs = require('fs');
+const fs = require('node:fs');
 const results = JSON.parse(fs.readFileSync('all_lint_errors.json', 'utf8'));
 
 results.forEach(file => {

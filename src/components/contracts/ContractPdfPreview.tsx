@@ -84,8 +84,8 @@ export function ContractPdfPreview({ contract, employee, settings }: ContractPdf
 
                             {clause.type === "rows" && clause.rows && (
                                 <div className="grid grid-cols-[1fr_2fr] gap-x-4 gap-y-2">
-                                    {clause.rows.map((row, i) => (
-                                        <div key={i} className="contents">
+                                    {clause.rows.map((row) => (
+                                        <div key={row.label} className="contents">
                                             <div className="font-semibold text-gray-500 py-0.5 border-b border-gray-50">{row.label}:</div>
                                             <div className="text-gray-900 py-0.5 border-b border-gray-50">{row.value}</div>
                                         </div>
@@ -95,16 +95,16 @@ export function ContractPdfPreview({ contract, employee, settings }: ContractPdf
 
                             {clause.type === "paragraphs" && clause.paragraphs && (
                                 <div className="space-y-2">
-                                    {clause.paragraphs.map((p, i) => (
-                                        <p key={i}>{p}</p>
+                                    {clause.paragraphs.map((p) => (
+                                        <p key={p.slice(0, 32)}>{p}</p>
                                     ))}
                                 </div>
                             )}
 
                             {clause.type === "bullets" && clause.bullets && (
                                 <ul className="list-inside space-y-1">
-                                    {clause.bullets.map((b, i) => (
-                                        <li key={i} className="flex gap-2">
+                                    {clause.bullets.map((b) => (
+                                        <li key={b.slice(0, 32)} className="flex gap-2">
                                             <span className="mt-[-1px] font-bold text-[#007A4D]">&bull;</span>
                                             <span>{b}</span>
                                         </li>

@@ -21,7 +21,6 @@ import {
     unwrapMasterKeyWithPassword,
     verifyValidationPayload,
     wrapMasterKeyWithPassword,
-    type EncryptedPayload,
     type WrappedKeyPayload,
 } from "@/lib/crypto";
 import { loadEncryptionProfileState, type EncryptionProfileState } from "@/lib/encryption-profile";

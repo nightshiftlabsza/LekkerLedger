@@ -20,7 +20,7 @@ import { useMarketingBillingCycle } from "@/src/lib/use-marketing-billing-cycle"
 
 export default function PricingPage() {
     const [billingCycle, setBillingCycle] = useMarketingBillingCycle();
-    const { startCheckout, loadingPlanId, dialog } = useInlinePaidPlanCheckout({ billingCycle });
+    const { startCheckout, loadingPlanId, dialog, warmCheckout } = useInlinePaidPlanCheckout({ billingCycle });
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
@@ -49,6 +49,7 @@ export default function PricingPage() {
                         <MarketingPlanCards
                             billingCycle={billingCycle}
                             onSelect={startCheckout}
+                            onWarmSelect={warmCheckout}
                             isLoadingPlanId={loadingPlanId}
                         />
                     </div>

@@ -11,7 +11,7 @@ function OpenAppCompatibilityContent() {
     React.useEffect(() => {
         const source = searchParams.get("source");
         const next = searchParams.get("next");
-        const safeNext = next && next.startsWith("/") ? next : null;
+        const safeNext = next?.startsWith("/") ? next : null;
 
         const shouldRunPaidLogin = source === "billing" || source === "onboarding" || source === "dashboard";
 

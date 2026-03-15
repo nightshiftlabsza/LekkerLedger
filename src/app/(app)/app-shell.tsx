@@ -7,19 +7,20 @@ import { SideDrawer } from "@/components/layout/side-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { HouseholdSwitcher } from "@/components/household-switcher";
 import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, LogOut, ShieldCheck, Trash2, Loader2, LayoutDashboard, Monitor, Moon, Sun } from "lucide-react";
+import { AppBootstrapProvider, useAppBootstrap } from "@/components/app-bootstrap-provider";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
 import { useAuthState } from "@/components/auth/auth-state-provider";
 import { useUI } from "@/components/theme-provider";
-import { getHouseholds, getSettings, resetAllData, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
-import { Household, EmployerSettings } from "@/lib/schema";
-import { canUseMultipleHouseholds, getPlanById, getUserPlan } from "@/lib/entitlements";
+import { resetAllData, saveHousehold, setActiveHouseholdId } from "@/lib/storage";
+import { Household } from "@/lib/schema";
+import { canUseMultipleHouseholds, getPlanById } from "@/lib/entitlements";
 import { isPaidDashboardFlow, shouldRedirectFreeUserFromApp } from "@/lib/app-access";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 import { AppModeProvider, useAppMode } from "@/lib/app-mode";
 import { RecoveryGate } from "@/components/encryption/recovery-gate";
-import { clearVerifiedEntitlementsCache, fetchBillingAccount } from "@/lib/billing-client";
+import { clearVerifiedEntitlementsCache } from "@/lib/billing-client";
 import { createClient } from "@/lib/supabase/client";
 import { deleteLocalRecoveryProfile } from "@/lib/recovery-profile-store";
 import { clearPasswordHandoff } from "@/lib/password-handoff";
@@ -47,7 +48,7 @@ function ConnectivityBanners({
     setSyncBannerDismissed,
     showPaymentsBanner,
     setPaymentsBannerDismissed,
-}: {
+}: Readonly<{
     showOfflineBanner: boolean;
     lastLocalSaveLabel: string | null;
     setOfflineBannerDismissed: (v: boolean) => void;
@@ -56,7 +57,7 @@ function ConnectivityBanners({
     setSyncBannerDismissed: (v: boolean) => void;
     showPaymentsBanner: boolean;
     setPaymentsBannerDismissed: (v: boolean) => void;
-}) {
+}>) {
     return (
         <>
             {showOfflineBanner && (
@@ -120,33 +121,42 @@ function ConnectivityBanners({
 }
 
 export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
+    return (
+        <AppModeProvider>
+            <AppBootstrapProvider>
+                <AppShellFrame>{children}</AppShellFrame>
+            </AppBootstrapProvider>
+        </AppModeProvider>
+    );
+}
+
+function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const { user, isLoading: authLoading } = useAuthState();
     const { network, sync, syncErrorMessage, payments } = useAppConnectivity();
+    const {
+        households,
+        effectiveSettings,
+        localSnapshotReady,
+        isReadyForPlanUI,
+        resolvedPlanId,
+        resolvedPlanLabel,
+    } = useAppBootstrap();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
     const [syncConflict] = React.useState(false);
     const [paymentsBannerDismissed, setPaymentsBannerDismissed] = React.useState(false);
     const [moreOpen, setMoreOpen] = React.useState(false);
-    const [households, setHouseholds] = React.useState<Household[]>([{ id: "default", name: "Main household", createdAt: new Date(0).toISOString() }]);
-    const [activeHouseholdId, setActiveHouseholdState] = React.useState("default");
-    const [multiHouseholdEnabled, setMultiHouseholdEnabled] = React.useState(false);
-    const [settings, setSettingsState] = React.useState<EmployerSettings | null>(null);
     const [addHouseholdOpen, setAddHouseholdOpen] = React.useState(false);
     const [newHouseholdName, setNewHouseholdName] = React.useState("");
     const [addHouseholdError, setAddHouseholdError] = React.useState("");
     const [addingHousehold, setAddingHousehold] = React.useState(false);
     const [lastLocalSaveAt, setLastLocalSaveAt] = React.useState<number | null>(null);
-    const [settingsReady, setSettingsReady] = React.useState(false);
-    const [verifiedPlanId, setVerifiedPlanId] = React.useState<"free" | "standard" | "pro">("free");
-    const [billingReady, setBillingReady] = React.useState(false);
-    const settingsRef = React.useRef<typeof settings>(null);
-    React.useEffect(() => {
-        settingsRef.current = settings;
-    }, [settings]);
     const previousNetworkRef = React.useRef(network);
+    const settings = effectiveSettings;
+    const activeHouseholdId = settings?.activeHouseholdId || "default";
+    const multiHouseholdEnabled = resolvedPlanId ? canUseMultipleHouseholds(getPlanById(resolvedPlanId)) : false;
 
     React.useEffect(() => {
         if (network === "offline" && previousNetworkRef.current !== "offline") {
@@ -163,61 +173,21 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
     });
 
     React.useEffect(() => {
-        if (authLoading) {
+        if (!resolvedPlanId) {
             return;
         }
 
-        let active = true;
-        let lastLoadPromise: Promise<unknown> | null = null;
-
-        async function loadShellContext() {
-            const thisPromise = Promise.all([
-                getHouseholds(),
-                getSettings(),
-                user?.id ? fetchBillingAccount().catch(() => null) : Promise.resolve(null),
-            ]);
-            lastLoadPromise = thisPromise;
-            
-            const [loadedHouseholds, settings, billingAccount] = await thisPromise;
-            if (!active || lastLoadPromise !== thisPromise) return;
-
-            setHouseholds(loadedHouseholds);
-            setSettingsState(settings);
-            setSettingsReady(true);
-            const nextVerifiedPlanId = billingAccount?.entitlements.isActive
-                ? billingAccount.entitlements.planId
-                : getUserPlan(settings).id;
-            setVerifiedPlanId(nextVerifiedPlanId);
-            setBillingReady(true);
-            if (settings) {
-                setActiveHouseholdState(settings.activeHouseholdId || "default");
-                setMultiHouseholdEnabled(canUseMultipleHouseholds(getPlanById(nextVerifiedPlanId)));
-            }
-        }
-
-        loadShellContext();
-        const unsubscribe = subscribeToDataChanges(() => {
-            setLastLocalSaveAt(Date.now());
-            loadShellContext();
-        });
-        return () => {
-            active = false;
-            unsubscribe();
-        };
-    }, [authLoading, user?.id]);
-
-    React.useEffect(() => {
         if (!shouldRedirectFreeUserFromApp({
             pathname,
-            planId: verifiedPlanId,
-            settingsReady: settingsReady && billingReady,
+            planId: resolvedPlanId,
+            settingsReady: localSnapshotReady && isReadyForPlanUI,
             paidFlowRequested,
         })) {
             return;
         }
 
         router.replace("/pricing");
-    }, [billingReady, paidFlowRequested, pathname, router, settingsReady, verifiedPlanId]);
+    }, [isReadyForPlanUI, localSnapshotReady, paidFlowRequested, pathname, resolvedPlanId, router]);
 
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && (sync === "error" || syncConflict) && !syncBannerDismissed;
@@ -230,11 +200,10 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
         }).format(lastLocalSaveAt)
         : null;
     const isDashboardShell = pathname === "/dashboard";
-    const verifiedPlan = getPlanById(verifiedPlanId);
     const handleSwitchHousehold = async (householdId: string) => {
+        setLastLocalSaveAt(Date.now());
         await setActiveHouseholdId(householdId);
-        setActiveHouseholdState(householdId);
-        window.location.reload();
+        globalThis.location.reload();
     };
 
     const handleAddHousehold = () => {
@@ -273,10 +242,9 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
 
             await saveHousehold(household);
             await setActiveHouseholdId(household.id);
-            setHouseholds((current) => [...current, household]);
-            setActiveHouseholdState(household.id);
+            setLastLocalSaveAt(Date.now());
             setAddHouseholdOpen(false);
-            window.location.reload();
+            globalThis.location.reload();
         } catch (error) {
             console.error("Failed to add household", error);
             setAddHouseholdError("The household could not be created just now. Please try again.");
@@ -284,10 +252,8 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
         }
     };
 
-
     return (
-        <AppModeProvider>
-            <div className="app-shell-offset flex min-h-screen flex-col" style={{ backgroundColor: "var(--bg)" }}>
+        <div className="app-shell-offset flex min-h-screen flex-col" style={{ backgroundColor: "var(--bg)" }}>
                 <div className="hidden lg:block">
                     <SideDrawer
                         open={moreOpen}
@@ -300,7 +266,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
                         onSwitchHousehold={handleSwitchHousehold}
                         onAddHousehold={handleAddHousehold}
                         employerName={settings?.employerName?.trim() || ""}
-                        planLabel={verifiedPlan.label}
+                        planLabel={isReadyForPlanUI ? resolvedPlanLabel : null}
                     />
                 </div>
                 <header
@@ -323,7 +289,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
                                     onSwitchHousehold={handleSwitchHousehold}
                                     onAddHousehold={handleAddHousehold}
                                     employerName={settings?.employerName?.trim() || ""}
-                                    planLabel={verifiedPlan.label}
+                                    planLabel={isReadyForPlanUI ? resolvedPlanLabel : null}
                                 />
                             </div>
                             <Link href="/dashboard" className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-1.5 sm:px-2.5 py-1.5 sm:py-2 outline-none shadow-[0_6px_18px_rgba(16,24,40,0.05)] transition-all hover:border-[var(--primary)]/20 lg:hidden">
@@ -358,9 +324,9 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
                                     sync={sync}
                                     syncErrorMessage={syncErrorMessage}
                                     compact={isDashboardShell}
-                                    planLabel={verifiedPlan.label}
+                                    planLabel={isReadyForPlanUI ? resolvedPlanLabel : null}
                                 />
-                                {!isDashboardShell ? (
+                                {isDashboardShell ? null : (
                                     <HouseholdSwitcher
                                         households={households}
                                         activeId={activeHouseholdId}
@@ -370,7 +336,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
                                         variant="account"
                                         className="hidden lg:block"
                                     />
-                                ) : null}
+                                )}
                             </div>
                         </div>
                     </div>
@@ -417,7 +383,6 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
                 />
                 <BottomNav onMore={() => setMoreOpen(true)} />
             </div>
-        </AppModeProvider>
     );
 }
 
@@ -494,7 +459,7 @@ function AccountMenu({
     sync: "disabled" | "enabled" | "error" | "reconnecting";
     syncErrorMessage: string | null;
     compact?: boolean;
-    planLabel: string;
+    planLabel: string | null;
 }>) {
     const [open, setOpen] = React.useState(false);
     const [signOutPromptOpen, setSignOutPromptOpen] = React.useState(false);
@@ -531,6 +496,11 @@ function AccountMenu({
     const accountEmail = user?.email ?? "";
 
     const { state: accountState, summary: accountSummary, toneClass: accountToneClass } = getAccountSyncStatus(mode, encryptionMode, sync, syncErrorMessage);
+    const compactDesktopSummary = encryptionMode === "maximum_privacy"
+        ? "Recovery key required for restore."
+        : encryptionMode === "recoverable"
+            ? "Encrypted and recoverable."
+            : accountSummary;
 
     const handleSignOut = React.useCallback(async (dataMode: "keep" | "delete") => {
         if (signingOut) return;
@@ -580,94 +550,109 @@ function AccountMenu({
                         <p className="mt-0.5 text-[11px] text-[var(--text-muted)] truncate">
                             {accountEmail || "Signed in"}
                         </p>
-                        <p className="mt-0.5 text-[11px] font-semibold text-[var(--text-muted)] truncate">
-                            {planLabel} plan
-                        </p>
+                        {planLabel ? (
+                            <p className="mt-0.5 text-[11px] font-semibold text-[var(--text-muted)] truncate">
+                                {planLabel} plan
+                            </p>
+                        ) : (
+                            <div className="mt-1 h-3 w-20 animate-pulse rounded-full bg-[var(--surface-2)]" />
+                        )}
                     </div>
                     <ChevronDown className={`h-3 w-3 text-[var(--text-muted)] shrink-0 ${compact ? "hidden xl:block" : "hidden sm:block"}`} />
                 </button>
 
                 {open && (
-                    <div className="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-[min(20rem,calc(100vw-1.5rem))] rounded-3xl border border-[var(--border)] bg-[var(--surface-raised)] p-3 shadow-[0_18px_48px_rgba(16,24,40,0.14)]">
-                        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
-                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Current setup</p>
-                            <p className={`mt-1 text-sm font-semibold ${accountToneClass}`}>{accountState}</p>
-                            <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
-                                {accountEmail ? `Signed in as ${accountEmail}` : "Signed-in account email unavailable on this device."}
-                            </p>
-                            <p className="mt-1 text-xs font-semibold leading-relaxed text-[var(--text-muted)]">{planLabel} plan</p>
-                            <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{accountSummary}</p>
-                        </div>
-
-                        <div className="mt-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/45 p-3">
-                            {encryptionMode ? (
-                                <div className="mb-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 text-xs leading-6 text-[var(--text-muted)]">
-                                    <span className="font-semibold text-[var(--text)]">{getEncryptionModeLabel(encryptionMode)}</span>
-                                    {` - ${getSettingsSummary(encryptionMode)}`}
-                                </div>
-                            ) : null}
-                            <div className="flex items-start justify-between gap-3">
-                                <div>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Theme</p>
+                    <div className="absolute right-0 top-[calc(100%+0.6rem)] z-50 flex max-h-[calc(100dvh-5rem)] w-[min(22rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface-raised)] p-3 shadow-[0_18px_48px_rgba(16,24,40,0.14)] lg:w-[min(34rem,calc(100vw-2rem))]">
+                        <div className="-mr-1 min-h-0 overflow-y-auto overscroll-contain pr-1">
+                            <div className="grid gap-3 lg:grid-cols-[minmax(0,1.15fr)_minmax(15rem,0.85fr)]">
+                                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/60 p-4">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Current setup</p>
+                                    <p className={`mt-1 text-sm font-semibold ${accountToneClass}`}>{accountState}</p>
                                     <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
-                                        {theme === "system" ? `Following system (${resolvedTheme} now)` : `Using ${theme} mode`}
+                                        {accountEmail ? `Signed in as ${accountEmail}` : "Signed-in account email unavailable on this device."}
                                     </p>
+                                    {planLabel ? (
+                                        <p className="mt-1 text-xs font-semibold leading-relaxed text-[var(--text-muted)]">{planLabel} plan</p>
+                                    ) : (
+                                        <div className="mt-2 h-3 w-24 animate-pulse rounded-full bg-[var(--surface-1)]" />
+                                    )}
+                                    <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)] lg:hidden">{accountSummary}</p>
+                                    <p className="mt-1 hidden text-xs leading-relaxed text-[var(--text-muted)] lg:block">{compactDesktopSummary}</p>
+                                </div>
+
+                                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/45 p-3">
+                                    {encryptionMode ? (
+                                        <div className="mb-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 text-xs leading-6 text-[var(--text-muted)]">
+                                            <span className="font-semibold text-[var(--text)]">{getEncryptionModeLabel(encryptionMode)}</span>
+                                            <span className="lg:hidden">{` - ${getSettingsSummary(encryptionMode)}`}</span>
+                                            <p className="hidden lg:block">{getSettingsSummary(encryptionMode)}</p>
+                                        </div>
+                                    ) : null}
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Theme</p>
+                                            <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
+                                                {theme === "system" ? `Following system (${resolvedTheme} now)` : `Using ${theme} mode`}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="mt-3 flex items-center gap-1 rounded-2xl bg-[var(--surface-1)] p-1">
+                                        {themeOptions.map(({ value, label, icon: Icon }) => {
+                                            const active = theme === value;
+                                            return (
+                                                <button
+                                                    key={value}
+                                                    type="button"
+                                                    aria-pressed={active}
+                                                    onClick={() => setTheme(value)}
+                                                    className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-semibold transition-all"
+                                                    style={{
+                                                        backgroundColor: active ? "var(--surface-raised)" : "transparent",
+                                                        color: active ? "var(--primary)" : "var(--text-muted)",
+                                                        boxShadow: active ? "var(--shadow-sm)" : "none",
+                                                    }}
+                                                >
+                                                    <Icon className="h-3.5 w-3.5" />
+                                                    <span>{label}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="mt-3 flex items-center gap-1 rounded-2xl bg-[var(--surface-1)] p-1">
-                                {themeOptions.map(({ value, label, icon: Icon }) => {
-                                    const active = theme === value;
-                                    return (
-                                        <button
-                                            key={value}
-                                            type="button"
-                                            aria-pressed={active}
-                                            onClick={() => setTheme(value)}
-                                            className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-semibold transition-all"
-                                            style={{
-                                                backgroundColor: active ? "var(--surface-raised)" : "transparent",
-                                                color: active ? "var(--primary)" : "var(--text-muted)",
-                                                boxShadow: active ? "var(--shadow-sm)" : "none",
-                                            }}
-                                        >
-                                            <Icon className="h-3.5 w-3.5" />
-                                            <span>{label}</span>
-                                        </button>
-                                    );
-                                })}
+
+                            <div className="mt-3 grid gap-1 lg:grid-cols-2">
+                                {ACCOUNT_MENU_LINKS.map((link, index) => (
+                                    <MenuLink
+                                        key={link.href}
+                                        href={link.href}
+                                        icon={link.icon}
+                                        label={link.label}
+                                        sublabel={link.sublabel || ""}
+                                        className={index === ACCOUNT_MENU_LINKS.length - 1 ? "lg:col-span-2" : ""}
+                                        onNavigate={() => setOpen(false)}
+                                    />
+                                ))}
                             </div>
-                        </div>
 
-                        <div className="mt-3 space-y-1">
-                            {ACCOUNT_MENU_LINKS.map((link) => (
-                                <MenuLink
-                                    key={link.href}
-                                    href={link.href}
-                                    icon={link.icon}
-                                    label={link.label}
-                                    sublabel={link.sublabel || ""}
-                                    onNavigate={() => setOpen(false)}
-                                />
-                            ))}
-                        </div>
-
-                        <div className="mt-3 border-t border-[var(--border)] pt-3">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setSignOutPromptOpen(true);
-                                    setOpen(false);
-                                }}
-                                className="flex w-full items-start gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-[var(--surface-2)]"
-                            >
-                                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--danger-soft)] text-[var(--danger)]">
-                                    <LogOut className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-semibold text-[var(--text)]">Sign out</p>
-                                    <p className="text-xs leading-relaxed text-[var(--text-muted)]">Choose whether this device should keep or remove its local records.</p>
-                                </div>
-                            </button>
+                            <div className="mt-3 border-t border-[var(--border)] pt-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSignOutPromptOpen(true);
+                                        setOpen(false);
+                                    }}
+                                    className="flex w-full items-start gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-[var(--surface-2)]"
+                                >
+                                    <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--danger-soft)] text-[var(--danger)]">
+                                        <LogOut className="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-[var(--text)]">Sign out</p>
+                                        <p className="text-xs leading-relaxed text-[var(--text-muted)]">Choose whether this device should keep or remove its local records.</p>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -750,19 +735,21 @@ function MenuLink({
     icon: Icon,
     label,
     sublabel,
+    className = "",
     onNavigate,
 }: Readonly<{
     href: string;
     icon: React.ElementType;
     label: string;
     sublabel: string;
+    className?: string;
     onNavigate: () => void;
 }>) {
     return (
         <Link
             href={href}
             onClick={onNavigate}
-            className="flex items-start gap-3 rounded-2xl px-4 py-3 transition-colors hover:bg-[var(--surface-2)]"
+            className={`flex items-start gap-3 rounded-2xl px-4 py-3 transition-colors hover:bg-[var(--surface-2)] ${className}`}
         >
             <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">
                 <Icon className="h-4 w-4" />
