@@ -4,11 +4,13 @@ import * as React from "react";
 import Link from "next/link";
 import { Loader2, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { storePasswordHandoff } from "@/lib/password-handoff";
 
 export function ResetPasswordForm() {
     const supabase = createClient();
     const [password, setPassword] = React.useState("");
     const [confirmPassword, setConfirmPassword] = React.useState("");
+    const [accountEmail, setAccountEmail] = React.useState<string | null>(null);
     const [error, setError] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(false);
     const [isReady, setIsReady] = React.useState(false);
@@ -25,6 +27,7 @@ export function ResetPasswordForm() {
                 setIsReady(false);
                 return;
             }
+            setAccountEmail(session.user.email ?? null);
             setIsReady(true);
         }
 
@@ -43,7 +46,7 @@ export function ResetPasswordForm() {
         return null;
     }, []);
 
-    const handleSubmit = async (event: React.FormEvent) => {
+    const handleSubmit = React.useCallback(async (event: React.FormEvent) => {
         event.preventDefault();
         setError(null);
 
@@ -66,9 +69,13 @@ export function ResetPasswordForm() {
             return;
         }
 
+        if (accountEmail) {
+            storePasswordHandoff(accountEmail, password);
+        }
+
         setIsSuccess(true);
         setIsLoading(false);
-    };
+    }, [accountEmail, confirmPassword, password, supabase.auth, validatePassword]);
 
     if (isSuccess) {
         return (

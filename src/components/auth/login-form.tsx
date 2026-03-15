@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { readPendingBillingReference } from "@/lib/billing-handoff";
 import { buildPaidDashboardHref } from "@/lib/paid-activation";
 import { fetchVerifiedEntitlements } from "@/lib/billing-client";
+import { storePasswordHandoff } from "@/lib/password-handoff";
 
 const CALLBACK_ERROR_MESSAGES: Record<string, string> = {
     invalid_or_expired_link: "That reset or confirmation link is no longer valid. Please request a fresh link.",
@@ -45,7 +46,7 @@ type LoginFormProps = {
 
 export function LoginForm({
     title = "Welcome back",
-    description = "Log in to restore your paid access and unlock secure sync on this device.",
+    description = "Log in to restore your paid access and continue with the secure unlock step on this device.",
     forgotPasswordHref = "/forgot-password",
     showSignupFooter = true,
     embedded = false,
@@ -91,6 +92,8 @@ export function LoginForm({
             setIsLoading(false);
             return;
         }
+
+        storePasswordHandoff(email, password);
 
         const reference = searchParams.get("reference")?.trim() || readPendingBillingReference() || "";
         const next = searchParams.get("next")?.trim() || "";

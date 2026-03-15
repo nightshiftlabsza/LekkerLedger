@@ -140,7 +140,7 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
                         </div>
 
                         <div className="space-y-3">
-                            <Link href="/resources/tools/domestic-worker-payslip">
+                            <Link href="/resources/tools/domestic-worker-payslip" className="inline-flex min-h-[44px] items-stretch self-start">
                                 <Button className="h-12 rounded-xl bg-[var(--primary)] px-7 text-base font-bold text-white shadow-[var(--shadow-2)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]">
                                     Start free <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
@@ -576,7 +576,7 @@ function PricingPreview() {
                 </div>
 
                 <div className="mt-8 flex justify-start sm:justify-end">
-                    <Link href="/pricing" aria-label="See full pricing" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:underline">
+                    <Link href="/pricing" aria-label="See full pricing" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold text-[var(--primary)] hover:underline">
                         {HOMEPAGE_PRICING_LINK_LABEL} <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                 </div>
@@ -612,7 +612,7 @@ function FAQPreview() {
 
     return (
         <section id="faq" style={{ backgroundColor: "var(--bg)" }}>
-            <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+            <div className="content-container-reading px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
                 <div className="mb-6 max-w-2xl space-y-3">
                     <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                         FAQ
@@ -641,7 +641,7 @@ function FAQItem({ question, answer }: Readonly<{ question: string; answer: stri
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5 transition-all hover:border-[var(--primary)]/30"
             style={{ backgroundColor: "var(--surface-1)" }}
         >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+            <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 rounded-lg py-1">
                 <h3 className="text-sm font-bold" style={{ color: "var(--text)" }}>
                     {question}
                 </h3>

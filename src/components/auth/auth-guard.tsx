@@ -104,7 +104,7 @@ export function AuthGuard({ children, type }: { children: React.ReactNode; type:
                     <ol className="mt-4 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
                         <li><span className="font-semibold text-[var(--text)]">1.</span> Use the free tool without an account, or choose a paid plan on pricing.</li>
                         <li><span className="font-semibold text-[var(--text)]">2.</span> After paying, create your paid account or log in with the same billing email.</li>
-                        <li><span className="font-semibold text-[var(--text)]">3.</span> On later devices, just log in and enter your recovery key.</li>
+                        <li><span className="font-semibold text-[var(--text)]">3.</span> On later devices, log in and follow the secure unlock step for that account.</li>
                     </ol>
                 </aside>
             </div>

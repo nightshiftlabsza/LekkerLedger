@@ -36,6 +36,18 @@ function FeatureValue({ value }: { value: boolean | string }) {
     return <span>{value}</span>;
 }
 
+function getFeatureValueLabel(value: boolean | string) {
+    if (value === true) return "Included";
+    if (value === false) return "Not included";
+    return value;
+}
+
+const COMPARISON_PLAN_LABELS: Record<PlanId, string> = {
+    free: "Free",
+    standard: "Standard",
+    pro: "Pro",
+};
+
 // ─── Billing Toggle ────────────────────────────────────────────────────────────
 
 export function MarketingBillingToggle({
@@ -81,7 +93,7 @@ export function MarketingBillingToggle({
                                 type="button"
                                 onClick={() => onChange(cycle)}
                                 aria-pressed={isSelected}
-                                className="relative rounded-full px-6 py-2.5 text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--civic-gold)] focus-visible:ring-offset-2"
+                                className="relative min-h-[44px] rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--civic-gold)] focus-visible:ring-offset-2 sm:px-6"
                                 style={{
                                     backgroundColor: isSelected ? "var(--primary)" : "transparent",
                                     color: isSelected ? "#ffffff" : "var(--text-muted)",
@@ -94,7 +106,7 @@ export function MarketingBillingToggle({
                                 {/* Savings nudge always visible on Yearly button */}
                                 {cycle === "yearly" && !isSelected && (
                                     <span
-                                        className="ml-2 inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.1em]"
+                                        className="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-black uppercase tracking-[0.1em]"
                                         style={{
                                             backgroundColor: "rgba(0,122,77,0.1)",
                                             color: "var(--primary)",
@@ -112,7 +124,7 @@ export function MarketingBillingToggle({
                 <div className="flex h-8 items-center">
                     {billingCycle === "yearly" ? (
                         <span
-                            className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.14em] animate-in fade-in slide-in-from-left-1 duration-200"
+                            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-[0.14em] animate-in fade-in slide-in-from-left-1 duration-200"
                             style={{
                                 backgroundColor: "var(--primary)",
                                 color: "#ffffff",
@@ -132,7 +144,7 @@ export function MarketingBillingToggle({
                         </span>
                     ) : (
                         <span
-                            className="inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em]"
+                            className="inline-flex min-h-[44px] items-center rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em]"
                             style={{
                                 backgroundColor: "rgba(0,122,77,0.08)",
                                 color: "var(--primary)",
@@ -148,7 +160,7 @@ export function MarketingBillingToggle({
 
             {/* Currency note */}
             <p
-                className="text-[11px] font-semibold uppercase tracking-wider"
+                className="text-xs font-semibold uppercase tracking-wider"
                 style={{ color: "var(--text-muted)" }}
             >
                 All prices are in ZAR.
@@ -174,7 +186,7 @@ export function MarketingPlanCards({
 }) {
     return (
         <div className="space-y-6">
-            <div className={`grid gap-5 md:gap-6 ${compact ? "lg:grid-cols-3" : "xl:grid-cols-3"}`}>
+            <div className={`grid gap-5 md:gap-6 ${compact ? "lg:grid-cols-3" : "xl:grid-cols-3 2xl:gap-7"}`}>
                 {PLAN_ORDER.map((planId) => (
                     <MarketingPlanCard
                         key={planId}
@@ -263,7 +275,7 @@ export function MarketingPlanCard({
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <p
-                            className="text-[10px] font-black uppercase tracking-[0.2em]"
+                            className="text-xs font-black uppercase tracking-[0.2em]"
                             style={{ color: "var(--primary)" }}
                         >
                             {plan.label}
@@ -323,7 +335,7 @@ export function MarketingPlanCard({
                     {/* Launch pricing microcopy */}
                     {plan.launchNote ? (
                         <p
-                            className="mt-2 text-[11px] leading-5"
+                            className="mt-2 text-xs leading-5"
                             style={{ color: "var(--text-muted)", opacity: 0.75 }}
                         >
                             {plan.launchNote}
@@ -335,7 +347,7 @@ export function MarketingPlanCard({
                 <div className="space-y-4">
                     {plan.featureIntro ? (
                         <p
-                            className="text-[10px] font-black uppercase tracking-[0.16em]"
+                            className="text-xs font-black uppercase tracking-[0.16em]"
                             style={{ color: "var(--text-muted)" }}
                         >
                             {plan.featureIntro}
@@ -366,7 +378,7 @@ export function MarketingPlanCard({
             >
                 {onSelect ? (
                     <Button
-                        className="w-full justify-center font-bold"
+                        className="min-h-[48px] w-full justify-center font-bold"
                         onClick={handleAction}
                         disabled={isCurrent || isDisabled || isLoading}
                         variant={featured && !isDowngrade ? "default" : "outline"}
@@ -381,7 +393,7 @@ export function MarketingPlanCard({
                 ) : (
                     <Link href={href}>
                         <Button
-                            className={`w-full justify-center font-bold ${
+                            className={`min-h-[48px] w-full justify-center font-bold ${
                                 planId === "free"
                                     ? "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
                                     : ""
@@ -395,7 +407,7 @@ export function MarketingPlanCard({
 
                 {/* Billing subtext — only on upgrade CTAs */}
                 {!isCurrent && !isDowngrade && (plan.ctaSubtextByCycle?.[billingCycle] ?? plan.ctaSubtext) ? (
-                    <p className="text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                    <p className="text-center text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
                         {plan.ctaSubtextByCycle?.[billingCycle] ?? plan.ctaSubtext}
                     </p>
                 ) : null}
@@ -409,7 +421,7 @@ export function MarketingPlanCard({
 function EarlybirdBadge({ text }: { readonly text: string }) {
     return (
         <span
-            className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em]"
+            className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-black uppercase tracking-[0.14em]"
             style={{
                 backgroundColor: "rgba(196, 122, 28, 0.08)",
                 border: "1px solid rgba(196, 122, 28, 0.25)",
@@ -436,84 +448,131 @@ function EarlybirdBadge({ text }: { readonly text: string }) {
 
 export function PricingComparisonTable() {
     return (
-        <div className="overflow-x-auto rounded-[30px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-1)]">
-            <table className="min-w-[850px] w-full border-collapse">
-                <thead>
-                    <tr
-                        className="border-b border-[var(--border)] bg-[var(--surface-raised)] text-left text-xs font-black uppercase tracking-[0.18em]"
-                        style={{ color: "var(--text-muted)" }}
+        <div className="space-y-5">
+            <div className="space-y-4 lg:hidden">
+                {PRICING_COMPARISON_GROUPS.map((group) => (
+                    <section
+                        key={group.title}
+                        className="rounded-[30px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-1)] sm:p-6"
                     >
-                        <th
-                            className="sticky left-0 z-10 px-6 py-5 bg-[var(--surface-raised)] shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1),1px_0_0_0_var(--border)]"
-                            style={{ color: "var(--text-muted)" }}
-                        >
-                            Feature
-                        </th>
-                        <th className="px-6 py-5 text-center" style={{ color: "var(--text-muted)" }}>
-                            Free
-                        </th>
-                        <th
-                            className="border-x border-[var(--border)] bg-[var(--primary)]/5 px-6 py-5 text-center"
-                            style={{ color: "var(--text-muted)" }}
-                        >
-                            Standard
-                        </th>
-                        <th className="px-6 py-5 text-center" style={{ color: "var(--text-muted)" }}>
-                            Pro
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {PRICING_COMPARISON_GROUPS.map((group) => (
-                        <React.Fragment key={group.title}>
-                            <tr key={`${group.title}-header`}>
-                                <td
-                                    colSpan={4}
-                                    className="sticky left-0 z-10 border-y border-[var(--border)] bg-[var(--surface-raised)] px-6 py-4 text-xs font-black uppercase tracking-[0.18em]"
-                                    style={{ color: "var(--text)" }}
-                                >
-                                    {group.title}
-                                </td>
-                            </tr>
-                            {group.rows.map((row, index) => (
-                                <tr
+                        <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                            {group.title}
+                        </p>
+                        <div className="mt-4 space-y-4">
+                            {group.rows.map((row) => (
+                                <div
                                     key={`${group.title}-${row.label}`}
-                                    className={`border-b border-[var(--border)] ${
-                                        index % 2 === 0 ? "bg-transparent" : "bg-[var(--surface-raised)]/30"
-                                    }`}
+                                    className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-raised)] p-4"
                                 >
+                                    <p className="text-sm font-bold text-[var(--text)]">{row.label}</p>
+                                    <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                                        {PLAN_ORDER.map((planId) => (
+                                            <div
+                                                key={`${row.label}-${planId}`}
+                                                className={`rounded-[18px] border px-3 py-3 ${
+                                                    planId === "standard"
+                                                        ? "border-[var(--primary)]/25 bg-[var(--primary)]/6"
+                                                        : "border-[var(--border)] bg-[var(--surface-1)]"
+                                                }`}
+                                            >
+                                                <p className="text-xs font-black uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                                                    {COMPARISON_PLAN_LABELS[planId]}
+                                                </p>
+                                                <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                                                    {row.values[planId] === true ? (
+                                                        <Check className="h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                                    ) : null}
+                                                    <span>{getFeatureValueLabel(row.values[planId])}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                ))}
+            </div>
+
+            <div className="hidden overflow-x-auto rounded-[30px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-1)] lg:block">
+                <table className="w-full min-w-[760px] border-collapse">
+                    <thead>
+                        <tr
+                            className="border-b border-[var(--border)] bg-[var(--surface-raised)] text-left text-xs font-black uppercase tracking-[0.18em]"
+                            style={{ color: "var(--text-muted)" }}
+                        >
+                            <th
+                                className="sticky left-0 z-10 bg-[var(--surface-raised)] px-6 py-5 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1),1px_0_0_0_var(--border)]"
+                                style={{ color: "var(--text-muted)" }}
+                            >
+                                Feature
+                            </th>
+                            <th className="px-6 py-5 text-center" style={{ color: "var(--text-muted)" }}>
+                                Free
+                            </th>
+                            <th
+                                className="border-x border-[var(--border)] bg-[var(--primary)]/5 px-6 py-5 text-center"
+                                style={{ color: "var(--text-muted)" }}
+                            >
+                                Standard
+                            </th>
+                            <th className="px-6 py-5 text-center" style={{ color: "var(--text-muted)" }}>
+                                Pro
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {PRICING_COMPARISON_GROUPS.map((group) => (
+                            <React.Fragment key={group.title}>
+                                <tr key={`${group.title}-header`}>
                                     <td
-                                        className={`sticky left-0 z-10 px-6 py-4 text-sm font-semibold shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1),1px_0_0_0_var(--border)] ${
-                                            index % 2 === 0 ? "bg-[var(--surface-1)]" : "bg-[var(--surface-raised)]"
-                                        }`}
+                                        colSpan={4}
+                                        className="sticky left-0 z-10 border-y border-[var(--border)] bg-[var(--surface-raised)] px-6 py-4 text-xs font-black uppercase tracking-[0.18em]"
                                         style={{ color: "var(--text)" }}
                                     >
-                                        {row.label}
-                                    </td>
-                                    <td
-                                        className="px-6 py-4 text-center text-sm"
-                                        style={{ color: "var(--text-muted)" }}
-                                    >
-                                        <FeatureValue value={row.values.free} />
-                                    </td>
-                                    <td
-                                        className="border-x border-[var(--border)] bg-[var(--primary)]/5 px-6 py-4 text-center text-sm"
-                                        style={{ color: "var(--text-muted)" }}
-                                    >
-                                        <FeatureValue value={row.values.standard} />
-                                    </td>
-                                    <td
-                                        className="px-6 py-4 text-center text-sm"
-                                        style={{ color: "var(--text-muted)" }}
-                                    >
-                                        <FeatureValue value={row.values.pro} />
+                                        {group.title}
                                     </td>
                                 </tr>
-                            ))}
-                        </React.Fragment>
-                    ))}
-                </tbody>
-            </table>
+                                {group.rows.map((row, index) => (
+                                    <tr
+                                        key={`${group.title}-${row.label}`}
+                                        className={`border-b border-[var(--border)] ${
+                                            index % 2 === 0 ? "bg-transparent" : "bg-[var(--surface-raised)]/30"
+                                        }`}
+                                    >
+                                        <td
+                                            className={`sticky left-0 z-10 px-6 py-4 text-sm font-semibold shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1),1px_0_0_0_var(--border)] ${
+                                                index % 2 === 0 ? "bg-[var(--surface-1)]" : "bg-[var(--surface-raised)]"
+                                            }`}
+                                            style={{ color: "var(--text)" }}
+                                        >
+                                            {row.label}
+                                        </td>
+                                        <td
+                                            className="px-6 py-4 text-center text-sm"
+                                            style={{ color: "var(--text-muted)" }}
+                                        >
+                                            <FeatureValue value={row.values.free} />
+                                        </td>
+                                        <td
+                                            className="border-x border-[var(--border)] bg-[var(--primary)]/5 px-6 py-4 text-center text-sm"
+                                            style={{ color: "var(--text-muted)" }}
+                                        >
+                                            <FeatureValue value={row.values.standard} />
+                                        </td>
+                                        <td
+                                            className="px-6 py-4 text-center text-sm"
+                                            style={{ color: "var(--text-muted)" }}
+                                        >
+                                            <FeatureValue value={row.values.pro} />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </React.Fragment>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

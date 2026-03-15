@@ -13,8 +13,7 @@ const mocks = vi.hoisted(() => {
     const syncListeners = new Set<() => void>();
 
     return {
-        getSessionMock: vi.fn(),
-        unsubscribeMock: vi.fn(),
+        authUser: null as { id: string } | null,
         syncSubscribeMock: vi.fn((listener: () => void) => {
             syncListeners.add(listener);
             return () => {
@@ -39,18 +38,11 @@ const mocks = vi.hoisted(() => {
     };
 });
 
-vi.mock("@/lib/supabase/client", () => ({
-    createClient: () => ({
-        auth: {
-            getSession: mocks.getSessionMock,
-            onAuthStateChange: () => ({
-                data: {
-                    subscription: {
-                        unsubscribe: mocks.unsubscribeMock,
-                    },
-                },
-            }),
-        },
+vi.mock("@/components/auth/auth-state-provider", () => ({
+    useAuthState: () => ({
+        user: mocks.authUser,
+        isLoading: false,
+        refreshUser: vi.fn(),
     }),
 }));
 
@@ -77,8 +69,7 @@ function Harness() {
 
 describe("useAppConnectivity", () => {
     beforeEach(() => {
-        mocks.getSessionMock.mockReset();
-        mocks.unsubscribeMock.mockReset();
+        mocks.authUser = null;
         mocks.syncSubscribeMock.mockClear();
         mocks.getSyncSnapshotMock.mockClear();
         mocks.resetSyncSnapshot();
@@ -94,12 +85,6 @@ describe("useAppConnectivity", () => {
     });
 
     it("stays disabled without an authenticated session", async () => {
-        mocks.getSessionMock.mockResolvedValue({
-            data: {
-                session: null,
-            },
-        });
-
         render(<Harness />);
 
         await waitFor(() => {
@@ -109,15 +94,7 @@ describe("useAppConnectivity", () => {
     });
 
     it("reports enabled when a signed-in user has unlocked sync", async () => {
-        mocks.getSessionMock.mockResolvedValue({
-            data: {
-                session: {
-                    user: {
-                        id: "user-1",
-                    },
-                },
-            },
-        });
+        mocks.authUser = { id: "user-1" };
         mocks.emitSyncSnapshot({
             userId: "user-1",
             ready: true,
@@ -134,15 +111,7 @@ describe("useAppConnectivity", () => {
     });
 
     it("reports an error when the sync service exposes one", async () => {
-        mocks.getSessionMock.mockResolvedValue({
-            data: {
-                session: {
-                    user: {
-                        id: "user-1",
-                    },
-                },
-            },
-        });
+        mocks.authUser = { id: "user-1" };
         mocks.emitSyncSnapshot({
             userId: "user-1",
             ready: true,
@@ -168,15 +137,7 @@ describe("useAppConnectivity", () => {
             ok: false,
         } as Response);
 
-        mocks.getSessionMock.mockResolvedValue({
-            data: {
-                session: {
-                    user: {
-                        id: "user-1",
-                    },
-                },
-            },
-        });
+        mocks.authUser = { id: "user-1" };
         mocks.emitSyncSnapshot({
             userId: "user-1",
             ready: true,

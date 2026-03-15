@@ -277,6 +277,10 @@ function decodeData<T>(value: unknown): T | null {
 
 type DataChangeListener = () => void | Promise<void>;
 const listeners: DataChangeListener[] = [];
+const DATA_CHANGE_CHANNEL = "lekkerledger:data-changes";
+const DATA_CHANGE_STORAGE_KEY = "lekkerledger:data-change-ping";
+let dataChangeBridgeInitialized = false;
+let dataChangeChannel: BroadcastChannel | null = null;
 let isImporting = false;
 
 function logStorageReadError(operation: string, error: unknown) {
@@ -320,6 +324,7 @@ async function syncDocumentFileDeletionToCloud(id: string) {
 }
 
 export function subscribeToDataChanges(callback: DataChangeListener) {
+    ensureDataChangeBridge();
     listeners.push(callback);
     return () => {
         const index = listeners.indexOf(callback);
@@ -327,7 +332,52 @@ export function subscribeToDataChanges(callback: DataChangeListener) {
     };
 }
 
-async function notifyListeners() {
+function ensureDataChangeBridge() {
+    if (dataChangeBridgeInitialized || typeof window === "undefined") {
+        return;
+    }
+
+    dataChangeBridgeInitialized = true;
+
+    if (typeof BroadcastChannel !== "undefined") {
+        dataChangeChannel = new BroadcastChannel(DATA_CHANGE_CHANNEL);
+        dataChangeChannel.addEventListener("message", () => {
+            void notifyListeners({ broadcast: false });
+        });
+        return;
+    }
+
+    window.addEventListener("storage", (event) => {
+        if (event.key !== DATA_CHANGE_STORAGE_KEY || event.newValue === event.oldValue) {
+            return;
+        }
+
+        void notifyListeners({ broadcast: false });
+    });
+}
+
+function broadcastDataChange() {
+    if (typeof window === "undefined") {
+        return;
+    }
+
+    try {
+        if (dataChangeChannel) {
+            dataChangeChannel.postMessage({ at: Date.now() });
+            return;
+        }
+    } catch {
+        // Ignore BroadcastChannel failures and fall back to the storage ping below.
+    }
+
+    try {
+        window.localStorage.setItem(DATA_CHANGE_STORAGE_KEY, String(Date.now()));
+    } catch {
+        // Ignore localStorage write failures. Same-tab listeners already ran.
+    }
+}
+
+async function notifyListeners(options: { broadcast?: boolean } = {}) {
     if (isImporting) return;
     const activeListeners = [...listeners];
     // Use allSettled so one crashing component doesn't break the whole app (Issue 153)
@@ -338,6 +388,10 @@ async function notifyListeners() {
             console.error("Data change listener failed", error);
         }
     }));
+
+    if (options.broadcast !== false) {
+        broadcastDataChange();
+    }
 }
 
 export function setImportingMode(value: boolean) {

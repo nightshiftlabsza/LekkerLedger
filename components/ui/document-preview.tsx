@@ -46,8 +46,8 @@ export function DocumentPreview({ url, fileName, onClose, onDownload }: Document
                     "inset-0 lg:inset-auto",
                     // Desktop: right panel
                     expanded
-                        ? "lg:top-0 lg:right-0 lg:bottom-0 lg:left-1/4"
-                        : "lg:top-0 lg:right-0 lg:bottom-0 lg:w-[40%] lg:min-w-[420px]",
+                        ? "lg:top-0 lg:right-0 lg:bottom-0 lg:left-[max(18rem,20%)]"
+                        : "lg:top-0 lg:right-0 lg:bottom-0 lg:w-[min(42vw,36rem)] lg:min-w-[20rem] xl:min-w-[24rem]",
                     "lg:border-l lg:border-[var(--border)]",
                     "animate-slide-up lg:animate-none",
                 ].join(" ")}

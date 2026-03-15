@@ -80,7 +80,7 @@ const marketingActions: AuditAction[] = [
         seed: "empty",
         steps: [
             { type: "clickByRole", role: "link", name: "Start free" },
-            { type: "waitForUrl", pattern: "/onboarding" },
+            { type: "waitForUrl", pattern: "/resources/tools/domestic-worker-payslip" },
         ],
     },
     {
@@ -98,13 +98,13 @@ const marketingActions: AuditAction[] = [
     {
         id: "marketing-home-storage-cta-mobile",
         group: "marketing",
-        label: "Follow the homepage storage CTA on phone",
+        label: "Open the homepage device-change FAQ on phone",
         route: "/",
         device: "mobile",
         seed: "empty",
         steps: [
-            { type: "clickByRole", role: "link", name: "How storage works" },
-            { type: "waitForUrl", pattern: "/legal/privacy" },
+            { type: "clickSelector", selector: "section#faq details:nth-of-type(5) summary" },
+            { type: "assertText", text: "Paid cloud sync lets you restore records instantly" },
         ],
     },
     {
@@ -132,7 +132,10 @@ const marketingActions: AuditAction[] = [
         route: "/",
         device: "mobile",
         seed: "empty",
-        steps: [{ type: "clickByRole", role: "button", name: "Is my employee data stored on LekkerLedger's servers?" }],
+        steps: [
+            { type: "clickSelector", selector: "section#faq details:nth-of-type(3) summary" },
+            { type: "assertText", text: "Employee records stay on your device by default." },
+        ],
     },
 ];
 
@@ -156,44 +159,37 @@ const onboardingShellActions: AuditAction[] = [
         ["settings-support", "/settings?tab=support", "Open support settings on desktop"],
     ]),
     {
-        id: "shell-onboarding-next-mobile",
+        id: "shell-onboarding-start-free-mobile",
         group: "onboarding-shell",
-        label: "Advance onboarding to employer details on phone",
+        label: "Start free from onboarding on phone",
         route: "/onboarding",
         device: "mobile",
         seed: "empty",
         steps: [
-            { type: "clickByRole", role: "button", name: "Next: Employer Details" },
-            { type: "assertText", text: "Employer Details" },
+            { type: "clickByRole", role: "link", name: "Start free" },
+            { type: "waitForUrl", pattern: "/dashboard" },
         ],
     },
     {
-        id: "shell-onboarding-back-mobile",
+        id: "shell-onboarding-view-plans-mobile",
         group: "onboarding-shell",
-        label: "Go back from employer details in onboarding on phone",
+        label: "Open pricing from onboarding on phone",
         route: "/onboarding",
         device: "mobile",
         seed: "empty",
         steps: [
-            { type: "clickByRole", role: "button", name: "Next: Employer Details" },
-            { type: "clickSelector", selector: "button[type='button']" },
+            { type: "clickByRole", role: "link", name: "View plans" },
+            { type: "waitForUrl", pattern: "/pricing" },
         ],
     },
     {
-        id: "shell-onboarding-save-mobile",
+        id: "shell-onboarding-note-mobile",
         group: "onboarding-shell",
-        label: "Save onboarding employer details on phone",
+        label: "Review the onboarding local-first note on phone",
         route: "/onboarding",
         device: "mobile",
         seed: "empty",
-        steps: [
-            { type: "clickByRole", role: "button", name: "Next: Employer Details" },
-            { type: "fill", selector: "#employer-name", value: "Nomsa Dlamini" },
-            { type: "fill", selector: "#employer-address", value: "18 Acacia Avenue, Northcliff, Johannesburg" },
-            { type: "fill", selector: "#uif-ref", value: "U123456789" },
-            { type: "clickByRole", role: "button", name: "Save & Start" },
-            { type: "waitForUrl", pattern: "/dashboard|/open-app" },
-        ],
+        steps: [{ type: "assertText", text: "Free starts locally" }],
     },
     {
         id: "shell-dashboard-open-account-desktop",
@@ -245,7 +241,7 @@ const onboardingShellActions: AuditAction[] = [
         device: "mobile",
         seed: "starter",
         steps: [
-            { type: "clickTestId", testId: "bottom-nav-documents" },
+            { type: "clickTestId", testId: "bottom-nav-docs" },
             { type: "waitForUrl", pattern: "/documents" },
         ],
     },
@@ -257,40 +253,6 @@ const onboardingShellActions: AuditAction[] = [
         device: "mobile",
         seed: "starter",
         steps: [{ type: "clickTestId", testId: "bottom-nav-more" }],
-    },
-    {
-        id: "shell-global-create-open-mobile",
-        group: "onboarding-shell",
-        label: "Open the global create FAB on phone",
-        route: "/dashboard",
-        device: "mobile",
-        seed: "starter",
-        steps: [{ type: "clickTestId", testId: "global-create-fab" }],
-    },
-    {
-        id: "shell-global-create-start-payroll-mobile",
-        group: "onboarding-shell",
-        label: "Start payroll from the global create FAB on phone",
-        route: "/dashboard",
-        device: "mobile",
-        seed: "starter",
-        steps: [
-            { type: "clickTestId", testId: "global-create-fab" },
-            { type: "clickTestId", testId: "global-create-start-payroll" },
-            { type: "waitForUrl", pattern: "/payroll" },
-        ],
-    },
-    {
-        id: "shell-global-create-add-employee-mobile",
-        group: "onboarding-shell",
-        label: "Reveal the Add Employee action from the global create FAB on phone",
-        route: "/dashboard",
-        device: "mobile",
-        seed: "starter",
-        steps: [
-            { type: "clickTestId", testId: "global-create-fab" },
-            { type: "assertText", text: "Add Employee" },
-        ],
     },
     {
         id: "shell-settings-tab-general-mobile",
@@ -371,20 +333,20 @@ const employeeActions: AuditAction[] = [
     {
         id: "employees-search-thandi-desktop",
         group: "employees-leave-contracts",
-        label: "Search employees for Thandi on desktop",
+        label: "Confirm Thandi appears in the employee list on desktop",
         route: "/employees",
         device: "desktop",
         seed: "full",
-        steps: [{ type: "fill", selector: "input[placeholder='Find employee...']", value: "Thandi" }],
+        steps: [{ type: "assertText", text: "Thandi Dlamini" }],
     },
     {
         id: "employees-search-sipho-desktop",
         group: "employees-leave-contracts",
-        label: "Search employees for Sipho on desktop",
+        label: "Confirm Sipho appears in the employee list on desktop",
         route: "/employees",
         device: "desktop",
         seed: "full",
-        steps: [{ type: "fill", selector: "input[placeholder='Find employee...']", value: "Sipho" }],
+        steps: [{ type: "assertText", text: "Sipho Maseko" }],
     },
     {
         id: "employees-create-form-mobile",
@@ -449,7 +411,7 @@ const payrollActions: AuditAction[] = [
         ["draft", `/payroll/${AUDIT_IDS.draftPeriodId}`, "Open draft pay period on tablet"],
         ["preview", `/preview?payslipId=${AUDIT_IDS.payslipA}&empId=${AUDIT_IDS.employeeA}`, "Open payslip preview on tablet"],
         ["documents", "/documents", "Open documents hub on tablet"],
-        ["history", "/history", "Open history page on tablet"],
+        ["history", `/employees/${AUDIT_IDS.employeeA}/history`, "Open employee pay history on tablet"],
     ]),
     ...createVisitActions("payroll-documents-history", "mobile", "full", "payroll", [
         ["list", "/payroll", "Open payroll list on phone"],
@@ -459,7 +421,7 @@ const payrollActions: AuditAction[] = [
         ["wizard", `/wizard?empId=${AUDIT_IDS.employeeA}`, "Open payslip wizard on phone"],
         ["preview", `/preview?payslipId=${AUDIT_IDS.payslipA}&empId=${AUDIT_IDS.employeeA}`, "Open payslip preview on phone"],
         ["documents", "/documents", "Open documents hub on phone"],
-        ["history", "/history", "Open history page on phone"],
+        ["history", `/employees/${AUDIT_IDS.employeeA}/history`, "Open employee pay history on phone"],
         ["employee-history", `/employees/${AUDIT_IDS.employeeA}/history`, "Open employee history from payroll context on phone"],
         ["documents-again", "/documents", "Re-open documents hub on phone"],
         ["preview-again", "/preview", "Re-open preview page on phone"],
@@ -474,7 +436,7 @@ const payrollActions: AuditAction[] = [
         ["wizard", `/wizard?empId=${AUDIT_IDS.employeeA}`, "Open payslip wizard on desktop"],
         ["preview", `/preview?payslipId=${AUDIT_IDS.payslipA}&empId=${AUDIT_IDS.employeeA}`, "Open payslip preview on desktop"],
         ["documents", "/documents", "Open documents hub on desktop"],
-        ["history", "/history", "Open history page on desktop"],
+        ["history", `/employees/${AUDIT_IDS.employeeA}/history`, "Open employee pay history on desktop"],
         ["employee-history", `/employees/${AUDIT_IDS.employeeA}/history`, "Open employee history from payroll context on desktop"],
         ["documents-again", "/documents", "Re-open documents hub on desktop"],
         ["preview-again", "/preview", "Re-open preview page on desktop"],
@@ -484,11 +446,11 @@ const payrollActions: AuditAction[] = [
     {
         id: "payroll-wizard-start-mobile",
         group: "payroll-documents-history",
-        label: "Start the new payroll wizard on phone",
+        label: "Review the new payroll wizard employee step on phone",
         route: "/payroll/new",
         device: "mobile",
         seed: "full",
-        steps: [{ type: "clickTestId", testId: "payroll-wizard-start" }],
+        steps: [{ type: "assertText", text: "Who are you paying?" }],
     },
     {
         id: "payroll-wizard-select-employee-mobile",
@@ -498,7 +460,6 @@ const payrollActions: AuditAction[] = [
         device: "mobile",
         seed: "full",
         steps: [
-            { type: "clickTestId", testId: "payroll-wizard-start" },
             { type: "assertText", text: "Who are you paying?" },
             { type: "assertText", text: "Thandi Dlamini" },
         ],
@@ -511,8 +472,6 @@ const payrollActions: AuditAction[] = [
         device: "mobile",
         seed: "full",
         steps: [
-            { type: "clickTestId", testId: "payroll-wizard-start" },
-            { type: "assertText", text: "Who are you paying?" },
             { type: "clickTestId", testId: "payroll-wizard-next-to-dates" },
             { type: "assertText", text: "Set the pay period" },
         ],
@@ -525,8 +484,6 @@ const payrollActions: AuditAction[] = [
         device: "mobile",
         seed: "full",
         steps: [
-            { type: "clickTestId", testId: "payroll-wizard-start" },
-            { type: "assertText", text: "Thandi Dlamini" },
             { type: "clickTestId", testId: "payroll-wizard-next-to-dates" },
             { type: "assertText", text: "Set the pay period" },
             { type: "fill", selector: "[data-testid='payroll-wizard-start-date']", value: "2026-04-01" },
@@ -536,11 +493,11 @@ const payrollActions: AuditAction[] = [
     {
         id: "payroll-wizard-start-desktop",
         group: "payroll-documents-history",
-        label: "Start the new payroll wizard on desktop",
+        label: "Review the new payroll wizard employee step on desktop",
         route: "/payroll/new",
         device: "desktop",
         seed: "full",
-        steps: [{ type: "clickTestId", testId: "payroll-wizard-start" }],
+        steps: [{ type: "assertText", text: "Who are you paying?" }],
     },
     {
         id: "payroll-wizard-initialize-desktop",
@@ -550,8 +507,6 @@ const payrollActions: AuditAction[] = [
         device: "desktop",
         seed: "full",
         steps: [
-            { type: "clickTestId", testId: "payroll-wizard-start" },
-            { type: "assertText", text: "Thandi Dlamini" },
             { type: "clickTestId", testId: "payroll-wizard-next-to-dates" },
             { type: "assertText", text: "Set the pay period" },
             { type: "clickTestId", testId: "payroll-wizard-initialize" },
@@ -565,7 +520,10 @@ const payrollActions: AuditAction[] = [
         route: "/payroll",
         device: "desktop",
         seed: "full",
-        steps: [{ type: "clickByRole", role: "link", name: "Open April 2026" }],
+        steps: [
+            { type: "clickSelector", selector: `a[href='/payroll/${AUDIT_IDS.draftPeriodId}']` },
+            { type: "waitForUrl", pattern: `/payroll/${AUDIT_IDS.draftPeriodId}` },
+        ],
     },
     {
         id: "payroll-documents-view-desktop",
@@ -595,7 +553,6 @@ const payrollActions: AuditAction[] = [
 
 const complianceActions: AuditAction[] = [
     ...createVisitActions("compliance-storage-billing", "mobile", "full", "compliance", [
-        ["audit", "/audit", "Open audit log page on phone"],
         ["ufiling", "/ufiling", "Open uFiling page on phone"],
         ["roe", "/compliance/coida/roe", "Open COIDA ROE page on phone"],
         ["help-compliance", "/help/compliance", "Open compliance help on phone"],
@@ -612,7 +569,6 @@ const complianceActions: AuditAction[] = [
         ["pricing", "/pricing", "Re-open pricing page on phone for billing comparison"],
     ]),
     ...createVisitActions("compliance-storage-billing", "desktop", "full", "compliance", [
-        ["audit", "/audit", "Open audit log page on desktop"],
         ["ufiling", "/ufiling", "Open uFiling page on desktop"],
         ["roe", "/compliance/coida/roe", "Open COIDA ROE page on desktop"],
         ["help-compliance", "/help/compliance", "Open compliance help on desktop"],

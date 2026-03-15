@@ -191,26 +191,26 @@ export function UFilingClient() {
             {/* View & Selection */}
             <Card className="glass-panel border-none shadow-sm">
                 <CardContent className="p-5 flex flex-col gap-6">
-                    <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
+                    <div className="flex flex-col gap-4 border-b border-[var(--border)] pb-4 lg:flex-row lg:items-center lg:justify-between">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-xl bg-[var(--surface-2)] flex items-center justify-center">
                                 <History className="h-5 w-5 text-[var(--primary-hover)]" />
                             </div>
                             <div>
                                 <Label className="font-bold text-sm text-[var(--text)]">Export Mode</Label>
-                                <p className="text-[10px] text-[var(--text-muted)] uppercase font-black">Choose declaration scope</p>
+                                <p className="text-xs text-[var(--text-muted)] uppercase font-black">Choose declaration scope</p>
                             </div>
                         </div>
-                        <div className="flex bg-[var(--surface-2)] p-1 rounded-xl border border-[var(--border)]">
+                        <div className="flex w-full bg-[var(--surface-2)] p-1 rounded-xl border border-[var(--border)] sm:w-auto">
                             <button
                                 onClick={() => setView("monthly")}
-                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === "monthly" ? 'bg-[var(--surface-1)] text-[var(--primary-hover)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}
+                                className={`flex-1 rounded-lg px-4 py-2 text-xs font-bold transition-all sm:flex-none ${view === "monthly" ? 'bg-[var(--surface-1)] text-[var(--primary-hover)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}
                             >
                                 Monthly
                             </button>
                             <button
                                 onClick={() => setView("annual")}
-                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === "annual" ? 'bg-[var(--surface-1)] text-[var(--primary-hover)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}
+                                className={`flex-1 rounded-lg px-4 py-2 text-xs font-bold transition-all sm:flex-none ${view === "annual" ? 'bg-[var(--surface-1)] text-[var(--primary-hover)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}
                             >
                                 Annual (Tax Year)
                             </button>
@@ -226,20 +226,20 @@ export function UFilingClient() {
                                 <Label className="font-bold text-sm text-[var(--text)]">
                                     {view === "monthly" ? "Select Locked Period" : "Select Tax Year End"}
                                 </Label>
-                                <p className="text-[10px] text-[var(--text-muted)] uppercase font-black">
+                                <p className="text-xs text-[var(--text-muted)] uppercase font-black">
                                     {view === "monthly" ? "Only locked months are declarative" : "Aggregates March to February"}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex w-full items-center gap-3 md:w-auto">
                             {(() => {
                                 if (view !== "monthly") {
                                     return (
                                         <select
                                             value={selectedTaxYear}
                                             onChange={e => setSelectedTaxYear(Number(e.target.value))}
-                                            className="min-w-[200px] h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
+                                            className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 text-sm font-bold text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--focus)]/20 sm:min-w-[220px]"
                                         >
                                             {[2024, 2025, 2026, 2027].map(y => (
                                                 <option key={y} value={y}>{y - 1}/{y} Tax Year</option>
@@ -253,7 +253,7 @@ export function UFilingClient() {
                                         <select
                                             value={selectedPeriodId}
                                             onChange={e => setSelectedPeriodId(e.target.value)}
-                                            className="min-w-[200px] h-11 px-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-sm font-bold text-[var(--text)] focus:ring-2 focus:ring-[var(--focus)]/20 outline-none"
+                                            className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-4 text-sm font-bold text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--focus)]/20 sm:min-w-[220px]"
                                         >
                                             {payPeriods.map(p => (
                                                 <option key={p.id} value={p.id}>{p.name}</option>
@@ -265,7 +265,7 @@ export function UFilingClient() {
                                 return (
                                     <div className="text-right">
                                         <p className="text-xs font-bold text-[var(--danger)]">No locked periods yet</p>
-                                        <Link href="/payroll" className="text-[10px] text-[var(--primary-hover)] underline">Go to Payroll</Link>
+                                        <Link href="/payroll" className="text-xs text-[var(--primary-hover)] underline">Go to Payroll</Link>
                                     </div>
                                 );
                             })()}

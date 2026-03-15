@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuthState } from "@/components/auth/auth-state-provider";
 import { Logo } from "@/components/ui/logo";
 
 const NAV_LINKS = [
@@ -19,6 +20,7 @@ export function MarketingHeader() {
     const [menuOpen, setMenuOpen] = React.useState(false);
     const pathname = usePathname();
     const router = useRouter();
+    const { user } = useAuthState();
 
     const openLogin = React.useCallback(() => {
         setMenuOpen(false);
@@ -43,7 +45,7 @@ export function MarketingHeader() {
     return (
         <header className="sticky top-0 z-30 bg-[var(--bg)] shadow-[var(--shadow-sm)]" style={{ borderBottom: "1px solid var(--border)" }}>
             <div className="content-container-wide flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-                <Link href="/" className="rounded-lg py-1">
+                <Link href="/" className="inline-flex min-h-[44px] items-center rounded-lg py-1">
                     <Logo />
                 </Link>
 
@@ -60,14 +62,30 @@ export function MarketingHeader() {
                 </nav>
 
                 <div className="hidden lg:flex items-center gap-3">
-                    <button type="button" onClick={openLogin} className="text-sm font-bold text-[var(--text)] hover:text-[var(--primary)] px-3 transition-colors">
-                        Login (Paid users)
-                    </button>
-                    <Link href="/dashboard">
-                        <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-sm)] active:scale-[0.98]">
-                            Start free <ArrowRight className="h-4 w-4" />
-                        </Button>
-                    </Link>
+                    {user ? (
+                        <>
+                            <div className="max-w-[16rem] rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-2 text-right shadow-[var(--shadow-sm)]">
+                                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Signed in</p>
+                                <p className="mt-1 truncate text-sm font-semibold text-[var(--text)]">{user.email ?? "Paid account connected"}</p>
+                            </div>
+                            <Link href="/dashboard" className="inline-flex min-h-[44px] items-stretch">
+                                <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-sm)] active:scale-[0.98]">
+                                    Open dashboard <ArrowRight className="h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </>
+                    ) : (
+                        <>
+                            <button type="button" onClick={openLogin} className="text-sm font-bold text-[var(--text)] hover:text-[var(--primary)] px-3 transition-colors">
+                                Login (Paid users)
+                            </button>
+                            <Link href="/dashboard" className="inline-flex min-h-[44px] items-stretch">
+                                <Button className="h-11 rounded-xl px-6 font-bold shadow-[var(--shadow-sm)] active:scale-[0.98]">
+                                    Start free <ArrowRight className="h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 <button
@@ -90,7 +108,7 @@ export function MarketingHeader() {
                     />
                     <div className="absolute inset-x-0 top-0 border-b border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-lg)] animate-in slide-in-from-top duration-300">
                         <div className="flex items-center justify-between px-4 py-4 sm:px-6">
-                            <Link href="/" onClick={() => setMenuOpen(false)} className="rounded-lg py-1">
+                            <Link href="/" onClick={() => setMenuOpen(false)} className="inline-flex min-h-[44px] items-center rounded-lg py-1">
                                 <Logo />
                             </Link>
                             <button
@@ -115,14 +133,30 @@ export function MarketingHeader() {
                                 </Link>
                             ))}
                             <div className="grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-6 mt-2">
-                                <Button variant="ghost" className="w-full justify-center font-bold text-[var(--text)]" onClick={openLogin}>
-                                    Login (Paid users)
-                                </Button>
-                                <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
-                                    <Button className="w-full justify-center font-bold h-12">
-                                        Start free <ArrowRight className="h-4 w-4" />
-                                    </Button>
-                                </Link>
+                                {user ? (
+                                    <>
+                                        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 text-left">
+                                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Signed in</p>
+                                            <p className="mt-1 truncate text-sm font-semibold text-[var(--text)]">{user.email ?? "Paid account connected"}</p>
+                                        </div>
+                                        <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="inline-flex min-h-[44px] items-stretch">
+                                            <Button className="w-full justify-center font-bold h-12">
+                                                Open dashboard <ArrowRight className="h-4 w-4" />
+                                            </Button>
+                                        </Link>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button variant="ghost" className="w-full justify-center font-bold text-[var(--text)]" onClick={openLogin}>
+                                            Login (Paid users)
+                                        </Button>
+                                        <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="inline-flex min-h-[44px] items-stretch">
+                                            <Button className="w-full justify-center font-bold h-12">
+                                                Start free <ArrowRight className="h-4 w-4" />
+                                            </Button>
+                                        </Link>
+                                    </>
+                                )}
                             </div>
                         </nav>
                     </div>

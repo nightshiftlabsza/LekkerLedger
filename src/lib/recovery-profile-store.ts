@@ -1,10 +1,13 @@
 import localforage from "localforage";
 import { type EncryptedPayload } from "./crypto";
+import { type EncryptionMode } from "./encryption-mode";
 
-interface RecoveryProfileRecord {
+export interface RecoveryProfileRecord {
+    encryptionMode?: EncryptionMode;
     keySetupComplete: boolean;
     validationPayload: EncryptedPayload | null;
-    recoveryKey?: string; // Optional: stored locally for auto-unlock
+    recoveryKey?: string; // Legacy Maximum Privacy cache for auto-unlock
+    cachedMasterKey?: string; // Recoverable mode cache for same-device auto-unlock
     updatedAt: string;
 }
 

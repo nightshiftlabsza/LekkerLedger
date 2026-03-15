@@ -104,8 +104,8 @@ export function DashboardOverview({
                 </div>
             ) : null}
 
-            <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px] xl:gap-6 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px] 2xl:gap-7">
-                <div className="space-y-5">
+            <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,var(--app-shell-rail-width))] xl:gap-6 2xl:gap-7">
+                <div className="min-w-0 space-y-5">
                     <HeroCard
                         eyebrow={hero.eyebrow}
                         title={hero.title}
@@ -155,7 +155,7 @@ export function DashboardOverview({
                     <RecentRecordsCard recentDocs={recentDocs} hasEmployees={employeeCount > 0} />
                 </div>
 
-                <aside className="hidden space-y-5 self-start lg:sticky lg:top-6 lg:block">
+                <aside className="hidden min-w-0 space-y-5 self-start lg:sticky lg:top-6 lg:block">
                     <SnapshotCard
                         employeeCount={employeeCount}
                         documentCount={recentDocs.length}

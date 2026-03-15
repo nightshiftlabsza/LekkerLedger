@@ -16,10 +16,17 @@ export function RecoveryKeySetup({
 }: RecoveryKeySetupProps) {
     const [key, setKey] = React.useState<string | null>(null);
     const [confirmed, setConfirmed] = React.useState(false);
+    const [localError, setLocalError] = React.useState<string | null>(null);
 
     const handleGenerate = React.useCallback(() => {
-        const newKey = generateRecoveryKey();
-        setKey(newKey);
+        try {
+            const newKey = generateRecoveryKey();
+            setKey(newKey);
+            setLocalError(null);
+        } catch (error) {
+            console.error("Recovery key generation failed.", error);
+            setLocalError("We cannot create the secure recovery key on this device right now.");
+        }
     }, []);
 
     const handleComplete = React.useCallback(() => {
@@ -29,24 +36,29 @@ export function RecoveryKeySetup({
     }, [key, confirmed, onComplete]);
 
     return (
-        <div className="space-y-6">
+        <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-raised)] p-6 shadow-[var(--shadow-lg)] sm:p-8">
             <div className="space-y-2">
-                <h2 className="text-xl font-bold">Secure your account</h2>
-                <p className="text-sm text-[var(--text-muted)]">
-                    This recovery key is the only way to access your encrypted data if you lose your password or change devices. Store it somewhere safe.
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                    Maximum Privacy
+                </p>
+                <h2 className="font-serif text-2xl font-bold tracking-tight text-[var(--text)]">
+                    Save your recovery key.
+                </h2>
+                <p className="text-sm leading-7 text-[var(--text-muted)]">
+                    This key unlocks your encrypted records on later devices. LekkerLedger cannot replace it for you.
                 </p>
             </div>
 
             {!key ? (
                 <button
                     onClick={handleGenerate}
-                    className="w-full rounded-lg bg-[var(--primary)] px-4 py-3 font-bold text-white transition-opacity hover:opacity-90"
+                    className="mt-6 w-full rounded-2xl bg-[var(--primary)] px-4 py-3 font-bold text-white transition-opacity hover:opacity-90"
                 >
                     Generate Recovery Key
                 </button>
             ) : (
-                <div className="space-y-4">
-                    <div className="rounded-lg border-2 border-dashed border-[var(--primary)] bg-[var(--surface-2)] p-6 text-center">
+                <div className="mt-6 space-y-4">
+                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-5 text-center">
                         <p className="type-mono text-lg font-black tracking-widest break-all">
                             {key}
                         </p>
@@ -68,16 +80,16 @@ export function RecoveryKeySetup({
                     <button
                         onClick={handleComplete}
                         disabled={!confirmed || isSubmitting}
-                        className="w-full rounded-lg bg-[var(--primary)] px-4 py-3 font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                        className="w-full rounded-2xl bg-[var(--primary)] px-4 py-3 font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                     >
-                        {isSubmitting ? "Saving..." : "Continue to Dashboard"}
+                        {isSubmitting ? "Saving..." : "Continue securely"}
                     </button>
                 </div>
             )}
 
-            {errorMessage && (
-                <p className="text-sm font-medium text-[var(--danger)]">{errorMessage}</p>
-            )}
+            {localError || errorMessage ? (
+                <p className="mt-4 text-sm font-medium text-[var(--danger)]">{localError ?? errorMessage}</p>
+            ) : null}
         </div>
     );
 }

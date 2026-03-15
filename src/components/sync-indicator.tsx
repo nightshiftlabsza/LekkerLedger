@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Cloud, CloudOff, RefreshCw } from "lucide-react";
 import { useAppMode } from "@/lib/app-mode";
-import { useRealtimeSync } from "../hooks/use-realtime-sync";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { syncService } from "@/lib/sync-service";
 
 export function SyncIndicator() {

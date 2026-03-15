@@ -37,7 +37,7 @@ export default function TrustCenterPage() {
                 </div>
             </header>
 
-            <main id="main-content" className="content-container-wide px-6 lg:px-8 py-20 space-y-24">
+            <main id="main-content" className="content-container-ultrawide px-4 py-16 sm:px-6 lg:px-8 lg:py-20 space-y-20 lg:space-y-24">
                 {/* 1. Privacy & Architecture */}
                 <section className="scroll-mt-32" id="privacy">
                     <div className="flex items-center gap-3 mb-8">
@@ -50,7 +50,7 @@ export default function TrustCenterPage() {
                                 We take a local-first approach to payroll records. Employee names, wages, and ID details stay on your device by default instead of being uploaded into a central LekkerLedger payroll database.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                This architecture reduces how much employee payroll data LekkerLedger needs to handle directly. On paid plans, your backup is stored in an encrypted format that only you can access via your secure recovery key.
+                                This architecture reduces how much employee payroll data LekkerLedger needs to handle directly. On paid plans, your backup is stored in encrypted form and you choose between Recoverable Encryption and Maximum Privacy during secure setup.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 Free does not require an account. A sign-in is only needed if you choose paid encrypted sync to back up and restore across devices.
@@ -63,12 +63,12 @@ export default function TrustCenterPage() {
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                                 <HardDrive className="mb-3 h-5 w-5 text-[var(--text-muted)]" />
                                 <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Local Storage</h4>
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Your payroll records are stored in your browser&apos;s IndexedDB by default and are not uploaded to a LekkerLedger central employee database.</p>
+                                <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>Your payroll records are stored in your browser&apos;s IndexedDB by default and are not uploaded to a LekkerLedger central employee database.</p>
                             </div>
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                                 <FolderSync className="mb-3 h-5 w-5 text-[var(--success)]" />
                                 <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Encrypted Sync</h4>
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Paid plans include encrypted sync to back up and restore records across browsers and devices.</p>
+                                <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>Paid plans include encrypted sync to back up and restore records across browsers and devices.</p>
                             </div>
                         </div>
                     </div>
@@ -86,28 +86,28 @@ export default function TrustCenterPage() {
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <HardDrive className="mb-3 h-5 w-5 text-[var(--text-muted)]" />
                             <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Local by default</h4>
-                            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 Payroll records stay in your browser storage by default. They are not uploaded to a LekkerLedger employee database unless you choose encrypted sync on a paid plan.
                             </p>
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <KeyRound className="h-5 w-5 text-[var(--primary)] mb-3" />
                             <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Limited data access</h4>
-                            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Authentication uses email and password via Supabase. Encrypted sync is available on paid plans and stores your data in an encrypted format that only you can decrypt.
+                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                Authentication uses email and password via Supabase. Encrypted sync is available on paid plans and keeps payroll records encrypted before upload, with recovery rules based on the mode you choose.
                             </p>
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <WalletCards className="h-5 w-5 text-[var(--focus)] mb-3" />
                             <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Payments handled by Paystack</h4>
-                            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 Card checkout is handled by Paystack. LekkerLedger does not collect or store your card number in this app.
                             </p>
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <Bug className="mb-3 h-5 w-5 text-[var(--danger)]" />
                             <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Report problems quickly</h4>
-                            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 If you spot a privacy or security issue, email <a href="mailto:support@lekkerledger.co.za" className="font-semibold text-[var(--primary)] hover:underline">support@lekkerledger.co.za</a> with what happened, what device/browser you used, and how to reproduce it.
                             </p>
                         </div>
@@ -129,7 +129,7 @@ export default function TrustCenterPage() {
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <h4 className="font-bold text-sm uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>Minimum Wage</h4>
                             <div className="text-3xl font-black mb-1" style={{ color: "var(--text)" }}>R{nmwRecord.rate.toFixed(2)}</div>
-                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Per hour. Effective from {effectiveDateLabel}.</p>
+                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>Per hour. Effective from {effectiveDateLabel}.</p>
                             <a href={nmwRecord.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-bold text-[var(--primary)] hover:underline">
                                 Source: National Minimum Wage notice
                             </a>
@@ -137,7 +137,7 @@ export default function TrustCenterPage() {
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <h4 className="font-bold text-sm uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>UIF Deduction</h4>
                             <div className="text-3xl font-black mb-1" style={{ color: "var(--text)" }}>1% + 1%</div>
-                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>1% deducted from employee, 1% contributed by employer.</p>
+                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>1% deducted from employee, 1% contributed by employer.</p>
                             <a href={COMPLIANCE.UIF.SOURCE_URL} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-bold text-[var(--primary)] hover:underline">
                                 Source: UIF guidance
                             </a>
@@ -145,7 +145,7 @@ export default function TrustCenterPage() {
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
                             <h4 className="font-bold text-sm uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>Compensation for Occupational Injuries and Diseases Act (COIDA)</h4>
                             <div className="text-xl font-bold mb-1" style={{ color: "var(--text)" }}>Many domestic employers need to register</div>
-                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Many domestic employers need to register with the Compensation Fund for injury-on-duty cover. This is general information only, so check the official guidance for your own situation before relying on it.</p>
+                            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>Many domestic employers need to register with the Compensation Fund for injury-on-duty cover. This is general information only, so check the official guidance for your own situation before relying on it.</p>
                             <p className="mt-2 text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>Not legal advice.</p>
                             <a href="https://www.labour.gov.za/compensation-fund-obligations-of-the-employer" target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-bold text-[var(--primary)] hover:underline">Source: Compensation Fund guidance</a>
                         </div>

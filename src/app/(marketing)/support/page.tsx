@@ -8,14 +8,14 @@ import { Button } from "@/components/ui/button";
 export default function SupportPage() {
     return (
         <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-            <div className="max-w-4xl mx-auto px-6 py-12 sm:py-20 space-y-12">
+            <div className="content-container-wide px-4 py-12 sm:px-6 sm:py-20 lg:px-8 space-y-12">
                 <Link href="/">
                     <Button variant="ghost" className="gap-2 mb-8 -ml-4">
                         <ChevronLeft className="h-4 w-4" /> Back to Home
                     </Button>
                 </Link>
 
-                <header className="space-y-4">
+                <header className="max-w-3xl space-y-4">
                     <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--warning)]/20 bg-[var(--warning-soft)] text-[var(--warning)]">
                         <LifeBuoy className="h-6 w-6" />
                     </div>
@@ -85,7 +85,8 @@ export default function SupportPage() {
                     </Link>
                 </div>
 
-                <div className="policy-copy mt-16 max-w-none space-y-10 border-t border-[var(--border)] pt-12 leading-relaxed font-medium">
+                <div className="mt-16 border-t border-[var(--border)] pt-12">
+                    <div className="policy-copy max-w-4xl space-y-10 leading-relaxed font-medium">
                     <section className="space-y-6">
                         <h2 className="text-2xl font-black text-[var(--text)]">Troubleshooting FAQs</h2>
 
@@ -140,6 +141,7 @@ export default function SupportPage() {
                             </div>
                         </div>
                     </section>
+                    </div>
                 </div>
 
             </div>

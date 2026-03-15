@@ -4,7 +4,7 @@ import * as React from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   DataTable — responsive: <table> on ≥960px, stacked ListCard on mobile
+   DataTable — responsive: stacked cards until large screens, table on desktop
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export interface Column<T> {
@@ -71,8 +71,8 @@ export function DataTable<T>({
 
     return (
         <>
-            {/* Desktop table (≥840px) */}
-            <div className={`hidden min-840:block overflow-x-auto ${className}`}>
+            {/* Desktop table (≥1024px) */}
+            <div className={`hidden overflow-x-auto lg:block ${className}`}>
                 <table className="w-full text-sm border-collapse">
                     <thead>
                         <tr className="border-b border-[var(--border)]">
@@ -80,7 +80,7 @@ export function DataTable<T>({
                                 <th
                                     key={col.key}
                                     scope="col"
-                                    className={`px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ${getAlignmentClass(col.align)} ${col.className ?? ""}`}
+                                    className={`px-4 py-3 text-xs font-black uppercase tracking-widest text-[var(--text-muted)] ${getAlignmentClass(col.align)} ${col.className ?? ""}`}
                                 >
                                     {col.sortable ? (
                                         <button
@@ -123,12 +123,12 @@ export function DataTable<T>({
                 </table>
             </div>
 
-            {/* Mobile cards (<840px) */}
-            <div className={`min-840:hidden space-y-2 ${className}`}>
+            {/* Mobile and tablet cards (<1024px) */}
+            <div className={`space-y-2 lg:hidden ${className}`}>
                 {sorted.map((item, i) => {
                     const mobileContent = columns.map(col => (
                         <div key={col.key} className="flex items-start justify-between gap-4 py-1 border-b border-[var(--border)]/30 last:border-0">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] pt-1 shrink-0">{col.label}</span>
+                            <span className="pt-1 shrink-0 text-xs font-black uppercase tracking-widest text-[var(--text-muted)]">{col.label}</span>
                             <div className="text-sm font-semibold text-[var(--text)] text-right flex flex-col items-end max-w-[65%]">
                                 {col.render(item)}
                             </div>

@@ -352,7 +352,7 @@ export default function PayPeriodWorkspacePage() {
 
     if (loading) {
         return (
-            <div className="w-full max-w-5xl mx-auto space-y-6 pb-20">
+            <div className="mx-auto w-full max-w-5xl space-y-6 pb-40 md:pb-24">
                 <PageHeader title="Loading..." />
                 <CardSkeleton />
                 <CardSkeleton />
@@ -362,7 +362,7 @@ export default function PayPeriodWorkspacePage() {
 
     if (!period) {
         return (
-            <div className="w-full max-w-5xl mx-auto">
+            <div className="mx-auto w-full max-w-5xl pb-40 md:pb-24">
                 <EmptyState
                     title="Pay period not found"
                     description="This pay period may have been deleted."
@@ -398,14 +398,14 @@ export default function PayPeriodWorkspacePage() {
     ];
 
     return (
-        <div className="w-full max-w-5xl mx-auto space-y-6 pb-20">
+        <div className="mx-auto w-full max-w-5xl space-y-5 pb-40 md:space-y-6 md:pb-24">
             <PageHeader
                 title={period.name}
                 subtitle={`${format(new Date(period.startDate), "d MMM")} — ${format(new Date(period.endDate), "d MMM yyyy")}`}
                 actions={
-                    <div className="flex items-center gap-2">
+                    <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end">
                         <Link href="/payroll">
-                            <Button variant="ghost" size="sm" className="gap-1.5 text-xs font-bold">
+                            <Button variant="ghost" size="sm" className="min-h-[44px] gap-1.5 text-sm font-bold">
                                 <ArrowLeft className="h-3.5 w-3.5" /> Back
                             </Button>
                         </Link>
@@ -580,20 +580,20 @@ export default function PayPeriodWorkspacePage() {
                                 <Card key={entry.employeeId} className="border border-[var(--border)] bg-[var(--surface-1)] shadow-sm">
                                     <CardContent className="p-4 sm:p-6 space-y-4">
                                         {/* Employee header */}
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex min-w-0 items-center gap-3">
                                             <div className="h-10 w-10 rounded-xl bg-[var(--primary)] flex items-center justify-center text-white font-black text-lg shrink-0">
                                                 {emp.name.charAt(0).toUpperCase()}
                                             </div>
-                                            <div>
-                                                <p className="type-body-bold text-[var(--text)]">{emp.name}</p>
+                                            <div className="min-w-0">
+                                                <p className="type-body-bold truncate text-[var(--text)]">{emp.name}</p>
                                                 <p className="type-overline text-[var(--text-muted)]">R{emp.hourlyRate.toFixed(2)}/hr</p>
                                             </div>
                                         </div>
 
                                         {/* Input fields */}
                                                 {!isLocked && (
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div>
+                                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                        <div className="min-w-0">
                                                     <label htmlFor={`ordinary-hours-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Ordinary hours</label>
                                                     <input
                                                         id={`ordinary-hours-${entry.employeeId}`}
@@ -601,11 +601,11 @@ export default function PayPeriodWorkspacePage() {
                                                         min={0}
                                                         value={entry.ordinaryHours}
                                                         onChange={e => updateEntry(entry.employeeId, "ordinaryHours", Number.parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
+                                                        className="min-h-[44px] w-full rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2.5 text-[var(--text)] text-sm font-mono"
                                                         placeholder="0"
                                                     />
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <label htmlFor={`overtime-hours-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Overtime hours</label>
                                                     <input
                                                         id={`overtime-hours-${entry.employeeId}`}
@@ -613,11 +613,11 @@ export default function PayPeriodWorkspacePage() {
                                                         min={0}
                                                         value={entry.overtimeHours}
                                                         onChange={e => updateEntry(entry.employeeId, "overtimeHours", Number.parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
+                                                        className="min-h-[44px] w-full rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2.5 text-[var(--text)] text-sm font-mono"
                                                         placeholder="0"
                                                     />
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <label htmlFor={`sunday-hours-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Sunday hours</label>
                                                     <input
                                                         id={`sunday-hours-${entry.employeeId}`}
@@ -625,10 +625,10 @@ export default function PayPeriodWorkspacePage() {
                                                         min={0}
                                                         value={entry.sundayHours}
                                                         onChange={e => updateEntry(entry.employeeId, "sundayHours", Number.parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
+                                                        className="min-h-[44px] w-full rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2.5 text-[var(--text)] text-sm font-mono"
                                                     />
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <label htmlFor={`public-holiday-hours-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Public holiday hours</label>
                                                     <input
                                                         id={`public-holiday-hours-${entry.employeeId}`}
@@ -636,10 +636,10 @@ export default function PayPeriodWorkspacePage() {
                                                         min={0}
                                                         value={entry.publicHolidayHours}
                                                         onChange={e => updateEntry(entry.employeeId, "publicHolidayHours", Number.parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
+                                                        className="min-h-[44px] w-full rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2.5 text-[var(--text)] text-sm font-mono"
                                                     />
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <label htmlFor={`shortfall-hours-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Shortfall hours</label>
                                                     <input
                                                         id={`shortfall-hours-${entry.employeeId}`}
@@ -647,10 +647,10 @@ export default function PayPeriodWorkspacePage() {
                                                         min={0}
                                                         value={entry.shortFallHours || 0}
                                                         onChange={e => updateEntry(entry.employeeId, "shortFallHours", Number.parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
+                                                        className="min-h-[44px] w-full rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2.5 text-[var(--text)] text-sm font-mono"
                                                     />
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <label htmlFor={`other-deductions-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Other deductions</label>
                                                     <input
                                                         id={`other-deductions-${entry.employeeId}`}
@@ -658,7 +658,7 @@ export default function PayPeriodWorkspacePage() {
                                                         min={0}
                                                         value={entry.otherDeductions}
                                                         onChange={e => updateEntry(entry.employeeId, "otherDeductions", Number.parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] text-sm font-mono"
+                                                        className="min-h-[44px] w-full rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2.5 text-[var(--text)] text-sm font-mono"
                                                     />
                                                 </div>
                                             </div>
@@ -666,28 +666,28 @@ export default function PayPeriodWorkspacePage() {
 
                                         {/* Locked view - just show totals */}
                                         {isLocked && (
-                                            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
-                                                <div>
+                                            <div className="grid grid-cols-2 gap-2 text-center sm:grid-cols-3 lg:grid-cols-6">
+                                                <div className="min-w-0">
                                                     <p className="type-overline text-[var(--text-muted)]">Ordinary</p>
                                                     <p className="font-mono text-sm text-[var(--text)]">{entry.ordinaryHours}h</p>
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <p className="type-overline text-[var(--text-muted)]">Overtime</p>
                                                     <p className="font-mono text-sm text-[var(--text)]">{entry.overtimeHours}h</p>
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <p className="type-overline text-[var(--text-muted)]">Sunday</p>
                                                     <p className="font-mono text-sm text-[var(--text)]">{entry.sundayHours}h</p>
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <p className="type-overline text-[var(--text-muted)]">Shortfall</p>
                                                     <p className="font-mono text-sm text-[var(--text)]">{entry.shortFallHours}h</p>
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <p className="type-overline text-[var(--text-muted)]">Other deductions</p>
                                                     <p className="font-mono text-sm text-[var(--text)]">R{entry.otherDeductions}</p>
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <p className="type-overline text-[var(--text-muted)]">Leave</p>
                                                     <p className="font-mono text-sm text-[var(--text)]">{entry.leaveDays}d</p>
                                                 </div>

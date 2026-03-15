@@ -27,12 +27,20 @@ import { getArchiveCutoffDate, getArchiveUpgradeHref } from "@/lib/archive";
 import { applyVerifiedEntitlementsToSettings, canUseAdvancedLeaveFeatures, canUseFullHistoryExport, getUserPlan } from "@/lib/entitlements";
 import { useAppMode } from "@/lib/app-mode";
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
+import { createClient } from "@/lib/supabase/client";
+import { buildRecoverableSetupArtifacts, sendRecoverableSetupRequest } from "@/lib/recoverable-account";
+import { generateAccountMasterKey } from "@/lib/crypto";
+import { saveLocalRecoveryProfile } from "@/lib/recovery-profile-store";
+import { syncEngine } from "@/lib/sync-engine";
+import { syncService } from "@/lib/sync-service";
+import { getActiveSyncSummary, getEncryptionModeLabel, getLockedDeviceSummary, getSettingsSummary } from "@/lib/encryption-mode";
+import { storeRecoveryNotice } from "@/lib/recovery-notice";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 
 function SettingsContent() {
     const searchParams = useSearchParams();
-    const { mode } = useAppMode();
+    const { mode, encryptionMode, setEncryptionMode } = useAppMode();
     const { network, sync, syncErrorMessage } = useAppConnectivity();
     const [activeTab, setActiveTab] = React.useState<SettingsTab>("general");
     const [appearanceOpen, setAppearanceOpen] = React.useState(false);
@@ -54,9 +62,13 @@ function SettingsContent() {
     const [leaveTypePaid, setLeaveTypePaid] = React.useState(true);
     const [leaveTypeNote, setLeaveTypeNote] = React.useState("");
     const [leaveTypeError, setLeaveTypeError] = React.useState("");
+    const [migrationPassword, setMigrationPassword] = React.useState("");
+    const [migrationError, setMigrationError] = React.useState<string | null>(null);
+    const [isMigratingEncryption, setIsMigratingEncryption] = React.useState(false);
     const savedTimerRef = React.useRef<number | null>(null);
     const { toast } = useToast();
     const { theme, setTheme, setDensity } = useUI();
+    const supabase = React.useMemo(() => createClient(), []);
 
     const THEME_OPTIONS = [
         { value: "system" as const, label: "Auto", icon: Monitor },
@@ -177,6 +189,59 @@ function SettingsContent() {
             setCancelingRenewal(false);
         }
     }, [cancelingRenewal, toast]);
+
+    const handleMigrateToRecoverable = React.useCallback(async () => {
+        if (isMigratingEncryption) return;
+
+        const password = migrationPassword.trim();
+        if (!password) {
+            setMigrationError("Enter your current password before switching this account.");
+            return;
+        }
+
+        setMigrationError(null);
+        setIsMigratingEncryption(true);
+
+        try {
+            const { data: { user }, error } = await supabase.auth.getUser();
+            if (error || !user) {
+                throw new Error("Please sign in again before changing the encryption mode.");
+            }
+
+            const masterKey = await generateAccountMasterKey();
+            const artifacts = await buildRecoverableSetupArtifacts(masterKey, password);
+
+            syncEngine.setCryptoKey(masterKey);
+            syncService.init(user.id, masterKey);
+            await syncEngine.runMigration();
+
+            await sendRecoverableSetupRequest({
+                rawMasterKey: artifacts.rawMasterKey,
+                validationPayload: artifacts.validationPayload,
+                wrappedMasterKeyUser: artifacts.wrappedMasterKeyUser,
+                source: "migration",
+            });
+
+            await saveLocalRecoveryProfile(user.id, {
+                encryptionMode: "recoverable",
+                keySetupComplete: true,
+                validationPayload: artifacts.validationPayload,
+                cachedMasterKey: artifacts.cachedMasterKey,
+                updatedAt: new Date().toISOString(),
+            });
+
+            setEncryptionMode("recoverable");
+            setMigrationPassword("");
+            storeRecoveryNotice("recoverable");
+            toast("This account now uses Recoverable Encryption.", "success");
+        } catch (migrationError) {
+            console.error("Migration to Recoverable Encryption failed.", migrationError);
+            setMigrationError(migrationError instanceof Error ? migrationError.message : "The encryption mode could not be changed just now.");
+            toast("The encryption mode could not be changed just now.", "error");
+        } finally {
+            setIsMigratingEncryption(false);
+        }
+    }, [isMigratingEncryption, migrationPassword, setEncryptionMode, supabase, toast]);
 
     const startEditingLeaveType = React.useCallback((leaveType: CustomLeaveType) => {
         setEditingLeaveTypeId(leaveType.id);
@@ -580,9 +645,11 @@ function SettingsContent() {
                                             <>
                                                 <div className="flex items-center gap-2">
                                                     <div className="h-2 w-2 rounded-full bg-[var(--primary)] animate-pulse" />
-                                                    <p className="font-bold text-[var(--text)]">Cloud Sync Active</p>
+                                                    <p className="font-bold text-[var(--text)]">{encryptionMode ? getEncryptionModeLabel(encryptionMode) : "Cloud Sync Active"}</p>
                                                 </div>
-                                                <p>Your data is encrypted with your recovery key before it leaves this device. After the first backup completes, later changes sync automatically and can be restored on your other devices after login and recovery-key unlock.</p>
+                                                <p>
+                                                    {getActiveSyncSummary(encryptionMode)}
+                                                </p>
                                             </>
                                         );
                                     }
@@ -590,11 +657,13 @@ function SettingsContent() {
                                     if (mode === "account_locked") {
                                         return (
                                             <>
-                                                <div className="flex items-center gap-2 text-[var(--warning)]">
-                                                    <ShieldCheck className="h-4 w-4" />
-                                                    <p className="font-bold text-[var(--text)]">Sync Paused (Key Required)</p>
-                                                </div>
-                                                <p>You are logged in, but this device stays locked until you enter your recovery key. The secure unlock screen appears before you can open protected pages.</p>
+                                                    <div className="flex items-center gap-2 text-[var(--warning)]">
+                                                        <ShieldCheck className="h-4 w-4" />
+                                                        <p className="font-bold text-[var(--text)]">Sync Paused</p>
+                                                    </div>
+                                                <p>
+                                                    {getLockedDeviceSummary(encryptionMode)}
+                                                </p>
                                             </>
                                         );
                                     }
@@ -602,7 +671,7 @@ function SettingsContent() {
                                     return (
                                         <>
                                             <p className="font-bold text-[var(--text)]">Secure Cloud Sync</p>
-                                            <p>Paid plans unlock encrypted cloud backup and restore. You pay first, then create your account, then protect sync with your recovery key.</p>
+                                            <p>Paid plans unlock encrypted cloud backup and restore. New accounts can choose Recoverable Encryption or Maximum Privacy during secure setup.</p>
                                             {userPlan.id === "free" && (
                                                 <Link href="/pricing" className="inline-flex items-center font-bold text-[var(--primary)] hover:underline">
                                                     Upgrade to enable sync <ArrowRight className="ml-1 h-3 w-3" />
@@ -618,12 +687,62 @@ function SettingsContent() {
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Storage Rules</h2>
                             <Card className="glass-panel border-none p-5 space-y-4 text-sm text-[var(--text-muted)] leading-relaxed">
                                 <p><strong>1. Local first:</strong> All payroll records are stored on this device first. Paid accounts can also keep an encrypted cloud copy.</p>
-                                <p><strong>2. Encrypted sync:</strong> Your data is encrypted locally using your Recovery Key before it ever leaves your device. Only you can decrypt it.</p>
+                                <p>
+                                    <strong>2. Current mode:</strong> {encryptionMode ? `${getEncryptionModeLabel(encryptionMode)} - ${getSettingsSummary(encryptionMode)}.` : "Choose a sync mode during secure setup if you enable cloud backup."}
+                                </p>
                                 <p><strong>3. PDF generation:</strong> Payslips and contracts do not leave your device unless you explicitly share or export them.</p>
                                 <p><strong>4. Do not clear browser storage without a backup:</strong> If you clear browser data or lose this device before exporting or finishing cloud backup, your records on this device cannot be recovered.</p>
                                 
                             </Card>
                         </section>
+
+                        {mode === "account_unlocked" && encryptionMode === "maximum_privacy" ? (
+                            <section className="space-y-4">
+                                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Switch to Recoverable Encryption</h2>
+                                <Card className="glass-panel border-none p-5 space-y-4 text-sm leading-relaxed text-[var(--text-muted)]">
+                                    <div className="space-y-2">
+                                        <p className="font-bold text-[var(--text)]">Change this account to Recoverable Encryption</p>
+                                        <p>
+                                            This keeps your records encrypted before upload, but changes how recovery works. This step re-encrypts your cloud backup from the records stored on this device.
+                                        </p>
+                                        <p className="text-xs font-semibold text-[var(--text)]">
+                                            Keep this tab open until the switch finishes.
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="migration-password">Current password</Label>
+                                        <Input
+                                            id="migration-password"
+                                            type="password"
+                                            value={migrationPassword}
+                                            onChange={(event) => {
+                                                setMigrationPassword(event.target.value);
+                                                if (migrationError) {
+                                                    setMigrationError(null);
+                                                }
+                                            }}
+                                            placeholder="Enter your password"
+                                        />
+                                        {migrationError ? (
+                                            <p className="text-xs font-medium text-[var(--danger)]">{migrationError}</p>
+                                        ) : (
+                                            <p className="text-xs text-[var(--text-muted)]">
+                                                Existing Maximum Privacy users stay on their current setup unless they switch here deliberately.
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <Button
+                                        onClick={() => { void handleMigrateToRecoverable(); }}
+                                        disabled={isMigratingEncryption || !migrationPassword.trim()}
+                                        className="w-full bg-[var(--primary)] text-white font-bold"
+                                    >
+                                        {isMigratingEncryption ? "Switching..." : "Switch to Recoverable Encryption"}
+                                    </Button>
+                                </Card>
+                            </section>
+                        ) : null}
 
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Danger Zone</h2>
@@ -1032,14 +1151,14 @@ function SettingsContent() {
                                             color: "var(--text)",
                                         }}
                                     >
-                                        Tip: Your records are stored in this browser right now. Paid users should log in and unlock with the recovery key before relying on cross-device restore.
+                                        Tip: Your records are stored in this browser right now. Paid users should log in and complete the secure unlock step before relying on cross-device restore.
                                     </div>
                                 )}
                                 <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-xs leading-relaxed text-[var(--text-muted)]">
                                     <p className="font-bold text-[var(--text)]">Before you change devices</p>
                                     <ol className="mt-2 list-decimal space-y-1.5 pl-4">
                                         <li>Ensure Cloud Sync is active and unlocked on this device, or download a JSON export first.</li>
-                                        <li>On the new device, sign in with the same account and enter your recovery key to restore your backup.</li>
+                                        <li>On the new device, sign in with the same account and follow that account&apos;s secure unlock step to restore your backup.</li>
                                         <li>Do not clear browser data on this device until you have confirmed the restore worked.</li>
                                     </ol>
                                 </div>
@@ -1116,7 +1235,7 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Help & Resources</h2>
                             <Card className="glass-panel border-none overflow-hidden">
-                                <Link href="/help/compliance" className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] border-b border-[var(--border)] transition-colors">
+                                <Link href="/rules" className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] border-b border-[var(--border)] transition-colors">
                                     <div className="flex items-center gap-3">
                                         <BookOpen className="h-5 w-5 text-[var(--info)]" />
                                         <div>

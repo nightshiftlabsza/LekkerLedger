@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
 import { getVerifiedEntitlementsForUser, toErrorResponse, verifyUserFromRequest } from "@/lib/billing-server";
+import { buildE2EPaidEntitlements, hasE2EBillingBypass } from "@/lib/e2e-billing";
 
 export async function GET(request: Request) {
+    if (hasE2EBillingBypass(request)) {
+        return NextResponse.json({
+            entitlements: buildE2EPaidEntitlements(),
+        }, {
+            headers: {
+                "Cache-Control": "no-store",
+            },
+        });
+    }
+
     try {
         const user = await verifyUserFromRequest(request);
         const entitlements = await getVerifiedEntitlementsForUser(user.userId);

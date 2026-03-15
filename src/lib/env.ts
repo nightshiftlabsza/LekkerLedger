@@ -23,6 +23,7 @@ const serverSchema = z.object({
 
     // Supabase Server
     SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+    RECOVERABLE_WRAP_SECRET: z.string().optional(),
 });
 
 const publicSchema = z.object({

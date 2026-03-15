@@ -85,7 +85,7 @@ export default function PrivacyPolicy() {
                             </p>
                             <ul className="list-disc space-y-2 pl-6">
                                 <li><strong>On your device by default:</strong> payroll records, employee details, payslips, and related records are stored locally in your browser storage.</li>
-                                <li><strong>Encrypted sync storage:</strong> backups are stored in an encrypted format that only you can decrypt.</li>
+                                <li><strong>Encrypted sync storage:</strong> backups are stored in an encrypted format, with recovery rules that depend on the sync mode you choose.</li>
                                 <li><strong>In our service systems where needed:</strong> analytics, support messages, subscription records, and payment-related references may be processed through service providers used to operate the product.</li>
                             </ul>
                             <p>

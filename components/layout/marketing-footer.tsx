@@ -5,6 +5,8 @@ import { COMPANY_NAME } from "@/src/config/brand";
 
 export function MarketingFooter() {
     const currentYear = new Date().getFullYear();
+    const footerLinkClass = "inline-flex min-h-[44px] items-center text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]";
+    const footerAccentLinkClass = "inline-flex min-h-[44px] items-center text-sm font-bold text-[var(--primary)] transition-colors hover:underline";
 
     return (
         <footer className="relative mt-12 border-t border-[var(--border)] bg-[var(--surface-2)] overflow-hidden">
@@ -17,7 +19,7 @@ export function MarketingFooter() {
             <div className="content-container-wide px-4 py-10 sm:px-6 lg:px-8">
                 <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,2.8fr)] lg:items-start">
                     <div className="flex flex-col gap-3">
-                        <Link href="/" className="inline-flex items-center gap-2 outline-none transition-transform hover:scale-[1.01] active:scale-[0.99]">
+                        <Link href="/" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl px-1 py-1 outline-none transition-transform hover:scale-[1.01] active:scale-[0.99]">
                             <Logo iconClassName="h-9 w-9" textClassName="text-[1.12rem]" className="gap-2" />
                         </Link>
                         <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -35,41 +37,41 @@ export function MarketingFooter() {
 
                     <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
                         <div>
-                            <h4 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Product</h4>
-                            <div className="space-y-2.5">
-                                <Link href="/#how-it-works" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">How it works</Link>
-                                <Link href="/pricing" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Pricing</Link>
-                                <Link href="/calculator" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Wage & UIF calculator</Link>
-                                <Link href="/login" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Log in</Link>
+                            <h4 className="mb-3 text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Product</h4>
+                            <div className="space-y-1">
+                                <Link href="/#how-it-works" className={footerLinkClass}>How it works</Link>
+                                <Link href="/pricing" className={footerLinkClass}>Pricing</Link>
+                                <Link href="/calculator" className={footerLinkClass}>Wage & UIF calculator</Link>
+                                <Link href="/login" className={footerLinkClass}>Log in</Link>
                             </div>
                         </div>
                         <div>
-                            <h4 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Resources</h4>
-                            <div className="space-y-2.5">
-                                <Link href="/resources/tools/domestic-worker-payslip" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Payslip Generator</Link>
-                                <Link href="/resources/guides/uif-for-domestic-workers" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">UIF Guide</Link>
-                                <Link href="/resources/guides/domestic-worker-minimum-wage-2026" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">NMW Rules 2026</Link>
-                                <Link href="/resources/checklists/household-employer-monthly" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Monthly Checklist</Link>
+                            <h4 className="mb-3 text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Resources</h4>
+                            <div className="space-y-1">
+                                <Link href="/resources/tools/domestic-worker-payslip" className={footerLinkClass}>Payslip Generator</Link>
+                                <Link href="/resources/guides/uif-for-domestic-workers" className={footerLinkClass}>UIF Guide</Link>
+                                <Link href="/resources/guides/domestic-worker-minimum-wage-2026" className={footerLinkClass}>NMW Rules 2026</Link>
+                                <Link href="/resources/checklists/household-employer-monthly" className={footerLinkClass}>Monthly Checklist</Link>
                             </div>
                         </div>
                         <div>
-                            <h4 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Legal</h4>
-                            <div className="space-y-2.5">
-                                <Link href="/legal/privacy" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Privacy Policy</Link>
-                                <Link href="/legal/terms" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Terms of Service</Link>
-                                <Link href="/legal/refunds" className="block text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">Refund Policy</Link>
-                                <Link href="/trust" className="block text-sm font-bold text-[var(--primary)] hover:underline">Trust Center</Link>
+                            <h4 className="mb-3 text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Legal</h4>
+                            <div className="space-y-1">
+                                <Link href="/legal/privacy" className={footerLinkClass}>Privacy Policy</Link>
+                                <Link href="/legal/terms" className={footerLinkClass}>Terms of Service</Link>
+                                <Link href="/legal/refunds" className={footerLinkClass}>Refund Policy</Link>
+                                <Link href="/trust" className={footerAccentLinkClass}>Trust Center</Link>
                             </div>
                         </div>
                         <div>
-                            <h4 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Connect</h4>
-                            <div className="space-y-2.5">
-                                <Link href="/support" className="block text-sm font-bold text-[var(--primary)] hover:underline">
+                            <h4 className="mb-3 text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>Connect</h4>
+                            <div className="space-y-1">
+                                <Link href="/support" className={footerAccentLinkClass}>
                                     Support Center
                                 </Link>
                                 <a
                                     href="mailto:support@lekkerledger.co.za"
-                                    className="flex items-center gap-2 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors"
+                                    className={`${footerLinkClass} gap-2`}
                                 >
                                     <Mail className="h-3.5 w-3.5" />
                                     Email support

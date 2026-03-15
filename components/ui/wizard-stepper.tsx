@@ -24,15 +24,15 @@ const STATUS_STYLES: Record<StepStatus, { bg: string; text: string; border: stri
 
 export function WizardStepper({ steps, className = "" }: WizardStepperProps) {
     return (
-        <div className={`flex items-center gap-1 overflow-x-auto no-scrollbar py-2 ${className}`}>
+        <div className={`grid grid-cols-2 gap-2 py-2 sm:flex sm:items-center sm:gap-1 ${className}`}>
             {steps.map((step, i) => {
                 const s = STATUS_STYLES[step.status];
                 return (
                     <React.Fragment key={step.label}>
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 sm:shrink-0 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
                             {/* Circle indicator */}
                             <div
-                                className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-all"
                                 style={{ backgroundColor: s.bg, color: s.text, borderColor: s.border }}
                             >
                                 {(() => {
@@ -43,7 +43,7 @@ export function WizardStepper({ steps, className = "" }: WizardStepperProps) {
                             </div>
                             {/* Label */}
                             <span
-                                className="text-[11px] font-bold uppercase tracking-wide whitespace-nowrap"
+                                className="min-w-0 text-[11px] font-bold uppercase tracking-wide leading-tight whitespace-normal sm:whitespace-nowrap"
                                 style={{ color: s.label }}
                             >
                                 {step.label}
@@ -52,7 +52,7 @@ export function WizardStepper({ steps, className = "" }: WizardStepperProps) {
                         {/* Connector line */}
                         {i < steps.length - 1 && (
                             <div
-                                className="flex-1 h-0.5 min-w-[16px] rounded-full transition-colors"
+                                className="hidden h-0.5 min-w-[16px] flex-1 rounded-full transition-colors sm:block"
                                 style={{
                                     backgroundColor: step.status === "complete" ? "var(--success)" : "var(--border)",
                                 }}

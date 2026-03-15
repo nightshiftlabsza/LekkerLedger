@@ -70,7 +70,7 @@ export function SideDrawer({
                 <button
                     onClick={() => setOpen(true)}
                     aria-label="Open menu"
-                    className="lg:hidden h-9 sm:h-10 w-9 sm:w-10 flex items-center justify-center rounded-lg sm:rounded-xl transition-all duration-200 hover:bg-[var(--surface-2)] active-scale text-[var(--text-muted)]"
+                    className="flex h-11 w-11 items-center justify-center rounded-xl text-[var(--text-muted)] transition-all duration-200 hover:bg-[var(--surface-2)] active-scale lg:hidden"
                 >
                     <Menu className="h-4 sm:h-5 w-4 sm:w-5" />
                 </button>
@@ -94,7 +94,7 @@ export function SideDrawer({
                 aria-modal="true"
                 aria-label="Navigation"
                 className={[
-                    "fixed top-0 left-0 h-full w-80 lg:w-[300px] xl:w-[320px] 2xl:w-[340px] z-50 flex flex-col",
+                    "app-shell-drawer fixed top-0 left-0 z-50 flex h-full flex-col",
                     dashboardVariant ? "" : "glass-panel",
                     "lg:border-r lg:border-[var(--border)] lg:shadow-none",
                     "shadow-[var(--shadow-xl)] transition-transform duration-300",
@@ -120,7 +120,7 @@ export function SideDrawer({
                     <button
                         onClick={() => setOpen(false)}
                         aria-label="Close menu"
-                        className="lg:hidden h-7 sm:h-8 w-7 sm:w-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--surface-2)] active-scale"
+                        className="flex h-11 w-11 items-center justify-center rounded-xl transition-all hover:bg-[var(--surface-2)] active-scale lg:hidden"
                         style={{ color: "var(--text-muted)" }}
                     >
                         <X className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
@@ -141,11 +141,11 @@ export function SideDrawer({
                 ) : null}
 
                 {/* ── Navigation ─────────────────────────────────────────── */}
-                <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-5">
+                <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-4 space-y-5">
                     {APP_NAV_GROUPS.map((group) => (
                         <div key={group.label}>
                             <p
-                                className="text-[10px] font-black uppercase tracking-[0.16em] px-3 mb-2"
+                                className="mb-2 px-3 text-xs font-black uppercase tracking-[0.16em]"
                                 style={{ color: "var(--text-muted)" }}
                             >
                                 {group.label}
@@ -163,7 +163,7 @@ export function SideDrawer({
                                             key={href}
                                             href={href}
                                             onClick={() => setOpen(false)}
-                                            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${dashboardVariant ? "hover:bg-[var(--surface-raised)]/85" : ""}`}
+                                            className={`group relative flex min-h-[48px] items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-150 ${dashboardVariant ? "hover:bg-[var(--surface-raised)]/85" : ""}`}
                                             style={{
                                                 color: active ? "var(--primary)" : "var(--text)",
                                                 backgroundColor,
@@ -194,7 +194,7 @@ export function SideDrawer({
                                                     {label}
                                                 </span>
                                                 {sublabel ? (
-                                                    <span className="mt-0.5 block text-[10px] font-medium leading-4 text-[var(--text-muted)]">
+                                                    <span className="mt-0.5 block text-xs font-medium leading-5 text-[var(--text-muted)]">
                                                         {sublabel}
                                                     </span>
                                                 ) : null}
@@ -225,7 +225,7 @@ export function SideDrawer({
                 <div className="px-5 pb-5 pt-3 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
                     {dashboardVariant ? (
                         <div className="rounded-2xl bg-[var(--surface-raised)] px-4 py-3">
-                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Current workspace</p>
+                            <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Current workspace</p>
                             <p className="mt-1 truncate text-sm font-semibold text-[var(--text)]">{employerName || "Household payroll"}</p>
                             <p className="mt-0.5 text-xs text-[var(--text-muted)]">{planLabel || "Dashboard"}</p>
                         </div>

@@ -18,9 +18,9 @@ export default defineConfig({
         },
     ],
     webServer: {
-        command: "npx next start -p 3002",
+        command: "node scripts/playwright-server.mjs",
         url: "http://localhost:3002",
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: false,
         timeout: 120000,
     },
 });

@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { MarketingFooter } from "@/components/layout/marketing-footer";
 import { AuthModal } from "@/components/auth/auth-modal";
+import { AuthStateProvider } from "@/components/auth/auth-state-provider";
 import { JsonLd, organizationSchema, softwareApplicationSchema } from "@/components/seo/json-ld";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
@@ -17,13 +19,22 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function MarketingLayout({
+export default async function MarketingLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const initialUser = user
+    ? {
+        id: user.id,
+        email: user.email ?? null,
+      }
+    : null;
+
   return (
-    <>
+    <AuthStateProvider initialUser={initialUser}>
       <JsonLd schema={organizationSchema} />
       <JsonLd schema={softwareApplicationSchema} />
       <a
@@ -40,6 +51,6 @@ export default function MarketingLayout({
         <AuthModal />
       </Suspense>
       <MarketingFooter />
-    </>
+    </AuthStateProvider>
   );
 }

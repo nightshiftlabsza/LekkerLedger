@@ -56,7 +56,7 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
         links: [
             { href: "/settings", label: "Settings", icon: Settings },
             { href: "/upgrade", label: "Plans & billing", icon: Sparkles },
-            { href: "/help/admin", label: "Help & Support", icon: LifeBuoy },
+            { href: "/support", label: "Help & Support", icon: LifeBuoy },
         ],
     },
 ];
@@ -75,7 +75,7 @@ export const ACCOUNT_MENU_LINKS: AppNavLink[] = [
         icon: Sparkles,
     },
     {
-        href: "/help/admin",
+        href: "/support",
         label: "Help & Support",
         sublabel: "Guides, support resources, and official references",
         icon: LifeBuoy,

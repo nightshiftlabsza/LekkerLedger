@@ -7,15 +7,27 @@ const mocks = vi.hoisted(() => ({
     initialMode: "account_locked" as "local_guest" | "account_locked" | "account_unlocked",
     routerReplaceMock: vi.fn(),
     getUserMock: vi.fn(),
-    userProfilesMaybeSingleMock: vi.fn(),
-    syncedRecordsMaybeSingleMock: vi.fn(),
     upsertMock: vi.fn(),
+    userProfilesMaybeSingleMock: vi.fn(),
+    loadEncryptionProfileStateMock: vi.fn(),
     getLocalRecoveryProfileMock: vi.fn(),
     saveLocalRecoveryProfileMock: vi.fn(),
-    deriveKeyMock: vi.fn(),
-    generateValidationPayloadMock: vi.fn(),
-    verifyValidationPayloadMock: vi.fn(),
+    hasPasswordHandoffMock: vi.fn(),
+    consumePasswordHandoffMock: vi.fn(),
+    clearPasswordHandoffMock: vi.fn(),
+    buildRecoverableSetupArtifactsMock: vi.fn(),
+    sendRecoverableSetupRequestMock: vi.fn(),
+    requestRecoveredMasterKeyMock: vi.fn(),
     decryptDataMock: vi.fn(),
+    deriveKeyMock: vi.fn(),
+    exportAccountMasterKeyMock: vi.fn(),
+    generateAccountMasterKeyMock: vi.fn(),
+    generateValidationPayloadMock: vi.fn(),
+    importAccountMasterKeyMock: vi.fn(),
+    unwrapMasterKeyWithPasswordMock: vi.fn(),
+    verifyValidationPayloadMock: vi.fn(),
+    wrapMasterKeyWithPasswordMock: vi.fn(),
+    storeRecoveryNoticeMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -29,8 +41,11 @@ vi.mock("@/lib/app-mode", async () => {
     const React = await import("react");
 
     type AppMode = "local_guest" | "account_locked" | "account_unlocked";
+    type EncryptionMode = "recoverable" | "maximum_privacy" | null;
     type AppModeContextValue = {
         mode: AppMode;
+        encryptionMode: EncryptionMode;
+        setEncryptionMode: React.Dispatch<React.SetStateAction<EncryptionMode>>;
         setMode: React.Dispatch<React.SetStateAction<AppMode>>;
         unlockAccount: (key: CryptoKey, userId: string) => Promise<void>;
         lockAccount: () => void;
@@ -40,9 +55,12 @@ vi.mock("@/lib/app-mode", async () => {
 
     function AppModeProvider({ children }: { children: React.ReactNode }) {
         const [mode, setMode] = React.useState<AppMode>(mocks.initialMode);
+        const [encryptionMode, setEncryptionMode] = React.useState<EncryptionMode>(null);
 
         const value: AppModeContextValue = {
             mode,
+            encryptionMode,
+            setEncryptionMode,
             setMode,
             unlockAccount: async () => {
                 setMode("account_unlocked");
@@ -78,25 +96,19 @@ vi.mock("@/lib/supabase/client", () => ({
         auth: {
             getUser: mocks.getUserMock,
         },
-        from: (table: string) => {
-            const maybeSingle =
-                table === "synced_records"
-                    ? mocks.syncedRecordsMaybeSingleMock
-                    : mocks.userProfilesMaybeSingleMock;
-
-            return {
-                select: () => ({
-                    eq: () => ({
-                        limit: () => ({
-                            maybeSingle,
-                        }),
-                        maybeSingle,
-                    }),
+        from: (table: string) => ({
+            select: () => ({
+                eq: () => ({
+                    maybeSingle: table === "user_profiles" ? mocks.userProfilesMaybeSingleMock : vi.fn(),
                 }),
-                upsert: mocks.upsertMock,
-            };
-        },
+            }),
+            upsert: mocks.upsertMock,
+        }),
     }),
+}));
+
+vi.mock("@/lib/encryption-profile", () => ({
+    loadEncryptionProfileState: mocks.loadEncryptionProfileStateMock,
 }));
 
 vi.mock("@/lib/recovery-profile-store", () => ({
@@ -104,59 +116,32 @@ vi.mock("@/lib/recovery-profile-store", () => ({
     saveLocalRecoveryProfile: mocks.saveLocalRecoveryProfileMock,
 }));
 
+vi.mock("@/lib/password-handoff", () => ({
+    hasPasswordHandoff: mocks.hasPasswordHandoffMock,
+    consumePasswordHandoff: mocks.consumePasswordHandoffMock,
+    clearPasswordHandoff: mocks.clearPasswordHandoffMock,
+}));
+
+vi.mock("@/lib/recoverable-account", () => ({
+    buildRecoverableSetupArtifacts: mocks.buildRecoverableSetupArtifactsMock,
+    sendRecoverableSetupRequest: mocks.sendRecoverableSetupRequestMock,
+    requestRecoveredMasterKey: mocks.requestRecoveredMasterKeyMock,
+}));
+
 vi.mock("@/lib/crypto", () => ({
     decryptData: mocks.decryptDataMock,
     deriveKey: mocks.deriveKeyMock,
+    exportAccountMasterKey: mocks.exportAccountMasterKeyMock,
+    generateAccountMasterKey: mocks.generateAccountMasterKeyMock,
     generateValidationPayload: mocks.generateValidationPayloadMock,
+    importAccountMasterKey: mocks.importAccountMasterKeyMock,
+    unwrapMasterKeyWithPassword: mocks.unwrapMasterKeyWithPasswordMock,
     verifyValidationPayload: mocks.verifyValidationPayloadMock,
+    wrapMasterKeyWithPassword: mocks.wrapMasterKeyWithPasswordMock,
 }));
 
-vi.mock("./recovery-key-setup", () => ({
-    RecoveryKeySetup: ({
-        onComplete,
-        errorMessage,
-        isSubmitting,
-    }: {
-        onComplete: (key: string) => Promise<void> | void;
-        errorMessage?: string | null;
-        isSubmitting?: boolean;
-    }) => (
-        <div>
-            <p>Mock Setup</p>
-            {errorMessage ? <p>{errorMessage}</p> : null}
-            <button
-                type="button"
-                onClick={() => void onComplete("B5YR-35DH-8L2R-WY6R-Z5XL-2KMZ-PQWA-7EUQ")}
-                disabled={isSubmitting}
-            >
-                Complete setup
-            </button>
-        </div>
-    ),
-}));
-
-vi.mock("./recovery-key-input", () => ({
-    RecoveryKeyInput: ({
-        onComplete,
-        errorMessage,
-        isSubmitting,
-    }: {
-        onComplete: (key: string, cryptoKey: CryptoKey) => Promise<void> | void;
-        errorMessage?: string | null;
-        isSubmitting?: boolean;
-    }) => (
-        <div>
-            <p>Mock Input</p>
-            {errorMessage ? <p>{errorMessage}</p> : null}
-            <button
-                type="button"
-                onClick={() => void onComplete("B5YR-35DH-8L2R-WY6R-Z5XL-2KMZ-PQWA-7EUQ", {} as CryptoKey)}
-                disabled={isSubmitting}
-            >
-                Unlock
-            </button>
-        </div>
-    ),
+vi.mock("@/lib/recovery-notice", () => ({
+    storeRecoveryNotice: mocks.storeRecoveryNoticeMock,
 }));
 
 import { AppModeProvider } from "@/lib/app-mode";
@@ -177,178 +162,227 @@ describe("RecoveryGate", () => {
         mocks.initialMode = "account_locked";
         mocks.routerReplaceMock.mockReset();
         mocks.getUserMock.mockReset();
-        mocks.userProfilesMaybeSingleMock.mockReset();
-        mocks.syncedRecordsMaybeSingleMock.mockReset();
         mocks.upsertMock.mockReset();
+        mocks.userProfilesMaybeSingleMock.mockReset();
+        mocks.loadEncryptionProfileStateMock.mockReset();
         mocks.getLocalRecoveryProfileMock.mockReset();
         mocks.saveLocalRecoveryProfileMock.mockReset();
-        mocks.deriveKeyMock.mockReset();
-        mocks.generateValidationPayloadMock.mockReset();
-        mocks.verifyValidationPayloadMock.mockReset();
+        mocks.hasPasswordHandoffMock.mockReset();
+        mocks.consumePasswordHandoffMock.mockReset();
+        mocks.clearPasswordHandoffMock.mockReset();
+        mocks.buildRecoverableSetupArtifactsMock.mockReset();
+        mocks.sendRecoverableSetupRequestMock.mockReset();
+        mocks.requestRecoveredMasterKeyMock.mockReset();
         mocks.decryptDataMock.mockReset();
+        mocks.deriveKeyMock.mockReset();
+        mocks.exportAccountMasterKeyMock.mockReset();
+        mocks.generateAccountMasterKeyMock.mockReset();
+        mocks.generateValidationPayloadMock.mockReset();
+        mocks.importAccountMasterKeyMock.mockReset();
+        mocks.unwrapMasterKeyWithPasswordMock.mockReset();
+        mocks.verifyValidationPayloadMock.mockReset();
+        mocks.wrapMasterKeyWithPasswordMock.mockReset();
+        mocks.storeRecoveryNoticeMock.mockReset();
 
         mocks.getUserMock.mockResolvedValue({
             data: {
                 user: {
                     id: "user-1",
+                    email: "owner@example.com",
                 },
             },
+        });
+        mocks.upsertMock.mockResolvedValue({ error: null });
+        mocks.loadEncryptionProfileStateMock.mockResolvedValue({
+            encryptionMode: "recoverable",
+            modeVersion: 1,
+            keySetupComplete: false,
+            validationPayload: null,
+            wrappedMasterKeyUser: null,
+            recentRecoveryNoticeAt: null,
+            recentRecoveryEventKind: null,
+            source: "none",
+            fallbackEncryptedRecord: null,
         });
         mocks.getLocalRecoveryProfileMock.mockResolvedValue(null);
-        mocks.upsertMock.mockResolvedValue({ error: null });
-        mocks.deriveKeyMock.mockResolvedValue({} as CryptoKey);
-        mocks.generateValidationPayloadMock.mockResolvedValue({
-            ciphertext: "ciphertext",
-            iv: "iv",
-        });
-        mocks.verifyValidationPayloadMock.mockResolvedValue(true);
-        mocks.decryptDataMock.mockResolvedValue({
-            magicWord: "ok",
-        });
-        mocks.userProfilesMaybeSingleMock.mockResolvedValue({
-            data: null,
-            error: null,
-        });
-        mocks.syncedRecordsMaybeSingleMock.mockResolvedValue({
-            data: null,
-            error: null,
-        });
-    });
-
-    it("unlocks directly after first-device setup without showing the recovery-key input again", async () => {
-        mocks.userProfilesMaybeSingleMock.mockResolvedValue({
-            data: null,
-            error: {
-                message: "user_profiles table not available",
-            },
-        });
-        mocks.syncedRecordsMaybeSingleMock.mockResolvedValue({
-            data: null,
-            error: null,
-        });
-
-        renderGate();
-
-        await waitFor(() => {
-            expect(screen.getByText("Mock Setup")).toBeTruthy();
-        });
-
-        await act(async () => {
-            fireEvent.click(screen.getByRole("button", { name: "Complete setup" }));
-        });
-
-        await waitFor(() => {
-            expect(screen.getByText("Protected child")).toBeTruthy();
-        });
-
-        expect(screen.queryByText("Mock Input")).toBeNull();
-        expect(mocks.saveLocalRecoveryProfileMock).toHaveBeenCalledWith(
-            "user-1",
-            expect.objectContaining({
-                keySetupComplete: true,
-            }),
-        );
-        expect(mocks.routerReplaceMock).not.toHaveBeenCalled();
-    });
-
-    it("asks for the recovery key on later logins when the profile already exists", async () => {
-        mocks.userProfilesMaybeSingleMock.mockResolvedValue({
-            data: {
-                key_setup_complete: true,
-                validation_payload: {
-                    ciphertext: "ciphertext",
-                    iv: "iv",
-                },
-            },
-            error: null,
-        });
-
-        renderGate();
-
-        await waitFor(() => {
-            expect(screen.getByText("Mock Input")).toBeTruthy();
-        });
-
-        expect(screen.queryByText("Mock Setup")).toBeNull();
-        expect(screen.queryByText("Protected child")).toBeNull();
-    });
-
-    it("asks for the existing recovery key when cloud data exists but the profile row is missing", async () => {
-        mocks.userProfilesMaybeSingleMock.mockResolvedValue({
-            data: null,
-            error: null,
-        });
-        mocks.syncedRecordsMaybeSingleMock.mockResolvedValue({
-            data: {
-                encrypted_data: {
-                    ciphertext: "ciphertext",
-                    iv: "iv",
-                },
-            },
-            error: null,
-        });
-
-        renderGate();
-
-        await waitFor(() => {
-            expect(screen.getByText("Mock Input")).toBeTruthy();
-        });
-
-        expect(screen.queryByText("Mock Setup")).toBeNull();
-
-        await act(async () => {
-            fireEvent.click(screen.getByRole("button", { name: "Unlock" }));
-        });
-
-        await waitFor(() => {
-            expect(screen.getByText("Protected child")).toBeTruthy();
-        });
-
-        expect(mocks.decryptDataMock).toHaveBeenCalledWith(
-            expect.objectContaining({
+        mocks.hasPasswordHandoffMock.mockReturnValue(false);
+        mocks.consumePasswordHandoffMock.mockReturnValue("Password123!");
+        mocks.generateAccountMasterKeyMock.mockResolvedValue({} as CryptoKey);
+        mocks.buildRecoverableSetupArtifactsMock.mockResolvedValue({
+            rawMasterKey: "raw-master-key",
+            cachedMasterKey: "cached-master-key",
+            validationPayload: {
                 ciphertext: "ciphertext",
                 iv: "iv",
-            }),
-            expect.anything(),
-        );
-        expect(mocks.upsertMock).toHaveBeenCalled();
+            },
+            wrappedMasterKeyUser: {
+                ciphertext: "ciphertext",
+                iv: "iv",
+                salt: "salt",
+                kdf: "PBKDF2-SHA-256-310000",
+                algorithm: "AES-GCM",
+            },
+        });
+        mocks.sendRecoverableSetupRequestMock.mockResolvedValue(undefined);
+        mocks.unwrapMasterKeyWithPasswordMock.mockResolvedValue({} as CryptoKey);
+        mocks.verifyValidationPayloadMock.mockResolvedValue(true);
+        mocks.exportAccountMasterKeyMock.mockResolvedValue("cached-master-key");
+        mocks.requestRecoveredMasterKeyMock.mockResolvedValue({ rawMasterKey: "recovered-master-key" });
+        mocks.importAccountMasterKeyMock.mockResolvedValue({} as CryptoKey);
+        mocks.wrapMasterKeyWithPasswordMock.mockResolvedValue({
+            ciphertext: "new-ciphertext",
+            iv: "new-iv",
+            salt: "new-salt",
+            kdf: "PBKDF2-SHA-256-310000",
+            algorithm: "AES-GCM",
+        });
+        mocks.generateValidationPayloadMock.mockResolvedValue({
+            ciphertext: "validation-ciphertext",
+            iv: "validation-iv",
+        });
     });
 
-    it("repairs the missing remote recovery profile from an already unlocked device", async () => {
-        mocks.initialMode = "account_unlocked";
-        mocks.getLocalRecoveryProfileMock.mockResolvedValue({
+    it("shows the mode chooser for a new encrypted account", async () => {
+        renderGate();
+
+        await waitFor(() => {
+            expect(screen.getByText("Choose how you want account recovery to work.")).toBeTruthy();
+        });
+
+        expect(screen.getByRole("button", { name: "Use Recoverable Encryption" })).toBeTruthy();
+        expect(screen.getByRole("button", { name: "Use Maximum Privacy" })).toBeTruthy();
+    });
+
+    it("shows the Maximum Privacy unlock path for existing legacy accounts", async () => {
+        mocks.loadEncryptionProfileStateMock.mockResolvedValue({
+            encryptionMode: "maximum_privacy",
+            modeVersion: 1,
             keySetupComplete: true,
             validationPayload: {
                 ciphertext: "ciphertext",
                 iv: "iv",
             },
-            updatedAt: new Date().toISOString(),
-        });
-        mocks.userProfilesMaybeSingleMock.mockResolvedValue({
-            data: null,
-            error: null,
+            wrappedMasterKeyUser: null,
+            recentRecoveryNoticeAt: null,
+            recentRecoveryEventKind: null,
+            source: "remote",
+            fallbackEncryptedRecord: null,
         });
 
         renderGate();
 
         await waitFor(() => {
-            expect(screen.getByText("Protected child")).toBeTruthy();
+            expect(screen.getByText("This account uses Maximum Privacy. Enter your recovery key to open the encrypted records on this device.")).toBeTruthy();
+        });
+
+        expect(screen.queryByText("Choose how you want account recovery to work.")).toBeNull();
+    });
+
+    it("falls back to manual password entry for recoverable unlock when no handoff exists", async () => {
+        mocks.loadEncryptionProfileStateMock.mockResolvedValue({
+            encryptionMode: "recoverable",
+            modeVersion: 1,
+            keySetupComplete: true,
+            validationPayload: {
+                ciphertext: "ciphertext",
+                iv: "iv",
+            },
+            wrappedMasterKeyUser: {
+                ciphertext: "ciphertext",
+                iv: "iv",
+                salt: "salt",
+                kdf: "PBKDF2-SHA-256-310000",
+                algorithm: "AES-GCM",
+            },
+            recentRecoveryNoticeAt: null,
+            recentRecoveryEventKind: null,
+            source: "remote",
+            fallbackEncryptedRecord: null,
+        });
+
+        renderGate();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText("Password")).toBeTruthy();
+        });
+
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText("Password"), { target: { value: "Password123!" } });
+            fireEvent.click(screen.getByRole("button", { name: "Unlock records" }));
         });
 
         await waitFor(() => {
-            expect(mocks.upsertMock).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    id: "user-1",
-                    key_setup_complete: true,
-                    validation_payload: {
-                        ciphertext: "ciphertext",
-                        iv: "iv",
-                    },
-                }),
-                expect.objectContaining({
-                    onConflict: "id",
-                }),
-            );
+            expect(screen.getByText("Protected child")).toBeTruthy();
         });
+
+        expect(mocks.unwrapMasterKeyWithPasswordMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                ciphertext: "ciphertext",
+                iv: "iv",
+            }),
+            "Password123!",
+        );
+        expect(mocks.exportAccountMasterKeyMock).toHaveBeenCalled();
+        expect(mocks.saveLocalRecoveryProfileMock).toHaveBeenCalledWith("user-1", expect.objectContaining({
+            encryptionMode: "recoverable",
+            cachedMasterKey: "cached-master-key",
+        }));
+    });
+
+    it("completes recoverable recovery after a password reset", async () => {
+        mocks.loadEncryptionProfileStateMock.mockResolvedValue({
+            encryptionMode: "recoverable",
+            modeVersion: 1,
+            keySetupComplete: true,
+            validationPayload: {
+                ciphertext: "ciphertext",
+                iv: "iv",
+            },
+            wrappedMasterKeyUser: {
+                ciphertext: "ciphertext",
+                iv: "iv",
+                salt: "salt",
+                kdf: "PBKDF2-SHA-256-310000",
+                algorithm: "AES-GCM",
+            },
+            recentRecoveryNoticeAt: null,
+            recentRecoveryEventKind: null,
+            source: "remote",
+            fallbackEncryptedRecord: null,
+        });
+
+        renderGate();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText("Password")).toBeTruthy();
+        });
+
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText("Password"), { target: { value: "Password123!" } });
+            fireEvent.click(screen.getByRole("button", { name: "Recover this account" }));
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText("Protected child")).toBeTruthy();
+        });
+
+        expect(mocks.requestRecoveredMasterKeyMock).toHaveBeenCalledWith("password_reset");
+        expect(mocks.wrapMasterKeyWithPasswordMock).toHaveBeenCalledWith(expect.any(Object), "Password123!");
+        expect(mocks.upsertMock).toHaveBeenCalledWith(expect.objectContaining({
+            encryption_mode: "recoverable",
+            validation_payload: {
+                ciphertext: "validation-ciphertext",
+                iv: "validation-iv",
+            },
+            wrapped_master_key_user: expect.objectContaining({
+                ciphertext: "new-ciphertext",
+                iv: "new-iv",
+            }),
+            user_wrap_salt: "new-salt",
+            user_wrap_kdf: "PBKDF2-SHA-256-310000",
+        }), expect.objectContaining({
+            onConflict: "id",
+        }));
+        expect(mocks.storeRecoveryNoticeMock).toHaveBeenCalledWith("recoverable");
     });
 });

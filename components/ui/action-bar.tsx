@@ -13,7 +13,7 @@ interface ActionBarProps {
 }
 
 /**
- * ActionBar: sticky bottom bar on mobile, inline on desktop.
+ * ActionBar: sticky bottom bar on mobile, inline from tablet upward.
  * Primary + secondary button slots.
  * Use variant="paper" for Civic Ledger workflow pages (no glassmorphism).
  */
@@ -22,25 +22,25 @@ export function ActionBar({ primaryAction, secondaryAction, hint, variant = "gla
 
     const isPaper = variant === "paper";
     const barStyles = isPaper
-        ? "bg-[var(--surface-1)] border-t border-[var(--border)] shadow-[0_-2px_8px_rgba(0,0,0,0.04)] lg:shadow-none lg:bg-transparent lg:border-0"
-        : "glass-panel border-t border-[var(--border)] lg:border-0 lg:bg-transparent lg:backdrop-blur-none";
+        ? "bg-[var(--surface-1)] border-t border-[var(--border)] shadow-[0_-2px_8px_rgba(0,0,0,0.04)] md:shadow-none md:bg-transparent md:border-0"
+        : "glass-panel border-t border-[var(--border)] md:border-0 md:bg-transparent md:backdrop-blur-none";
 
     return (
         <div
             className={`
-                fixed bottom-16 left-0 right-0 z-30 lg:static lg:bottom-auto
+                fixed left-0 right-0 z-30 bottom-[calc(4rem+env(safe-area-inset-bottom))] md:static md:bottom-auto
                 ${barStyles}
-                px-5 py-4 lg:px-0 lg:py-0
+                px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:px-0 md:py-0 md:pb-0
                 ${className}
             `}
         >
             <div className="max-w-4xl mx-auto space-y-2">
-                <div className="flex items-center gap-3 lg:justify-end">
+                <div className="flex flex-col gap-3 sm:flex-row md:justify-end">
                     {secondaryAction}
                     {primaryAction}
                 </div>
                 {hint && (
-                    <p className="text-[11px] text-[var(--text-muted)] text-center lg:text-right max-w-md lg:ml-auto">
+                    <p className="max-w-md text-center text-[11px] text-[var(--text-muted)] md:ml-auto md:text-right">
                         {hint}
                     </p>
                 )}

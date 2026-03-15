@@ -38,7 +38,7 @@ export function AuthShell({ children }: Readonly<{ children: React.ReactNode }>)
                 </header>
 
                 <main id="main-content" className="px-4 py-10 sm:px-6 sm:py-14">
-                    <div className="mx-auto flex w-full max-w-[32rem] flex-col justify-center">
+                    <div className="mx-auto flex w-full max-w-[36rem] flex-col justify-center">
                         <Suspense fallback={null}>{children}</Suspense>
                     </div>
                 </main>
@@ -69,8 +69,8 @@ export function AuthShell({ children }: Readonly<{ children: React.ReactNode }>)
                 </div>
             </header>
 
-            <main id="main-content" className="content-container-wide px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
-                <div className="mx-auto grid max-w-6xl gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,32rem)] xl:items-start">
+            <main id="main-content" className="content-container-ultrawide px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
+                <div className="mx-auto grid max-w-[90rem] gap-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(24rem,34rem)] xl:items-start 2xl:gap-10">
                     <section
                         className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)] px-6 py-7 shadow-[var(--shadow-sm)] sm:px-8 sm:py-9 lg:px-10"
                         style={{ background: "linear-gradient(180deg, rgba(0, 122, 77, 0.06) 0%, rgba(196, 122, 28, 0.04) 100%)" }}
@@ -92,7 +92,7 @@ export function AuthShell({ children }: Readonly<{ children: React.ReactNode }>)
                             />
                             <AuthLayoutNote
                                 title="Recovery ready"
-                                body="After login, later devices ask for your recovery key before records unlock."
+                                body="After login, later devices go through the secure unlock step before records open."
                             />
                             <AuthLayoutNote
                                 title="No pop-up detours"

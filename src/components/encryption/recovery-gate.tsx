@@ -2,31 +2,75 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { useAppMode } from "@/lib/app-mode";
+import { clearPasswordHandoff, consumePasswordHandoff, hasPasswordHandoff } from "@/lib/password-handoff";
+import { buildRecoverableSetupArtifacts, requestRecoveredMasterKey, sendRecoverableSetupRequest } from "@/lib/recoverable-account";
 import { RecoveryKeySetup } from "./recovery-key-setup";
 import { RecoveryKeyInput } from "./recovery-key-input";
+import { RecoverableAccessPanel } from "./recoverable-access-panel";
+import { EncryptionModeChoice } from "./encryption-mode-choice";
 import { createClient } from "@/lib/supabase/client";
-import { decryptData, deriveKey, generateValidationPayload, verifyValidationPayload, type EncryptedPayload } from "@/lib/crypto";
+import {
+    decryptData,
+    deriveKey,
+    exportAccountMasterKey,
+    generateAccountMasterKey,
+    generateValidationPayload,
+    importAccountMasterKey,
+    unwrapMasterKeyWithPassword,
+    verifyValidationPayload,
+    wrapMasterKeyWithPassword,
+    type EncryptedPayload,
+    type WrappedKeyPayload,
+} from "@/lib/crypto";
+import { loadEncryptionProfileState, type EncryptionProfileState } from "@/lib/encryption-profile";
+import {
+    getAccountStatusSummary,
+    getEncryptionModeLabel,
+    getEncryptionModeSummary,
+    getLockedSummary,
+    normalizeEncryptionMode,
+    type EncryptionMode,
+} from "@/lib/encryption-mode";
 import { getLocalRecoveryProfile, saveLocalRecoveryProfile } from "@/lib/recovery-profile-store";
-import { Loader2 } from "lucide-react";
+import { storeRecoveryNotice } from "@/lib/recovery-notice";
 
-interface RecoveryProfileState {
-    keySetupComplete: boolean;
-    validationPayload: EncryptedPayload | null;
-    fallbackEncryptedRecord: EncryptedPayload | null;
-    source: "remote" | "local" | "cloud_data" | "none";
+type RecoveryGateStep =
+    | "checking"
+    | "choose_mode"
+    | "max_privacy_setup"
+    | "max_privacy_input"
+    | "recoverable_setup"
+    | "recoverable_input"
+    | "ready";
+
+function isWrappedKeyPayload(value: unknown): value is WrappedKeyPayload {
+    return Boolean(
+        value
+        && typeof value === "object"
+        && "ciphertext" in value
+        && "iv" in value
+        && "salt" in value
+        && "kdf" in value,
+    );
 }
 
 export function RecoveryGate({ children }: { children: React.ReactNode }) {
-    const { mode, unlockAccount } = useAppMode();
-    const [status, setStatus] = React.useState<'checking' | 'needs_setup' | 'needs_input' | 'ready'>('ready');
+    const { mode, encryptionMode, setEncryptionMode, unlockAccount } = useAppMode();
+    const [status, setStatus] = React.useState<RecoveryGateStep>("ready");
+    const [profileState, setProfileState] = React.useState<EncryptionProfileState | null>(null);
     const [setupError, setSetupError] = React.useState<string | null>(null);
-    const [isSubmittingSetup, setIsSubmittingSetup] = React.useState(false);
     const [inputError, setInputError] = React.useState<string | null>(null);
+    const [selectedMode, setSelectedMode] = React.useState<EncryptionMode | null>(null);
+    const [isSubmittingSetup, setIsSubmittingSetup] = React.useState(false);
     const [isSubmittingInput, setIsSubmittingInput] = React.useState(false);
+    const [isRecovering, setIsRecovering] = React.useState(false);
+    const [savedPasswordReady, setSavedPasswordReady] = React.useState(false);
     const router = useRouter();
     const pathname = usePathname();
     const supabase = React.useMemo(() => createClient(), []);
+
     const sessionExpiredLoginHref = React.useMemo(() => {
         const params = new URLSearchParams({ error: "session_expired" });
         if (pathname) {
@@ -35,17 +79,38 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         return `/login?${params.toString()}`;
     }, [pathname]);
 
-    const redirectToLoginForExpiredSession = React.useCallback((setErrorMessage: (message: string) => void, fallbackStatus: "needs_setup" | "needs_input") => {
+    const effectiveMode = selectedMode ?? profileState?.encryptionMode ?? encryptionMode;
+
+    const redirectToLoginForExpiredSession = React.useCallback((setErrorMessage: (message: string) => void, fallbackStatus: RecoveryGateStep) => {
         setErrorMessage("Your session expired. Please sign in again.");
         setStatus(fallbackStatus);
         router.replace(sessionExpiredLoginHref);
     }, [router, sessionExpiredLoginHref]);
 
+    const getAuthenticatedUser = React.useCallback(async () => {
+        let { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            const retry = await supabase.auth.getUser();
+            user = retry.data.user;
+        }
+        return user;
+    }, [supabase]);
+
+    const resolvePasswordForCurrentUser = React.useCallback((userEmail: string | null | undefined, input: { password: string | null; useSavedPassword: boolean }) => {
+        if (input.useSavedPassword) {
+            return consumePasswordHandoff(userEmail ?? null);
+        }
+
+        return input.password?.trim() || null;
+    }, []);
+
     React.useEffect(() => {
         if (mode !== "account_locked") {
             setSetupError(null);
             setInputError(null);
-            setStatus('ready');
+            setSelectedMode(null);
+            setStatus("ready");
             return;
         }
 
@@ -54,79 +119,75 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         async function checkState() {
             setStatus("checking");
             try {
-                // Initial check
-                let { data: { user } } = await supabase.auth.getUser();
-                
-                // If no user is found immediately, wait a moment and try one more time.
-                // This accounts for slow cookie/storage synchronization after a login navigation.
-                if (!user && mounted) {
-                    await new Promise(resolve => setTimeout(resolve, 800));
-                    const retry = await supabase.auth.getUser();
-                    user = retry.data.user;
-                }
-
+                const user = await getAuthenticatedUser();
                 if (!mounted) return;
 
                 if (!user) {
-                    redirectToLoginForExpiredSession(setInputError, "needs_input");
+                    redirectToLoginForExpiredSession(setInputError, "recoverable_input");
                     return;
                 }
 
-                const profile = await loadRecoveryProfileState(user.id, supabase);
+                const nextProfileState = await loadEncryptionProfileState(user.id, supabase);
                 if (!mounted) return;
 
-                if (profile.keySetupComplete) {
-                    setSetupError(null);
-                    setInputError(null);
-                    setStatus("needs_input");
-                } else {
-                    setSetupError(null);
-                    setInputError(null);
-                    setStatus("needs_setup");
+                setProfileState(nextProfileState);
+                setSelectedMode(null);
+                setSetupError(null);
+                setInputError(null);
+                setEncryptionMode(nextProfileState.source === "none" ? null : nextProfileState.encryptionMode);
+                setSavedPasswordReady(hasPasswordHandoff(user.email ?? null));
+
+                if (!nextProfileState.keySetupComplete) {
+                    setStatus("choose_mode");
+                    return;
                 }
+
+                setStatus(nextProfileState.encryptionMode === "recoverable" ? "recoverable_input" : "max_privacy_input");
             } catch (error) {
                 if (!mounted) return;
-                console.error("Could not check recovery-key status.", error);
-                setInputError("We could not verify your encrypted login on this device. Please sign in again.");
-                setStatus("needs_input");
+                console.error("Could not check encrypted account state.", error);
+                setInputError("We could not verify the secure unlock step on this device. Please sign in again.");
+                setStatus("recoverable_input");
             }
         }
 
-        checkState();
+        void checkState();
 
-        return () => { mounted = false; };
-    }, [mode, redirectToLoginForExpiredSession, supabase]);
+        return () => {
+            mounted = false;
+        };
+    }, [getAuthenticatedUser, mode, redirectToLoginForExpiredSession, setEncryptionMode, supabase]);
 
     React.useEffect(() => {
-        if (mode !== "account_unlocked") {
+        if (mode !== "account_unlocked" || encryptionMode !== "maximum_privacy") {
             return;
         }
 
         let mounted = true;
 
-        async function repairRemoteProfileFromLocal() {
+        async function repairLegacyMaximumPrivacyProfile() {
             try {
-                const { data: { user } } = await supabase.auth.getUser();
+                const user = await getAuthenticatedUser();
                 if (!mounted || !user) return;
 
                 const localProfile = await getLocalRecoveryProfile(user.id);
-                if (!mounted || !localProfile?.keySetupComplete || !localProfile.validationPayload) {
+                if (!mounted || !localProfile?.validationPayload) {
                     return;
                 }
 
                 const { data, error } = await supabase
                     .from("user_profiles")
-                    .select("key_setup_complete, validation_payload")
+                    .select("key_setup_complete, encryption_mode")
                     .eq("id", user.id)
                     .maybeSingle();
 
                 if (!mounted) return;
 
                 if (error) {
-                    console.warn("Could not verify the remote recovery profile while repairing sync setup.", error);
+                    console.warn("Could not verify the legacy remote profile while repairing Maximum Privacy setup.", error);
                 }
 
-                if (data?.key_setup_complete && data.validation_payload) {
+                if (data?.key_setup_complete && normalizeEncryptionMode(data.encryption_mode) === "maximum_privacy") {
                     return;
                 }
 
@@ -134,6 +195,8 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                     .from("user_profiles")
                     .upsert({
                         id: user.id,
+                        encryption_mode: "maximum_privacy",
+                        mode_version: 1,
                         key_setup_complete: true,
                         validation_payload: localProfile.validationPayload,
                     }, {
@@ -141,126 +204,338 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                     });
 
                 if (upsertError) {
-                    console.warn("Could not repair the missing remote recovery profile from this device.", upsertError);
+                    console.warn("Could not repair the missing Maximum Privacy profile from this device.", upsertError);
                 }
             } catch (error) {
                 if (!mounted) return;
-                console.warn("Could not repair the missing remote recovery profile from the unlocked device.", error);
+                console.warn("Could not repair the missing Maximum Privacy profile from the unlocked device.", error);
             }
         }
 
-        void repairRemoteProfileFromLocal();
+        void repairLegacyMaximumPrivacyProfile();
 
         return () => {
             mounted = false;
         };
-    }, [mode, supabase]);
+    }, [encryptionMode, getAuthenticatedUser, mode, supabase]);
 
-    const handleSetupComplete = async (keyString: string) => {
+    const handleMaximumPrivacySetup = React.useCallback(async (keyString: string) => {
         setSetupError(null);
         setInputError(null);
         setIsSubmittingSetup(true);
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            const user = await getAuthenticatedUser();
             if (!user) {
-                redirectToLoginForExpiredSession(setSetupError, "needs_setup");
+                redirectToLoginForExpiredSession(setSetupError, "max_privacy_setup");
                 return;
             }
 
             const cryptoKey = await deriveKey(keyString);
             const payload = await generateValidationPayload(cryptoKey);
 
-            await saveLocalRecoveryProfile(user.id, {
-                keySetupComplete: true,
-                validationPayload: payload,
-                recoveryKey: keyString, // Store locally for auto-unlock
-                updatedAt: new Date().toISOString(),
-            });
-
             const { error } = await supabase
-                .from('user_profiles')
+                .from("user_profiles")
                 .upsert({
                     id: user.id,
+                    encryption_mode: "maximum_privacy",
+                    mode_version: 1,
                     key_setup_complete: true,
                     validation_payload: payload,
+                    wrapped_master_key_user: null,
+                    user_wrap_salt: null,
+                    user_wrap_kdf: null,
                 }, {
-                    onConflict: 'id',
+                    onConflict: "id",
                 });
 
             if (error) {
                 throw error;
             }
 
+            await saveLocalRecoveryProfile(user.id, {
+                encryptionMode: "maximum_privacy",
+                keySetupComplete: true,
+                validationPayload: payload,
+                recoveryKey: keyString,
+                updatedAt: new Date().toISOString(),
+            });
+
+            setProfileState({
+                encryptionMode: "maximum_privacy",
+                modeVersion: 1,
+                keySetupComplete: true,
+                validationPayload: payload,
+                wrappedMasterKeyUser: null,
+                recentRecoveryNoticeAt: null,
+                recentRecoveryEventKind: null,
+                source: "remote",
+                fallbackEncryptedRecord: null,
+            });
+            setEncryptionMode("maximum_privacy");
             await unlockAccount(cryptoKey, user.id);
-        } catch (err) {
-            console.error(err);
-            setSetupError(formatRecoverySetupError(err));
-            setStatus('needs_setup');
+        } catch (error) {
+            console.error(error);
+            setSetupError(formatRecoverySetupError(error));
+            setStatus("max_privacy_setup");
         } finally {
             setIsSubmittingSetup(false);
         }
-    };
+    }, [getAuthenticatedUser, redirectToLoginForExpiredSession, setEncryptionMode, supabase, unlockAccount]);
 
-    const handleInputComplete = async (keyString: string, cryptoKey: CryptoKey) => {
+    const handleMaximumPrivacyUnlock = React.useCallback(async (keyString: string, cryptoKey: CryptoKey) => {
         setInputError(null);
         setIsSubmittingInput(true);
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            const user = await getAuthenticatedUser();
             if (!user) {
-                redirectToLoginForExpiredSession(setInputError, "needs_input");
+                redirectToLoginForExpiredSession(setInputError, "max_privacy_input");
                 return;
             }
 
-            const profile = await loadRecoveryProfileState(user.id, supabase);
+            const nextProfileState = await loadEncryptionProfileState(user.id, supabase);
 
-            if (!profile.keySetupComplete) {
-                setStatus("needs_setup");
-                setSetupError("This account still needs a recovery key on this device. Save the new key once, then continue.");
+            if (!nextProfileState.keySetupComplete) {
+                setStatus("choose_mode");
+                setSetupError("Choose how you want account recovery to work on this device first.");
                 return;
             }
 
-            if (profile.validationPayload) {
-                const isValid = await verifyValidationPayload(profile.validationPayload, cryptoKey);
+            if (nextProfileState.validationPayload) {
+                const isValid = await verifyValidationPayload(nextProfileState.validationPayload, cryptoKey);
                 if (!isValid) {
                     setInputError("That recovery key does not match this account. Please try again.");
                     return;
                 }
-            } else if (profile.fallbackEncryptedRecord) {
+            } else if (nextProfileState.fallbackEncryptedRecord) {
                 try {
-                    await decryptData(profile.fallbackEncryptedRecord, cryptoKey);
+                    await decryptData(nextProfileState.fallbackEncryptedRecord, cryptoKey);
                 } catch {
                     setInputError("That recovery key does not match this account. Please try again.");
                     return;
                 }
             }
 
-            if (profile.source === "cloud_data") {
-                await repairRemoteRecoveryProfile(user.id, cryptoKey, supabase);
-            }
-
-            // Save the valid key locally for future auto-unlocks
             await saveLocalRecoveryProfile(user.id, {
+                encryptionMode: "maximum_privacy",
                 keySetupComplete: true,
-                validationPayload: profile.validationPayload,
+                validationPayload: nextProfileState.validationPayload,
                 recoveryKey: keyString,
                 updatedAt: new Date().toISOString(),
             });
 
+            setProfileState(nextProfileState);
+            setEncryptionMode("maximum_privacy");
             await unlockAccount(cryptoKey, user.id);
-        } catch (err) {
-             console.error(err);
-             setInputError(formatRecoveryUnlockError(err));
-             setStatus('needs_input');
+        } catch (error) {
+            console.error(error);
+            setInputError(formatRecoveryUnlockError(error));
+            setStatus("max_privacy_input");
         } finally {
             setIsSubmittingInput(false);
         }
-    };
+    }, [getAuthenticatedUser, redirectToLoginForExpiredSession, setEncryptionMode, supabase, unlockAccount]);
+
+    const handleRecoverableSubmit = React.useCallback(async (input: { password: string | null; useSavedPassword: boolean }) => {
+        const isSetupFlow = status === "recoverable_setup";
+        const setError = isSetupFlow ? setSetupError : setInputError;
+
+        setError(null);
+        if (isSetupFlow) {
+            setIsSubmittingSetup(true);
+        } else {
+            setIsSubmittingInput(true);
+        }
+
+        try {
+            const user = await getAuthenticatedUser();
+            if (!user) {
+                redirectToLoginForExpiredSession(setError, status);
+                return;
+            }
+
+            const password = resolvePasswordForCurrentUser(user.email ?? null, input);
+            if (!password) {
+                setSavedPasswordReady(false);
+                setError("Enter your password to continue on this device.");
+                return;
+            }
+
+            if (isSetupFlow) {
+                const masterKey = await generateAccountMasterKey();
+                const artifacts = await buildRecoverableSetupArtifacts(masterKey, password);
+                await sendRecoverableSetupRequest({
+                    rawMasterKey: artifacts.rawMasterKey,
+                    validationPayload: artifacts.validationPayload,
+                    wrappedMasterKeyUser: artifacts.wrappedMasterKeyUser,
+                    source: "setup",
+                });
+
+                await saveLocalRecoveryProfile(user.id, {
+                    encryptionMode: "recoverable",
+                    keySetupComplete: true,
+                    validationPayload: artifacts.validationPayload,
+                    cachedMasterKey: artifacts.cachedMasterKey,
+                    updatedAt: new Date().toISOString(),
+                });
+
+                clearPasswordHandoff();
+                setSavedPasswordReady(false);
+                setEncryptionMode("recoverable");
+                setProfileState({
+                    encryptionMode: "recoverable",
+                    modeVersion: 1,
+                    keySetupComplete: true,
+                    validationPayload: artifacts.validationPayload,
+                    wrappedMasterKeyUser: artifacts.wrappedMasterKeyUser,
+                    recentRecoveryNoticeAt: null,
+                    recentRecoveryEventKind: null,
+                    source: "remote",
+                    fallbackEncryptedRecord: null,
+                });
+                await unlockAccount(masterKey, user.id);
+                return;
+            }
+
+            const nextProfileState = await loadEncryptionProfileState(user.id, supabase);
+            if (!isWrappedKeyPayload(nextProfileState.wrappedMasterKeyUser)) {
+                setInputError("Recoverable setup is incomplete for this account. Please complete setup again.");
+                setStatus("recoverable_setup");
+                return;
+            }
+
+            const masterKey = await unwrapMasterKeyWithPassword(nextProfileState.wrappedMasterKeyUser, password);
+
+            if (nextProfileState.validationPayload) {
+                const isValid = await verifyValidationPayload(nextProfileState.validationPayload, masterKey);
+                if (!isValid) {
+                    throw new Error("PASSWORD_WRAP_FAILED");
+                }
+            }
+
+            await saveLocalRecoveryProfile(user.id, {
+                encryptionMode: "recoverable",
+                keySetupComplete: true,
+                validationPayload: nextProfileState.validationPayload,
+                cachedMasterKey: await exportAccountMasterKey(masterKey),
+                updatedAt: new Date().toISOString(),
+            });
+
+            clearPasswordHandoff();
+            setSavedPasswordReady(false);
+            setEncryptionMode("recoverable");
+            setProfileState(nextProfileState);
+            await unlockAccount(masterKey, user.id);
+        } catch (error) {
+            console.error(error);
+            if (input.useSavedPassword) {
+                clearPasswordHandoff();
+                setSavedPasswordReady(false);
+                setInputError("We could not finish the secure unlock with the saved password. Enter your password again.");
+            } else {
+                setInputError(formatRecoverableUnlockError(error));
+            }
+            setStatus(isSetupFlow ? "recoverable_setup" : "recoverable_input");
+        } finally {
+            if (isSetupFlow) {
+                setIsSubmittingSetup(false);
+            } else {
+                setIsSubmittingInput(false);
+            }
+        }
+    }, [getAuthenticatedUser, redirectToLoginForExpiredSession, resolvePasswordForCurrentUser, setEncryptionMode, status, supabase, unlockAccount]);
+
+    const handleRecoverableRecovery = React.useCallback(async (input: { password: string | null; useSavedPassword: boolean }) => {
+        setInputError(null);
+        setIsRecovering(true);
+        try {
+            const user = await getAuthenticatedUser();
+            if (!user) {
+                redirectToLoginForExpiredSession(setInputError, "recoverable_input");
+                return;
+            }
+
+            const password = resolvePasswordForCurrentUser(user.email ?? null, input);
+            if (!password) {
+                setSavedPasswordReady(false);
+                setInputError("Enter your current password so we can finish recovery on this device.");
+                return;
+            }
+
+            const { rawMasterKey } = await requestRecoveredMasterKey("password_reset");
+            const masterKey = await importAccountMasterKey(rawMasterKey);
+            const wrappedMasterKeyUser = await wrapMasterKeyWithPassword(masterKey, password);
+            const validationPayload = await generateValidationPayload(masterKey);
+
+            const { error } = await supabase
+                .from("user_profiles")
+                .upsert({
+                    id: user.id,
+                    encryption_mode: "recoverable",
+                    mode_version: 1,
+                    key_setup_complete: true,
+                    validation_payload: validationPayload,
+                    wrapped_master_key_user: wrappedMasterKeyUser,
+                    user_wrap_salt: wrappedMasterKeyUser.salt,
+                    user_wrap_kdf: wrappedMasterKeyUser.kdf,
+                }, {
+                    onConflict: "id",
+                });
+
+            if (error) {
+                throw error;
+            }
+
+            await saveLocalRecoveryProfile(user.id, {
+                encryptionMode: "recoverable",
+                keySetupComplete: true,
+                validationPayload,
+                cachedMasterKey: rawMasterKey,
+                updatedAt: new Date().toISOString(),
+            });
+
+            clearPasswordHandoff();
+            setSavedPasswordReady(false);
+            setEncryptionMode("recoverable");
+            setProfileState({
+                encryptionMode: "recoverable",
+                modeVersion: 1,
+                keySetupComplete: true,
+                validationPayload,
+                wrappedMasterKeyUser,
+                recentRecoveryNoticeAt: new Date().toISOString(),
+                recentRecoveryEventKind: "password_reset",
+                source: "remote",
+                fallbackEncryptedRecord: null,
+            });
+            storeRecoveryNotice("recoverable");
+            await unlockAccount(masterKey, user.id);
+        } catch (error) {
+            console.error(error);
+            if (input.useSavedPassword) {
+                clearPasswordHandoff();
+                setSavedPasswordReady(false);
+                setInputError("We could not finish recovery with the saved password. Enter your current password and try again.");
+            } else {
+                setInputError(formatRecoverableRecoveryError(error));
+            }
+            setStatus("recoverable_input");
+        } finally {
+            setIsRecovering(false);
+        }
+    }, [getAuthenticatedUser, redirectToLoginForExpiredSession, resolvePasswordForCurrentUser, setEncryptionMode, supabase, unlockAccount]);
+
+    const handleModeSelect = React.useCallback((nextMode: EncryptionMode) => {
+        setSelectedMode(nextMode);
+        setSetupError(null);
+        setInputError(null);
+        setEncryptionMode(nextMode);
+        setStatus(nextMode === "recoverable" ? "recoverable_setup" : "max_privacy_setup");
+    }, [setEncryptionMode]);
 
     if (mode === "local_guest" || mode === "account_unlocked" || status === "ready") {
         return <>{children}</>;
     }
 
-    // Modal takeover for locked state
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-[var(--bg)] animate-fade-in selection:bg-[var(--primary)]/20">
             <div className="min-h-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
@@ -275,76 +550,97 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                                     Unlock your encrypted records.
                                 </h2>
                                 <p className="mt-3 max-w-[54ch] text-sm leading-7 text-[var(--text-muted)] sm:text-[0.97rem]">
-                                    LekkerLedger uses <strong>Zero-Knowledge Encryption</strong>. This means your data is scrambled with your recovery key before it ever leaves your device. Even if our servers were compromised, your records would be unreadable to anyone without your key.
+                                    {effectiveMode
+                                        ? getEncryptionModeSummary(effectiveMode)
+                                        : "Choose the recovery style that fits your household, then finish the secure unlock step on this device."}
                                 </p>
                             </div>
 
-                            <div className="w-full">
-                        {status === 'checking' && (
-                            <div className="bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-12 text-center shadow-[var(--shadow-lg)]">
-                                <Loader2 className="w-12 h-12 animate-spin mb-6 text-[var(--primary)] mx-auto" />
-                                <h2 className="font-serif text-2xl font-bold text-[var(--text)] mb-2">Verifying Vault</h2>
-                                <p className="text-[var(--text-muted)] animate-pulse">Establishing secure connection...</p>
-                            </div>
-                        )}
-                        
-                        {status === 'needs_setup' && (
-                            <RecoveryKeySetup
-                                onComplete={handleSetupComplete}
-                                errorMessage={setupError}
-                                isSubmitting={isSubmittingSetup}
-                            />
-                        )}
+                            {status === "checking" ? (
+                                <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-raised)] p-12 text-center shadow-[var(--shadow-lg)]">
+                                    <Loader2 className="mx-auto mb-6 h-12 w-12 animate-spin text-[var(--primary)]" />
+                                    <h2 className="font-serif text-2xl font-bold text-[var(--text)]">Checking your secure access</h2>
+                                    <p className="mt-2 text-[var(--text-muted)]">We&apos;re checking how this account unlocks on this device.</p>
+                                </div>
+                            ) : null}
 
-                        {status === 'needs_input' && (
-                            <RecoveryKeyInput
-                                onComplete={handleInputComplete}
-                                errorMessage={inputError}
-                                isSubmitting={isSubmittingInput}
-                            />
-                        )}
-                            </div>
+                            {status === "choose_mode" ? (
+                                <EncryptionModeChoice
+                                    onSelect={handleModeSelect}
+                                    selectedMode={selectedMode}
+                                />
+                            ) : null}
+
+                            {status === "max_privacy_setup" ? (
+                                <RecoveryKeySetup
+                                    onComplete={handleMaximumPrivacySetup}
+                                    errorMessage={setupError}
+                                    isSubmitting={isSubmittingSetup}
+                                />
+                            ) : null}
+
+                            {status === "max_privacy_input" ? (
+                                <RecoveryKeyInput
+                                    onComplete={handleMaximumPrivacyUnlock}
+                                    errorMessage={inputError}
+                                    isSubmitting={isSubmittingInput}
+                                />
+                            ) : null}
+
+                            {status === "recoverable_setup" ? (
+                                <RecoverableAccessPanel
+                                    purpose="setup"
+                                    hasSavedPassword={savedPasswordReady}
+                                    onSubmit={handleRecoverableSubmit}
+                                    errorMessage={setupError}
+                                    isSubmitting={isSubmittingSetup}
+                                />
+                            ) : null}
+
+                            {status === "recoverable_input" ? (
+                                <RecoverableAccessPanel
+                                    purpose="unlock"
+                                    hasSavedPassword={savedPasswordReady}
+                                    onSubmit={handleRecoverableSubmit}
+                                    onRecover={handleRecoverableRecovery}
+                                    errorMessage={inputError}
+                                    isSubmitting={isSubmittingInput}
+                                    isRecovering={isRecovering}
+                                />
+                            ) : null}
                         </div>
 
-                        <div className="space-y-5 xl:sticky xl:top-6 animate-slide-right delay-200">
+                        <aside className="space-y-5 xl:sticky xl:top-6">
                             <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-sm)] sm:p-7">
                                 <h3 className="text-lg font-bold text-[var(--text)]">
-                                    Important Security Note
+                                    What this means
                                 </h3>
                                 <div className="mt-3 space-y-4 text-sm leading-7 text-[var(--text-muted)]">
-                                    <p>
-                                        Because we cannot see your key, <strong>we cannot reset it for you</strong>. If you lose your recovery key, you will lose access to your synced data permanently.
-                                    </p>
-                                    <p>
-                                        We recommend storing your recovery key in a safe place, like a password manager or a secure physical location.
-                                    </p>
-                                    <p className="font-semibold text-[var(--text)]">
-                                        Once unlocked, this device will stay connected to your records unless you manually sign out.
-                                    </p>
+                                    <p>{getLockedSummary(effectiveMode ?? null)}</p>
+                                    {effectiveMode ? (
+                                        <p className="font-semibold text-[var(--text)]">
+                                            {getEncryptionModeLabel(effectiveMode)} keeps the sync flow encrypted before upload.
+                                        </p>
+                                    ) : (
+                                        <p className="font-semibold text-[var(--text)]">
+                                            Both options keep the sync flow encrypted before upload.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
                             <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-sm)] sm:p-7">
-                                <div className="flex items-center gap-3 text-[var(--primary)] font-bold uppercase tracking-widest text-[10px]">
-                                    <span className="w-8 h-px bg-[var(--primary)]/30" />
-                                    <span>Security Standards</span>
-                                </div>
-                                <ul className="mt-5 space-y-4 text-xs sm:text-sm">
-                                    <li className="flex gap-3">
-                                        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--success-soft)] text-[var(--success)]">✓</div>
-                                        <span className="text-[var(--text-muted)]">AES-256-GCM encryption for protected record payloads</span>
-                                    </li>
-                                    <li className="flex gap-3">
-                                        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--success-soft)] text-[var(--success)]">✓</div>
-                                        <span className="text-[var(--text-muted)]">PBKDF2 key derivation before sync secrets are used</span>
-                                    </li>
-                                    <li className="flex gap-3">
-                                        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--success-soft)] text-[var(--success)]">✓</div>
-                                        <span className="text-[var(--text-muted)]">POPIA-aware design for South African household payroll records</span>
-                                    </li>
-                                </ul>
+                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                                    Current setup
+                                </p>
+                                <p className="mt-3 text-lg font-bold text-[var(--text)]">
+                                    {effectiveMode ? getEncryptionModeLabel(effectiveMode) : "Choose your encryption mode"}
+                                </p>
+                                <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">
+                                    {getAccountStatusSummary(effectiveMode ?? null)}
+                                </p>
                             </div>
-                        </div>
+                        </aside>
                     </div>
                 </div>
             </div>
@@ -358,16 +654,10 @@ function formatRecoverySetupError(error: unknown) {
         if (message.includes("expired") || message.includes("session")) {
             return "Your session expired. Please sign in again.";
         }
-        if (message.includes("user_profiles")) {
-            return "Cloud sync could not finish setting up your recovery key. The sync profile table is not available yet.";
-        }
-        if (message.includes("row-level security") || message.includes("permission")) {
-            return "Cloud sync could not save your recovery-key setup because this account does not have permission to write the profile record yet.";
-        }
         return message;
     }
 
-    return "Cloud sync could not finish setting up your recovery key. Please try again.";
+    return "Secure setup could not be completed. Please try again.";
 }
 
 function formatRecoveryUnlockError(error: unknown) {
@@ -376,104 +666,32 @@ function formatRecoveryUnlockError(error: unknown) {
         if (message.includes("expired") || message.includes("session")) {
             return "Your session expired. Please sign in again.";
         }
-        if (message.includes("permission") || message.includes("row-level security")) {
-            return "Cloud sync could not verify your recovery key because this account cannot read the sync profile yet.";
-        }
-        if (message.includes("user_profiles")) {
-            return "Cloud sync could not verify your recovery key because the sync profile is not available yet.";
-        }
         return message;
     }
 
-    return "Cloud sync could not unlock your encrypted data just now. Please try again.";
+    return "The secure unlock step could not be completed. Please try again.";
 }
 
-async function loadRecoveryProfileState(
-    userId: string,
-    supabase: ReturnType<typeof createClient>,
-): Promise<RecoveryProfileState> {
-    const localProfile = await getLocalRecoveryProfile(userId);
+function formatRecoverableUnlockError(error: unknown) {
+    if (error instanceof Error) {
+        if (error.message === "PASSWORD_WRAP_FAILED") {
+            return "That password did not unlock this account. Please try again.";
+        }
 
-    const { data, error } = await supabase
-        .from("user_profiles")
-        .select("key_setup_complete, validation_payload")
-        .eq("id", userId)
-        .maybeSingle();
+        if (error.message.includes("permission")) {
+            return "This account could not read its recoverable setup just now. Please try again.";
+        }
 
-    if (data?.key_setup_complete) {
-        return {
-            keySetupComplete: true,
-            validationPayload: (data.validation_payload as EncryptedPayload | null) ?? null,
-            fallbackEncryptedRecord: null,
-            source: "remote",
-        };
+        return error.message;
     }
 
-    if (error) {
-        console.warn("Could not read recovery profile from Supabase. Falling back to local device state.", error);
-    }
-
-    if (localProfile?.keySetupComplete) {
-        return {
-            keySetupComplete: true,
-            validationPayload: localProfile.validationPayload,
-            fallbackEncryptedRecord: null,
-            source: "local",
-        };
-    }
-
-    const { data: syncedRecord, error: syncedRecordError } = await supabase
-        .from("synced_records")
-        .select("encrypted_data")
-        .eq("user_id", userId)
-        .limit(1)
-        .maybeSingle();
-
-    if (syncedRecord?.encrypted_data) {
-        return {
-            keySetupComplete: true,
-            validationPayload: null,
-            fallbackEncryptedRecord: syncedRecord.encrypted_data as EncryptedPayload,
-            source: "cloud_data",
-        };
-    }
-
-    if (syncedRecordError) {
-        console.warn("Could not inspect encrypted cloud records while checking recovery-key status.", syncedRecordError);
-    }
-
-    return {
-        keySetupComplete: false,
-        validationPayload: null,
-        fallbackEncryptedRecord: null,
-        source: "none",
-    };
+    return "We could not unlock this recoverable account right now.";
 }
 
-async function repairRemoteRecoveryProfile(
-    userId: string,
-    cryptoKey: CryptoKey,
-    supabase: ReturnType<typeof createClient>,
-) {
-    const payload = await generateValidationPayload(cryptoKey);
-
-    await saveLocalRecoveryProfile(userId, {
-        keySetupComplete: true,
-        validationPayload: payload,
-        updatedAt: new Date().toISOString(),
-    });
-
-    const { error } = await supabase
-        .from("user_profiles")
-        .upsert({
-            id: userId,
-            key_setup_complete: true,
-            validation_payload: payload,
-        }, {
-            onConflict: "id",
-        });
-
-    if (error) {
-        console.warn("Could not repair the missing recovery profile in Supabase after a successful unlock.", error);
+function formatRecoverableRecoveryError(error: unknown) {
+    if (error instanceof Error) {
+        return error.message;
     }
+
+    return "Account recovery could not be completed on this device.";
 }

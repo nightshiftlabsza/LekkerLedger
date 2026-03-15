@@ -8,14 +8,14 @@ import { Button } from "@/components/ui/button";
 export default function StoragePage() {
     return (
         <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-            <div className="max-w-4xl mx-auto px-6 py-12 sm:py-20 space-y-12">
+            <div className="content-container-wide px-4 py-12 sm:px-6 sm:py-20 lg:px-8 space-y-12">
                 <Link href="/">
                     <Button variant="ghost" className="gap-2 mb-8 -ml-4">
                         <ChevronLeft className="h-4 w-4" /> Back to Home
                     </Button>
                 </Link>
 
-                <header className="space-y-4">
+                <header className="max-w-3xl space-y-4">
                     <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/10 text-[var(--primary)]">
                         <Database className="h-6 w-6" />
                     </div>
@@ -23,7 +23,8 @@ export default function StoragePage() {
                     <p className="font-medium text-[var(--text-muted)]">How payroll records stay on your device by default, and how optional encrypted sync works when you choose it.</p>
                 </header>
 
-                <div className="policy-copy max-w-none space-y-10 leading-relaxed font-medium">
+                <div className="grid gap-12 xl:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)] xl:items-start">
+                    <div className="policy-copy max-w-none space-y-10 leading-relaxed font-medium">
                     <section className="space-y-6">
                         <h2 className="text-2xl font-black text-[var(--text)]">How local storage and optional backup work</h2>
                         <p>
@@ -48,7 +49,7 @@ export default function StoragePage() {
                                 By default, everything you enter is saved in your browser&apos;s local storage database (IndexedDB).
                             </p>
                             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> Payroll records are not uploaded to LekkerLedger servers. Optional encrypted sync stores an encrypted backup that only you can access.</li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> Payroll records are not uploaded to a LekkerLedger employee database by default. Optional encrypted sync stores an encrypted backup for restore across devices.</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> Works completely offline</li>
                                 <li className="flex gap-2 items-start"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" /> <span style={{ color: "var(--warning)" }}>If you clear your browser data without backup enabled, the records on this device cannot be recovered. That is why paid plans with sync are better for households that want backup before changing browsers or devices.</span></li>
                             </ul>
@@ -68,8 +69,8 @@ export default function StoragePage() {
                             </p>
                             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Access data across multiple devices</li>
-                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> End-to-end encrypted — only you can read your data</li>
-                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Stored as encrypted data that only your account can decrypt</li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Records are encrypted before upload</li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Choose Recoverable Encryption or Maximum Privacy during secure setup</li>
                                 <li className="flex gap-2 items-start"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" /> <span style={{ color: "var(--warning)" }}>Paid plans with sync are the better fit if you want your records to move with you. Always confirm backup before changing browsers or devices.</span></li>
                             </ul>
                         </div>
@@ -82,7 +83,7 @@ export default function StoragePage() {
                         </p>
                         <ul className="list-disc pl-6 space-y-2">
                             <li><strong>We DO NOT</strong> have access to your unencrypted data on our servers.</li>
-                            <li><strong>We ONLY</strong> store your encrypted backup data, which only you can decrypt with your account credentials.</li>
+                            <li><strong>We ONLY</strong> store encrypted backup data plus the minimum account metadata needed for the recovery mode you choose.</li>
                             <li>Your payroll records are not uploaded into a central LekkerLedger employee payroll database as part of this backup flow.</li>
                             <li>You can disable sync at any time from your account settings.</li>
                         </ul>
@@ -97,15 +98,30 @@ export default function StoragePage() {
                             If you use encrypted sync, disabling the sync will stop updates. You can request deletion of your encrypted backup from your account settings.
                         </p>
                     </section>
-                </div>
+                    </div>
 
-                <div className="pt-12 text-center pb-8 border-t border-[var(--border)] mt-12">
-                    <p className="text-lg font-bold text-[var(--text)] mb-6">Ready to start keeping household payroll records?</p>
-                    <Link href="/dashboard">
-                        <Button className="h-14 px-8 text-base bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white shadow-lg shadow-[var(--primary)]/20 font-bold rounded-xl transition-all hover:-translate-y-1">
-                            Start for Free
-                        </Button>
-                    </Link>
+                    <aside className="space-y-6 xl:sticky xl:top-6">
+                        <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-sm)] sm:p-7">
+                            <h2 className="text-2xl font-black text-[var(--text)]">Practical rule of thumb</h2>
+                            <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">
+                                Local-first storage keeps everyday payroll simple. If these records matter beyond one browser profile or one device, paid encrypted sync is the safer fit.
+                            </p>
+                            <ul className="mt-5 space-y-3 text-sm leading-7 text-[var(--text-muted)]">
+                                <li>Use local-only if one device is enough and you manage your own browser backups.</li>
+                                <li>Use encrypted sync if you need restore, device changes, or calmer long-term record keeping.</li>
+                                <li>Always confirm your backup setup before replacing a device or clearing browser data.</li>
+                            </ul>
+                        </div>
+
+                        <div className="border-t border-[var(--border)] pt-8 text-center">
+                            <p className="mb-6 text-lg font-bold text-[var(--text)]">Ready to start keeping household payroll records?</p>
+                            <Link href="/dashboard">
+                                <Button className="h-14 rounded-xl bg-[var(--primary)] px-8 text-base font-bold text-white shadow-lg shadow-[var(--primary)]/20 transition-all hover:-translate-y-1 hover:bg-[var(--primary-hover)]">
+                                    Start for Free
+                                </Button>
+                            </Link>
+                        </div>
+                    </aside>
                 </div>
             </div>
         </div>

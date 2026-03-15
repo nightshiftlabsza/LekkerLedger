@@ -47,7 +47,7 @@ export function HouseholdSwitcher({
                 className={[
                     "transition-colors",
                     variant === "account"
-                        ? "flex w-full min-w-[220px] items-center justify-between gap-3 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-3 py-2.5 text-left shadow-[0_6px_18px_rgba(16,24,40,0.04)] hover:border-[var(--primary)]/25"
+                        ? "flex w-full max-w-full items-center justify-between gap-3 rounded-2xl border border-[var(--border)]/80 bg-[var(--surface-raised)] px-3 py-2.5 text-left shadow-[0_6px_18px_rgba(16,24,40,0.04)] hover:border-[var(--primary)]/25 sm:min-w-[220px]"
                         : "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-bold hover:bg-[var(--surface-2)]",
                 ].join(" ")}
                 style={{ color: variant === "account" ? "var(--text)" : "var(--text-muted)" }}
@@ -61,7 +61,7 @@ export function HouseholdSwitcher({
                                 <Home className="h-4 w-4" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Household</p>
+                                <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Household</p>
                                 <p className="truncate text-sm font-semibold text-[var(--text)]">{active?.name ?? "Household"}</p>
                             </div>
                         </div>

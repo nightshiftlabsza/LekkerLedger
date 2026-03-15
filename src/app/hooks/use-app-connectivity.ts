@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useAuthState } from "@/components/auth/auth-state-provider";
 import { syncService } from "@/lib/sync-service";
 
 export type NetworkState = "online" | "offline" | "flaky";
@@ -30,8 +30,7 @@ async function probeSameOriginConnectivity(): Promise<boolean> {
 export function useAppConnectivity() {
     const [network, setNetwork] = React.useState<NetworkState>("online");
     const [payments, setPayments] = React.useState<PaymentsState>("available");
-    const [hasAuthenticatedSession, setHasAuthenticatedSession] = React.useState(false);
-    const supabase = React.useMemo(() => createClient(), []);
+    const { user } = useAuthState();
     const subscribeToSyncService = React.useCallback((listener: () => void) => {
         return syncService.subscribe(listener);
     }, []);
@@ -90,36 +89,8 @@ export function useAppConnectivity() {
         };
     }, []);
 
-    React.useEffect(() => {
-        let mounted = true;
-
-        async function loadSession() {
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!mounted) return;
-                setHasAuthenticatedSession(Boolean(session?.user?.id));
-            } catch (error) {
-                if (!mounted) return;
-                console.warn("Could not read auth session while checking connectivity.", error);
-                setHasAuthenticatedSession(false);
-            }
-        }
-
-        void loadSession();
-
-        const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (!mounted) return;
-            setHasAuthenticatedSession(Boolean(session?.user?.id));
-        });
-
-        return () => {
-            mounted = false;
-            authListener?.subscription?.unsubscribe();
-        };
-    }, [supabase]);
-
     const sync = React.useMemo<SyncState>(() => {
-        if (!hasAuthenticatedSession || !syncSnapshot.ready) {
+        if (!user?.id || !syncSnapshot.ready) {
             return "disabled";
         }
 
@@ -132,7 +103,7 @@ export function useAppConnectivity() {
         }
 
         return "enabled";
-    }, [hasAuthenticatedSession, network, syncSnapshot.hasError, syncSnapshot.ready]);
+    }, [network, syncSnapshot.hasError, syncSnapshot.ready, user?.id]);
 
     return {
         network,

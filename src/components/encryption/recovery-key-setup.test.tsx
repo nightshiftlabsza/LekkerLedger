@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -23,10 +23,12 @@ describe("RecoveryKeySetup", () => {
             />
         );
 
+        fireEvent.click(screen.getByRole("button", { name: /generate recovery key/i }));
+
         await waitFor(() => {
             expect(screen.getByText(/cannot create the secure recovery key/i)).toBeTruthy();
         });
 
-        expect(screen.getByRole("button", { name: /continue to dashboard/i })).toBeDisabled();
+        expect(screen.queryByRole("button", { name: /continue securely/i })).toBeNull();
     });
 });

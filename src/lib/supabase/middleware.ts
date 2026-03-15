@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const E2E_AUTH_BYPASS_COOKIE = 'll-e2e-auth-bypass'
+
 const PUBLIC_PREFIXES = [
   '/',
   '/billing',
@@ -52,10 +54,22 @@ export function buildProtectedRouteLoginRedirect(requestUrl: URL): URL {
   return loginUrl
 }
 
+function hasE2EAuthBypass(request: NextRequest): boolean {
+  if (process.env.E2E_BYPASS_AUTH !== '1') {
+    return false
+  }
+
+  return request.cookies.get(E2E_AUTH_BYPASS_COOKIE)?.value === '1'
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
+
+  if (isProtectedRoute(request.nextUrl.pathname) && hasE2EAuthBypass(request)) {
+    return supabaseResponse
+  }
 
   try {
     const supabase = createServerClient(

@@ -111,7 +111,7 @@ export default function ExamplesPage() {
 
     return (
         <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] selection:bg-[var(--accent-subtle)]">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-20 space-y-12">
+            <div className="content-container-wide px-4 py-12 sm:px-6 sm:py-20 lg:px-8 space-y-12">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                     <Link href="/">
                         <Button variant="ghost" className="gap-2 -ml-4 text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
@@ -132,7 +132,7 @@ export default function ExamplesPage() {
                     </div>
                 </div>
 
-                <header data-testid="examples-hero" className="space-y-4 max-w-2xl">
+                <header data-testid="examples-hero" className="max-w-3xl space-y-4">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--accent-subtle)] text-[var(--primary)] text-xs font-black uppercase tracking-widest border border-[var(--primary)]/10">
                         <ShieldCheck className="h-4 w-4 shrink-0" /> Civic Ledger Design
                     </div>

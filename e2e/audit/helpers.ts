@@ -5,6 +5,8 @@ import type { Locator, Page } from "@playwright/test";
 import type { AuditAction, AuditMetrics, AuditResult, AuditStep, SeedMode } from "./types";
 
 const LOCALFORAGE_SCRIPT_PATH = path.join(process.cwd(), "node_modules", "localforage", "dist", "localforage.js");
+const E2E_AUTH_BYPASS_COOKIE = "ll-e2e-auth-bypass";
+const AUDIT_BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3002";
 
 export const AUDIT_IDS = {
     defaultHouseholdId: "default",
@@ -355,11 +357,22 @@ export async function setViewportForDevice(page: Page, device: AuditAction["devi
 }
 
 export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
+    await page.context().addCookies([
+        {
+            name: E2E_AUTH_BYPASS_COOKIE,
+            value: "1",
+            url: AUDIT_BASE_URL,
+        },
+    ]);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.addScriptTag({ path: LOCALFORAGE_SCRIPT_PATH });
 
     const payload = buildSeedPayload(mode);
     await page.evaluate(async ({ storeNames, payload }) => {
+        function encodeStoredRecord(value: unknown) {
+            return btoa(encodeURIComponent(JSON.stringify(value)));
+        }
+
         function deleteDb(name: string) {
             return new Promise<void>((resolve) => {
                 const request = indexedDB.deleteDatabase(name);
@@ -402,12 +415,12 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
         await settingsStore.setItem(`employer-settings::${payload.settings.activeHouseholdId}`, payload.householdSettings);
 
         await Promise.all(payload.households.map((household: { id: string }) => householdStore.setItem(household.id, household)));
-        await Promise.all(payload.employees.map((employee: { id: string }) => employeeStore.setItem(employee.id, employee)));
-        await Promise.all(payload.payslips.map((payslip: { id: string }) => payslipStore.setItem(payslip.id, payslip)));
-        await Promise.all(payload.leave.map((record: { id: string }) => leaveStore.setItem(record.id, record)));
-        await Promise.all(payload.payPeriods.map((period: { id: string }) => payPeriodStore.setItem(period.id, period)));
-        await Promise.all(payload.documents.map((doc: { id: string }) => documentStore.setItem(doc.id, doc)));
-        await Promise.all(payload.contracts.map((contract: { id: string }) => contractStore.setItem(contract.id, contract)));
+        await Promise.all(payload.employees.map((employee: { id: string }) => employeeStore.setItem(employee.id, encodeStoredRecord(employee))));
+        await Promise.all(payload.payslips.map((payslip: { id: string }) => payslipStore.setItem(payslip.id, encodeStoredRecord(payslip))));
+        await Promise.all(payload.leave.map((record: { id: string }) => leaveStore.setItem(record.id, encodeStoredRecord(record))));
+        await Promise.all(payload.payPeriods.map((period: { id: string }) => payPeriodStore.setItem(period.id, encodeStoredRecord(period))));
+        await Promise.all(payload.documents.map((doc: { id: string }) => documentStore.setItem(doc.id, encodeStoredRecord(doc))));
+        await Promise.all(payload.contracts.map((contract: { id: string }) => contractStore.setItem(contract.id, encodeStoredRecord(contract))));
     }, { storeNames: [...STORE_NAMES], payload });
 }
 

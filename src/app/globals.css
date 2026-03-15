@@ -86,6 +86,16 @@
   --space-6: 32px;
   --space-7: 48px;
   --space-8: 64px;
+  --page-gutter: clamp(1rem, 2vw, 2rem);
+  --container-reading: 46rem;
+  --container-standard: 84rem;
+  --container-wide: 108rem;
+  --container-ultrawide: 118rem;
+  --app-shell-width: clamp(17.75rem, 18vw, 20.5rem);
+  --app-shell-rail-width: clamp(17.5rem, 21vw, 21rem);
+  --touch-target-min: 44px;
+  --type-floor-compact: 0.75rem;
+  --type-floor-touch: 0.8125rem;
 
   /* ─── Typography Scale Variables ────────────────────────────────────────── */
   --font-serif: "IBM Plex Serif", ui-serif, Georgia, serif;
@@ -226,6 +236,12 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    BASE STYLES
    ═══════════════════════════════════════════════════════════════════════════ */
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
@@ -238,8 +254,12 @@ body {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
-  overscroll-behavior-y: none;
-  overflow-x: hidden;
+  overscroll-behavior-y: auto;
+  overflow-x: clip;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 320px;
   font-size: var(--body-size);
   line-height: var(--body-lh);
 }
@@ -509,17 +529,15 @@ p,
 }
 
 .content-container {
-  max-width: 1320px;
+  width: min(100%, var(--container-standard));
   margin-left: auto;
   margin-right: auto;
-  width: 100%;
 }
 
 .content-container-narrow {
-  max-width: 640px;
+  width: min(100%, var(--container-reading));
   margin-left: auto;
   margin-right: auto;
-  width: 100%;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -618,10 +636,51 @@ p,
 
 /* Wider container for ultrawide layouts with multi-column panels */
 .content-container-wide {
-  max-width: 1680px;
+  width: min(100%, var(--container-wide));
   margin-left: auto;
   margin-right: auto;
-  width: 100%;
+}
+
+.content-container-ultrawide {
+  width: min(100%, var(--container-ultrawide));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content-container-reading {
+  width: min(100%, var(--container-reading));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 1536px) {
+  .content-container {
+    width: min(100%, calc(var(--container-standard) + 6rem));
+  }
+}
+
+.app-shell-offset {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .app-shell-offset {
+    padding-left: var(--app-shell-width);
+  }
+}
+
+.app-shell-drawer {
+  width: min(calc(100vw - 1rem), var(--app-shell-width));
+}
+
+@media (min-width: 1024px) {
+  .app-shell-drawer {
+    width: var(--app-shell-width);
+  }
+}
+
+.app-shell-rail {
+  width: min(100%, var(--app-shell-rail-width));
 }
 
 /* Full-bleed section background band (content still centered) */
@@ -786,6 +845,43 @@ p,
   border-radius: var(--radius-2);
 }
 
+.text-\[7px\],
+.text-\[8px\],
+.text-\[9px\],
+.text-\[10px\],
+.text-\[11px\] {
+  font-size: var(--type-floor-compact) !important;
+  line-height: 1.35 !important;
+}
+
+@media (max-width: 640px) {
+  .text-\[7px\],
+  .text-\[8px\],
+  .text-\[9px\],
+  .text-\[10px\],
+  .text-\[11px\] {
+    font-size: var(--type-floor-touch) !important;
+    line-height: 1.4 !important;
+  }
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+a:has(> button) {
+  display: inline-flex;
+  align-items: stretch;
+  max-width: 100%;
+}
+
+a:has(> button) > button {
+  flex: 1 1 auto;
+}
+
 .policy-copy {
   max-width: 72ch;
   color: var(--text-muted);
@@ -827,8 +923,13 @@ summary svg {
   button:not(.size-sm),
   a[role="button"],
   [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+  }
+
+  summary,
+  a:has(> button) {
+    min-height: var(--touch-target-min);
   }
 }
 
@@ -844,8 +945,8 @@ summary svg {
 /* Prevent horizontal scroll on mobile */
 @media (max-width: 768px) {
   body {
-    overflow-x: hidden;
-    width: 100vw;
+    overflow-x: clip;
+    width: 100%;
     max-width: 100%;
   }
 }

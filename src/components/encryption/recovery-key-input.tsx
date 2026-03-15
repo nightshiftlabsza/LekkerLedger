@@ -46,10 +46,10 @@ export function RecoveryKeyInput({
                     <ShieldCheck className="w-8 h-8" strokeWidth={2} />
                 </div>
                 <h1 className="font-serif text-2xl font-bold text-[var(--text)] mb-3 tracking-tight">
-                    Unlock Your Records
+                    Unlock your records
                 </h1>
                 <p className="text-[var(--text-muted)] text-[0.95rem] leading-relaxed max-w-[38ch] mx-auto">
-                    To keep your data private, your records are locked with your unique recovery key. Please enter it below to continue.
+                    This account uses Maximum Privacy. Enter your recovery key to open the encrypted records on this device.
                 </p>
             </div>
 
@@ -100,7 +100,7 @@ export function RecoveryKeyInput({
                             Unlocking...
                         </>
                     ) : (
-                        "Unlock & Continue"
+                        "Unlock records"
                     )}
                 </button>
             </form>

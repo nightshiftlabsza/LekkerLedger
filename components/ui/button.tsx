@@ -64,7 +64,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                 sizeClasses = "min-h-[44px] px-4 py-2.5 type-label rounded-[12px]";
                 break;
             case "sm":
-                sizeClasses = "min-h-[40px] px-3 py-2 text-sm rounded-[10px]";
+                sizeClasses = "min-h-[44px] px-3.5 py-2.5 text-sm rounded-[10px]";
                 break;
             case "lg":
                 sizeClasses = "min-h-[48px] px-6 py-3 text-base rounded-[14px]";

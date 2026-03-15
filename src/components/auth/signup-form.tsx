@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getBrowserAppOrigin } from "@/lib/app-origin";
 import { readPendingBillingEmail, readPendingBillingReference } from "@/lib/billing-handoff";
 import { buildPaidDashboardHref, PAID_LOGIN_SUCCESS_QUERY } from "@/lib/paid-activation";
+import { storePasswordHandoff } from "@/lib/password-handoff";
 
 function mapSignUpError(message: string): string {
     const lower = message.toLowerCase();
@@ -92,6 +93,8 @@ export function SignUpForm({
             setIsLoading(false);
             return;
         }
+
+        storePasswordHandoff(email, password);
 
         setIsSuccess(true);
         setIsLoading(false);

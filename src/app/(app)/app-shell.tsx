@@ -10,10 +10,11 @@ import { CloudOff, X, AlertOctagon, CreditCard, ChevronDown, CircleUserRound, Lo
 import { useAppConnectivity } from "@/app/hooks/use-app-connectivity";
 import { Logo } from "@/components/ui/logo";
 import { AddHouseholdDialog } from "@/components/household/add-household-dialog";
+import { useAuthState } from "@/components/auth/auth-state-provider";
 import { useUI } from "@/components/theme-provider";
 import { getHouseholds, getSettings, resetAllData, saveHousehold, setActiveHouseholdId, subscribeToDataChanges } from "@/lib/storage";
 import { Household, EmployerSettings } from "@/lib/schema";
-import { canUseMultipleHouseholds, getPlanById } from "@/lib/entitlements";
+import { canUseMultipleHouseholds, getPlanById, getUserPlan } from "@/lib/entitlements";
 import { isPaidDashboardFlow, shouldRedirectFreeUserFromApp } from "@/lib/app-access";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 import { AppModeProvider, useAppMode } from "@/lib/app-mode";
@@ -21,6 +22,9 @@ import { RecoveryGate } from "@/components/encryption/recovery-gate";
 import { clearVerifiedEntitlementsCache, fetchBillingAccount } from "@/lib/billing-client";
 import { createClient } from "@/lib/supabase/client";
 import { deleteLocalRecoveryProfile } from "@/lib/recovery-profile-store";
+import { clearPasswordHandoff } from "@/lib/password-handoff";
+import { consumeRecoveryNotice } from "@/lib/recovery-notice";
+import { getEncryptionModeLabel, getLockedSummary, getRecoveryCompletedText, getSettingsSummary, getSignOutRestoreText, type EncryptionMode } from "@/lib/encryption-mode";
 
 function getSyncBannerMessage(syncConflict: boolean, syncErrorMessage: string | null) {
     if (syncConflict) {
@@ -119,6 +123,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const { user, isLoading: authLoading } = useAuthState();
     const { network, sync, syncErrorMessage, payments } = useAppConnectivity();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
@@ -158,6 +163,10 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
     });
 
     React.useEffect(() => {
+        if (authLoading) {
+            return;
+        }
+
         let active = true;
         let lastLoadPromise: Promise<unknown> | null = null;
 
@@ -165,7 +174,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
             const thisPromise = Promise.all([
                 getHouseholds(),
                 getSettings(),
-                fetchBillingAccount().catch(() => null),
+                user?.id ? fetchBillingAccount().catch(() => null) : Promise.resolve(null),
             ]);
             lastLoadPromise = thisPromise;
             
@@ -177,7 +186,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
             setSettingsReady(true);
             const nextVerifiedPlanId = billingAccount?.entitlements.isActive
                 ? billingAccount.entitlements.planId
-                : "free";
+                : getUserPlan(settings).id;
             setVerifiedPlanId(nextVerifiedPlanId);
             setBillingReady(true);
             if (settings) {
@@ -195,7 +204,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
             active = false;
             unsubscribe();
         };
-    }, []);
+    }, [authLoading, user?.id]);
 
     React.useEffect(() => {
         if (!shouldRedirectFreeUserFromApp({
@@ -278,7 +287,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
 
     return (
         <AppModeProvider>
-            <div className="min-h-screen flex flex-col lg:pl-[300px] xl:pl-[320px] 2xl:pl-[340px]" style={{ backgroundColor: "var(--bg)" }}>
+            <div className="app-shell-offset flex min-h-screen flex-col" style={{ backgroundColor: "var(--bg)" }}>
                 <div className="hidden lg:block">
                     <SideDrawer
                         open={moreOpen}
@@ -377,12 +386,13 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
                     showPaymentsBanner={showPaymentsBanner}
                     setPaymentsBannerDismissed={setPaymentsBannerDismissed}
                 />
+                <RecoveryNoticeBanner />
 
                 <main
                     id="main-content"
                     className={`flex-1 w-full flex flex-col pb-24 sm:pb-28 lg:pb-12 safe-area-pb ${isDashboardShell
-                        ? "content-container-wide gap-4 px-3 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:gap-6 lg:px-6 lg:py-6 xl:px-8"
-                        : "content-container-wide gap-4 px-3 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:gap-8 lg:px-8 lg:py-8"
+                        ? "content-container-wide min-w-0 gap-4 px-3 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:gap-6 lg:px-6 lg:py-6 xl:px-8"
+                        : "content-container-wide min-w-0 gap-4 px-3 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:gap-8 lg:px-8 lg:py-8"
                         }`}
                 >
                     <RecoveryGate>
@@ -411,12 +421,38 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
     );
 }
 
-function getAccountSyncStatus(mode: string, sync: string, syncErrorMessage: string | null) {
+function RecoveryNoticeBanner() {
+    const [noticeMode, setNoticeMode] = React.useState<EncryptionMode | null>(null);
+
+    React.useEffect(() => {
+        const notice = consumeRecoveryNotice();
+        if (!notice) {
+            return;
+        }
+
+        setNoticeMode(notice.mode);
+    }, []);
+
+    if (!noticeMode) {
+        return null;
+    }
+
+    return (
+        <div className="content-container-wide px-3 pt-3 sm:px-6 lg:px-8">
+            <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 px-4 py-3 text-sm text-[var(--text)] shadow-[var(--shadow-sm)]">
+                <p className="font-semibold text-[var(--primary)]">{getEncryptionModeLabel(noticeMode)}</p>
+                <p className="mt-1 text-[var(--text-muted)]">{getRecoveryCompletedText(noticeMode)}</p>
+            </div>
+        </div>
+    );
+}
+
+function getAccountSyncStatus(mode: string, encryptionMode: EncryptionMode | null, sync: string, syncErrorMessage: string | null) {
     if (mode === "account_locked") {
         return {
             state: "Account Locked",
-            summary: "Your encrypted data is paused until you provide your recovery key.",
-            toneClass: "text-[var(--warning)]"
+            summary: getLockedSummary(encryptionMode),
+            toneClass: "text-[var(--warning)]",
         };
     }
     
@@ -425,27 +461,27 @@ function getAccountSyncStatus(mode: string, sync: string, syncErrorMessage: stri
             return {
                 state: "Sync needs attention",
                 summary: syncErrorMessage ?? "Your account is connected, but the latest cloud backup hit a problem. Open Settings > Storage & backup.",
-                toneClass: "text-[var(--danger)]"
+                toneClass: "text-[var(--danger)]",
             };
         }
         if (sync === "reconnecting") {
             return {
                 state: "Sync reconnecting",
                 summary: "Your account is connected. Cloud backup will resume once this device is back online.",
-                toneClass: "text-[var(--primary)]"
+                toneClass: "text-[var(--primary)]",
             };
         }
         return {
-            state: "Cloud Sync Active",
-            summary: "Your data is securely encrypted and synced to the cloud.",
-            toneClass: "text-[var(--primary)]"
+            state: encryptionMode ? getEncryptionModeLabel(encryptionMode) : "Cloud Sync Active",
+            summary: encryptionMode ? getSettingsSummary(encryptionMode) : "Your data is securely encrypted and synced to the cloud.",
+            toneClass: "text-[var(--primary)]",
         };
     }
 
     return {
         state: "Local mode",
         summary: "Your data is stored securely on this device. No cloud sync.",
-        toneClass: "text-[var(--text)]"
+        toneClass: "text-[var(--text)]",
     };
 }
 
@@ -463,10 +499,10 @@ function AccountMenu({
     const [open, setOpen] = React.useState(false);
     const [signOutPromptOpen, setSignOutPromptOpen] = React.useState(false);
     const [signingOut, setSigningOut] = React.useState<"keep" | "delete" | null>(null);
-    const [accountEmail, setAccountEmail] = React.useState("");
     const menuRef = React.useRef<HTMLDivElement | null>(null);
     const router = useRouter();
     const supabase = React.useMemo(() => createClient(), []);
+    const { user } = useAuthState();
     const { theme, resolvedTheme, setTheme } = useUI();
     const themeOptions = [
         { value: "system" as const, label: "System", icon: Monitor },
@@ -491,29 +527,10 @@ function AccountMenu({
         };
     }, []);
 
-    React.useEffect(() => {
-        let active = true;
+    const { mode, encryptionMode, lockAccount } = useAppMode();
+    const accountEmail = user?.email ?? "";
 
-        async function loadEmail() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!active) return;
-            setAccountEmail(user?.email ?? "");
-        }
-
-        loadEmail();
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setAccountEmail(session?.user?.email ?? "");
-        });
-
-        return () => {
-            active = false;
-            subscription.unsubscribe();
-        };
-    }, [supabase.auth]);
-
-    const { mode, lockAccount } = useAppMode();
-
-    const { state: accountState, summary: accountSummary, toneClass: accountToneClass } = getAccountSyncStatus(mode, sync, syncErrorMessage);
+    const { state: accountState, summary: accountSummary, toneClass: accountToneClass } = getAccountSyncStatus(mode, encryptionMode, sync, syncErrorMessage);
 
     const handleSignOut = React.useCallback(async (dataMode: "keep" | "delete") => {
         if (signingOut) return;
@@ -521,6 +538,7 @@ function AccountMenu({
 
         try {
             clearVerifiedEntitlementsCache();
+            clearPasswordHandoff();
             const { data: { user } } = await supabase.auth.getUser();
             if (user?.id) {
                 await deleteLocalRecoveryProfile(user.id);
@@ -582,6 +600,12 @@ function AccountMenu({
                         </div>
 
                         <div className="mt-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/45 p-3">
+                            {encryptionMode ? (
+                                <div className="mb-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 text-xs leading-6 text-[var(--text-muted)]">
+                                    <span className="font-semibold text-[var(--text)]">{getEncryptionModeLabel(encryptionMode)}</span>
+                                    {` - ${getSettingsSummary(encryptionMode)}`}
+                                </div>
+                            ) : null}
                             <div className="flex items-start justify-between gap-3">
                                 <div>
                                     <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Theme</p>
@@ -697,7 +721,7 @@ function AccountMenu({
                                 <ul className="mt-4 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
                                     <li>Keeping local data does not keep you logged in.</li>
                                     <li>Deleting local data does not cancel your paid plan.</li>
-                                    <li>You can still restore on the next login with your recovery key.</li>
+                                    <li>{getSignOutRestoreText(encryptionMode)}</li>
                                 </ul>
                             </aside>
                         </div>

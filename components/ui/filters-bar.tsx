@@ -51,8 +51,8 @@ export function FiltersBar({
     return (
         <div className={`space-y-3 ${className}`}>
             {/* Search row */}
-            <div className="flex items-center gap-2">
-                <div className="relative flex-1">
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="relative min-w-0 flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
                     <input
                         type="text"
@@ -64,7 +64,7 @@ export function FiltersBar({
                     {searchValue && (
                         <button
                             onClick={() => onSearchChange("")}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)]"
+                            className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-[var(--text-muted)] hover:text-[var(--text)]"
                         >
                             <X className="h-3.5 w-3.5" />
                         </button>
@@ -73,10 +73,10 @@ export function FiltersBar({
 
                 {/* Sort dropdown */}
                 {sortOptions && sortOptions.length > 0 && (
-                    <div className="relative" ref={sortRef}>
+                    <div className="relative shrink-0" ref={sortRef}>
                         <button
                             onClick={() => setSortOpen(!sortOpen)}
-                            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-xs font-bold text-[var(--text-muted)] hover:bg-[var(--surface-2)] transition-colors"
+                            className="flex min-h-[44px] w-full items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] text-xs font-bold text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)] sm:w-auto"
                         >
                             <SlidersHorizontal className="h-3.5 w-3.5" />
                             Sort
@@ -104,12 +104,12 @@ export function FiltersBar({
 
             {/* Filter chips */}
             {filters && filters.length > 0 && (
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                <div className="flex flex-wrap items-stretch gap-2 pb-1 sm:flex-nowrap sm:items-center sm:overflow-x-auto sm:no-scrollbar">
                     {filters.map(chip => (
                         <button
                             key={chip.key}
                             onClick={() => onFilterToggle?.(chip.key)}
-                            className={`shrink-0 px-3 py-1.5 min-h-[36px] rounded-full text-[11px] font-bold uppercase tracking-wide border transition-colors ${chip.active
+                            className={`min-h-[44px] max-w-full rounded-full border px-3 py-2 text-[12px] font-bold uppercase tracking-wide transition-colors sm:shrink-0 ${chip.active
                                     ? "bg-[var(--primary)] text-white border-[var(--primary)]"
                                     : "bg-transparent text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
                                 }`}

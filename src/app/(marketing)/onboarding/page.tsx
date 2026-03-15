@@ -12,8 +12,8 @@ const steps = [
         body: "Paid plans add encrypted cloud backup, documents, contracts, and easier restore across devices.",
     },
     {
-        title: "Protect restore with your recovery key",
-        body: "When you unlock sync, your recovery key protects the encrypted cloud copy on every later device.",
+        title: "Choose your recovery style later",
+        body: "When you enable encrypted backup, you can choose Recoverable Encryption for easier recovery or Maximum Privacy for key-only recovery.",
     },
 ] as const;
 
@@ -76,7 +76,7 @@ export default function OnboardingPage() {
                     <ul className="mt-6 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
                         <li>No account is required to begin the free local workflow.</li>
                         <li>Paid plans unlock encrypted backup, billing, and account-based restore.</li>
-                        <li>On a new device, log in first, then enter your recovery key to unlock synced records.</li>
+                        <li>On a new device, log in first, then follow that account&apos;s secure unlock step to open synced records.</li>
                     </ul>
                 </aside>
             </div>
