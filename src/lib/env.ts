@@ -76,7 +76,15 @@ function validatePublicEnv() {
 }
 
 export function getRequiredEnvValue(name: string): string {
-    const value = process.env[name]?.trim();
+    const publicEnvValues: Record<string, string | undefined> = {
+        NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+        NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+        NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    };
+
+    const value = (publicEnvValues[name] ?? process.env[name])?.trim();
     if (!value || value === "undefined" || value === "null") {
         throw new Error(`Missing required environment variable: ${name}`);
     }
