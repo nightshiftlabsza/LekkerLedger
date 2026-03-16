@@ -18,7 +18,7 @@ import { HOMEPAGE_PRICING_LINK_LABEL, PRICING_PAGE_SUBTITLE, PRICING_PAGE_TITLE 
 import { useMarketingBillingCycle } from "@/src/lib/use-marketing-billing-cycle";
 import { MarketingHeader } from "../../../components/layout/marketing-header";
 
-const SAMPLE_FIGURE_GRID = "grid grid-cols-[minmax(0,1fr)_3.6rem_5.25rem_6rem] gap-x-2 sm:grid-cols-[minmax(0,1fr)_4.25rem_5.75rem_6.75rem] sm:gap-x-3";
+const SAMPLE_FIGURE_GRID = "hidden sm:grid sm:grid-cols-[minmax(0,1fr)_4.25rem_5.75rem_6.75rem] sm:gap-x-3";
 const HERO_TRUST_POINTS = [
     "UIF deductions are clearly shown on each payslip.",
     "Contracts, exports, and payroll records stay together.",
@@ -284,6 +284,17 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                             <span className="text-right">Total</span>
                         </div>
 
+                        <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 sm:hidden">
+                            <div>
+                                <p className="text-[11px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
+                                    Pay breakdown
+                                </p>
+                                <p className="mt-1 text-xs leading-5" style={{ color: "var(--text-muted)" }}>
+                                    Earnings, deductions, and totals reformatted for smaller screens.
+                                </p>
+                            </div>
+                        </div>
+
                         <div className="space-y-1 pt-2">
                             <SampleFigureRow
                                 label="Ordinary Hours"
@@ -302,10 +313,10 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-1 xl:border-l xl:border-[var(--border)] xl:pl-5">
+                <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-1 xl:border-l xl:border-[var(--border)] xl:pl-5">
                     <ProofMetric label="Gross earnings" value={formatRand(sample.breakdown.grossPay)} />
                     <ProofMetric label="UIF deduction" value={`- ${formatRand(sample.breakdown.deductions.uifEmployee)}`} />
-                    <ProofMetric className="col-span-2 sm:col-span-1" label="Net pay" value={formatRand(sample.breakdown.netPay)} emphasis />
+                    <ProofMetric className="min-[360px]:col-span-2 sm:col-span-1" label="Net pay" value={formatRand(sample.breakdown.netPay)} emphasis />
                     <div
                         className="hidden rounded-[20px] border border-[var(--focus)]/20 p-4 sm:col-span-3 sm:block xl:col-span-1"
                         style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.08) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
@@ -388,24 +399,68 @@ function SamplePartyBlock({
 }
 
 function SampleFigureRow({ label, hours, rate, total, bold = false }: Readonly<{ label: string; hours: string; rate: string; total: string; bold?: boolean }>) {
+    const detailItems = [
+        hours ? { label: "Hours", value: hours } : null,
+        rate ? { label: "Rate", value: rate } : null,
+    ].filter((item): item is { label: string; value: string } => item !== null);
+
     return (
-        <div
-            className={`${SAMPLE_FIGURE_GRID} items-baseline py-2`}
-            style={{ fontSize: "clamp(0.76rem, 0.72rem + 0.16vw, 0.92rem)" }}
-        >
-            <span className={`pr-2 ${bold ? "font-semibold" : ""}`} style={{ color: bold ? "var(--text)" : "var(--text-muted)" }}>
-                {label}
-            </span>
-            <span className="text-right tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
-                {hours}
-            </span>
-            <span className="text-right tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
-                {rate}
-            </span>
-            <span className={`text-right tabular-nums whitespace-nowrap ${bold ? "font-semibold" : ""}`} style={{ color: "var(--text)" }}>
-                {total}
-            </span>
-        </div>
+        <>
+            <div
+                className={`${SAMPLE_FIGURE_GRID} items-baseline py-2`}
+                style={{ fontSize: "clamp(0.82rem, 0.78rem + 0.16vw, 0.94rem)" }}
+            >
+                <span className={`pr-2 ${bold ? "font-semibold" : ""}`} style={{ color: bold ? "var(--text)" : "var(--text-muted)" }}>
+                    {label}
+                </span>
+                <span className="text-right tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
+                    {hours}
+                </span>
+                <span className="text-right tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
+                    {rate}
+                </span>
+                <span className={`text-right tabular-nums whitespace-nowrap ${bold ? "font-semibold" : ""}`} style={{ color: "var(--text)" }}>
+                    {total}
+                </span>
+            </div>
+
+            <div
+                className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-1)] px-3.5 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)] sm:hidden"
+                style={bold ? { background: "linear-gradient(135deg, rgba(0, 122, 77, 0.06) 0%, rgba(255, 255, 255, 0.98) 100%)" } : undefined}
+            >
+                <div className="flex items-start justify-between gap-3">
+                    <p className={`max-w-[12rem] text-sm leading-5 ${bold ? "font-semibold" : "font-medium"}`} style={{ color: bold ? "var(--text)" : "var(--text-muted)" }}>
+                        {label}
+                    </p>
+                    <div className="text-right">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: bold ? "var(--primary)" : "var(--text-muted)" }}>
+                            Total
+                        </p>
+                        <p className={`mt-1 text-base leading-5 tabular-nums ${bold ? "font-semibold" : "font-medium"}`} style={{ color: "var(--text)" }}>
+                            {total}
+                        </p>
+                    </div>
+                </div>
+
+                {detailItems.length > 0 ? (
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                        {detailItems.map((item) => (
+                            <div
+                                key={`${label}-${item.label}`}
+                                className="rounded-[14px] border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-2"
+                            >
+                                <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--text-muted)" }}>
+                                    {item.label}
+                                </p>
+                                <p className="mt-1 text-sm font-medium leading-5 tabular-nums" style={{ color: "var(--text)" }}>
+                                    {item.value}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                ) : null}
+            </div>
+        </>
     );
 }
 
@@ -589,16 +644,16 @@ function FAQPreview() {
             a: "You do not need to know everything before you start. LekkerLedger helps you keep the records organised and review the main figures clearly. For unusual situations, verify against official guidance before you rely on the record.",
         },
         {
-            q: "Are employee records stored on LekkerLedger servers?",
-            a: "Employee records stay on your device by default. Paid plans can add optional end-to-end encrypted cloud sync to keep your records accessible across all your devices.",
+            q: "Where are employee records stored?",
+            a: "Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users generate a payslip PDF directly in the browser and download it — no records are kept after the session.",
         },
         {
             q: "Can I start with one employee, and what changes when I upgrade?",
-            a: "Yes. Free supports one active employee and basic payslips, so you can try the monthly flow before paying. Standard adds leave tracking, contracts, documents, backup, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
+            a: "Yes. Free gives you one payslip per month as a downloadable PDF so you can try the flow before paying. Standard adds leave tracking, contracts, documents, cloud-secured records, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
         },
         {
             q: "What happens if I change devices later?",
-            a: "Free is simplest on one device. Paid cloud sync lets you restore records instantly on any new browser or device after logging into your LekkerLedger account.",
+            a: "Paid accounts store everything in the cloud. Just sign in on any device and your records are there. Free users download a PDF each time, so there is nothing to restore.",
         },
     ];
 

@@ -111,7 +111,7 @@ export default function PricingPage() {
                                 </h3>
                                 <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Records stay on your device by default. Paid plans add encrypted sync across browsers and devices.
+                                        Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device. Free generates one downloadable PDF per month with no stored data.
                                     </p>
                                     <p>
                                         Standard and Pro include the documents hub. Pro adds the Vault, automatic backups, year-end summaries, and longer browsable history.

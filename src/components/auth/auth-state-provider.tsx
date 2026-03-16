@@ -3,6 +3,7 @@
 import * as React from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { clearAllUserDataOnSignOut } from "@/lib/sign-out-cleanup";
 
 export interface AuthUserSnapshot {
     id: string;
@@ -64,6 +65,9 @@ export function AuthStateProvider({
         try {
             await supabase.auth.signOut();
             applyUserSnapshot(null);
+            // Clear all locally persisted user data — paid users' data
+            // is cloud-secured and must not remain on the device.
+            await clearAllUserDataOnSignOut();
         } catch (error) {
             console.warn("Could not sign out of Supabase.", error);
         }

@@ -1,6 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
-import { Shield, Lock, HardDrive, Scale, ArrowRight, WalletCards, FolderSync, KeyRound, Bug } from "lucide-react";
+import { Shield, Lock, Scale, ArrowRight, WalletCards, FolderSync, KeyRound, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { COMPLIANCE } from "@/lib/compliance-constants";
@@ -48,13 +48,13 @@ export default function TrustCenterPage() {
                     <div className="grid md:grid-cols-2 gap-8">
                         <div className="space-y-4">
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                We take a local-first approach to payroll records. Employee names, wages, and ID details stay on your device by default instead of being uploaded into a central LekkerLedger payroll database.
+                                Paid accounts store payroll records in end-to-end encrypted cloud storage. Employee names, wages, and ID details are encrypted on your device before upload and can only be decrypted with your credentials.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                This architecture reduces how much employee payroll data LekkerLedger needs to handle directly. On paid plans, your backup is stored in encrypted form and you choose between Recoverable Encryption and Maximum Privacy during secure setup.
+                                This architecture means LekkerLedger does not have access to your unencrypted payroll data. You choose between Recoverable Encryption and Maximum Privacy during secure setup.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Free does not require an account. A sign-in is only needed if you choose paid encrypted sync to back up and restore across devices.
+                                Free users generate a single payslip PDF per month without an account. No payroll data is stored after the session.
                             </p>
                             <Link href="/storage" className="inline-flex items-center text-sm font-bold text-[var(--primary)] hover:underline mt-2">
                                 Read the storage guide <ArrowRight className="h-4 w-4 ml-1" />
@@ -62,14 +62,14 @@ export default function TrustCenterPage() {
                         </div>
                         <div className="grid sm:grid-cols-2 gap-4">
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
-                                <HardDrive className="mb-3 h-5 w-5 text-[var(--text-muted)]" />
-                                <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Local Storage</h4>
-                                <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>Your payroll records are stored in your browser&apos;s IndexedDB by default and are not uploaded to a LekkerLedger central employee database.</p>
+                                <FolderSync className="mb-3 h-5 w-5 text-[var(--success)]" />
+                                <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Cloud-Secured Storage</h4>
+                                <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>Paid accounts encrypt records on-device and store them in the cloud. Accessible from any device after sign-in.</p>
                             </div>
                             <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
-                                <FolderSync className="mb-3 h-5 w-5 text-[var(--success)]" />
-                                <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Encrypted Sync</h4>
-                                <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>Paid plans include encrypted sync to back up and restore records across browsers and devices.</p>
+                                <Lock className="mb-3 h-5 w-5 text-[var(--primary)]" />
+                                <h4 className="font-bold mb-1" style={{ color: "var(--text)" }}>Sign-Out Cleanup</h4>
+                                <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>When a paid user signs out, all data is cleared from the device. Records remain safe in encrypted cloud storage.</p>
                             </div>
                         </div>
                     </div>
@@ -85,10 +85,10 @@ export default function TrustCenterPage() {
                     </div>
                     <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
-                            <HardDrive className="mb-3 h-5 w-5 text-[var(--text-muted)]" />
-                            <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Local by default</h4>
+                            <Shield className="mb-3 h-5 w-5 text-[var(--primary)]" />
+                            <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Encrypted cloud storage</h4>
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Payroll records stay in your browser storage by default. They are not uploaded to a LekkerLedger employee database unless you choose encrypted sync on a paid plan.
+                                Paid accounts encrypt records on-device before upload. LekkerLedger does not have access to your unencrypted payroll data.
                             </p>
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
@@ -114,7 +114,7 @@ export default function TrustCenterPage() {
                         </div>
                     </div>
                     <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-5 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                        Account email and sync-permission state may be stored locally on your device so reconnect and restore flows can work. This page is meant to describe the current setup plainly, not to claim enterprise-grade controls that are not in place.
+                        Temporary session data (such as authentication tokens) may exist in the browser during an active session. When a paid user signs out, all user data is cleared from the device. This page describes the current setup plainly, not to claim enterprise-grade controls that are not in place.
                     </div>
                 </section>
 

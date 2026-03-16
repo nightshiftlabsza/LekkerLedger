@@ -74,7 +74,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             "1 active employee",
             "Monthly payslips — preview, download, share",
             "Household checklist and guides",
-            "Stored on this device",
+            "One payslip per month as PDF",
         ],
     },
     standard: {
@@ -113,7 +113,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             "Upload signed copies of your contracts",
             "Documents hub for payslips and contracts",
             "uFiling CSV export and ROE downloads",
-            "Encrypted sync across devices",
+            "Cloud-secured storage, any device",
             "12 months of browsable history",
         ],
     },

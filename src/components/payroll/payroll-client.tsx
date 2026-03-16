@@ -50,7 +50,7 @@ export function PayrollClient() {
     let lockedPeriods = periods.filter(p => p.status === "locked");
     if (employeeIdFilter) {
         lockedPeriods = lockedPeriods.filter(p =>
-            p.entries.some(e => e.employeeId === employeeIdFilter)
+            (p.entries ?? []).some(e => e.employeeId === employeeIdFilter)
         );
     }
     const filteredEmployee = employeeIdFilter ? employees.find(e => e.id === employeeIdFilter) : null;
@@ -124,15 +124,15 @@ export function PayrollClient() {
                             <div className="flex justify-between text-xs font-bold">
                                 <span className="text-[var(--text-muted)]">Household progress</span>
                                 <span className="text-[var(--text)]">
-                                    {currentPeriod.entries.filter(e => e.status === "complete").length} of {currentPeriod.entries.length} employees done
+                                    {(currentPeriod.entries ?? []).filter(e => e.status === "complete").length} of {(currentPeriod.entries ?? []).length} employees done
                                 </span>
                             </div>
                             <div className="h-2 rounded-full bg-[var(--surface-2)] overflow-hidden">
                                 <div
                                     className="h-full rounded-full bg-[var(--primary)] transition-all duration-500"
                                     style={{
-                                        width: `${currentPeriod.entries.length > 0
-                                            ? (currentPeriod.entries.filter(e => e.status === "complete").length / currentPeriod.entries.length) * 100
+                                        width: `${(currentPeriod.entries ?? []).length > 0
+                                            ? ((currentPeriod.entries ?? []).filter(e => e.status === "complete").length / (currentPeriod.entries ?? []).length) * 100
                                             : 0}%`,
                                     }}
                                 />

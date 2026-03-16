@@ -162,12 +162,14 @@ function buildDefaultSettings(overrides: Partial<EmployerSettings> = {}): Employ
 
         piiObfuscationEnabled: true,
         installationId: "",
-        usageHistory: [],
-        customLeaveTypes: [],
         ...overrides,
+        // Array fields must survive stale IndexedDB data that may have undefined/null.
         proStatus: normalizedPlanId,
         billingCycle: inferredBillingCycle,
         activeHouseholdId: overrides.activeHouseholdId ?? DEFAULT_HOUSEHOLD_ID,
+        // Ensure array fields are always arrays even if stale data has undefined/null
+        usageHistory: Array.isArray(overrides.usageHistory) ? overrides.usageHistory : [],
+        customLeaveTypes: Array.isArray(overrides.customLeaveTypes) ? overrides.customLeaveTypes : [],
     };
 }
 
@@ -828,11 +830,22 @@ export async function logAuditEvent(action: AuditLog["action"], details: string,
     await auditStore.setItem(log.id, log);
 }
 
+/**
+ * Ensures a PayPeriod read from IndexedDB always has a valid `entries` array.
+ * Stale data from older builds may lack this field, causing crashes on `.filter()` / `.map()`.
+ */
+function normalizePayPeriod(raw: PayPeriod): PayPeriod {
+    return {
+        ...raw,
+        entries: Array.isArray(raw.entries) ? raw.entries : [],
+    };
+}
+
 export async function getPayPeriods(): Promise<PayPeriod[]> {
     return withStorageReadFallback("getPayPeriods", [], async () => {
         const periods: PayPeriod[] = [];
         await payPeriodStore.iterate<PayPeriod, void>((value: PayPeriod) => {
-            periods.push(value);
+            periods.push(normalizePayPeriod(value));
         });
         return periods.sort((a, b) => b.endDate.localeCompare(a.endDate));
     });

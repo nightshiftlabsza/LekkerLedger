@@ -49,10 +49,10 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
         headline: "Start simple.",
         subtitle: "One worker. Basic monthly payslips. No sign-up needed.",
         features: [
-            "1 active employee",
-            "Monthly payslips — preview, download, share",
+            "1 payslip per month as PDF",
+            "Enter details, generate, download",
             "Household checklist and guides",
-            "Stored on this device",
+            "No account needed",
         ],
         ctaLabel: "Start free",
         ctaSubtext: "Public payslip tool. No billing. No account.",
@@ -84,7 +84,7 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "Upload signed contract copies",
             "Documents hub for payslips and contracts",
             "uFiling CSV export and ROE downloads",
-            "Encrypted sync",
+            "Cloud-secured storage",
             "12 months of history",
         ],
         ctaLabel: "Choose Standard",
@@ -177,8 +177,8 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
     {
         title: "Storage & backup",
         rows: [
-            { label: "Stored on device", values: { free: true, standard: true, pro: true } },
-            { label: "Encrypted sync", values: { free: false, standard: true, pro: true } },
+            { label: "Cloud-secured storage", values: { free: false, standard: true, pro: true } },
+            { label: "Access from any device", values: { free: false, standard: true, pro: true } },
         ],
     },
     {

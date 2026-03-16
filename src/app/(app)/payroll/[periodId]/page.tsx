@@ -71,7 +71,7 @@ export default function PayPeriodWorkspacePage() {
                 const periodStart = new Date(p.startDate).getTime();
                 const periodEnd = new Date(p.endDate).getTime();
                 const lmap: Record<string, LeaveRecord[]> = {};
-                for (const entry of p.entries) {
+                for (const entry of (p.entries ?? [])) {
                     const records = await getLeaveForEmployee(entry.employeeId);
                     const inRange = records.filter(r => {
                         const d = new Date(r.date).getTime();
@@ -97,7 +97,7 @@ export default function PayPeriodWorkspacePage() {
 
     const updateEntry = (employeeId: string, field: keyof EmployeeEntry, value: number | string) => {
         if (!period) return;
-        const entries = period.entries.map(e => {
+        const entries = (period.entries ?? []).map(e => {
             if (e.employeeId !== employeeId) return e;
             const updated = { ...e, [field]: value };
             // A status of "complete" means the user has interacted with the entry.
@@ -147,7 +147,7 @@ export default function PayPeriodWorkspacePage() {
         setSaving(true);
         try {
             // Generate payslips and document metadata so they appear in /documents
-            for (const entry of period.entries) {
+            for (const entry of (period.entries ?? [])) {
                 const emp = employees.find(e => e.id === entry.employeeId);
                 if (!emp) continue;
                 const payslipInput = entryToPayslipInput(entry, emp);
@@ -259,7 +259,7 @@ export default function PayPeriodWorkspacePage() {
         }
 
         const files: File[] = [];
-        for (const entry of period.entries) {
+        for (const entry of (period.entries ?? [])) {
             const emp = employees.find(e => e.id === entry.employeeId);
             if (!emp) continue;
             const payslipInput = entryToPayslipInput(entry, emp);
@@ -375,8 +375,9 @@ export default function PayPeriodWorkspacePage() {
     }
 
     const isLocked = period.status === "locked";
-    const completedCount = period.entries.filter(e => e.status === "complete").length;
-    const totalCount = period.entries.length;
+    const safeEntries = period.entries ?? [];
+    const completedCount = safeEntries.filter(e => e.status === "complete").length;
+    const totalCount = safeEntries.length;
     const allComplete = totalCount > 0 && completedCount === totalCount;
     const employerDetailsReady = hasRequiredEmployerDetails(settings);
 
@@ -449,7 +450,7 @@ export default function PayPeriodWorkspacePage() {
                             </div>
 
                             {(() => {
-                                const sections: ReviewSection[] = period.entries.map(entry => {
+                                const sections: ReviewSection[] = (period.entries ?? []).map(entry => {
                                     const emp = employees.find(e => e.id === entry.employeeId);
                                     if (!emp) return { title: "Unknown", items: [] };
                                     const input = entryToPayslipInput(entry, emp);
@@ -482,7 +483,7 @@ export default function PayPeriodWorkspacePage() {
                                 const allErrors: string[] = [];
                                 let totalCost = 0;
 
-                                period.entries.forEach(entry => {
+                                (period.entries ?? []).forEach(entry => {
                                     const emp = employees.find(e => e.id === entry.employeeId);
                                     if (!emp) return;
                                     const calc = calculatePayslip(entryToPayslipInput(entry, emp));
@@ -571,7 +572,7 @@ export default function PayPeriodWorkspacePage() {
                         </h3>
                     </div>
                     <div className="p-5 pt-3 space-y-3">
-                        {period.entries.map(entry => {
+                        {(period.entries ?? []).map(entry => {
                             const emp = employees.find(e => e.id === entry.employeeId);
                             if (!emp) return null;
                             const entryBreakdown = calculatePayslip(entryToPayslipInput(entry, emp));

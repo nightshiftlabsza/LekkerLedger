@@ -69,14 +69,15 @@ export function DashboardOverview({
     const plan = getUserPlan(settings);
     const employeeCount = employees.length;
     const currentMonth = format(new Date(), "MMMM yyyy");
-    const completedEntries = currentPeriod?.entries.filter((entry) => entry.status === "complete").length ?? 0;
-    const totalEntries = currentPeriod?.entries.length ?? 0;
+    const periodEntries = currentPeriod?.entries ?? [];
+    const completedEntries = periodEntries.filter((entry) => entry.status === "complete").length;
+    const totalEntries = periodEntries.length;
     const progressPercent = totalEntries > 0 ? Math.round((completedEntries / totalEntries) * 100) : 0;
     const latestPayrollTotal = summaries.reduce((sum, summary) => sum + (summary.netPay ?? 0), 0);
     const setupIncomplete = employeeCount === 0;
     const latestPeriod = allPeriods[0];
     const latestPeriodLocked = latestPeriod?.status === "locked" && latestPeriod?.name === currentMonth;
-    const pendingEntry = currentPeriod?.entries.find((entry) => entry.status !== "complete");
+    const pendingEntry = periodEntries.find((entry) => entry.status !== "complete");
     const pendingEmployee = employees.find((employee) => employee.id === pendingEntry?.employeeId);
     const hero = getHeroContent({
         currentPeriod,
@@ -317,7 +318,7 @@ function EmployeeRunCard({
                 <div className="divide-y divide-[var(--border)]">
                     {employees.map((employee) => {
                         const summary = summaryMap.get(employee.id);
-                        const entry = currentPeriod?.entries.find((item) => item.employeeId === employee.id);
+                        const entry = (currentPeriod?.entries ?? []).find((item) => item.employeeId === employee.id);
                         const status = entry?.status ?? (summary?.latestPayslip ? "complete" : "empty");
                         const rowHref = currentPeriod ? `/payroll/${currentPeriod.id}` : `/employees/${employee.id}`;
                         const actionLabel = (() => {

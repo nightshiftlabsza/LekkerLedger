@@ -89,16 +89,25 @@ export function MarketingHeader() {
                     ))}
                 </nav>
 
-                <div className="hidden lg:flex items-center">
+                <div className="hidden lg:flex items-center gap-3">
                     {user ? (
-                        <AccountMenu
-                            ref={accountMenuRef}
-                            email={user.email}
-                            open={accountMenuOpen}
-                            onToggle={() => setAccountMenuOpen((current) => !current)}
-                            onClose={() => setAccountMenuOpen(false)}
-                            onSignOut={handleSignOut}
-                        />
+                        <>
+                            <Link
+                                href="/dashboard"
+                                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_2px_8px_rgba(0,122,77,0.18)] transition-all hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2"
+                            >
+                                <LayoutDashboard className="h-4 w-4" />
+                                Dashboard
+                            </Link>
+                            <AccountMenu
+                                ref={accountMenuRef}
+                                email={user.email}
+                                open={accountMenuOpen}
+                                onToggle={() => setAccountMenuOpen((current) => !current)}
+                                onClose={() => setAccountMenuOpen(false)}
+                                onSignOut={handleSignOut}
+                            />
+                        </>
                     ) : (
                         <button
                             type="button"
@@ -158,18 +167,26 @@ export function MarketingHeader() {
                             <div className="mt-2 grid grid-cols-1 gap-2 border-t border-[var(--border)] pt-6">
                                 {user ? (
                                     <>
-                                        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 text-left shadow-[var(--shadow-sm)]">
-                                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Account</p>
-                                            <p className="mt-1 truncate text-sm font-semibold text-[var(--text)]">{user.email ?? "Paid account connected"}</p>
+                                        <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/6 px-4 py-3 text-left shadow-[0_1px_4px_rgba(0,122,77,0.08)]">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] text-white">
+                                                    <span className="text-sm font-bold leading-none">{user.email ? user.email.charAt(0).toUpperCase() : "A"}</span>
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">Account</p>
+                                                    <p className="mt-0.5 truncate text-sm font-semibold text-[var(--text)]">{user.email ?? "Paid account connected"}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                         <Link
                                             href="/dashboard"
                                             onClick={() => setMenuOpen(false)}
-                                            className="inline-flex min-h-[44px] w-full items-center justify-center rounded-[12px] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-2.5 text-sm font-bold text-[var(--text)] transition-colors hover:bg-[var(--surface-1)]"
+                                            className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-bold text-white shadow-[0_2px_8px_rgba(0,122,77,0.18)] transition-all hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]"
                                         >
-                                            Dashboard
+                                            <LayoutDashboard className="h-4 w-4" />
+                                            Go to Dashboard
                                         </Link>
-                                        <Button variant="ghost" className="h-12 w-full justify-center font-bold text-[var(--text)]" onClick={handleSignOut}>
+                                        <Button variant="ghost" className="h-12 w-full justify-center font-bold text-[var(--text-muted)]" onClick={handleSignOut}>
                                             Sign out
                                         </Button>
                                     </>
@@ -202,32 +219,23 @@ const AccountMenu = React.forwardRef<HTMLDivElement, {
                 aria-expanded={open}
                 aria-haspopup="menu"
                 aria-label="Open account menu"
-                className="inline-flex min-h-[44px] items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-2 text-left shadow-[var(--shadow-sm)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-1)]"
+                className="inline-flex min-h-[44px] items-center gap-2.5 rounded-2xl border border-[var(--primary)]/25 bg-[var(--primary)]/8 px-3.5 py-2 text-left shadow-[0_1px_4px_rgba(0,122,77,0.10)] transition-all hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2"
             >
-                <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Account</p>
-                    <p className="mt-1 max-w-[13rem] truncate text-sm font-semibold text-[var(--text)]">
-                        {email ?? "Paid account"}
-                    </p>
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] text-white">
+                    <span className="text-xs font-bold leading-none">{email ? email.charAt(0).toUpperCase() : "A"}</span>
                 </div>
-                <ChevronDown className={`h-4 w-4 shrink-0 text-[var(--text-muted)] transition-transform ${open ? "rotate-180" : ""}`} />
+                <p className="max-w-[11rem] truncate text-sm font-semibold text-[var(--primary)]">
+                    {email ?? "Paid account"}
+                </p>
+                <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-[var(--primary)]/60 transition-transform ${open ? "rotate-180" : ""}`} />
             </button>
 
             {open ? (
                 <div
                     role="menu"
                     aria-label="Account menu"
-                    className="absolute right-0 top-[calc(100%+0.75rem)] w-[15rem] rounded-[20px] border border-[var(--border)] bg-[var(--surface-1)] p-2 shadow-[0_18px_45px_rgba(16,24,40,0.16)]"
+                    className="absolute right-0 top-[calc(100%+0.75rem)] w-[13rem] rounded-[16px] border border-[var(--border)] bg-[var(--surface-1)] p-1.5 shadow-[0_18px_45px_rgba(16,24,40,0.16)]"
                 >
-                    <Link
-                        href="/dashboard"
-                        role="menuitem"
-                        onClick={onClose}
-                        className="flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--surface-raised)]"
-                    >
-                        <LayoutDashboard className="h-4 w-4 text-[var(--primary)]" />
-                        Dashboard
-                    </Link>
                     <button
                         type="button"
                         role="menuitem"

@@ -686,12 +686,12 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Storage Rules</h2>
                             <Card className="glass-panel border-none p-5 space-y-4 text-sm text-[var(--text-muted)] leading-relaxed">
-                                <p><strong>1. Local first:</strong> All payroll records are stored on this device first. Paid accounts can also keep an encrypted cloud copy.</p>
+                                <p><strong>1. Cloud-secured:</strong> All payroll records are stored in end-to-end encrypted cloud storage. Data is encrypted on this device before upload.</p>
                                 <p>
-                                    <strong>2. Current mode:</strong> {encryptionMode ? `${getEncryptionModeLabel(encryptionMode)} - ${getSettingsSummary(encryptionMode)}.` : "Choose a sync mode during secure setup if you enable cloud backup."}
+                                    <strong>2. Current mode:</strong> {encryptionMode ? `${getEncryptionModeLabel(encryptionMode)} - ${getSettingsSummary(encryptionMode)}.` : "Choose an encryption mode during secure setup."}
                                 </p>
-                                <p><strong>3. PDF generation:</strong> Payslips and contracts do not leave your device unless you explicitly share or export them.</p>
-                                <p><strong>4. Do not clear browser storage without a backup:</strong> If you clear browser data or lose this device before exporting or finishing cloud backup, your records on this device cannot be recovered.</p>
+                                <p><strong>3. PDF generation:</strong> Payslips and contracts are generated on-device. They are not shared unless you explicitly export or download them.</p>
+                                <p><strong>4. Sign-out cleanup:</strong> When you sign out, all data is cleared from this device. Your records remain available in encrypted cloud storage.</p>
                                 
                             </Card>
                         </section>
@@ -703,7 +703,7 @@ function SettingsContent() {
                                     <div className="space-y-2">
                                         <p className="font-bold text-[var(--text)]">Change this account to Recoverable Encryption</p>
                                         <p>
-                                            This keeps your records encrypted before upload, but changes how recovery works. This step re-encrypts your cloud backup from the records stored on this device.
+                                            This keeps your records encrypted before upload, but changes how recovery works. This step re-encrypts your cloud-stored records using the new recovery mode.
                                         </p>
                                         <p className="text-xs font-semibold text-[var(--text)]">
                                             Keep this tab open until the switch finishes.
@@ -748,12 +748,12 @@ function SettingsContent() {
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Danger Zone</h2>
                             <Card className="p-5 space-y-4" style={{ borderColor: "var(--danger-border)", backgroundColor: "var(--danger-soft)" }}>
                                 <div className="space-y-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                                    <p className="font-bold text-[var(--danger)]">Delete records stored in this browser only.</p>
+                                    <p className="font-bold text-[var(--danger)]">Delete all records from cloud storage.</p>
                                     <p>
-                                        Export a JSON backup first. This wipe removes employer settings, employees, payslips, and other local records from this device.
+                                        Export a JSON backup first. This permanently removes employer settings, employees, payslips, and other records from your account.
                                     </p>
                                     <p>
-                                        Current employees on this device: <strong className="text-[var(--text)]">{employees.length}</strong>
+                                        Current employees: <strong className="text-[var(--text)]">{employees.length}</strong>
                                     </p>
                                 </div>
 
@@ -778,7 +778,7 @@ function SettingsContent() {
                                         <div className="space-y-2 text-xs leading-relaxed text-[var(--text-muted)]">
                                             <p><strong className="text-[var(--text)]">Before you continue:</strong></p>
                                             <p>1. Export a JSON backup if you may need these records again.</p>
-                                            <p>2. Make sure you are deleting the correct browser/device.</p>
+                                            <p>2. This deletes records from cloud storage and this device.</p>
                                             <p>3. Type <strong className="text-[var(--text)]">DELETE</strong> below to confirm.</p>
                                         </div>
 
@@ -815,7 +815,7 @@ function SettingsContent() {
                                                     globalThis.location.href = "/";
                                                 }}
                                             >
-                                                {wiping ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete local data"}
+                                                {wiping ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete all records"}
                                             </Button>
                                         </div>
                                     </div>
@@ -1151,15 +1151,15 @@ function SettingsContent() {
                                             color: "var(--text)",
                                         }}
                                     >
-                                        Tip: Your records are stored in this browser right now. Paid users should log in and complete the secure unlock step before relying on cross-device restore.
+                                        Tip: Your records are cloud-secured. Sign in on any device to access them. Sign out clears all data from this device.
                                     </div>
                                 )}
                                 <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-xs leading-relaxed text-[var(--text-muted)]">
-                                    <p className="font-bold text-[var(--text)]">Before you change devices</p>
+                                    <p className="font-bold text-[var(--text)]">Switching devices</p>
                                     <ol className="mt-2 list-decimal space-y-1.5 pl-4">
-                                        <li>Ensure Cloud Sync is active and unlocked on this device, or download a JSON export first.</li>
-                                        <li>On the new device, sign in with the same account and follow that account&apos;s secure unlock step to restore your backup.</li>
-                                        <li>Do not clear browser data on this device until you have confirmed the restore worked.</li>
+                                        <li>Your records are stored in encrypted cloud storage.</li>
+                                        <li>On the new device, sign in with the same account to access your records.</li>
+                                        <li>You can also download a JSON export as an additional backup.</li>
                                     </ol>
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-3">

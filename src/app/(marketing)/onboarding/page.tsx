@@ -4,16 +4,16 @@ import { Button } from "@/components/ui/button";
 
 const steps = [
     {
-        title: "Start on this device for free",
-        body: "Open the local workspace and begin with one worker, basic payslips, and no account setup.",
+        title: "Try the free payslip tool",
+        body: "Generate one payslip per month as a downloadable PDF. No account needed, no data stored.",
     },
     {
-        title: "Upgrade only when you need backup",
-        body: "Paid plans add encrypted cloud backup, documents, contracts, and easier restore across devices.",
+        title: "Upgrade for cloud-secured records",
+        body: "Paid plans add encrypted cloud storage, the dashboard, documents, contracts, leave tracking, and exports.",
     },
     {
-        title: "Choose your recovery style later",
-        body: "When you enable encrypted backup, you can choose Recoverable Encryption for easier recovery or Maximum Privacy for key-only recovery.",
+        title: "Choose your encryption mode",
+        body: "During secure setup, choose Recoverable Encryption for password-based recovery or Maximum Privacy for key-only access.",
     },
 ] as const;
 
@@ -28,10 +28,10 @@ export default function OnboardingPage() {
                     </div>
 
                     <h1 className="mt-6 font-serif text-4xl font-bold tracking-tight text-[var(--text)] sm:text-5xl">
-                        Begin free on this device. Add backup later.
+                        Try a free payslip. Upgrade when you need more.
                     </h1>
                     <p className="mt-4 max-w-[42rem] text-base leading-7 text-[var(--text-muted)]">
-                        LekkerLedger is designed so you can begin locally without an account. When you later need encrypted backup and restore across devices, you can upgrade without losing the simple first step.
+                        Start with the free payslip tool — no account needed. When you need cloud-secured records, the dashboard, contracts, and more, upgrade to a paid plan.
                     </p>
 
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -69,14 +69,14 @@ export default function OnboardingPage() {
                         </div>
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Good to know</p>
-                            <p className="text-sm font-semibold text-[var(--text)]">Free starts locally</p>
+                            <p className="text-sm font-semibold text-[var(--text)]">Free is one PDF per month</p>
                         </div>
                     </div>
 
                     <ul className="mt-6 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
-                        <li>No account is required to begin the free local workflow.</li>
-                        <li>Paid plans unlock encrypted backup, billing, and account-based restore.</li>
-                        <li>On a new device, log in first, then follow that account&apos;s secure unlock step to open synced records.</li>
+                        <li>No account is required for the free payslip tool.</li>
+                        <li>Paid plans unlock cloud-secured records, the dashboard, and account-based access from any device.</li>
+                        <li>On a new device, sign in to access your encrypted cloud records.</li>
                     </ul>
                 </aside>
             </div>

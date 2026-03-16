@@ -43,8 +43,9 @@ export default function PrivacyPolicy() {
                     <div className="rounded-2xl border border-[var(--primary)]/10 bg-[var(--primary)]/5 p-6">
                         <h2 className="text-xl font-black text-[var(--text)]">Plain-language summary</h2>
                         <ul className="mt-4 list-disc space-y-2 pl-6 text-sm leading-7">
-                            <li>Employee payroll records are stored on your device by default, not in a central LekkerLedger employee database.</li>
-                            <li>If you enable encrypted sync, the backup is stored in an encrypted format that only you can access.</li>
+                            <li>Paid accounts store employee payroll records in end-to-end encrypted cloud storage. LekkerLedger does not have access to your unencrypted payroll data.</li>
+                            <li>Free users generate a single payslip PDF per month. No payroll records are stored after the session.</li>
+                            <li>When a paid user signs out, all user data is cleared from the device.</li>
                             <li>We do collect limited product and website analytics so we can operate and improve the service.</li>
                             <li>We use payment and infrastructure providers for paid plans and service delivery, but we do not store your card details ourselves.</li>
                             <li>You remain responsible for checking figures and submissions against official guidance.</li>
@@ -80,16 +81,16 @@ export default function PrivacyPolicy() {
 
                         <Section title="3. Where data is stored">
                             <p>
-                                LekkerLedger is designed so that employee payroll records do not go into a central LekkerLedger employee database.
+                                LekkerLedger is designed so that employee payroll records are stored in encrypted form and are not accessible to LekkerLedger in unencrypted form.
                                 The main storage locations are:
                             </p>
                             <ul className="list-disc space-y-2 pl-6">
-                                <li><strong>On your device by default:</strong> payroll records, employee details, payslips, and related records are stored locally in your browser storage.</li>
-                                <li><strong>Encrypted sync storage:</strong> backups are stored in an encrypted format, with recovery rules that depend on the sync mode you choose.</li>
+                                <li><strong>Encrypted cloud storage (paid accounts):</strong> payroll records, employee details, payslips, and related records are encrypted on your device before upload and stored in the cloud.</li>
+                                <li><strong>Session-only (free users):</strong> the free payslip tool generates a PDF in-browser. No payroll records are stored after the session ends.</li>
                                 <li><strong>In our service systems where needed:</strong> analytics, support messages, subscription records, and payment-related references may be processed through service providers used to operate the product.</li>
                             </ul>
                             <p>
-                                This means the statement &ldquo;local-first&rdquo; refers to payroll record storage, not to a promise that no network request or telemetry ever occurs.
+                                When a paid user signs out, all user data is cleared from the device. Records remain available in encrypted cloud storage for the next sign-in.
                             </p>
                         </Section>
 
@@ -114,7 +115,7 @@ export default function PrivacyPolicy() {
 
                         <Section title="6. Security and safeguards">
                             <p>
-                                We aim to use reasonable technical and organizational safeguards appropriate to the type of data involved. Examples may include access controls, provider-managed transport security, and local-first product architecture for payroll record storage.
+                                We aim to use reasonable technical and organizational safeguards appropriate to the type of data involved. Examples may include access controls, provider-managed transport security, and end-to-end encryption for payroll record storage.
                             </p>
                             <p>
                                 No online system can promise absolute security. You are also responsible for keeping your own device, browser profile, account, and passwords secure.
@@ -123,8 +124,8 @@ export default function PrivacyPolicy() {
 
                         <Section title="7. Retention">
                             <ul className="list-disc space-y-2 pl-6">
-                                <li><strong>Local payroll records:</strong> remain on your device until you delete them, clear browser data, or replace them with your own actions.</li>
-                                <li><strong>Encrypted sync data:</strong> remains stored until you delete it or revoke access from your account settings.</li>
+                                <li><strong>Cloud-stored payroll records (paid):</strong> remain in encrypted cloud storage until you delete them from your account settings.</li>
+                                <li><strong>Free payslip PDFs:</strong> generated and downloaded in a single session. No records are retained by LekkerLedger.</li>
                                 <li><strong>Subscription, referral, analytics, and support records:</strong> may be retained for operational, accounting, fraud-prevention, support, or legal reasons for as long as reasonably necessary.</li>
                             </ul>
                             <p>
@@ -142,7 +143,7 @@ export default function PrivacyPolicy() {
                                 <li>withdraw optional permissions such as encrypted sync.</li>
                             </ul>
                             <p>
-                                In practice, many payroll records are under your direct control because they are stored locally on your device or in your encrypted sync storage. You can also remove local data in-app or disable sync through your account settings.
+                                In practice, paid users control their payroll records through their account settings. You can delete cloud-stored records or close your account at any time. Free users have no stored records to manage.
                             </p>
                         </Section>
 
