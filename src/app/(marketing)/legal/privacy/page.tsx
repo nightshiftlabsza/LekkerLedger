@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { ChevronLeft, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COMPANY_NAME } from "@/src/config/brand";
+import { COMPANY_NAME, PRIVACY_EMAIL } from "@/config/brand";
 import { SupplierDetails } from "@/components/legal/supplier-details";
 import { SubprocessorTable } from "@/components/legal/subprocessor-table";
 
@@ -149,7 +149,7 @@ export default function PrivacyPolicy() {
 
                         <Section title="9. Contact and complaints">
                             <p>
-                                For privacy-related questions, contact <a href="mailto:privacy@lekkerledger.co.za">privacy@lekkerledger.co.za</a>.
+                                For privacy-related questions, contact <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>.
                             </p>
                             <p>
                                 If you believe your information has been mishandled, contact us first so we can investigate. You may also have the right to complain to the relevant South African regulator or authority where applicable.

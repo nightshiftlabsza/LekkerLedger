@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { ChevronLeft, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COMPANY_NAME, PRIVACY_EMAIL, SUPPORT_EMAIL } from "@/src/config/brand";
+import { COMPANY_NAME, PRIVACY_EMAIL, SUPPORT_EMAIL } from "@/config/brand";
 import { SupplierDetails } from "@/components/legal/supplier-details";
 
 const UPDATED_DATE = "10 March 2026";

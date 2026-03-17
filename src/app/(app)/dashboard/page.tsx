@@ -231,7 +231,7 @@ function DashboardContent() {
 
     if (paidLoginRequested || activationStatus === "pending") {
         return (
-            <div className="mx-auto flex w-full max-w-[960px] flex-col gap-4 py-2">
+            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-4 py-2">
                 {activationError ? (
                     <Card className="border-[var(--danger-border)] bg-[var(--danger-soft)]">
                         <CardContent className="space-y-4 p-6">

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { COMPANY_NAME } from "@/src/config/brand";
+import { COMPANY_NAME, COMPANY_ADDRESS, SUPPORT_EMAIL, PRIVACY_EMAIL } from "@/config/brand";
 
 export function SupplierDetails() {
     return (
@@ -16,15 +16,15 @@ export function SupplierDetails() {
                     <strong className="text-[var(--text)]">Jurisdiction:</strong> South Africa
                 </p>
                 <p>
-                    <strong className="text-[var(--text)]">Physical address:</strong> Yssel St, Witbank, 1034
+                    <strong className="text-[var(--text)]">Physical address:</strong> {COMPANY_ADDRESS}
                 </p>
                 <p>
                     <strong className="text-[var(--text)]">General contact:</strong>{" "}
-                    <a href="mailto:support@lekkerledger.co.za" className="text-[var(--primary)]">support@lekkerledger.co.za</a>
+                    <a href={`mailto:${SUPPORT_EMAIL}`} className="text-[var(--primary)]">{SUPPORT_EMAIL}</a>
                 </p>
                 <p>
                     <strong className="text-[var(--text)]">Privacy contact:</strong>{" "}
-                    <a href="mailto:privacy@lekkerledger.co.za" className="text-[var(--primary)]">privacy@lekkerledger.co.za</a>
+                    <a href={`mailto:${PRIVACY_EMAIL}`} className="text-[var(--primary)]">{PRIVACY_EMAIL}</a>
                 </p>
             </div>
         </section>

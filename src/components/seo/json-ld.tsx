@@ -2,8 +2,8 @@ export const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "LekkerLedger",
-    url: "https://www.lekkerledger.co.za",
-    logo: "https://www.lekkerledger.co.za/icon.png",
+    url: "https://lekkerledger.co.za",
+    logo: "https://lekkerledger.co.za/icon.png",
     description: "South African household employment administration software. Manage payslips, UIF, and employment records.",
     address: {
         "@type": "PostalAddress",

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { COMPANY_NAME, PRIVACY_EMAIL, SUPPORT_EMAIL } from "@/src/config/brand";
+import { COMPANY_NAME, PRIVACY_EMAIL, SUPPORT_EMAIL } from "@/config/brand";
 
 const FOOTER_GROUPS = [
     {

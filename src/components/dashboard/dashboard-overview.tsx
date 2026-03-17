@@ -92,7 +92,7 @@ export function DashboardOverview({
     });
 
     return (
-        <div className="flex w-full max-w-none flex-col gap-4 sm:gap-5 lg:gap-6">
+        <div className="@container flex w-full max-w-none flex-col gap-4 sm:gap-5 lg:gap-6">
             <PageHeader
                 title="Dashboard"
                 subtitle={hero.mobileSubtitle}

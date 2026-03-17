@@ -18,7 +18,6 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["*.replit.dev"],
   distDir: playwrightDistDir,
   experimental: {},
   typescript: {
