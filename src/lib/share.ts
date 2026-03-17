@@ -1,5 +1,7 @@
 type ShareChannel = "whatsapp" | "email" | "system";
 
+export type WhatsAppShareResult = "opened" | "missing-phone" | "blocked";
+
 function normalisePhone(phone: string): string {
     const cleanPhone = phone.replaceAll(/\D/g, "");
     if (!cleanPhone) return "";
@@ -10,17 +12,17 @@ function buildPdfFile(pdfBytes: Uint8Array, fileName: string): File {
     return new File([pdfBytes.slice(0)], fileName, { type: "application/pdf" });
 }
 
-function openWhatsAppChat(phone?: string, text?: string): void {
+export function openWhatsAppChat(phone?: string, text?: string): WhatsAppShareResult {
     const intlPhone = normalisePhone(phone || "");
     const message = text?.trim() ?? "";
 
-    if (intlPhone) {
-        const query = message ? `?text=${encodeURIComponent(message)}` : "";
-        globalThis.open(`https://wa.me/${intlPhone}${query}`, "_blank", "noopener,noreferrer");
-        return;
+    if (!intlPhone) {
+        return "missing-phone";
     }
 
-    globalThis.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
+    const query = message ? `?text=${encodeURIComponent(message)}` : "";
+    const popup = globalThis.open(`https://wa.me/${intlPhone}${query}`, "_blank", "noopener,noreferrer");
+    return popup ? "opened" : "blocked";
 }
 
 export function downloadPdf(pdfBytes: Uint8Array, fileName: string): void {
@@ -86,13 +88,12 @@ export async function shareViaWhatsApp(
     employeeName: string,
     phone: string,
     periodLabel: string,
-): Promise<"shared" | "downloaded" | "cancelled"> {
+): Promise<WhatsAppShareResult> {
     const fileName = `Payslip_${employeeName.replaceAll(/\s+/g, "_")}_${periodLabel}.pdf`;
-    return sharePdfFile("whatsapp", pdfBytes, fileName, {
-        title: `Payslip for ${employeeName}`,
-        text: `Hi ${employeeName.split(" ")[0]}, here is your payslip for ${periodLabel}.`,
-        employeePhone: phone,
-    });
+    const text = `Hi ${employeeName.split(" ")[0]}, here is your payslip for ${periodLabel}.`;
+
+    downloadPdf(pdfBytes, fileName);
+    return openWhatsAppChat(phone, text);
 }
 
 export async function shareViaEmail(

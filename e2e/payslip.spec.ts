@@ -99,9 +99,7 @@ test.describe("Payslip Generation Flow", () => {
         // 7. Verify we ended up on the Preview page
         await expect(page).toHaveURL(/\/preview/, { timeout: 10000 });
 
-        // Verify PDF success message
-        const successMessage = page.locator('text=Payslip ready to review');
-        await expect(successMessage).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('text=Payslip ready to review')).toHaveCount(0);
 
         // Check if the Download button exists
         const downloadBtn = page.locator('button:has-text("Download PDF")').first();

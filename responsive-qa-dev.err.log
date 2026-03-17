@@ -1,0 +1,17 @@
+[31;1m=1: [31;1mThe term '=1' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+[31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+[31;1m=3002: [31;1mThe term '=3002' is not recognized as a name of a cmdlet, function, script file, or executable program.[0m
+[31;1m[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.[0m
+Error: spawn EPERM
+    at ChildProcess.spawn (node:internal/child_process:440:11)
+    at spawn (node:child_process:796:9)
+    at fork (node:child_process:174:10)
+    at C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\node_modules\next\dist\cli\next-dev.js:243:45
+    at new Promise (<anonymous>)
+    at startServer (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\node_modules\next\dist\cli\next-dev.js:212:16)
+    at runDevServer (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\node_modules\next\dist\cli\next-dev.js:334:23)
+    at Module.nextDev (C:\Users\mzaka.ZAK-PC\Documents\Apps\LekkerLedger-1\node_modules\next\dist\cli\next-dev.js:342:11) {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'spawn'
+}

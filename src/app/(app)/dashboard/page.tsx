@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { AlertTriangle, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ShieldCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
@@ -88,6 +88,9 @@ function DashboardContent() {
     const [summaries, setSummaries] = React.useState<EmployeeSummary[]>([]);
     const [allPeriods, setAllPeriods] = React.useState<PayPeriod[]>([]);
     const [retentionStatus, setRetentionStatus] = React.useState<StandardRetentionStatus | null>(null);
+    const [feedbackNoticeDismissedOptimistically, setFeedbackNoticeDismissedOptimistically] = React.useState(false);
+    const [feedbackNoticeDismissPending, setFeedbackNoticeDismissPending] = React.useState(false);
+    const [feedbackNoticeDismissError, setFeedbackNoticeDismissError] = React.useState<string | null>(null);
     const searchParams = useSearchParams();
     const paidLoginRequested = searchParams.get("paidLogin") === "1";
     const activationSuccess = searchParams.get("activation") === PAID_LOGIN_SUCCESS_QUERY;
@@ -98,6 +101,12 @@ function DashboardContent() {
     React.useEffect(() => {
         renderCountRef.current += 1;
     });
+
+    React.useEffect(() => {
+        setFeedbackNoticeDismissedOptimistically(false);
+        setFeedbackNoticeDismissPending(false);
+        setFeedbackNoticeDismissError(null);
+    }, [effectiveSettings?.paidDashboardFeedbackNoticeDismissedAt]);
 
     React.useEffect(() => {
         if (paidLoginRequested || !isReadyForDashboard || !effectiveSettings) {
@@ -199,6 +208,27 @@ function DashboardContent() {
         } : current);
     };
 
+    const handleDismissPaidFeedbackNotice = async () => {
+        if (!effectiveSettings || feedbackNoticeDismissPending) return;
+        const dismissedAt = new Date().toISOString();
+
+        setFeedbackNoticeDismissPending(true);
+        setFeedbackNoticeDismissError(null);
+
+        try {
+            await saveSettings({
+                ...effectiveSettings,
+                paidDashboardFeedbackNoticeDismissedAt: dismissedAt,
+            });
+            setFeedbackNoticeDismissedOptimistically(true);
+        } catch (error) {
+            console.error("Failed to save paid dashboard feedback notice dismissal", error);
+            setFeedbackNoticeDismissError("Could not save that preference right now.");
+        } finally {
+            setFeedbackNoticeDismissPending(false);
+        }
+    };
+
     if (paidLoginRequested || activationStatus === "pending") {
         return (
             <div className="mx-auto flex w-full max-w-[960px] flex-col gap-4 py-2">
@@ -260,14 +290,27 @@ function DashboardContent() {
     }
 
     const now = new Date();
+    const plan = getUserPlan(effectiveSettings);
     const alerts = computeDashboardAlerts({ employees, summaries, settings: effectiveSettings, now });
     const syncDetails = getDashboardSyncDetails(sync, network);
     const syncBadgeState: SyncBadgeState = syncDetails.state;
     const syncSummary = syncDetails.summary;
+    const showPaidFeedbackNotice = plan.id !== "free"
+        && !effectiveSettings.paidDashboardFeedbackNoticeDismissedAt
+        && !feedbackNoticeDismissedOptimistically;
 
     return (
         <div className="pb-6">
             {activationSuccess ? <ActivationAlert syncState={activationSync} syncBadgeState={syncBadgeState} /> : null}
+            {showPaidFeedbackNotice ? (
+                <PaidFeedbackNoticeCard
+                    dismissError={feedbackNoticeDismissError}
+                    dismissing={feedbackNoticeDismissPending}
+                    onDismiss={() => {
+                        handleDismissPaidFeedbackNotice().catch(console.error);
+                    }}
+                />
+            ) : null}
             {retentionStatus?.showElevenMonthWarning ? (
                 <RetentionAlertCard
                     title="Some payroll documents are nearing the 12-month limit"
@@ -326,6 +369,79 @@ function ActivationAlert({
                     </div>
                 </div>
                 <SyncStatusBadge state={syncBadgeState} />
+            </CardContent>
+        </Card>
+    );
+}
+
+function PaidFeedbackNoticeCard({
+    dismissing,
+    dismissError,
+    onDismiss,
+}: Readonly<{
+    dismissing: boolean;
+    dismissError: string | null;
+    onDismiss: () => void;
+}>) {
+    return (
+        <Card
+            className="mx-auto mb-5 w-full max-w-[1180px] overflow-hidden border-[var(--primary)]/20 bg-[var(--surface-1)]"
+            role="region"
+            aria-labelledby="paid-dashboard-feedback-notice-title"
+        >
+            <CardContent className="flex flex-col gap-4 p-5 sm:p-6 lg:flex-row lg:items-start lg:justify-between">
+                <div className="max-w-[72ch]">
+                    <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-[var(--primary)]/10 p-2 text-[var(--primary)]">
+                            <ShieldCheck className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">Paid dashboard note</p>
+                            <h2 id="paid-dashboard-feedback-notice-title" className="mt-1 text-lg font-black tracking-tight text-[var(--text)]">
+                                Help us keep LekkerLedger polished
+                            </h2>
+                            <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
+                                We&apos;ve put a lot of care into making LekkerLedger both functional and beautifully designed across devices. If you notice anything that looks off or isn&apos;t working properly, please email us at{" "}
+                                <a
+                                    href="mailto:support@lekkerledger.co.za"
+                                    className="font-semibold text-[var(--primary)] underline decoration-[var(--primary)]/35 underline-offset-4 transition-colors hover:text-[var(--primary-hover)]"
+                                >
+                                    support@lekkerledger.co.za
+                                </a>{" "}
+                                so we can fix and improve it.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div className="shrink-0 lg:pl-4">
+                    <div className="flex flex-col gap-2 sm:items-end">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                            <Button
+                                variant="outline"
+                                className="min-w-[112px] font-bold"
+                                onClick={onDismiss}
+                                disabled={dismissing}
+                            >
+                                Dismiss
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-[var(--primary)] hover:text-[var(--primary-hover)]"
+                                onClick={onDismiss}
+                                disabled={dismissing}
+                                aria-label="Dismiss paid dashboard feedback notice"
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        {dismissError ? (
+                            <p className="text-sm leading-6 text-[var(--danger)] sm:max-w-[18rem]" role="status">
+                                {dismissError}
+                            </p>
+                        ) : null}
+                    </div>
+                </div>
             </CardContent>
         </Card>
     );

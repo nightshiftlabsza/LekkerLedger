@@ -1,13 +1,9 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
 import path from "node:path";
 
 const nodeExecutable = process.execPath;
 const projectRoot = process.cwd();
 const nextBin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
-const playwrightDistDir = path.join(projectRoot, ".next-playwright");
-const prerenderManifest = path.join(playwrightDistDir, "prerender-manifest.json");
-const buildManifest = path.join(playwrightDistDir, "BUILD_ID");
 const port = process.env.PORT ?? "3002";
 
 function spawnNext(args, extraEnv = {}) {
@@ -43,10 +39,6 @@ function waitForExit(child) {
 }
 
 async function ensurePlaywrightBuild() {
-  if (existsSync(prerenderManifest) && existsSync(buildManifest)) {
-    return;
-  }
-
   const build = spawnNext(["build", "--webpack"]);
   await waitForExit(build);
 }

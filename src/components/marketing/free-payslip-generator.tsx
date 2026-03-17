@@ -336,7 +336,7 @@ export function FreePayslipGenerator() {
         }
         setDownloading(true);
         try {
-            const pdfBytes = await generatePayslipPdfBytes(payload.employee, payload.payslip, payload.settings, "en", true);
+            const pdfBytes = await generatePayslipPdfBytes(payload.employee, payload.payslip, payload.settings, "en");
             const quotaResponse = await fetch("/api/free-payslip/quota", { method: "POST", cache: "no-store" });
             const quotaData = await quotaResponse.json() as QuotaStatus | { error?: string };
             if (!quotaResponse.ok) {

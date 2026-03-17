@@ -204,6 +204,7 @@ export const EmployerSettingsSchema = z.object({
     billingCycle: z.enum(["monthly", "yearly"]).optional().default("monthly"),
     activeHouseholdId: z.string().default("default"),
     standardRetentionNoticeDismissedAt: z.string().optional(),
+    paidDashboardFeedbackNoticeDismissedAt: z.string().optional(),
     logoData: z.string().optional(),
     defaultLanguage: z.enum(["en", "zu", "xh"]).optional().default("en"),
     density: z.enum(["comfortable", "compact"]).default("comfortable"),

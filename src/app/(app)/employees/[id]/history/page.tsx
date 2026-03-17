@@ -90,7 +90,7 @@ export default function EmployeeHistoryPage() {
                     reject(new Error(e.message));
                     worker.terminate();
                 };
-                worker.postMessage({ employee, payslip: ps, settings, msgId: "hist", isLimited: false });
+                worker.postMessage({ employee, payslip: ps, settings, msgId: "hist" });
             });
             const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
             const url = URL.createObjectURL(blob);

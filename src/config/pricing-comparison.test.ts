@@ -16,4 +16,22 @@ describe("pricing comparison config", () => {
             },
         });
     });
+
+    it("marks planned pro-only roadmap items distinctly in the comparison table", () => {
+        const notificationRow = PRICING_COMPARISON_GROUPS
+            .flatMap((group) => group.rows)
+            .find((row) => row.label === "Notification reminders");
+
+        expect(notificationRow).toEqual({
+            label: "Notification reminders",
+            values: {
+                free: false,
+                standard: false,
+                pro: {
+                    kind: "planned",
+                    label: "Planned",
+                },
+            },
+        });
+    });
 });

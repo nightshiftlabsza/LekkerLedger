@@ -5,7 +5,7 @@ import { useAuthState } from "@/components/auth/auth-state-provider";
 import { useRealtimeSync } from "../hooks/use-realtime-sync";
 import { loadEncryptionProfileState } from "./encryption-profile";
 import { type EncryptionMode } from "./encryption-mode";
-import { deriveKey, importAccountMasterKey } from "./crypto";
+import { deriveKey, generateAccountMasterKey, importAccountMasterKey } from "./crypto";
 import { getLocalRecoveryProfile } from "./recovery-profile-store";
 import { createClient } from "./supabase/client";
 import { syncEngine } from "./sync-engine";
@@ -29,6 +29,17 @@ interface AppModeContextValue {
 }
 
 const AppModeContext = React.createContext<AppModeContextValue | null>(null);
+
+function hasE2EBypassCookie() {
+    if (typeof document === "undefined") {
+        return false;
+    }
+
+    return document.cookie
+        .split(";")
+        .map((value) => value.trim())
+        .some((value) => value === "ll-e2e-auth-bypass=1");
+}
 
 export function AppModeProvider({ children }: { children: React.ReactNode }) {
     const [mode, setMode] = React.useState<AppMode>("local_guest");
@@ -74,6 +85,16 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
 
                 if (!userId) {
                     transitionToGuest();
+                    return;
+                }
+
+                if (hasE2EBypassCookie()) {
+                    const key = await generateAccountMasterKey();
+                    if (!mounted) return;
+                    syncEngine.setCryptoKey(key);
+                    syncService.init(userId, key);
+                    setEncryptionMode(null);
+                    setMode("account_unlocked");
                     return;
                 }
 

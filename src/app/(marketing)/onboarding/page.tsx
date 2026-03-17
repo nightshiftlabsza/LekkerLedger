@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 const steps = [
     {
         title: "Try the free payslip tool",
-        body: "Generate one payslip per month as a downloadable PDF. No account needed, no data stored.",
+        body: "Generate one payslip per month as a downloadable PDF in the browser, with no data stored after the session.",
     },
     {
         title: "Upgrade for cloud-secured records",
@@ -31,7 +31,7 @@ export default function OnboardingPage() {
                         Try a free payslip. Upgrade when you need more.
                     </h1>
                     <p className="mt-4 max-w-[42rem] text-base leading-7 text-[var(--text-muted)]">
-                        Start with the free payslip tool — no account needed. When you need cloud-secured records, the dashboard, contracts, and more, upgrade to a paid plan.
+                        Start with the free payslip tool. When you need cloud-secured records, the dashboard, contracts, and more, upgrade to a paid plan.
                     </p>
 
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -74,7 +74,7 @@ export default function OnboardingPage() {
                     </div>
 
                     <ul className="mt-6 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
-                        <li>No account is required for the free payslip tool.</li>
+                        <li>The free payslip tool works in the browser and does not keep records after the session.</li>
                         <li>Paid plans unlock cloud-secured records, the dashboard, and account-based access from any device.</li>
                         <li>On a new device, sign in to access your encrypted cloud records.</li>
                     </ul>

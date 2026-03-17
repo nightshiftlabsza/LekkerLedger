@@ -32,9 +32,11 @@ function toAuthUserSnapshot(user: Pick<User, "id" | "email"> | null | undefined)
 
 export function AuthStateProvider({
     initialUser = null,
+    lockInitialUser = false,
     children,
 }: Readonly<{
     initialUser?: AuthUserSnapshot | null;
+    lockInitialUser?: boolean;
     children: React.ReactNode;
 }>) {
     const supabase = React.useMemo(() => createClient(), []);
@@ -51,6 +53,11 @@ export function AuthStateProvider({
     }, []);
 
     const refreshUser = React.useCallback(async () => {
+        if (lockInitialUser) {
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const { data: { user: nextUser } } = await supabase.auth.getUser();
             applyUserSnapshot(toAuthUserSnapshot(nextUser));
@@ -74,6 +81,11 @@ export function AuthStateProvider({
     }, [applyUserSnapshot, supabase]);
 
     React.useEffect(() => {
+        if (lockInitialUser) {
+            setIsLoading(false);
+            return;
+        }
+
         let mounted = true;
 
         async function reconcileUserOnce() {
@@ -107,7 +119,7 @@ export function AuthStateProvider({
             mounted = false;
             subscription.unsubscribe();
         };
-    }, [applyUserSnapshot, initialUser, supabase]);
+    }, [applyUserSnapshot, initialUser, lockInitialUser, supabase]);
 
     const contextValue = React.useMemo(() => ({
         user,

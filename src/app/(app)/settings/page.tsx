@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
-    CheckCircle2, FileText, BookOpen, ArrowRight, Upload,
+    FileText, BookOpen, ArrowRight, Upload,
     ChevronRight, Building2, Save, Database, Loader2, Zap,
     AlignVerticalJustifyCenter, Moon, Sun, Monitor,
     ShieldCheck, Download, HelpCircle, Copy, Gift, Clock3
@@ -17,12 +17,14 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/toast";
 import { PageHeader } from "@/components/ui/page-header";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
+import { PlanFeatureList } from "@/components/marketing/pricing";
 import { getSettings, saveSettings, resetAllData, exportData, importData, getEmployees } from "@/lib/storage";
 import { CustomLeaveType, EmployerSettings, Employee } from "@/lib/schema";
 import { cancelSubscriptionRenewal, fetchBillingAccount, type BillingAccountPayload } from "@/lib/billing-client";
 import { useUI } from "@/components/theme-provider";
 import { InlinePlanCheckoutButton } from "@/components/billing/inline-paid-plan-checkout";
-import { REFUND_WINDOW_DAYS, type BillingCycle, PLAN_ORDER, PLANS, getPlanPricePresentation } from "@/src/config/plans";
+import { REFUND_WINDOW_DAYS, type BillingCycle, PLAN_ORDER, PLANS } from "@/src/config/plans";
+import { getMarketingPlanDisplay, getMarketingPriceDisplay } from "@/src/config/pricing-display";
 import { getArchiveCutoffDate, getArchiveUpgradeHref } from "@/lib/archive";
 import { applyVerifiedEntitlementsToSettings, canUseAdvancedLeaveFeatures, canUseFullHistoryExport, getUserPlan } from "@/lib/entitlements";
 import { useAppMode } from "@/lib/app-mode";
@@ -830,7 +832,8 @@ function SettingsContent() {
                     const currentCycle = effectiveSettings?.billingCycle === "monthly" ? "monthly" : "yearly";
                     const displayCycle: BillingCycle = currentPlan.id === "free" ? "monthly" : currentCycle;
                     const comparisonCycle: BillingCycle = currentPlan.id === "free" ? "yearly" : currentCycle;
-                    const currentPricePresentation = getPlanPricePresentation(currentPlan, displayCycle);
+                    const currentPlanDisplay = getMarketingPlanDisplay(currentPlan.id);
+                    const currentPricePresentation = getMarketingPriceDisplay(currentPlan.id, displayCycle);
                     const currentPlanStatusLabel = (() => {
                         if (currentPlan.id === "free") return "Free plan active";
                         if (billingAccount?.account.cancelAtPeriodEnd && effectiveSettings?.paidUntil) {
@@ -853,15 +856,15 @@ function SettingsContent() {
                                     <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                                         <div className="space-y-2">
                                             <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{currentPlan.label}</p>
-                                            <h3 className="type-h3 text-[var(--text)]">{currentPlan.bestFor}</h3>
-                                            <p className="text-sm text-[var(--text-muted)] max-w-2xl">{currentPlan.description}</p>
+                                            <h3 className="type-h3 text-[var(--text)]">{currentPlanDisplay.headline}</h3>
+                                            <p className="text-sm text-[var(--text-muted)] max-w-2xl">{currentPlanDisplay.subtitle}</p>
                                             <p className="text-xs font-bold text-[var(--primary-hover)] uppercase tracking-wider">
                                                 {currentPlanStatusLabel}
                                             </p>
                                         </div>
                                         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 lg:min-w-[220px]">
                                             <div className="flex items-end gap-2">
-                                                <span className="text-3xl font-semibold type-mono text-[var(--text)]">{currentPricePresentation.primaryPrice}</span>
+                                                <span className="text-3xl font-semibold type-mono text-[var(--text)]">{currentPricePresentation.primary}</span>
                                                 {currentPricePresentation.periodLabel ? (
                                                     <span className="pb-1 text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{currentPricePresentation.periodLabel}</span>
                                                 ) : null}
@@ -870,14 +873,7 @@ function SettingsContent() {
                                         </div>
                                     </div>
 
-                                    <ul className="mt-6 space-y-3">
-                                        {currentPlan.marketingBullets.map((bullet, index) => (
-                                            <li key={`${currentPlan.id}-${index}`} className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-medium">
-                                                <CheckCircle2 className="h-4 w-4 text-[var(--primary)]" />
-                                                {bullet}
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <PlanFeatureList planId={currentPlan.id} className="mt-6" />
 
                                     <div className="mt-6">
                                         <div className="space-y-2">
@@ -1031,19 +1027,20 @@ function SettingsContent() {
                                 <div className="grid gap-4 xl:grid-cols-3">
                                     {PLAN_ORDER.map((planId) => {
                                         const plan = PLANS[planId];
+                                        const planDisplay = getMarketingPlanDisplay(planId);
                                         const isCurrent = currentPlan.id === plan.id;
                                         const planRank = { free: 0, standard: 1, pro: 2 } as Record<string, number>;
                                         const isDowngrade = !isCurrent && planRank[planId] < (planRank[currentPlan.id] ?? 0);
                                         const isUpgrade = !isCurrent && planRank[planId] > (planRank[currentPlan.id] ?? 0);
                                         const cycle: BillingCycle = plan.id === "free" ? "monthly" : comparisonCycle;
-                                        const pricePresentation = getPlanPricePresentation(plan, cycle);
+                                        const pricePresentation = getMarketingPriceDisplay(planId, cycle);
                                         return (
                                             <Card key={plan.id} className={`glass-panel border ${plan.id === "standard" ? "border-[var(--primary)]" : "border-[var(--border)]"} p-5`}>
                                                 <div className="space-y-4">
                                                     <div className="flex items-start justify-between gap-3">
                                                         <div>
                                                             <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{plan.label}</p>
-                                                            <h3 className="text-lg font-black text-[var(--text)] mt-2">{plan.bestFor}</h3>
+                                                            <h3 className="text-lg font-black text-[var(--text)] mt-2">{planDisplay.headline}</h3>
                                                         </div>
                                                         {plan.badge && (
                                                             <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${plan.id === "standard" ? "bg-[var(--primary)] text-white" : "bg-[var(--accent-subtle)] text-[var(--primary)]"}`}>
@@ -1054,22 +1051,17 @@ function SettingsContent() {
 
                                                     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
                                                         <div className="flex items-end gap-2">
-                                                            <span className="text-3xl font-semibold type-mono text-[var(--text)]">{pricePresentation.primaryPrice}</span>
+                                                            <span className="text-3xl font-semibold type-mono text-[var(--text)]">{pricePresentation.primary}</span>
                                                             {pricePresentation.periodLabel ? (
                                                                 <span className="pb-1 text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{pricePresentation.periodLabel}</span>
                                                             ) : null}
                                                         </div>
                                                         <p className="mt-2 text-sm font-semibold text-[var(--text-muted)]">{pricePresentation.helperText}</p>
-                                                    </div>
+                                                        </div>
 
-                                                    <ul className="space-y-2.5">
-                                                        {plan.marketingBullets.map((bullet) => (
-                                                            <li key={bullet} className="flex items-start gap-2.5 text-sm text-[var(--text-muted)]">
-                                                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" />
-                                                                <span>{bullet}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
+                                                    <p className="text-sm leading-6 text-[var(--text-muted)]">{planDisplay.subtitle}</p>
+
+                                                    <PlanFeatureList planId={planId} />
 
                                                     <div className="space-y-2">
                                                         {isDowngrade ? (

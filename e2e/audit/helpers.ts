@@ -7,6 +7,16 @@ import type { AuditAction, AuditMetrics, AuditResult, AuditStep, SeedMode } from
 const LOCALFORAGE_SCRIPT_PATH = path.join(process.cwd(), "node_modules", "localforage", "dist", "localforage.js");
 const E2E_AUTH_BYPASS_COOKIE = "ll-e2e-auth-bypass";
 const AUDIT_BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3002";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://mdqzuspgjstzliodzyzy.supabase.co";
+const SUPABASE_PROJECT_REF = new URL(SUPABASE_URL).hostname.split(".")[0];
+const SUPABASE_STORAGE_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
+const QA_USER_ID = "e2e-paid-user";
+const QA_EMAIL = "qa-paid@example.com";
+const SUPABASE_CORS_HEADERS = {
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "access-control-allow-headers": "authorization, apikey, x-client-info, content-type, prefer",
+};
 
 export const AUDIT_IDS = {
     defaultHouseholdId: "default",
@@ -37,6 +47,151 @@ const STORE_NAMES = [
 ] as const;
 
 const today = "2026-04-30T10:00:00.000Z";
+
+function encodeBase64Url(value: string) {
+    return Buffer.from(value, "utf8")
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+}
+
+function createFakeJwt(userId: string, email: string, expiresAt: number) {
+    const header = encodeBase64Url(JSON.stringify({
+        alg: "HS256",
+        typ: "JWT",
+    }));
+    const payload = encodeBase64Url(JSON.stringify({
+        aud: "authenticated",
+        sub: userId,
+        email,
+        role: "authenticated",
+        aal: "aal1",
+        exp: expiresAt,
+    }));
+
+    return `${header}.${payload}.test-signature`;
+}
+
+function buildFakeSupabaseSession() {
+    const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+    const user = {
+        id: QA_USER_ID,
+        aud: "authenticated",
+        role: "authenticated",
+        email: QA_EMAIL,
+        email_confirmed_at: "2026-03-13T08:00:00.000Z",
+        phone: "",
+        confirmation_sent_at: "2026-03-13T08:00:00.000Z",
+        app_metadata: {
+            provider: "email",
+            providers: ["email"],
+        },
+        user_metadata: {},
+        identities: [],
+        created_at: "2026-03-13T08:00:00.000Z",
+        updated_at: "2026-03-13T08:00:00.000Z",
+        is_anonymous: false,
+    };
+
+    return {
+        access_token: createFakeJwt(user.id, user.email, expiresAt),
+        refresh_token: "fake-refresh-token",
+        token_type: "bearer",
+        expires_in: 3600,
+        expires_at: expiresAt,
+        user,
+    };
+}
+
+async function fulfillSupabaseOptions(route: { request(): { method(): string }; fulfill(input: object): Promise<void> }) {
+    if (route.request().method() !== "OPTIONS") {
+        return;
+    }
+
+    await route.fulfill({
+        status: 204,
+        headers: SUPABASE_CORS_HEADERS,
+    });
+}
+
+async function enableFakeSignedInAuth(page: Page) {
+    const fakeSession = buildFakeSupabaseSession();
+
+    await page.route("**/auth/v1/user*", async (route) => {
+        if (route.request().method() === "OPTIONS") {
+            await fulfillSupabaseOptions(route);
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            headers: SUPABASE_CORS_HEADERS,
+            body: JSON.stringify(fakeSession.user),
+        });
+    });
+
+    await page.route("**/auth/v1/token*", async (route) => {
+        if (route.request().method() === "OPTIONS") {
+            await fulfillSupabaseOptions(route);
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            headers: SUPABASE_CORS_HEADERS,
+            body: JSON.stringify(fakeSession),
+        });
+    });
+
+    await page.route("**/rest/v1/user_profiles*", async (route) => {
+        if (route.request().method() === "OPTIONS") {
+            await fulfillSupabaseOptions(route);
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            headers: SUPABASE_CORS_HEADERS,
+            body: JSON.stringify({
+                encryption_mode: "device_only",
+                mode_version: 1,
+                key_setup_complete: false,
+                validation_payload: null,
+                wrapped_master_key_user: null,
+                recent_recovery_notice_at: null,
+                recent_recovery_event_kind: null,
+            }),
+        });
+    });
+
+    await page.route("**/rest/v1/synced_records*", async (route) => {
+        if (route.request().method() === "OPTIONS") {
+            await fulfillSupabaseOptions(route);
+            return;
+        }
+
+        await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            headers: SUPABASE_CORS_HEADERS,
+            body: JSON.stringify([]),
+        });
+    });
+
+    await page.addInitScript(({ storageKey, session }) => {
+        window.localStorage.setItem(storageKey, JSON.stringify({
+            currentSession: session,
+            expiresAt: session.expires_at * 1000,
+        }));
+    }, {
+        storageKey: SUPABASE_STORAGE_KEY,
+        session: fakeSession,
+    });
+}
 
 function buildSeedPayload(mode: SeedMode) {
     const households = [
@@ -361,6 +516,8 @@ function encodeStoredRecord(value: unknown) {
 }
 
 export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
+    const authSession = mode !== "empty" ? buildFakeSupabaseSession() : null;
+
     await page.context().addCookies([
         {
             name: E2E_AUTH_BYPASS_COOKIE,
@@ -368,11 +525,19 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
             url: AUDIT_BASE_URL,
         },
     ]);
+
+    if (mode !== "empty") {
+        await enableFakeSignedInAuth(page);
+    }
+
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.addScriptTag({ path: LOCALFORAGE_SCRIPT_PATH });
 
     const payload = buildSeedPayload(mode);
-    await page.evaluate(async ({ storeNames, payload }) => {
+    await page.evaluate(async ({ authSessionPayload, storeNames, payload, storageKey }) => {
+        function encodeStoredRecord(value: unknown) {
+            return btoa(encodeURIComponent(JSON.stringify(value)));
+        }
 
         function deleteDb(name: string) {
             return new Promise<void>((resolve) => {
@@ -393,6 +558,12 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
             await Promise.all(["LekkerLedger", "localforage"].map(name => deleteDb(name)));
             localStorage.clear();
             sessionStorage.clear();
+            if (authSessionPayload) {
+                localStorage.setItem(storageKey, JSON.stringify({
+                    currentSession: authSessionPayload,
+                    expiresAt: authSessionPayload.expires_at * 1000,
+                }));
+            }
         };
 
         await wipeIndexedDb();
@@ -413,10 +584,15 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
         await Promise.all(payload.employees.map((employee: { id: string }) => employeeStore.setItem(employee.id, encodeStoredRecord(employee))));
         await Promise.all(payload.payslips.map((payslip: { id: string }) => payslipStore.setItem(payslip.id, encodeStoredRecord(payslip))));
         await Promise.all(payload.leave.map((record: { id: string }) => leaveStore.setItem(record.id, encodeStoredRecord(record))));
-        await Promise.all(payload.payPeriods.map((period: { id: string }) => payPeriodStore.setItem(period.id, encodeStoredRecord(period))));
-        await Promise.all(payload.documents.map((doc: { id: string }) => documentStore.setItem(doc.id, encodeStoredRecord(doc))));
-        await Promise.all(payload.contracts.map((contract: { id: string }) => contractStore.setItem(contract.id, encodeStoredRecord(contract))));
-    }, { storeNames: [...STORE_NAMES], payload });
+        await Promise.all(payload.payPeriods.map((period: { id: string }) => payPeriodStore.setItem(period.id, period)));
+        await Promise.all(payload.documents.map((doc: { id: string }) => documentStore.setItem(doc.id, doc)));
+        await Promise.all(payload.contracts.map((contract: { id: string }) => contractStore.setItem(contract.id, contract)));
+    }, {
+        authSessionPayload: authSession,
+        storeNames: [...STORE_NAMES],
+        payload,
+        storageKey: SUPABASE_STORAGE_KEY,
+    });
 }
 
 async function getRoleLocator(page: Page, step: Extract<AuditStep, { type: "clickByRole" }>): Promise<Locator> {

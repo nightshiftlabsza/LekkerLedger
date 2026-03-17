@@ -1,4 +1,4 @@
-import { type BillingCycle, type PlanId } from "./plans";
+import { PLANS, type BillingCycle, type PlanId } from "./plans";
 
 export interface PriceDisplay {
     primary: string;
@@ -15,17 +15,23 @@ export interface MarketingPlanDisplay {
     /** Optional microcopy shown beneath the price block */
     launchNote?: string;
     featureIntro?: string;
-    features: string[];
+    liveFeatures: string[];
+    plannedFeaturesTitle?: string;
+    plannedFeatures?: string[];
     ctaLabel: string;
-    ctaSubtext: string;
-    /** Per-billing-cycle subtext shown only on upgrade CTAs (overrides ctaSubtext). */
-    ctaSubtextByCycle?: Record<BillingCycle, string>;
-    prices: Record<BillingCycle, PriceDisplay>;
+    ctaSubtext?: string;
 }
+
+export interface PlannedComparisonValue {
+    kind: "planned";
+    label: string;
+}
+
+export type PricingComparisonValue = boolean | string | PlannedComparisonValue;
 
 export interface PricingComparisonRow {
     label: string;
-    values: Record<PlanId, boolean | string>;
+    values: Record<PlanId, PricingComparisonValue>;
 }
 
 export interface PricingComparisonGroup {
@@ -42,32 +48,20 @@ export const PRICING_PAGE_TITLE = "Pick the plan that fits your household.";
 export const PRICING_PAGE_SUBTITLE = "Use the public free payslip tool, or pay now for Standard or Pro dashboard access.";
 export const PRICING_PAGE_NUDGE_TITLE = "Standard to Pro is less than R13/month extra.";
 export const PRICING_PAGE_NUDGE_BODY = "That's the price of a cup of coffee for full document storage, year-end summaries, and 5 years of searchable history.";
+export const PLANNED_FEATURES_TITLE = "Planned features";
 
 export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
     free: {
         label: "Free",
         headline: "Start simple.",
         subtitle: "One worker. Basic monthly payslips. No sign-up needed.",
-        features: [
+        liveFeatures: [
             "1 payslip per month as PDF",
             "Enter details, generate, download",
             "Household checklist and guides",
-            "No account needed",
         ],
         ctaLabel: "Start free",
         ctaSubtext: "Public payslip tool. No billing. No account.",
-        prices: {
-            monthly: {
-                primary: "Free",
-                periodLabel: "",
-                helperText: "Public payslip tool. No billing. No account.",
-            },
-            yearly: {
-                primary: "Free",
-                periodLabel: "",
-                helperText: "Public payslip tool. No billing. No account.",
-            },
-        },
     },
     standard: {
         label: "Standard",
@@ -77,7 +71,7 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
         badgeTone: "earlybird",
         launchNote: "Launch pricing for early customers.",
         featureIntro: "Everything in Free, plus:",
-        features: [
+        liveFeatures: [
             "Up to 3 active employees",
             "Leave tracking — annual, sick & family responsibility",
             "Employment contract drafts",
@@ -88,23 +82,6 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
             "12 months of history",
         ],
         ctaLabel: "Choose Standard",
-        ctaSubtext: "Pay now. Dashboard access starts immediately.",
-        ctaSubtextByCycle: {
-            monthly: "Pay R29 now, then monthly",
-            yearly: "Pay R249 now, then yearly",
-        },
-        prices: {
-            monthly: {
-                primary: "R29",
-                periodLabel: "/month",
-                helperText: "Or R249/year — works out to R20.75/month",
-            },
-            yearly: {
-                primary: "R249",
-                periodLabel: "/year",
-                helperText: "≈ R20.75/month",
-            },
-        },
     },
     pro: {
         label: "Pro",
@@ -114,36 +91,67 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
         badgeTone: "earlybird",
         launchNote: "Launch pricing for early customers.",
         featureIntro: "Everything in Standard, plus:",
-        features: [
+        liveFeatures: [
             "Unlimited employees",
             "Document vault for any employment files",
-            "Advanced employment records — Planned",
             "Year-end employment summary PDF",
             "5 years of searchable history",
             "Multiple households",
             "Faster support",
-            "Priority access to the Android app when available",
+        ],
+        plannedFeaturesTitle: PLANNED_FEATURES_TITLE,
+        plannedFeatures: [
+            "Android app access when available",
+            "Notification reminders",
+            "Advanced employment records",
         ],
         ctaLabel: "Choose Pro",
-        ctaSubtext: "Pay now. Dashboard access starts immediately.",
-        ctaSubtextByCycle: {
-            monthly: "Pay R49 now, then monthly",
-            yearly: "Pay R399 now, then yearly",
-        },
-        prices: {
-            monthly: {
-                primary: "R49",
-                periodLabel: "/month",
-                helperText: "Or R399/year — works out to R33.25/month",
-            },
-            yearly: {
-                primary: "R399",
-                periodLabel: "/year",
-                helperText: "≈ R33.25/month",
-            },
-        },
     },
 };
+
+export interface MarketingPlanFeatureSection {
+    kind: "live" | "planned";
+    title?: string;
+    items: string[];
+}
+
+export function getMarketingPlanDisplay(planId: PlanId): MarketingPlanDisplay {
+    return MARKETING_PLAN_DISPLAY[planId];
+}
+
+export function getMarketingPlanFeatureSections(planId: PlanId): MarketingPlanFeatureSection[] {
+    const plan = getMarketingPlanDisplay(planId);
+    const sections: MarketingPlanFeatureSection[] = [];
+
+    if (plan.liveFeatures.length > 0) {
+        sections.push({
+            kind: "live",
+            title: plan.featureIntro,
+            items: plan.liveFeatures,
+        });
+    }
+
+    if ((plan.plannedFeatures?.length ?? 0) > 0) {
+        sections.push({
+            kind: "planned",
+            title: plan.plannedFeaturesTitle ?? PLANNED_FEATURES_TITLE,
+            items: plan.plannedFeatures ?? [],
+        });
+    }
+
+    return sections;
+}
+
+export function createPlannedComparisonValue(label = "Planned"): PlannedComparisonValue {
+    return {
+        kind: "planned",
+        label,
+    };
+}
+
+export function isPlannedComparisonValue(value: PricingComparisonValue): value is PlannedComparisonValue {
+    return typeof value === "object" && value !== null && value.kind === "planned";
+}
 
 export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
     {
@@ -171,7 +179,6 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
             { label: "Upload signed contract copies", values: { free: false, standard: true, pro: true } },
             { label: "Documents hub (payslips & contracts)", values: { free: false, standard: true, pro: true } },
             { label: "Document vault (upload any file)", values: { free: false, standard: false, pro: true } },
-            { label: "Advanced employment records", values: { free: false, standard: false, pro: "Planned" } },
         ],
     },
     {
@@ -179,6 +186,14 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
         rows: [
             { label: "Cloud-secured storage", values: { free: false, standard: true, pro: true } },
             { label: "Access from any device", values: { free: false, standard: true, pro: true } },
+        ],
+    },
+    {
+        title: PLANNED_FEATURES_TITLE,
+        rows: [
+            { label: "Android app access when available", values: { free: false, standard: false, pro: createPlannedComparisonValue() } },
+            { label: "Notification reminders", values: { free: false, standard: false, pro: createPlannedComparisonValue() } },
+            { label: "Advanced employment records", values: { free: false, standard: false, pro: createPlannedComparisonValue() } },
         ],
     },
     {
@@ -204,6 +219,49 @@ export function getMarketingPlanHref(planId: PlanId, billingCycle: BillingCycle)
     return `/upgrade?plan=${planId}&billing=${billingCycle}&pay=1`;
 }
 
+export function getMarketingPlanCtaSubtext(planId: PlanId, billingCycle: BillingCycle): string | null {
+    const plan = getMarketingPlanDisplay(planId);
+    if (planId === "free") {
+        return plan.ctaSubtext ?? null;
+    }
+
+    const chargeToday = PLANS[planId].pricing[billingCycle];
+    return chargeToday ? `Pay R${chargeToday} now, then ${billingCycle}` : null;
+}
+
 export function getMarketingPriceDisplay(planId: PlanId, billingCycle: BillingCycle): PriceDisplay {
-    return MARKETING_PLAN_DISPLAY[planId].prices[billingCycle];
+    if (planId === "free") {
+        return {
+            primary: "Free",
+            periodLabel: "",
+            helperText: "Public payslip tool. No billing. No account.",
+        };
+    }
+
+    const monthly = PLANS[planId].pricing.monthly;
+    const yearly = PLANS[planId].pricing.yearly;
+
+    if (!monthly || !yearly) {
+        return {
+            primary: "Free",
+            periodLabel: "",
+            helperText: "Public payslip tool. No billing. No account.",
+        };
+    }
+
+    const yearlyEquivalent = (yearly / 12).toFixed(2);
+
+    if (billingCycle === "yearly") {
+        return {
+            primary: `R${yearly}`,
+            periodLabel: "/year",
+            helperText: `≈ R${yearlyEquivalent}/month`,
+        };
+    }
+
+    return {
+        primary: `R${monthly}`,
+        periodLabel: "/month",
+        helperText: `Or R${yearly}/year — works out to R${yearlyEquivalent}/month`,
+    };
 }

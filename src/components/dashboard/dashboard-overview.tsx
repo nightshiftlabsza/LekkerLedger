@@ -30,6 +30,7 @@ import { getUserPlan } from "@/lib/entitlements";
 import type { DashboardAlert as DashboardAlertData } from "@/lib/alerts";
 import { hasRequiredEmployerDetails } from "@/lib/employer-details";
 import type { DocumentMeta, Employee, EmployerSettings, PayPeriod, PayslipInput } from "@/lib/schema";
+import { getMarketingPlanDisplay, getMarketingPriceDisplay } from "@/src/config/pricing-display";
 
 export interface EmployeeSummary {
     employee: Employee;
@@ -643,6 +644,9 @@ function RecentRecordsCard({ recentDocs, hasEmployees }: { recentDocs: DocumentM
 }
 
 function UpgradeCard() {
+    const standardPlan = getMarketingPlanDisplay("standard");
+    const standardMonthlyPrice = getMarketingPriceDisplay("standard", "monthly");
+
     return (
         <Card className="border-[var(--primary)]/15 bg-[var(--surface-muted)]">
             <CardContent className="space-y-4 p-5">
@@ -650,7 +654,7 @@ function UpgradeCard() {
                     <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--primary)]">Standard plan</p>
                     <h3 className="text-lg font-black tracking-tight text-[var(--text)]">Unlock sync, leave tracking, and more workers</h3>
                     <p className="text-sm leading-6 text-[var(--text-muted)]">
-                        Standard adds encrypted backup, leave tracking, and support for up to 3 workers for R29/month.
+                        {standardPlan.subtitle} {standardMonthlyPrice.primary}{standardMonthlyPrice.periodLabel}.
                     </p>
                 </div>
 

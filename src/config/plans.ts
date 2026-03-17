@@ -33,7 +33,6 @@ export interface PlanConfig {
     features: PlanFeatures;
     description: string;
     bestFor: string;
-    marketingBullets: string[];
 }
 
 export interface PlanPricePresentation {
@@ -70,12 +69,6 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         },
         description: "One worker. Quick monthly payslips. No sign-up needed.",
         bestFor: "Try it out, or keep it simple.",
-        marketingBullets: [
-            "1 active employee",
-            "Monthly payslips — preview, download, share",
-            "Household checklist and guides",
-            "One payslip per month as PDF",
-        ],
     },
     standard: {
         id: "standard",
@@ -106,16 +99,6 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         },
         description: "A domestic worker, nanny, and gardener — up to 3 workers with organised records and backup.",
         bestFor: "Do it properly.",
-        marketingBullets: [
-            "Up to 3 active employees",
-            "Leave tracking — annual, sick & family responsibility",
-            "Employment contract drafts",
-            "Upload signed copies of your contracts",
-            "Documents hub for payslips and contracts",
-            "uFiling CSV export and ROE downloads",
-            "Cloud-secured storage, any device",
-            "12 months of browsable history",
-        ],
     },
     pro: {
         id: "pro",
@@ -146,15 +129,6 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         },
         description: "Full document storage, year-end summaries, long-term history, and faster support. Also for multiple households.",
         bestFor: "Complete peace of mind.",
-        marketingBullets: [
-            "Unlimited employees",
-            "Document vault — upload and store signed contracts, ID copies, anything",
-            "Year-end employment summary PDF",
-            "5 years of browsable, searchable history",
-            "Automatic encrypted sync",
-            "Faster support — reply within 1 business day",
-            "Multiple households (main home + holiday home)",
-        ],
     },
 } as const;
 

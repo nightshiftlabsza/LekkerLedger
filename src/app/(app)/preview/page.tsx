@@ -3,12 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Download, Loader2, CheckCircle2, MessageCircle, AlertCircle, Mail, ShieldCheck, FolderOpen } from "lucide-react";
+import { ArrowLeft, Download, Loader2, MessageCircle, AlertCircle, Mail, ShieldCheck, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/toast";
+import { WhatsAppShareDialog } from "@/components/payslips/whatsapp-share-dialog";
 import { getEmployees, getPayslipsForEmployee, getSettings } from "@/lib/storage";
 import { Employee, EmployerSettings, PayslipInput } from "@/lib/schema";
 import { calculatePayslip, getSundayRateMultiplier, isUifApplicable } from "@/lib/calculator";
@@ -56,8 +57,11 @@ function PreviewContent() {
     const [settings, setSettings] = React.useState<EmployerSettings | null>(null);
 
     const [loading, setLoading] = React.useState(true);
-    const [action, setAction] = React.useState<"" | "download" | "whatsapp" | "email">("");
+    const [action, setAction] = React.useState<"" | "download" | "email">("");
     const [error, setError] = React.useState("");
+    const [isWhatsAppDialogOpen, setIsWhatsAppDialogOpen] = React.useState(false);
+    const [isSubmittingWhatsApp, setIsSubmittingWhatsApp] = React.useState(false);
+    const [whatsAppRecoveryMessage, setWhatsAppRecoveryMessage] = React.useState("");
 
     React.useEffect(() => {
         async function load() {
@@ -95,7 +99,7 @@ function PreviewContent() {
         void load();
     }, [empId, payslipId]);
 
-    const runAction = async (nextAction: "download" | "whatsapp" | "email") => {
+    const runAction = async (nextAction: "download" | "email") => {
         if (!employee || !payslip || !settings) return;
 
         setAction(nextAction);
@@ -117,20 +121,6 @@ function PreviewContent() {
                 return;
             }
 
-            if (nextAction === "whatsapp") {
-                const result = await shareViaWhatsApp(bytes, employee.name, employee.phone ?? "", periodLabel);
-                const hasEmployeePhone = Boolean(employee.phone?.trim());
-
-                if (result === "shared") {
-                    toast("Share sheet opened. Choose WhatsApp and then pick the chat.", "info");
-                } else if (hasEmployeePhone) {
-                    toast("WhatsApp opened for this employee. Attach the downloaded PDF before sending.", "info");
-                } else {
-                    toast("Payslip downloaded. Add a phone number on the employee record to open their WhatsApp chat automatically.", "info");
-                }
-                return;
-            }
-
             const result = await shareViaEmail(bytes, employee.name, periodLabel);
             toast(result === "shared" ? "Email share opened." : "Payslip downloaded. Attach it from Downloads in your email app.", "info");
         } catch (actionError) {
@@ -138,6 +128,41 @@ function PreviewContent() {
             toast(actionError instanceof Error ? actionError.message : "Could not prepare the payslip.", "error");
         } finally {
             setAction("");
+        }
+    };
+
+    const openWhatsAppDialog = () => {
+        setWhatsAppRecoveryMessage("");
+        setIsWhatsAppDialogOpen(true);
+    };
+
+    const closeWhatsAppDialog = () => {
+        if (isSubmittingWhatsApp) return;
+        setWhatsAppRecoveryMessage("");
+        setIsWhatsAppDialogOpen(false);
+    };
+
+    const confirmWhatsAppShare = async () => {
+        if (!employee || !payslip || !settings || isSubmittingWhatsApp) return;
+
+        setIsSubmittingWhatsApp(true);
+        setWhatsAppRecoveryMessage("");
+
+        try {
+            const { bytes, periodLabel } = await buildPayslipPdf(employee, payslip, settings);
+            const result = await shareViaWhatsApp(bytes, employee.name, employee.phone ?? "", periodLabel);
+
+            if (result === "blocked") {
+                setWhatsAppRecoveryMessage("We saved the payslip, but this browser did not open WhatsApp. Open WhatsApp yourself, then attach the payslip from Downloads.");
+                return;
+            }
+
+            setIsWhatsAppDialogOpen(false);
+        } catch (actionError) {
+            console.error(actionError);
+            toast(actionError instanceof Error ? actionError.message : "Could not prepare the payslip.", "error");
+        } finally {
+            setIsSubmittingWhatsApp(false);
         }
     };
 
@@ -192,26 +217,21 @@ function PreviewContent() {
                             </div>
                         </div>
                         <div className="hidden sm:flex items-center gap-2">
-                            <Button variant="outline" className="gap-2" onClick={() => void runAction("email")} disabled={!!action}>
+                            <Button variant="outline" className="gap-2" onClick={() => void runAction("email")} disabled={!!action || isSubmittingWhatsApp}>
                                 {action === "email" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                                 Email
                             </Button>
-                            <Button variant="outline" className="gap-2" onClick={() => void runAction("whatsapp")} disabled={!!action}>
-                                {action === "whatsapp" ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                            <Button variant="outline" className="gap-2" onClick={openWhatsAppDialog} disabled={!!action || isSubmittingWhatsApp}>
+                                {isSubmittingWhatsApp ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
                                 WhatsApp
                             </Button>
-                            <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={() => void runAction("download")} disabled={!!action}>
+                            <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={() => void runAction("download")} disabled={!!action || isSubmittingWhatsApp}>
                                 {action === "download" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                                 Download PDF
                             </Button>
                         </div>
                     </div>
                 </div>
-
-                <Alert variant="success">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <AlertDescription>Payslip ready to review, download, and share.</AlertDescription>
-                </Alert>
 
                 <Card className="glass-panel border-none">
                     <CardContent className="p-5 flex items-center justify-between gap-4">
@@ -305,15 +325,15 @@ function PreviewContent() {
                         </Card>
 
                         <div className="grid gap-3 sm:hidden">
-                            <Button variant="outline" className="h-11 gap-2" onClick={() => void runAction("email")} disabled={!!action}>
+                            <Button variant="outline" className="h-11 gap-2" onClick={() => void runAction("email")} disabled={!!action || isSubmittingWhatsApp}>
                                 {action === "email" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                                 Email
                             </Button>
-                            <Button variant="outline" className="h-11 gap-2" onClick={() => void runAction("whatsapp")} disabled={!!action}>
-                                {action === "whatsapp" ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                            <Button variant="outline" className="h-11 gap-2" onClick={openWhatsAppDialog} disabled={!!action || isSubmittingWhatsApp}>
+                                {isSubmittingWhatsApp ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
                                 WhatsApp
                             </Button>
-                            <Button className="h-11 gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={() => void runAction("download")} disabled={!!action}>
+                            <Button className="h-11 gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={() => void runAction("download")} disabled={!!action || isSubmittingWhatsApp}>
                                 {action === "download" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                                 Download PDF
                             </Button>
@@ -321,6 +341,15 @@ function PreviewContent() {
                     </div>
                 </div>
             </div>
+
+            <WhatsAppShareDialog
+                open={isWhatsAppDialogOpen}
+                hasPhone={Boolean(employee.phone?.trim())}
+                submitting={isSubmittingWhatsApp}
+                recoveryMessage={whatsAppRecoveryMessage}
+                onClose={closeWhatsAppDialog}
+                onConfirm={() => void confirmWhatsAppShare()}
+            />
         </div>
     );
 }

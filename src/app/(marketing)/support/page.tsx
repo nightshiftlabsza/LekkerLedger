@@ -47,8 +47,8 @@ export default function SupportPage() {
                     </Link>
 
                     {/* App Usage/Bugs Help */}
-                    <a href={`mailto:${SUPPORT_EMAIL}?subject=App%20Support`} className="block group">
-                        <div className="rounded-2xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 p-6 h-full transition-all group-hover:border-[var(--primary)] group-hover:shadow-[var(--shadow-md)]">
+                    <div className="group">
+                        <div className="h-full rounded-2xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 p-6 transition-all group-hover:border-[var(--primary)] group-hover:shadow-[var(--shadow-md)]">
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
                                     <Mail className="h-5 w-5" />
@@ -62,9 +62,14 @@ export default function SupportPage() {
                                 Privacy, data-rights, or security reports should go to{" "}
                                 <a href={`mailto:${PRIVACY_EMAIL}`} className="font-semibold text-[var(--primary)] hover:underline">{PRIVACY_EMAIL}</a>.
                             </p>
-                            <span className="text-[var(--primary)] font-bold text-sm">{SUPPORT_EMAIL} &rarr;</span>
+                            <a
+                                href={`mailto:${SUPPORT_EMAIL}?subject=App%20Support`}
+                                className="inline-flex text-sm font-bold text-[var(--primary)] hover:underline"
+                            >
+                                {SUPPORT_EMAIL} &rarr;
+                            </a>
                         </div>
-                    </a>
+                    </div>
 
                     <Link href="/storage" className="block group">
                         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-6 h-full transition-all group-hover:border-[var(--primary)]/50 group-hover:shadow-[var(--shadow-md)]">

@@ -13,6 +13,7 @@ import {
     EmployerSettings,
     EmployerSettingsSchema,
     PayPeriod,
+    PayPeriodSchema,
     DocumentMeta,
     DocumentMetaSchema,
     Contract,
@@ -159,6 +160,7 @@ function buildDefaultSettings(overrides: Partial<EmployerSettings> = {}): Employ
         defaultLanguage: "en",
         density: "comfortable",
         standardRetentionNoticeDismissedAt: undefined,
+        paidDashboardFeedbackNoticeDismissedAt: undefined,
 
         piiObfuscationEnabled: true,
         installationId: "",
@@ -711,6 +713,7 @@ export async function saveSettings(settings: EmployerSettings): Promise<void> {
         proStatus: settings.proStatus ?? currentSettings?.proStatus,
         billingCycle: settings.billingCycle ?? currentSettings?.billingCycle,
         standardRetentionNoticeDismissedAt: settings.standardRetentionNoticeDismissedAt ?? currentSettings?.standardRetentionNoticeDismissedAt,
+        paidDashboardFeedbackNoticeDismissedAt: settings.paidDashboardFeedbackNoticeDismissedAt ?? currentSettings?.paidDashboardFeedbackNoticeDismissedAt,
     });
     await settingsStore.setItem(SETTINGS_KEY, globalSettings);
     const activeHouseholdId = await getActiveHouseholdId();
@@ -841,11 +844,32 @@ function normalizePayPeriod(raw: PayPeriod): PayPeriod {
     };
 }
 
+function parsePayPeriodRecord(value: unknown): PayPeriod | null {
+    if (!value) {
+        return null;
+    }
+
+    const decoded = typeof value === "string" ? decodeData<PayPeriod>(value) : value;
+    if (!decoded) {
+        return null;
+    }
+
+    const parsed = PayPeriodSchema.safeParse(decoded);
+    if (!parsed.success) {
+        return null;
+    }
+
+    return normalizePayPeriod(parsed.data);
+}
+
 export async function getPayPeriods(): Promise<PayPeriod[]> {
     return withStorageReadFallback("getPayPeriods", [], async () => {
         const periods: PayPeriod[] = [];
-        await payPeriodStore.iterate<PayPeriod, void>((value: PayPeriod) => {
-            periods.push(normalizePayPeriod(value));
+        await payPeriodStore.iterate<unknown, void>((value: unknown) => {
+            const parsed = parsePayPeriodRecord(value);
+            if (parsed) {
+                periods.push(parsed);
+            }
         });
         return periods.sort((a, b) => b.endDate.localeCompare(a.endDate));
     });

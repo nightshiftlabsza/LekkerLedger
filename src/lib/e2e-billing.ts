@@ -64,3 +64,10 @@ export function buildE2EBillingAccount(planId: Exclude<PlanId, "free"> = "standa
         account,
     };
 }
+
+export function buildE2EAuthUserSnapshot() {
+    return {
+        id: QA_USER_ID,
+        email: QA_EMAIL,
+    };
+}

@@ -104,7 +104,7 @@ const marketingActions: AuditAction[] = [
         seed: "empty",
         steps: [
             { type: "clickSelector", selector: "section#faq details:nth-of-type(5) summary" },
-            { type: "assertText", text: "Paid cloud sync lets you restore records instantly" },
+            { type: "assertText", text: "Paid accounts store everything in the cloud." },
         ],
     },
     {
@@ -134,7 +134,7 @@ const marketingActions: AuditAction[] = [
         seed: "empty",
         steps: [
             { type: "clickSelector", selector: "section#faq details:nth-of-type(3) summary" },
-            { type: "assertText", text: "Employee records stay on your device by default." },
+            { type: "assertText", text: "Paid accounts store records in end-to-end encrypted cloud storage" },
         ],
     },
 ];
@@ -189,7 +189,7 @@ const onboardingShellActions: AuditAction[] = [
         route: "/onboarding",
         device: "mobile",
         seed: "empty",
-        steps: [{ type: "assertText", text: "Free starts locally" }],
+        steps: [{ type: "assertText", text: "The free payslip tool works in the browser and does not keep records after the session." }],
     },
     {
         id: "shell-dashboard-open-account-desktop",

@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import * as React from "react";
-import { Check } from "lucide-react";
+import { Check, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PLAN_ORDER, type BillingCycle, type PlanId } from "@/src/config/plans";
 import {
+    getMarketingPlanCtaSubtext,
+    getMarketingPlanDisplay,
+    getMarketingPlanFeatureSections,
     getMarketingPlanHref,
     getMarketingPriceDisplay,
-    MARKETING_PLAN_DISPLAY,
     MARKETING_YEARLY_BADGE,
     PRICING_COMPARISON_GROUPS,
+    isPlannedComparisonValue,
+    type PricingComparisonValue,
 } from "@/src/config/pricing-display";
 
 function appendReferralCode(href: string, referralCode: string | null): string {
@@ -24,7 +28,7 @@ function appendReferralCode(href: string, referralCode: string | null): string {
     return `${pathname}?${params.toString()}`;
 }
 
-function FeatureValue({ value }: { value: boolean | string }) {
+function FeatureValue({ value }: { value: PricingComparisonValue }) {
     if (value === true) {
         return <Check className="mx-auto h-4 w-4 text-[var(--primary)]" />;
     }
@@ -33,12 +37,29 @@ function FeatureValue({ value }: { value: boolean | string }) {
         return <span style={{ color: "var(--text-muted)" }}>-</span>;
     }
 
+    if (isPlannedComparisonValue(value)) {
+        return (
+            <span
+                className="inline-flex items-center gap-1 rounded-full border border-dashed px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em]"
+                style={{
+                    borderColor: "rgba(15, 23, 42, 0.18)",
+                    backgroundColor: "rgba(15, 23, 42, 0.04)",
+                    color: "var(--text-muted)",
+                }}
+            >
+                <Clock3 className="h-3 w-3" />
+                {value.label}
+            </span>
+        );
+    }
+
     return <span>{value}</span>;
 }
 
-function getFeatureValueLabel(value: boolean | string) {
+function getFeatureValueLabel(value: PricingComparisonValue) {
     if (value === true) return "Included";
     if (value === false) return "Not included";
+    if (isPlannedComparisonValue(value)) return value.label;
     return value;
 }
 
@@ -241,7 +262,7 @@ export function MarketingPlanCard({
     readonly isLoading?: boolean;
     readonly isDisabled?: boolean;
 }) {
-    const plan = MARKETING_PLAN_DISPLAY[planId];
+    const plan = getMarketingPlanDisplay(planId);
     const featured = planId === "standard";
     const priceDisplay = getMarketingPriceDisplay(planId, billingCycle);
     const isDowngrade =
@@ -356,32 +377,7 @@ export function MarketingPlanCard({
                 </div>
 
                 {/* Features */}
-                <div className="space-y-4">
-                    {plan.featureIntro ? (
-                        <p
-                            className="text-xs font-black uppercase tracking-[0.16em]"
-                            style={{ color: "var(--text-muted)" }}
-                        >
-                            {plan.featureIntro}
-                        </p>
-                    ) : null}
-
-                    <ul className="space-y-3">
-                        {plan.features.map((feature) => (
-                            <li
-                                key={feature}
-                                className="flex items-start gap-3 text-sm"
-                                style={{ color: "var(--text-muted)" }}
-                            >
-                                <Check
-                                    className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]"
-                                    aria-hidden="true"
-                                />
-                                <span className="leading-5">{feature}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                <PlanFeatureList planId={planId} />
             </div>
 
             {/* ── CTA footer ── */}
@@ -427,13 +423,83 @@ export function MarketingPlanCard({
                 )}
 
                 {/* Billing subtext — only on upgrade CTAs */}
-                {!isCurrent && !isDowngrade && (plan.ctaSubtextByCycle?.[billingCycle] ?? plan.ctaSubtext) ? (
+                {!isCurrent && !isDowngrade && getMarketingPlanCtaSubtext(planId, billingCycle) ? (
                     <p className="text-center text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                        {plan.ctaSubtextByCycle?.[billingCycle] ?? plan.ctaSubtext}
+                        {getMarketingPlanCtaSubtext(planId, billingCycle)}
                     </p>
                 ) : null}
             </div>
         </article>
+    );
+}
+
+export function PlanFeatureList({
+    planId,
+    className = "",
+}: {
+    readonly planId: PlanId;
+    readonly className?: string;
+}) {
+    const sections = getMarketingPlanFeatureSections(planId);
+
+    return (
+        <div className={`space-y-4 ${className}`.trim()}>
+            {sections.map((section) => {
+                const isPlanned = section.kind === "planned";
+
+                return (
+                    <section
+                        key={`${planId}-${section.kind}`}
+                        aria-label={section.title}
+                        data-feature-section={section.kind}
+                        className={
+                            isPlanned
+                                ? "rounded-[20px] border border-dashed border-[var(--border)] bg-[var(--surface-raised)]/70 p-4"
+                                : ""
+                        }
+                    >
+                        {section.title ? (
+                            <p
+                                className="text-xs font-black uppercase tracking-[0.16em]"
+                                style={{ color: "var(--text-muted)" }}
+                            >
+                                {section.title}
+                            </p>
+                        ) : null}
+
+                        <ul className={`${section.title ? "mt-3" : ""} space-y-3`}>
+                            {section.items.map((feature) => (
+                                <li
+                                    key={feature}
+                                    data-feature-kind={section.kind}
+                                    className="flex items-start gap-3 text-sm"
+                                    style={{ color: "var(--text-muted)" }}
+                                >
+                                    {isPlanned ? (
+                                        <Clock3
+                                            className="mt-0.5 h-4 w-4 shrink-0"
+                                            style={{ color: "var(--text-muted)" }}
+                                            aria-hidden="true"
+                                        />
+                                    ) : (
+                                        <Check
+                                            className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]"
+                                            aria-hidden="true"
+                                        />
+                                    )}
+                                    <span
+                                        className={`leading-5 ${isPlanned ? "font-medium" : ""}`}
+                                        style={isPlanned ? { color: "var(--text)" } : undefined}
+                                    >
+                                        {feature}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                );
+            })}
+        </div>
     );
 }
 

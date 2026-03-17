@@ -1,0 +1,162 @@
+[
+  {
+    "viewport": "mobile-390",
+    "route": "home-pricing",
+    "requestedRoute": "/",
+    "finalUrl": "http://localhost:3002/",
+    "metrics": { "innerWidth": 390, "docScrollWidth": 390, "bodyScrollWidth": 390 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\mobile-390-home-pricing.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "mobile-390",
+    "route": "pricing-page",
+    "requestedRoute": "/pricing",
+    "finalUrl": "http://localhost:3002/pricing",
+    "metrics": { "innerWidth": 390, "docScrollWidth": 390, "bodyScrollWidth": 390 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\mobile-390-pricing-page.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "mobile-390",
+    "route": "upgrade-page",
+    "requestedRoute": "/upgrade",
+    "finalUrl": "http://localhost:3002/upgrade",
+    "metrics": { "innerWidth": 390, "docScrollWidth": 390, "bodyScrollWidth": 390 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\mobile-390-upgrade-page.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "mobile-390",
+    "route": "settings-plan",
+    "requestedRoute": "/settings?tab=plan",
+    "finalUrl": "http://localhost:3002/settings?tab=plan",
+    "metrics": { "innerWidth": 390, "docScrollWidth": 390, "bodyScrollWidth": 390 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\mobile-390-settings-plan.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "tablet-768",
+    "route": "home-pricing",
+    "requestedRoute": "/",
+    "finalUrl": "http://localhost:3002/",
+    "metrics": { "innerWidth": 768, "docScrollWidth": 768, "bodyScrollWidth": 768 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\tablet-768-home-pricing.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "tablet-768",
+    "route": "pricing-page",
+    "requestedRoute": "/pricing",
+    "finalUrl": "http://localhost:3002/pricing",
+    "metrics": { "innerWidth": 768, "docScrollWidth": 768, "bodyScrollWidth": 768 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\tablet-768-pricing-page.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "tablet-768",
+    "route": "upgrade-page",
+    "requestedRoute": "/upgrade",
+    "finalUrl": "http://localhost:3002/upgrade",
+    "metrics": { "innerWidth": 768, "docScrollWidth": 768, "bodyScrollWidth": 768 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\tablet-768-upgrade-page.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "tablet-768",
+    "route": "settings-plan",
+    "requestedRoute": "/settings?tab=plan",
+    "finalUrl": "http://localhost:3002/settings?tab=plan",
+    "metrics": { "innerWidth": 768, "docScrollWidth": 768, "bodyScrollWidth": 768 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\tablet-768-settings-plan.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "desktop-1366",
+    "route": "home-pricing",
+    "requestedRoute": "/",
+    "finalUrl": "http://localhost:3002/",
+    "metrics": { "innerWidth": 1366, "docScrollWidth": 1366, "bodyScrollWidth": 1366 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\desktop-1366-home-pricing.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "desktop-1366",
+    "route": "pricing-page",
+    "requestedRoute": "/pricing",
+    "finalUrl": "http://localhost:3002/pricing",
+    "metrics": { "innerWidth": 1366, "docScrollWidth": 1366, "bodyScrollWidth": 1366 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\desktop-1366-pricing-page.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "desktop-1366",
+    "route": "upgrade-page",
+    "requestedRoute": "/upgrade",
+    "finalUrl": "http://localhost:3002/upgrade",
+    "metrics": { "innerWidth": 1366, "docScrollWidth": 1366, "bodyScrollWidth": 1366 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\desktop-1366-upgrade-page.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "desktop-1366",
+    "route": "settings-plan",
+    "requestedRoute": "/settings?tab=plan",
+    "finalUrl": "http://localhost:3002/settings?tab=plan",
+    "metrics": { "innerWidth": 1366, "docScrollWidth": 1366, "bodyScrollWidth": 1366 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\desktop-1366-settings-plan.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "ultrawide-2560",
+    "route": "home-pricing",
+    "requestedRoute": "/",
+    "finalUrl": "http://localhost:3002/",
+    "metrics": { "innerWidth": 2560, "docScrollWidth": 2560, "bodyScrollWidth": 2560 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\ultrawide-2560-home-pricing.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "ultrawide-2560",
+    "route": "pricing-page",
+    "requestedRoute": "/pricing",
+    "finalUrl": "http://localhost:3002/pricing",
+    "metrics": { "innerWidth": 2560, "docScrollWidth": 2560, "bodyScrollWidth": 2560 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\ultrawide-2560-pricing-page.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "ultrawide-2560",
+    "route": "upgrade-page",
+    "requestedRoute": "/upgrade",
+    "finalUrl": "http://localhost:3002/upgrade",
+    "metrics": { "innerWidth": 2560, "docScrollWidth": 2560, "bodyScrollWidth": 2560 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\ultrawide-2560-upgrade-page.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "ultrawide-2560",
+    "route": "settings-plan",
+    "requestedRoute": "/settings?tab=plan",
+    "finalUrl": "http://localhost:3002/settings?tab=plan",
+    "metrics": { "innerWidth": 2560, "docScrollWidth": 2560, "bodyScrollWidth": 2560 },
+    "screenshotPath": "C:\\Users\\mzaka.ZAK-PC\\Documents\\Apps\\LekkerLedger-1\\artifacts\\pricing-responsive-qa\\ultrawide-2560-settings-plan.png",
+    "consoleErrors": [],
+    "pageErrors": []
+  }
+]

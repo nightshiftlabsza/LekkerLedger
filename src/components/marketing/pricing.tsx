@@ -1,5 +1,6 @@
 export {
     MarketingBillingToggle,
+    PlanFeatureList,
     MarketingPlanCard,
     MarketingPlanCards,
     PricingComparisonTable,

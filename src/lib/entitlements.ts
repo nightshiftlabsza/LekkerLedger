@@ -87,7 +87,7 @@ export const ENTITLEMENTS: Record<FeatureKey, FeatureEntitlement> = {
         minPlan: "pro",
         status: "planned",
         upsellHeadline: "Planned feature",
-        upsellBody: "Advanced employment records are planned for Pro but are not available yet.",
+        upsellBody: "Advanced employment records are planned for Pro and will be added later.",
     },
     "summary.yearEndPdf": {
         key: "summary.yearEndPdf",
@@ -114,8 +114,8 @@ export const ENTITLEMENTS: Record<FeatureKey, FeatureEntitlement> = {
         key: "android.priorityAccess",
         minPlan: "pro",
         status: "planned",
-        upsellHeadline: "Android App Access",
-        upsellBody: "Priority access to the Android app is a planned feature for Pro users.",
+        upsellHeadline: "Planned feature",
+        upsellBody: "Android app access when available is planned for Pro and will be added later.",
     },
 };
 

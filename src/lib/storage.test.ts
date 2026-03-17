@@ -1,3 +1,4 @@
+import localforage from "localforage";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
     exportData,
@@ -5,6 +6,7 @@ import {
     getDocumentFile,
     getDocuments,
     getLocalBackupPreview,
+    getPayPeriods,
     getSettings,
     hasMeaningfulLocalData,
     purgeDocumentMetas,
@@ -65,6 +67,8 @@ const basePayslip: PayslipInput = {
     sickLeaveTaken: 0,
     familyLeaveTaken: 0,
 };
+
+const payPeriodStore = localforage.createInstance({ name: "LekkerLedger", storeName: "pay_periods" });
 
 describe("storage safeguards", () => {
     beforeEach(async () => {
@@ -206,6 +210,39 @@ describe("storage safeguards", () => {
         expect(preview.payslipCount).toBe(1);
     });
 
+    it("ignores malformed pay periods instead of crashing reads", async () => {
+        await payPeriodStore.setItem("pay-period-valid", {
+            id: "pay-period-valid",
+            householdId: "default",
+            name: "April 2026",
+            startDate: "2026-04-01T00:00:00.000Z",
+            endDate: "2026-04-30T00:00:00.000Z",
+            payDate: "2026-04-30T00:00:00.000Z",
+            status: "review",
+            entries: [],
+            createdAt: "2026-04-01T00:00:00.000Z",
+            updatedAt: "2026-04-01T00:00:00.000Z",
+        });
+        await payPeriodStore.setItem("pay-period-bad", {
+            id: "pay-period-bad",
+            householdId: "default",
+            name: "Broken period",
+            startDate: "2026-03-01T00:00:00.000Z",
+            status: "draft",
+            entries: [],
+            createdAt: "2026-03-01T00:00:00.000Z",
+            updatedAt: "2026-03-01T00:00:00.000Z",
+        });
+
+        await expect(getPayPeriods()).resolves.toEqual([
+            expect.objectContaining({
+                id: "pay-period-valid",
+                name: "April 2026",
+                endDate: "2026-04-30T00:00:00.000Z",
+            }),
+        ]);
+    });
+
     it("preserves paid access dates across normal settings saves", async () => {
         const settings = await getSettings();
         const paidUntil = "2026-04-24T12:00:00.000Z";
@@ -235,6 +272,40 @@ describe("storage safeguards", () => {
 
         const reloadedSettings = await getSettings();
         expect(reloadedSettings.standardRetentionNoticeDismissedAt).toBe("2026-03-15T09:00:00.000Z");
+    });
+
+    it("persists the paid dashboard feedback dismissal timestamp in global settings", async () => {
+        const settings = await getSettings();
+        await saveSettings({
+            ...settings,
+            paidDashboardFeedbackNoticeDismissedAt: "2026-03-16T09:00:00.000Z",
+        });
+
+        const reloadedSettings = await getSettings();
+        expect(reloadedSettings.paidDashboardFeedbackNoticeDismissedAt).toBe("2026-03-16T09:00:00.000Z");
+    });
+
+    it("keeps the paid dashboard feedback dismissal timestamp global across household switches", async () => {
+        const settings = await getSettings();
+        await saveSettings({
+            ...settings,
+            paidDashboardFeedbackNoticeDismissedAt: "2026-03-16T09:00:00.000Z",
+        });
+
+        await saveHousehold({
+            id: "household-3",
+            name: "Third household",
+            createdAt: new Date("2026-03-03T00:00:00Z").toISOString(),
+        });
+        await setActiveHouseholdId("household-3");
+
+        const secondHouseholdSettings = await getSettings();
+        expect(secondHouseholdSettings.paidDashboardFeedbackNoticeDismissedAt).toBe("2026-03-16T09:00:00.000Z");
+
+        await setActiveHouseholdId("default");
+
+        const restoredSettings = await getSettings();
+        expect(restoredSettings.paidDashboardFeedbackNoticeDismissedAt).toBe("2026-03-16T09:00:00.000Z");
     });
 
     it("purges document metadata and backing files together", async () => {
