@@ -341,14 +341,6 @@ export function FreePayslipGenerator() {
         await refreshVerification("manual");
     }, [refreshVerification]);
 
-    const handleDownloadClick = React.useCallback(async () => {
-        await handleDownload();
-    }, [handleDownload]);
-
-    const handleUseDifferentEmailClick = React.useCallback(async () => {
-        await handleUseDifferentEmail();
-    }, [handleUseDifferentEmail]);
-
     const handleDownload = React.useCallback(async () => {
         if (!payload || !breakdown) {
             setStatusTone("danger");
@@ -398,6 +390,14 @@ export function FreePayslipGenerator() {
             setDownloading(false);
         }
     }, [applyVerificationState, breakdown, payload, verificationState, verifiedEmail]);
+
+    const handleDownloadClick = React.useCallback(async () => {
+        await handleDownload();
+    }, [handleDownload]);
+
+    const handleUseDifferentEmailClick = React.useCallback(async () => {
+        await handleUseDifferentEmail();
+    }, [handleUseDifferentEmail]);
 
     let gateCardTitle = "Verify your email";
     if (verificationState === "success") {

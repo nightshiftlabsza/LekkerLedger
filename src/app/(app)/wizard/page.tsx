@@ -176,6 +176,9 @@ function WizardContent() {
     const ordinaryHoursHelperText = monthlyDraft?.hasManualOrdinaryHoursOverride
         ? `Manual ordinary-hours override in use. Auto-calculated hours for this month would be ${monthlyDraft.autoOrdinaryHours}.`
         : `Auto-calculated as ${monthlyDraft?.autoOrdinaryHours ?? 0} hours from ${enteredDaysWorked} standard day${enteredDaysWorked === 1 ? "" : "s"} x ${employee?.ordinaryHoursPerDay ?? 8} hours.`;
+    const hasFourHourTopUp = breakdown
+        ? breakdown.topUps.fourHourMinimumHours > 0
+        : false;
     const ordinaryTopUpLabel = hasFourHourTopUp && breakdown
         ? ` + ${breakdown.topUps.fourHourMinimumHours}h 4-hr top-up`
         : "";
@@ -195,10 +198,6 @@ function WizardContent() {
     } else if (currentStep === STEPS.length - 1) {
         nextButtonContent = "Save & Preview";
     }
-    const hasFourHourTopUp = breakdown
-        ? breakdown.topUps.fourHourMinimumHours > 0
-        : false;
-
     const doSave = React.useCallback(async () => {
         if (!employee) return;
         setLoading(true);
