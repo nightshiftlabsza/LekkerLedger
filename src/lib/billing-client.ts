@@ -69,7 +69,7 @@ export function clearVerifiedEntitlementsCache() {
 export async function fetchVerifiedEntitlements(accessToken?: string | null, force = false): Promise<VerifiedEntitlements | null> {
     const { sessionKey } = await getAuthContext(accessToken);
 
-    if (!force && cachedEntitlements && cachedEntitlements.sessionKey === sessionKey && (Date.now() - cachedEntitlements.fetchedAt) < ENTITLEMENTS_CACHE_TTL_MS) {
+    if (!force && cachedEntitlements?.sessionKey === sessionKey && (Date.now() - cachedEntitlements.fetchedAt) < ENTITLEMENTS_CACHE_TTL_MS) {
         return cachedEntitlements.value;
     }
 
@@ -86,7 +86,7 @@ export async function fetchVerifiedEntitlements(accessToken?: string | null, for
     }
 
     if (!response.ok) {
-        if (cachedEntitlements && cachedEntitlements.sessionKey === sessionKey) {
+        if (cachedEntitlements?.sessionKey === sessionKey) {
             return cachedEntitlements.value;
         }
 

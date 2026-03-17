@@ -212,7 +212,7 @@ export function RecordLeaveForm({
             }
         }
 
-        void load();
+        load().catch(() => undefined);
         return () => {
             active = false;
         };

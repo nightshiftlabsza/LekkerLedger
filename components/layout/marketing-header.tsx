@@ -239,9 +239,7 @@ const AccountMenu = React.forwardRef<HTMLDivElement, {
                     <button
                         type="button"
                         role="menuitem"
-                        onClick={() => {
-                            void onSignOut();
-                        }}
+                        onClick={onSignOut}
                         className="flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--surface-raised)]"
                     >
                         <LogOut className="h-4 w-4 text-[var(--text-muted)]" />

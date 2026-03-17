@@ -168,6 +168,33 @@ function WizardContent() {
     const uifApplicable = breakdown
         ? isUifApplicable(breakdown.totalHours, breakdown.periodStart, breakdown.periodEnd)
         : false;
+    const ordinaryHoursInputValue = ordinaryHoursOverride !== ""
+        ? ordinaryHoursOverride
+        : monthlyDraft?.autoOrdinaryHours
+            ? monthlyDraft.autoOrdinaryHours.toString()
+            : "";
+    const ordinaryHoursHelperText = monthlyDraft?.hasManualOrdinaryHoursOverride
+        ? `Manual ordinary-hours override in use. Auto-calculated hours for this month would be ${monthlyDraft.autoOrdinaryHours}.`
+        : `Auto-calculated as ${monthlyDraft?.autoOrdinaryHours ?? 0} hours from ${enteredDaysWorked} standard day${enteredDaysWorked === 1 ? "" : "s"} x ${employee?.ordinaryHoursPerDay ?? 8} hours.`;
+    const ordinaryTopUpLabel = hasFourHourTopUp && breakdown
+        ? ` + ${breakdown.topUps.fourHourMinimumHours}h 4-hr top-up`
+        : "";
+    const ordinaryPayLabel = `Ordinary (${ordinaryHours}h${ordinaryTopUpLabel})`;
+    const shouldShowAccommodationDeduction = Boolean(includeAccommodation && breakdown?.deductions.accommodation);
+    let nextButtonContent: React.ReactNode = (
+        <>
+            Next <ArrowRight className="h-4 w-4" />
+        </>
+    );
+    if (loading) {
+        nextButtonContent = (
+            <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Saving…
+            </>
+        );
+    } else if (currentStep === STEPS.length - 1) {
+        nextButtonContent = "Save & Preview";
+    }
     const hasFourHourTopUp = breakdown
         ? breakdown.topUps.fourHourMinimumHours > 0
         : false;
@@ -467,13 +494,11 @@ function WizardContent() {
                                                     type="number"
                                                     min="0"
                                                     placeholder="0"
-                                                    value={ordinaryHoursOverride !== "" ? ordinaryHoursOverride : (monthlyDraft?.autoOrdinaryHours ? monthlyDraft.autoOrdinaryHours.toString() : "")}
+                                                    value={ordinaryHoursInputValue}
                                                     onChange={(e) => setOrdinaryHoursOverride(e.target.value)}
                                                 />
                                                 <p className="text-[11px] leading-5 text-[var(--text-muted)]">
-                                                    {monthlyDraft?.hasManualOrdinaryHoursOverride
-                                                        ? `Manual ordinary-hours override in use. Auto-calculated hours for this month would be ${monthlyDraft.autoOrdinaryHours}.`
-                                                        : `Auto-calculated as ${monthlyDraft?.autoOrdinaryHours ?? 0} hours from ${enteredDaysWorked} standard day${enteredDaysWorked === 1 ? "" : "s"} x ${employee.ordinaryHoursPerDay ?? 8} hours.`}
+                                                    {ordinaryHoursHelperText}
                                                 </p>
                                             </div>
                                         </div>
@@ -785,7 +810,7 @@ function WizardContent() {
                                     <div className="px-4 pt-4 pb-2 space-y-2">
                                         <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--primary)" }}>Earnings</p>
                                         <Row
-                                            label={`Ordinary (${ordinaryHours}h${hasFourHourTopUp ? ` + ${breakdown.topUps.fourHourMinimumHours}h 4-hr top-up` : ""})`}
+                                            label={ordinaryPayLabel}
                                             value={formatCurrency(breakdown.ordinaryPay)}
                                         />
                                         {hasFourHourTopUp && (
@@ -806,7 +831,7 @@ function WizardContent() {
                                     <div className="px-4 pt-3 pb-2 space-y-2">
                                         <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--primary)" }}>Deductions</p>
                                         <Row label={`UIF ${uifApplicable ? "(1%)" : "(n/a)"}`} value={formatCurrency(breakdown.deductions.uifEmployee)} red />
-                                        {includeAccommodation && breakdown.deductions.accommodation && (
+                                        {shouldShowAccommodationDeduction && (
                                             <Row label="Accommodation (10%)" value={formatCurrency(breakdown.deductions.accommodation)} red />
                                         )}
                                         <Row label="Total Deductions" value={formatCurrency(breakdown.deductions.total)} bold />
@@ -845,13 +870,7 @@ function WizardContent() {
                     disabled={loading}
                     className="flex-1 sm:flex-none sm:min-w-[160px] bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-bold"
                 >
-                    {loading ? (
-                        <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
-                    ) : currentStep === STEPS.length - 1 ? (
-                        "Save & Preview"
-                    ) : (
-                        <>Next <ArrowRight className="h-4 w-4" /></>
-                    )}
+                    {nextButtonContent}
                 </Button>
             </StickyBottomBar>
         </div>

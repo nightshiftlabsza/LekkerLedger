@@ -125,7 +125,7 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
     return (
         <section className="relative overflow-hidden border-b border-[var(--border)]" style={{ backgroundColor: "var(--bg)" }}>
             <div className="pointer-events-none absolute inset-0">
-                <div className="absolute left-1/2 top-0 h-64 w-[min(92vw,72rem)] -translate-x-1/2 bg-[radial-gradient(circle,rgba(196,122,28,0.12)_0%,rgba(250,247,240,0)_72%)]" />
+                <div className="absolute left-1/2 top-0 h-64 w-[min(92vw,72rem)] -translate-x-1/2" style={{ background: "var(--hero-glow-soft)" }} />
                 <div className="absolute inset-x-0 top-24 h-px bg-[var(--border)]" />
             </div>
 
@@ -189,7 +189,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
         >
             <div
                 className="border-b border-[var(--border)] px-5 py-4 sm:px-6 sm:py-5"
-                style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.10) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
+                style={{ background: "var(--accent-panel-gradient-strong)" }}
             >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -272,7 +272,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
 
                     <div
                         className="mt-4 rounded-[22px] border border-[var(--border)] p-4 sm:p-5"
-                        style={{ background: "linear-gradient(180deg, rgba(255, 252, 248, 0.96) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
+                        style={{ background: "var(--surface-panel-gradient)" }}
                     >
                         <div
                             className={`${SAMPLE_FIGURE_GRID} border-b border-[var(--border)] pb-2 text-[10px] font-black uppercase tracking-[0.16em]`}
@@ -319,7 +319,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                     <ProofMetric className="min-[360px]:col-span-2 sm:col-span-1" label="Net pay" value={formatRand(sample.breakdown.netPay)} emphasis />
                     <div
                         className="hidden rounded-[20px] border border-[var(--focus)]/20 p-4 sm:col-span-3 sm:block xl:col-span-1"
-                        style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.08) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
+                        style={{ background: "var(--accent-panel-gradient)" }}
                     >
                         <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                             Why this matters
@@ -348,7 +348,7 @@ function ProofMetric({
     return (
         <div
             className={`rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)] ${className ?? ""}`}
-            style={emphasis ? { background: "linear-gradient(135deg, rgba(0, 122, 77, 0.08) 0%, rgba(255, 252, 248, 1) 100%)" } : undefined}
+            style={emphasis ? { background: "var(--accent-metric-gradient)" } : undefined}
         >
             <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: emphasis ? "var(--primary)" : "var(--text-muted)" }}>
                 {label}
@@ -381,7 +381,7 @@ function SamplePartyBlock({
     return (
         <div
             className={`rounded-[18px] border border-[var(--border)] px-4 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)] ${className ?? ""}`}
-            style={{ background: "linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
+            style={{ background: "var(--surface-panel-gradient)" }}
         >
             <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
                 {label}

@@ -14,12 +14,12 @@
   /* Civic Ledger semantic tokens (light) */
   --bg: #FAF7F0;
   --surface-1: #FFFFFF;
-  --surface-2: #FFFFFF;
-  --surface-raised: #FFFCF8;
-  --surface-muted: #F4F0E8;
-  --surface-sidebar: #F7F2E9;
+  --surface-2: #F8F8F6;
+  --surface-raised: #FFFFFF;
+  --surface-muted: #F5F5F2;
+  --surface-sidebar: #F4F3EE;
   --border: #E6E0D6;
-  --border-strong: #D8D0C1;
+  --border-strong: #D6D0C4;
 
   /* Text */
   --text: #101828;
@@ -34,12 +34,12 @@
 
   --focus: #C47A1C;
   --focus-offset: 3px;
-  --accent-subtle: rgba(196, 122, 28, 0.12);
+  --accent-subtle: rgba(196, 122, 28, 0.08);
 
   /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-bg: rgba(255, 255, 255, 0.92);
   /* Higher opacity for readability */
-  --glass-border: rgba(230, 224, 214, 0.5);
+  --glass-border: rgba(230, 224, 214, 0.72);
   --glass-bg-dark: rgba(17, 24, 39, 0.85);
   --glass-border-dark: rgba(34, 48, 69, 0.5);
 
@@ -74,8 +74,14 @@
   /* Brand Gradients */
   --grad-primary: linear-gradient(135deg, #007A4D 0%, #009D63 100%);
   --grad-warm: linear-gradient(135deg, #C47A1C 0%, #E69D37 100%);
-  --grad-surface: linear-gradient(180deg, #FFFFFF 0%, #F9F7F2 100%);
+  --grad-surface: linear-gradient(180deg, #FFFFFF 0%, #FCFBF9 100%);
   --dashboard-hero-gradient: linear-gradient(135deg, #007A4D 0%, #009D63 52%, #065D3F 100%);
+  --hero-glow-soft: radial-gradient(circle, rgba(196, 122, 28, 0.06) 0%, rgba(250, 247, 240, 0) 70%);
+  --accent-panel-gradient: linear-gradient(135deg, rgba(0, 122, 77, 0.07) 0%, rgba(196, 122, 28, 0.03) 100%);
+  --accent-panel-gradient-strong: linear-gradient(135deg, rgba(0, 122, 77, 0.09) 0%, rgba(196, 122, 28, 0.04) 100%);
+  --surface-panel-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(0, 122, 77, 0.025) 100%);
+  --surface-panel-gradient-soft: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 248, 246, 0.94) 100%);
+  --accent-metric-gradient: linear-gradient(135deg, rgba(0, 122, 77, 0.07) 0%, rgba(255, 255, 255, 1) 100%);
 
   /* Spacing scale */
   --space-1: 4px;
@@ -237,6 +243,12 @@
 
   --grad-surface: linear-gradient(180deg, #111827 0%, #0B0F14 100%);
   --dashboard-hero-gradient: linear-gradient(135deg, #0A8B58 0%, #007A4D 48%, #054E35 100%);
+  --hero-glow-soft: radial-gradient(circle, rgba(196, 122, 28, 0.14) 0%, rgba(11, 15, 20, 0) 70%);
+  --accent-panel-gradient: linear-gradient(135deg, rgba(10, 139, 88, 0.18) 0%, rgba(196, 122, 28, 0.08) 100%);
+  --accent-panel-gradient-strong: linear-gradient(135deg, rgba(10, 139, 88, 0.22) 0%, rgba(196, 122, 28, 0.12) 100%);
+  --surface-panel-gradient: linear-gradient(180deg, rgba(26, 38, 56, 0.98) 0%, rgba(10, 139, 88, 0.08) 100%);
+  --surface-panel-gradient-soft: linear-gradient(180deg, rgba(26, 38, 56, 0.96) 0%, rgba(21, 31, 46, 0.94) 100%);
+  --accent-metric-gradient: linear-gradient(135deg, rgba(10, 139, 88, 0.16) 0%, rgba(26, 38, 56, 1) 100%);
 
   color-scheme: dark;
 }

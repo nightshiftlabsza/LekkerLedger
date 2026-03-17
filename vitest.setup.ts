@@ -31,6 +31,20 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
 });
 
+Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+        matches: !query.includes("max-width") || query.includes("1023"),
+        media: query,
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+    })),
+});
+
 function getStore(storeName: string) {
     if (!stores.has(storeName)) {
         stores.set(storeName, new Map());

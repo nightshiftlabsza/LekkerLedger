@@ -1,4 +1,4 @@
-const PASSWORD_HANDOFF_KEY = "lekkerledger:password-handoff";
+const PASSWORD_HANDOFF_STORAGE_KEY = "lekkerledger:credential-handoff";
 const PASSWORD_HANDOFF_MAX_AGE_MS = 10 * 60 * 1000;
 
 interface PasswordHandoffRecord {
@@ -13,7 +13,7 @@ function readStoredRecord(): PasswordHandoffRecord | null {
     }
 
     try {
-        const raw = globalThis.window.sessionStorage.getItem(PASSWORD_HANDOFF_KEY);
+        const raw = globalThis.window.sessionStorage.getItem(PASSWORD_HANDOFF_STORAGE_KEY);
         if (!raw) {
             return null;
         }
@@ -42,7 +42,7 @@ export function storePasswordHandoff(email: string, password: string) {
     }
 
     try {
-        globalThis.window.sessionStorage.setItem(PASSWORD_HANDOFF_KEY, JSON.stringify({
+        globalThis.window.sessionStorage.setItem(PASSWORD_HANDOFF_STORAGE_KEY, JSON.stringify({
             email: email.trim().toLowerCase(),
             password,
             createdAt: Date.now(),
@@ -85,7 +85,7 @@ export function clearPasswordHandoff() {
     }
 
     try {
-        globalThis.window.sessionStorage.removeItem(PASSWORD_HANDOFF_KEY);
+        globalThis.window.sessionStorage.removeItem(PASSWORD_HANDOFF_STORAGE_KEY);
     } catch {
         // Ignore sessionStorage cleanup failures.
     }

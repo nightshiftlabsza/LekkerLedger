@@ -736,7 +736,7 @@ function SettingsContent() {
                                     </div>
 
                                     <Button
-                                        onClick={() => { void handleMigrateToRecoverable(); }}
+                                        onClick={handleMigrateToRecoverable}
                                         disabled={isMigratingEncryption || !migrationPassword.trim()}
                                         className="w-full bg-[var(--primary)] text-white font-bold"
                                     >
@@ -845,6 +845,81 @@ function SettingsContent() {
                         }
                         return "Paid plan active";
                     })();
+                    let billingTimingContent: React.ReactNode;
+                    if (billingLoading) {
+                        billingTimingContent = (
+                            <p className="text-sm text-[var(--text-muted)]">Loading billing details...</p>
+                        );
+                    } else if (billingAccount) {
+                        billingTimingContent = (
+                            <div className="space-y-3 text-sm text-[var(--text-muted)]">
+                                <p>
+                                    <strong className="text-[var(--text)]">Status:</strong>{" "}
+                                    {(() => {
+                                         if (billingAccount.account.cancelAtPeriodEnd) return "Renewal canceled";
+                                         if (billingStatus === "active") return "Paid subscription active";
+                                         return "Free plan";
+                                     })()}
+                                </p>
+                                {nextChargeLabel && (
+                                    <p><strong className="text-[var(--text)]">Next renewal:</strong> {nextChargeLabel}</p>
+                                )}
+                                {billingAccount.account.lastError && (
+                                    <p className="rounded-2xl border px-4 py-3 text-[var(--warning)]" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
+                                        {billingAccount.account.lastError}
+                                    </p>
+                                )}
+                                {!billingAccount.account.cancelAtPeriodEnd && billingAccount.entitlements.planId !== "free" && (
+                                    <Button
+                                        variant="outline"
+                                        className="w-full font-bold"
+                                        disabled={cancelingRenewal}
+                                        onClick={() => { handleCancelRenewal().catch(console.error); }}
+                                    >
+                                        {cancelingRenewal ? "Canceling renewal..." : "Cancel renewal"}
+                                    </Button>
+                                )}
+                            </div>
+                        );
+                    } else {
+                        billingTimingContent = (
+                            <p className="text-sm text-[var(--text-muted)]">
+                                Sign in to see your saved payment and renewal details here.
+                            </p>
+                        );
+                    }
+
+                    let referralProgramContent: React.ReactNode;
+                    if (billingLoading) {
+                        referralProgramContent = (
+                            <p className="text-sm text-[var(--text-muted)]">Loading referral details...</p>
+                        );
+                    } else if (billingAccount) {
+                        referralProgramContent = (
+                            <div className="space-y-3 text-sm text-[var(--text-muted)]">
+                                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Your code</p>
+                                    <div className="mt-2 flex items-center gap-2">
+                                        <span className="text-lg font-black tracking-[0.18em] text-[var(--text)]">{referralCode || "Sign in to load code"}</span>
+                                        {referralCode && (
+                                            <Button variant="outline" className="h-9 px-3 font-bold" onClick={() => { handleCopyReferralCode().catch(console.error); }}>
+                                                <Copy className="mr-2 h-4 w-4" /> Copy
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                                <p><strong className="text-[var(--text)]">Available free months:</strong> {billingAccount.account.availableReferralMonths}</p>
+                                <p><strong className="text-[var(--text)]">Pending referral months:</strong> {billingAccount.account.pendingReferralMonths}</p>
+                                <p><strong className="text-[var(--text)]">Successful referrals:</strong> {billingAccount.account.successfulReferralCount}</p>
+                            </div>
+                        );
+                    } else {
+                        referralProgramContent = (
+                            <p className="text-sm text-[var(--text-muted)]">
+                                Sign in to get a referral code and track earned free months.
+                            </p>
+                        );
+                    }
 
                     return (
                         <div className="space-y-6">
@@ -911,42 +986,7 @@ function SettingsContent() {
                                             <h3 className="text-lg font-black text-[var(--text)]">Know the next charge date</h3>
                                         </div>
                                     </div>
-                                    {billingLoading ? (
-                                        <p className="text-sm text-[var(--text-muted)]">Loading billing details...</p>
-                                    ) : billingAccount ? (
-                                        <div className="space-y-3 text-sm text-[var(--text-muted)]">
-                                            <p>
-                                                <strong className="text-[var(--text)]">Status:</strong>{" "}
-                                                {(() => {
-                                                     if (billingAccount.account.cancelAtPeriodEnd) return "Renewal canceled";
-                                                     if (billingStatus === "active") return "Paid subscription active";
-                                                     return "Free plan";
-                                                 })()}
-                                            </p>
-                                            {nextChargeLabel && (
-                                                <p><strong className="text-[var(--text)]">Next renewal:</strong> {nextChargeLabel}</p>
-                                            )}
-                                            {billingAccount.account.lastError && (
-                                                <p className="rounded-2xl border px-4 py-3 text-[var(--warning)]" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
-                                                    {billingAccount.account.lastError}
-                                                </p>
-                                            )}
-                                            {!billingAccount.account.cancelAtPeriodEnd && billingAccount.entitlements.planId !== "free" && (
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-full font-bold"
-                                                    disabled={cancelingRenewal}
-                                                    onClick={() => { handleCancelRenewal().catch(console.error); }}
-                                                >
-                                                    {cancelingRenewal ? "Canceling renewal..." : "Cancel renewal"}
-                                                </Button>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <p className="text-sm text-[var(--text-muted)]">
-                                            Sign in to see your saved payment and renewal details here.
-                                        </p>
-                                    )}
+                                    {billingTimingContent}
                                 </Card>
 
                                 <Card className="glass-panel border-none p-5 space-y-4">
@@ -959,30 +999,7 @@ function SettingsContent() {
                                             <h3 className="text-lg font-black text-[var(--text)]">Earn 1 free month per successful referral</h3>
                                         </div>
                                     </div>
-                                    {billingLoading ? (
-                                        <p className="text-sm text-[var(--text-muted)]">Loading referral details...</p>
-                                    ) : billingAccount ? (
-                                        <div className="space-y-3 text-sm text-[var(--text-muted)]">
-                                            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-                                                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Your code</p>
-                                                <div className="mt-2 flex items-center gap-2">
-                                                    <span className="text-lg font-black tracking-[0.18em] text-[var(--text)]">{referralCode || "Sign in to load code"}</span>
-                                                    {referralCode && (
-                                                        <Button variant="outline" className="h-9 px-3 font-bold" onClick={() => { handleCopyReferralCode().catch(console.error); }}>
-                                                            <Copy className="mr-2 h-4 w-4" /> Copy
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <p><strong className="text-[var(--text)]">Available free months:</strong> {billingAccount.account.availableReferralMonths}</p>
-                                            <p><strong className="text-[var(--text)]">Pending referral months:</strong> {billingAccount.account.pendingReferralMonths}</p>
-                                            <p><strong className="text-[var(--text)]">Successful referrals:</strong> {billingAccount.account.successfulReferralCount}</p>
-                                        </div>
-                                    ) : (
-                                        <p className="text-sm text-[var(--text-muted)]">
-                                            Sign in to get a referral code and track earned free months.
-                                        </p>
-                                    )}
+                                    {referralProgramContent}
                                 </Card>
                             </section>
 
@@ -1034,6 +1051,33 @@ function SettingsContent() {
                                         const isUpgrade = !isCurrent && planRank[planId] > (planRank[currentPlan.id] ?? 0);
                                         const cycle: BillingCycle = plan.id === "free" ? "monthly" : comparisonCycle;
                                         const pricePresentation = getMarketingPriceDisplay(planId, cycle);
+                                        let planAction: React.ReactNode = (
+                                            <Button variant="outline" className="w-full font-bold" disabled>
+                                                Current plan
+                                            </Button>
+                                        );
+
+                                        if (isDowngrade) {
+                                            planAction = (
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full font-bold"
+                                                    onClick={() => setDowngradingTo(plan.id)}
+                                                >
+                                                    Downgrade
+                                                </Button>
+                                            );
+                                        } else if (isUpgrade) {
+                                            planAction = (
+                                                <InlinePlanCheckoutButton
+                                                    planId={plan.id as "standard" | "pro"}
+                                                    billingCycle={comparisonCycle}
+                                                    className="w-full font-bold bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
+                                                >
+                                                    Upgrade
+                                                </InlinePlanCheckoutButton>
+                                            );
+                                        }
                                         return (
                                             <Card key={plan.id} className={`glass-panel border ${plan.id === "standard" ? "border-[var(--primary)]" : "border-[var(--border)]"} p-5`}>
                                                 <div className="space-y-4">
@@ -1064,27 +1108,7 @@ function SettingsContent() {
                                                     <PlanFeatureList planId={planId} />
 
                                                     <div className="space-y-2">
-                                                        {isDowngrade ? (
-                                                            <Button
-                                                                variant="outline"
-                                                                className="w-full font-bold"
-                                                                onClick={() => setDowngradingTo(plan.id)}
-                                                            >
-                                                                Downgrade
-                                                            </Button>
-                                                        ) : isUpgrade ? (
-                                                            <InlinePlanCheckoutButton
-                                                                planId={plan.id as "standard" | "pro"}
-                                                                billingCycle={comparisonCycle}
-                                                                className="w-full font-bold bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
-                                                            >
-                                                                Upgrade
-                                                            </InlinePlanCheckoutButton>
-                                                        ) : (
-                                                            <Button variant="outline" className="w-full font-bold" disabled>
-                                                                Current plan
-                                                            </Button>
-                                                        )}
+                                                        {planAction}
                                                         {isUpgrade && (
                                                             <p className="text-center text-[11px] font-semibold text-[var(--text-muted)]">
                                                                 You can request a refund within {REFUND_WINDOW_DAYS} days if the upgrade is not the right fit.

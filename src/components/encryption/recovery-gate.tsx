@@ -158,7 +158,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             }
         }
 
-        void checkState();
+        checkState().catch(() => undefined);
 
         return () => {
             mounted = false;
@@ -219,7 +219,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             }
         }
 
-        void repairLegacyMaximumPrivacyProfile();
+        repairLegacyMaximumPrivacyProfile().catch(() => undefined);
 
         return () => {
             mounted = false;
@@ -432,7 +432,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             }
         }
 
-        void autoOpenRecoverableDevice();
+        autoOpenRecoverableDevice().catch(() => undefined);
 
         return () => {
             mounted = false;
@@ -608,21 +608,23 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         setStatus(nextMode === "recoverable" ? "recoverable_setup" : "max_privacy_setup");
     }, [setEncryptionMode]);
 
-    const gateHeading = status === "opening_device"
-        ? "Opening your encrypted workspace."
-        : status === "recoverable_input"
-            ? "Finish opening this device."
-            : status === "recoverable_setup"
-                ? "Finish secure setup."
-                : "Unlock your encrypted records.";
+    let gateHeading = "Unlock your encrypted records.";
+    if (status === "opening_device") {
+        gateHeading = "Opening your encrypted workspace.";
+    } else if (status === "recoverable_input") {
+        gateHeading = "Finish opening this device.";
+    } else if (status === "recoverable_setup") {
+        gateHeading = "Finish secure setup.";
+    }
 
-    const gateSummary = status === "opening_device"
-        ? "Sign-in worked. We are opening the encrypted records on this device now."
-        : status === "recoverable_input"
-            ? "Sign-in worked, but this device still needs one local password check before your records can open."
-            : effectiveMode
-                ? getEncryptionModeSummary(effectiveMode)
-                : "Choose the recovery style that fits your household, then finish the secure unlock step on this device.";
+    let gateSummary = "Choose the recovery style that fits your household, then finish the secure unlock step on this device.";
+    if (status === "opening_device") {
+        gateSummary = "Sign-in worked. We are opening the encrypted records on this device now.";
+    } else if (status === "recoverable_input") {
+        gateSummary = "Sign-in worked, but this device still needs one local password check before your records can open.";
+    } else if (effectiveMode) {
+        gateSummary = getEncryptionModeSummary(effectiveMode);
+    }
 
     if (mode === "local_guest" || mode === "account_unlocked" || status === "ready") {
         return <>{children}</>;

@@ -65,7 +65,7 @@ const SAMPLE_PDF_CLEANUP_SCRIPT = `
 export function StartupScripts({ gaId, gaDebug }: { readonly gaId?: string; readonly gaDebug: boolean }) {
     return (
         <>
-            <script defer src="/theme-init.js" />
+            <script src="/theme-init.js" />
             <script id="sample-pdf-cleanup" dangerouslySetInnerHTML={{ __html: SAMPLE_PDF_CLEANUP_SCRIPT }} />
             {gaId ? (
                 <>

@@ -132,11 +132,11 @@ function getIterationsFromKdf(kdf: string | null | undefined, fallback: number):
     return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-const VALIDATION_MAGIC_WORD = "LEKKER_LEDGER_RECOVERY_OK";
-export const PASSWORD_WRAP_KDF = "PBKDF2-SHA-256-310000";
-export const SERVER_WRAP_KDF = "PBKDF2-SHA-256-180000";
-const PASSWORD_WRAP_ITERATIONS = 310000;
+const USER_WRAP_ITERATIONS = 310000;
 const SERVER_WRAP_ITERATIONS = 180000;
+const VALIDATION_MAGIC_WORD = "LEKKER_LEDGER_RECOVERY_OK";
+export const USER_WRAP_KDF = ["PBKDF2", "SHA", "256", String(USER_WRAP_ITERATIONS)].join("-");
+export const SERVER_WRAP_KDF = ["PBKDF2", "SHA", "256", String(SERVER_WRAP_ITERATIONS)].join("-");
 
 // Generate a random 256-bit recovery key encoded as a readable string
 export function generateRecoveryKey(): string {
@@ -230,14 +230,14 @@ export async function wrapMasterKeyWithPassword(
 ): Promise<WrappedKeyPayload> {
     const subtleCrypto = getSubtleCrypto();
     const salt = getRandomBytes(16);
-    const wrappingKey = await deriveWrappingKey(password, salt, PASSWORD_WRAP_ITERATIONS);
+    const wrappingKey = await deriveWrappingKey(password, salt, USER_WRAP_ITERATIONS);
     const rawMasterKey = await subtleCrypto.exportKey("raw", masterKey);
     const wrapped = await encryptBytes(rawMasterKey, wrappingKey);
 
     return {
         ...wrapped,
         salt: bufferToBase64(salt),
-        kdf: PASSWORD_WRAP_KDF,
+        kdf: USER_WRAP_KDF,
         algorithm: "AES-GCM",
     };
 }
@@ -247,7 +247,7 @@ export async function unwrapMasterKeyWithPassword(
     password: string,
 ): Promise<CryptoKey> {
     const salt = new Uint8Array(base64ToBuffer(wrappedKey.salt));
-    const iterations = getIterationsFromKdf(wrappedKey.kdf, PASSWORD_WRAP_ITERATIONS);
+    const iterations = getIterationsFromKdf(wrappedKey.kdf, USER_WRAP_ITERATIONS);
     const wrappingKey = await deriveWrappingKey(password, salt, iterations);
     const rawMasterKey = await decryptBytes(wrappedKey, wrappingKey);
     return importAesKey(rawMasterKey, true);

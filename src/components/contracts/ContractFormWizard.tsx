@@ -52,7 +52,7 @@ function normalisePlainText(value: string) {
     return value
         .replaceAll(/\r\n?/g, "\n")
         .replaceAll("\u00A0", " ")
-        .replaceAll(/\u2028|\u2029/g, "\n");
+        .replaceAll(/[\u2028\u2029]/g, "\n");
 }
 
 function insertPlainTextAtCursor(
@@ -93,6 +93,119 @@ export interface ContractFormWizardProps {
 }
 
 const STORAGE_KEY = "lekkerledger-contract-draft-state";
+
+function calculateHourlyRateForContract(formData: Partial<Contract>) {
+    if (
+        !formData.salary?.amount
+        || !formData.salary.frequency
+        || !formData.workingHours?.daysPerWeek
+        || !formData.workingHours?.startAt
+        || !formData.workingHours?.endAt
+    ) {
+        return 0;
+    }
+
+    const start = formData.workingHours.startAt.split(":").map(Number);
+    const end = formData.workingHours.endAt.split(":").map(Number);
+    let hoursPerDay = (end[0] + end[1] / 60) - (start[0] + start[1] / 60);
+    if (formData.workingHours.breakDuration) {
+        hoursPerDay -= formData.workingHours.breakDuration / 60;
+    }
+
+    const weeklyHours = hoursPerDay * formData.workingHours.daysPerWeek;
+    if (weeklyHours <= 0) {
+        return 0;
+    }
+
+    if (formData.salary.frequency === "Monthly") {
+        const weeklyPay = (formData.salary.amount * 12) / 52.14;
+        return weeklyPay / weeklyHours;
+    }
+
+    if (formData.salary.frequency === "Fortnightly") {
+        return (formData.salary.amount / 2) / weeklyHours;
+    }
+
+    if (formData.salary.frequency === "Weekly") {
+        return formData.salary.amount / weeklyHours;
+    }
+
+    return 0;
+}
+
+function getContractStepErrors({
+    currentStep,
+    skipEmployeeStep,
+    formData,
+    dutiesInput,
+    selectedEmployeeAddress,
+}: {
+    currentStep: number;
+    skipEmployeeStep: boolean;
+    formData: Partial<Contract>;
+    dutiesInput: string;
+    selectedEmployeeAddress?: string;
+}): StepErrorMap {
+    const nextErrors: StepErrorMap = {};
+
+    if (currentStep === 0 && !skipEmployeeStep && !formData.employeeId) {
+        nextErrors.employeeId = "Choose the worker before you continue.";
+    }
+
+    if (currentStep === 1) {
+        if (!formData.jobTitle?.trim()) nextErrors.jobTitle = "Required.";
+        if (!formData.effectiveDate?.trim()) nextErrors.effectiveDate = "Required.";
+        if (!formData.placeOfWork?.trim()) nextErrors.placeOfWork = "Required.";
+        if (textList(dutiesInput).length === 0) nextErrors.duties = "Add at least one duty for the employee.";
+        const resolvedEmployeeAddress = (formData.employeeAddress || selectedEmployeeAddress || "").trim();
+        if (!resolvedEmployeeAddress) {
+            nextErrors.employeeAddress = "Required.";
+        }
+    }
+
+    if (currentStep === 2) {
+        const daysPerWeek = Number(formData.workingHours?.daysPerWeek ?? 0);
+        if (!Number.isFinite(daysPerWeek) || daysPerWeek < 1 || daysPerWeek > 7) {
+            nextErrors.daysPerWeek = "Enter how many days per week they normally work.";
+        }
+        if (!formData.workingHours?.startAt) nextErrors.startAt = "Add the normal start time.";
+        if (!formData.workingHours?.endAt) nextErrors.endAt = "Add the normal end time.";
+        if (formData.workingHours?.startAt && formData.workingHours?.endAt && formData.workingHours.endAt <= formData.workingHours.startAt) {
+            nextErrors.workdayRange = "End time must be later than start time.";
+        }
+    }
+
+    if (currentStep === 3) {
+        const amount = Number(formData.salary?.amount ?? 0);
+        if (!Number.isFinite(amount) || amount <= 0) nextErrors.salaryAmount = "Enter the agreed pay amount before you continue.";
+        if (!formData.salary?.frequency) nextErrors.salaryFrequency = "Choose how often this pay amount applies.";
+        const annualDays = Number(formData.leave?.annualDays ?? 0);
+        if (!Number.isFinite(annualDays) || annualDays <= 0) {
+            nextErrors.annualDays = "Add the agreed annual leave days (at least the BCEA minimum).";
+        }
+        const sickDays = Number(formData.leave?.sickDays ?? 0);
+        if (!Number.isFinite(sickDays) || sickDays <= 0) {
+            nextErrors.sickDays = "Add the sick leave days for the 36-month cycle.";
+        }
+    }
+
+    if (currentStep === 4) {
+        if (formData.terms?.accommodationProvided && !formData.terms.accommodationDetails?.trim()) {
+            nextErrors.accommodationDetails = "Add the accommodation details or switch this off.";
+        }
+        if (!formData.terms?.overtimeAgreement?.trim()) {
+            nextErrors.overtimeAgreement = "Keep a short note here about how overtime will be handled.";
+        }
+        if (!formData.terms?.sundayHolidayAgreement?.trim()) {
+            nextErrors.sundayHolidayAgreement = "Add a line about how Sunday and public-holiday work will be paid.";
+        }
+        if (!formData.terms?.noticeClause?.trim()) {
+            nextErrors.noticeClause = "Add a short notice and termination clause so expectations are clear.";
+        }
+    }
+
+    return nextErrors;
+}
 
 // Styled date input — use native picker only (single calendar icon from browser)
 function DateInput({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) {
@@ -222,38 +335,7 @@ export function ContractFormWizard({
         }
     }, [currentStep, formData]);
 
-    // Hourly rate calculation for NMW check
-    const isMonthly = formData.salary?.frequency === "Monthly";
-    const isFortnightly = formData.salary?.frequency === "Fortnightly";
-    const weeksPerYear = 52.14;
-    const monthsPerYear = 12;
-
-    let hourlyRate = 0;
-    if (
-        formData.salary?.amount &&
-        formData.salary.frequency &&
-        formData.workingHours?.daysPerWeek &&
-        formData.workingHours?.startAt &&
-        formData.workingHours?.endAt
-    ) {
-        const start = formData.workingHours.startAt.split(":").map(Number);
-        const end = formData.workingHours.endAt.split(":").map(Number);
-        let hoursPerDay = (end[0] + end[1] / 60) - (start[0] + start[1] / 60);
-        if (formData.workingHours.breakDuration) {
-            hoursPerDay -= formData.workingHours.breakDuration / 60;
-        }
-        const weeklyHours = hoursPerDay * formData.workingHours.daysPerWeek;
-        if (weeklyHours > 0) {
-            if (isMonthly) {
-                const weeklyPay = (formData.salary.amount * monthsPerYear) / weeksPerYear;
-                hourlyRate = weeklyPay / weeklyHours;
-            } else if (isFortnightly) {
-                hourlyRate = (formData.salary.amount / 2) / weeklyHours;
-            } else if (formData.salary.frequency === "Weekly") {
-                hourlyRate = formData.salary.amount / weeklyHours;
-            }
-        }
-    }
+    const hourlyRate = calculateHourlyRateForContract(formData);
 
     // Display label copy stays generic ("per period") so it never lies
     // when the user changes frequency.
@@ -280,64 +362,13 @@ export function ContractFormWizard({
     );
 
     const validateStep = React.useCallback(() => {
-        const nextErrors: StepErrorMap = {};
-
-        if (currentStep === 0 && !skipEmployeeStep && !formData.employeeId) {
-            nextErrors.employeeId = "Choose the worker before you continue.";
-        }
-
-        if (currentStep === 1) {
-            if (!formData.jobTitle?.trim()) nextErrors.jobTitle = "Required.";
-            if (!formData.effectiveDate?.trim()) nextErrors.effectiveDate = "Required.";
-            if (!formData.placeOfWork?.trim()) nextErrors.placeOfWork = "Required.";
-            if (textList(dutiesInput).length === 0) nextErrors.duties = "Add at least one duty for the employee.";
-            const resolvedEmployeeAddress = (formData.employeeAddress || selectedEmployee?.address || "").trim();
-            if (!resolvedEmployeeAddress) {
-                nextErrors.employeeAddress = "Required.";
-            }
-        }
-
-        if (currentStep === 2) {
-            const daysPerWeek = Number(formData.workingHours?.daysPerWeek ?? 0);
-            if (!Number.isFinite(daysPerWeek) || daysPerWeek < 1 || daysPerWeek > 7) {
-                nextErrors.daysPerWeek = "Enter how many days per week they normally work.";
-            }
-            if (!formData.workingHours?.startAt) nextErrors.startAt = "Add the normal start time.";
-            if (!formData.workingHours?.endAt) nextErrors.endAt = "Add the normal end time.";
-            if (formData.workingHours?.startAt && formData.workingHours?.endAt && formData.workingHours.endAt <= formData.workingHours.startAt) {
-                nextErrors.workdayRange = "End time must be later than start time.";
-            }
-        }
-
-        if (currentStep === 3) {
-            const amount = Number(formData.salary?.amount ?? 0);
-            if (!Number.isFinite(amount) || amount <= 0) nextErrors.salaryAmount = "Enter the agreed pay amount before you continue.";
-            if (!formData.salary?.frequency) nextErrors.salaryFrequency = "Choose how often this pay amount applies.";
-            const annualDays = Number(formData.leave?.annualDays ?? 0);
-            if (!Number.isFinite(annualDays) || annualDays <= 0) {
-                nextErrors.annualDays = "Add the agreed annual leave days (at least the BCEA minimum).";
-            }
-            const sickDays = Number(formData.leave?.sickDays ?? 0);
-            if (!Number.isFinite(sickDays) || sickDays <= 0) {
-                nextErrors.sickDays = "Add the sick leave days for the 36‑month cycle.";
-            }
-        }
-
-        if (currentStep === 4) {
-            if (formData.terms?.accommodationProvided && !formData.terms.accommodationDetails?.trim()) {
-                nextErrors.accommodationDetails = "Add the accommodation details or switch this off.";
-            }
-            if (!formData.terms?.overtimeAgreement?.trim()) {
-                nextErrors.overtimeAgreement = "Keep a short note here about how overtime will be handled.";
-            }
-            if (!formData.terms?.sundayHolidayAgreement?.trim()) {
-                nextErrors.sundayHolidayAgreement = "Add a line about how Sunday and public‑holiday work will be paid.";
-            }
-            if (!formData.terms?.noticeClause?.trim()) {
-                nextErrors.noticeClause = "Add a short notice and termination clause so expectations are clear.";
-            }
-        }
-
+        const nextErrors = getContractStepErrors({
+            currentStep,
+            skipEmployeeStep,
+            formData,
+            dutiesInput,
+            selectedEmployeeAddress: selectedEmployee?.address,
+        });
         setStepErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
     }, [currentStep, dutiesInput, formData, skipEmployeeStep, selectedEmployee?.address]);
@@ -879,3 +910,4 @@ function SummaryRow({ icon: Icon, label, value }: { icon: React.ElementType; lab
 function FieldError({ message }: { message: string }) {
     return <p className="text-sm font-medium text-[var(--danger)]">{message}</p>;
 }
+

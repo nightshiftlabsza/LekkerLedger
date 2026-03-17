@@ -162,7 +162,7 @@ export function SignUpForm({
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-[var(--bg)] border border-[var(--border)] rounded-xl text-[var(--text)] placeholder-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-[#C47A1C] focus:border-transparent transition-all sm:text-sm"
+                                className="w-full pl-11 pr-4 py-3 bg-[var(--surface-1)] border border-[var(--border)] rounded-xl text-[var(--text)] placeholder-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:border-transparent transition-all sm:text-sm"
                                 placeholder="name@example.com"
                                 required
                                 disabled={isLoading}
@@ -184,7 +184,7 @@ export function SignUpForm({
                                     setPassword(e.target.value);
                                     if (passwordError) setPasswordError(null);
                                 }}
-                                className={`w-full pl-11 pr-4 py-3 bg-[var(--bg)] border ${passwordError ? 'border-red-500' : 'border-[var(--border)]'} rounded-xl text-[var(--text)] placeholder-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-[#C47A1C] focus:border-transparent transition-all sm:text-sm`}
+                                className={`w-full pl-11 pr-4 py-3 bg-[var(--surface-1)] border ${passwordError ? 'border-red-500' : 'border-[var(--border)]'} rounded-xl text-[var(--text)] placeholder-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--focus)] focus:border-transparent transition-all sm:text-sm`}
                                 placeholder="Min. 10 chars (A-z, 0-9, !@#$)"
                                 required
                                 minLength={10}

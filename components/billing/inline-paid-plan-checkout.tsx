@@ -148,6 +148,9 @@ export function useInlinePaidPlanCheckout({
     const preparedIntentRef = React.useRef<PreparedIntent | null>(null);
     const prepareRequestIdRef = React.useRef(0);
     const checkoutEmailInputRef = React.useRef<HTMLInputElement | null>(null);
+    const warmPaystackConstructor = React.useCallback(() => {
+        loadPaystackConstructor().catch(() => undefined);
+    }, []);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -204,20 +207,16 @@ export function useInlinePaidPlanCheckout({
             });
         }
 
-        const warmPaystack = () => {
-            void loadPaystackConstructor();
-        };
-
         if (typeof globalThis.window.requestIdleCallback === "function") {
             const idleHandle = globalThis.window.requestIdleCallback(() => {
-                warmPaystack();
+                warmPaystackConstructor();
             });
             cleanup.push(() => {
                 globalThis.window.cancelIdleCallback?.(idleHandle);
             });
         } else {
             const timeoutHandle = globalThis.window.setTimeout(() => {
-                warmPaystack();
+                warmPaystackConstructor();
             }, 250);
             cleanup.push(() => {
                 globalThis.window.clearTimeout(timeoutHandle);
@@ -227,7 +226,7 @@ export function useInlinePaidPlanCheckout({
         return () => {
             cleanup.forEach((dispose) => dispose());
         };
-    }, []);
+    }, [warmPaystackConstructor]);
 
     const prepareCheckout = React.useCallback(async (
         planId: Exclude<PlanId, "free">,
@@ -245,7 +244,7 @@ export function useInlinePaidPlanCheckout({
             referralCode,
         });
         const cached = preparedIntentRef.current;
-        if (cached && cached.cacheKey === cacheKey && (Date.now() - cached.preparedAt) < PREPARED_INTENT_TTL_MS) {
+        if (cached?.cacheKey === cacheKey && (Date.now() - cached.preparedAt) < PREPARED_INTENT_TTL_MS) {
             return;
         }
 
@@ -276,12 +275,19 @@ export function useInlinePaidPlanCheckout({
         }
     }, [billingCycle, checkoutEmail, referralCode]);
 
-    const warmCheckout = React.useCallback((planId?: Exclude<PlanId, "free">) => {
-        void loadPaystackConstructor();
-        if (planId) {
-            void prepareCheckout(planId);
-        }
+    const prewarmCheckoutIntent = React.useCallback((
+        planId: Exclude<PlanId, "free">,
+        emailOverride?: string,
+    ) => {
+        prepareCheckout(planId, emailOverride).catch(() => undefined);
     }, [prepareCheckout]);
+
+    const warmCheckout = React.useCallback((planId?: Exclude<PlanId, "free">) => {
+        warmPaystackConstructor();
+        if (planId) {
+            prewarmCheckoutIntent(planId);
+        }
+    }, [prewarmCheckoutIntent, warmPaystackConstructor]);
 
     React.useEffect(() => {
         if (!isValidEmail(checkoutEmail)) {
@@ -296,7 +302,7 @@ export function useInlinePaidPlanCheckout({
         const defaultPlanId: Exclude<PlanId, "free"> = requestedPlanId ?? "standard";
         if (typeof globalThis.window.requestIdleCallback === "function") {
             const idleHandle = globalThis.window.requestIdleCallback(() => {
-                void prepareCheckout(defaultPlanId);
+                prewarmCheckoutIntent(defaultPlanId);
             });
 
             return () => {
@@ -305,13 +311,13 @@ export function useInlinePaidPlanCheckout({
         }
 
         const timeoutHandle = globalThis.window.setTimeout(() => {
-            void prepareCheckout(defaultPlanId);
+            prewarmCheckoutIntent(defaultPlanId);
         }, 200);
 
         return () => {
             globalThis.window.clearTimeout(timeoutHandle);
         };
-    }, [checkoutEmail, prepareCheckout, requestedPlanId]);
+    }, [checkoutEmail, prewarmCheckoutIntent, requestedPlanId]);
 
     React.useEffect(() => {
         if (!dialogOpen) {
@@ -345,7 +351,7 @@ export function useInlinePaidPlanCheckout({
                 referralCode,
             });
             const cached = preparedIntentRef.current;
-            const intent = cached && cached.cacheKey === cacheKey && (Date.now() - cached.preparedAt) < PREPARED_INTENT_TTL_MS
+            const intent = cached?.cacheKey === cacheKey && (Date.now() - cached.preparedAt) < PREPARED_INTENT_TTL_MS
                 ? cached.intent
                 : await createInlinePurchaseIntent({
                     planId,
@@ -496,7 +502,7 @@ export function useInlinePaidPlanCheckout({
                                     setEmailError("");
                                 }
                                 if (requestedPlanId) {
-                                    void prepareCheckout(requestedPlanId, nextEmail);
+                                    prewarmCheckoutIntent(requestedPlanId, nextEmail);
                                 }
                             }}
                         />

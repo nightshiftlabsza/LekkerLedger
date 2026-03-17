@@ -216,7 +216,7 @@ function EmployeeDetailContent() {
                 <section className="overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]">
                     <div
                         className="border-b border-[var(--border)] px-5 py-4"
-                        style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.10) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
+                        style={{ background: "var(--accent-panel-gradient-strong)" }}
                     >
                         <div className="flex items-center justify-between gap-3">
                             <div>
@@ -225,13 +225,13 @@ function EmployeeDetailContent() {
                                 </p>
                             </div>
                             {latestPayslip && (
-                                <p className="rounded-full border border-[var(--focus)]/20 bg-white/70 px-3 py-1.5 text-xs font-semibold shadow-sm" style={{ color: "var(--text)" }}>
+                                <p className="rounded-full border border-[var(--focus)]/20 bg-[var(--surface-1)] px-3 py-1.5 text-xs font-semibold shadow-sm" style={{ color: "var(--text)" }}>
                                     Latest: {monthLabel}
                                 </p>
                             )}
                         </div>
 
-                        <div className="mt-4 flex gap-1 rounded-2xl border border-[var(--border)] bg-white/55 p-1">
+                        <div className="mt-4 flex gap-1 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-1 shadow-[var(--shadow-sm)]">
                             {visibleTabs.map(({ id: tabId, label, icon: Icon }) => {
                                 const active = activeTab === tabId;
                                 return (
@@ -366,7 +366,7 @@ function EmployeeDetailContent() {
                                     />
                                 </div>
 
-                                <div className="mt-4 rounded-[22px] border border-[var(--border)] p-4" style={{ background: "linear-gradient(180deg, rgba(255, 252, 248, 0.96) 0%, rgba(0, 122, 77, 0.03) 100%)" }}>
+                                <div className="mt-4 rounded-[22px] border border-[var(--border)] p-4" style={{ background: "var(--surface-panel-gradient)" }}>
                                     <div className={`${PROFILE_FIGURE_GRID} border-b border-[var(--border)] pb-2 text-[10px] font-black uppercase tracking-[0.16em]`} style={{ color: "var(--text-muted)" }}>
                                         <span>Description</span>
                                         <span className="text-right">Hours</span>
@@ -403,7 +403,7 @@ function EmployeeDetailContent() {
                                     )}
                                 </div>
 
-                                <div className="mt-3 rounded-[22px] border border-[var(--focus)]/20 p-4" style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.08) 0%, rgba(196, 122, 28, 0.08) 100%)" }}>
+                                <div className="mt-3 rounded-[22px] border border-[var(--focus)]/20 p-4" style={{ background: "var(--accent-panel-gradient)" }}>
                                     <div className="flex items-end justify-between gap-4">
                                         <div>
                                             <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
@@ -546,7 +546,7 @@ function ProfileInfoBlock({ label, value, detail }: { label: string; value: stri
     return (
         <div
             className="rounded-[18px] border border-[var(--border)] px-4 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
-            style={{ background: "linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
+            style={{ background: "var(--surface-panel-gradient)" }}
         >
             <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
                 {label}

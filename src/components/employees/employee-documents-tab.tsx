@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { FeatureGateCard } from "@/components/ui/feature-gate-card";
 import { DocumentPreview } from "@/components/ui/document-preview";
 import { ContractRow } from "@/components/documents/ContractRow";
+import { DocumentTabStrip, type DocumentTabStripItem } from "@/components/documents/document-tab-strip";
 import { useToast } from "@/components/ui/toast";
 import { canUseContractSignedCopyUpload, canUseVaultUploads } from "@/lib/entitlements";
 import { deleteDocumentMeta, getDocumentFile, saveDocumentFile, saveDocumentMeta, updateContractStatus } from "@/lib/storage";
@@ -42,6 +43,38 @@ function matchesAllowedUpload(file: File): boolean {
     return ACCEPTED_UPLOAD_EXTENSIONS.some((extension) => lowerName.endsWith(extension));
 }
 
+function buildUploadedDocumentMeta({
+    id,
+    employee,
+    file,
+    createdAt,
+    householdId,
+    vaultCategory,
+    periodId,
+}: {
+    id: string;
+    employee: Employee;
+    file: File;
+    createdAt: string;
+    householdId: string;
+    vaultCategory: VaultCategory;
+    periodId?: string;
+}): DocumentMeta {
+    return {
+        id,
+        householdId,
+        type: "archive",
+        employeeId: employee.id,
+        periodId,
+        fileName: file.name,
+        mimeType: file.type || "application/octet-stream",
+        source: "uploaded",
+        vaultCategory,
+        sizeBytes: file.size,
+        createdAt,
+    };
+}
+
 type Tab = "Payslips" | "Contracts" | "Legal" | "Other";
 type VaultCategory = "contracts" | "employee-docs" | "compliance" | "other";
 
@@ -50,6 +83,13 @@ const VAULT_CATEGORIES: Array<{ value: VaultCategory; label: string }> = [
     { value: "employee-docs", label: "Employee docs" },
     { value: "compliance", label: "Legal" },
     { value: "other", label: "Other" },
+];
+
+const EMPLOYEE_DOCUMENT_TABS: ReadonlyArray<DocumentTabStripItem<Tab>> = [
+    { id: "Payslips", label: "Payslips" },
+    { id: "Contracts", label: "Contracts" },
+    { id: "Legal", label: "Legal" },
+    { id: "Other", label: "Other" },
 ];
 
 export function EmployeeDocumentsTab({
@@ -308,19 +348,15 @@ export function EmployeeDocumentsTab({
                     return;
                 }
 
-                const nextDocument: DocumentMeta = {
+                const nextDocument = buildUploadedDocumentMeta({
                     id,
-                    householdId: employee.householdId ?? settings?.activeHouseholdId ?? "default",
-                    type: "archive",
-                    employeeId: employee.id,
-                    periodId: targetContract.id,
-                    fileName: file.name,
-                    mimeType: file.type || "application/octet-stream",
-                    source: "uploaded",
-                    vaultCategory: "contracts",
-                    sizeBytes: file.size,
+                    employee,
+                    file,
                     createdAt,
-                };
+                    householdId: employee.householdId ?? settings?.activeHouseholdId ?? "default",
+                    vaultCategory: "contracts",
+                    periodId: targetContract.id,
+                });
 
                 await saveDocumentFile(id, file, "contracts");
                 await saveDocumentMeta(nextDocument);
@@ -333,18 +369,14 @@ export function EmployeeDocumentsTab({
             const vaultCategory: VaultCategory =
                 uploadContext === "legal" ? "compliance" : "employee-docs";
 
-            const nextDocument: DocumentMeta = {
+            const nextDocument = buildUploadedDocumentMeta({
                 id,
-                householdId: settings?.activeHouseholdId ?? "default",
-                type: "archive",
-                employeeId: employee.id,
-                fileName: file.name,
-                mimeType: file.type || "application/octet-stream",
-                source: "uploaded",
-                vaultCategory,
-                sizeBytes: file.size,
+                employee,
+                file,
                 createdAt,
-            };
+                householdId: settings?.activeHouseholdId ?? "default",
+                vaultCategory,
+            });
 
             await saveDocumentFile(id, file, "vault");
             await saveDocumentMeta(nextDocument);
@@ -392,18 +424,13 @@ export function EmployeeDocumentsTab({
                 onChange={handleSignedDocumentSelected}
             />
             
-            <div className="flex items-center gap-1 border-b border-[var(--border)] -mx-4 overflow-x-auto px-4 no-scrollbar lg:mx-0 lg:px-0">
-                {(["Payslips", "Contracts", "Legal", "Other"] as const).map((tab) => (
-                    <button
-                        key={tab}
-                        type="button"
-                        onClick={() => setActiveTab(tab)}
-                        className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-bold transition-colors ${activeTab === tab ? "border-[var(--primary)] text-[var(--primary)]" : "border-transparent text-[var(--text-muted)] hover:text-[var(--text)]"}`}
-                    >
-                        {tab}
-                    </button>
-                ))}
-            </div>
+            <DocumentTabStrip<Tab>
+                ariaLabel={`${employee.name} documents`}
+                activeTab={activeTab}
+                tabs={EMPLOYEE_DOCUMENT_TABS}
+                onChange={setActiveTab}
+                fullBleedMobile={true}
+            />
 
             {(activeTab === "Payslips" && filteredPayslipDocuments.length > 0) ||
             (activeTab === "Legal" && filteredLegalDocuments.length > 0) ||
@@ -474,7 +501,7 @@ export function EmployeeDocumentsTab({
                                         variant="ghost"
                                         size="sm"
                                         className="h-9 w-9 p-0"
-                                        onClick={() => void handlePreview(doc)}
+                                        onClick={async () => { await handlePreview(doc); }}
                                     >
                                         <Eye className="h-4 w-4 text-[var(--primary)]" />
                                     </Button>
@@ -621,7 +648,7 @@ export function EmployeeDocumentsTab({
                                     align: "right",
                                     render: (doc) => (
                                         <div className="flex items-center justify-end gap-1">
-                                            <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => void handlePreview(doc)}>
+                                            <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={async () => { await handlePreview(doc); }}>
                                                 <Eye className="h-4 w-4 text-[var(--primary)]" />
                                             </Button>
                                             {vaultUploadsAllowed ? (
@@ -630,7 +657,7 @@ export function EmployeeDocumentsTab({
                                                     size="sm"
                                                     className="h-9 w-9 p-0"
                                                     disabled={deletingDocumentId === doc.id}
-                                                    onClick={() => void handleDeleteVaultDocument(doc)}
+                                                    onClick={async () => { await handleDeleteVaultDocument(doc); }}
                                                 >
                                                     <Trash2 className="h-4 w-4 text-[var(--text-muted)]" />
                                                 </Button>
@@ -720,7 +747,7 @@ export function EmployeeDocumentsTab({
                                             variant="ghost"
                                             size="sm"
                                             className="h-9 px-3 gap-2 rounded-full border border-[var(--border)] hover:bg-[var(--surface-2)]"
-                                            onClick={() => void handlePreview(doc)}
+                                            onClick={async () => { await handlePreview(doc); }}
                                         >
                                             <Eye className="h-4 w-4 text-[var(--primary)]" />
                                             <span className="text-xs font-bold">Preview</span>
@@ -732,7 +759,7 @@ export function EmployeeDocumentsTab({
                                                 className="h-9 gap-2 rounded-full border px-3 text-[var(--danger)] hover:bg-[var(--danger-soft)]"
                                                 style={{ borderColor: "var(--danger-border)" }}
                                                 disabled={deletingDocumentId === doc.id}
-                                                onClick={() => void handleDeleteVaultDocument(doc)}
+                                                onClick={async () => { await handleDeleteVaultDocument(doc); }}
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                                 <span className="text-xs font-bold">Delete</span>
@@ -770,3 +797,4 @@ export function EmployeeDocumentsTab({
         </div>
     );
 }
+

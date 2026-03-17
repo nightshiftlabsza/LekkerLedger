@@ -104,18 +104,23 @@ export function AppBootstrapProvider({ children }: Readonly<{ children: React.Re
     const [activationError, setActivationError] = React.useState<string | null>(null);
     const lastBillingUserIdRef = React.useRef<string | null>(null);
 
-    const authStatus: AuthStatus = authLoading
-        ? "loading"
-        : user?.id
-            ? "signed_in"
-            : "signed_out";
-    const unlockStatus: UnlockStatus = authStatus !== "signed_in"
-        ? "not_needed"
-        : mode === "account_unlocked"
-            ? "resolved"
-            : mode === "account_locked"
-                ? "required"
-                : "pending";
+    let authStatus: AuthStatus = "signed_out";
+    if (authLoading) {
+        authStatus = "loading";
+    } else if (user?.id) {
+        authStatus = "signed_in";
+    }
+
+    let unlockStatus: UnlockStatus = "not_needed";
+    if (authStatus === "signed_in") {
+        if (mode === "account_unlocked") {
+            unlockStatus = "resolved";
+        } else if (mode === "account_locked") {
+            unlockStatus = "required";
+        } else {
+            unlockStatus = "pending";
+        }
+    }
 
     const paidLoginRequested = pathname === "/dashboard" && searchParams.get("paidLogin") === "1";
     const paymentReference = searchParams.get("reference")?.trim() || readPendingBillingReference() || "";
@@ -152,8 +157,10 @@ export function AppBootstrapProvider({ children }: Readonly<{ children: React.Re
             }
         }
 
-        void syncLocalSnapshot();
-        const unsubscribe = subscribeToDataChanges(() => syncLocalSnapshot());
+        syncLocalSnapshot().catch(() => undefined);
+        const unsubscribe = subscribeToDataChanges(() => {
+            syncLocalSnapshot().catch(() => undefined);
+        });
 
         return () => {
             active = false;
@@ -217,7 +224,7 @@ export function AppBootstrapProvider({ children }: Readonly<{ children: React.Re
             return;
         }
 
-        void refreshBillingAccount();
+        refreshBillingAccount().catch(() => undefined);
     }, [authStatus, paidLoginRequested, refreshBillingAccount, user?.id]);
 
     React.useEffect(() => {
@@ -297,7 +304,7 @@ export function AppBootstrapProvider({ children }: Readonly<{ children: React.Re
             }
         }
 
-        void activatePaidAccess();
+        activatePaidAccess().catch(() => undefined);
 
         return () => {
             active = false;
@@ -331,7 +338,7 @@ export function AppBootstrapProvider({ children }: Readonly<{ children: React.Re
             }
         }
 
-        void syncResolvedPlanCache();
+        syncResolvedPlanCache().catch(() => undefined);
 
         return () => {
             active = false;

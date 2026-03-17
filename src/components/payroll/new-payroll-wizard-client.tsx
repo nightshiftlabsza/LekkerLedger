@@ -152,6 +152,14 @@ export function NewPayrollWizardClient() {
         }
     };
 
+    const toggleEmployeeSelection = React.useCallback((employeeId: string) => {
+        setSelectedEmployeeIds((previous) => (
+            previous.includes(employeeId)
+                ? previous.filter((id) => id !== employeeId)
+                : [...previous, employeeId]
+        ));
+    }, []);
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             {/* Step 1: Choose Employee(s) */}
@@ -204,11 +212,7 @@ export function NewPayrollWizardClient() {
                                             key={emp.id}
                                             employee={emp}
                                             isSelected={selectedEmployeeIds.includes(emp.id)}
-                                            onToggle={() => setSelectedEmployeeIds(prev =>
-                                                prev.includes(emp.id)
-                                                    ? prev.filter(id => id !== emp.id)
-                                                    : [...prev, emp.id]
-                                            )}
+                                            onToggle={() => toggleEmployeeSelection(emp.id)}
                                         />
                                     ))}
                                 </div>

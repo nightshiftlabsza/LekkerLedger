@@ -818,7 +818,9 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
         await auditStore.iterate<AuditLog, void>((value: AuditLog) => {
             logs.push(value);
         });
-        return logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 1000);
+        return logs
+            .toSorted((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+            .slice(0, 1000);
     });
 }
 

@@ -54,6 +54,19 @@ export function SyncProgress({ onComplete }: SyncProgressProps) {
     }
 
     const { status, progress, currentTask, error } = progressData;
+    let statusHeading = "Sync Failed";
+    if (status === "running") {
+        statusHeading = "Migrating Data...";
+    } else if (status === "completed") {
+        statusHeading = "Migration Complete!";
+    }
+
+    let progressBarClass = "bg-[var(--primary)]";
+    if (status === "error") {
+        progressBarClass = "bg-[var(--danger)]";
+    } else if (status === "completed") {
+        progressBarClass = "bg-[var(--success)]";
+    }
 
     return (
         <div className="w-full bg-[var(--surface-raised)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-lg)] animate-fade-in">
@@ -78,9 +91,7 @@ export function SyncProgress({ onComplete }: SyncProgressProps) {
                 )}
 
                 <h2 className="font-serif text-xl sm:text-2xl font-bold text-[var(--text)] mb-2 tracking-tight">
-                    {status === 'running' ? 'Migrating Data...' :
-                     status === 'completed' ? 'Migration Complete!' : 
-                     'Sync Failed'}
+                    {statusHeading}
                 </h2>
                 
                 <p className={`text-[0.95rem] mb-8 font-medium ${status === 'error' ? 'text-[var(--danger)] max-w-[320px]' : 'text-[var(--text-muted)]'}`}>
@@ -94,11 +105,7 @@ export function SyncProgress({ onComplete }: SyncProgressProps) {
                     </div>
                     <div className="w-full h-3 bg-[var(--border)] rounded-full overflow-hidden">
                         <div 
-                            className={`h-full transition-all duration-500 ease-out origin-left ${
-                                status === 'error' ? 'bg-[var(--danger)]' :
-                                status === 'completed' ? 'bg-[var(--success)]' :
-                                'bg-[var(--primary)]'
-                            }`}
+                            className={`h-full origin-left transition-all duration-500 ease-out ${progressBarClass}`}
                             style={{ 
                                 width: `${progress}%`,
                             }}

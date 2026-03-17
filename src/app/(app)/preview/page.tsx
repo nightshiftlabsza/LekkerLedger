@@ -192,9 +192,15 @@ function PreviewContent() {
 
     const breakdown = calculatePayslip(payslip);
     const audit = getComplianceAudit(employee, breakdown, payslip.payPeriodEnd);
-    const periodLabel = `${format(new Date(payslip.payPeriodStart), "d MMM")} - ${format(new Date(payslip.payPeriodEnd), "d MMM yyyy")}`;
+    const periodStartLabel = format(new Date(payslip.payPeriodStart), "d MMM");
+    const periodEndLabel = format(new Date(payslip.payPeriodEnd), "d MMM yyyy");
+    const periodLabel = `${periodStartLabel} - ${periodEndLabel}`;
     const employeeRole = employee.role || "Domestic Worker";
     const employerCost = breakdown.grossPay + breakdown.employerContributions.uifEmployer;
+    const ordinaryTopUpLabel = breakdown.topUps.fourHourMinimumHours > 0
+        ? ` + ${breakdown.topUps.fourHourMinimumHours}h 4-hr top-up`
+        : "";
+    const ordinaryPayLabel = `Ordinary (${payslip.ordinaryHours}h${ordinaryTopUpLabel})`;
 
     return (
         <div className="min-h-screen bg-[var(--bg)]">
@@ -256,7 +262,7 @@ function PreviewContent() {
                         <CardContent className="p-5">
                             <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-[var(--focus)]">Earnings</p>
                             <Row
-                                label={`Ordinary (${payslip.ordinaryHours}h${breakdown.topUps.fourHourMinimumHours > 0 ? ` + ${breakdown.topUps.fourHourMinimumHours}h 4-hr top-up` : ""})`}
+                                label={ordinaryPayLabel}
                                 value={`R ${breakdown.ordinaryPay.toFixed(2)}`}
                             />
                             {payslip.overtimeHours > 0 && <Row label={`Overtime (${payslip.overtimeHours}h @ 1.5x)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} />}

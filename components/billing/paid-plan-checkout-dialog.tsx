@@ -17,6 +17,7 @@ export function PaidPlanCheckoutDialog({
     children: React.ReactNode;
 }) {
     const [mounted, setMounted] = React.useState(false);
+    const dialogRef = React.useRef<HTMLDialogElement | null>(null);
     const titleId = React.useId();
     const descriptionId = React.useId();
 
@@ -49,57 +50,58 @@ export function PaidPlanCheckoutDialog({
     }, [open]);
 
     React.useEffect(() => {
-        if (!open || typeof document === "undefined") {
+        const dialog = dialogRef.current;
+        if (!dialog) {
             return;
         }
 
-        function handleKeyDown(event: KeyboardEvent) {
-            if (event.key === "Escape") {
-                onOpenChange(false);
+        if (open) {
+            if (!dialog.open) {
+                dialog.showModal();
             }
+        } else if (dialog.open) {
+            dialog.close();
         }
+    }, [open]);
 
-        document.addEventListener("keydown", handleKeyDown);
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [onOpenChange, open]);
-
-    if (!mounted || !open || typeof document === "undefined") {
+    if (!mounted || typeof document === "undefined") {
         return null;
     }
 
     return createPortal(
-        <div
-            className="fixed inset-0 z-[70] overflow-x-hidden overflow-y-auto overscroll-contain bg-black/45 p-4 sm:p-6"
-            data-testid="paid-plan-checkout-overlay"
+        <dialog
+            ref={dialogRef}
+            aria-describedby={descriptionId}
+            aria-labelledby={titleId}
+            className="fixed inset-0 z-[70] m-auto w-full max-w-lg min-w-0 overflow-visible border-0 bg-transparent p-4 text-inherit text-left backdrop:bg-black/45 sm:p-6"
+            data-testid="paid-plan-checkout-modal"
+            onCancel={(event) => {
+                event.preventDefault();
+                onOpenChange(false);
+            }}
+            onClose={() => {
+                if (open) {
+                    onOpenChange(false);
+                }
+            }}
             onMouseDown={(event) => {
                 if (event.target === event.currentTarget) {
                     onOpenChange(false);
                 }
             }}
         >
-            <div className="grid min-h-full place-items-center">
-                <div
-                    aria-describedby={descriptionId}
-                    aria-labelledby={titleId}
-                    aria-modal="true"
-                    className="w-full max-w-lg min-w-0 overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_24px_70px_rgba(15,23,42,0.24)]"
-                    data-testid="paid-plan-checkout-modal"
-                    role="dialog"
-                >
-                    <div className="flex max-h-[min(42rem,calc(100dvh-2rem))] min-w-0 flex-col sm:max-h-[min(42rem,calc(100dvh-3rem))]">
-                        <div className="sr-only">
-                            <span id={titleId}>{title}</span>
-                            <p id={descriptionId}>{description}</p>
-                        </div>
-                        <div className="min-w-0 overflow-y-auto overflow-x-hidden p-6 sm:p-7">
-                            {children}
-                        </div>
+            <div className="w-full min-w-0 overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_24px_70px_rgba(15,23,42,0.24)]">
+                <div className="flex max-h-[min(42rem,calc(100dvh-2rem))] min-w-0 flex-col sm:max-h-[min(42rem,calc(100dvh-3rem))]">
+                    <div className="sr-only">
+                        <span id={titleId}>{title}</span>
+                        <p id={descriptionId}>{description}</p>
+                    </div>
+                    <div className="min-w-0 overflow-y-auto overflow-x-hidden p-6 sm:p-7">
+                        {children}
                     </div>
                 </div>
             </div>
-        </div>,
+        </dialog>,
         document.body,
     );
 }

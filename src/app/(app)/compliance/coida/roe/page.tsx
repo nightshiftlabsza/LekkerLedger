@@ -169,23 +169,29 @@ export default function RoePackPage() {
 
                     {/* Progress Indicator */}
                     <div className="flex items-center justify-between px-2">
-                        {[1, 2, 3].map((s) => (
-                            <div key={s} className="flex items-center">
-                                <button
-                                    onClick={() => (step > s || (step === 2 && s === 1) || (step === 3 && (s === 1 || s === 2))) && setStep(s)}
-                                    disabled={step < s}
-                                    className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${step === s ? "bg-[var(--primary)] text-white scale-110 shadow-lg shadow-[var(--primary)]/20" :
-                                        step > s ? "bg-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/30 cursor-pointer" :
-                                            "bg-[var(--surface-2)] text-[var(--text-muted)] cursor-default"
-                                        }`}
-                                >
-                                    {step > s ? <Check className="h-4 w-4" /> : s}
-                                </button>
-                                {s < 3 && (
-                                    <div className={`w-12 h-0.5 mx-2 ${step > s ? "bg-[var(--primary)]/20" : "bg-[var(--surface-2)]"}`} />
-                                )}
-                            </div>
-                        ))}
+                        {[1, 2, 3].map((s) => {
+                            let stepButtonClass = "bg-[var(--surface-2)] text-[var(--text-muted)] cursor-default";
+                            if (step === s) {
+                                stepButtonClass = "bg-[var(--primary)] text-white scale-110 shadow-lg shadow-[var(--primary)]/20";
+                            } else if (step > s) {
+                                stepButtonClass = "bg-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/30 cursor-pointer";
+                            }
+
+                            return (
+                                <div key={s} className="flex items-center">
+                                    <button
+                                        onClick={() => (step > s || (step === 2 && s === 1) || (step === 3 && (s === 1 || s === 2))) && setStep(s)}
+                                        disabled={step < s}
+                                        className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${stepButtonClass}`}
+                                    >
+                                        {step > s ? <Check className="h-4 w-4" /> : s}
+                                    </button>
+                                    {s < 3 && (
+                                        <div className={`w-12 h-0.5 mx-2 ${step > s ? "bg-[var(--primary)]/20" : "bg-[var(--surface-2)]"}`} />
+                                    )}
+                                </div>
+                            );
+                        })}
                         <span className="text-[10px] type-overline text-[var(--text-muted)] ml-auto font-bold">
                             Step {step} of 3
                         </span>

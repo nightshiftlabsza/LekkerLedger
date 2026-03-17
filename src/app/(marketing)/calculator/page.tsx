@@ -64,10 +64,7 @@ export default function CalculatorPage() {
                             <p className="text-xs font-semibold leading-relaxed sm:text-sm" style={{ color: "var(--text-muted)" }}>
                                 Minimum wage shown is effective from {effectiveDate}.{" "}
                                 <span>
-                                    <a href={nmwRecord.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--primary)] transition-colors">
-                                        Source
-                                    </a>
-                                    .
+                                    <a href={nmwRecord.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--primary)] transition-colors">Source</a>.
                                 </span>
                             </p>
                         </div>

@@ -43,7 +43,7 @@ async function ensurePlaywrightBuild() {
   await waitForExit(build);
 }
 
-async function main() {
+try {
   await ensurePlaywrightBuild();
 
   const server = spawnNext(["start", "-p", port, "-H", "0.0.0.0"]);
@@ -59,10 +59,8 @@ async function main() {
 
   process.on("SIGINT", () => server.kill("SIGINT"));
   process.on("SIGTERM", () => server.kill("SIGTERM"));
-}
-
-main().catch((error) => {
+} catch (error) {
   console.error("Could not prepare the Playwright web server.");
   console.error(error);
   process.exit(1);
-});
+}

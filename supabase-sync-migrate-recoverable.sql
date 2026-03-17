@@ -41,10 +41,12 @@ alter table public.synced_records enable row level security;
 alter table public.synced_files enable row level security;
 
 do $$
+declare
+    target_schema constant text := 'public';
 begin
     if not exists (
         select 1 from pg_policies
-        where schemaname = 'public'
+        where schemaname = target_schema
           and tablename = 'user_profiles'
           and policyname = 'user_profiles_self_access'
     ) then
@@ -54,14 +56,10 @@ begin
         using (auth.uid() = id)
         with check (auth.uid() = id);
     end if;
-end
-$$;
 
-do $$
-begin
     if not exists (
         select 1 from pg_policies
-        where schemaname = 'public'
+        where schemaname = target_schema
           and tablename = 'account_key_recovery'
           and policyname = 'account_key_recovery_self_access'
     ) then
@@ -71,14 +69,10 @@ begin
         using (auth.uid() = user_id)
         with check (auth.uid() = user_id);
     end if;
-end
-$$;
 
-do $$
-begin
     if not exists (
         select 1 from pg_policies
-        where schemaname = 'public'
+        where schemaname = target_schema
           and tablename = 'synced_records'
           and policyname = 'synced_records_self_access'
     ) then
@@ -88,14 +82,10 @@ begin
         using (auth.uid() = user_id)
         with check (auth.uid() = user_id);
     end if;
-end
-$$;
 
-do $$
-begin
     if not exists (
         select 1 from pg_policies
-        where schemaname = 'public'
+        where schemaname = target_schema
           and tablename = 'synced_files'
           and policyname = 'synced_files_self_access'
     ) then

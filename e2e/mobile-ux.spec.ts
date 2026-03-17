@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { generateAccountMasterKey, generateValidationPayload, wrapMasterKeyWithPassword } from "../src/lib/crypto";
+import { seedAuditStores } from "./audit/helpers";
 
 const MOBILE_BOTTOM_NAV_VIEWPORTS = [
     { width: 320, height: 640 },
@@ -186,6 +187,28 @@ async function prepareMobileDashboard(page: import("@playwright/test").Page, pas
     });
 }
 
+async function enableProDocumentUploads(page: import("@playwright/test").Page) {
+    await page.evaluate(async () => {
+        const localforageApi = (window as typeof window & {
+            localforage: {
+                createInstance: (options: { name: string; storeName: string }) => {
+                    getItem: (key: string) => Promise<Record<string, unknown> | null>;
+                    setItem: (key: string, value: Record<string, unknown>) => Promise<unknown>;
+                };
+            };
+        }).localforage;
+
+        const settingsStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "settings" });
+        const settings = await settingsStore.getItem("employer-settings");
+        if (!settings) return;
+
+        await settingsStore.setItem("employer-settings", {
+            ...settings,
+            proStatus: "pro",
+        });
+    });
+}
+
 test.describe("Mobile UX regressions", () => {
     test.use({ viewport: { width: 375, height: 812 }, isMobile: true });
 
@@ -286,6 +309,49 @@ test.describe("Mobile UX regressions", () => {
         expect(positions?.leftDelta).toBeLessThan(10);
     });
 
+    test("mobile drawer opens as a single focus-trapped sheet without background interaction leaks", async ({ page }) => {
+        await prepareMobileDashboard(page, "ValidPass123!");
+        await seedAuditStores(page, "starter");
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+        const menuButton = page.getByRole("button", { name: "Open menu" });
+        await menuButton.click();
+
+        const drawer = page.getByRole("dialog", { name: "Navigation" });
+        await expect(drawer).toBeVisible();
+        await expect(page.getByRole("button", { name: "Close menu" })).toBeFocused();
+        await expect(drawer.getByText("Main household")).toBeVisible();
+        await expect(drawer.getByText("Current household")).toBeVisible();
+
+        const metrics = await page.evaluate(() => {
+            const drawerPanel = document.querySelector<HTMLElement>("[role='dialog'][aria-label='Navigation']");
+            const drawerRect = drawerPanel?.getBoundingClientRect();
+            const bottomNavButton = document.querySelector<HTMLElement>("[data-testid='bottom-nav-home']");
+            const navRect = bottomNavButton?.getBoundingClientRect();
+            const topElementAtBottomNav = navRect
+                ? document.elementFromPoint(navRect.left + navRect.width / 2, navRect.top + navRect.height / 2)?.closest<HTMLElement>("[data-testid]")
+                : null;
+
+            return {
+                hasOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+                drawerWithinViewport: !!drawerRect && drawerRect.left >= -1 && drawerRect.right <= window.innerWidth + 1 && drawerRect.bottom <= window.innerHeight + 1,
+                backgroundCovered: topElementAtBottomNav?.dataset.testid !== "bottom-nav-home",
+            };
+        });
+
+        expect(metrics.hasOverflow).toBe(false);
+        expect(metrics.drawerWithinViewport).toBe(true);
+        expect(metrics.backgroundCovered).toBe(true);
+
+        await page.keyboard.press("Shift+Tab");
+        const activeElementRemainsInsideDrawer = await drawer.evaluate((element) => element.contains(document.activeElement));
+        expect(activeElementRemainsInsideDrawer).toBe(true);
+
+        await page.keyboard.press("Escape");
+        await expect(drawer).toHaveCount(0);
+        await expect(menuButton).toBeFocused();
+    });
+
     test("bottom nav labels stay readable across common phone widths", async ({ page }) => {
         await prepareMobileDashboard(page, "ValidPass123!");
 
@@ -314,6 +380,64 @@ test.describe("Mobile UX regressions", () => {
         }
     });
 
+    test("documents tabs stay legible and records upload opens in a mobile sheet", async ({ page }) => {
+        await prepareMobileDashboard(page, "ValidPass123!");
+        await seedAuditStores(page, "full");
+        await enableProDocumentUploads(page);
+
+        for (const viewport of MOBILE_BOTTOM_NAV_VIEWPORTS) {
+            await page.setViewportSize(viewport);
+            await page.goto("/documents?tab=records", { waitUntil: "domcontentloaded" });
+            await page.getByRole("tablist", { name: "Document types" }).waitFor({ state: "visible" });
+
+            const tabMetrics = await page.evaluate(() => {
+                const tablist = document.querySelector<HTMLElement>("[role='tablist'][aria-label='Document types']");
+                const tabs = Array.from(tablist?.querySelectorAll<HTMLElement>("[role='tab']") ?? []);
+
+                return {
+                    hasOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+                    tabLabelsOverflow: tabs.some((tab) => tab.scrollWidth > tab.clientWidth + 1),
+                    tabHeights: tabs.map((tab) => tab.getBoundingClientRect().height),
+                    allNowrap: tabs.every((tab) => getComputedStyle(tab).whiteSpace === "nowrap"),
+                };
+            });
+
+            expect(tabMetrics.hasOverflow).toBe(false);
+            expect(tabMetrics.tabLabelsOverflow).toBe(false);
+            expect(tabMetrics.tabHeights.every((height) => height >= 44 && height <= 56)).toBe(true);
+            expect(tabMetrics.allNowrap).toBe(true);
+
+            await page.getByRole("tab", { name: "Contracts" }).click();
+            await expect(page.getByRole("heading", { name: "Contracts" })).toBeVisible();
+            await page.getByRole("tab", { name: "Records" }).click();
+
+            const uploadButton = page.getByRole("button", { name: "Upload document" });
+            await uploadButton.click();
+
+            const uploadSheet = page.getByRole("dialog", { name: "Upload document" });
+            await expect(uploadSheet).toBeVisible();
+            await expect(uploadSheet.getByText("Employee document")).toBeVisible();
+            await expect(uploadSheet.getByText("Legal or compliance")).toBeVisible();
+
+            const sheetMetrics = await page.evaluate(() => {
+                const sheet = document.querySelector<HTMLElement>("[role='dialog'][aria-label='Upload document']");
+                const rect = sheet?.getBoundingClientRect();
+
+                return {
+                    withinViewport: !!rect && rect.left >= -1 && rect.right <= window.innerWidth + 1 && rect.bottom <= window.innerHeight + 1,
+                    hasOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+                };
+            });
+
+            expect(sheetMetrics.withinViewport).toBe(true);
+            expect(sheetMetrics.hasOverflow).toBe(false);
+
+            await page.keyboard.press("Escape");
+            await expect(uploadSheet).toHaveCount(0);
+            await expect(uploadButton).toBeFocused();
+        }
+    });
+
     test("free payslip generator fits on phone without horizontal overflow", async ({ page }) => {
         await page.goto("/resources/tools/domestic-worker-payslip");
         await expect(page.getByText("Create this month's payslip step by step")).toBeVisible();
@@ -332,8 +456,9 @@ test.describe("Mobile UX regressions", () => {
 });
 
 test.describe("App shell wide-screen verification", () => {
-    test("dashboard shell stays clean on desktop and ultrawide screens", async ({ page }) => {
+    test("dashboard and documents stay clean on desktop and ultrawide screens", async ({ page }) => {
         await prepareMobileDashboard(page, "ValidPass123!");
+        await seedAuditStores(page, "full");
 
         const wideViewports = [
             { width: 1366, height: 768 },
@@ -341,20 +466,25 @@ test.describe("App shell wide-screen verification", () => {
             { width: 2560, height: 1080 },
         ] as const;
 
+        const routes = ["/dashboard", "/documents?tab=records"] as const;
+
         for (const viewport of wideViewports) {
             await page.setViewportSize(viewport);
-            await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-            await expect(page.getByTestId("account-menu-toggle")).toBeVisible();
-            await expect(page.getByTestId("bottom-nav-home")).toHaveCount(0);
+            for (const route of routes) {
+                await page.goto(route, { waitUntil: "domcontentloaded" });
+                await expect(page.getByTestId("account-menu-toggle")).toBeVisible();
+                await expect(page.getByTestId("bottom-nav-home")).toHaveCount(0);
+                await expect(page.getByRole("dialog", { name: "Navigation" })).toHaveCount(0);
 
-            const metrics = await page.evaluate(() => ({
-                hasOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
-                mainWidth: document.querySelector("main")?.getBoundingClientRect().width ?? 0,
-                viewportWidth: window.innerWidth,
-            }));
+                const metrics = await page.evaluate(() => ({
+                    hasOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+                    mainWidth: document.querySelector("main")?.getBoundingClientRect().width ?? 0,
+                    viewportWidth: window.innerWidth,
+                }));
 
-            expect(metrics.hasOverflow).toBe(false);
-            expect(metrics.mainWidth).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+                expect(metrics.hasOverflow).toBe(false);
+                expect(metrics.mainWidth).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+            }
         }
     });
 });

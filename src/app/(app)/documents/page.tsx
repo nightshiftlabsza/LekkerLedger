@@ -13,6 +13,7 @@ import {
     ScrollText,
     Trash2,
     Upload,
+    X,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,9 @@ import { FeatureGateCard } from "@/components/ui/feature-gate-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable } from "@/components/ui/data-table";
 import { DocumentPreview } from "@/components/ui/document-preview";
+import { MobileSheet } from "@/components/ui/mobile-sheet";
 import { ContractsTab } from "@/components/documents/ContractsTab";
+import { DocumentTabStrip, type DocumentTabStripItem } from "@/components/documents/document-tab-strip";
 import { useToast } from "@/components/ui/toast";
 import { PLANS, type PlanConfig } from "@/config/plans";
 import {
@@ -373,7 +376,10 @@ export default function DocumentsPage() {
     const [isGeneratingSummary, setIsGeneratingSummary] = React.useState(false);
     const [deletingDocumentId, setDeletingDocumentId] = React.useState<string | null>(null);
     const [uploadMenuOpen, setUploadMenuOpen] = React.useState(false);
+    const [useDesktopUploadMenu, setUseDesktopUploadMenu] = React.useState(false);
     const uploadMenuRef = React.useRef<HTMLDivElement | null>(null);
+    const uploadButtonRef = React.useRef<HTMLButtonElement | null>(null);
+    const uploadSheetCloseButtonRef = React.useRef<HTMLButtonElement | null>(null);
     const uploadInputRef = React.useRef<HTMLInputElement | null>(null);
     const pdfCache = React.useRef<Record<string, string>>({});
     const [uploadTargetContract, setUploadTargetContract] = React.useState<Contract | null>(null);
@@ -453,6 +459,19 @@ export default function DocumentsPage() {
     }, [activeTab]);
 
     React.useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const mediaQuery = window.matchMedia("(min-width: 768px)");
+        const syncDesktopUploadMenu = () => setUseDesktopUploadMenu(mediaQuery.matches);
+        syncDesktopUploadMenu();
+
+        mediaQuery.addEventListener("change", syncDesktopUploadMenu);
+        return () => mediaQuery.removeEventListener("change", syncDesktopUploadMenu);
+    }, []);
+
+    React.useEffect(() => {
+        if (!useDesktopUploadMenu || !uploadMenuOpen) return;
+
         function handlePointerDown(event: MouseEvent) {
             if (uploadMenuRef.current && !uploadMenuRef.current.contains(event.target as Node)) {
                 setUploadMenuOpen(false);
@@ -461,7 +480,7 @@ export default function DocumentsPage() {
 
         document.addEventListener("mousedown", handlePointerDown);
         return () => document.removeEventListener("mousedown", handlePointerDown);
-    }, []);
+    }, [uploadMenuOpen, useDesktopUploadMenu]);
 
     const employeeNameById = React.useMemo(
         () => Object.fromEntries(employees.map((employee) => [employee.id, employee.name])),
@@ -488,6 +507,48 @@ export default function DocumentsPage() {
         () => documents.filter((document) => document.type === "archive" && document.source === "uploaded"),
         [documents],
     );
+    let supportingDocumentsContent: React.ReactNode;
+    if (supportingDocuments.length === 0) {
+        supportingDocumentsContent = vaultUploadsAllowed ? (
+            <EmptyState
+                title="No supporting records yet"
+                description="Use the upload button in this tab to add employee documents, contract records, compliance files, or other supporting paperwork."
+                icon={FolderOpen}
+            />
+        ) : (
+            <FeatureGateCard
+                title="Supporting record uploads"
+                description="Upgrade to Pro to add general supporting documents here. Signed contract copies still stay attached to their contract workflow."
+                ctaLabel="Upgrade to Pro"
+                href={vaultUpgradeHref}
+                eyebrow="Pro"
+                benefits={[
+                    "Upload employee, admin, legal, and contract support records",
+                    "Keep paperwork alongside the rest of your documents",
+                    "Use one records tab instead of a long stacked page",
+                ]}
+            />
+        );
+    } else {
+        supportingDocumentsContent = (
+            <DocumentTable
+                data={supportingDocuments}
+                icon={FileText}
+                emptyMessage="No supporting records available."
+                employeeNameById={employeeNameById}
+                showEmployee
+                showCategory
+                allowDelete={vaultUploadsAllowed}
+                deletingDocumentId={deletingDocumentId}
+                onPreview={(doc) => {
+                    handlePreview(doc).catch(console.error);
+                }}
+                onDelete={(doc) => {
+                    handleDeleteSupportingDocument(doc).catch(console.error);
+                }}
+            />
+        );
+    }
 
     const payslipArchiveResult = React.useMemo(
         () => filterRecordsForArchiveWindow(payslipDocuments, plan, (document) => document.createdAt, {
@@ -537,29 +598,25 @@ export default function DocumentsPage() {
     const visibleContracts = plan.id === "standard" ? contracts : contractsArchiveResult.visible;
     const contractHiddenCount = plan.id === "standard" ? 0 : contractsArchiveResult.hiddenCount;
     const visibleExportDocuments = exportArchiveResult.visible;
-    const documentTabs = [
+    const documentTabs: ReadonlyArray<DocumentTabStripItem<DocumentsTabId>> = [
         {
             id: "payslips" as const,
             label: "Payslips",
-            icon: FileText,
             count: visiblePayslipDocuments.length,
         },
         {
             id: "contracts" as const,
             label: "Contracts",
-            icon: ScrollText,
             count: visibleContracts.length,
         },
         {
             id: "exports" as const,
             label: "Exports",
-            icon: FileSpreadsheet,
             count: visibleExportDocuments.length,
         },
         {
             id: "records" as const,
             label: "Records",
-            icon: FolderOpen,
             count: supportingDocuments.length,
         },
     ];
@@ -897,9 +954,9 @@ export default function DocumentsPage() {
                 <section className="overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]">
                     <div
                         className="border-b border-[var(--border)] px-5 py-4 sm:px-6"
-                        style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.10) 0%, rgba(196, 122, 28, 0.08) 100%)" }}
+                        style={{ background: "var(--accent-panel-gradient-strong)" }}
                     >
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="flex flex-col gap-4">
                             <div className="max-w-[68ch]">
                                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
                                     Household Records
@@ -912,49 +969,13 @@ export default function DocumentsPage() {
                                 </p>
                             </div>
 
-                            <div className="flex flex-wrap gap-2">
-                                {documentTabs.map((tab) => (
-                                    <div
-                                        key={tab.id}
-                                        className="rounded-full border border-[var(--border)] bg-white/70 px-3 py-1.5 text-xs font-semibold text-[var(--text-muted)] shadow-sm"
-                                    >
-                                        <span className="mr-1 font-black text-[var(--text)]">{tab.count}</span>
-                                        {tab.label}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="mt-5 flex gap-1 overflow-x-auto rounded-2xl border border-[var(--border)] bg-white/55 p-1 no-scrollbar">
-                            {documentTabs.map(({ id, label, icon: Icon, count }) => {
-                                const isActive = activeTab === id;
-                                return (
-                                    <button
-                                        key={id}
-                                        type="button"
-                                        onClick={() => handleTabChange(id)}
-                                        aria-pressed={isActive}
-                                        className="flex min-h-[44px] min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] transition-all duration-200 sm:text-xs"
-                                        style={{
-                                            backgroundColor: isActive ? "var(--primary)" : "transparent",
-                                            color: isActive ? "#ffffff" : "var(--text-muted)",
-                                            boxShadow: isActive ? "var(--shadow-sm)" : "none",
-                                        }}
-                                    >
-                                        <Icon className="h-4 w-4 shrink-0" />
-                                        <span>{label}</span>
-                                        <span
-                                            className="rounded-full px-2 py-0.5 text-[10px]"
-                                            style={{
-                                                backgroundColor: isActive ? "rgba(255,255,255,0.18)" : "rgba(15, 23, 42, 0.06)",
-                                                color: isActive ? "#ffffff" : "var(--text)",
-                                            }}
-                                        >
-                                            {count}
-                                        </span>
-                                    </button>
-                                );
-                            })}
+                            <DocumentTabStrip
+                                ariaLabel="Document types"
+                                activeTab={activeTab}
+                                tabs={documentTabs}
+                                onChange={handleTabChange}
+                                showSummaryCounts={true}
+                            />
                         </div>
                     </div>
 
@@ -1190,15 +1211,18 @@ export default function DocumentsPage() {
 
                                 <div className="relative shrink-0" ref={uploadMenuRef}>
                                     <Button
+                                        ref={uploadButtonRef}
                                         type="button"
                                         className="h-10 gap-2 bg-[var(--primary)] px-4 text-sm font-bold text-white hover:bg-[var(--primary-hover)]"
+                                        aria-haspopup={useDesktopUploadMenu ? "menu" : "dialog"}
+                                        aria-expanded={uploadMenuOpen}
                                         onClick={handleRecordsUploadClick}
                                     >
                                         {vaultUploadsAllowed ? <Upload className="h-4 w-4 shrink-0" /> : <Lock className="h-4 w-4 shrink-0" />}
                                         <span>Upload document</span>
                                     </Button>
 
-                                    {uploadMenuOpen ? (
+                                    {uploadMenuOpen && useDesktopUploadMenu ? (
                                         <div className="absolute right-0 top-[calc(100%+0.75rem)] z-40 w-[min(24rem,calc(100vw-1.5rem))] rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-raised)] p-3 shadow-[0_20px_48px_rgba(16,24,40,0.14)]">
                                             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Choose upload type</p>
                                             <div className="mt-3 space-y-2">
@@ -1248,45 +1272,7 @@ export default function DocumentsPage() {
                                 </div>
                             )}
 
-                            {supportingDocuments.length === 0 ? (
-                                vaultUploadsAllowed ? (
-                                    <EmptyState
-                                        title="No supporting records yet"
-                                        description="Use the upload button in this tab to add employee documents, contract records, compliance files, or other supporting paperwork."
-                                        icon={FolderOpen}
-                                    />
-                                ) : (
-                                    <FeatureGateCard
-                                        title="Supporting record uploads"
-                                        description="Upgrade to Pro to add general supporting documents here. Signed contract copies still stay attached to their contract workflow."
-                                        ctaLabel="Upgrade to Pro"
-                                        href={vaultUpgradeHref}
-                                        eyebrow="Pro"
-                                        benefits={[
-                                            "Upload employee, admin, legal, and contract support records",
-                                            "Keep paperwork alongside the rest of your documents",
-                                            "Use one records tab instead of a long stacked page",
-                                        ]}
-                                    />
-                                )
-                            ) : (
-                                <DocumentTable
-                                    data={supportingDocuments}
-                                    icon={FileText}
-                                    emptyMessage="No supporting records available."
-                                    employeeNameById={employeeNameById}
-                                    showEmployee
-                                    showCategory
-                                    allowDelete={vaultUploadsAllowed}
-                                    deletingDocumentId={deletingDocumentId}
-                                    onPreview={(doc) => {
-                                        handlePreview(doc).catch(console.error);
-                                    }}
-                                    onDelete={(doc) => {
-                                        handleDeleteSupportingDocument(doc).catch(console.error);
-                                    }}
-                                />
-                            )}
+                            {supportingDocumentsContent}
                         </section>
                     ) : null}
                     </div>
@@ -1314,6 +1300,54 @@ export default function DocumentsPage() {
                     }}
                 />
             ) : null}
+
+            <MobileSheet
+                open={uploadMenuOpen && !useDesktopUploadMenu}
+                onOpenChange={setUploadMenuOpen}
+                ariaLabel="Upload document"
+                position="bottom"
+                initialFocusRef={uploadSheetCloseButtonRef}
+                returnFocusRef={uploadButtonRef}
+                testId="records-upload-sheet"
+            >
+                <div className="flex min-h-0 w-full flex-col bg-[var(--surface-raised)]">
+                    <div className="flex items-center justify-between border-b border-[var(--border)] px-5 pb-4 pt-4">
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Choose upload type</p>
+                            <h3 className="mt-2 text-lg font-bold text-[var(--text)]">Upload document</h3>
+                        </div>
+                        <button
+                            ref={uploadSheetCloseButtonRef}
+                            type="button"
+                            onClick={() => setUploadMenuOpen(false)}
+                            aria-label="Close upload options"
+                            className="flex h-11 w-11 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)]"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+
+                    <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 safe-area-pb">
+                        <div className="space-y-2">
+                            {VAULT_UPLOAD_OPTIONS.map((option) => (
+                                <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => startSupportingDocumentUpload(option.value)}
+                                    className="w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-4 text-left transition-colors hover:bg-[var(--surface-2)]"
+                                >
+                                    <p className="text-sm font-semibold text-[var(--text)]">{option.label}</p>
+                                    <p className="mt-1 text-xs leading-6 text-[var(--text-muted)]">{option.description}</p>
+                                </button>
+                            ))}
+                        </div>
+
+                        <p className="mt-4 text-xs leading-6 text-[var(--text-muted)]">
+                            Signed contract PDFs still upload from the matching contract row so the file stays linked to that contract.
+                        </p>
+                    </div>
+                </div>
+            </MobileSheet>
         </>
     );
 }

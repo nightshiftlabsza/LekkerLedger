@@ -1441,7 +1441,7 @@ async function handleRefundProcessed(existing: SubscriptionRecord | null): Promi
     });
 
     const referral = await getReferralByReferee(existing.userId);
-    if (referral && referral.status === "qualified_pending_reward") {
+    if (referral?.status === "qualified_pending_reward") {
         await updateReferral({
             ...referral,
             status: "reversed",
@@ -1472,7 +1472,7 @@ export async function verifyUserFromRequest(request: Request): Promise<VerifiedU
 
     const { data: { user }, error } = authResult;
 
-    if (error || !user || !user.email) {
+    if (error || !user?.email) {
         throw new BillingAuthError("Sign-in is required.");
     }
 
@@ -1607,7 +1607,7 @@ export async function getBillingAccountForUser(userId: string): Promise<BillingA
 export async function cancelSubscriptionForUser(userId: string): Promise<BillingAccountResponse> {
     await ensureBillingSchema();
     const record = await getSubscriptionByColumn("user_id", userId);
-    if (!record || !record.paystackSubscriptionCode || !record.paystackEmailToken) {
+    if (!record?.paystackSubscriptionCode || !record.paystackEmailToken) {
         throw new BillingError("There is no active renewal to cancel.", 404);
     }
 

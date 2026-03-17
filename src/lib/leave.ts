@@ -295,7 +295,7 @@ export function resolveLeaveAllowance(
     }
 
     const customType = options.customLeaveTypes?.find((item) => item.id === type);
-    if (!customType || customType.annualAllowance === undefined) {
+    if (customType?.annualAllowance === undefined) {
         return Number.POSITIVE_INFINITY;
     }
 
@@ -358,6 +358,80 @@ export function listLeaveCycles(employeeStartDate: string, referenceDate: Date):
     return cycles;
 }
 
+function buildEmptyAnnualLeaveSummary(records: LeaveRecord[]): AnnualLeaveSummary {
+    return {
+        currentCycle: null,
+        currentCycleAllowance: 0,
+        usedInCurrentCycle: 0,
+        remainingInCurrentCycle: 0,
+        carryOvers: [],
+        remainingCarryOver: 0,
+        totalRemainingAvailable: 0,
+        updatedRecords: records.map((record) => (record.type === "annual" ? { ...record, allocations: [] } : record)),
+    };
+}
+
+function groupAnnualRecordsByCycle(startDate: string, annualRecords: LeaveRecord[]) {
+    const recordsByCycle = new Map<string, LeaveRecord[]>();
+    for (const record of annualRecords) {
+        const cycle = getLeaveCycleForDate(startDate, normaliseLeaveDate(record).start);
+        if (!cycle) continue;
+        const existing = recordsByCycle.get(cycle.endIso) ?? [];
+        existing.push(record);
+        recordsByCycle.set(cycle.endIso, existing);
+    }
+
+    return recordsByCycle;
+}
+
+function allocateAnnualLeaveRecord(
+    record: LeaveRecord,
+    cycle: LeaveCycle,
+    carryOvers: LeaveCarryOver[],
+) {
+    let daysRemaining = record.days;
+    const allocations: LeaveAllocation[] = [];
+
+    for (const bucket of carryOvers) {
+        const bucketRemaining = Math.max(bucket.daysCarried - bucket.daysUsedFromCarry, 0);
+        if (bucketRemaining <= 0 || daysRemaining <= 0) continue;
+
+        const taken = Math.min(bucketRemaining, daysRemaining);
+        bucket.daysUsedFromCarry += taken;
+        daysRemaining -= taken;
+        allocations.push({
+            source: "carry-over",
+            days: taken,
+            fromCycleEnd: bucket.fromCycleEnd,
+        });
+    }
+
+    if (daysRemaining > 0) {
+        allocations.push({
+            source: "current-cycle",
+            days: daysRemaining,
+            cycleStart: cycle.startIso,
+            cycleEnd: cycle.endIso,
+        });
+    }
+
+    return {
+        updatedRecord: { ...record, allocations },
+        usedFromCurrentCycle: daysRemaining,
+    };
+}
+
+function createCarryOverBucket(cycle: LeaveCycle, annualRecords: LeaveRecord[], daysCarried: number): LeaveCarryOver {
+    return {
+        id: `${annualRecords[0]?.householdId ?? "default"}:${cycle.endIso}`,
+        householdId: annualRecords[0]?.householdId ?? "default",
+        employeeId: annualRecords[0]?.employeeId ?? "",
+        fromCycleEnd: cycle.endIso,
+        daysCarried,
+        daysUsedFromCarry: 0,
+    };
+}
+
 export function calculateAnnualLeaveSummary(
     employeeSource: AnnualLeaveSource,
     records: LeaveRecord[],
@@ -371,16 +445,7 @@ export function calculateAnnualLeaveSummary(
 
     const currentCycle = getLeaveCycleForDate(normalized.startDate, referenceDate);
     if (!currentCycle) {
-        return {
-            currentCycle: null,
-            currentCycleAllowance: 0,
-            usedInCurrentCycle: 0,
-            remainingInCurrentCycle: 0,
-            carryOvers: [],
-            remainingCarryOver: 0,
-            totalRemainingAvailable: 0,
-            updatedRecords: records.map((record) => (record.type === "annual" ? { ...record, allocations: [] } : record)),
-        };
+        return buildEmptyAnnualLeaveSummary(records);
     }
 
     const cycles = listLeaveCycles(normalized.startDate, referenceDate);
@@ -388,14 +453,7 @@ export function calculateAnnualLeaveSummary(
         .filter((record) => record.type === "annual")
         .sort((a, b) => getRecordSortTime(a) - getRecordSortTime(b));
 
-    const recordsByCycle = new Map<string, LeaveRecord[]>();
-    for (const record of annualRecords) {
-        const cycle = getLeaveCycleForDate(normalized.startDate, normaliseLeaveDate(record).start);
-        if (!cycle) continue;
-        const existing = recordsByCycle.get(cycle.endIso) ?? [];
-        existing.push(record);
-        recordsByCycle.set(cycle.endIso, existing);
-    }
+    const recordsByCycle = groupAnnualRecordsByCycle(normalized.startDate, annualRecords);
 
     const carryOvers: LeaveCarryOver[] = [];
     const updatedAnnualRecords = new Map<string, LeaveRecord>();
@@ -409,34 +467,9 @@ export function calculateAnnualLeaveSummary(
         let usedFromCurrentCycle = 0;
 
         for (const record of cycleRecords) {
-            let daysRemaining = record.days;
-            const allocations: LeaveAllocation[] = [];
-
-            for (const bucket of carryOvers) {
-                const bucketRemaining = Math.max(bucket.daysCarried - bucket.daysUsedFromCarry, 0);
-                if (bucketRemaining <= 0 || daysRemaining <= 0) continue;
-
-                const taken = Math.min(bucketRemaining, daysRemaining);
-                bucket.daysUsedFromCarry += taken;
-                daysRemaining -= taken;
-                allocations.push({
-                    source: "carry-over",
-                    days: taken,
-                    fromCycleEnd: bucket.fromCycleEnd,
-                });
-            }
-
-            if (daysRemaining > 0) {
-                usedFromCurrentCycle += daysRemaining;
-                allocations.push({
-                    source: "current-cycle",
-                    days: daysRemaining,
-                    cycleStart: cycle.startIso,
-                    cycleEnd: cycle.endIso,
-                });
-            }
-
-            updatedAnnualRecords.set(record.id, { ...record, allocations });
+            const allocation = allocateAnnualLeaveRecord(record, cycle, carryOvers);
+            usedFromCurrentCycle += allocation.usedFromCurrentCycle;
+            updatedAnnualRecords.set(record.id, allocation.updatedRecord);
         }
 
         if (cycle.endIso === currentCycle.endIso) {
@@ -446,14 +479,7 @@ export function calculateAnnualLeaveSummary(
 
         if (cycle.end < referenceDate) {
             const daysCarried = Math.max(cycleAllowance - usedFromCurrentCycle, 0);
-            carryOvers.push({
-                id: `${annualRecords[0]?.householdId ?? "default"}:${cycle.endIso}`,
-                householdId: annualRecords[0]?.householdId ?? "default",
-                employeeId: annualRecords[0]?.employeeId ?? "",
-                fromCycleEnd: cycle.endIso,
-                daysCarried,
-                daysUsedFromCarry: 0,
-            });
+            carryOvers.push(createCarryOverBucket(cycle, annualRecords, daysCarried));
         }
     }
 

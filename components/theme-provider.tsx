@@ -43,7 +43,7 @@ function resolveTheme(t: Theme): "light" | "dark" {
 /** Apply data-theme attribute to the <html> element */
 function applyTheme(resolved: "light" | "dark") {
     if (typeof document !== "undefined") {
-        document.documentElement.setAttribute("data-theme", resolved);
+        document.documentElement.dataset.theme = resolved;
     }
 }
 

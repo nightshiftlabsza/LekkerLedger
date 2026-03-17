@@ -511,10 +511,6 @@ export async function setViewportForDevice(page: Page, device: AuditAction["devi
     await page.setViewportSize(sizes[device]);
 }
 
-function encodeStoredRecord(value: unknown) {
-    return btoa(encodeURIComponent(JSON.stringify(value)));
-}
-
 export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
     const authSession = mode !== "empty" ? buildFakeSupabaseSession() : null;
 
@@ -593,6 +589,46 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
         payload,
         storageKey: SUPABASE_STORAGE_KEY,
     });
+}
+
+export async function seedAuditStores(page: Page, mode: SeedMode) {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.addScriptTag({ path: LOCALFORAGE_SCRIPT_PATH });
+
+    const payload = buildSeedPayload(mode);
+    await page.evaluate(async ({ payload }) => {
+        function encodeStoredRecord(value: unknown) {
+            return btoa(encodeURIComponent(JSON.stringify(value)));
+        }
+
+        const localforageApi = (window as typeof window & {
+            localforage: {
+                createInstance: (options: { name: string; storeName: string }) => {
+                    setItem: (key: string, value: unknown) => Promise<unknown>;
+                };
+            };
+        }).localforage;
+
+        const settingsStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "settings" });
+        const householdStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "households" });
+        const employeeStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "employees" });
+        const payslipStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "payslips" });
+        const leaveStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "leave" });
+        const payPeriodStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "pay_periods" });
+        const documentStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "documents" });
+        const contractStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "contracts" });
+
+        await settingsStore.setItem("employer-settings", payload.settings);
+        await settingsStore.setItem(`employer-settings::${payload.settings.activeHouseholdId}`, payload.householdSettings);
+
+        await Promise.all(payload.households.map((household: { id: string }) => householdStore.setItem(household.id, household)));
+        await Promise.all(payload.employees.map((employee: { id: string }) => employeeStore.setItem(employee.id, encodeStoredRecord(employee))));
+        await Promise.all(payload.payslips.map((payslip: { id: string }) => payslipStore.setItem(payslip.id, encodeStoredRecord(payslip))));
+        await Promise.all(payload.leave.map((record: { id: string }) => leaveStore.setItem(record.id, encodeStoredRecord(record))));
+        await Promise.all(payload.payPeriods.map((period: { id: string }) => payPeriodStore.setItem(period.id, encodeStoredRecord(period))));
+        await Promise.all(payload.documents.map((doc: { id: string }) => documentStore.setItem(doc.id, encodeStoredRecord(doc))));
+        await Promise.all(payload.contracts.map((contract: { id: string }) => contractStore.setItem(contract.id, encodeStoredRecord(contract))));
+    }, { payload });
 }
 
 async function getRoleLocator(page: Page, step: Extract<AuditStep, { type: "clickByRole" }>): Promise<Locator> {

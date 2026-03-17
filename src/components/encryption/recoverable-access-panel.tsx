@@ -15,6 +15,42 @@ interface RecoverableAccessPanelProps {
     errorMessage?: string | null;
 }
 
+function RecoverableRecoveryActions({
+    isSubmitting,
+    isRecovering,
+    onRecover,
+}: Readonly<{
+    isSubmitting: boolean;
+    isRecovering: boolean;
+    onRecover?: () => Promise<void>;
+}>) {
+    if (!onRecover) {
+        return null;
+    }
+
+    return (
+        <Button
+            type="button"
+            variant="outline"
+            onClick={onRecover}
+            disabled={isSubmitting || isRecovering}
+            className="min-h-[44px] rounded-2xl font-bold"
+        >
+            {isRecovering ? (
+                <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Recovering...
+                </>
+            ) : (
+                <>
+                    <RefreshCcw className="mr-2 h-4 w-4" />
+                    Recover this account
+                </>
+            )}
+        </Button>
+    );
+}
+
 export function RecoverableAccessPanel({
     purpose,
     hasSavedPassword,
@@ -26,10 +62,20 @@ export function RecoverableAccessPanel({
 }: Readonly<RecoverableAccessPanelProps>) {
     const [password, setPassword] = React.useState("");
 
-    const heading = purpose === "setup" ? "Finish secure setup" : "Finish opening this device";
-    const body = purpose === "setup"
-        ? "Recoverable Encryption keeps your records encrypted before upload and lets you restore access later."
-        : "You are signed in. Confirm your password once so this device can open the encrypted records locally.";
+    const isSetupFlow = purpose === "setup";
+    let heading = "Finish opening this device";
+    let body = "You are signed in. Confirm your password once so this device can open the encrypted records locally.";
+    let submitLabel = "Open records on this device";
+    let loadingLabel = "Opening records...";
+    let icon = <LockKeyhole className="h-8 w-8" />;
+
+    if (isSetupFlow) {
+        heading = "Finish secure setup";
+        body = "Recoverable Encryption keeps your records encrypted before upload and lets you restore access later.";
+        submitLabel = "Finish setup";
+        loadingLabel = "Securing account...";
+        icon = <ShieldCheck className="h-8 w-8" />;
+    }
 
     async function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
@@ -39,11 +85,22 @@ export function RecoverableAccessPanel({
         });
     }
 
+    async function handleRecover() {
+        if (!onRecover) {
+            return;
+        }
+
+        await onRecover({
+            password: hasSavedPassword ? null : password,
+            useSavedPassword: hasSavedPassword,
+        });
+    }
+
     return (
         <div className="w-full rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-raised)] p-6 shadow-[var(--shadow-lg)] animate-fade-in sm:p-8">
             <div className="text-center">
                 <div className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full border border-[var(--primary)]/20 bg-[var(--primary)]/10 text-[var(--primary)]">
-                    {purpose === "setup" ? <ShieldCheck className="h-8 w-8" /> : <LockKeyhole className="h-8 w-8" />}
+                    {icon}
                 </div>
                 <h1 className="mt-6 font-serif text-2xl font-bold tracking-tight text-[var(--text)]">{heading}</h1>
                 <p className="mx-auto mt-3 max-w-[38ch] text-sm leading-7 text-[var(--text-muted)]">
@@ -90,47 +147,26 @@ export function RecoverableAccessPanel({
                     {isSubmitting ? (
                         <>
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            {purpose === "setup" ? "Securing account..." : "Opening records..."}
+                            {loadingLabel}
                         </>
                     ) : (
-                        purpose === "setup" ? "Finish setup" : "Open records on this device"
+                        submitLabel
                     )}
                 </Button>
             </form>
 
-            {purpose === "unlock" ? (
+            {!isSetupFlow ? (
                 <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
                     <p className="text-sm font-semibold text-[var(--text)]">Changed your password?</p>
                     <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">
                         If you already reset your password, you can restore this account securely here.
                     </p>
                     <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                        {onRecover ? (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => {
-                                    void onRecover({
-                                        password: hasSavedPassword ? null : password,
-                                        useSavedPassword: hasSavedPassword,
-                                    });
-                                }}
-                                disabled={isSubmitting || isRecovering}
-                                className="min-h-[44px] rounded-2xl font-bold"
-                            >
-                                {isRecovering ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Recovering...
-                                    </>
-                                ) : (
-                                    <>
-                                        <RefreshCcw className="mr-2 h-4 w-4" />
-                                        Recover this account
-                                    </>
-                                )}
-                            </Button>
-                        ) : null}
+                        <RecoverableRecoveryActions
+                            isSubmitting={isSubmitting}
+                            isRecovering={isRecovering}
+                            onRecover={onRecover ? handleRecover : undefined}
+                        />
                         <Link href="/forgot-password" className="inline-flex">
                             <Button type="button" variant="outline" className="min-h-[44px] rounded-2xl font-bold">
                                 Reset password first

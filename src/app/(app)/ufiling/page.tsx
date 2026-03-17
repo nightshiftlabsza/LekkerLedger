@@ -53,7 +53,7 @@ export default function UFilingPage() {
 
                         <div
                             className="rounded-[24px] border border-[var(--focus)]/20 px-4 py-4 text-sm leading-6"
-                            style={{ background: "linear-gradient(180deg, rgba(255,252,248,0.98) 0%, rgba(196,122,28,0.06) 100%)" }}
+                            style={{ background: "var(--surface-panel-gradient-soft)" }}
                         >
                             <div className="flex items-start gap-3">
                                 <div className="mt-0.5 rounded-xl bg-[var(--focus)]/12 p-2 text-[var(--focus)]">

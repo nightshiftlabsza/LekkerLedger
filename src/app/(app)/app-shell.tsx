@@ -494,11 +494,12 @@ function AccountMenu({
     const accountEmail = user?.email ?? "";
 
     const { state: accountState, summary: accountSummary, toneClass: accountToneClass } = getAccountSyncStatus(mode, encryptionMode, sync, syncErrorMessage);
-    const compactDesktopSummary = encryptionMode === "maximum_privacy"
-        ? "Recovery key required for restore."
-        : encryptionMode === "recoverable"
-            ? "Encrypted and recoverable."
-            : accountSummary;
+    let compactDesktopSummary = accountSummary;
+    if (encryptionMode === "maximum_privacy") {
+        compactDesktopSummary = "Recovery key required for restore.";
+    } else if (encryptionMode === "recoverable") {
+        compactDesktopSummary = "Encrypted and recoverable.";
+    }
 
     const handleSignOut = React.useCallback(async () => {
         if (signingOut) return;

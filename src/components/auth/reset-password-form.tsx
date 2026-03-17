@@ -42,7 +42,7 @@ export function ResetPasswordForm() {
         if (!/[A-Z]/.test(value)) return "Password must include at least one uppercase letter.";
         if (!/[a-z]/.test(value)) return "Password must include at least one lowercase letter.";
         if (!/\d/.test(value)) return "Password must include at least one number.";
-        if (!/[!@#$%^&*(),.?\":{}|<>]/.test(value)) return "Password must include at least one special character.";
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) return "Password must include at least one special character.";
         return null;
     }, []);
 

@@ -76,7 +76,10 @@ export function LeaveClient() {
                 );
 
                 if (!active) return;
-                setRecords(recordRows.sort((a, b) => new Date(b.startDate || b.date).getTime() - new Date(a.startDate || a.date).getTime()));
+                const sortedRecordRows = recordRows.toSorted(
+                    (a, b) => new Date(b.startDate || b.date).getTime() - new Date(a.startDate || a.date).getTime(),
+                );
+                setRecords(sortedRecordRows);
                 setEmployees(employeeRows);
                 setContractsByEmployee(Object.fromEntries(contractPairs));
             } catch (loadError) {

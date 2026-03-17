@@ -333,7 +333,9 @@ export default function PayPeriodWorkspacePage() {
 
             await downloadFiles(files);
             if (channel === "email") {
-                globalThis.location.href = `mailto:?subject=${encodeURIComponent(`${period?.name} payslips`)}&body=${encodeURIComponent("Your payslip PDFs have been downloaded. Attach them from your Downloads folder before sending.")}`;
+                const emailSubject = `${period?.name ?? "Payroll"} payslips`;
+                const emailBody = "Your payslip PDFs have been downloaded. Attach them from your Downloads folder before sending.";
+                globalThis.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
                 toast("Payslips downloaded. Attach them from Downloads in your email app.", "info");
             } else {
                 openWhatsAppDesktop();
@@ -380,6 +382,16 @@ export default function PayPeriodWorkspacePage() {
     const totalCount = safeEntries.length;
     const allComplete = totalCount > 0 && completedCount === totalCount;
     const employerDetailsReady = hasRequiredEmployerDetails(settings);
+    let saveButtonIcon: React.ReactNode = <Save className="h-4 w-4" />;
+    let saveButtonLabel = "Save Progress";
+
+    if (saving) {
+        saveButtonIcon = <Loader2 className="h-4 w-4 animate-spin" />;
+        saveButtonLabel = "Saving...";
+    } else if (saveAcknowledged) {
+        saveButtonIcon = <CheckCircle2 className="h-4 w-4" />;
+        saveButtonLabel = "Changes Saved";
+    }
 
     // Wizard status logic
     let enterHoursStatus: Step["status"] = "upcoming";
@@ -457,10 +469,13 @@ export default function PayPeriodWorkspacePage() {
                                     const calc = calculatePayslip(input);
 
                                     const sundayRate = emp.ordinarilyWorksSundays ? 1.5 : 2.0;
+                                    const ordinaryPaySuffix = calc.topUps.fourHourMinimumHours > 0
+                                        ? ` + ${calc.topUps.fourHourMinimumHours}h 4-hr top-up`
+                                        : "";
                                     return {
                                         title: emp.name,
                                         items: [
-                                            { label: `Ordinary Pay (${input.ordinaryHours}h${calc.topUps.fourHourMinimumHours > 0 ? ` + ${calc.topUps.fourHourMinimumHours}h 4-hr top-up` : ""})`, value: `R${calc.ordinaryPay.toFixed(2)}` },
+                                            { label: `Ordinary Pay (${input.ordinaryHours}h${ordinaryPaySuffix})`, value: `R${calc.ordinaryPay.toFixed(2)}` },
                                             ...(input.overtimeHours > 0 ? [{ label: `Overtime Pay (${input.overtimeHours}h @ 1.5×)`, value: `R${(input.overtimeHours * (entry.rateOverride ?? emp.hourlyRate) * 1.5).toFixed(2)}` }] : []),
                                             ...(input.sundayHours > 0 ? [{ label: `Sunday Pay (${input.sundayHours}h @ ${sundayRate}×)`, value: `R${(input.sundayHours * (entry.rateOverride ?? emp.hourlyRate) * sundayRate).toFixed(2)}` }] : []),
                                             ...(input.publicHolidayHours > 0 ? [{ label: `Public Holiday Pay (${input.publicHolidayHours}h @ 2.0×)`, value: `R${(input.publicHolidayHours * (entry.rateOverride ?? emp.hourlyRate) * 2.0).toFixed(2)}` }] : []),
@@ -719,12 +734,8 @@ export default function PayPeriodWorkspacePage() {
                             variant="paper"
                             secondaryAction={
                                 <Button onClick={handleSave} disabled={saving} variant="outline" className="flex-1 sm:flex-none gap-3 px-5 font-bold">
-                                    {(() => {
-                                        if (saving) return <Loader2 className="h-4 w-4 animate-spin" />;
-                                        if (saveAcknowledged) return <CheckCircle2 className="h-4 w-4" />;
-                                        return <Save className="h-4 w-4" />;
-                                    })()}
-                                    {saving ? "Saving..." : (saveAcknowledged ? "Changes Saved" : "Save Progress")}
+                                    {saveButtonIcon}
+                                    {saveButtonLabel}
                                 </Button>
                             }
                             primaryAction={

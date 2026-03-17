@@ -80,14 +80,16 @@ export function MarketingBillingToggle({
     readonly onChange: (cycle: BillingCycle) => void;
     readonly align?: "left" | "center" | "right";
 }) {
-    const alignmentClass =
-        align === "center" ? "items-center" : align === "right" ? "items-end" : "items-start";
-    const justifyClass =
-        align === "center"
-            ? "sm:justify-center"
-            : align === "right"
-              ? "sm:justify-end"
-              : "sm:justify-start";
+    let alignmentClass = "items-start";
+    let justifyClass = "sm:justify-start";
+
+    if (align === "center") {
+        alignmentClass = "items-center";
+        justifyClass = "sm:justify-center";
+    } else if (align === "right") {
+        alignmentClass = "items-end";
+        justifyClass = "sm:justify-end";
+    }
 
     return (
         <div className={`flex w-full flex-col gap-2 lg:w-auto ${alignmentClass}`}>
@@ -241,6 +243,40 @@ export function MarketingPlanCards({
 
 const PLAN_RANK: Record<PlanId, number> = { free: 0, standard: 1, pro: 2 };
 
+function getPlanCardActionLabel({
+    isCurrent,
+    isLoading,
+    isDowngrade,
+    isUpgrade,
+    ctaLabel,
+}: {
+    isCurrent: boolean;
+    isLoading: boolean;
+    isDowngrade: boolean;
+    isUpgrade: boolean;
+    ctaLabel: string;
+}) {
+    if (isCurrent) return "Current plan";
+    if (isLoading) return "Opening...";
+    if (isDowngrade) return "Downgrade";
+    if (isUpgrade) return "Upgrade";
+    return ctaLabel;
+}
+
+function getPlanCardButtonStyle(featured: boolean, isCurrent: boolean, isDowngrade: boolean) {
+    return !isCurrent && !isDowngrade && featured
+        ? { backgroundColor: "var(--primary)" }
+        : {};
+}
+
+function getPlanCardReferralCode() {
+    if (typeof window === "undefined") {
+        return null;
+    }
+
+    return new URLSearchParams(window.location.search).get("ref");
+}
+
 export function MarketingPlanCard({
     planId,
     billingCycle,
@@ -269,11 +305,16 @@ export function MarketingPlanCard({
         !isCurrent && !!currentPlanId && PLAN_RANK[planId] < PLAN_RANK[currentPlanId];
     const isUpgrade =
         !isCurrent && !!currentPlanId && PLAN_RANK[planId] > PLAN_RANK[currentPlanId];
-    const referralCode =
-        typeof window === "undefined"
-            ? null
-            : new URLSearchParams(window.location.search).get("ref");
+    const referralCode = getPlanCardReferralCode();
     const href = appendReferralCode(getMarketingPlanHref(planId, billingCycle), referralCode);
+    const actionLabel = getPlanCardActionLabel({
+        isCurrent,
+        isLoading,
+        isDowngrade,
+        isUpgrade,
+        ctaLabel: plan.ctaLabel,
+    });
+    const ctaStyle = getPlanCardButtonStyle(featured, isCurrent, isDowngrade);
 
     const handleAction = () => {
         if (onSelect) {
@@ -301,8 +342,7 @@ export function MarketingPlanCard({
             <div
                 className="border-b border-[var(--border)] px-5 py-4 sm:px-6"
                 style={{
-                    background:
-                        "linear-gradient(135deg, rgba(0, 122, 77, 0.06) 0%, rgba(196, 122, 28, 0.04) 100%)",
+                    background: "var(--accent-panel-gradient)",
                 }}
             >
                 <div className="flex items-start justify-between gap-4">
@@ -393,19 +433,9 @@ export function MarketingPlanCard({
                         onTouchStart={handleWarm}
                         disabled={isCurrent || isDisabled || isLoading}
                         variant={featured && !isDowngrade ? "default" : "outline"}
-                        style={
-                            !isCurrent && !isDowngrade && featured
-                                ? { backgroundColor: "var(--primary)" }
-                                : {}
-                        }
+                        style={ctaStyle}
                     >
-                        {(() => {
-                            if (isCurrent) return "Current plan";
-                            if (isLoading) return "Opening...";
-                            if (isDowngrade) return "Downgrade";
-                            if (isUpgrade) return "Upgrade";
-                            return plan.ctaLabel;
-                        })()}
+                        {actionLabel}
                     </Button>
                 ) : (
                     <Link href={href}>

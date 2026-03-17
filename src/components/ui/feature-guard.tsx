@@ -56,7 +56,8 @@ export function FeatureGuard({
     }
 
     // "Live" but locked by user's plan state
-    const upgradeHref = `/upgrade?plan=${entitlement.minPlan}${sourceParam ? `&source=${sourceParam}` : ""}`;
+    const upgradeQuery = sourceParam ? `&source=${sourceParam}` : "";
+    const upgradeHref = `/upgrade?plan=${entitlement.minPlan}${upgradeQuery}`;
     const eyebrowLabel = `Requires ${entitlement.minPlan.charAt(0).toUpperCase() + entitlement.minPlan.slice(1)}`;
 
     if (fallbackType === "card") {

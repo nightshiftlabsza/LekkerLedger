@@ -78,6 +78,22 @@ export function EmployeeLeaveTab({
     const carryOverBuckets = leaveCarryOvers.length > 0 ? leaveCarryOvers : annualSummary?.carryOvers ?? [];
     const visibleCarryOvers = carryOverBuckets.filter((carryOver) => Math.max(carryOver.daysCarried - carryOver.daysUsedFromCarry, 0) > 0);
     const carryOverNudge = getCarryOverNudge(carryOverBuckets, new Date());
+    const entitlementLabel = hasManualBalance ? "Balance entered" : "Entitlement this cycle";
+    let cycleDescription: React.ReactNode = (
+        <p className="mt-2 text-xs text-[var(--text-muted)]">Add a start date on the profile to calculate leave cycle boundaries.</p>
+    );
+
+    if (annualSummary?.currentCycle) {
+        cycleDescription = (
+            <p className="mt-2 text-xs text-[var(--text-muted)]">
+                {hasCustomCycle ? "Manual leave cycle" : "Current cycle"}: {format(annualSummary.currentCycle.start, "dd MMM yyyy")} to {format(annualSummary.currentCycle.end, "dd MMM yyyy")}
+            </p>
+        );
+    } else if (hasManualBalance) {
+        cycleDescription = (
+            <p className="mt-2 text-xs text-[var(--text-muted)]">Using the manual balance saved on this employee profile.</p>
+        );
+    }
 
     const archiveUpgradeHref = getArchiveUpgradeHref(currentPlan.id);
     const cardClass = variant === "embedded"
@@ -94,15 +110,7 @@ export function EmployeeLeaveTab({
                             <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--text-muted)]">Available now</p>
                             <p className="mt-2 text-4xl font-black tracking-tight text-[var(--text)]">{formatLeaveValue(availableNow)} days</p>
                             <p className="mt-2 text-sm text-[var(--text-muted)]">Annual leave available for {employee.name} right now.</p>
-                            {annualSummary?.currentCycle ? (
-                                <p className="mt-2 text-xs text-[var(--text-muted)]">
-                                    {hasCustomCycle ? "Manual leave cycle" : "Current cycle"}: {format(annualSummary.currentCycle.start, "dd MMM yyyy")} to {format(annualSummary.currentCycle.end, "dd MMM yyyy")}
-                                </p>
-                            ) : hasManualBalance ? (
-                                <p className="mt-2 text-xs text-[var(--text-muted)]">Using the manual balance saved on this employee profile.</p>
-                            ) : (
-                                <p className="mt-2 text-xs text-[var(--text-muted)]">Add a start date on the profile to calculate leave cycle boundaries.</p>
-                            )}
+                            {cycleDescription}
                         </div>
 
                         <div className="flex w-full flex-col gap-2 lg:w-auto lg:min-w-[220px]">
@@ -126,7 +134,7 @@ export function EmployeeLeaveTab({
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-3">
-                        <SupportingMetric label={hasManualBalance ? "Balance entered" : "Entitlement this cycle"} value={formatLeaveValue(entitlementThisCycle)} cardClass={cardClass} />
+                        <SupportingMetric label={entitlementLabel} value={formatLeaveValue(entitlementThisCycle)} cardClass={cardClass} />
                         <SupportingMetric label="Used this cycle" value={formatLeaveValue(usedThisCycle)} cardClass={cardClass} />
                         <SupportingMetric label="Carry-over" value={formatLeaveValue(carryOverRemaining)} cardClass={cardClass} />
                     </div>
