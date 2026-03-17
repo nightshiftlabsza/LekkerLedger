@@ -209,8 +209,8 @@ export function MarketingPlanCards({
     readonly isLoadingPlanId?: PlanId | null;
 }) {
     return (
-        <div className="space-y-6">
-            <div className={`grid gap-5 md:gap-6 ${compact ? "lg:grid-cols-3" : "xl:grid-cols-3 2xl:gap-7"}`}>
+        <div className="plan-cards-cq-root space-y-6">
+            <div className={`grid gap-5 md:gap-6 ${compact ? "plan-cards-compact-cq-grid" : "plan-cards-cq-grid"}`}>
                 {PLAN_ORDER.map((planId) => (
                     <MarketingPlanCard
                         key={planId}
@@ -342,7 +342,8 @@ export function MarketingPlanCard({
             <div
                 className="border-b border-[var(--border)] px-5 py-4 sm:px-6"
                 style={{
-                    background: "var(--accent-panel-gradient)",
+                    background:
+                        "linear-gradient(135deg, rgba(0, 122, 77, 0.05) 0%, rgba(0, 122, 77, 0.02) 100%)",
                 }}
             >
                 <div className="flex items-start justify-between gap-4">

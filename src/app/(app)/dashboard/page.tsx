@@ -273,14 +273,14 @@ function DashboardContent() {
 
     if (loading || !effectiveSettings) {
         return (
-            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5">
+            <div className="flex w-full flex-col gap-5">
                 <CardSkeleton />
-                <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="dashboard-cq-grid">
                     <div className="space-y-5">
                         <CardSkeleton />
                         <CardSkeleton />
                     </div>
-                    <div className="hidden space-y-5 xl:block">
+                    <div className="dashboard-cq-rail hidden space-y-5">
                         <CardSkeleton />
                         <CardSkeleton />
                     </div>

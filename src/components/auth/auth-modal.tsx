@@ -60,7 +60,7 @@ export function AuthModal() {
             <div className="relative w-full max-w-[32rem] rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_24px_64px_rgba(16,24,40,0.18)] animate-in fade-in zoom-in-95 duration-200">
                 <div
                     className="rounded-t-[28px] border-b border-[var(--border)] px-6 py-5"
-                    style={{ background: "linear-gradient(135deg, rgba(0,122,77,0.08) 0%, rgba(196,122,28,0.06) 100%)" }}
+                    style={{ background: "linear-gradient(135deg, rgba(0,122,77,0.06) 0%, rgba(0,122,77,0.02) 100%)" }}
                 >
                     <div className="flex items-start justify-between gap-3">
                         <div>

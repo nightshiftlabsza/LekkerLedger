@@ -321,7 +321,7 @@ function SettingsContent() {
 
             {/* Tab switcher */}
             <div className="mb-2 rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)]/92 p-2 shadow-[var(--shadow-sm)]">
-                <div className="grid grid-cols-2 gap-1 min-[520px]:grid-cols-3 xl:grid-cols-5">
+                <div className="settings-tabs-cq-grid grid grid-cols-2 gap-1 min-[520px]:grid-cols-3">
                     <TabButton id="general" icon={Building2} label="Your details" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="storage" icon={Database} label="Storage & backup" activeTab={activeTab} setActiveTab={setActiveTab} />
                     <TabButton id="plan" icon={ShieldCheck} label="Plan" activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -975,7 +975,7 @@ function SettingsContent() {
                                 </Card>
                             </section>
 
-                            <section className="grid gap-4 lg:grid-cols-2">
+                            <section className="settings-billing-cq-grid grid gap-4">
                                 <Card className="glass-panel border-none p-5 space-y-4">
                                     <div className="flex items-center gap-3">
                                         <div className="rounded-2xl bg-[var(--primary)]/10 p-3 text-[var(--primary)]">
@@ -1041,7 +1041,7 @@ function SettingsContent() {
                                         </div>
                                     </div>
                                 )}
-                                <div className="grid gap-4 xl:grid-cols-3">
+                                <div className="settings-plan-cq-grid grid gap-4">
                                     {PLAN_ORDER.map((planId) => {
                                         const plan = PLANS[planId];
                                         const planDisplay = getMarketingPlanDisplay(planId);

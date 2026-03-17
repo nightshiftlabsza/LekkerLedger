@@ -107,7 +107,7 @@ export function DashboardOverview({
                 </div>
             ) : null}
 
-            <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,var(--app-shell-rail-width))] xl:gap-6 2xl:gap-7">
+            <div className="dashboard-cq-grid">
                 <div className="min-w-0 space-y-5">
                     <HeroCard
                         eyebrow={hero.eyebrow}
@@ -121,7 +121,7 @@ export function DashboardOverview({
                         progressLabel={currentPeriod ? `${completedEntries} / ${totalEntries} employees` : null}
                     />
 
-                    <div className="space-y-5 lg:hidden">
+                    <div className="dashboard-cq-mobile-only space-y-5">
                         <SnapshotCard
                             employeeCount={employeeCount}
                             documentCount={recentDocs.length}
@@ -158,7 +158,7 @@ export function DashboardOverview({
                     <RecentRecordsCard recentDocs={recentDocs} hasEmployees={employeeCount > 0} />
                 </div>
 
-                <aside className="hidden min-w-0 space-y-5 self-start lg:sticky lg:top-6 lg:block">
+                <aside className="dashboard-cq-rail hidden min-w-0 space-y-5 self-start">
                     <SnapshotCard
                         employeeCount={employeeCount}
                         documentCount={recentDocs.length}
@@ -175,7 +175,7 @@ export function DashboardOverview({
                 </aside>
             </div>
 
-            <div className="space-y-5 lg:hidden">
+            <div className="dashboard-cq-mobile-only space-y-5">
                 {plan.id === "free" ? <UpgradeCard /> : null}
                 <ComplianceCard />
                 <SupportCard />

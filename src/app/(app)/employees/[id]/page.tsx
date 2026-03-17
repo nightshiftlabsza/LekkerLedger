@@ -216,7 +216,7 @@ function EmployeeDetailContent() {
                 <section className="overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]">
                     <div
                         className="border-b border-[var(--border)] px-5 py-4"
-                        style={{ background: "var(--accent-panel-gradient-strong)" }}
+                        style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.06) 0%, rgba(0, 122, 77, 0.02) 100%)" }}
                     >
                         <div className="flex items-center justify-between gap-3">
                             <div>
@@ -403,7 +403,7 @@ function EmployeeDetailContent() {
                                     )}
                                 </div>
 
-                                <div className="mt-3 rounded-[22px] border border-[var(--focus)]/20 p-4" style={{ background: "var(--accent-panel-gradient)" }}>
+                                <div className="mt-3 rounded-[22px] border border-[var(--focus)]/20 p-4" style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.06) 0%, rgba(0, 122, 77, 0.02) 100%)" }}>
                                     <div className="flex items-end justify-between gap-4">
                                         <div>
                                             <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>

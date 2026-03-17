@@ -954,7 +954,7 @@ export default function DocumentsPage() {
                 <section className="overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]">
                     <div
                         className="border-b border-[var(--border)] px-5 py-4 sm:px-6"
-                        style={{ background: "var(--accent-panel-gradient-strong)" }}
+                        style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.06) 0%, rgba(0, 122, 77, 0.02) 100%)" }}
                     >
                         <div className="flex flex-col gap-4">
                             <div className="max-w-[68ch]">

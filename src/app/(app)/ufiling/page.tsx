@@ -29,7 +29,7 @@ export default function UFilingPage() {
             <PageHeader title="uFiling Export" subtitle="Prepare UIF declaration CSV files for uFiling and the Department of Employment and Labour process" />
             <Card className="border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-1)]">
                 <CardContent className="space-y-5 p-4 sm:p-6">
-                    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)] xl:items-start">
+                    <div className="detail-cq-grid grid gap-4 items-start">
                         <div className="space-y-4">
                             <p className="max-w-[62ch] text-sm leading-6 text-[var(--text-muted)]">
                                 This page helps you prepare the CSV file for UIF submission. LekkerLedger prepares the export from your payroll records, but you still review and submit it in the official uFiling process.
@@ -53,7 +53,7 @@ export default function UFilingPage() {
 
                         <div
                             className="rounded-[24px] border border-[var(--focus)]/20 px-4 py-4 text-sm leading-6"
-                            style={{ background: "var(--surface-panel-gradient-soft)" }}
+                            style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(196,122,28,0.04) 100%)" }}
                         >
                             <div className="flex items-start gap-3">
                                 <div className="mt-0.5 rounded-xl bg-[var(--focus)]/12 p-2 text-[var(--focus)]">

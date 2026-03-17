@@ -263,7 +263,7 @@ function UpgradePageContent() {
                     </div>
                 )}
 
-                <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                <div className="detail-cq-grid grid gap-6">
                     <Card className="border-[var(--border)]">
                         <CardContent className="space-y-4 p-6 text-sm">
                             <h3 className="type-h3" style={{ color: "var(--text)" }}>What changes on paid plans</h3>

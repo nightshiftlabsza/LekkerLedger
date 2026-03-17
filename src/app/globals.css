@@ -11,15 +11,18 @@
    D4 fix: defined typography scale — one source of truth
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  /* Civic Ledger semantic tokens (light) */
+  /* Civic Ledger semantic tokens (light)
+     Paper bg (#FAF7F0) is the single warm base per civicledger.md.
+     All elevated surfaces use #FFFFFF (spec: "Cards, modals, elevated elements").
+     Browser-safe: warm depth comes from bg↔surface contrast, not warm surfaces. */
   --bg: #FAF7F0;
   --surface-1: #FFFFFF;
   --surface-2: #F8F8F6;
   --surface-raised: #FFFFFF;
-  --surface-muted: #F5F5F2;
-  --surface-sidebar: #F4F3EE;
+  --surface-muted: #F5F3ED;
+  --surface-sidebar: #F6F4EF;
   --border: #E6E0D6;
-  --border-strong: #D6D0C4;
+  --border-strong: #D6D2C8;
 
   /* Text */
   --text: #101828;
@@ -39,7 +42,7 @@
   /* Glassmorphism */
   --glass-bg: rgba(255, 255, 255, 0.92);
   /* Higher opacity for readability */
-  --glass-border: rgba(230, 224, 214, 0.72);
+  --glass-border: rgba(228, 224, 218, 0.4);
   --glass-bg-dark: rgba(17, 24, 39, 0.85);
   --glass-border-dark: rgba(34, 48, 69, 0.5);
 
@@ -74,7 +77,7 @@
   /* Brand Gradients */
   --grad-primary: linear-gradient(135deg, #007A4D 0%, #009D63 100%);
   --grad-warm: linear-gradient(135deg, #C47A1C 0%, #E69D37 100%);
-  --grad-surface: linear-gradient(180deg, #FFFFFF 0%, #FCFBF9 100%);
+  --grad-surface: linear-gradient(180deg, #FFFFFF 0%, #FAF9F5 100%);
   --dashboard-hero-gradient: linear-gradient(135deg, #007A4D 0%, #009D63 52%, #065D3F 100%);
   --hero-glow-soft: radial-gradient(circle, rgba(196, 122, 28, 0.06) 0%, rgba(250, 247, 240, 0) 70%);
   --accent-panel-gradient: linear-gradient(135deg, rgba(0, 122, 77, 0.07) 0%, rgba(196, 122, 28, 0.03) 100%);
@@ -675,6 +678,138 @@ p,
     position: sticky;
     top: var(--space-6);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTAINER-QUERY-AWARE DASHBOARD LAYOUTS
+   These utilities use CSS container queries so that grids respond to the
+   actual available content width (after the sidebar) rather than the
+   viewport width.  This prevents cramped layouts on laptops with high-DPI
+   scaling where the viewport barely passes the lg breakpoint but the
+   sidebar already consumes ~284 px.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Establishes a container query context on the app main content area */
+.app-cq-root {
+  container-type: inline-size;
+}
+
+/* Dashboard overview: main + rail grid
+   Single column by default; two-column when container >= 56rem (896px) */
+.dashboard-cq-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@container (min-width: 56rem) {
+  .dashboard-cq-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, var(--app-shell-rail-width));
+  }
+  .dashboard-cq-rail {
+    display: block !important;
+    position: sticky;
+    top: 1.5rem;
+  }
+  .dashboard-cq-mobile-only {
+    display: none !important;
+  }
+}
+
+@container (min-width: 64rem) {
+  .dashboard-cq-grid {
+    gap: 1.5rem;
+  }
+}
+
+@container (min-width: 80rem) {
+  .dashboard-cq-grid {
+    gap: 1.75rem;
+  }
+}
+
+/* Plan cards: responsive columns based on container width
+   1 col default → 2 col at 42rem (672px) → 3 col at 56rem (896px) */
+.plan-cards-cq-root {
+  container-type: inline-size;
+}
+
+@container (min-width: 42rem) {
+  .plan-cards-cq-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 56rem) {
+  .plan-cards-cq-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Plan cards compact: 3 col at 48rem (768px) */
+@container (min-width: 48rem) {
+  .plan-cards-compact-cq-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Settings tab grid: 5 columns when container >= 48rem (768px) */
+@container (min-width: 48rem) {
+  .settings-tabs-cq-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* Settings billing grid: 2 col at 48rem */
+@container (min-width: 48rem) {
+  .settings-billing-cq-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Settings plan compare grid: 3 col at 48rem */
+@container (min-width: 48rem) {
+  .settings-plan-cq-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Two-column detail layout: main + sidebar at 56rem container */
+@container (min-width: 56rem) {
+  .detail-cq-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.9fr);
+  }
+  .detail-cq-sidebar {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+
+/* 12-column grid via container query at 64rem (1024px) */
+@container (min-width: 64rem) {
+  .cq-grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  .cq-col-7 { grid-column: span 7 / span 7; }
+  .cq-col-8 { grid-column: span 8 / span 8; }
+  .cq-col-5 { grid-column: span 5 / span 5; }
+  .cq-col-4 { grid-column: span 4 / span 4; }
+  .cq-col-sticky {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+
+/* Wider at 80rem (1280px) container */
+@container (min-width: 80rem) {
+  .cq-grid-12 {
+    gap: 2rem;
+  }
+  .cq-col-7 { grid-column: span 8 / span 8; }
+  .cq-col-5 { grid-column: span 4 / span 4; }
 }
 
 /* Wider container for ultrawide layouts with multi-column panels */

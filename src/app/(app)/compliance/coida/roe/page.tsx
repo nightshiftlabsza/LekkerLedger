@@ -211,8 +211,8 @@ export default function RoePackPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 2xl:gap-8 items-start">
-                                <div className="xl:col-span-7 2xl:col-span-8 space-y-4">
+                            <div className="cq-grid-12 grid grid-cols-1 gap-6 items-start">
+                                <div className="cq-col-7 space-y-4">
                                     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-sm)] sm:p-6">
                                         <p className="type-overline text-[var(--text-muted)]">Annual Return</p>
                                         <h2 className="type-h3 mt-2 text-[var(--text)]">Choose the COIDA year</h2>
@@ -276,7 +276,7 @@ export default function RoePackPage() {
                                     </Alert>
                                 </div>
 
-                                <aside className="xl:col-span-5 2xl:col-span-4 xl:sticky xl:top-6">
+                                <aside className="cq-col-5 cq-col-sticky">
                                     <Card className="border-none glass-panel overflow-hidden shadow-[var(--shadow-sm)]">
                                         <CardContent className="p-0">
                                             <div className="border-b border-[var(--border)] p-5 sm:p-6">

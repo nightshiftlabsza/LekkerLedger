@@ -71,7 +71,7 @@ export function AuthShell({ children }: Readonly<{ children: React.ReactNode }>)
                 <div className="mx-auto grid max-w-[90rem] gap-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(24rem,34rem)] xl:items-start 2xl:gap-10">
                     <section
                         className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-1)] px-6 py-7 shadow-[var(--shadow-sm)] sm:px-8 sm:py-9 lg:px-10"
-                        style={{ background: "linear-gradient(180deg, rgba(0, 122, 77, 0.06) 0%, rgba(196, 122, 28, 0.04) 100%)" }}
+                        style={{ background: "linear-gradient(180deg, rgba(0, 122, 77, 0.05) 0%, rgba(0, 122, 77, 0.02) 100%)" }}
                     >
                         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
                             Secure account access
