@@ -695,7 +695,9 @@ p,
 }
 
 /* Dashboard overview: main + rail grid
-   Single column by default; two-column when container >= 56rem (896px) */
+   Single column by default; two-column when container >= 48rem (768px)
+   At 175% OS scaling (1920→~1097px viewport), sidebar ≈ 284px → main ≈ 813px (≈50.8rem)
+   so 48rem safely triggers the 2-column layout at that scaling. */
 .dashboard-cq-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -703,9 +705,9 @@ p,
   align-items: start;
 }
 
-@container (min-width: 56rem) {
+@container (min-width: 48rem) {
   .dashboard-cq-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(16rem, var(--app-shell-rail-width));
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
   }
   .dashboard-cq-rail {
     display: block !important;
@@ -714,6 +716,12 @@ p,
   }
   .dashboard-cq-mobile-only {
     display: none !important;
+  }
+}
+
+@container (min-width: 56rem) {
+  .dashboard-cq-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, var(--app-shell-rail-width));
   }
 }
 
@@ -775,10 +783,11 @@ p,
   }
 }
 
-/* Two-column detail layout: main + sidebar at 56rem container */
-@container (min-width: 56rem) {
+/* Two-column detail layout: main + sidebar at 48rem container
+   Matches dashboard breakpoint so upgrade/ufiling pages also go 2-col at 175% scaling */
+@container (min-width: 48rem) {
   .detail-cq-grid {
-    grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.9fr);
+    grid-template-columns: minmax(0, 1.1fr) minmax(15rem, 0.9fr);
   }
   .detail-cq-sidebar {
     position: sticky;
@@ -786,12 +795,18 @@ p,
   }
 }
 
-/* 12-column grid via container query at 64rem (1024px) */
-@container (min-width: 64rem) {
+@container (min-width: 56rem) {
+  .detail-cq-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.9fr);
+  }
+}
+
+/* 12-column grid via container query at 48rem (768px) — fires at 175% scaling */
+@container (min-width: 48rem) {
   .cq-grid-12 {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
   .cq-col-7 { grid-column: span 7 / span 7; }
   .cq-col-8 { grid-column: span 8 / span 8; }
@@ -800,6 +815,12 @@ p,
   .cq-col-sticky {
     position: sticky;
     top: 1.5rem;
+  }
+}
+
+@container (min-width: 64rem) {
+  .cq-grid-12 {
+    gap: 1.5rem;
   }
 }
 
