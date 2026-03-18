@@ -18,9 +18,15 @@ export function shouldRedirectFreeUserFromApp(input: {
     planId: PlanId;
     settingsReady: boolean;
     paidFlowRequested: boolean;
+    subscriptionStatus?: string;
+    unlockStatus?: string;
+    hasPendingReference?: boolean;
 }): boolean {
     if (!input.settingsReady) return false;
     if (input.paidFlowRequested) return false;
+    if (input.hasPendingReference) return false;
+    if (input.subscriptionStatus !== undefined && input.subscriptionStatus !== "resolved") return false;
+    if (input.unlockStatus === "pending" || input.unlockStatus === "required") return false;
     if (!input.pathname.startsWith("/")) return false;
 
     return input.planId === "free";

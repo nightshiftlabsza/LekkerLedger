@@ -181,7 +181,24 @@ export function AppBootstrapProvider({ children }: Readonly<{ children: React.Re
         startAppMetric("subscription_resolved_after_login");
 
         try {
-            const nextBillingAccount = await fetchBillingAccount();
+            let nextBillingAccount = await fetchBillingAccount();
+
+            // If billing says "free" but we have a pending payment reference,
+            // the webhook may not have processed yet. Retry with the reference
+            // to confirm the payment and give the webhook time to land.
+            const pendingRef = readPendingBillingReference();
+            if (pendingRef && !(nextBillingAccount?.entitlements.isActive && nextBillingAccount.entitlements.planId !== "free")) {
+                try {
+                    const { account } = await confirmPaidAccountWithRetries(pendingRef);
+                    if (account?.entitlements.isActive && account.entitlements.planId !== "free") {
+                        nextBillingAccount = account;
+                        clearPendingBillingHandoff();
+                    }
+                } catch {
+                    // Accept the original fetch result if retry also fails.
+                }
+            }
+
             setBillingAccount(nextBillingAccount);
             setSubscriptionStatus("resolved");
             endAppMetric("subscription_resolved_after_login", {

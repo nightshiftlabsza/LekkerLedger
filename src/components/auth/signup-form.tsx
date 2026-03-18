@@ -96,6 +96,22 @@ export function SignUpForm({
 
         storePasswordHandoff(email, password);
 
+        // For paid users: sign in immediately and skip the "check your email" screen.
+        // Email confirmation is not enforced on this Supabase project, so the user
+        // can access their dashboard right after payment.
+        if (reference) {
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (!signInError) {
+                setIsLoading(false);
+                router.push(buildPaidDashboardHref({ reference }));
+                return;
+            }
+        }
+
         setIsSuccess(true);
         setIsLoading(false);
     };

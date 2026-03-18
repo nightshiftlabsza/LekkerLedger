@@ -17,6 +17,7 @@ import { saveHousehold, setActiveHouseholdId } from "@/lib/storage";
 import { Household } from "@/lib/schema";
 import { canUseMultipleHouseholds, getPlanById } from "@/lib/entitlements";
 import { isPaidDashboardFlow, shouldRedirectFreeUserFromApp } from "@/lib/app-access";
+import { readPendingBillingReference } from "@/lib/billing-handoff";
 import { ACCOUNT_MENU_LINKS } from "@/src/config/app-nav";
 import { AppModeProvider, useAppMode } from "@/lib/app-mode";
 import { RecoveryGate } from "@/components/encryption/recovery-gate";
@@ -141,6 +142,8 @@ function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
         isReadyForPlanUI,
         resolvedPlanId,
         resolvedPlanLabel,
+        subscriptionStatus,
+        unlockStatus,
     } = useAppBootstrap();
     const [offlineBannerDismissed, setOfflineBannerDismissed] = React.useState(false);
     const [syncBannerDismissed, setSyncBannerDismissed] = React.useState(false);
@@ -181,12 +184,15 @@ function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
             planId: resolvedPlanId,
             settingsReady: localSnapshotReady && isReadyForPlanUI,
             paidFlowRequested,
+            subscriptionStatus,
+            unlockStatus,
+            hasPendingReference: Boolean(readPendingBillingReference()),
         })) {
             return;
         }
 
         router.replace("/pricing");
-    }, [isReadyForPlanUI, localSnapshotReady, paidFlowRequested, pathname, resolvedPlanId, router]);
+    }, [isReadyForPlanUI, localSnapshotReady, paidFlowRequested, pathname, resolvedPlanId, router, subscriptionStatus, unlockStatus]);
 
     const showOfflineBanner = network === "offline" && !offlineBannerDismissed;
     const showSyncBanner = network === "online" && (sync === "error" || syncConflict) && !syncBannerDismissed;
