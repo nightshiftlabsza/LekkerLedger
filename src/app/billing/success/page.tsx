@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import { buildPaidActivationHref } from "@/lib/paid-activation";
 import { readPendingBillingReference, writePendingBillingReference } from "@/lib/billing-handoff";
 
-export default function BillingSuccessPage() {
+function BillingSuccessContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -33,5 +33,17 @@ export default function BillingSuccessPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default function BillingSuccessPage() {
+    return (
+        <React.Suspense fallback={
+            <div className="flex min-h-[60vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
+            </div>
+        }>
+            <BillingSuccessContent />
+        </React.Suspense>
     );
 }

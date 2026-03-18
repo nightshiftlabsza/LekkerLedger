@@ -67,7 +67,7 @@ async function getInitialEmail() {
     }
 }
 
-export default function BillingCheckoutPage() {
+function BillingCheckoutContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const rawPlanId = searchParams.get("plan");
@@ -286,5 +286,17 @@ export default function BillingCheckoutPage() {
                 </aside>
             </div>
         </div>
+    );
+}
+
+export default function BillingCheckoutPage() {
+    return (
+        <React.Suspense fallback={
+            <div className="flex min-h-[80vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
+            </div>
+        }>
+            <BillingCheckoutContent />
+        </React.Suspense>
     );
 }
