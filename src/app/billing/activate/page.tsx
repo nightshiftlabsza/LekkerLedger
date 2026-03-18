@@ -50,7 +50,7 @@ function validatePassword(password: string): string | null {
     return null;
 }
 
-export default function BillingActivatePage() {
+function BillingActivateContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pendingCheckout = readPendingBillingCheckoutState();
@@ -376,5 +376,17 @@ export default function BillingActivatePage() {
                 </aside>
             </div>
         </div>
+    );
+}
+
+export default function BillingActivatePage() {
+    return (
+        <React.Suspense fallback={
+            <div className="flex min-h-[80vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
+            </div>
+        }>
+            <BillingActivateContent />
+        </React.Suspense>
     );
 }
