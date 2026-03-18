@@ -28,7 +28,9 @@
       "Bash(xargs grep:*)",
       "Bash(grep -rn lekkerledger.co.za /c/Users/mzaka/OneDrive/Documents/Apps/Lekkerledger-1 --include=*.ts --include=*.tsx --include=*.js --include=*.json --include=*.toml --include=*.txt -l)",
       "Bash(grep -rn process.env. /c/Users/mzaka/OneDrive/Documents/Apps/Lekkerledger-1/src --include=*.ts --include=*.tsx -n)",
-      "Bash(find /c/Users/mzaka/OneDrive/Documents/Apps/Lekkerledger-1 -maxdepth 2 -name .env*)"
+      "Bash(find /c/Users/mzaka/OneDrive/Documents/Apps/Lekkerledger-1 -maxdepth 2 -name .env*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx next:*)"
     ]
   }
 }

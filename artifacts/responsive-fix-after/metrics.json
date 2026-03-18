@@ -1,0 +1,686 @@
+[
+  {
+    "page": "home",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "url": "/",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": {
+      "width": 358,
+      "height": 2247.9,
+      "left": 16
+    },
+    "heroCols": "358px",
+    "heroCard": {
+      "width": 358,
+      "height": 1505.2,
+      "left": 16
+    },
+    "planGrid": {
+      "width": 358,
+      "height": 2276,
+      "left": 16
+    },
+    "planCols": "358px",
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "home",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "url": "/",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": {
+      "width": 731.2,
+      "height": 1526,
+      "left": 18.4
+    },
+    "heroCols": "731.156px",
+    "heroCard": {
+      "width": 731.2,
+      "height": 1048.2,
+      "left": 18.4
+    },
+    "planGrid": {
+      "width": 731.2,
+      "height": 2071,
+      "left": 18.4
+    },
+    "planCols": "731.156px",
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "home",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "/",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": {
+      "width": 1218.6,
+      "height": 1166,
+      "left": 30.7
+    },
+    "heroCols": "592px 570.562px",
+    "heroCard": {
+      "width": 554.6,
+      "height": 1166,
+      "left": 694.7
+    },
+    "planGrid": {
+      "width": 1218.6,
+      "height": 889,
+      "left": 30.7
+    },
+    "planCols": "390.188px 390.188px 390.188px",
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "home",
+    "viewport": {
+      "width": 1728,
+      "height": 1117
+    },
+    "url": "/",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": {
+      "width": 1504,
+      "height": 785,
+      "left": 112
+    },
+    "heroCols": "592px 856px",
+    "heroCard": {
+      "width": 800,
+      "height": 785,
+      "left": 776
+    },
+    "planGrid": {
+      "width": 1504,
+      "height": 864,
+      "left": 112
+    },
+    "planCols": "485.328px 485.328px 485.344px",
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "home",
+    "viewport": {
+      "width": 2560,
+      "height": 1080
+    },
+    "url": "/",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": {
+      "width": 1504,
+      "height": 785,
+      "left": 528
+    },
+    "heroCols": "592px 856px",
+    "heroCard": {
+      "width": 800,
+      "height": 785,
+      "left": 1192
+    },
+    "planGrid": {
+      "width": 1504,
+      "height": 864,
+      "left": 528
+    },
+    "planCols": "485.328px 485.328px 485.344px",
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "pricing",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "url": "/pricing",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": {
+      "width": 720,
+      "height": 1978,
+      "left": 24
+    },
+    "planCols": "348px 348px",
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "pricing",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "/pricing",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": {
+      "width": 1216,
+      "height": 1004,
+      "left": 32
+    },
+    "planCols": "389.328px 389.328px 389.344px",
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "pricing",
+    "viewport": {
+      "width": 1728,
+      "height": 1117
+    },
+    "url": "/pricing",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": {
+      "width": 1664,
+      "height": 914,
+      "left": 32
+    },
+    "planCols": "538.656px 538.672px 538.672px",
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "pricing",
+    "viewport": {
+      "width": 2560,
+      "height": 1080
+    },
+    "url": "/pricing",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": {
+      "width": 1728,
+      "height": 914,
+      "left": 416
+    },
+    "planCols": "560px 560px 560px",
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "dashboard",
+    "viewport": {
+      "width": 1097,
+      "height": 720
+    },
+    "url": "/dashboard",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "dashboard",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "/dashboard",
+    "overflowX": 0,
+    "dashboardGrid": {
+      "width": 968,
+      "height": 1697.9,
+      "left": 280
+    },
+    "dashboardGridCols": "968px",
+    "dashboardMainWidth": 968,
+    "dashboardRailWidth": 0,
+    "dashboardRailDisplay": "none",
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "dashboard",
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "url": "/dashboard",
+    "overflowX": 0,
+    "dashboardGrid": {
+      "width": 1054,
+      "height": 408,
+      "left": 280
+    },
+    "dashboardGridCols": "742px 288px",
+    "dashboardMainWidth": 742,
+    "dashboardRailWidth": 288,
+    "dashboardRailDisplay": "block",
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "dashboard",
+    "viewport": {
+      "width": 1536,
+      "height": 864
+    },
+    "url": "/dashboard",
+    "overflowX": 0,
+    "dashboardGrid": {
+      "width": 1224,
+      "height": 1449.5,
+      "left": 280
+    },
+    "dashboardGridCols": "908.172px 291.828px",
+    "dashboardMainWidth": 908.2,
+    "dashboardRailWidth": 291.8,
+    "dashboardRailDisplay": "block",
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "dashboard",
+    "viewport": {
+      "width": 1728,
+      "height": 1117
+    },
+    "url": "/dashboard",
+    "overflowX": 0,
+    "dashboardGrid": {
+      "width": 1387.5,
+      "height": 1439.7,
+      "left": 308.5
+    },
+    "dashboardGridCols": "1055.53px 304px",
+    "dashboardMainWidth": 1055.5,
+    "dashboardRailWidth": 304,
+    "dashboardRailDisplay": "block",
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "dashboard",
+    "viewport": {
+      "width": 2560,
+      "height": 1080
+    },
+    "url": "/dashboard",
+    "overflowX": 0,
+    "dashboardGrid": {
+      "width": 1728,
+      "height": 1439.7,
+      "left": 560
+    },
+    "dashboardGridCols": "1396px 304px",
+    "dashboardMainWidth": 1396,
+    "dashboardRailWidth": 304,
+    "dashboardRailDisplay": "block",
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "employees",
+    "viewport": {
+      "width": 1097,
+      "height": 720
+    },
+    "url": "/employees",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "employees",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "/employees",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "employees",
+    "viewport": {
+      "width": 1728,
+      "height": 1117
+    },
+    "url": "/employees",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "documents",
+    "viewport": {
+      "width": 1097,
+      "height": 720
+    },
+    "url": "/documents",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": {
+      "width": 785,
+      "height": 1100.4,
+      "left": 280
+    },
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "documents",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "/documents",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": {
+      "width": 968,
+      "height": 1072.4,
+      "left": 280
+    },
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "documents",
+    "viewport": {
+      "width": 1728,
+      "height": 1117
+    },
+    "url": "/documents",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": {
+      "width": 1387.5,
+      "height": 1072.4,
+      "left": 308.5
+    },
+    "workspaceForm": null,
+    "settingsTabs": null
+  },
+  {
+    "page": "settings",
+    "viewport": {
+      "width": 1097,
+      "height": 720
+    },
+    "url": "/settings",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": {
+      "width": 785,
+      "height": 1540.1,
+      "left": 280
+    },
+    "settingsTabs": {
+      "width": 767,
+      "height": 60,
+      "left": 289
+    }
+  },
+  {
+    "page": "settings",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "/settings",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": {
+      "width": 968,
+      "height": 1540.1,
+      "left": 280
+    },
+    "settingsTabs": {
+      "width": 950,
+      "height": 60,
+      "left": 289
+    }
+  },
+  {
+    "page": "settings",
+    "viewport": {
+      "width": 2560,
+      "height": 1080
+    },
+    "url": "/settings",
+    "overflowX": 0,
+    "dashboardGrid": null,
+    "dashboardGridCols": null,
+    "dashboardMainWidth": null,
+    "dashboardRailWidth": null,
+    "dashboardRailDisplay": null,
+    "heroGrid": null,
+    "heroCols": null,
+    "heroCard": null,
+    "planGrid": null,
+    "planCols": null,
+    "adaptiveGridCols": null,
+    "workspaceWide": null,
+    "workspaceForm": {
+      "width": 1152,
+      "height": 1540.1,
+      "left": 848
+    },
+    "settingsTabs": {
+      "width": 1134,
+      "height": 60,
+      "left": 857
+    }
+  }
+]
