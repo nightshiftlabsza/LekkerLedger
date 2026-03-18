@@ -2,6 +2,7 @@
 
 import { BillingCycle, PlanId } from "../config/plans";
 import { BillingAccountSummary, getFreeEntitlements, VerifiedEntitlements } from "./billing";
+import { PaidActivationState } from "./billing-activation";
 import { createClient } from "./supabase/client";
 
 interface CachedEntitlements {
@@ -134,7 +135,7 @@ export async function createCheckoutSession(
 
 export async function createInlinePurchaseIntent(
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; email: string; referralCode?: string | null },
-): Promise<{ reference: string; accessCode: string; amountCents: number }> {
+): Promise<{ reference: string; accessCode: string; authorizationUrl: string; amountCents: number }> {
     const response = await fetch("/api/billing/purchase/intent", {
         method: "POST",
         headers: {
@@ -144,13 +145,14 @@ export async function createInlinePurchaseIntent(
     });
 
     if (!response.ok) {
-        throw await buildErrorMessage(response, "The payment popup could not be opened.");
+        throw await buildErrorMessage(response, "Hosted checkout could not be started.");
     }
 
     const data = await response.json();
     return {
         reference: data.reference as string,
         accessCode: data.accessCode as string,
+        authorizationUrl: data.authorizationUrl as string,
         amountCents: data.amountCents as number,
     };
 }
@@ -257,4 +259,41 @@ export async function confirmGuestBillingTransaction(reference: string): Promise
     }
 
     return await response.json();
+}
+
+export async function resolvePaidActivation(reference: string): Promise<PaidActivationState> {
+    const response = await fetch("/api/billing/activation/resolve", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reference }),
+        cache: "no-store",
+    });
+
+    if (!response.ok) {
+        throw await buildErrorMessage(response, "Paid activation could not be resolved.");
+    }
+
+    return await response.json() as PaidActivationState;
+}
+
+export async function createPaidActivationAccount(input: {
+    reference: string;
+    password: string;
+}): Promise<PaidActivationState> {
+    const response = await fetch("/api/billing/activation/create-account", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(input),
+        cache: "no-store",
+    });
+
+    if (!response.ok) {
+        throw await buildErrorMessage(response, "Paid account creation could not be completed.");
+    }
+
+    return await response.json() as PaidActivationState;
 }

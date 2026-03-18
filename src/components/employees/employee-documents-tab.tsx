@@ -26,7 +26,7 @@ function downloadBlob(blob: Blob, fileName: string) {
     anchor.download = fileName;
     globalThis.document.body.appendChild(anchor);
     anchor.click();
-    globalThis.document.body.removeChild(anchor);
+    anchor.remove();
     globalThis.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
@@ -91,6 +91,46 @@ const EMPLOYEE_DOCUMENT_TABS: ReadonlyArray<DocumentTabStripItem<Tab>> = [
     { id: "Legal", label: "Legal" },
     { id: "Other", label: "Other" },
 ];
+
+function filterBySearch<T>(items: T[], search: string, getValue: (item: T) => string) {
+    const query = search.trim().toLowerCase();
+    if (!query) {
+        return items;
+    }
+
+    return items.filter((item) => getValue(item).toLowerCase().includes(query));
+}
+
+function openDocumentUrl(url: string, mimeType: string, setPreviewUrl: (url: string) => void) {
+    if (mimeType.startsWith("application/pdf")) {
+        if (typeof globalThis.window !== "undefined") {
+            globalThis.window.open(url, "_blank", "noopener,noreferrer");
+        }
+        return;
+    }
+
+    setPreviewUrl(url);
+}
+
+function getUploadValidationError(file: File, targetContract: Contract | null) {
+    if (targetContract && file.type !== "application/pdf") {
+        return "Signed contracts must be uploaded as PDF files.";
+    }
+
+    if (!targetContract && !matchesAllowedUpload(file)) {
+        return "Upload a PDF, JPG, PNG, or DOCX file.";
+    }
+
+    if (file.size > VAULT_MAX_FILE_BYTES) {
+        return "Files must be 10 MB or smaller.";
+    }
+
+    return null;
+}
+
+function getVaultCategoryFromUploadContext(uploadContext: "contracts" | "legal" | "other" | null): VaultCategory {
+    return uploadContext === "legal" ? "compliance" : "employee-docs";
+}
 
 export function EmployeeDocumentsTab({
     employee,
@@ -157,35 +197,19 @@ export function EmployeeDocumentsTab({
     );
 
     const filteredContracts = React.useMemo(() => {
-        const query = search.trim().toLowerCase();
-        if (!query) return contracts;
-        return contracts.filter((contract) =>
-            contract.jobTitle.toLowerCase().includes(query),
-        );
+        return filterBySearch(contracts, search, (contract) => contract.jobTitle);
     }, [contracts, search]);
 
     const filteredPayslipDocuments = React.useMemo(() => {
-        const query = search.trim().toLowerCase();
-        if (!query) return employeePayslipDocuments;
-        return employeePayslipDocuments.filter((doc) =>
-            doc.fileName.toLowerCase().includes(query),
-        );
+        return filterBySearch(employeePayslipDocuments, search, (doc) => doc.fileName);
     }, [employeePayslipDocuments, search]);
 
     const filteredLegalDocuments = React.useMemo(() => {
-        const query = search.trim().toLowerCase();
-        if (!query) return legalDocuments;
-        return legalDocuments.filter((doc) =>
-            doc.fileName.toLowerCase().includes(query),
-        );
+        return filterBySearch(legalDocuments, search, (doc) => doc.fileName);
     }, [legalDocuments, search]);
 
     const filteredOtherDocuments = React.useMemo(() => {
-        const query = search.trim().toLowerCase();
-        if (!query) return otherDocuments;
-        return otherDocuments.filter((doc) =>
-            doc.fileName.toLowerCase().includes(query),
-        );
+        return filterBySearch(otherDocuments, search, (doc) => doc.fileName);
     }, [otherDocuments, search]);
 
     const handlePreview = async (doc: DocumentMeta) => {
@@ -194,15 +218,7 @@ export function EmployeeDocumentsTab({
 
         if (pdfCache.current[doc.id]) {
             const cachedUrl = pdfCache.current[doc.id];
-
-            if ((doc.mimeType || "").startsWith("application/pdf")) {
-                if (typeof globalThis.window !== "undefined") {
-                    globalThis.window.open(cachedUrl, "_blank", "noopener,noreferrer");
-                }
-                return;
-            }
-
-            setPreviewUrl(cachedUrl);
+            openDocumentUrl(cachedUrl, doc.mimeType || "application/octet-stream", setPreviewUrl);
             return;
         }
 
@@ -216,19 +232,10 @@ export function EmployeeDocumentsTab({
 
             const mimeType = blob.type || doc.mimeType || "application/octet-stream";
 
-            if (mimeType === "application/pdf") {
-                const url = URL.createObjectURL(blob);
-                pdfCache.current[doc.id] = url;
-                if (typeof globalThis.window !== "undefined") {
-                    globalThis.window.open(url, "_blank", "noopener,noreferrer");
-                }
-                return;
-            }
-
             if (isPreviewableMimeType(mimeType)) {
                 const url = URL.createObjectURL(blob);
                 pdfCache.current[doc.id] = url;
-                setPreviewUrl(url);
+                openDocumentUrl(url, mimeType, setPreviewUrl);
                 return;
             }
 
@@ -325,16 +332,9 @@ export function EmployeeDocumentsTab({
 
         if (!file) return;
 
-        if (targetContract && file.type !== "application/pdf") {
-            toast("Signed contracts must be uploaded as PDF files.", "error");
-            return;
-        } else if (!targetContract && !matchesAllowedUpload(file)) {
-            toast("Upload a PDF, JPG, PNG, or DOCX file.", "error");
-            return;
-        }
-
-        if (file.size > VAULT_MAX_FILE_BYTES) {
-            toast("Files must be 10 MB or smaller.", "error");
+        const validationError = getUploadValidationError(file, targetContract);
+        if (validationError) {
+            toast(validationError, "error");
             return;
         }
 
@@ -366,8 +366,7 @@ export function EmployeeDocumentsTab({
                 return;
             }
 
-            const vaultCategory: VaultCategory =
-                uploadContext === "legal" ? "compliance" : "employee-docs";
+            const vaultCategory = getVaultCategoryFromUploadContext(uploadContext);
 
             const nextDocument = buildUploadedDocumentMeta({
                 id,
@@ -413,6 +412,278 @@ export function EmployeeDocumentsTab({
             setDeletingDocumentId(null);
         }
     };
+
+    const contractCta = (
+        <Link href={`/contracts/new?employeeId=${employee.id}`}>
+            <Button className="gap-2 bg-[var(--primary)] font-bold text-white hover:bg-[var(--primary-hover)]">
+                <ScrollText className="h-4 w-4" /> New Contract
+            </Button>
+        </Link>
+    );
+
+    const contractsTabContent = filteredContracts.length > 0
+        ? (
+            <div className="space-y-6">
+                <div className="flex items-center justify-end">
+                    {contractCta}
+                </div>
+
+                <div className="space-y-4">
+                    {filteredContracts.map((contract) => (
+                        <ContractRow
+                            key={contract.id}
+                            contract={contract}
+                            employee={employee}
+                            onViewPreview={() => openContractPreview(contract)}
+                            onDownloadPdf={() => downloadContract(contract)}
+                            onUploadSigned={() => handleContractUploadClick(contract)}
+                            onViewSigned={() => {
+                                if (contract.signedDocumentId) {
+                                    const doc = documents.find((d) => d.id === contract.signedDocumentId);
+                                    if (doc) handlePreview(doc);
+                                    else toast("Signed document could not be found.", "error");
+                                }
+                            }}
+                            onMarkFinal={() => handleMarkFinal(contract)}
+                            onDelete={() => handleDeleteContract(contract)}
+                        />
+                    ))}
+                </div>
+            </div>
+        )
+        : (
+            <>
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+                    {contractCta}
+                </div>
+                <EmptyState
+                    title="No contracts yet"
+                    description={`Create an employment contract for ${employee.name}.`}
+                    icon={ScrollText}
+                    actionLabel="Create contract"
+                    actionHref={`/contracts/new?employeeId=${employee.id}`}
+                />
+            </>
+        );
+
+    const legalEmptyState = vaultUploadsAllowed
+        ? (
+            <div className="rounded-[22px] border border-dashed border-[var(--border)] bg-[var(--surface-1)] p-10 text-center shadow-sm">
+                <FolderOpen className="mx-auto mb-3 h-10 w-10 text-[var(--text-muted)]" strokeWidth={1.5} />
+                <p className="text-sm font-bold text-[var(--text)]">No legal files for {employee.name}</p>
+                <p className="mt-1 text-sm text-[var(--text-muted)]">Upload legal and compliance paperwork you want to keep with this record.</p>
+                <Button className="mt-4 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={handleLegalUploadClick}>
+                    Upload document
+                </Button>
+            </div>
+        )
+        : (
+            <FeatureGateCard
+                title="Store legal & supporting documents"
+                description="Legal uploads are available on Pro."
+                ctaLabel="Upgrade to Pro"
+                href={vaultUpgradeHref}
+                eyebrow="Pro"
+                benefits={[
+                    "Private document storage",
+                    "Keep legal paperwork attached to each employee",
+                    "Upload compliance/supporting records",
+                ]}
+            />
+        );
+
+    const legalTabContent = legalDocuments.length === 0
+        ? legalEmptyState
+        : (
+            <div className="space-y-4">
+                {vaultUploadsAllowed && (
+                    <div className="mb-2 flex justify-end">
+                        <Button className="gap-2 bg-[var(--primary)] font-bold text-white hover:bg-[var(--primary-hover)]" onClick={handleLegalUploadClick}>
+                            <Upload className="h-4 w-4" /> Upload Document
+                        </Button>
+                    </div>
+                )}
+                <DataTable<DocumentMeta>
+                    data={filteredLegalDocuments}
+                    keyField={(doc) => doc.id}
+                    emptyMessage="No legal files match your filters."
+                    columns={[
+                        {
+                            key: "fileName",
+                            label: "File",
+                            render: (doc) => (
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                        <FileText className="h-4 w-4 text-[var(--primary)]" />
+                                    </div>
+                                    <div>
+                                        <p className="type-body-bold text-[var(--text)]">{doc.fileName}</p>
+                                        <p className="text-xs text-[var(--text-muted)]">
+                                            {VAULT_CATEGORIES.find((category) => category.value === doc.vaultCategory)?.label ?? "Legal"}
+                                        </p>
+                                    </div>
+                                </div>
+                            ),
+                        },
+                        {
+                            key: "storage",
+                            label: "Storage",
+                            render: (_doc) => (
+                                <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
+                                    <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
+                                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
+                                </div>
+                            ),
+                        },
+                        {
+                            key: "date",
+                            label: "Added",
+                            render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
+                        },
+                        {
+                            key: "actions",
+                            label: "",
+                            align: "right",
+                            render: (doc) => (
+                                <div className="flex items-center justify-end gap-1">
+                                    <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={async () => { await handlePreview(doc); }}>
+                                        <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                    </Button>
+                                    {vaultUploadsAllowed ? (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-9 w-9 p-0"
+                                            disabled={deletingDocumentId === doc.id}
+                                            onClick={async () => { await handleDeleteVaultDocument(doc); }}
+                                        >
+                                            <Trash2 className="h-4 w-4 text-[var(--text-muted)]" />
+                                        </Button>
+                                    ) : null}
+                                </div>
+                            ),
+                        },
+                    ]}
+                />
+            </div>
+        );
+
+    const otherEmptyState = vaultUploadsAllowed
+        ? (
+            <div className="rounded-[22px] border border-dashed border-[var(--border)] bg-[var(--surface-1)] p-10 text-center shadow-sm">
+                <FolderOpen className="mx-auto mb-3 h-10 w-10 text-[var(--text-muted)]" strokeWidth={1.5} />
+                <p className="text-sm font-bold text-[var(--text)]">No other files for {employee.name}</p>
+                <p className="mt-1 text-sm text-[var(--text-muted)]">Upload ID copies, bank letters, or other supporting documents.</p>
+                <Button className="mt-4 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={handleOtherUploadClick}>
+                    Upload document
+                </Button>
+            </div>
+        )
+        : (
+            <FeatureGateCard
+                title="Store ID copies & supporting documents"
+                description="Vault uploads are available on Pro."
+                ctaLabel="Upgrade to Pro"
+                href={vaultUpgradeHref}
+                eyebrow="Pro"
+                benefits={[
+                    "Private document storage",
+                    "All uploaded files stay organised by employee",
+                    "Upload supporting records",
+                ]}
+            />
+        );
+
+    const otherTabContent = otherDocuments.length === 0
+        ? otherEmptyState
+        : (
+            <div className="space-y-4">
+                {vaultUploadsAllowed && (
+                    <div className="mb-2 flex justify-end">
+                        <Button className="gap-2 bg-[var(--primary)] font-bold text-white hover:bg-[var(--primary-hover)]" onClick={handleOtherUploadClick}>
+                            <Upload className="h-4 w-4" /> Upload Document
+                        </Button>
+                    </div>
+                )}
+                <DataTable<DocumentMeta>
+                    data={filteredOtherDocuments}
+                    keyField={(doc) => doc.id}
+                    emptyMessage="No other files match your filters."
+                    columns={[
+                        {
+                            key: "fileName",
+                            label: "File",
+                            render: (doc) => (
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                                        <FileText className="h-4 w-4 text-[var(--primary)]" />
+                                    </div>
+                                    <div>
+                                        <p className="type-body-bold text-[var(--text)]">{doc.fileName}</p>
+                                        <p className="text-xs text-[var(--text-muted)]">{VAULT_CATEGORIES.find((category) => category.value === doc.vaultCategory)?.label ?? "Other"}</p>
+                                    </div>
+                                </div>
+                            ),
+                        },
+                        {
+                            key: "storage",
+                            label: "Storage",
+                            render: (_doc) => (
+                                <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
+                                    <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
+                                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
+                                </div>
+                            ),
+                        },
+                        {
+                            key: "date",
+                            label: "Added",
+                            render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
+                        },
+                        {
+                            key: "actions",
+                            label: "",
+                            align: "right",
+                            render: (doc) => (
+                                <div className="flex items-center justify-end gap-2">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-9 gap-2 rounded-full border border-[var(--border)] px-3 hover:bg-[var(--surface-2)]"
+                                        onClick={async () => { await handlePreview(doc); }}
+                                    >
+                                        <Eye className="h-4 w-4 text-[var(--primary)]" />
+                                        <span className="text-xs font-bold">Preview</span>
+                                    </Button>
+                                    {vaultUploadsAllowed ? (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-9 gap-2 rounded-full border px-3 text-[var(--danger)] hover:bg-[var(--danger-soft)]"
+                                            style={{ borderColor: "var(--danger-border)" }}
+                                            disabled={deletingDocumentId === doc.id}
+                                            onClick={async () => { await handleDeleteVaultDocument(doc); }}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                            <span className="text-xs font-bold">Delete</span>
+                                        </Button>
+                                    ) : null}
+                                </div>
+                            ),
+                        },
+                    ]}
+                />
+            </div>
+        );
+
+    let supplementalTabContent: React.ReactNode = null;
+    if (activeTab === "Contracts") {
+        supplementalTabContent = contractsTabContent;
+    } else if (activeTab === "Legal") {
+        supplementalTabContent = legalTabContent;
+    } else if (activeTab === "Other") {
+        supplementalTabContent = otherTabContent;
+    }
 
     return (
         <div className="space-y-6">
@@ -520,258 +791,7 @@ export function EmployeeDocumentsTab({
                 )
             )}
 
-            {activeTab === "Contracts" ? (
-                contracts.length > 0 ? (
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-end">
-                            <Link href={`/contracts/new?employeeId=${employee.id}`}>
-                                <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
-                                    <ScrollText className="h-4 w-4" /> New Contract
-                                </Button>
-                            </Link>
-                        </div>
-
-                        <div className="space-y-4">
-                            {filteredContracts.map((contract) => (
-                                <ContractRow
-                                    key={contract.id}
-                                    contract={contract}
-                                    employee={employee}
-                                    onViewPreview={() => openContractPreview(contract)}
-                                    onDownloadPdf={() => downloadContract(contract)}
-                                    onUploadSigned={() => handleContractUploadClick(contract)}
-                                    onViewSigned={() => {
-                                        if (contract.signedDocumentId) {
-                                            const doc = documents.find((d) => d.id === contract.signedDocumentId);
-                                            if (doc) handlePreview(doc);
-                                            else toast("Signed document could not be found.", "error");
-                                        }
-                                    }}
-                                    onMarkFinal={() => handleMarkFinal(contract)}
-                                    onDelete={() => handleDeleteContract(contract)}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end mb-6">
-                            <Link href={`/contracts/new?employeeId=${employee.id}`}>
-                                <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold">
-                                    <ScrollText className="h-4 w-4" /> New Contract
-                                </Button>
-                            </Link>
-                        </div>
-                        <EmptyState
-                            title="No contracts yet"
-                            description={`Create an employment contract for ${employee.name}.`}
-                            icon={ScrollText}
-                            actionLabel="Create contract"
-                            actionHref={`/contracts/new?employeeId=${employee.id}`}
-                        />
-                    </>
-                )
-            ) : activeTab === "Legal" ? (
-                legalDocuments.length === 0 ? (
-                    vaultUploadsAllowed ? (
-                        <div className="rounded-[22px] border border-dashed border-[var(--border)] bg-[var(--surface-1)] p-10 text-center shadow-sm">
-                            <FolderOpen className="mx-auto mb-3 h-10 w-10 text-[var(--text-muted)]" strokeWidth={1.5} />
-                            <p className="text-sm font-bold text-[var(--text)]">No legal files for {employee.name}</p>
-                            <p className="mt-1 text-sm text-[var(--text-muted)]">Upload legal and compliance paperwork you want to keep with this record.</p>
-                            <Button className="mt-4 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={handleLegalUploadClick}>
-                                Upload document
-                            </Button>
-                        </div>
-                    ) : (
-                        <FeatureGateCard
-                            title="Store legal & supporting documents"
-                            description="Legal uploads are available on Pro."
-                            ctaLabel="Upgrade to Pro"
-                            href={vaultUpgradeHref}
-                            eyebrow="Pro"
-                            benefits={[
-                                "Private document storage",
-                                "Keep legal paperwork attached to each employee",
-                                "Upload compliance/supporting records",
-                            ]}
-                        />
-                    )
-                ) : (
-                    <div className="space-y-4">
-                        {vaultUploadsAllowed && (
-                            <div className="flex justify-end mb-2">
-                                <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold" onClick={handleLegalUploadClick}>
-                                    <Upload className="h-4 w-4" /> Upload Document
-                                </Button>
-                            </div>
-                        )}
-                        <DataTable<DocumentMeta>
-                            data={filteredLegalDocuments}
-                            keyField={(doc) => doc.id}
-                            emptyMessage="No legal files match your filters."
-                            columns={[
-                                {
-                                    key: "fileName",
-                                    label: "File",
-                                    render: (doc) => (
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
-                                                <FileText className="h-4 w-4 text-[var(--primary)]" />
-                                            </div>
-                                            <div>
-                                                <p className="type-body-bold text-[var(--text)]">{doc.fileName}</p>
-                                                <p className="text-xs text-[var(--text-muted)]">
-                                                    {VAULT_CATEGORIES.find((category) => category.value === doc.vaultCategory)?.label ?? "Legal"}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ),
-                                },
-                                {
-                                    key: "storage",
-                                    label: "Storage",
-                                    render: (_doc) => (
-                                        <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
-                                            <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
-                                            <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
-                                        </div>
-                                    ),
-                                },
-                                {
-                                    key: "date",
-                                    label: "Added",
-                                    render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
-                                },
-                                {
-                                    key: "actions",
-                                    label: "",
-                                    align: "right",
-                                    render: (doc) => (
-                                        <div className="flex items-center justify-end gap-1">
-                                            <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={async () => { await handlePreview(doc); }}>
-                                                <Eye className="h-4 w-4 text-[var(--primary)]" />
-                                            </Button>
-                                            {vaultUploadsAllowed ? (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-9 w-9 p-0"
-                                                    disabled={deletingDocumentId === doc.id}
-                                                    onClick={async () => { await handleDeleteVaultDocument(doc); }}
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-[var(--text-muted)]" />
-                                                </Button>
-                                            ) : null}
-                                        </div>
-                                    ),
-                                },
-                            ]}
-                        />
-                    </div>
-                )
-            ) : otherDocuments.length === 0 ? (
-                vaultUploadsAllowed ? (
-                    <div className="rounded-[22px] border border-dashed border-[var(--border)] bg-[var(--surface-1)] p-10 text-center shadow-sm">
-                        <FolderOpen className="mx-auto mb-3 h-10 w-10 text-[var(--text-muted)]" strokeWidth={1.5} />
-                        <p className="text-sm font-bold text-[var(--text)]">No other files for {employee.name}</p>
-                        <p className="mt-1 text-sm text-[var(--text-muted)]">Upload ID copies, bank letters, or other supporting documents.</p>
-                        <Button className="mt-4 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]" onClick={handleOtherUploadClick}>
-                            Upload document
-                        </Button>
-                    </div>
-                ) : (
-                    <FeatureGateCard
-                        title="Store ID copies & supporting documents"
-                        description="Vault uploads are available on Pro."
-                        ctaLabel="Upgrade to Pro"
-                        href={vaultUpgradeHref}
-                        eyebrow="Pro"
-                        benefits={[
-                            "Private document storage",
-                            "All uploaded files stay organised by employee",
-                            "Upload supporting records",
-                        ]}
-                    />
-                )
-            ) : (
-                <div className="space-y-4">
-                    {vaultUploadsAllowed && (
-                        <div className="flex justify-end mb-2">
-                            <Button className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] font-bold" onClick={handleOtherUploadClick}>
-                                <Upload className="h-4 w-4" /> Upload Document
-                            </Button>
-                        </div>
-                    )}
-                    <DataTable<DocumentMeta>
-                        data={filteredOtherDocuments}
-                        keyField={(doc) => doc.id}
-                        emptyMessage="No other files match your filters."
-                        columns={[
-                            {
-                                key: "fileName",
-                                label: "File",
-                                render: (doc) => (
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-2)]">
-                                            <FileText className="h-4 w-4 text-[var(--primary)]" />
-                                        </div>
-                                        <div>
-                                            <p className="type-body-bold text-[var(--text)]">{doc.fileName}</p>
-                                            <p className="text-xs text-[var(--text-muted)]">{VAULT_CATEGORIES.find((category) => category.value === doc.vaultCategory)?.label ?? "Other"}</p>
-                                        </div>
-                                    </div>
-                                ),
-                            },
-                            {
-                                key: "storage",
-                                label: "Storage",
-                                render: (_doc) => (
-                                    <div className="flex w-fit items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
-                                        <HardDrive className="h-3 w-3 text-[var(--text-muted)]" />
-                                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)]">This device</span>
-                                    </div>
-                                ),
-                            },
-                            {
-                                key: "date",
-                                label: "Added",
-                                render: (doc) => <span className="type-body text-[var(--text-muted)]">{format(new Date(doc.createdAt), "d MMM yyyy")}</span>,
-                            },
-                            {
-                                key: "actions",
-                                label: "",
-                                align: "right",
-                                render: (doc) => (
-                                    <div className="flex items-center justify-end gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-9 px-3 gap-2 rounded-full border border-[var(--border)] hover:bg-[var(--surface-2)]"
-                                            onClick={async () => { await handlePreview(doc); }}
-                                        >
-                                            <Eye className="h-4 w-4 text-[var(--primary)]" />
-                                            <span className="text-xs font-bold">Preview</span>
-                                        </Button>
-                                        {vaultUploadsAllowed ? (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-9 gap-2 rounded-full border px-3 text-[var(--danger)] hover:bg-[var(--danger-soft)]"
-                                                style={{ borderColor: "var(--danger-border)" }}
-                                                disabled={deletingDocumentId === doc.id}
-                                                onClick={async () => { await handleDeleteVaultDocument(doc); }}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                                <span className="text-xs font-bold">Delete</span>
-                                            </Button>
-                                        ) : null}
-                                    </div>
-                                ),
-                            },
-                        ]}
-                    />
-                </div>
-            )}
+            {supplementalTabContent}
 
             {isGeneratingPreview && (
                 <div className="fixed bottom-6 right-6 z-[60] flex items-center justify-center rounded-full bg-[var(--primary)] px-5 py-3 text-sm font-bold text-white shadow-2xl animate-pulse">

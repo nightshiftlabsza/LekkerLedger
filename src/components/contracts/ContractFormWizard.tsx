@@ -146,65 +146,58 @@ function getContractStepErrors({
     dutiesInput: string;
     selectedEmployeeAddress?: string;
 }): StepErrorMap {
-    const nextErrors: StepErrorMap = {};
-
-    if (currentStep === 0 && !skipEmployeeStep && !formData.employeeId) {
-        nextErrors.employeeId = "Choose the worker before you continue.";
+    switch (currentStep) {
+        case 0:
+            return !skipEmployeeStep && !formData.employeeId
+                ? { employeeId: "Choose the worker before you continue." }
+                : {};
+        case 1: {
+            const nextErrors: StepErrorMap = {};
+            const resolvedEmployeeAddress = (formData.employeeAddress || selectedEmployeeAddress || "").trim();
+            if (!formData.jobTitle?.trim()) nextErrors.jobTitle = "Required.";
+            if (!formData.effectiveDate?.trim()) nextErrors.effectiveDate = "Required.";
+            if (!formData.placeOfWork?.trim()) nextErrors.placeOfWork = "Required.";
+            if (textList(dutiesInput).length === 0) nextErrors.duties = "Add at least one duty for the employee.";
+            if (!resolvedEmployeeAddress) nextErrors.employeeAddress = "Required.";
+            return nextErrors;
+        }
+        case 2: {
+            const nextErrors: StepErrorMap = {};
+            const daysPerWeek = Number(formData.workingHours?.daysPerWeek ?? 0);
+            if (!Number.isFinite(daysPerWeek) || daysPerWeek < 1 || daysPerWeek > 7) {
+                nextErrors.daysPerWeek = "Enter how many days per week they normally work.";
+            }
+            if (!formData.workingHours?.startAt) nextErrors.startAt = "Add the normal start time.";
+            if (!formData.workingHours?.endAt) nextErrors.endAt = "Add the normal end time.";
+            if (formData.workingHours?.startAt && formData.workingHours?.endAt && formData.workingHours.endAt <= formData.workingHours.startAt) {
+                nextErrors.workdayRange = "End time must be later than start time.";
+            }
+            return nextErrors;
+        }
+        case 3: {
+            const nextErrors: StepErrorMap = {};
+            const amount = Number(formData.salary?.amount ?? 0);
+            const annualDays = Number(formData.leave?.annualDays ?? 0);
+            const sickDays = Number(formData.leave?.sickDays ?? 0);
+            if (!Number.isFinite(amount) || amount <= 0) nextErrors.salaryAmount = "Enter the agreed pay amount before you continue.";
+            if (!formData.salary?.frequency) nextErrors.salaryFrequency = "Choose how often this pay amount applies.";
+            if (!Number.isFinite(annualDays) || annualDays <= 0) nextErrors.annualDays = "Add the agreed annual leave days (at least the BCEA minimum).";
+            if (!Number.isFinite(sickDays) || sickDays <= 0) nextErrors.sickDays = "Add the sick leave days for the 36-month cycle.";
+            return nextErrors;
+        }
+        case 4: {
+            const nextErrors: StepErrorMap = {};
+            if (formData.terms?.accommodationProvided && !formData.terms.accommodationDetails?.trim()) {
+                nextErrors.accommodationDetails = "Add the accommodation details or switch this off.";
+            }
+            if (!formData.terms?.overtimeAgreement?.trim()) nextErrors.overtimeAgreement = "Keep a short note here about how overtime will be handled.";
+            if (!formData.terms?.sundayHolidayAgreement?.trim()) nextErrors.sundayHolidayAgreement = "Add a line about how Sunday and public-holiday work will be paid.";
+            if (!formData.terms?.noticeClause?.trim()) nextErrors.noticeClause = "Add a short notice and termination clause so expectations are clear.";
+            return nextErrors;
+        }
+        default:
+            return {};
     }
-
-    if (currentStep === 1) {
-        if (!formData.jobTitle?.trim()) nextErrors.jobTitle = "Required.";
-        if (!formData.effectiveDate?.trim()) nextErrors.effectiveDate = "Required.";
-        if (!formData.placeOfWork?.trim()) nextErrors.placeOfWork = "Required.";
-        if (textList(dutiesInput).length === 0) nextErrors.duties = "Add at least one duty for the employee.";
-        const resolvedEmployeeAddress = (formData.employeeAddress || selectedEmployeeAddress || "").trim();
-        if (!resolvedEmployeeAddress) {
-            nextErrors.employeeAddress = "Required.";
-        }
-    }
-
-    if (currentStep === 2) {
-        const daysPerWeek = Number(formData.workingHours?.daysPerWeek ?? 0);
-        if (!Number.isFinite(daysPerWeek) || daysPerWeek < 1 || daysPerWeek > 7) {
-            nextErrors.daysPerWeek = "Enter how many days per week they normally work.";
-        }
-        if (!formData.workingHours?.startAt) nextErrors.startAt = "Add the normal start time.";
-        if (!formData.workingHours?.endAt) nextErrors.endAt = "Add the normal end time.";
-        if (formData.workingHours?.startAt && formData.workingHours?.endAt && formData.workingHours.endAt <= formData.workingHours.startAt) {
-            nextErrors.workdayRange = "End time must be later than start time.";
-        }
-    }
-
-    if (currentStep === 3) {
-        const amount = Number(formData.salary?.amount ?? 0);
-        if (!Number.isFinite(amount) || amount <= 0) nextErrors.salaryAmount = "Enter the agreed pay amount before you continue.";
-        if (!formData.salary?.frequency) nextErrors.salaryFrequency = "Choose how often this pay amount applies.";
-        const annualDays = Number(formData.leave?.annualDays ?? 0);
-        if (!Number.isFinite(annualDays) || annualDays <= 0) {
-            nextErrors.annualDays = "Add the agreed annual leave days (at least the BCEA minimum).";
-        }
-        const sickDays = Number(formData.leave?.sickDays ?? 0);
-        if (!Number.isFinite(sickDays) || sickDays <= 0) {
-            nextErrors.sickDays = "Add the sick leave days for the 36-month cycle.";
-        }
-    }
-
-    if (currentStep === 4) {
-        if (formData.terms?.accommodationProvided && !formData.terms.accommodationDetails?.trim()) {
-            nextErrors.accommodationDetails = "Add the accommodation details or switch this off.";
-        }
-        if (!formData.terms?.overtimeAgreement?.trim()) {
-            nextErrors.overtimeAgreement = "Keep a short note here about how overtime will be handled.";
-        }
-        if (!formData.terms?.sundayHolidayAgreement?.trim()) {
-            nextErrors.sundayHolidayAgreement = "Add a line about how Sunday and public-holiday work will be paid.";
-        }
-        if (!formData.terms?.noticeClause?.trim()) {
-            nextErrors.noticeClause = "Add a short notice and termination clause so expectations are clear.";
-        }
-    }
-
-    return nextErrors;
 }
 
 // Styled date input — use native picker only (single calendar icon from browser)

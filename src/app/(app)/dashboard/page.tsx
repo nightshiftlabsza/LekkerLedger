@@ -436,9 +436,9 @@ function PaidFeedbackNoticeCard({
                             </Button>
                         </div>
                         {dismissError ? (
-                            <p className="text-sm leading-6 text-[var(--danger)] sm:max-w-[18rem]" role="status">
+                            <output className="text-sm leading-6 text-[var(--danger)] sm:max-w-[18rem]" aria-live="polite">
                                 {dismissError}
-                            </p>
+                            </output>
                         ) : null}
                     </div>
                 </div>

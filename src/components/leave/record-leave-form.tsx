@@ -41,6 +41,55 @@ type RecordLeaveFormProps = {
     subtitle?: string;
 };
 
+async function loadRecordLeaveFormData(initialEmployeeId: string) {
+    const [employeeRows, settings] = await Promise.all([getEmployees(), getSettings()]);
+    const selectedEmployeeId = initialEmployeeId || employeeRows[0]?.id || "";
+    const leavePairs = await Promise.all(
+        employeeRows.map(async (employee) => [employee.id, await getLeaveForEmployee(employee.id)] as const),
+    );
+    const contractPairs = await Promise.all(
+        employeeRows.map(async (employee) => [employee.id, await getContractsForEmployee(employee.id)] as const),
+    );
+
+    return {
+        employeeRows,
+        settings,
+        selectedEmployeeId,
+        leaveRecords: Object.fromEntries(leavePairs),
+        contractsByEmployee: Object.fromEntries(contractPairs),
+    };
+}
+
+function buildLeaveRecord({
+    selectedEmployee,
+    formData,
+    exceedsAllowance,
+    customLeaveTypes,
+    customType,
+}: {
+    selectedEmployee: Employee;
+    formData: LeaveFormData;
+    exceedsAllowance: boolean;
+    customLeaveTypes: CustomLeaveType[];
+    customType?: CustomLeaveType;
+}): LeaveRecord {
+    return {
+        id: crypto.randomUUID(),
+        householdId: selectedEmployee.householdId ?? "default",
+        employeeId: formData.employeeId,
+        type: formData.type,
+        days: formData.days,
+        date: formData.startDate,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        exceedsAllowance,
+        typeLabel: getLeaveTypeLabel(formData.type, customLeaveTypes),
+        isCustomType: Boolean(customType),
+        paid: customType?.isPaid,
+        note: formData.note,
+    };
+}
+
 const LEAVE_TYPE_LABELS = {
     annual: "Annual leave",
     sick: "Sick leave",
@@ -174,31 +223,43 @@ export function RecordLeaveForm({
         setIsDirty(true);
     };
 
+    const getAvailableLeaveTypes = React.useCallback(() => {
+        const baseTypes = [
+            { id: "annual", label: LEAVE_TYPE_LABELS.annual },
+            { id: "sick", label: LEAVE_TYPE_LABELS.sick },
+            { id: "family", label: LEAVE_TYPE_LABELS.family },
+        ];
+
+        if (!advancedLeaveEnabled) {
+            return baseTypes;
+        }
+
+        return [
+            ...baseTypes,
+            ...customLeaveTypes.map((type) => ({
+                id: type.id,
+                label: type.name,
+            })),
+        ];
+    }, [advancedLeaveEnabled, customLeaveTypes]);
+
     React.useEffect(() => {
         let active = true;
         async function load() {
             setLoading(true);
             setLoadError(null);
             try {
-                const [employeeRows, settings] = await Promise.all([getEmployees(), getSettings()]);
-                const selectedEmployeeId = initialEmployeeId || employeeRows[0]?.id || "";
-                const leavePairs = await Promise.all(
-                    employeeRows.map(async (employee) => [employee.id, await getLeaveForEmployee(employee.id)] as const),
-                );
-                const contractPairs = await Promise.all(
-                    employeeRows.map(async (employee) => [employee.id, await getContractsForEmployee(employee.id)] as const),
-                );
-
+                const nextData = await loadRecordLeaveFormData(initialEmployeeId);
                 if (!active) return;
-                const plan = getUserPlan(settings);
-                setEmployees(employeeRows);
-                setLeaveRecords(Object.fromEntries(leavePairs));
-                setContractsByEmployee(Object.fromEntries(contractPairs));
-                setCustomLeaveTypes(settings.customLeaveTypes ?? []);
+                const plan = getUserPlan(nextData.settings);
+                setEmployees(nextData.employeeRows);
+                setLeaveRecords(nextData.leaveRecords);
+                setContractsByEmployee(nextData.contractsByEmployee);
+                setCustomLeaveTypes(nextData.settings.customLeaveTypes ?? []);
                 setAdvancedLeaveEnabled(canUseAdvancedLeaveFeatures(plan));
                 setFormData((current) => ({
                     ...current,
-                    employeeId: current.employeeId || selectedEmployeeId,
+                    employeeId: current.employeeId || nextData.selectedEmployeeId,
                 }));
             } catch (error) {
                 console.error("Failed to load leave form data", error);
@@ -230,32 +291,15 @@ export function RecordLeaveForm({
     const selectedEmployee = employees.find((employee) => employee.id === formData.employeeId);
     const selectedRecords = leaveRecords[formData.employeeId] || [];
     const selectedContracts = contractsByEmployee[formData.employeeId] || [];
-    const availableLeaveTypes = React.useMemo(() => {
-        const baseTypes = [
-            { id: "annual", label: LEAVE_TYPE_LABELS.annual },
-            { id: "sick", label: LEAVE_TYPE_LABELS.sick },
-            { id: "family", label: LEAVE_TYPE_LABELS.family },
-        ];
+    const availableLeaveTypes = React.useMemo(() => getAvailableLeaveTypes(), [getAvailableLeaveTypes]);
 
-        if (!advancedLeaveEnabled) {
-            return baseTypes;
-        }
-
-        return [
-            ...baseTypes,
-            ...customLeaveTypes.map((type) => ({
-                id: type.id,
-                label: type.name,
-            })),
-        ];
-    }, [advancedLeaveEnabled, customLeaveTypes]);
-
-    const annualSummary = selectedEmployee && (
+    const shouldShowAnnualSummary = Boolean(selectedEmployee && (
         selectedEmployee.startDate
         || hasManualAnnualLeaveBalance(selectedEmployee)
         || selectedEmployee.leaveCycleStartDate
         || selectedEmployee.leaveCycleEndDate
-    )
+    ));
+    const annualSummary = selectedEmployee && shouldShowAnnualSummary
         ? calculateAnnualLeaveSummary(selectedEmployee, selectedRecords, selectedContracts, parseISO(formData.startDate))
         : null;
 
@@ -278,21 +322,13 @@ export function RecordLeaveForm({
 
         setSaving(true);
         try {
-            const record: LeaveRecord = {
-                id: crypto.randomUUID(),
-                householdId: selectedEmployee.householdId ?? "default",
-                employeeId: formData.employeeId,
-                type: formData.type,
-                days: formData.days,
-                date: formData.startDate,
-                startDate: formData.startDate,
-                endDate: formData.endDate,
+            const record = buildLeaveRecord({
+                selectedEmployee,
+                formData,
                 exceedsAllowance,
-                typeLabel: getLeaveTypeLabel(formData.type, customLeaveTypes),
-                isCustomType: Boolean(customType),
-                paid: customType?.isPaid,
-                note: formData.note,
-            };
+                customLeaveTypes,
+                customType,
+            });
             await saveLeaveRecord(record);
             setIsDirty(false);
             toast("Leave record saved.");

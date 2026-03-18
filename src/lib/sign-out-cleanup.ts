@@ -1,6 +1,6 @@
 import { clearAllLocalData } from "./storage";
 import { clearAllLocalRecoveryProfiles } from "./recovery-profile-store";
-import { clearPasswordHandoff } from "./password-handoff";
+import { clearCredentialHandoff } from "./credential-handoff";
 import { clearPendingBillingHandoff } from "./billing-handoff";
 
 /**
@@ -25,7 +25,7 @@ export async function clearAllUserDataOnSignOut(): Promise<void> {
     await clearAllLocalRecoveryProfiles().catch(() => {});
 
     // 3. sessionStorage — password handoff
-    clearPasswordHandoff();
+    clearCredentialHandoff();
 
     // 4. localStorage — billing handoff keys
     clearPendingBillingHandoff();

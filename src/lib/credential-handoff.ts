@@ -1,58 +1,58 @@
-const PASSWORD_HANDOFF_STORAGE_KEY = "lekkerledger:credential-handoff";
-const PASSWORD_HANDOFF_MAX_AGE_MS = 10 * 60 * 1000;
+const CREDENTIAL_HANDOFF_STORAGE_KEY = "lekkerledger:credential-handoff";
+const CREDENTIAL_HANDOFF_MAX_AGE_MS = 10 * 60 * 1000;
 
-interface PasswordHandoffRecord {
+interface CredentialHandoffRecord {
     email: string;
     password: string;
     createdAt: number;
 }
 
-function readStoredRecord(): PasswordHandoffRecord | null {
+function readStoredRecord(): CredentialHandoffRecord | null {
     if (typeof globalThis.window === "undefined") {
         return null;
     }
 
     try {
-        const raw = globalThis.window.sessionStorage.getItem(PASSWORD_HANDOFF_STORAGE_KEY);
+        const raw = globalThis.window.sessionStorage.getItem(CREDENTIAL_HANDOFF_STORAGE_KEY);
         if (!raw) {
             return null;
         }
 
-        const parsed = JSON.parse(raw) as PasswordHandoffRecord;
+        const parsed = JSON.parse(raw) as CredentialHandoffRecord;
         if (!parsed.email || !parsed.password || !parsed.createdAt) {
-            clearPasswordHandoff();
+            clearCredentialHandoff();
             return null;
         }
 
-        if (Date.now() - parsed.createdAt > PASSWORD_HANDOFF_MAX_AGE_MS) {
-            clearPasswordHandoff();
+        if (Date.now() - parsed.createdAt > CREDENTIAL_HANDOFF_MAX_AGE_MS) {
+            clearCredentialHandoff();
             return null;
         }
 
         return parsed;
     } catch {
-        clearPasswordHandoff();
+        clearCredentialHandoff();
         return null;
     }
 }
 
-export function storePasswordHandoff(email: string, password: string) {
+export function storeCredentialHandoff(email: string, password: string) {
     if (typeof globalThis.window === "undefined") {
         return;
     }
 
     try {
-        globalThis.window.sessionStorage.setItem(PASSWORD_HANDOFF_STORAGE_KEY, JSON.stringify({
+        globalThis.window.sessionStorage.setItem(CREDENTIAL_HANDOFF_STORAGE_KEY, JSON.stringify({
             email: email.trim().toLowerCase(),
             password,
             createdAt: Date.now(),
-        } satisfies PasswordHandoffRecord));
+        } satisfies CredentialHandoffRecord));
     } catch {
         // Ignore sessionStorage failures and fall back to manual password confirmation.
     }
 }
 
-export function hasPasswordHandoff(email?: string | null): boolean {
+export function hasCredentialHandoff(email?: string | null): boolean {
     const record = readStoredRecord();
     if (!record) {
         return false;
@@ -65,7 +65,7 @@ export function hasPasswordHandoff(email?: string | null): boolean {
     return record.email === email.trim().toLowerCase();
 }
 
-export function consumePasswordHandoff(email?: string | null): string | null {
+export function consumeCredentialHandoff(email?: string | null): string | null {
     const record = readStoredRecord();
     if (!record) {
         return null;
@@ -75,17 +75,17 @@ export function consumePasswordHandoff(email?: string | null): string | null {
         return null;
     }
 
-    clearPasswordHandoff();
+    clearCredentialHandoff();
     return record.password;
 }
 
-export function clearPasswordHandoff() {
+export function clearCredentialHandoff() {
     if (typeof globalThis.window === "undefined") {
         return;
     }
 
     try {
-        globalThis.window.sessionStorage.removeItem(PASSWORD_HANDOFF_STORAGE_KEY);
+        globalThis.window.sessionStorage.removeItem(CREDENTIAL_HANDOFF_STORAGE_KEY);
     } catch {
         // Ignore sessionStorage cleanup failures.
     }

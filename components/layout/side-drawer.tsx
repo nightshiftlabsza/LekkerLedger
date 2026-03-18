@@ -251,9 +251,25 @@ function DrawerFooter({
     mobile: boolean;
     planLabel?: string | null;
 }>) {
+    const footerPaddingClassName = "px-4 py-4";
+    let footerMeta: React.ReactNode = null;
+    if (dashboardVariant) {
+        footerMeta = (
+            <div className={`shrink-0 border-t border-[var(--border)] px-5 pt-3 ${mobile ? "safe-area-pb pb-5" : "pb-5"}`}>
+                <div className="rounded-2xl bg-[var(--surface-raised)] px-4 py-3">
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Current workspace</p>
+                    <p className="mt-1 truncate text-sm font-semibold text-[var(--text)]">{employerName || "Household payroll"}</p>
+                    <p className="mt-0.5 text-xs text-[var(--text-muted)]">{planLabel || "Plan loading"}</p>
+                </div>
+            </div>
+        );
+    } else if (mobile) {
+        footerMeta = <div className="safe-area-pb" />;
+    }
+
     return (
         <>
-            <div className={`shrink-0 border-t border-[var(--border)] ${mobile ? "px-4 py-4" : "px-4 py-4"}`}>
+            <div className={`shrink-0 border-t border-[var(--border)] ${footerPaddingClassName}`}>
                 <a
                     href="mailto:support@lekkerledger.co.za?subject=LekkerLedger%20Support%20Request"
                     className="flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-medium transition-colors hover:bg-[var(--surface-2)]"
@@ -266,15 +282,7 @@ function DrawerFooter({
                 </a>
             </div>
 
-            {dashboardVariant ? (
-                <div className={`shrink-0 border-t border-[var(--border)] px-5 pt-3 ${mobile ? "safe-area-pb pb-5" : "pb-5"}`}>
-                    <div className="rounded-2xl bg-[var(--surface-raised)] px-4 py-3">
-                        <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Current workspace</p>
-                        <p className="mt-1 truncate text-sm font-semibold text-[var(--text)]">{employerName || "Household payroll"}</p>
-                        <p className="mt-0.5 text-xs text-[var(--text-muted)]">{planLabel || "Plan loading"}</p>
-                    </div>
-                </div>
-            ) : mobile ? <div className="safe-area-pb" /> : null}
+            {footerMeta}
         </>
     );
 }
@@ -382,7 +390,7 @@ export function SideDrawer({
                 </button>
             ) : null}
 
-            <aside className="app-shell-drawer hidden h-full flex-col border-r border-[var(--border)] shadow-none lg:flex">
+            <aside className="app-shell-drawer hidden self-start overflow-hidden border-r border-[var(--border)] shadow-none lg:sticky lg:top-0 lg:flex lg:h-screen">
                 <DrawerContent
                     mobile={false}
                     dashboardVariant={dashboardVariant}

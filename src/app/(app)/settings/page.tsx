@@ -40,6 +40,54 @@ import { storeRecoveryNotice } from "@/lib/recovery-notice";
 
 type SettingsTab = "general" | "storage" | "plan" | "exports" | "support";
 
+function resolveSettingsTab(tabParam: string | null): SettingsTab {
+    if (tabParam === "sync" || tabParam === "storage") return "storage";
+    if (tabParam === "general") return "general";
+    if (tabParam === "plan") return "plan";
+    if (tabParam === "exports") return "exports";
+    if (tabParam === "support") return "support";
+    return "general";
+}
+
+function buildNextSettings(settings: EmployerSettings, updated: Partial<EmployerSettings>) {
+    return {
+        ...settings,
+        ...updated,
+        employerName: (updated.employerName ?? settings.employerName ?? "").trim(),
+        employerAddress: (updated.employerAddress ?? settings.employerAddress ?? "").trim(),
+        phone: (updated.phone ?? settings.phone ?? "").trim(),
+        employerEmail: (updated.employerEmail ?? settings.employerEmail ?? "").trim(),
+    };
+}
+
+function getCurrentPlanStatusLabel({
+    currentPlanId,
+    billingAccount,
+    effectiveSettings,
+    nextChargeLabel,
+}: {
+    currentPlanId: string;
+    billingAccount: BillingAccountPayload | null;
+    effectiveSettings: EmployerSettings | null | undefined;
+    nextChargeLabel: string | null;
+}) {
+    if (currentPlanId === "free") return "Free plan active";
+    if (billingAccount?.account.cancelAtPeriodEnd && effectiveSettings?.paidUntil) {
+        return `Renewal canceled. Access ends ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`;
+    }
+    if (nextChargeLabel) return `Next renewal ${nextChargeLabel}`;
+    if (effectiveSettings?.paidUntil) {
+        return `Access until ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`;
+    }
+    return "Paid plan active";
+}
+
+function getBillingStatusLabel(billingAccount: BillingAccountPayload, billingStatus: string | undefined) {
+    if (billingAccount.account.cancelAtPeriodEnd) return "Renewal canceled";
+    if (billingStatus === "active") return "Paid subscription active";
+    return "Free plan";
+}
+
 function SettingsContent() {
     const searchParams = useSearchParams();
     const { mode, encryptionMode, setEncryptionMode } = useAppMode();
@@ -86,12 +134,7 @@ function SettingsContent() {
             setSettings(s);
             setEmployees(emps);
             setLoading(false);
-            const tabParam = searchParams.get("tab");
-            if (tabParam === "sync" || tabParam === "storage") setActiveTab("storage");
-            else if (tabParam === "general") setActiveTab("general");
-            else if (tabParam === "plan") setActiveTab("plan");
-            else if (tabParam === "exports") setActiveTab("exports");
-            else if (tabParam === "support") setActiveTab("support");
+            setActiveTab(resolveSettingsTab(searchParams.get("tab")));
 
             try {
                 const account = await fetchBillingAccount();
@@ -118,14 +161,7 @@ function SettingsContent() {
         if (!settings || saving) return;
         setSaving(true);
         try {
-            const newSettings = {
-                ...settings,
-                ...updated,
-                employerName: (updated.employerName ?? settings.employerName ?? "").trim(),
-                employerAddress: (updated.employerAddress ?? settings.employerAddress ?? "").trim(),
-                phone: (updated.phone ?? settings.phone ?? "").trim(),
-                employerEmail: (updated.employerEmail ?? settings.employerEmail ?? "").trim(),
-            };
+            const newSettings = buildNextSettings(settings, updated);
             if (updated.density) setDensity(updated.density);
             globalThis.dispatchEvent(new Event("storage"));
             globalThis.dispatchEvent(new Event("local-storage-sync"));
@@ -834,17 +870,12 @@ function SettingsContent() {
                     const comparisonCycle: BillingCycle = currentPlan.id === "free" ? "yearly" : currentCycle;
                     const currentPlanDisplay = getMarketingPlanDisplay(currentPlan.id);
                     const currentPricePresentation = getMarketingPriceDisplay(currentPlan.id, displayCycle);
-                    const currentPlanStatusLabel = (() => {
-                        if (currentPlan.id === "free") return "Free plan active";
-                        if (billingAccount?.account.cancelAtPeriodEnd && effectiveSettings?.paidUntil) {
-                            return `Renewal canceled. Access ends ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`;
-                        }
-                        if (nextChargeLabel) return `Next renewal ${nextChargeLabel}`;
-                        if (effectiveSettings?.paidUntil) {
-                            return `Access until ${new Date(effectiveSettings.paidUntil).toLocaleDateString("en-ZA")}`;
-                        }
-                        return "Paid plan active";
-                    })();
+                    const currentPlanStatusLabel = getCurrentPlanStatusLabel({
+                        currentPlanId: currentPlan.id,
+                        billingAccount,
+                        effectiveSettings,
+                        nextChargeLabel,
+                    });
                     let billingTimingContent: React.ReactNode;
                     if (billingLoading) {
                         billingTimingContent = (
@@ -855,11 +886,7 @@ function SettingsContent() {
                             <div className="space-y-3 text-sm text-[var(--text-muted)]">
                                 <p>
                                     <strong className="text-[var(--text)]">Status:</strong>{" "}
-                                    {(() => {
-                                         if (billingAccount.account.cancelAtPeriodEnd) return "Renewal canceled";
-                                         if (billingStatus === "active") return "Paid subscription active";
-                                         return "Free plan";
-                                     })()}
+                                    {getBillingStatusLabel(billingAccount, billingStatus)}
                                 </p>
                                 {nextChargeLabel && (
                                     <p><strong className="text-[var(--text)]">Next renewal:</strong> {nextChargeLabel}</p>

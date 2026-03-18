@@ -135,11 +135,11 @@ export function WhatsAppShareDialog({
                 }}
             />
 
-            <div
-                role="dialog"
+            <dialog
+                open
                 aria-modal="true"
                 aria-labelledby="whatsapp-share-title"
-                className={`relative z-[1] w-full overflow-hidden border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_24px_64px_rgba(16,24,40,0.16)] ${isMobileViewport
+                className={`relative z-[1] m-0 w-full overflow-hidden border border-[var(--border)] bg-[var(--surface-1)] p-0 text-inherit shadow-[0_24px_64px_rgba(16,24,40,0.16)] ${isMobileViewport
                     ? "max-h-[88vh] rounded-t-[2rem] rounded-b-none pb-[max(1rem,env(safe-area-inset-bottom))]"
                     : "max-w-[42rem] rounded-[2rem]"}`}
                 data-testid={isMobileViewport ? "whatsapp-share-sheet" : "whatsapp-share-modal"}
@@ -237,7 +237,7 @@ export function WhatsAppShareDialog({
                         {submitting ? "Preparing WhatsApp..." : confirmLabel}
                     </Button>
                 </div>
-            </div>
+            </dialog>
         </div>
     );
 }

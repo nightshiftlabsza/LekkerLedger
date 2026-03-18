@@ -7,7 +7,7 @@ import { Loader2, Mail, Lock, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { readPendingBillingReference } from "@/lib/billing-handoff";
 import { buildPaidDashboardHref } from "@/lib/paid-activation";
-import { storePasswordHandoff } from "@/lib/password-handoff";
+import { storeCredentialHandoff } from "@/lib/credential-handoff";
 import { startAppMetric } from "@/lib/app-performance";
 
 const CALLBACK_ERROR_MESSAGES: Record<string, string> = {
@@ -42,6 +42,8 @@ type LoginFormProps = {
     forgotPasswordHref?: string;
     showSignupFooter?: boolean;
     embedded?: boolean;
+    initialEmail?: string;
+    lockEmail?: boolean;
 };
 
 export function LoginForm({
@@ -50,12 +52,14 @@ export function LoginForm({
     forgotPasswordHref = "/forgot-password",
     showSignupFooter = true,
     embedded = false,
+    initialEmail,
+    lockEmail = false,
 }: LoginFormProps = {}) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const supabase = createClient();
     
-    const [email, setEmail] = React.useState("");
+    const [email, setEmail] = React.useState(initialEmail || "");
     const [password, setPassword] = React.useState("");
     const [error, setError] = React.useState<string | null>(
         mapCallbackError(searchParams.get("error"))
@@ -65,6 +69,12 @@ export function LoginForm({
         const reference = searchParams.get("reference")?.trim() || "";
         return reference ? `/signup?reference=${encodeURIComponent(reference)}` : "/signup";
     }, [searchParams]);
+
+    React.useEffect(() => {
+        if (initialEmail) {
+            setEmail(initialEmail);
+        }
+    }, [initialEmail]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -93,7 +103,7 @@ export function LoginForm({
             return;
         }
 
-        storePasswordHandoff(email, password);
+        storeCredentialHandoff(email, password);
         startAppMetric("login_to_interactive");
         startAppMetric("auth_resolved_after_login");
 
@@ -144,6 +154,8 @@ export function LoginForm({
                                 placeholder="name@example.com"
                                 required
                                 disabled={isLoading}
+                                readOnly={lockEmail}
+                                aria-readonly={lockEmail}
                             />
                         </div>
                     </div>

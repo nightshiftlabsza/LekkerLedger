@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getBrowserAppOrigin } from "@/lib/app-origin";
 import { readPendingBillingEmail, readPendingBillingReference } from "@/lib/billing-handoff";
 import { buildPaidDashboardHref, PAID_LOGIN_SUCCESS_QUERY } from "@/lib/paid-activation";
-import { storePasswordHandoff } from "@/lib/password-handoff";
+import { storeCredentialHandoff } from "@/lib/credential-handoff";
 
 function mapSignUpError(message: string): string {
     const lower = message.toLowerCase();
@@ -94,7 +94,7 @@ export function SignUpForm({
             return;
         }
 
-        storePasswordHandoff(email, password);
+        storeCredentialHandoff(email, password);
 
         // For paid users: sign in immediately and skip the "check your email" screen.
         // Email confirmation is not enforced on this Supabase project, so the user

@@ -3,95 +3,38 @@ import { render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import BillingSuccessPage from "@/app/billing/success/page";
 
-const mocks = vi.hoisted(() => {
-    let pendingReference = "";
-
-    return {
-        replaceMock: vi.fn(),
-        confirmBillingTransactionMock: vi.fn(),
-        confirmGuestBillingTransactionMock: vi.fn(),
-        fetchBillingAccountMock: vi.fn(),
-        resetHandoff() {
-            pendingReference = "";
-        },
-        readPendingReference() {
-            return pendingReference;
-        },
-        writePendingReference(reference: string) {
-            pendingReference = reference;
-        },
-        writePendingEmail: vi.fn(),
-    };
-});
+const mocks = vi.hoisted(() => ({
+    replaceMock: vi.fn(),
+    pendingReference: "",
+}));
 
 vi.mock("next/navigation", () => ({
     useRouter: () => ({
         replace: mocks.replaceMock,
     }),
-    useSearchParams: () => new URLSearchParams("reference=ref_123"),
-}));
-
-vi.mock("@/lib/billing-client", () => ({
-    confirmBillingTransaction: (...args: unknown[]) => mocks.confirmBillingTransactionMock(...args),
-    confirmGuestBillingTransaction: (...args: unknown[]) => mocks.confirmGuestBillingTransactionMock(...args),
-    fetchBillingAccount: (...args: unknown[]) => mocks.fetchBillingAccountMock(...args),
+    useSearchParams: () => new URLSearchParams("reference=ref_456"),
 }));
 
 vi.mock("@/lib/billing-handoff", () => ({
-    readPendingBillingReference: () => mocks.readPendingReference(),
-    writePendingBillingEmail: (email: string) => mocks.writePendingEmail(email),
-    writePendingBillingReference: (reference: string) => mocks.writePendingReference(reference),
+    readPendingBillingReference: () => mocks.pendingReference,
+    writePendingBillingReference: (reference: string) => {
+        mocks.pendingReference = reference;
+    },
 }));
 
 describe("BillingSuccessPage route-group coverage", () => {
     beforeEach(() => {
         mocks.replaceMock.mockReset();
-        mocks.confirmBillingTransactionMock.mockReset();
-        mocks.confirmGuestBillingTransactionMock.mockReset();
-        mocks.fetchBillingAccountMock.mockReset();
-        mocks.confirmBillingTransactionMock.mockResolvedValue(null);
-        mocks.resetHandoff();
+        mocks.pendingReference = "";
     });
 
-    it("routes authenticated users to dashboard activation", async () => {
-        mocks.confirmBillingTransactionMock.mockResolvedValue({
-            entitlements: {
-                planId: "standard",
-                billingCycle: "monthly",
-                status: "active",
-                cancelAtPeriodEnd: false,
-                availableReferralMonths: 0,
-                pendingReferralMonths: 0,
-                isActive: true,
-            },
-            account: {
-                cancelAtPeriodEnd: false,
-                availableReferralMonths: 0,
-                pendingReferralMonths: 0,
-                successfulReferralCount: 0,
-                totalReferralMonthsEarned: 0,
-            },
-        });
-
+    it("forwards the compatibility route into billing activation", async () => {
         render(<BillingSuccessPage />);
 
         await waitFor(() => {
-            expect(mocks.replaceMock).toHaveBeenCalledWith("/dashboard?paidLogin=1&reference=ref_123");
-        });
-    });
-
-    it("routes anonymous users to paid login", async () => {
-        mocks.fetchBillingAccountMock.mockResolvedValue(null);
-        mocks.confirmGuestBillingTransactionMock.mockResolvedValue({
-            paid: true,
-            email: "guest@example.com",
-            planId: "standard",
+            expect(mocks.replaceMock).toHaveBeenCalledWith("/billing/activate?reference=ref_456");
         });
 
-        render(<BillingSuccessPage />);
-
-        await waitFor(() => {
-            expect(mocks.replaceMock).toHaveBeenCalledWith("/login?reference=ref_123");
-        });
+        expect(mocks.pendingReference).toBe("ref_456");
     });
 });

@@ -269,12 +269,105 @@ function getPlanCardButtonStyle(featured: boolean, isCurrent: boolean, isDowngra
         : {};
 }
 
+function getPlanCardClassName(featured: boolean, isDisabled: boolean) {
+    return `flex h-full flex-col overflow-hidden rounded-[30px] border bg-[var(--surface-1)] transition-all ${
+        featured
+            ? "border-2 border-[var(--primary)] shadow-[0_20px_50px_rgba(0,122,77,0.12)]"
+            : "border-[var(--border)] shadow-[var(--shadow-1)]"
+    } ${isDisabled ? "opacity-60 grayscale-[0.5]" : ""}`;
+}
+
 function getPlanCardReferralCode() {
     if (typeof window === "undefined") {
         return null;
     }
 
     return new URLSearchParams(window.location.search).get("ref");
+}
+
+function MarketingPlanCardCta({
+    onSelect,
+    href,
+    handleAction,
+    handleWarm,
+    isCurrent,
+    isDisabled,
+    isLoading,
+    featured,
+    isDowngrade,
+    ctaStyle,
+    actionLabel,
+    planId,
+    ctaLabel,
+}: {
+    onSelect?: (planId: PlanId) => void;
+    href: string;
+    handleAction: () => void;
+    handleWarm: () => void;
+    isCurrent: boolean;
+    isDisabled: boolean;
+    isLoading: boolean;
+    featured: boolean;
+    isDowngrade: boolean;
+    ctaStyle: React.CSSProperties;
+    actionLabel: string;
+    planId: PlanId;
+    ctaLabel: string;
+}) {
+    if (onSelect) {
+        return (
+            <Button
+                className="min-h-[48px] w-full justify-center font-bold"
+                onClick={handleAction}
+                onPointerEnter={handleWarm}
+                onFocus={handleWarm}
+                onTouchStart={handleWarm}
+                disabled={isCurrent || isDisabled || isLoading}
+                variant={featured && !isDowngrade ? "default" : "outline"}
+                style={ctaStyle}
+            >
+                {actionLabel}
+            </Button>
+        );
+    }
+
+    return (
+        <Link href={href}>
+            <Button
+                className={`min-h-[48px] w-full justify-center font-bold ${
+                    planId === "free"
+                        ? "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
+                        : ""
+                }`}
+                variant={planId === "free" ? "default" : "outline"}
+            >
+                {ctaLabel}
+            </Button>
+        </Link>
+    );
+}
+
+function MarketingPlanCardSubtext({
+    planId,
+    billingCycle,
+    isCurrent,
+    isDowngrade,
+}: {
+    planId: PlanId;
+    billingCycle: BillingCycle;
+    isCurrent: boolean;
+    isDowngrade: boolean;
+}) {
+    const ctaSubtext = getMarketingPlanCtaSubtext(planId, billingCycle);
+    if (isCurrent || isDowngrade || !ctaSubtext) {
+        return null;
+    }
+
+    return (
+        <p className="text-center text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+            {ctaSubtext}
+        </p>
+    );
 }
 
 export function MarketingPlanCard({
@@ -331,13 +424,7 @@ export function MarketingPlanCard({
     };
 
     return (
-        <article
-            className={`flex h-full flex-col overflow-hidden rounded-[30px] border bg-[var(--surface-1)] transition-all ${
-                featured
-                    ? "border-2 border-[var(--primary)] shadow-[0_20px_50px_rgba(0,122,77,0.12)]"
-                    : "border-[var(--border)] shadow-[var(--shadow-1)]"
-            } ${isDisabled ? "opacity-60 grayscale-[0.5]" : ""}`}
-        >
+        <article className={getPlanCardClassName(featured, isDisabled)}>
             {/* ── Card header ── */}
             <div
                 className="border-b border-[var(--border)] px-5 py-4 sm:px-6"
@@ -425,40 +512,29 @@ export function MarketingPlanCard({
             <div
                 className={`mt-auto space-y-2.5 border-t border-[var(--border)] ${compact ? "p-5" : "p-6 pb-5 sm:p-7 sm:pb-6"}`}
             >
-                {onSelect ? (
-                    <Button
-                        className="min-h-[48px] w-full justify-center font-bold"
-                        onClick={handleAction}
-                        onPointerEnter={handleWarm}
-                        onFocus={handleWarm}
-                        onTouchStart={handleWarm}
-                        disabled={isCurrent || isDisabled || isLoading}
-                        variant={featured && !isDowngrade ? "default" : "outline"}
-                        style={ctaStyle}
-                    >
-                        {actionLabel}
-                    </Button>
-                ) : (
-                    <Link href={href}>
-                        <Button
-                            className={`min-h-[48px] w-full justify-center font-bold ${
-                                planId === "free"
-                                    ? "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
-                                    : ""
-                            }`}
-                            variant={planId === "free" ? "default" : "outline"}
-                        >
-                            {plan.ctaLabel}
-                        </Button>
-                    </Link>
-                )}
+                <MarketingPlanCardCta
+                    onSelect={onSelect}
+                    href={href}
+                    handleAction={handleAction}
+                    handleWarm={handleWarm}
+                    isCurrent={isCurrent}
+                    isDisabled={isDisabled}
+                    isLoading={isLoading}
+                    featured={featured}
+                    isDowngrade={isDowngrade}
+                    ctaStyle={ctaStyle}
+                    actionLabel={actionLabel}
+                    planId={planId}
+                    ctaLabel={plan.ctaLabel}
+                />
 
                 {/* Billing subtext — only on upgrade CTAs */}
-                {!isCurrent && !isDowngrade && getMarketingPlanCtaSubtext(planId, billingCycle) ? (
-                    <p className="text-center text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                        {getMarketingPlanCtaSubtext(planId, billingCycle)}
-                    </p>
-                ) : null}
+                <MarketingPlanCardSubtext
+                    planId={planId}
+                    billingCycle={billingCycle}
+                    isCurrent={isCurrent}
+                    isDowngrade={isDowngrade}
+                />
             </div>
         </article>
     );

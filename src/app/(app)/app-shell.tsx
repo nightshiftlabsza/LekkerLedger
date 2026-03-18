@@ -130,6 +130,28 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
     );
 }
 
+function getNewHouseholdError(households: Household[], newHouseholdName: string) {
+    const trimmed = newHouseholdName.trim();
+    if (!trimmed) {
+        return "Enter a household name before you continue.";
+    }
+
+    const duplicateName = households.some((household) => household.name.trim().toLowerCase() === trimmed.toLowerCase());
+    if (duplicateName) {
+        return "That household name already exists. Choose a different label so the workspaces stay clear.";
+    }
+
+    return null;
+}
+
+function buildHousehold(name: string): Household {
+    return {
+        id: crypto.randomUUID(),
+        name,
+        createdAt: new Date().toISOString(),
+    };
+}
+
 function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
     const router = useRouter();
     const pathname = usePathname();
@@ -223,28 +245,18 @@ function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
     };
 
     const handleConfirmAddHousehold = async () => {
+        const nextError = getNewHouseholdError(households, newHouseholdName);
+        if (nextError) {
+            setAddHouseholdError(nextError);
+            return;
+        }
+
         const trimmed = newHouseholdName.trim();
-        if (!trimmed) {
-            setAddHouseholdError("Enter a household name before you continue.");
-            return;
-        }
-
-        const duplicateName = households.some((household) => household.name.trim().toLowerCase() === trimmed.toLowerCase());
-        if (duplicateName) {
-            setAddHouseholdError("That household name already exists. Choose a different label so the workspaces stay clear.");
-            return;
-        }
-
         setAddingHousehold(true);
         setAddHouseholdError("");
 
         try {
-            const household = {
-                id: crypto.randomUUID(),
-                name: trimmed,
-                createdAt: new Date().toISOString(),
-            } satisfies Household;
-
+            const household = buildHousehold(trimmed);
             await saveHousehold(household);
             await setActiveHouseholdId(household.id);
             setLastLocalSaveAt(Date.now());
@@ -258,22 +270,27 @@ function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
     };
 
     return (
-        <div className="app-shell-offset flex min-h-screen flex-col" style={{ backgroundColor: "var(--bg)" }}>
-                <div className="hidden lg:block">
-                    <SideDrawer
-                        open={moreOpen}
-                        onOpenChange={setMoreOpen}
-                        showButton={false}
-                        variant={isDashboardShell ? "dashboard" : "default"}
-                        households={households}
-                        activeHouseholdId={activeHouseholdId}
-                        multiHouseholdEnabled={multiHouseholdEnabled}
-                        onSwitchHousehold={handleSwitchHousehold}
-                        onAddHousehold={handleAddHousehold}
-                        employerName={settings?.employerName?.trim() || ""}
-                        planLabel={isReadyForPlanUI ? resolvedPlanLabel : null}
-                    />
-                </div>
+        <div
+            className="flex min-h-screen flex-col lg:grid lg:grid-cols-[var(--app-shell-width)_minmax(0,1fr)]"
+            style={{ backgroundColor: "var(--bg)" }}
+        >
+            <div className="hidden lg:block">
+                <SideDrawer
+                    open={moreOpen}
+                    onOpenChange={setMoreOpen}
+                    showButton={false}
+                    variant={isDashboardShell ? "dashboard" : "default"}
+                    households={households}
+                    activeHouseholdId={activeHouseholdId}
+                    multiHouseholdEnabled={multiHouseholdEnabled}
+                    onSwitchHousehold={handleSwitchHousehold}
+                    onAddHousehold={handleAddHousehold}
+                    employerName={settings?.employerName?.trim() || ""}
+                    planLabel={isReadyForPlanUI ? resolvedPlanLabel : null}
+                />
+            </div>
+
+            <div className="flex min-h-screen min-w-0 flex-1 flex-col">
                 <header
                     className={`sticky top-0 z-50 border-b border-[var(--border)] safe-area-pt ${isDashboardShell
                         ? "bg-[color:var(--surface-sidebar)]/92 backdrop-blur-xl shadow-[0_10px_24px_rgba(16,24,40,0.06)]"
@@ -370,24 +387,26 @@ function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
                         {children}
                     </RecoveryGate>
                 </main>
-                <AddHouseholdDialog
-                    open={addHouseholdOpen}
-                    name={newHouseholdName}
-                    error={addHouseholdError}
-                    saving={addingHousehold}
-                    onNameChange={(value) => {
-                        setNewHouseholdName(value);
-                        if (addHouseholdError) setAddHouseholdError("");
-                    }}
-                    onClose={() => {
-                        if (addingHousehold) return;
-                        setAddHouseholdOpen(false);
-                        setAddHouseholdError("");
-                    }}
-                    onSubmit={() => handleConfirmAddHousehold()}
-                />
-                <BottomNav onMore={() => setMoreOpen(true)} />
             </div>
+
+            <AddHouseholdDialog
+                open={addHouseholdOpen}
+                name={newHouseholdName}
+                error={addHouseholdError}
+                saving={addingHousehold}
+                onNameChange={(value) => {
+                    setNewHouseholdName(value);
+                    if (addHouseholdError) setAddHouseholdError("");
+                }}
+                onClose={() => {
+                    if (addingHousehold) return;
+                    setAddHouseholdOpen(false);
+                    setAddHouseholdError("");
+                }}
+                onSubmit={() => handleConfirmAddHousehold()}
+            />
+            <BottomNav onMore={() => setMoreOpen(true)} />
+        </div>
     );
 }
 
