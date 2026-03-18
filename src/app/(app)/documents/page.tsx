@@ -912,7 +912,7 @@ export default function DocumentsPage() {
 
     if (loading) {
         return (
-            <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 sm:px-6 xl:px-8">
+            <div className="workspace-shell workspace-shell--wide w-full pb-12">
                 <PageHeader title="Documents" subtitle="One place for payslips, contracts, exports, and supporting records." />
                 <EmptyState
                     title="Loading documents"
@@ -925,7 +925,7 @@ export default function DocumentsPage() {
 
     if (!canUseDocumentsHub(plan)) {
         return (
-            <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 sm:px-6 xl:px-8">
+            <div className="workspace-shell workspace-shell--wide w-full pb-12">
                 <PageHeader title="Documents" subtitle="Switch between payslips, contracts, exports, and supporting records from one familiar tabbed view." />
                 <FeatureGateCard
                     title="Documents hub is available on Standard and Pro"
@@ -937,7 +937,7 @@ export default function DocumentsPage() {
 
     return (
         <>
-            <div className="mx-auto w-full max-w-[1180px] px-4 pb-12 sm:px-6 xl:px-8">
+            <div className="workspace-shell workspace-shell--wide w-full pb-12">
                 <PageHeader
                     title="Documents"
                     subtitle="Switch between payslips, contracts, exports, and supporting records with the same tabbed flow used on each employee record."

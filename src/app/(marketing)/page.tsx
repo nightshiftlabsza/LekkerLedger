@@ -130,8 +130,8 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
             </div>
 
             <div className="marketing-shell relative py-8 sm:py-10 lg:py-12 xl:py-14">
-                <div className="grid gap-8 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] lg:items-center xl:grid-cols-[minmax(0,34rem)_minmax(0,1fr)] xl:gap-12">
-                    <div className="max-w-[38rem] space-y-6">
+                <div className="grid gap-8 lg:grid-cols-[minmax(0,35rem)_minmax(0,1.1fr)] lg:items-center xl:grid-cols-[minmax(0,37rem)_minmax(0,1.2fr)] xl:gap-14">
+                    <div className="max-w-[40rem] space-y-6">
                         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em]">
                             <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
                             <span>For South African household employers</span>
@@ -141,7 +141,7 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
                             <h1 className="type-h1" style={{ color: "var(--text)" }}>
                                 Payslips and household employment records in one place.
                             </h1>
-                            <p className="max-w-[34rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
+                            <p className="max-w-[35rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
                                 Track monthly pay, show UIF deductions clearly on payslips, and keep records available when you need them.
                             </p>
                         </div>
@@ -158,7 +158,7 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
                             </p>
                         </div>
 
-                        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
                             {HERO_TRUST_POINTS.map((point) => (
                                 <div
                                     key={point}
@@ -172,7 +172,7 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
                         </div>
                     </div>
 
-                    <div className="w-full lg:justify-self-end">
+                    <div className="w-full lg:justify-self-end lg:pl-4">
                         <SamplePayslipCard sample={sample} />
                     </div>
                 </div>
@@ -184,7 +184,7 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
 function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSample> }>) {
     return (
         <div
-            className="marketing-proof-shell mx-auto overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]"
+            className="marketing-proof-shell mx-auto overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)] lg:mx-0"
             data-testid="sample-payslip-card"
         >
             <div

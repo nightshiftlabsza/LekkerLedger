@@ -143,13 +143,13 @@ function EmployeeDetailContent() {
         return (
             <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
                 <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)]">
-                    <div className="max-w-4xl mx-auto w-full flex items-center gap-3">
+                    <div className="workspace-shell workspace-shell--wide flex w-full items-center gap-3">
                         <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
                         <div className="h-9 w-9 rounded-xl bg-[var(--surface-2)] animate-pulse" />
                         <div className="h-4 w-32 bg-[var(--surface-2)] animate-pulse rounded" />
                     </div>
                 </div>
-                <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 space-y-4">
+                <main className="workspace-shell workspace-shell--wide flex w-full flex-1 flex-col space-y-4 py-6">
                     <div className="h-16 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse" />
                     <div className="h-48 w-full rounded-2xl bg-[var(--surface-1)] animate-pulse" />
                 </main>
@@ -188,7 +188,7 @@ function EmployeeDetailContent() {
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg)" }}>
             {/* Header */}
             <div className="border-b border-[var(--border)] bg-[var(--surface-1)]/95 px-4 py-4 backdrop-blur-sm">
-                <div className="mx-auto flex max-w-4xl items-start gap-3">
+                <div className="workspace-shell workspace-shell--wide flex items-start gap-3">
                     <Link href="/employees">
                         <button
                             aria-label="Back to employees"
@@ -212,7 +212,7 @@ function EmployeeDetailContent() {
                 </div>
             </div>
 
-            <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col space-y-5 px-4 py-6 pb-24">
+            <main className="workspace-shell workspace-shell--wide flex w-full flex-1 flex-col space-y-5 py-6 pb-24">
                 <section className="overflow-hidden rounded-[30px] border border-[var(--border-strong)] bg-[var(--surface-1)] shadow-[0_20px_50px_rgba(16,24,40,0.10)]">
                     <div
                         className="border-b border-[var(--border)] px-5 py-4"

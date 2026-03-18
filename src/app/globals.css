@@ -98,16 +98,16 @@
   --page-gutter: clamp(1rem, 2vw, 2rem);
   --container-reading: 46rem;
   --container-standard: 84rem;
-  --container-wide: 108rem;
-  --container-ultrawide: 118rem;
-  --marketing-shell-max: 90rem;
+  --container-wide: 112rem;
+  --container-ultrawide: 124rem;
+  --marketing-shell-max: 98rem;
   --marketing-reading-max: 48rem;
-  --marketing-media-max: 42rem;
+  --marketing-media-max: 50rem;
   --marketing-shell-gutter: clamp(1rem, 2.4vw, 2rem);
   --marketing-section-y: clamp(3.75rem, 6vw, 5.75rem);
   --marketing-section-y-tight: clamp(3rem, 5vw, 4.5rem);
-  --app-shell-width: clamp(17.75rem, 18vw, 20.5rem);
-  --app-shell-rail-width: clamp(17.5rem, 21vw, 21rem);
+  --app-shell-width: clamp(15.5rem, 16vw, 18rem);
+  --app-shell-rail-width: clamp(16rem, 19vw, 19rem);
   --touch-target-min: 44px;
   --type-floor-compact: 0.75rem;
   --type-floor-touch: 0.8125rem;
@@ -578,6 +578,23 @@ p,
   width: min(100%, var(--marketing-media-max));
 }
 
+.workspace-shell {
+  width: min(100%, var(--container-wide));
+  margin-inline: auto;
+}
+
+.workspace-shell--wide {
+  width: min(100%, var(--container-ultrawide));
+}
+
+.workspace-shell--form {
+  width: min(100%, 72rem);
+}
+
+.workspace-shell--reading {
+  width: min(100%, 64rem);
+}
+
 .marketing-section {
   padding-block: var(--marketing-section-y);
 }
@@ -645,21 +662,21 @@ p,
   align-items: start;
 }
 
-@media (min-width: 840px) {
-  .adaptive-app-grid {
-    grid-template-columns: minmax(0, 1fr) clamp(280px, 20vw, 360px);
+@media (min-width: 1100px) {
+  .adaptive-app-grid--with-rail {
+    grid-template-columns: minmax(0, 1fr) clamp(280px, 19vw, 340px);
   }
 }
 
-@media (min-width: 1200px) {
-  .adaptive-app-grid {
-    grid-template-columns: 1fr 320px;
+@media (min-width: 1440px) {
+  .adaptive-app-grid--with-rail {
+    grid-template-columns: minmax(0, 1fr) clamp(300px, 18vw, 360px);
   }
 }
 
 @media (min-width: 1600px) {
-  .adaptive-app-grid {
-    grid-template-columns: 1fr 360px;
+  .adaptive-app-grid--with-rail {
+    grid-template-columns: minmax(0, 1fr) 360px;
     gap: var(--space-8);
   }
 }
@@ -672,7 +689,7 @@ p,
   display: none;
 }
 
-@media (min-width: 840px) {
+@media (min-width: 1100px) {
   .adaptive-rail {
     display: block;
     position: sticky;
@@ -695,9 +712,7 @@ p,
 }
 
 /* Dashboard overview: main + rail grid
-   Single column by default; two-column when container >= 48rem (768px)
-   At 175% OS scaling (1920→~1097px viewport), sidebar ≈ 284px → main ≈ 813px (≈50.8rem)
-   so 48rem safely triggers the 2-column layout at that scaling. */
+   Keep the rail stacked until the post-sidebar content width is genuinely roomy. */
 .dashboard-cq-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -705,9 +720,9 @@ p,
   align-items: start;
 }
 
-@container (min-width: 48rem) {
+@container (min-width: 62rem) {
   .dashboard-cq-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
+    grid-template-columns: minmax(40rem, 1fr) minmax(16rem, 18rem);
   }
   .dashboard-cq-rail {
     display: block !important;
@@ -719,9 +734,9 @@ p,
   }
 }
 
-@container (min-width: 56rem) {
+@container (min-width: 74rem) {
   .dashboard-cq-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(16rem, var(--app-shell-rail-width));
+    grid-template-columns: minmax(42rem, 1fr) minmax(17rem, var(--app-shell-rail-width));
   }
 }
 
@@ -783,11 +798,10 @@ p,
   }
 }
 
-/* Two-column detail layout: main + sidebar at 48rem container
-   Matches dashboard breakpoint so upgrade/ufiling pages also go 2-col at 175% scaling */
-@container (min-width: 48rem) {
+/* Two-column detail layout: main + sidebar only once there is true desktop room */
+@container (min-width: 62rem) {
   .detail-cq-grid {
-    grid-template-columns: minmax(0, 1.1fr) minmax(15rem, 0.9fr);
+    grid-template-columns: minmax(40rem, 1.18fr) minmax(17rem, 0.82fr);
   }
   .detail-cq-sidebar {
     position: sticky;
@@ -795,9 +809,9 @@ p,
   }
 }
 
-@container (min-width: 56rem) {
+@container (min-width: 74rem) {
   .detail-cq-grid {
-    grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.9fr);
+    grid-template-columns: minmax(42rem, 1.18fr) minmax(18rem, 0.82fr);
   }
 }
 

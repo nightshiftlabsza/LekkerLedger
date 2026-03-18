@@ -316,7 +316,7 @@ function SettingsContent() {
     }
 
     return (
-        <div className="mx-auto w-full min-w-0 max-w-4xl pb-20">
+        <div className="workspace-shell workspace-shell--form w-full min-w-0 pb-20">
             <PageHeader title="Settings" subtitle="Start with your household details, then open the extra options only if you need them." />
 
             {/* Tab switcher */}
@@ -1315,7 +1315,6 @@ function TabButton({ id, icon: Icon, label, activeTab, setActiveTab }: { id: Set
         </button>
     );
 }
-
 
 
 

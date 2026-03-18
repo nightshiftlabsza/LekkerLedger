@@ -231,7 +231,7 @@ function DashboardContent() {
 
     if (paidLoginRequested || activationStatus === "pending") {
         return (
-            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-4 py-2">
+            <div className="workspace-shell workspace-shell--wide flex w-full flex-col gap-4 py-2">
                 {activationError ? (
                     <Card className="border-[var(--danger-border)] bg-[var(--danger-soft)]">
                         <CardContent className="space-y-4 p-6">
@@ -354,7 +354,7 @@ function ActivationAlert({
     syncBadgeState: SyncBadgeState;
 }>) {
     return (
-        <Card className="mx-auto mb-5 w-full max-w-[1180px] overflow-hidden border-[var(--primary)]/20 bg-[var(--surface-1)]">
+        <Card className="mb-5 w-full overflow-hidden border-[var(--primary)]/20 bg-[var(--surface-1)]">
             <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-3">
                     <div className="rounded-full bg-[var(--primary)]/10 p-2 text-[var(--primary)]">
@@ -385,7 +385,7 @@ function PaidFeedbackNoticeCard({
 }>) {
     return (
         <Card
-            className="mx-auto mb-5 w-full max-w-[1180px] overflow-hidden border-[var(--primary)]/20 bg-[var(--surface-1)]"
+            className="mb-5 w-full overflow-hidden border-[var(--primary)]/20 bg-[var(--surface-1)]"
             role="region"
             aria-labelledby="paid-dashboard-feedback-notice-title"
         >
@@ -484,7 +484,7 @@ function RetentionAlertCard({
 
     return (
         <Card
-            className="mx-auto mb-5 w-full max-w-[1180px] overflow-hidden"
+            className="mb-5 w-full overflow-hidden"
             style={{
                 borderColor: toneClasses.border,
                 backgroundColor: toneClasses.background,

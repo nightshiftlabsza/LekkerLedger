@@ -62,7 +62,7 @@ export function EmployeesClient() {
                     title="Employees"
                     subtitle="Manage your household team and employment records"
                 />
-                <div className="adaptive-app-grid">
+                <div className="adaptive-app-grid adaptive-app-grid--with-rail">
                     <div className="adaptive-main">
                         <Card className="glass-panel border-none shadow-[var(--shadow-1)]">
                             <CardContent className="space-y-5 p-6 md:p-8">
@@ -111,9 +111,7 @@ export function EmployeesClient() {
                 )}
             />
             
-            <div className="adaptive-app-grid">
-                {/* Main Content Area */}
-                <div className="adaptive-main">
+            <div className="min-w-0">
                     {employees.length === 0 ? (
                         <EmptyState
                             icon={Users}
@@ -222,9 +220,6 @@ export function EmployeesClient() {
                             />
                         </div>
                     )}
-                </div>
-
-
             </div>
         </div>
     );
