@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Loader2, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { storePasswordHandoff } from "@/lib/password-handoff";
+import { storeCredentialHandoff } from "@/lib/credential-handoff";
 
 export function ResetPasswordForm() {
     const supabase = createClient();
@@ -70,7 +70,7 @@ export function ResetPasswordForm() {
         }
 
         if (accountEmail) {
-            storePasswordHandoff(accountEmail, password);
+            storeCredentialHandoff(accountEmail, password);
         }
 
         setIsSuccess(true);

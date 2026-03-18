@@ -84,13 +84,15 @@ export function PaidPlanCheckoutDialog({
                     onOpenChange(false);
                 }
             }}
-            onMouseDown={(event) => {
-                if (event.target === event.currentTarget) {
-                    onOpenChange(false);
-                }
-            }}
         >
-            <div className="w-full min-w-0 overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_24px_70px_rgba(15,23,42,0.24)]">
+            <button
+                type="button"
+                aria-label={`Close ${title}`}
+                className="absolute inset-0"
+                onClick={() => onOpenChange(false)}
+            />
+
+            <div className="relative z-[1] w-full min-w-0 overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_24px_70px_rgba(15,23,42,0.24)]">
                 <div className="flex max-h-[min(42rem,calc(100dvh-2rem))] min-w-0 flex-col sm:max-h-[min(42rem,calc(100dvh-3rem))]">
                     <div className="sr-only">
                         <span id={titleId}>{title}</span>

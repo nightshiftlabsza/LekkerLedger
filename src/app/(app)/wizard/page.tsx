@@ -49,6 +49,58 @@ const safeDate = (s: string): Date => {
     return Number.isNaN(d.getTime()) ? new Date() : d;
 };
 
+function getWizardNextButtonContent(loading: boolean, currentStep: number): React.ReactNode {
+    if (loading) {
+        return (
+            <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+            </>
+        );
+    }
+
+    if (currentStep === STEPS.length - 1) {
+        return "Save & Preview";
+    }
+
+    return (
+        <>
+            Next <ArrowRight className="h-4 w-4" />
+        </>
+    );
+}
+
+function validateWizardPeriodStep({
+    monthKey,
+    enteredDaysWorked,
+    hours,
+    ordinaryHours,
+    setPeriodError,
+    setHoursError,
+}: {
+    monthKey: string;
+    enteredDaysWorked: number;
+    hours: { overtime: string; sunday: string; holiday: string };
+    ordinaryHours: number;
+    setPeriodError: (value: string) => void;
+    setHoursError: (value: string) => void;
+}) {
+    if (!monthKey) {
+        setPeriodError("Please select the month for this payslip.");
+        return false;
+    }
+    if (enteredDaysWorked === 0 && !hours.overtime && !hours.sunday && !hours.holiday) {
+        setHoursError("Enter the standard working days for this month, or add premium hours if this month had no ordinary schedule.");
+        return false;
+    }
+    if (enteredDaysWorked > 0 && ordinaryHours <= 0) {
+        setHoursError("Ordinary hours must be greater than 0 when standard working days are entered.");
+        return false;
+    }
+    setPeriodError("");
+    setHoursError("");
+    return true;
+}
+
 function WizardContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -168,11 +220,13 @@ function WizardContent() {
     const uifApplicable = breakdown
         ? isUifApplicable(breakdown.totalHours, breakdown.periodStart, breakdown.periodEnd)
         : false;
-    const ordinaryHoursInputValue = ordinaryHoursOverride !== ""
-        ? ordinaryHoursOverride
-        : monthlyDraft?.autoOrdinaryHours
-            ? monthlyDraft.autoOrdinaryHours.toString()
-            : "";
+    const autoOrdinaryHours = monthlyDraft?.autoOrdinaryHours;
+    let ordinaryHoursInputValue = "";
+    if (ordinaryHoursOverride !== "") {
+        ordinaryHoursInputValue = ordinaryHoursOverride;
+    } else if (autoOrdinaryHours) {
+        ordinaryHoursInputValue = autoOrdinaryHours.toString();
+    }
     const ordinaryHoursHelperText = monthlyDraft?.hasManualOrdinaryHoursOverride
         ? `Manual ordinary-hours override in use. Auto-calculated hours for this month would be ${monthlyDraft.autoOrdinaryHours}.`
         : `Auto-calculated as ${monthlyDraft?.autoOrdinaryHours ?? 0} hours from ${enteredDaysWorked} standard day${enteredDaysWorked === 1 ? "" : "s"} x ${employee?.ordinaryHoursPerDay ?? 8} hours.`;
@@ -184,20 +238,7 @@ function WizardContent() {
         : "";
     const ordinaryPayLabel = `Ordinary (${ordinaryHours}h${ordinaryTopUpLabel})`;
     const shouldShowAccommodationDeduction = Boolean(includeAccommodation && breakdown?.deductions.accommodation);
-    let nextButtonContent: React.ReactNode = (
-        <>
-            Next <ArrowRight className="h-4 w-4" />
-        </>
-    );
-    if (loading) {
-        nextButtonContent = (
-            <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Saving…
-            </>
-        );
-    } else if (currentStep === STEPS.length - 1) {
-        nextButtonContent = "Save & Preview";
-    }
+    const nextButtonContent = getWizardNextButtonContent(loading, currentStep);
     const doSave = React.useCallback(async () => {
         if (!employee) return;
         setLoading(true);
@@ -261,17 +302,16 @@ function WizardContent() {
 
     const handleNext = async () => {
         if (currentStep === 0) {
-            if (!monthKey) { setPeriodError("Please select the month for this payslip."); return; }
-            if (enteredDaysWorked === 0 && !hours.overtime && !hours.sunday && !hours.holiday) {
-                setHoursError("Enter the standard working days for this month, or add premium hours if this month had no ordinary schedule.");
+            if (!validateWizardPeriodStep({
+                monthKey,
+                enteredDaysWorked,
+                hours,
+                ordinaryHours,
+                setPeriodError,
+                setHoursError,
+            })) {
                 return;
             }
-            if (enteredDaysWorked > 0 && ordinaryHours <= 0) {
-                setHoursError("Ordinary hours must be greater than 0 when standard working days are entered.");
-                return;
-            }
-            setPeriodError("");
-            setHoursError("");
         }
 
         if (currentStep < STEPS.length - 1) {

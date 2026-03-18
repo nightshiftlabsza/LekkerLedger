@@ -41,6 +41,47 @@ function hasE2EBypassCookie() {
         .some((value) => value === "ll-e2e-auth-bypass=1");
 }
 
+function canUseLegacyRecoveryKey(profileState: Awaited<ReturnType<typeof loadEncryptionProfileState>>) {
+    return profileState.encryptionMode === "maximum_privacy"
+        || profileState.source === "legacy_local"
+        || profileState.source === "cloud_data";
+}
+
+async function startUnlockedSession(userId: string, key: CryptoKey, reconcile = false) {
+    syncEngine.setCryptoKey(key);
+    syncService.init(userId, key);
+    if (reconcile) {
+        await syncService.reconcileAfterUnlock().catch((error) => {
+            console.warn("Could not refresh cloud data during automatic unlock.", error);
+        });
+    }
+}
+
+async function tryRestoreUnlockedState(
+    userId: string,
+    supabase: ReturnType<typeof createClient>,
+    setEncryptionMode: React.Dispatch<React.SetStateAction<EncryptionMode | null>>,
+): Promise<boolean> {
+    const profileState = await loadEncryptionProfileState(userId, supabase);
+    const storedRecoveryProfile = await getLocalRecoveryProfile(userId);
+
+    setEncryptionMode(profileState.source === "none" ? null : profileState.encryptionMode);
+
+    if (profileState.keySetupComplete && profileState.encryptionMode === "recoverable" && storedRecoveryProfile?.cachedMasterKey) {
+        const key = await importAccountMasterKey(storedRecoveryProfile.cachedMasterKey);
+        await startUnlockedSession(userId, key, true);
+        return true;
+    }
+
+    if (canUseLegacyRecoveryKey(profileState) && storedRecoveryProfile?.recoveryKey) {
+        const key = await deriveKey(storedRecoveryProfile.recoveryKey);
+        await startUnlockedSession(userId, key, true);
+        return true;
+    }
+
+    return false;
+}
+
 export function AppModeProvider({ children }: { children: React.ReactNode }) {
     const [mode, setMode] = React.useState<AppMode>("local_guest");
     const [encryptionMode, setEncryptionMode] = React.useState<EncryptionMode | null>(null);
@@ -91,40 +132,18 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
                 if (hasE2EBypassCookie()) {
                     const key = await generateAccountMasterKey();
                     if (!mounted) return;
-                    syncEngine.setCryptoKey(key);
-                    syncService.init(userId, key);
+                    await startUnlockedSession(userId, key);
                     setEncryptionMode(null);
                     setMode("account_unlocked");
                     return;
                 }
 
                 try {
-                    const profileState = await loadEncryptionProfileState(userId, supabase);
-                    const storedRecoveryProfile = await getLocalRecoveryProfile(userId);
+                    const restored = await tryRestoreUnlockedState(userId, supabase, setEncryptionMode);
                     if (!mounted) return;
 
-                    setEncryptionMode(profileState.source === "none" ? null : profileState.encryptionMode);
-
-                    if (profileState.keySetupComplete && profileState.encryptionMode === "recoverable" && storedRecoveryProfile?.cachedMasterKey) {
-                        const key = await importAccountMasterKey(storedRecoveryProfile.cachedMasterKey);
-                        syncEngine.setCryptoKey(key);
-                        syncService.init(userId, key);
+                    if (restored) {
                         setMode("account_unlocked");
-                        void syncService.reconcileAfterUnlock().catch((error) => {
-                            console.warn("Could not refresh cloud data during automatic unlock.", error);
-                        });
-                        return;
-                    }
-
-                    const canUseLegacyRecoveryKey = profileState.encryptionMode === "maximum_privacy" || profileState.source === "legacy_local" || profileState.source === "cloud_data";
-                    if (canUseLegacyRecoveryKey && storedRecoveryProfile?.recoveryKey) {
-                        const key = await deriveKey(storedRecoveryProfile.recoveryKey);
-                        syncEngine.setCryptoKey(key);
-                        syncService.init(userId, key);
-                        setMode("account_unlocked");
-                        void syncService.reconcileAfterUnlock().catch((error) => {
-                            console.warn("Could not refresh cloud data during automatic unlock.", error);
-                        });
                         return;
                     }
                 } catch (e) {
@@ -146,7 +165,7 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
         return () => {
             mounted = false;
         };
-    }, [authLoading, supabase, transitionToGuest, transitionToLocked, user?.id]);
+    }, [authLoading, supabase, transitionToGuest, user?.id]);
 
     React.useEffect(() => {
         if (mode !== "account_unlocked" || !authenticatedUserId) {

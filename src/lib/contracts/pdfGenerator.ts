@@ -256,6 +256,47 @@ function drawBulletList(page: PDFPage, fonts: PdfFonts, items: string[], y: numb
     return currentY;
 }
 
+function drawContractClauseBody({
+    pdfDoc,
+    fonts,
+    currentPage,
+    cy,
+    pageCounter,
+    clause,
+}: {
+    pdfDoc: PDFDocument;
+    fonts: PdfFonts;
+    currentPage: PDFPage;
+    cy: number;
+    pageCounter: { n: number };
+    clause: ReturnType<typeof buildContractClauses>[number];
+}) {
+    if (clause.type === "rows" && clause.rows) {
+        for (const row of clause.rows) {
+            ({ page: currentPage, cy } = ensureSpace(pdfDoc, fonts, currentPage, cy, 24, pageCounter));
+            drawRow(currentPage, fonts, row.label, row.value, cy);
+            cy -= 20;
+        }
+        return { currentPage, cy: cy - 6 };
+    }
+
+    if (clause.type === "paragraphs" && clause.paragraphs) {
+        for (const paragraph of clause.paragraphs) {
+            ({ page: currentPage, cy } = ensureSpace(pdfDoc, fonts, currentPage, cy, 50, pageCounter));
+            cy = drawParagraph(currentPage, fonts, paragraph, cy);
+        }
+        return { currentPage, cy: cy - 4 };
+    }
+
+    if (clause.type === "bullets" && clause.bullets) {
+        ({ page: currentPage, cy } = ensureSpace(pdfDoc, fonts, currentPage, cy, 50, pageCounter));
+        cy = drawBulletList(currentPage, fonts, clause.bullets, cy);
+        return { currentPage, cy: cy - 8 };
+    }
+
+    return { currentPage, cy };
+}
+
 export async function generateEmploymentContract(
     contractOrEmployee: Contract | Employee,
     employeeOrSettings: Employee | EmployerSettings,
@@ -415,24 +456,14 @@ export async function generateEmploymentContract(
         drawSectionHeader(currentPage, fonts, `${sectionNumber} ${clause.title}`, cy);
         cy -= 24;
 
-        if (clause.type === "rows" && clause.rows) {
-            for (const row of clause.rows) {
-                ({ page: currentPage, cy } = ensureSpace(pdfDoc, fonts, currentPage, cy, 24, pageCounter));
-                drawRow(currentPage, fonts, row.label, row.value, cy);
-                cy -= 20;
-            }
-            cy -= 6;
-        } else if (clause.type === "paragraphs" && clause.paragraphs) {
-            for (const p of clause.paragraphs) {
-                ({ page: currentPage, cy } = ensureSpace(pdfDoc, fonts, currentPage, cy, 50, pageCounter));
-                cy = drawParagraph(currentPage, fonts, p, cy);
-            }
-            cy -= 4;
-        } else if (clause.type === "bullets" && clause.bullets) {
-            ({ page: currentPage, cy } = ensureSpace(pdfDoc, fonts, currentPage, cy, 50, pageCounter));
-            cy = drawBulletList(currentPage, fonts, clause.bullets, cy);
-            cy -= 8;
-        }
+        ({ currentPage, cy } = drawContractClauseBody({
+            pdfDoc,
+            fonts,
+            currentPage,
+            cy,
+            pageCounter,
+            clause,
+        }));
 
         // Gap between sections
         cy -= 10;

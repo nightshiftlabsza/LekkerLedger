@@ -129,6 +129,28 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
     );
 }
 
+function getNewHouseholdError(households: Household[], newHouseholdName: string) {
+    const trimmed = newHouseholdName.trim();
+    if (!trimmed) {
+        return "Enter a household name before you continue.";
+    }
+
+    const duplicateName = households.some((household) => household.name.trim().toLowerCase() === trimmed.toLowerCase());
+    if (duplicateName) {
+        return "That household name already exists. Choose a different label so the workspaces stay clear.";
+    }
+
+    return null;
+}
+
+function buildHousehold(name: string): Household {
+    return {
+        id: crypto.randomUUID(),
+        name,
+        createdAt: new Date().toISOString(),
+    };
+}
+
 function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
     const router = useRouter();
     const pathname = usePathname();
@@ -217,28 +239,18 @@ function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
     };
 
     const handleConfirmAddHousehold = async () => {
+        const nextError = getNewHouseholdError(households, newHouseholdName);
+        if (nextError) {
+            setAddHouseholdError(nextError);
+            return;
+        }
+
         const trimmed = newHouseholdName.trim();
-        if (!trimmed) {
-            setAddHouseholdError("Enter a household name before you continue.");
-            return;
-        }
-
-        const duplicateName = households.some((household) => household.name.trim().toLowerCase() === trimmed.toLowerCase());
-        if (duplicateName) {
-            setAddHouseholdError("That household name already exists. Choose a different label so the workspaces stay clear.");
-            return;
-        }
-
         setAddingHousehold(true);
         setAddHouseholdError("");
 
         try {
-            const household = {
-                id: crypto.randomUUID(),
-                name: trimmed,
-                createdAt: new Date().toISOString(),
-            } satisfies Household;
-
+            const household = buildHousehold(trimmed);
             await saveHousehold(household);
             await setActiveHouseholdId(household.id);
             setLastLocalSaveAt(Date.now());

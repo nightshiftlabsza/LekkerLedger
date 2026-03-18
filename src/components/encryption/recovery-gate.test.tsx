@@ -12,9 +12,9 @@ const mocks = vi.hoisted(() => ({
     loadEncryptionProfileStateMock: vi.fn(),
     getLocalRecoveryProfileMock: vi.fn(),
     saveLocalRecoveryProfileMock: vi.fn(),
-    hasPasswordHandoffMock: vi.fn(),
-    consumePasswordHandoffMock: vi.fn(),
-    clearPasswordHandoffMock: vi.fn(),
+    hasCredentialHandoffMock: vi.fn(),
+    consumeCredentialHandoffMock: vi.fn(),
+    clearCredentialHandoffMock: vi.fn(),
     buildRecoverableSetupArtifactsMock: vi.fn(),
     sendRecoverableSetupRequestMock: vi.fn(),
     requestRecoveredMasterKeyMock: vi.fn(),
@@ -116,10 +116,10 @@ vi.mock("@/lib/recovery-profile-store", () => ({
     saveLocalRecoveryProfile: mocks.saveLocalRecoveryProfileMock,
 }));
 
-vi.mock("@/lib/password-handoff", () => ({
-    hasPasswordHandoff: mocks.hasPasswordHandoffMock,
-    consumePasswordHandoff: mocks.consumePasswordHandoffMock,
-    clearPasswordHandoff: mocks.clearPasswordHandoffMock,
+vi.mock("@/lib/credential-handoff", () => ({
+    hasCredentialHandoff: mocks.hasCredentialHandoffMock,
+    consumeCredentialHandoff: mocks.consumeCredentialHandoffMock,
+    clearCredentialHandoff: mocks.clearCredentialHandoffMock,
 }));
 
 vi.mock("@/lib/recoverable-account", () => ({
@@ -167,9 +167,9 @@ describe("RecoveryGate", () => {
         mocks.loadEncryptionProfileStateMock.mockReset();
         mocks.getLocalRecoveryProfileMock.mockReset();
         mocks.saveLocalRecoveryProfileMock.mockReset();
-        mocks.hasPasswordHandoffMock.mockReset();
-        mocks.consumePasswordHandoffMock.mockReset();
-        mocks.clearPasswordHandoffMock.mockReset();
+        mocks.hasCredentialHandoffMock.mockReset();
+        mocks.consumeCredentialHandoffMock.mockReset();
+        mocks.clearCredentialHandoffMock.mockReset();
         mocks.buildRecoverableSetupArtifactsMock.mockReset();
         mocks.sendRecoverableSetupRequestMock.mockReset();
         mocks.requestRecoveredMasterKeyMock.mockReset();
@@ -205,8 +205,8 @@ describe("RecoveryGate", () => {
             fallbackEncryptedRecord: null,
         });
         mocks.getLocalRecoveryProfileMock.mockResolvedValue(null);
-        mocks.hasPasswordHandoffMock.mockReturnValue(false);
-        mocks.consumePasswordHandoffMock.mockReturnValue("Password123!");
+        mocks.hasCredentialHandoffMock.mockReturnValue(false);
+        mocks.consumeCredentialHandoffMock.mockReturnValue("Password123!");
         mocks.generateAccountMasterKeyMock.mockResolvedValue({} as CryptoKey);
         mocks.buildRecoverableSetupArtifactsMock.mockResolvedValue({
             rawMasterKey: "raw-master-key",
@@ -330,7 +330,7 @@ describe("RecoveryGate", () => {
     });
 
     it("auto-opens recoverable accounts when the login password handoff is available", async () => {
-        mocks.hasPasswordHandoffMock.mockReturnValue(true);
+        mocks.hasCredentialHandoffMock.mockReturnValue(true);
         mocks.loadEncryptionProfileStateMock.mockResolvedValue({
             encryptionMode: "recoverable",
             modeVersion: 1,
@@ -358,7 +358,7 @@ describe("RecoveryGate", () => {
             expect(screen.getByText("Protected child")).toBeTruthy();
         });
 
-        expect(mocks.consumePasswordHandoffMock).toHaveBeenCalledWith("owner@example.com");
+        expect(mocks.consumeCredentialHandoffMock).toHaveBeenCalledWith("owner@example.com");
         expect(screen.queryByRole("heading", { name: "Finish opening this device" })).toBeNull();
     });
 

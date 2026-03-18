@@ -12,6 +12,7 @@ const SUPABASE_PROJECT_REF = new URL(SUPABASE_URL).hostname.split(".")[0];
 const SUPABASE_STORAGE_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
 const QA_USER_ID = "e2e-paid-user";
 const QA_EMAIL = "qa-paid@example.com";
+const encodeStoredRecord = (value: unknown) => btoa(encodeURIComponent(JSON.stringify(value)));
 const SUPABASE_CORS_HEADERS = {
     "access-control-allow-origin": "*",
     "access-control-allow-methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
@@ -530,11 +531,7 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
     await page.addScriptTag({ path: LOCALFORAGE_SCRIPT_PATH });
 
     const payload = buildSeedPayload(mode);
-    await page.evaluate(async ({ authSessionPayload, storeNames, payload, storageKey }) => {
-        function encodeStoredRecord(value: unknown) {
-            return btoa(encodeURIComponent(JSON.stringify(value)));
-        }
-
+    await page.evaluate(async ({ authSessionPayload, storeNames, payload, storageKey, encodeStoredRecordFnSource }) => {
         function deleteDb(name: string) {
             return new Promise<void>((resolve) => {
                 const request = indexedDB.deleteDatabase(name);
@@ -545,6 +542,7 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
         }
 
         const localforageApi = (window as any).localforage;
+        const encodeStoredRecord = new Function(`return (${encodeStoredRecordFnSource});`)() as (value: unknown) => string;
 
         const wipeIndexedDb = async () => {
             await Promise.all(storeNames.map(async (name: any) => {
@@ -588,6 +586,7 @@ export async function resetAndSeedAuditState(page: Page, mode: SeedMode) {
         storeNames: [...STORE_NAMES],
         payload,
         storageKey: SUPABASE_STORAGE_KEY,
+        encodeStoredRecordFnSource: encodeStoredRecord.toString(),
     });
 }
 
@@ -596,11 +595,7 @@ export async function seedAuditStores(page: Page, mode: SeedMode) {
     await page.addScriptTag({ path: LOCALFORAGE_SCRIPT_PATH });
 
     const payload = buildSeedPayload(mode);
-    await page.evaluate(async ({ payload }) => {
-        function encodeStoredRecord(value: unknown) {
-            return btoa(encodeURIComponent(JSON.stringify(value)));
-        }
-
+    await page.evaluate(async ({ payload, encodeStoredRecordFnSource }) => {
         const localforageApi = (window as typeof window & {
             localforage: {
                 createInstance: (options: { name: string; storeName: string }) => {
@@ -608,6 +603,7 @@ export async function seedAuditStores(page: Page, mode: SeedMode) {
                 };
             };
         }).localforage;
+        const encodeStoredRecord = new Function(`return (${encodeStoredRecordFnSource});`)() as (value: unknown) => string;
 
         const settingsStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "settings" });
         const householdStore = localforageApi.createInstance({ name: "LekkerLedger", storeName: "households" });
@@ -628,7 +624,10 @@ export async function seedAuditStores(page: Page, mode: SeedMode) {
         await Promise.all(payload.payPeriods.map((period: { id: string }) => payPeriodStore.setItem(period.id, encodeStoredRecord(period))));
         await Promise.all(payload.documents.map((doc: { id: string }) => documentStore.setItem(doc.id, encodeStoredRecord(doc))));
         await Promise.all(payload.contracts.map((contract: { id: string }) => contractStore.setItem(contract.id, encodeStoredRecord(contract))));
-    }, { payload });
+    }, {
+        payload,
+        encodeStoredRecordFnSource: encodeStoredRecord.toString(),
+    });
 }
 
 async function getRoleLocator(page: Page, step: Extract<AuditStep, { type: "clickByRole" }>): Promise<Locator> {

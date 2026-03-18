@@ -42,14 +42,15 @@ export default async function AppRootLayout({
     const hasE2EBypass =
         process.env.E2E_BYPASS_AUTH === "1"
         && cookieStore.get("ll-e2e-auth-bypass")?.value === "1";
-    const initialUser = user
-        ? {
+    let initialUser = null;
+    if (user) {
+        initialUser = {
             id: user.id,
             email: user.email ?? null,
-        }
-        : hasE2EBypass
-            ? buildE2EAuthUserSnapshot()
-            : null;
+        };
+    } else if (hasE2EBypass) {
+        initialUser = buildE2EAuthUserSnapshot();
+    }
 
     return (
         <AuthStateProvider initialUser={initialUser} lockInitialUser={hasE2EBypass}>

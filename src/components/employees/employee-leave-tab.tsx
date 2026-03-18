@@ -43,6 +43,40 @@ function SupportingMetric({ label, value, cardClass }: { label: string; value: s
     );
 }
 
+function getEmployeeLeaveCardClass(variant: EmployeeLeaveTabProps["variant"]) {
+    return variant === "embedded"
+        ? "rounded-[22px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+        : "border border-[var(--border)] bg-[var(--surface-1)]";
+}
+
+function getLeaveCycleDescription({
+    annualSummary,
+    hasCustomCycle,
+    hasManualBalance,
+}: {
+    annualSummary: ReturnType<typeof calculateAnnualLeaveSummary> | null;
+    hasCustomCycle: boolean;
+    hasManualBalance: boolean;
+}): React.ReactNode {
+    if (annualSummary?.currentCycle) {
+        return (
+            <p className="mt-2 text-xs text-[var(--text-muted)]">
+                {hasCustomCycle ? "Manual leave cycle" : "Current cycle"}: {format(annualSummary.currentCycle.start, "dd MMM yyyy")} to {format(annualSummary.currentCycle.end, "dd MMM yyyy")}
+            </p>
+        );
+    }
+
+    if (hasManualBalance) {
+        return (
+            <p className="mt-2 text-xs text-[var(--text-muted)]">Using the manual balance saved on this employee profile.</p>
+        );
+    }
+
+    return (
+        <p className="mt-2 text-xs text-[var(--text-muted)]">Add a start date on the profile to calculate leave cycle boundaries.</p>
+    );
+}
+
 export function EmployeeLeaveTab({
     employee,
     leaveRecords,
@@ -79,26 +113,10 @@ export function EmployeeLeaveTab({
     const visibleCarryOvers = carryOverBuckets.filter((carryOver) => Math.max(carryOver.daysCarried - carryOver.daysUsedFromCarry, 0) > 0);
     const carryOverNudge = getCarryOverNudge(carryOverBuckets, new Date());
     const entitlementLabel = hasManualBalance ? "Balance entered" : "Entitlement this cycle";
-    let cycleDescription: React.ReactNode = (
-        <p className="mt-2 text-xs text-[var(--text-muted)]">Add a start date on the profile to calculate leave cycle boundaries.</p>
-    );
-
-    if (annualSummary?.currentCycle) {
-        cycleDescription = (
-            <p className="mt-2 text-xs text-[var(--text-muted)]">
-                {hasCustomCycle ? "Manual leave cycle" : "Current cycle"}: {format(annualSummary.currentCycle.start, "dd MMM yyyy")} to {format(annualSummary.currentCycle.end, "dd MMM yyyy")}
-            </p>
-        );
-    } else if (hasManualBalance) {
-        cycleDescription = (
-            <p className="mt-2 text-xs text-[var(--text-muted)]">Using the manual balance saved on this employee profile.</p>
-        );
-    }
+    const cycleDescription = getLeaveCycleDescription({ annualSummary, hasCustomCycle, hasManualBalance });
 
     const archiveUpgradeHref = getArchiveUpgradeHref(currentPlan.id);
-    const cardClass = variant === "embedded"
-        ? "rounded-[22px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
-        : "border border-[var(--border)] bg-[var(--surface-1)]";
+    const cardClass = getEmployeeLeaveCardClass(variant);
     const archiveUpgradeLabel = getArchiveUpgradeLabel(currentPlan.id);
 
     return (

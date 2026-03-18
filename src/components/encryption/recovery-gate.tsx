@@ -4,7 +4,7 @@ import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAppMode } from "@/lib/app-mode";
-import { clearPasswordHandoff, consumePasswordHandoff, hasPasswordHandoff } from "@/lib/password-handoff";
+import { clearCredentialHandoff, consumeCredentialHandoff, hasCredentialHandoff } from "@/lib/credential-handoff";
 import { buildRecoverableSetupArtifacts, requestRecoveredMasterKey, sendRecoverableSetupRequest } from "@/lib/recoverable-account";
 import { RecoveryKeySetup } from "./recovery-key-setup";
 import { RecoveryKeyInput } from "./recovery-key-input";
@@ -56,6 +56,29 @@ function isWrappedKeyPayload(value: unknown): value is WrappedKeyPayload {
     );
 }
 
+function redirectToLoginForExpiredSession(
+    router: ReturnType<typeof useRouter>,
+    sessionExpiredLoginHref: string,
+    setStatus: React.Dispatch<React.SetStateAction<RecoveryGateStep>>,
+    setErrorMessage: (message: string) => void,
+    fallbackStatus: RecoveryGateStep,
+) {
+    setErrorMessage("Your session expired. Please sign in again.");
+    setStatus(fallbackStatus);
+    router.replace(sessionExpiredLoginHref);
+}
+
+function resolvePasswordForCurrentUser(
+    userEmail: string | null | undefined,
+    input: { password: string | null; useSavedPassword: boolean },
+) {
+    if (input.useSavedPassword) {
+        return consumeCredentialHandoff(userEmail ?? null);
+    }
+
+    return input.password?.trim() || null;
+}
+
 export function RecoveryGate({ children }: { children: React.ReactNode }) {
     const { mode, encryptionMode, setEncryptionMode, unlockAccount } = useAppMode();
     const [status, setStatus] = React.useState<RecoveryGateStep>("ready");
@@ -81,12 +104,6 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
 
     const effectiveMode = selectedMode ?? profileState?.encryptionMode ?? encryptionMode;
 
-    const redirectToLoginForExpiredSession = React.useCallback((setErrorMessage: (message: string) => void, fallbackStatus: RecoveryGateStep) => {
-        setErrorMessage("Your session expired. Please sign in again.");
-        setStatus(fallbackStatus);
-        router.replace(sessionExpiredLoginHref);
-    }, [router, sessionExpiredLoginHref]);
-
     const getAuthenticatedUser = React.useCallback(async () => {
         let { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -96,14 +113,6 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         }
         return user;
     }, [supabase]);
-
-    const resolvePasswordForCurrentUser = React.useCallback((userEmail: string | null | undefined, input: { password: string | null; useSavedPassword: boolean }) => {
-        if (input.useSavedPassword) {
-            return consumePasswordHandoff(userEmail ?? null);
-        }
-
-        return input.password?.trim() || null;
-    }, []);
 
     React.useEffect(() => {
         if (mode !== "account_locked") {
@@ -123,14 +132,14 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 if (!mounted) return;
 
                 if (!user) {
-                    redirectToLoginForExpiredSession(setInputError, "recoverable_input");
+                    redirectToLoginForExpiredSession(router, sessionExpiredLoginHref, setStatus, setInputError, "recoverable_input");
                     return;
                 }
 
                 const nextProfileState = await loadEncryptionProfileState(user.id, supabase);
                 if (!mounted) return;
 
-                const canUseSavedPassword = hasPasswordHandoff(user.email ?? null);
+                const canUseSavedPassword = hasCredentialHandoff(user.email ?? null);
 
                 setProfileState(nextProfileState);
                 setSelectedMode(null);
@@ -163,7 +172,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         return () => {
             mounted = false;
         };
-    }, [getAuthenticatedUser, mode, redirectToLoginForExpiredSession, setEncryptionMode, supabase]);
+    }, [getAuthenticatedUser, mode, router, sessionExpiredLoginHref, setEncryptionMode, supabase]);
 
     React.useEffect(() => {
         if (mode !== "account_unlocked" || encryptionMode !== "maximum_privacy") {
@@ -233,7 +242,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         try {
             const user = await getAuthenticatedUser();
             if (!user) {
-                redirectToLoginForExpiredSession(setSetupError, "max_privacy_setup");
+                redirectToLoginForExpiredSession(router, sessionExpiredLoginHref, setStatus, setSetupError, "max_privacy_setup");
                 return;
             }
 
@@ -287,7 +296,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         } finally {
             setIsSubmittingSetup(false);
         }
-    }, [getAuthenticatedUser, redirectToLoginForExpiredSession, setEncryptionMode, supabase, unlockAccount]);
+    }, [getAuthenticatedUser, router, sessionExpiredLoginHref, setEncryptionMode, supabase, unlockAccount]);
 
     const handleMaximumPrivacyUnlock = React.useCallback(async (keyString: string, cryptoKey: CryptoKey) => {
         setInputError(null);
@@ -295,7 +304,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         try {
             const user = await getAuthenticatedUser();
             if (!user) {
-                redirectToLoginForExpiredSession(setInputError, "max_privacy_input");
+                redirectToLoginForExpiredSession(router, sessionExpiredLoginHref, setStatus, setInputError, "max_privacy_input");
                 return;
             }
 
@@ -340,7 +349,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         } finally {
             setIsSubmittingInput(false);
         }
-    }, [getAuthenticatedUser, redirectToLoginForExpiredSession, setEncryptionMode, supabase, unlockAccount]);
+    }, [getAuthenticatedUser, router, sessionExpiredLoginHref, setEncryptionMode, supabase, unlockAccount]);
 
     const unlockRecoverableAccount = React.useCallback(async ({
         user,
@@ -375,7 +384,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             updatedAt: new Date().toISOString(),
         });
 
-        clearPasswordHandoff();
+        clearCredentialHandoff();
         setSavedPasswordReady(false);
         setEncryptionMode("recoverable");
         setProfileState(resolvedProfileState);
@@ -398,11 +407,11 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 if (!mounted) return;
 
                 if (!user) {
-                    redirectToLoginForExpiredSession(setInputError, "recoverable_input");
+                    redirectToLoginForExpiredSession(router, sessionExpiredLoginHref, setStatus, setInputError, "recoverable_input");
                     return;
                 }
 
-                const password = consumePasswordHandoff(user.email ?? null);
+                const password = consumeCredentialHandoff(user.email ?? null);
                 if (!password) {
                     setSavedPasswordReady(false);
                     setInputError("Sign-in worked, but this device still needs your password to open the encrypted records.");
@@ -421,7 +430,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             } catch (error) {
                 if (!mounted) return;
                 console.error(error);
-                clearPasswordHandoff();
+                clearCredentialHandoff();
                 setSavedPasswordReady(false);
                 setInputError("Sign-in worked, but we could not finish opening this device automatically. Confirm your password to continue.");
                 setStatus("recoverable_input");
@@ -437,7 +446,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         return () => {
             mounted = false;
         };
-    }, [getAuthenticatedUser, mode, profileState, redirectToLoginForExpiredSession, status, supabase, unlockRecoverableAccount]);
+    }, [getAuthenticatedUser, mode, profileState, router, sessionExpiredLoginHref, status, supabase, unlockRecoverableAccount]);
 
     const handleRecoverableSubmit = React.useCallback(async (input: { password: string | null; useSavedPassword: boolean }) => {
         const isSetupFlow = status === "recoverable_setup";
@@ -453,7 +462,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         try {
             const user = await getAuthenticatedUser();
             if (!user) {
-                redirectToLoginForExpiredSession(setError, status);
+                redirectToLoginForExpiredSession(router, sessionExpiredLoginHref, setStatus, setError, status);
                 return;
             }
 
@@ -482,7 +491,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                     updatedAt: new Date().toISOString(),
                 });
 
-                clearPasswordHandoff();
+                clearCredentialHandoff();
                 setSavedPasswordReady(false);
                 setEncryptionMode("recoverable");
                 setProfileState({
@@ -504,7 +513,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         } catch (error) {
             console.error(error);
             if (input.useSavedPassword) {
-                clearPasswordHandoff();
+                clearCredentialHandoff();
                 setSavedPasswordReady(false);
                 setInputError("Sign-in worked, but we could not finish opening this device with the saved password. Confirm your password again.");
             } else {
@@ -518,7 +527,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 setIsSubmittingInput(false);
             }
         }
-    }, [getAuthenticatedUser, redirectToLoginForExpiredSession, resolvePasswordForCurrentUser, setEncryptionMode, status, unlockRecoverableAccount, unlockAccount]);
+    }, [getAuthenticatedUser, router, sessionExpiredLoginHref, setEncryptionMode, status, unlockRecoverableAccount, unlockAccount]);
 
     const handleRecoverableRecovery = React.useCallback(async (input: { password: string | null; useSavedPassword: boolean }) => {
         setInputError(null);
@@ -526,7 +535,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         try {
             const user = await getAuthenticatedUser();
             if (!user) {
-                redirectToLoginForExpiredSession(setInputError, "recoverable_input");
+                redirectToLoginForExpiredSession(router, sessionExpiredLoginHref, setStatus, setInputError, "recoverable_input");
                 return;
             }
 
@@ -569,7 +578,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 updatedAt: new Date().toISOString(),
             });
 
-            clearPasswordHandoff();
+            clearCredentialHandoff();
             setSavedPasswordReady(false);
             setEncryptionMode("recoverable");
             setProfileState({
@@ -588,7 +597,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         } catch (error) {
             console.error(error);
             if (input.useSavedPassword) {
-                clearPasswordHandoff();
+                clearCredentialHandoff();
                 setSavedPasswordReady(false);
                 setInputError("We could not finish recovery with the saved password. Enter your current password and try again.");
             } else {
@@ -598,7 +607,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         } finally {
             setIsRecovering(false);
         }
-    }, [getAuthenticatedUser, redirectToLoginForExpiredSession, resolvePasswordForCurrentUser, setEncryptionMode, supabase, unlockAccount]);
+    }, [getAuthenticatedUser, router, sessionExpiredLoginHref, setEncryptionMode, supabase, unlockAccount]);
 
     const handleModeSelect = React.useCallback((nextMode: EncryptionMode) => {
         setSelectedMode(nextMode);

@@ -53,7 +53,7 @@ export function MobileSheet({
     returnFocusRef,
     testId,
 }: MobileSheetProps) {
-    const panelRef = React.useRef<HTMLDivElement | null>(null);
+    const panelRef = React.useRef<HTMLDialogElement | null>(null);
     const lastFocusedElementRef = React.useRef<HTMLElement | null>(null);
     const [mounted, setMounted] = React.useState(false);
     const [isMobileViewport, setIsMobileViewport] = React.useState(false);
@@ -160,16 +160,16 @@ export function MobileSheet({
             />
 
             <div className={`relative flex h-full w-full ${position === "left" ? "items-stretch justify-start" : "items-end justify-stretch"}`}>
-                <div
+                <dialog
+                    open
                     ref={panelRef}
-                    role="dialog"
                     aria-modal="true"
                     aria-label={ariaLabel}
                     tabIndex={-1}
-                    className={`relative z-[91] flex bg-[var(--surface-raised)] shadow-[var(--shadow-xl)] ${panelPositionClassName} ${panelClassName}`.trim()}
+                    className={`relative z-[91] m-0 flex overflow-visible border-0 bg-[var(--surface-raised)] p-0 text-inherit shadow-[var(--shadow-xl)] ${panelPositionClassName} ${panelClassName}`.trim()}
                 >
                     {children}
-                </div>
+                </dialog>
             </div>
         </div>,
         document.body,

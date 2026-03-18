@@ -44,6 +44,42 @@ function formatIdNumber(idNumber: string) {
     return `${idNumber.slice(0, 6)} ${idNumber.slice(6, 10)} ${idNumber.slice(10)}`;
 }
 
+function getVisibleEmployeeTabs(allowLeave: boolean, allowDocuments: boolean) {
+    return TABS.filter((tab) => (tab.id !== "leave" || allowLeave) && (tab.id !== "documents" || allowDocuments));
+}
+
+async function loadEmployeeDetailData(id: string) {
+    const [employee, payslips, leaveRecords, leaveCarryOvers, contracts, settings, documents] = await Promise.all([
+        getEmployee(id),
+        getPayslipsForEmployee(id),
+        getLeaveForEmployee(id),
+        getLeaveCarryOversForEmployee(id),
+        getContractsForEmployee(id),
+        getSettings(),
+        getDocuments(),
+    ]);
+
+    return {
+        employee,
+        payslips: [...payslips].sort((a, b) => new Date(b.payPeriodEnd).getTime() - new Date(a.payPeriodEnd).getTime()),
+        leaveRecords,
+        leaveCarryOvers,
+        contracts,
+        settings,
+        documents,
+    };
+}
+
+function getFormattedEmployeeStartDate(employee: Employee) {
+    if (!employee.startDate) {
+        return "Not set";
+    }
+
+    const dateStr = format(new Date(employee.startDate), "dd MMM yyyy");
+    const suffix = employee.startDateIsApproximate ? " (estimate)" : "";
+    return `${dateStr}${suffix}`;
+}
+
 function EmployeeDetailContent() {
     const router = useRouter();
     const params = useParams<{ id: string }>();
@@ -85,27 +121,17 @@ function EmployeeDetailContent() {
     React.useEffect(() => {
         async function load() {
             if (!id) return;
-            const [emp, ps, leave, carryOvers, employeeContracts, settings, docs] = await Promise.all([
-                getEmployee(id),
-                getPayslipsForEmployee(id),
-                getLeaveForEmployee(id),
-                getLeaveCarryOversForEmployee(id),
-                getContractsForEmployee(id),
-                getSettings(),
-                getDocuments(),
-            ]);
-            if (!emp) { router.push("/employees"); return; }
-            setEmployee(emp);
-            setDocuments(docs);
-            setPayslips([...ps].sort(
-                (a, b) => new Date(b.payPeriodEnd).getTime() - new Date(a.payPeriodEnd).getTime()
-            ));
-            setLeaveRecords(leave);
-            setLeaveCarryOvers(carryOvers);
-            setContracts(employeeContracts);
-            setCustomLeaveTypes(settings.customLeaveTypes ?? []);
-            setEmployerSettings(settings);
-            const plan = getUserPlan(settings);
+            const nextData = await loadEmployeeDetailData(id);
+            if (!nextData.employee) { router.push("/employees"); return; }
+            setEmployee(nextData.employee);
+            setDocuments(nextData.documents);
+            setPayslips(nextData.payslips);
+            setLeaveRecords(nextData.leaveRecords);
+            setLeaveCarryOvers(nextData.leaveCarryOvers);
+            setContracts(nextData.contracts);
+            setCustomLeaveTypes(nextData.settings.customLeaveTypes ?? []);
+            setEmployerSettings(nextData.settings);
+            const plan = getUserPlan(nextData.settings);
             const allowLeave = canBrowseLeaveHistory(plan);
             const allowDocuments = canUseDocumentsHub(plan);
             setCurrentPlan(plan);
@@ -114,7 +140,7 @@ function EmployeeDetailContent() {
             setAdvancedLeaveEnabled(canUseAdvancedLeaveFeatures(plan));
             setLoading(false);
 
-            const visibleTabs = TABS.filter((tab) => (tab.id !== "leave" || allowLeave) && (tab.id !== "documents" || allowDocuments));
+            const visibleTabs = getVisibleEmployeeTabs(allowLeave, allowDocuments);
             const tabParam = searchParams?.get("tab") as Tab | null;
             if (tabParam && visibleTabs.some((tab) => tab.id === tabParam)) {
                 setActiveTab(tabParam);
@@ -159,13 +185,8 @@ function EmployeeDetailContent() {
 
     if (!employee) return null;
 
-    const visibleTabs = TABS.filter((tab) => (tab.id !== "leave" || showLeaveTab) && (tab.id !== "documents" || showDocumentsTab));
-    let formattedStartDate = "Not set";
-    if (employee.startDate) {
-        const dateStr = format(new Date(employee.startDate), "dd MMM yyyy");
-        const suffix = employee.startDateIsApproximate ? " (estimate)" : "";
-        formattedStartDate = `${dateStr}${suffix}`;
-    }
+    const visibleTabs = getVisibleEmployeeTabs(showLeaveTab, showDocumentsTab);
+    const formattedStartDate = getFormattedEmployeeStartDate(employee);
     const manualLeaveBalance = typeof employee.annualLeaveDaysRemaining === "number"
         ? `${employee.annualLeaveDaysRemaining} days remaining`
         : "Not entered";

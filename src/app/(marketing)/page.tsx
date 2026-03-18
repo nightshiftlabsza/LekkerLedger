@@ -18,7 +18,10 @@ import { HOMEPAGE_PRICING_LINK_LABEL, PRICING_PAGE_SUBTITLE, PRICING_PAGE_TITLE 
 import { useMarketingBillingCycle } from "@/src/lib/use-marketing-billing-cycle";
 import { MarketingHeader } from "../../../components/layout/marketing-header";
 
-const SAMPLE_FIGURE_GRID = "hidden sm:grid sm:grid-cols-[minmax(0,1fr)_4.25rem_5.75rem_6.75rem] sm:gap-x-3";
+const SAMPLE_FIGURE_GRID = [
+    "hidden md:grid md:grid-cols-[minmax(10rem,1.8fr)_minmax(3.75rem,0.65fr)_minmax(5rem,0.82fr)_minmax(5.5rem,0.95fr)] md:gap-x-3",
+    "min-[1440px]:grid-cols-[minmax(11rem,1.85fr)_minmax(4rem,0.68fr)_minmax(5.5rem,0.86fr)_minmax(6rem,0.98fr)] min-[1440px]:gap-x-4",
+].join(" ");
 const HERO_TRUST_POINTS = [
     "UIF deductions are clearly shown on each payslip.",
     "Contracts, exports, and payroll records stay together.",
@@ -209,7 +212,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                 </p>
             </div>
 
-            <div className="grid gap-5 p-5 sm:p-6 xl:grid-cols-[minmax(0,1fr)_14rem] xl:gap-6">
+            <div className="grid gap-5 p-5 sm:p-6">
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--border)] pb-4">
                         <div>
@@ -271,20 +274,21 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                     </div>
 
                     <div
-                        className="mt-4 rounded-[22px] border border-[var(--border)] p-4 sm:p-5"
+                        className="mt-4 overflow-hidden rounded-[22px] border border-[var(--border)] p-4 sm:p-5"
                         style={{ background: "linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(0, 122, 77, 0.03) 100%)" }}
                     >
                         <div
-                            className={`${SAMPLE_FIGURE_GRID} border-b border-[var(--border)] pb-2 text-[10px] font-black uppercase tracking-[0.16em]`}
+                            className={`${SAMPLE_FIGURE_GRID} items-end border-b border-[var(--border)] pb-3 text-[10px] font-black uppercase tracking-[0.16em]`}
+                            data-testid="sample-payslip-ledger-header"
                             style={{ color: "var(--text-muted)" }}
                         >
-                            <span>Description</span>
-                            <span className="text-right">Hours</span>
-                            <span className="text-right">Rate</span>
-                            <span className="text-right">Total</span>
+                            <span className="block min-w-0 pr-4">Description</span>
+                            <span className="block min-w-0 text-right">Hours</span>
+                            <span className="block min-w-0 text-right">Rate</span>
+                            <span className="block min-w-0 text-right">Total</span>
                         </div>
 
-                        <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 sm:hidden">
+                        <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 md:hidden">
                             <div>
                                 <p className="text-[11px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
                                     Pay breakdown
@@ -295,7 +299,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                             </div>
                         </div>
 
-                        <div className="space-y-1 pt-2">
+                        <div className="divide-y divide-[var(--border)] pt-2">
                             <SampleFigureRow
                                 label="Ordinary Hours"
                                 hours={`${sample.payslip.ordinaryHours}h`}
@@ -313,12 +317,12 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-1 xl:border-l xl:border-[var(--border)] xl:pl-5">
+                <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-3">
                     <ProofMetric label="Gross earnings" value={formatRand(sample.breakdown.grossPay)} />
                     <ProofMetric label="UIF deduction" value={`- ${formatRand(sample.breakdown.deductions.uifEmployee)}`} />
-                    <ProofMetric className="min-[360px]:col-span-2 sm:col-span-1" label="Net pay" value={formatRand(sample.breakdown.netPay)} emphasis />
+                    <ProofMetric className="min-[360px]:col-span-2 md:col-span-1" label="Net pay" value={formatRand(sample.breakdown.netPay)} emphasis />
                     <div
-                        className="hidden rounded-[20px] border border-[var(--focus)]/20 p-4 sm:col-span-3 sm:block xl:col-span-1"
+                        className="hidden rounded-[20px] border border-[var(--focus)]/20 p-4 md:col-span-3 md:block"
                         style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.06) 0%, rgba(0, 122, 77, 0.02) 100%)" }}
                     >
                         <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
@@ -347,14 +351,14 @@ function ProofMetric({
 }>) {
     return (
         <div
-            className={`rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)] ${className ?? ""}`}
+            className={`min-w-0 rounded-[20px] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)] ${className ?? ""}`}
             style={emphasis ? { background: "linear-gradient(135deg, rgba(0, 122, 77, 0.06) 0%, rgba(255, 255, 255, 1) 100%)" } : undefined}
         >
             <p className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: emphasis ? "var(--primary)" : "var(--text-muted)" }}>
                 {label}
             </p>
             <p
-                className="mt-2 font-[family:var(--font-serif)] font-semibold tabular-nums"
+                className="mt-2 min-w-0 whitespace-nowrap font-[family:var(--font-serif)] font-semibold tabular-nums"
                 style={{
                     color: emphasis ? "var(--primary-pressed)" : "var(--text)",
                     fontSize: "clamp(1.15rem, 1rem + 0.5vw, 1.55rem)",
@@ -390,7 +394,7 @@ function SamplePartyBlock({
                 {value}
             </p>
             {detail ? (
-                <div className="mt-2 space-y-1 text-xs" style={{ color: "var(--text-muted)" }}>
+                <div className="mt-2 space-y-1 break-words text-xs leading-5" style={{ color: "var(--text-muted)" }}>
                     {detail}
                 </div>
             ) : null}
@@ -407,25 +411,32 @@ function SampleFigureRow({ label, hours, rate, total, bold = false }: Readonly<{
     return (
         <>
             <div
-                className={`${SAMPLE_FIGURE_GRID} items-baseline py-2`}
-                style={{ fontSize: "clamp(0.82rem, 0.78rem + 0.16vw, 0.94rem)" }}
+                className={`${SAMPLE_FIGURE_GRID} items-start py-3`}
+                data-testid="sample-payslip-ledger-row"
+                style={{ fontSize: "clamp(0.82rem, 0.78rem + 0.14vw, 0.94rem)" }}
             >
-                <span className={`pr-2 ${bold ? "font-semibold" : ""}`} style={{ color: bold ? "var(--text)" : "var(--text-muted)" }}>
+                <span
+                    className={`block min-w-0 break-words pr-4 leading-6 ${bold ? "font-semibold" : ""}`}
+                    style={{ color: bold ? "var(--text)" : "var(--text-muted)" }}
+                >
                     {label}
                 </span>
-                <span className="text-right tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
+                <span className="block min-w-0 justify-self-end text-right tabular-nums whitespace-nowrap leading-6" style={{ color: "var(--text-muted)" }}>
                     {hours}
                 </span>
-                <span className="text-right tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
+                <span className="block min-w-0 justify-self-end text-right tabular-nums whitespace-nowrap leading-6" style={{ color: "var(--text-muted)" }}>
                     {rate}
                 </span>
-                <span className={`text-right tabular-nums whitespace-nowrap ${bold ? "font-semibold" : ""}`} style={{ color: "var(--text)" }}>
+                <span
+                    className={`block min-w-0 justify-self-end text-right tabular-nums whitespace-nowrap leading-6 ${bold ? "font-semibold" : ""}`}
+                    style={{ color: "var(--text)" }}
+                >
                     {total}
                 </span>
             </div>
 
             <div
-                className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-1)] px-3.5 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)] sm:hidden"
+                className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-1)] px-3.5 py-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)] md:hidden"
                 style={bold ? { background: "linear-gradient(135deg, rgba(0, 122, 77, 0.06) 0%, rgba(255, 255, 255, 0.98) 100%)" } : undefined}
             >
                 <div className="flex items-start justify-between gap-3">
