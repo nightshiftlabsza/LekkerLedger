@@ -130,7 +130,8 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
             </div>
 
             <div className="marketing-shell relative py-8 sm:py-10 lg:py-12 xl:py-14">
-                <div className="grid gap-8 lg:grid-cols-[minmax(0,35rem)_minmax(0,1.1fr)] lg:items-center xl:grid-cols-[minmax(0,37rem)_minmax(0,1.2fr)] xl:gap-14">
+<<<<<<< HEAD
+                <div className="grid gap-8 lg:grid-cols-[minmax(0,35rem)_minmax(0,1.1fr)] lg:items-start xl:grid-cols-[minmax(0,37rem)_minmax(0,1.2fr)] xl:gap-14">
                     <div className="max-w-[40rem] space-y-6">
                         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em]">
                             <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />

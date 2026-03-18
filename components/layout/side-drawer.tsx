@@ -382,7 +382,7 @@ export function SideDrawer({
                 </button>
             ) : null}
 
-            <aside className="app-shell-drawer hidden h-full flex-col border-r border-[var(--border)] shadow-none lg:flex">
+            <aside className="app-shell-drawer hidden self-start overflow-hidden border-r border-[var(--border)] shadow-none lg:sticky lg:top-0 lg:flex lg:h-screen">
                 <DrawerContent
                     mobile={false}
                     dashboardVariant={dashboardVariant}

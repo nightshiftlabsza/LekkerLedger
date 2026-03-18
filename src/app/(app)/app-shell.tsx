@@ -252,22 +252,27 @@ function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
     };
 
     return (
-        <div className="app-shell-offset flex min-h-screen flex-col" style={{ backgroundColor: "var(--bg)" }}>
-                <div className="hidden lg:block">
-                    <SideDrawer
-                        open={moreOpen}
-                        onOpenChange={setMoreOpen}
-                        showButton={false}
-                        variant={isDashboardShell ? "dashboard" : "default"}
-                        households={households}
-                        activeHouseholdId={activeHouseholdId}
-                        multiHouseholdEnabled={multiHouseholdEnabled}
-                        onSwitchHousehold={handleSwitchHousehold}
-                        onAddHousehold={handleAddHousehold}
-                        employerName={settings?.employerName?.trim() || ""}
-                        planLabel={isReadyForPlanUI ? resolvedPlanLabel : null}
-                    />
-                </div>
+        <div
+            className="flex min-h-screen flex-col lg:grid lg:grid-cols-[var(--app-shell-width)_minmax(0,1fr)]"
+            style={{ backgroundColor: "var(--bg)" }}
+        >
+            <div className="hidden lg:block">
+                <SideDrawer
+                    open={moreOpen}
+                    onOpenChange={setMoreOpen}
+                    showButton={false}
+                    variant={isDashboardShell ? "dashboard" : "default"}
+                    households={households}
+                    activeHouseholdId={activeHouseholdId}
+                    multiHouseholdEnabled={multiHouseholdEnabled}
+                    onSwitchHousehold={handleSwitchHousehold}
+                    onAddHousehold={handleAddHousehold}
+                    employerName={settings?.employerName?.trim() || ""}
+                    planLabel={isReadyForPlanUI ? resolvedPlanLabel : null}
+                />
+            </div>
+
+            <div className="flex min-h-screen min-w-0 flex-1 flex-col">
                 <header
                     className={`sticky top-0 z-50 border-b border-[var(--border)] safe-area-pt ${isDashboardShell
                         ? "bg-[color:var(--surface-sidebar)]/92 backdrop-blur-xl shadow-[0_10px_24px_rgba(16,24,40,0.06)]"
@@ -364,24 +369,26 @@ function AppShellFrame({ children }: Readonly<{ children: React.ReactNode }>) {
                         {children}
                     </RecoveryGate>
                 </main>
-                <AddHouseholdDialog
-                    open={addHouseholdOpen}
-                    name={newHouseholdName}
-                    error={addHouseholdError}
-                    saving={addingHousehold}
-                    onNameChange={(value) => {
-                        setNewHouseholdName(value);
-                        if (addHouseholdError) setAddHouseholdError("");
-                    }}
-                    onClose={() => {
-                        if (addingHousehold) return;
-                        setAddHouseholdOpen(false);
-                        setAddHouseholdError("");
-                    }}
-                    onSubmit={() => handleConfirmAddHousehold()}
-                />
-                <BottomNav onMore={() => setMoreOpen(true)} />
             </div>
+
+            <AddHouseholdDialog
+                open={addHouseholdOpen}
+                name={newHouseholdName}
+                error={addHouseholdError}
+                saving={addingHousehold}
+                onNameChange={(value) => {
+                    setNewHouseholdName(value);
+                    if (addHouseholdError) setAddHouseholdError("");
+                }}
+                onClose={() => {
+                    if (addingHousehold) return;
+                    setAddHouseholdOpen(false);
+                    setAddHouseholdError("");
+                }}
+                onSubmit={() => handleConfirmAddHousehold()}
+            />
+            <BottomNav onMore={() => setMoreOpen(true)} />
+        </div>
     );
 }
 

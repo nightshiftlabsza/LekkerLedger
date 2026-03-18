@@ -872,16 +872,6 @@ p,
   }
 }
 
-.app-shell-offset {
-  min-width: 0;
-}
-
-@media (min-width: 1024px) {
-  .app-shell-offset {
-    padding-left: var(--app-shell-width);
-  }
-}
-
 .app-shell-drawer {
   width: min(calc(100vw - 1rem), var(--app-shell-width));
 }
