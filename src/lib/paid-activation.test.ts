@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPaidDashboardHref, buildPaidLoginHref, PAID_LOGIN_SUCCESS_QUERY } from "./paid-activation";
+import { buildPaidActivationHref, buildPaidDashboardHref, buildPaidLoginHref, PAID_LOGIN_SUCCESS_QUERY } from "./paid-activation";
 
 describe("paid activation routes", () => {
     it("builds the paid login handoff URL", () => {
@@ -11,5 +11,10 @@ describe("paid activation routes", () => {
         expect(buildPaidDashboardHref({ reference: "ref_123" })).toBe("/dashboard?paidLogin=1&reference=ref_123");
         expect(buildPaidDashboardHref({ reference: "ref_123", activation: PAID_LOGIN_SUCCESS_QUERY })).toBe("/dashboard?paidLogin=1&reference=ref_123&activation=paid-login-success");
         expect(buildPaidDashboardHref({ activation: PAID_LOGIN_SUCCESS_QUERY })).toBe("/dashboard?activation=paid-login-success");
+    });
+
+    it("builds the hosted activation URL", () => {
+        expect(buildPaidActivationHref("ref_123")).toBe("/billing/activate?reference=ref_123");
+        expect(buildPaidActivationHref("")).toBe("/billing/activate");
     });
 });

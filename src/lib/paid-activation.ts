@@ -12,6 +12,14 @@ export function buildPaidLoginHref(reference?: string | null): string {
     return `/login?${params.toString()}`;
 }
 
+export function buildPaidActivationHref(reference?: string | null): string {
+    const resolvedReference = normalizeReference(reference);
+    if (!resolvedReference) return "/billing/activate";
+
+    const params = new URLSearchParams({ reference: resolvedReference });
+    return `/billing/activate?${params.toString()}`;
+}
+
 export function buildPaidDashboardHref(input?: {
     reference?: string | null;
     activation?: string | null;

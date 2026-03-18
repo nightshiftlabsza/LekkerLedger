@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
     pushMock: vi.fn(),
     signInWithPasswordMock: vi.fn(),
     startAppMetricMock: vi.fn(),
-    storePasswordHandoffMock: vi.fn(),
+    storeCredentialHandoffMock: vi.fn(),
     searchParamsValue: "",
 }));
 
@@ -35,8 +35,8 @@ vi.mock("@/lib/app-performance", () => ({
     startAppMetric: (...args: unknown[]) => mocks.startAppMetricMock(...args),
 }));
 
-vi.mock("@/lib/password-handoff", () => ({
-    storePasswordHandoff: (...args: unknown[]) => mocks.storePasswordHandoffMock(...args),
+vi.mock("@/lib/credential-handoff", () => ({
+    storeCredentialHandoff: (...args: unknown[]) => mocks.storeCredentialHandoffMock(...args),
 }));
 
 vi.mock("@/lib/billing-handoff", () => ({
@@ -54,7 +54,7 @@ describe("LoginForm paid access enforcement", () => {
         mocks.pushMock.mockReset();
         mocks.signInWithPasswordMock.mockReset();
         mocks.startAppMetricMock.mockReset();
-        mocks.storePasswordHandoffMock.mockReset();
+        mocks.storeCredentialHandoffMock.mockReset();
         mocks.searchParamsValue = "";
     });
 
@@ -71,7 +71,7 @@ describe("LoginForm paid access enforcement", () => {
             expect(mocks.pushMock).toHaveBeenCalledWith("/dashboard");
         });
 
-        expect(mocks.storePasswordHandoffMock).toHaveBeenCalledWith("person@example.com", "Password123!");
+        expect(mocks.storeCredentialHandoffMock).toHaveBeenCalledWith("person@example.com", "Password123!");
     });
 
     it("continues paid users into dashboard activation when a payment reference is present", async () => {
@@ -86,6 +86,26 @@ describe("LoginForm paid access enforcement", () => {
 
         await waitFor(() => {
             expect(mocks.pushMock).toHaveBeenCalledWith("/dashboard?paidLogin=1&reference=ref_123");
+        });
+    });
+
+    it("can lock the billing email during activation handoff", async () => {
+        mocks.signInWithPasswordMock.mockResolvedValue({ error: null });
+
+        render(<LoginForm initialEmail="locked@example.com" lockEmail />);
+
+        const emailInput = screen.getByLabelText("Email address") as HTMLInputElement;
+        expect(emailInput.value).toBe("locked@example.com");
+        expect(emailInput.readOnly).toBe(true);
+
+        fireEvent.change(screen.getByLabelText("Password"), { target: { value: "Password123!" } });
+        fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+        await waitFor(() => {
+            expect(mocks.signInWithPasswordMock).toHaveBeenCalledWith({
+                email: "locked@example.com",
+                password: "Password123!",
+            });
         });
     });
 });

@@ -35,6 +35,11 @@ export interface BillingIntentRecord {
     referralCode?: string | null;
     amountCents: number;
     status: BillingIntentStatus;
+    lastPaymentStatus?: string | null;
+    lastVerifiedAt?: number | null;
+    activationNonceHash?: string | null;
+    activationNonceExpiresAt?: number | null;
+    activationClaimedAt?: number | null;
     createdAt: number;
     updatedAt: number;
 }

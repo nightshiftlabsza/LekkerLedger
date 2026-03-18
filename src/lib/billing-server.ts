@@ -1,4 +1,4 @@
-import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { BillingCycle, PlanId, REFUND_WINDOW_DAYS, getPlanPrice } from "../config/plans";
 import {
     addBillingInterval,
@@ -19,8 +19,10 @@ import {
     SubscriptionRecord,
     VerifiedEntitlements,
 } from "./billing";
+import { PaidActivationState } from "./billing-activation";
 import { getRequestAppOrigin } from "./app-origin";
 import { env } from "./env";
+import { createAdminClient } from "./supabase/admin";
 import { createClient } from "./supabase/server";
 
 type QueryParam = string | number | null;
@@ -29,6 +31,8 @@ const REFUND_WINDOW_MS = REFUND_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 const REFERRAL_REWARD_MONTHS = 1;
 const REFERRAL_REWARD_CAP_MONTHS = 12;
 const GUEST_INTENT_USER_PREFIX = "guest_";
+const ACTIVATION_NONCE_TTL_MS = 15 * 60 * 1000;
+export const PAID_ACTIVATION_COOKIE_NAME = "ll-paid-activation";
 
 class BillingError extends Error {
     status: number;
@@ -239,6 +243,10 @@ function buildBillingReference(userId: string): string {
     return `purchase_${userId}_${Date.now()}`;
 }
 
+function hashActivationNonce(nonce: string): string {
+    return createHash("sha256").update(nonce).digest("hex");
+}
+
 function buildEventKey(event: string, payload: Record<string, unknown>): string {
     const data = (payload.data && typeof payload.data === "object" ? payload.data : {}) as Record<string, unknown>;
     const metadata = parseMetadata(data.metadata);
@@ -307,6 +315,11 @@ function rowToBillingIntentRecord(row: Record<string, unknown>): BillingIntentRe
         referralCode: row.referral_code ? String(row.referral_code) : null,
         amountCents: Number(row.amount_cents || 0),
         status: sanitizeBillingIntentStatus(status),
+        lastPaymentStatus: row.last_payment_status ? String(row.last_payment_status) : null,
+        lastVerifiedAt: row.last_verified_at === null || row.last_verified_at === undefined ? null : Number(row.last_verified_at || 0),
+        activationNonceHash: row.activation_nonce_hash ? String(row.activation_nonce_hash) : null,
+        activationNonceExpiresAt: row.activation_nonce_expires_at === null || row.activation_nonce_expires_at === undefined ? null : Number(row.activation_nonce_expires_at || 0),
+        activationClaimedAt: row.activation_claimed_at === null || row.activation_claimed_at === undefined ? null : Number(row.activation_claimed_at || 0),
         createdAt: Number(row.created_at || 0),
         updatedAt: Number(row.updated_at || 0),
     };
@@ -444,6 +457,11 @@ async function ensureBillingSchema() {
                     referral_code TEXT,
                     amount_cents INTEGER NOT NULL,
                     status TEXT NOT NULL,
+                    last_payment_status TEXT,
+                    last_verified_at INTEGER,
+                    activation_nonce_hash TEXT,
+                    activation_nonce_expires_at INTEGER,
+                    activation_claimed_at INTEGER,
                     created_at INTEGER NOT NULL,
                     updated_at INTEGER NOT NULL
                 );
@@ -501,6 +519,13 @@ async function ensureBillingSchema() {
                 next_charge_at: "INTEGER",
                 cancel_at_period_end: "INTEGER NOT NULL DEFAULT 0",
                 last_error: "TEXT",
+            });
+            await ensureColumns("billing_intents", {
+                last_payment_status: "TEXT",
+                last_verified_at: "INTEGER",
+                activation_nonce_hash: "TEXT",
+                activation_nonce_expires_at: "INTEGER",
+                activation_claimed_at: "INTEGER",
             });
         } catch (error) {
             // Reset the singleton so the next call retries instead of
@@ -671,9 +696,14 @@ async function upsertBillingIntent(record: BillingIntentRecord): Promise<void> {
                 referral_code,
                 amount_cents,
                 status,
+                last_payment_status,
+                last_verified_at,
+                activation_nonce_hash,
+                activation_nonce_expires_at,
+                activation_claimed_at,
                 created_at,
                 updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 reference = excluded.reference,
                 user_id = excluded.user_id,
@@ -683,6 +713,11 @@ async function upsertBillingIntent(record: BillingIntentRecord): Promise<void> {
                 referral_code = excluded.referral_code,
                 amount_cents = excluded.amount_cents,
                 status = excluded.status,
+                last_payment_status = excluded.last_payment_status,
+                last_verified_at = excluded.last_verified_at,
+                activation_nonce_hash = excluded.activation_nonce_hash,
+                activation_nonce_expires_at = excluded.activation_nonce_expires_at,
+                activation_claimed_at = excluded.activation_claimed_at,
                 updated_at = excluded.updated_at
         `,
         [
@@ -695,6 +730,11 @@ async function upsertBillingIntent(record: BillingIntentRecord): Promise<void> {
             record.referralCode ?? null,
             record.amountCents,
             record.status,
+            record.lastPaymentStatus ?? null,
+            record.lastVerifiedAt ?? null,
+            record.activationNonceHash ?? null,
+            record.activationNonceExpiresAt ?? null,
+            record.activationClaimedAt ?? null,
             record.createdAt,
             record.updatedAt,
         ],
@@ -955,7 +995,7 @@ async function initializePaystackTransaction(request: Request, user: VerifiedUse
 }): Promise<{ authorizationUrl: string; accessCode: string; reference: string }> {
     const origin = getRequestAppOrigin(request);
     const reference = input.reference || buildBillingReference(user.userId);
-    const callbackUrl = new URL(`${origin}/billing/success`);
+    const callbackUrl = new URL(`${origin}/billing/activate`);
     if (input.callbackQuery) {
         Object.entries(input.callbackQuery).forEach(([key, value]) => callbackUrl.searchParams.set(key, value));
     }
@@ -1150,6 +1190,8 @@ async function markGuestPurchaseIntentPaymentReceived(intent: BillingIntentRecor
         await upsertBillingIntent({
             ...intent,
             status: "payment_received",
+            lastPaymentStatus: "success",
+            lastVerifiedAt: Date.now(),
             updatedAt: Date.now(),
         });
     }
@@ -1282,6 +1324,8 @@ async function handleInitialPurchaseSuccess(data: Record<string, unknown>, inten
     await upsertBillingIntent({
         ...intent,
         status: "completed",
+        lastPaymentStatus: "success",
+        lastVerifiedAt: Date.now(),
         updatedAt: Date.now(),
     });
 }
@@ -1461,6 +1505,343 @@ async function handleRefundProcessed(existing: SubscriptionRecord | null): Promi
     return true;
 }
 
+type ActivationProfileState = {
+    keySetupComplete: boolean;
+    encryptionMode: string | null;
+};
+
+type ActivationResolvedUser = {
+    id: string;
+    email: string;
+};
+
+type ActivationResolution = {
+    state: PaidActivationState;
+    activationNonce: string | null;
+};
+
+type PaymentSnapshot = {
+    reference: string;
+    intent: BillingIntentRecord | null;
+    paymentStatus: string | null;
+    email: string;
+    planId?: Exclude<PlanId, "free">;
+    billingCycle?: BillingCycle;
+    paid: boolean;
+};
+
+async function findAuthUserByEmail(email: string): Promise<ActivationResolvedUser | null> {
+    const normalizedEmail = normalizeEmailAddress(email);
+    const admin = createAdminClient();
+    let page = 1;
+
+    while (page <= 20) {
+        const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+        if (error) {
+            throw new BillingError(error.message, 502);
+        }
+
+        const users = data?.users ?? [];
+        const match = users.find((user) => normalizeEmailAddress(user.email || "") === normalizedEmail);
+        if (match?.id && match.email) {
+            return {
+                id: match.id,
+                email: match.email,
+            };
+        }
+
+        if (users.length < 1000) {
+            break;
+        }
+
+        page += 1;
+    }
+
+    return null;
+}
+
+async function getActivationProfileState(userId: string): Promise<ActivationProfileState | null> {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+        .from("user_profiles")
+        .select("key_setup_complete, encryption_mode")
+        .eq("id", userId)
+        .maybeSingle<{ key_setup_complete?: boolean | null; encryption_mode?: string | null }>();
+
+    if (error) {
+        throw new BillingError(error.message, 502);
+    }
+
+    if (!data) {
+        return null;
+    }
+
+    return {
+        keySetupComplete: Boolean(data.key_setup_complete),
+        encryptionMode: typeof data.encryption_mode === "string" ? data.encryption_mode : null,
+    };
+}
+
+async function issueActivationNonce(intent: BillingIntentRecord): Promise<string> {
+    const nonce = `${randomUUID()}${randomUUID().replaceAll("-", "")}`;
+    await upsertBillingIntent({
+        ...intent,
+        activationNonceHash: hashActivationNonce(nonce),
+        activationNonceExpiresAt: Date.now() + ACTIVATION_NONCE_TTL_MS,
+        updatedAt: Date.now(),
+    });
+    return nonce;
+}
+
+async function clearActivationNonce(reference: string): Promise<void> {
+    const intent = await getBillingIntentByReference(reference);
+    if (!intent || (!intent.activationNonceHash && !intent.activationNonceExpiresAt)) {
+        return;
+    }
+
+    await upsertBillingIntent({
+        ...intent,
+        activationNonceHash: null,
+        activationNonceExpiresAt: null,
+        updatedAt: Date.now(),
+    });
+}
+
+async function validateActivationNonce(reference: string, nonce: string): Promise<BillingIntentRecord | null> {
+    const intent = await getBillingIntentByReference(reference);
+    if (!intent?.activationNonceHash || !intent.activationNonceExpiresAt || intent.activationNonceExpiresAt < Date.now()) {
+        return null;
+    }
+
+    if (hashActivationNonce(nonce) !== intent.activationNonceHash) {
+        return null;
+    }
+
+    return intent;
+}
+
+async function markActivationClaimed(intent: BillingIntentRecord, user: VerifiedUser): Promise<BillingIntentRecord> {
+    const latestIntent = await getBillingIntentById(intent.id) || await getBillingIntentByReference(intent.reference) || intent;
+    const claimedIntent: BillingIntentRecord = {
+        ...latestIntent,
+        userId: user.userId,
+        email: user.email,
+        activationClaimedAt: latestIntent.activationClaimedAt ?? Date.now(),
+        activationNonceHash: null,
+        activationNonceExpiresAt: null,
+        updatedAt: Date.now(),
+    };
+    await upsertBillingIntent(claimedIntent);
+    return claimedIntent;
+}
+
+async function fetchPaymentSnapshot(reference: string): Promise<PaymentSnapshot> {
+    await ensureBillingSchema();
+
+    const normalizedReference = reference.trim();
+    const intent = normalizedReference ? await getBillingIntentByReference(normalizedReference) : null;
+    if (!normalizedReference) {
+        return {
+            reference: "",
+            intent: null,
+            paymentStatus: null,
+            email: "",
+            paid: false,
+        };
+    }
+
+    let paymentStatus: string | null = null;
+    let email = intent?.email || "";
+    let planId = intent?.planId;
+    let billingCycle = intent?.billingCycle;
+
+    try {
+        const response = await paystackRequest<PaystackVerifyTransactionResponse>(
+            `/transaction/verify/${encodeURIComponent(normalizedReference)}`,
+            { method: "GET" },
+        );
+        const data = response.data && typeof response.data === "object"
+            ? response.data as Record<string, unknown>
+            : null;
+
+        if (data) {
+            paymentStatus = getStringFromPaths(data, ["status"]);
+            const metadata = parseMetadata(data.metadata);
+            email = getStringFromPaths(data, ["customer.email", "email"]) || getMetadataValue(metadata, "email") || email;
+
+            const metadataPlanId = sanitizePlanId(getMetadataValue(metadata, "plan_id"));
+            if (metadataPlanId !== "free") {
+                planId = metadataPlanId;
+            }
+
+            const metadataBillingCycle = getMetadataValue(metadata, "billing_cycle");
+            if (metadataBillingCycle === "monthly" || metadataBillingCycle === "yearly") {
+                billingCycle = metadataBillingCycle;
+            }
+
+            const resolvedIntent = await resolveBillingIntentForCharge(normalizedReference, metadata);
+            const targetIntent = resolvedIntent || intent;
+            if (targetIntent) {
+                let nextStatus = targetIntent.status;
+                if (paymentStatus === "success" && (nextStatus === "pending" || nextStatus === "checkout_started")) {
+                    nextStatus = "payment_received";
+                } else if ((paymentStatus === "abandoned" || paymentStatus === "cancelled") && nextStatus !== "completed") {
+                    nextStatus = "canceled";
+                } else if ((paymentStatus === "failed" || paymentStatus === "reversed") && nextStatus !== "completed") {
+                    nextStatus = "rejected";
+                }
+
+                await upsertBillingIntent({
+                    ...targetIntent,
+                    status: nextStatus,
+                    lastPaymentStatus: paymentStatus,
+                    lastVerifiedAt: Date.now(),
+                    updatedAt: Date.now(),
+                });
+            }
+        }
+    } catch {
+        paymentStatus = intent?.lastPaymentStatus || null;
+    }
+
+    const paid = paymentStatus === "success"
+        || intent?.status === "payment_received"
+        || intent?.status === "completed";
+
+    return {
+        reference: normalizedReference,
+        intent: await getBillingIntentByReference(normalizedReference),
+        paymentStatus,
+        email,
+        planId,
+        billingCycle,
+        paid,
+    };
+}
+
+function buildActivationState(input: {
+    reference: string;
+    email: string;
+    planId?: Exclude<PlanId, "free">;
+    billingCycle?: BillingCycle;
+    status: PaidActivationState["status"];
+}): PaidActivationState {
+    return {
+        status: input.status,
+        reference: input.reference,
+        email: input.email,
+        planId: input.planId,
+        billingCycle: input.billingCycle,
+    };
+}
+
+async function resolvePaidActivationInternal(reference: string, user: VerifiedUser | null): Promise<ActivationResolution> {
+    const snapshot = await fetchPaymentSnapshot(reference);
+    const intent = snapshot.intent;
+    const email = snapshot.email || intent?.email || user?.email || "";
+    const planId = snapshot.planId || intent?.planId;
+    const billingCycle = snapshot.billingCycle || intent?.billingCycle;
+
+    if (!snapshot.reference) {
+        return {
+            state: buildActivationState({
+                status: "payment_failed_or_unpaid",
+                reference: "",
+                email,
+                planId,
+                billingCycle,
+            }),
+            activationNonce: null,
+        };
+    }
+
+    if (!snapshot.paid) {
+        const failedStatuses = new Set(["failed", "reversed"]);
+        const cancelledStatuses = new Set(["abandoned", "cancelled"]);
+        const resolvedStatus = cancelledStatuses.has(snapshot.paymentStatus || "") || intent?.status === "canceled"
+            ? "payment_cancelled_or_abandoned"
+            : failedStatuses.has(snapshot.paymentStatus || "") || intent?.status === "rejected"
+                ? "payment_failed_or_unpaid"
+                : "pending_payment";
+
+        return {
+            state: buildActivationState({
+                status: resolvedStatus,
+                reference: snapshot.reference,
+                email,
+                planId,
+                billingCycle,
+            }),
+            activationNonce: null,
+        };
+    }
+
+    const authUser = email ? await findAuthUserByEmail(email) : null;
+    const existingSubscription = await resolveExistingSubscription({
+        userId: authUser?.id || user?.userId || intent?.userId,
+        email,
+    });
+    const hasActivePaidSubscription = Boolean(
+        existingSubscription
+        && existingSubscription.planId !== "free"
+        && existingSubscription.status === "active"
+        && existingSubscription.currentPeriodEnd > Date.now(),
+    );
+
+    if (hasActivePaidSubscription) {
+        return {
+            state: buildActivationState({
+                status: "already_active",
+                reference: snapshot.reference,
+                email,
+                planId,
+                billingCycle,
+            }),
+            activationNonce: null,
+        };
+    }
+
+    if (!authUser) {
+        const activationNonce = intent ? await issueActivationNonce(intent) : null;
+        return {
+            state: buildActivationState({
+                status: "payment_verified_new_user",
+                reference: snapshot.reference,
+                email,
+                planId,
+                billingCycle,
+            }),
+            activationNonce,
+        };
+    }
+
+    const profile = await getActivationProfileState(authUser.id);
+    const isSignedInMatch = Boolean(
+        user
+        && user.userId === authUser.id
+        && normalizeEmailAddress(user.email) === normalizeEmailAddress(authUser.email),
+    );
+
+    const status: PaidActivationState["status"] = isSignedInMatch
+        ? profile?.keySetupComplete
+            ? "payment_verified_existing_unlock"
+            : "payment_verified_existing_continue_setup"
+        : profile?.keySetupComplete
+            ? "payment_verified_existing_login"
+            : "payment_verified_existing_continue_setup";
+
+    return {
+        state: buildActivationState({
+            status,
+            reference: snapshot.reference,
+            email,
+            planId,
+            billingCycle,
+        }),
+        activationNonce: null,
+    };
+}
+
 export async function verifyUserFromRequest(request: Request): Promise<VerifiedUser> {
     const supabase = await createClient();
     const authorization = request.headers.get("authorization") || request.headers.get("Authorization") || "";
@@ -1513,7 +1894,7 @@ export async function createAnonymousPurchaseIntent(request: Request, input: {
     billingCycle: BillingCycle;
     email: string;
     referralCode?: string | null;
-}): Promise<{ reference: string; accessCode: string; amountCents: number }> {
+}): Promise<{ reference: string; accessCode: string; authorizationUrl: string; amountCents: number }> {
     await ensureBillingSchema();
 
     const amount = getPlanPrice(input.planId, input.billingCycle);
@@ -1575,6 +1956,7 @@ export async function createAnonymousPurchaseIntent(request: Request, input: {
     return {
         reference: checkout.reference,
         accessCode: checkout.accessCode,
+        authorizationUrl: checkout.authorizationUrl,
         amountCents: intent.amountCents,
     };
 }
@@ -1635,39 +2017,74 @@ export function verifyPaystackWebhookSignature(rawBody: string, signature: strin
 }
 
 export async function getGuestPaymentStatus(reference: string): Promise<{ paid: boolean; email: string; planId?: string }> {
-    const normalizedReference = reference.trim();
-    if (!normalizedReference) return { paid: false, email: "" };
+    const snapshot = await fetchPaymentSnapshot(reference);
+    return {
+        paid: snapshot.paid,
+        email: snapshot.email,
+        planId: snapshot.planId,
+    };
+}
 
-    try {
-        const response = await paystackRequest<PaystackVerifyTransactionResponse>(
-            `/transaction/verify/${encodeURIComponent(normalizedReference)}`,
-            { method: "GET" },
-        );
-        const data = response.data && typeof response.data === "object"
-            ? response.data as Record<string, unknown>
-            : null;
+export async function resolvePaidActivation(reference: string, user: VerifiedUser | null = null): Promise<ActivationResolution> {
+    return resolvePaidActivationInternal(reference, user);
+}
 
-        if (!data || getStringFromPaths(data, ["status"]) !== "success") {
-            return { paid: false, email: "" };
-        }
-
-        const metadata = parseMetadata(data.metadata);
-        const email = getStringFromPaths(data, ["customer.email", "email"]) || getMetadataValue(metadata, "email") || "";
-        const planId = getMetadataValue(metadata, "plan_id") || undefined;
-
-        const intent = await resolveBillingIntentForCharge(normalizedReference, metadata);
-        if (intent && (intent.status === "pending" || intent.status === "checkout_started")) {
-            await upsertBillingIntent({
-                ...intent,
-                status: "payment_received",
-                updatedAt: Date.now(),
-            });
-        }
-
-        return { paid: true, email, planId };
-    } catch {
-        return { paid: false, email: "" };
+export async function createPaidActivationAccount(input: {
+    reference: string;
+    password: string;
+    activationNonce: string;
+}): Promise<PaidActivationState> {
+    const normalizedReference = input.reference.trim();
+    if (!normalizedReference) {
+        throw new BillingError("Payment reference is missing.", 400);
     }
+
+    const validatedIntent = await validateActivationNonce(normalizedReference, input.activationNonce);
+    if (!validatedIntent) {
+        throw new BillingAuthError("This account creation session is no longer valid. Restart the payment handoff.");
+    }
+
+    const existingUser = await findAuthUserByEmail(validatedIntent.email);
+    if (existingUser) {
+        await clearActivationNonce(normalizedReference);
+        return (await resolvePaidActivationInternal(normalizedReference, null)).state;
+    }
+
+    const admin = createAdminClient();
+    const { data, error } = await admin.auth.admin.createUser({
+        email: validatedIntent.email,
+        password: input.password,
+        email_confirm: true,
+    });
+
+    if (error || !data.user?.id || !data.user.email) {
+        throw new BillingError(error?.message || "The paid account could not be created.", 502);
+    }
+
+    await confirmPaystackTransaction(normalizedReference, {
+        userId: data.user.id,
+        email: data.user.email,
+        name: data.user.user_metadata?.full_name || data.user.email.split("@")[0],
+    });
+
+    const claimedIntent = await getBillingIntentByReference(normalizedReference);
+    if (claimedIntent) {
+        await markActivationClaimed(claimedIntent, {
+            userId: data.user.id,
+            email: data.user.email,
+            name: data.user.user_metadata?.full_name || data.user.email.split("@")[0],
+        });
+    } else {
+        await clearActivationNonce(normalizedReference);
+    }
+
+    return buildActivationState({
+        status: "payment_verified_existing_continue_setup",
+        reference: normalizedReference,
+        email: data.user.email,
+        planId: validatedIntent.planId,
+        billingCycle: validatedIntent.billingCycle,
+    });
 }
 
 export async function confirmPaystackTransaction(reference: string, user: VerifiedUser): Promise<BillingAccountResponse> {
@@ -1731,6 +2148,10 @@ export async function confirmPaystackTransaction(reference: string, user: Verifi
     const handled = await processSuccessfulCharge(data, normalizedReference, existing);
     if (!handled) {
         throw new BillingError("Payment was verified, but the subscription could not be linked.", 409);
+    }
+
+    if (claimedIntent) {
+        await markActivationClaimed(claimedIntent, user);
     }
 
     await markBillingEventProcessed(eventKey, "charge.success", normalizedReference);
