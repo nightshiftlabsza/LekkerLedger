@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     description:
         "Estimate UIF contributions for domestic workers in South Africa and learn how employee and employer UIF deductions work.",
     alternates: {
-        canonical: "/uif-calculator",
+        canonical: "/calculator",
     },
 };
 

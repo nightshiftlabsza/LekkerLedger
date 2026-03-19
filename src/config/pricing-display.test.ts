@@ -3,6 +3,7 @@ import {
     getMarketingPlanFeatureSections,
     getMarketingPlanHref,
     getMarketingPlanDisplay,
+    getMarketingPriceDisplay,
 } from "./pricing-display";
 
 describe("pricing display routes", () => {
@@ -45,5 +46,13 @@ describe("pricing display routes", () => {
                 ],
             },
         ]);
+    });
+
+    it("uses the live yearly Standard price and savings helper copy", () => {
+        expect(getMarketingPriceDisplay("standard", "yearly")).toEqual({
+            primary: "R299",
+            periodLabel: "/year",
+            helperText: "≈ R24.92/month",
+        });
     });
 });

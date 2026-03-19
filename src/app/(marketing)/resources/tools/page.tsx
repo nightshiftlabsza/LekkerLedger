@@ -5,6 +5,9 @@ import { MarketingHeader } from "@/components/layout/marketing-header";
 export const metadata = {
   title: "Household Payroll Tools & Calculators | LekkerLedger",
   description: "Free tools to calculate UIF, domestic worker wages, and generate compliant South African payslips.",
+  alternates: {
+    canonical: "/resources/tools",
+  },
 };
 
 const tools = [

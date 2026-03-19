@@ -6,6 +6,9 @@ import { FreePayslipGenerator } from "@/components/marketing/free-payslip-genera
 export const metadata = {
     title: "Domestic Worker Payslip Generator | LekkerLedger",
     description: "Create a domestic worker payslip PDF for this month. No billing, no account, and payroll figures stay on this device until download.",
+    alternates: {
+        canonical: "/resources/tools/domestic-worker-payslip",
+    },
 };
 
 export default function PayslipGeneratorPage() {

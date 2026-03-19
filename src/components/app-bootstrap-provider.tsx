@@ -294,7 +294,7 @@ export function AppBootstrapProvider({ children }: Readonly<{ children: React.Re
                 }
 
                 if (account.entitlements.planId === "free" || !account.entitlements.isActive) {
-                    throw new Error(account.account.lastError || "Your payment was found, but paid access is not active yet.");
+                    throw new Error(account.account.issue?.customerMessage || account.account.lastError || "Your payment was found, but paid access is not active yet.");
                 }
 
                 clearPendingBillingHandoff();

@@ -32,7 +32,7 @@ export default function SupportPage() {
 
                 <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
                     {/* Legal/Compliance Help */}
-                    <Link href="/rules" className="block group">
+                    <Link href="/resources/checklists" className="block group">
                         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-6 h-full transition-all group-hover:border-[var(--primary)]/50 group-hover:shadow-[var(--shadow-md)]">
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="h-10 w-10 rounded-xl bg-[var(--surface-2)] flex items-center justify-center text-[var(--text)]">

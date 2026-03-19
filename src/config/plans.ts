@@ -1,4 +1,5 @@
 import { SUPPORT_EMAIL } from "./brand";
+import { getBillingCatalogEntry } from "./billing-catalog";
 
 export type PlanId = "free" | "standard" | "pro";
 export type BillingCycle = "monthly" | "yearly";
@@ -78,7 +79,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
         currency: "ZAR",
         pricing: {
             monthly: 29,
-            yearly: 249,
+            yearly: 299,
         },
         maxActiveEmployees: 3,
         maxHouseholds: 1,
@@ -157,32 +158,19 @@ export function getPlanPricePresentation(plan: PlanId | PlanConfig, cycle: Billi
         };
     }
 
-    if (resolvedPlan.id === "standard") {
-        if (cycle === "yearly") {
-            return {
-                primaryPrice: "R20.75",
-                periodLabel: "/month",
-                helperText: "Billed at R249/year",
-            };
-        }
-
-        return {
-            primaryPrice: "R29",
-            periodLabel: "/month",
-            helperText: "Billed monthly",
-        };
-    }
+    const monthlyEquivalent = (resolvedPlan.pricing.yearly / 12).toFixed(2);
 
     if (cycle === "yearly") {
         return {
-            primaryPrice: "R33.25",
+            primaryPrice: `R${monthlyEquivalent}`,
             periodLabel: "/month",
-            helperText: "Billed at R399/year",
+            helperText: `Billed at R${resolvedPlan.pricing.yearly}/year`,
         };
     }
 
+    const paidEntry = getBillingCatalogEntry(resolvedPlan.id as Exclude<PlanId, "free">, "monthly");
     return {
-        primaryPrice: "R49",
+        primaryPrice: `R${paidEntry.amountCents / 100}`,
         periodLabel: "/month",
         helperText: "Billed monthly",
     };

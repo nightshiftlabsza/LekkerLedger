@@ -209,8 +209,9 @@ describe("sign-out flow safety", () => {
 describe("middleware route classification", () => {
     const PUBLIC_PREFIXES = [
         "/", "/billing", "/login", "/signup", "/forgot-password",
-        "/pricing", "/legal", "/help", "/support", "/trust",
-        "/resources", "/examples", "/calculator", "/api", "/_next",
+        "/reset-password", "/pricing", "/legal", "/help", "/support", "/trust",
+        "/rules", "/resources", "/examples", "/calculator", "/uif-calculator",
+        "/ufiling-errors", "/onboarding", "/open-app", "/storage", "/api", "/_next",
     ];
 
     function isProtectedRoute(pathname: string): boolean {

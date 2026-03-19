@@ -537,7 +537,7 @@ function HowItWorks() {
                 </div>
 
                 <div className="mt-7 flex justify-center">
-                    <Link href="/rules" className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-6 py-3 text-sm font-bold text-[var(--primary)] transition-all hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)]">
+                    <Link href="/resources/checklists" className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-6 py-3 text-sm font-bold text-[var(--primary)] transition-all hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)]">
                         View the complete household checklist <ArrowRight className="h-4 w-4" />
                     </Link>
                 </div>

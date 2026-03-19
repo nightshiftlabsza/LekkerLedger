@@ -1,11 +1,15 @@
 import { createHash, createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { BILLING_CATALOG_KEYS, getBillingCatalogEntry, getBillingCatalogEntryByKey } from "../config/billing-catalog";
 import { BillingCycle, PlanId, REFUND_WINDOW_DAYS, getPlanPrice } from "../config/plans";
 import {
     addBillingInterval,
     addCalendarMonths,
     BillingCreditRecord,
     BillingCreditStatus,
+    BillingIntentKind,
     BillingIntentRecord,
+    BillingIssue,
+    BillingMoneyCreditRecord,
     BillingAccountSummary,
     entitlementsFromSubscription,
     isPaidPlanId,
@@ -20,8 +24,11 @@ import {
     VerifiedEntitlements,
 } from "./billing";
 import { PaidActivationState } from "./billing-activation";
+import { buildBillingIssue, isPaystackPlanConfigMessage } from "./billing-issues";
+import { buildProrationPreview } from "./billing-proration";
 import { getRequestAppOrigin } from "./app-origin";
 import { env } from "./env";
+import { validateConfiguredPaystackPlans, type PaystackPlanValidationSnapshot } from "./paystack-plan-validation";
 import { createAdminClient } from "./supabase/admin";
 import { createClient } from "./supabase/server";
 
@@ -66,6 +73,15 @@ export interface BillingAccountResponse {
     account: BillingAccountSummary;
 }
 
+export interface CheckoutSessionResponse {
+    authorizationUrl: string;
+    accessCode: string;
+    reference: string;
+    checkoutMode: "inline" | "redirect" | "no_charge";
+    proration?: BillingAccountSummary["prorationPreview"];
+    billingAccount?: BillingAccountResponse;
+}
+
 interface D1ApiEnvelope {
     success?: boolean;
     errors?: Array<{ message?: string }>;
@@ -92,6 +108,15 @@ interface PaystackCreateSubscriptionResponse {
     };
 }
 
+interface PaystackPlanResponse extends PaystackBasicResponse {
+    data?: {
+        plan_code?: string;
+        amount?: number | string;
+        interval?: string;
+        currency?: string;
+    };
+}
+
 interface PaystackBasicResponse {
     status?: boolean;
     message?: string;
@@ -104,6 +129,22 @@ interface PaystackVerifyTransactionResponse extends PaystackBasicResponse {
     };
 }
 
+interface PaystackChargeAuthorizationResponse extends PaystackBasicResponse {
+    data?: Record<string, unknown> & {
+        status?: string;
+        reference?: string;
+        paid_at?: string;
+    };
+}
+
+interface RenewalRunResult {
+    userId: string;
+    status: "charged" | "credit_applied" | "failed" | "skipped";
+    amountChargedCents: number;
+    creditAppliedCents: number;
+    message: string;
+}
+
 interface PaystackAuthorization {
     authorizationCode: string;
     signature: string | null;
@@ -112,6 +153,9 @@ interface PaystackAuthorization {
 }
 
 let schemaPromise: Promise<void> | null = null;
+let paystackPlanValidationPromise: Promise<PaystackPlanValidationSnapshot> | null = null;
+let paystackPlanValidationCachedAt = 0;
+const PAYSTACK_PLAN_VALIDATION_TTL_MS = 5 * 60 * 1000;
 
 function getRequiredEnv(name: string): string {
     const value = process.env[name]?.trim();
@@ -134,18 +178,7 @@ function getD1Config() {
 }
 
 function getPaystackPlanCode(planId: Exclude<PlanId, "free">, billingCycle: BillingCycle): string {
-    const envMap = {
-        standard: {
-            monthly: env.PAYSTACK_PLAN_STANDARD_MONTHLY,
-            yearly: env.PAYSTACK_PLAN_STANDARD_YEARLY,
-        },
-        pro: {
-            monthly: env.PAYSTACK_PLAN_PRO_MONTHLY,
-            yearly: env.PAYSTACK_PLAN_PRO_YEARLY,
-        },
-    } as const;
-
-    const planCode = envMap[planId][billingCycle];
+    const planCode = getConfiguredPaystackPlanCodeByEnvVar(getBillingCatalogEntry(planId, billingCycle).envVarName);
     if (!planCode) {
         throw new BillingConfigError(`Paystack plan code missing for ${planId} ${billingCycle}.`);
     }
@@ -154,12 +187,33 @@ function getPaystackPlanCode(planId: Exclude<PlanId, "free">, billingCycle: Bill
 }
 
 function getPaystackPlanLookup() {
-    return new Map<string, { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle }>([
-        [env.PAYSTACK_PLAN_STANDARD_MONTHLY || "", { planId: "standard", billingCycle: "monthly" }],
-        [env.PAYSTACK_PLAN_STANDARD_YEARLY || "", { planId: "standard", billingCycle: "yearly" }],
-        [env.PAYSTACK_PLAN_PRO_MONTHLY || "", { planId: "pro", billingCycle: "monthly" }],
-        [env.PAYSTACK_PLAN_PRO_YEARLY || "", { planId: "pro", billingCycle: "yearly" }],
-    ]);
+    return new Map<string, { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle }>(
+        BILLING_CATALOG_KEYS
+            .map((key) => {
+                const entry = getBillingCatalogEntryByKey(key);
+                const planCode = getConfiguredPaystackPlanCodeByEnvVar(entry.envVarName);
+                if (!planCode) return null;
+                return [planCode, { planId: entry.planId, billingCycle: entry.billingCycle }] as const;
+            })
+            .filter((entry): entry is readonly [string, { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle }] => Boolean(entry)),
+    );
+}
+
+function getConfiguredPaystackPlanCodeByEnvVar(envVarName: string): string | null {
+    const value = process.env[envVarName]?.trim();
+    if (!value || value === "undefined" || value === "null") {
+        return null;
+    }
+    return value;
+}
+
+function getConfiguredPaystackPlanEnvMap() {
+    return Object.fromEntries(
+        BILLING_CATALOG_KEYS.map((key) => {
+            const entry = getBillingCatalogEntryByKey(key);
+            return [entry.envVarName, getConfiguredPaystackPlanCodeByEnvVar(entry.envVarName)];
+        }),
+    );
 }
 
 function parseMetadata(value: unknown): Record<string, unknown> {
@@ -294,6 +348,7 @@ function rowToSubscriptionRecord(row: Record<string, unknown>): SubscriptionReco
         planId: sanitizePlanId(String(row.plan_id)),
         billingCycle: sanitizeBillingCycle(String(row.billing_cycle)),
         status: sanitizeBillingStatus(String(row.status || "unknown")),
+        currentPeriodStart: row.current_period_start === null || row.current_period_start === undefined ? null : Number(row.current_period_start || 0),
         currentPeriodEnd: Number(row.current_period_end || 0),
         nextChargeAt: row.next_charge_at === null || row.next_charge_at === undefined ? null : Number(row.next_charge_at || 0),
         cancelAtPeriodEnd: Boolean(Number(row.cancel_at_period_end || 0)),
@@ -312,6 +367,13 @@ function rowToBillingIntentRecord(row: Record<string, unknown>): BillingIntentRe
         email: String(row.email),
         planId: sanitizePlanId(String(row.plan_id)) as Exclude<PlanId, "free">,
         billingCycle: sanitizeBillingCycle(String(row.billing_cycle)),
+        intentKind: String(row.intent_kind || "new_subscription") as BillingIntentKind,
+        currentPlanId: row.current_plan_id ? sanitizePlanId(String(row.current_plan_id)) : null,
+        currentBillingCycle: row.current_billing_cycle ? sanitizeBillingCycle(String(row.current_billing_cycle)) : null,
+        currentPeriodStart: row.current_period_start === null || row.current_period_start === undefined ? null : Number(row.current_period_start || 0),
+        currentPeriodEnd: row.current_period_end === null || row.current_period_end === undefined ? null : Number(row.current_period_end || 0),
+        prorationCreditCents: row.proration_credit_cents === null || row.proration_credit_cents === undefined ? null : Number(row.proration_credit_cents || 0),
+        nextRecurringAmountCents: row.next_recurring_amount_cents === null || row.next_recurring_amount_cents === undefined ? null : Number(row.next_recurring_amount_cents || 0),
         referralCode: row.referral_code ? String(row.referral_code) : null,
         amountCents: Number(row.amount_cents || 0),
         status: sanitizeBillingIntentStatus(status),
@@ -361,6 +423,18 @@ function rowToBillingCreditRecord(row: Record<string, unknown>): BillingCreditRe
         status: String(row.status || "pending") as BillingCreditStatus,
         availableAt: row.available_at === null || row.available_at === undefined ? null : Number(row.available_at || 0),
         appliedAt: row.applied_at === null || row.applied_at === undefined ? null : Number(row.applied_at || 0),
+        createdAt: Number(row.created_at || 0),
+        updatedAt: Number(row.updated_at || 0),
+    };
+}
+
+function rowToBillingMoneyCreditRecord(row: Record<string, unknown>): BillingMoneyCreditRecord {
+    return {
+        id: String(row.id),
+        userId: String(row.user_id),
+        sourceIntentId: String(row.source_intent_id),
+        amountCents: Number(row.amount_cents || 0),
+        status: String(row.status || "available") as BillingMoneyCreditRecord["status"],
         createdAt: Number(row.created_at || 0),
         updatedAt: Number(row.updated_at || 0),
     };
@@ -434,6 +508,7 @@ async function ensureBillingSchema() {
                     plan_id TEXT NOT NULL,
                     billing_cycle TEXT NOT NULL,
                     status TEXT NOT NULL,
+                    current_period_start INTEGER,
                     current_period_end INTEGER NOT NULL,
                     updated_at INTEGER NOT NULL,
                     paystack_email_token TEXT,
@@ -454,6 +529,13 @@ async function ensureBillingSchema() {
                     email TEXT NOT NULL,
                     plan_id TEXT NOT NULL,
                     billing_cycle TEXT NOT NULL,
+                    intent_kind TEXT NOT NULL DEFAULT 'new_subscription',
+                    current_plan_id TEXT,
+                    current_billing_cycle TEXT,
+                    current_period_start INTEGER,
+                    current_period_end INTEGER,
+                    proration_credit_cents INTEGER,
+                    next_recurring_amount_cents INTEGER,
                     referral_code TEXT,
                     amount_cents INTEGER NOT NULL,
                     status TEXT NOT NULL,
@@ -504,6 +586,16 @@ async function ensureBillingSchema() {
                     updated_at INTEGER NOT NULL
                 );
                 CREATE INDEX IF NOT EXISTS idx_billing_credits_user_id ON billing_credits(user_id);
+                CREATE TABLE IF NOT EXISTS billing_money_credits (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    source_intent_id TEXT NOT NULL,
+                    amount_cents INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at INTEGER NOT NULL,
+                    updated_at INTEGER NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_billing_money_credits_user_id ON billing_money_credits(user_id);
                 UPDATE subscriptions SET status = 'active' WHERE status = 'trialing';
                 UPDATE billing_intents SET status = 'completed' WHERE status = 'trial_started';
                 UPDATE referrals SET status = 'pending_first_charge' WHERE status = 'trial_started';
@@ -516,17 +608,43 @@ async function ensureBillingSchema() {
                 paystack_authorization_code: "TEXT",
                 paystack_authorization_signature: "TEXT",
                 paystack_authorization_last4: "TEXT",
+                current_period_start: "INTEGER",
                 next_charge_at: "INTEGER",
                 cancel_at_period_end: "INTEGER NOT NULL DEFAULT 0",
                 last_error: "TEXT",
             });
             await ensureColumns("billing_intents", {
+                intent_kind: "TEXT NOT NULL DEFAULT 'new_subscription'",
+                current_plan_id: "TEXT",
+                current_billing_cycle: "TEXT",
+                current_period_start: "INTEGER",
+                current_period_end: "INTEGER",
+                proration_credit_cents: "INTEGER",
+                next_recurring_amount_cents: "INTEGER",
                 last_payment_status: "TEXT",
                 last_verified_at: "INTEGER",
                 activation_nonce_hash: "TEXT",
                 activation_nonce_expires_at: "INTEGER",
                 activation_claimed_at: "INTEGER",
             });
+            await ensureColumns("billing_money_credits", {
+                source_intent_id: "TEXT",
+                amount_cents: "INTEGER",
+                status: "TEXT",
+                created_at: "INTEGER",
+                updated_at: "INTEGER",
+            });
+            await queryD1(
+                `
+                    UPDATE subscriptions
+                    SET current_period_start = CASE
+                        WHEN current_period_start IS NOT NULL THEN current_period_start
+                        WHEN billing_cycle = 'monthly' THEN CAST(strftime('%s', datetime(current_period_end / 1000, 'unixepoch', '-1 month')) AS INTEGER) * 1000
+                        ELSE CAST(strftime('%s', datetime(current_period_end / 1000, 'unixepoch', '-1 year')) AS INTEGER) * 1000
+                    END
+                    WHERE current_period_end IS NOT NULL
+                `,
+            );
         } catch (error) {
             // Reset the singleton so the next call retries instead of
             // permanently caching a rejected promise ("poisoned singleton").
@@ -576,6 +694,38 @@ async function paystackRequest<T>(path: string, init: RequestInit): Promise<T> {
     return payload;
 }
 
+async function fetchPaystackPlanDefinition(planCode: string): Promise<PaystackPlanResponse> {
+    return paystackRequest<PaystackPlanResponse>(`/plan/${encodeURIComponent(planCode)}`, { method: "GET" });
+}
+
+async function getPaystackPlanValidationSnapshot(force = false): Promise<PaystackPlanValidationSnapshot> {
+    if (!force && paystackPlanValidationPromise && (Date.now() - paystackPlanValidationCachedAt) < PAYSTACK_PLAN_VALIDATION_TTL_MS) {
+        return paystackPlanValidationPromise;
+    }
+
+    paystackPlanValidationCachedAt = Date.now();
+    paystackPlanValidationPromise = validateConfiguredPaystackPlans(getConfiguredPaystackPlanEnvMap(), fetchPaystackPlanDefinition);
+    const snapshot = await paystackPlanValidationPromise;
+
+    if (!snapshot.ok) {
+        console.error("[Billing] Paystack plan validation failed.", snapshot.issues);
+    }
+
+    return snapshot;
+}
+
+async function assertConfiguredPaystackPlansValid(): Promise<void> {
+    const snapshot = await getPaystackPlanValidationSnapshot(true);
+    if (snapshot.ok) {
+        return;
+    }
+
+    const firstIssue = snapshot.issues[0];
+    throw new BillingConfigError(
+        `Paystack plan validation failed for ${firstIssue?.envVarName || "billing config"}. Check Railway LIVE plan mappings before retrying checkout.`,
+    );
+}
+
 async function getSubscriptionByColumn(
     column: "user_id" | "email" | "paystack_customer_id" | "paystack_subscription_code" | "paystack_authorization_signature",
     value: string | null | undefined,
@@ -623,12 +773,13 @@ async function upsertSubscription(record: SubscriptionRecord): Promise<void> {
                 plan_id,
                 billing_cycle,
                 status,
+                current_period_start,
                 current_period_end,
                 next_charge_at,
                 cancel_at_period_end,
                 last_error,
                 updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(user_id) DO UPDATE SET
                 email = excluded.email,
                 paystack_customer_id = COALESCE(excluded.paystack_customer_id, subscriptions.paystack_customer_id),
@@ -641,6 +792,7 @@ async function upsertSubscription(record: SubscriptionRecord): Promise<void> {
                 plan_id = excluded.plan_id,
                 billing_cycle = excluded.billing_cycle,
                 status = excluded.status,
+                current_period_start = excluded.current_period_start,
                 current_period_end = excluded.current_period_end,
                 next_charge_at = excluded.next_charge_at,
                 cancel_at_period_end = excluded.cancel_at_period_end,
@@ -660,6 +812,7 @@ async function upsertSubscription(record: SubscriptionRecord): Promise<void> {
             record.planId,
             record.billingCycle,
             record.status,
+            record.currentPeriodStart ?? null,
             record.currentPeriodEnd,
             record.nextChargeAt ?? null,
             record.cancelAtPeriodEnd ? 1 : 0,
@@ -693,6 +846,13 @@ async function upsertBillingIntent(record: BillingIntentRecord): Promise<void> {
                 email,
                 plan_id,
                 billing_cycle,
+                intent_kind,
+                current_plan_id,
+                current_billing_cycle,
+                current_period_start,
+                current_period_end,
+                proration_credit_cents,
+                next_recurring_amount_cents,
                 referral_code,
                 amount_cents,
                 status,
@@ -703,13 +863,20 @@ async function upsertBillingIntent(record: BillingIntentRecord): Promise<void> {
                 activation_claimed_at,
                 created_at,
                 updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 reference = excluded.reference,
                 user_id = excluded.user_id,
                 email = excluded.email,
                 plan_id = excluded.plan_id,
                 billing_cycle = excluded.billing_cycle,
+                intent_kind = excluded.intent_kind,
+                current_plan_id = excluded.current_plan_id,
+                current_billing_cycle = excluded.current_billing_cycle,
+                current_period_start = excluded.current_period_start,
+                current_period_end = excluded.current_period_end,
+                proration_credit_cents = excluded.proration_credit_cents,
+                next_recurring_amount_cents = excluded.next_recurring_amount_cents,
                 referral_code = excluded.referral_code,
                 amount_cents = excluded.amount_cents,
                 status = excluded.status,
@@ -727,6 +894,13 @@ async function upsertBillingIntent(record: BillingIntentRecord): Promise<void> {
             record.email,
             record.planId,
             record.billingCycle,
+            record.intentKind ?? "new_subscription",
+            record.currentPlanId ?? null,
+            record.currentBillingCycle ?? null,
+            record.currentPeriodStart ?? null,
+            record.currentPeriodEnd ?? null,
+            record.prorationCreditCents ?? null,
+            record.nextRecurringAmountCents ?? null,
             record.referralCode ?? null,
             record.amountCents,
             record.status,
@@ -925,6 +1099,67 @@ async function summarizeCreditsForUser(userId: string) {
     );
 }
 
+async function getMoneyCreditsForUser(userId: string): Promise<BillingMoneyCreditRecord[]> {
+    await ensureBillingSchema();
+    const rows = await queryD1("SELECT * FROM billing_money_credits WHERE user_id = ?", [userId]);
+    return rows.map(rowToBillingMoneyCreditRecord);
+}
+
+async function insertMoneyCredit(record: BillingMoneyCreditRecord): Promise<void> {
+    await ensureBillingSchema();
+    await queryD1(
+        `
+            INSERT INTO billing_money_credits (
+                id,
+                user_id,
+                source_intent_id,
+                amount_cents,
+                status,
+                created_at,
+                updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `,
+        [
+            record.id,
+            record.userId,
+            record.sourceIntentId,
+            record.amountCents,
+            record.status,
+            record.createdAt,
+            record.updatedAt,
+        ],
+    );
+}
+
+async function updateMoneyCredit(record: BillingMoneyCreditRecord): Promise<void> {
+    await ensureBillingSchema();
+    await queryD1(
+        `
+            UPDATE billing_money_credits
+            SET amount_cents = ?, status = ?, updated_at = ?
+            WHERE id = ?
+        `,
+        [
+            record.amountCents,
+            record.status,
+            record.updatedAt,
+            record.id,
+        ],
+    );
+}
+
+async function summarizeMoneyCreditsForUser(userId: string) {
+    const credits = await getMoneyCreditsForUser(userId);
+    return credits.reduce(
+        (summary, credit) => {
+            if (credit.status === "available") summary.available += credit.amountCents;
+            if (credit.status === "applied") summary.applied += credit.amountCents;
+            return summary;
+        },
+        { available: 0, applied: 0 },
+    );
+}
+
 async function countSuccessfulReferrals(userId: string): Promise<number> {
     await ensureBillingSchema();
     const rows = await queryD1(
@@ -992,7 +1227,7 @@ async function initializePaystackTransaction(request: Request, user: VerifiedUse
     metadata: Record<string, unknown>;
     callbackQuery?: Record<string, string>;
     reference?: string;
-}): Promise<{ authorizationUrl: string; accessCode: string; reference: string }> {
+}): Promise<{ authorizationUrl: string; accessCode: string; reference: string; checkoutMode: "inline" | "redirect" }> {
     const origin = getRequestAppOrigin(request);
     const reference = input.reference || buildBillingReference(user.userId);
     const callbackUrl = new URL(`${origin}/billing/activate`);
@@ -1013,14 +1248,15 @@ async function initializePaystackTransaction(request: Request, user: VerifiedUse
         }),
     });
 
-    if (!response.data?.authorization_url || !response.data?.access_code || !response.data.reference) {
+    if (!response.data?.authorization_url || !response.data.reference) {
         throw new BillingError(response.message || "Paystack checkout could not be started.", 502);
     }
 
     return {
         authorizationUrl: response.data.authorization_url,
-        accessCode: response.data.access_code,
+        accessCode: response.data.access_code || "",
         reference: response.data.reference,
+        checkoutMode: response.data.access_code ? "inline" : "redirect",
     };
 }
 
@@ -1031,6 +1267,7 @@ async function createPaystackSubscription(input: {
     authorizationCode: string;
     startDate: number;
 }): Promise<{ subscriptionCode: string; emailToken: string | null; nextPaymentDate: number | null; planCode: string }> {
+    await assertConfiguredPaystackPlansValid();
     const planCode = getPaystackPlanCode(input.planId, input.billingCycle);
     const response = await paystackRequest<PaystackCreateSubscriptionResponse>("/subscription", {
         method: "POST",
@@ -1136,6 +1373,7 @@ async function applyAvailableCreditsToSubscription(subscription: SubscriptionRec
         paystackSubscriptionCode: created.subscriptionCode || subscription.paystackSubscriptionCode,
         paystackPlanCode: created.planCode,
         paystackEmailToken: created.emailToken,
+        currentPeriodStart: baseChargeAt,
         currentPeriodEnd: rescheduledStart,
         nextChargeAt: rescheduledStart,
         lastError: null,
@@ -1148,17 +1386,54 @@ async function applyAvailableCreditsToSubscription(subscription: SubscriptionRec
 async function buildBillingSummary(userId: string, record: SubscriptionRecord | null): Promise<BillingAccountSummary> {
     const referralCode = await ensureReferralCodeForUser(userId);
     const creditSummary = await summarizeCreditsForUser(userId);
+    const moneyCreditSummary = await summarizeMoneyCreditsForUser(userId);
     const successfulReferralCount = await countSuccessfulReferrals(userId);
+    const planValidationSnapshot = await getPaystackPlanValidationSnapshot().catch(() => ({
+        ok: false,
+        issues: [{
+            key: getBillingCatalogEntry("standard", "monthly").key,
+            envVarName: getBillingCatalogEntry("standard", "monthly").envVarName,
+            planCode: getConfiguredPaystackPlanCodeByEnvVar(getBillingCatalogEntry("standard", "monthly").envVarName),
+            message: "Paystack plan validation failed.",
+        }],
+    }));
+    const activePaidRecord = record && isPaidPlanId(record.planId) ? record : null;
+    const configuredPlanEntry = activePaidRecord ? getBillingCatalogEntry(activePaidRecord.planId as Exclude<PlanId, "free">, activePaidRecord.billingCycle) : null;
+    const planValidationIssue = configuredPlanEntry
+        ? planValidationSnapshot.issues.find((issue) => issue.envVarName === configuredPlanEntry.envVarName)
+        : undefined;
+    const normalizedLastError = !planValidationIssue && isPaystackPlanConfigMessage(record?.lastError)
+        ? null
+        : record?.lastError || null;
+    const issue = buildBillingIssue({
+        lastError: normalizedLastError,
+        hasPlanValidationIssue: Boolean(planValidationIssue),
+        planValidationMessage: planValidationIssue?.message || null,
+        usesManualRenewalAdjustment: moneyCreditSummary.available > 0,
+    });
+    const nextChargeAt = toIso(record?.nextChargeAt ?? record?.currentPeriodEnd);
+    const recurringAmountCents = activePaidRecord
+        ? getBillingCatalogEntry(activePaidRecord.planId as Exclude<PlanId, "free">, activePaidRecord.billingCycle).amountCents
+        : 0;
+    const nextChargeAmountCents = Math.max(0, recurringAmountCents - moneyCreditSummary.available);
 
     return {
         referralCode: referralCode.code,
-        nextChargeAt: toIso(record?.nextChargeAt ?? record?.currentPeriodEnd),
+        nextChargeAt,
         cancelAtPeriodEnd: Boolean(record?.cancelAtPeriodEnd),
         availableReferralMonths: creditSummary.available,
         pendingReferralMonths: creditSummary.pending,
         successfulReferralCount,
         totalReferralMonthsEarned: creditSummary.total,
-        lastError: record?.lastError || undefined,
+        issue,
+        upcomingCharge: nextChargeAt && recurringAmountCents > 0 ? {
+            dueAt: nextChargeAt,
+            amountCents: nextChargeAmountCents,
+            currency: "ZAR",
+            source: moneyCreditSummary.available > 0 ? "manual_with_credit" : "plan",
+        } : undefined,
+        availableMoneyCreditCents: moneyCreditSummary.available,
+        lastError: issue?.customerMessage || normalizedLastError || undefined,
     };
 }
 
@@ -1276,6 +1551,7 @@ async function handleInitialPurchaseSuccess(data: Record<string, unknown>, inten
         planId: intent.planId,
         billingCycle: intent.billingCycle,
         status: "active",
+        currentPeriodStart: paidAt,
         currentPeriodEnd,
         nextChargeAt: currentPeriodEnd,
         cancelAtPeriodEnd: false,
@@ -1298,6 +1574,7 @@ async function handleInitialPurchaseSuccess(data: Record<string, unknown>, inten
                 paystackSubscriptionCode: created.subscriptionCode || record.paystackSubscriptionCode || null,
                 paystackEmailToken: created.emailToken,
                 paystackPlanCode: created.planCode,
+                currentPeriodStart: paidAt,
                 nextChargeAt: created.nextPaymentDate || currentPeriodEnd,
                 currentPeriodEnd: created.nextPaymentDate || currentPeriodEnd,
                 updatedAt: Date.now(),
@@ -1328,6 +1605,374 @@ async function handleInitialPurchaseSuccess(data: Record<string, unknown>, inten
         lastVerifiedAt: Date.now(),
         updatedAt: Date.now(),
     });
+}
+
+async function hasMoneyCreditForIntent(intentId: string): Promise<boolean> {
+    await ensureBillingSchema();
+    const rows = await queryD1(
+        "SELECT id FROM billing_money_credits WHERE source_intent_id = ? LIMIT 1",
+        [intentId],
+    );
+    return rows.length > 0;
+}
+
+async function createMoneyCreditForIntent(userId: string, intentId: string, amountCents: number): Promise<void> {
+    if (amountCents <= 0 || await hasMoneyCreditForIntent(intentId)) {
+        return;
+    }
+
+    await insertMoneyCredit({
+        id: randomUUID(),
+        userId,
+        sourceIntentId: intentId,
+        amountCents,
+        status: "available",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+    });
+}
+
+async function consumeMoneyCredits(userId: string, amountCents: number, appliedAt: number): Promise<number> {
+    if (amountCents <= 0) {
+        return 0;
+    }
+
+    const credits = (await getMoneyCreditsForUser(userId))
+        .filter((credit) => credit.status === "available" && credit.amountCents > 0)
+        .sort((left, right) => left.createdAt - right.createdAt);
+
+    let remainingToApply = amountCents;
+    let appliedCents = 0;
+
+    for (const credit of credits) {
+        if (remainingToApply <= 0) {
+            break;
+        }
+
+        const appliedFromCredit = Math.min(credit.amountCents, remainingToApply);
+        const remainingCredit = credit.amountCents - appliedFromCredit;
+        appliedCents += appliedFromCredit;
+        remainingToApply -= appliedFromCredit;
+
+        await updateMoneyCredit({
+            ...credit,
+            amountCents: remainingCredit,
+            status: remainingCredit > 0 ? "available" : "applied",
+            updatedAt: appliedAt,
+        });
+    }
+
+    return appliedCents;
+}
+
+function buildRenewalReference(userId: string): string {
+    return `renewal_${userId}_${Date.now()}`;
+}
+
+async function chargePaystackAuthorization(input: {
+    userId: string;
+    email: string;
+    amountCents: number;
+    authorizationCode: string;
+    planId: Exclude<PlanId, "free">;
+    billingCycle: BillingCycle;
+}): Promise<Record<string, unknown>> {
+    const reference = buildRenewalReference(input.userId);
+    const response = await paystackRequest<PaystackChargeAuthorizationResponse>("/transaction/charge_authorization", {
+        method: "POST",
+        body: JSON.stringify({
+            email: input.email,
+            amount: input.amountCents,
+            authorization_code: input.authorizationCode,
+            reference,
+            currency: "ZAR",
+            metadata: {
+                billing_mode: "manual_renewal_adjustment",
+                user_id: input.userId,
+                plan_id: input.planId,
+                billing_cycle: input.billingCycle,
+                source: "billing_renewal_worker",
+            },
+        }),
+    });
+
+    const data = response.data && typeof response.data === "object"
+        ? response.data as Record<string, unknown>
+        : null;
+    if (!data || getStringFromPaths(data, ["status"]) !== "success") {
+        throw new BillingError(
+            response.message || "Paystack could not complete the renewal charge from the saved payment method.",
+            409,
+        );
+    }
+
+    return data;
+}
+
+function getExistingCurrentPeriodStart(record: SubscriptionRecord, fallbackEnd: number): number {
+    if (record.currentPeriodStart && record.currentPeriodStart > 0) {
+        return record.currentPeriodStart;
+    }
+
+    const backfilled = record.billingCycle === "monthly"
+        ? new Date(new Date(fallbackEnd).setMonth(new Date(fallbackEnd).getMonth() - 1)).getTime()
+        : new Date(new Date(fallbackEnd).setFullYear(new Date(fallbackEnd).getFullYear() - 1)).getTime();
+    return backfilled;
+}
+
+async function handlePlanChangeSuccess(
+    data: Record<string, unknown>,
+    intent: BillingIntentRecord,
+    existing: SubscriptionRecord | null,
+): Promise<void> {
+    if (!existing || !isPaidPlanId(existing.planId) || existing.currentPeriodEnd <= Date.now()) {
+        throw new BillingError("There is no active paid subscription to change.", 409);
+    }
+
+    const authorization = extractAuthorization(data);
+    const customerId = getStringFromPaths(data, ["customer.customer_code", "customer_code"]) || existing.paystackCustomerId || null;
+    const authorizationCode = authorization?.authorizationCode || existing.paystackAuthorizationCode || null;
+    if (!customerId || !authorizationCode) {
+        throw new BillingError("We need to refresh your saved payment method before changing plans.", 409);
+    }
+
+    if (existing.paystackSubscriptionCode && existing.paystackEmailToken) {
+        await disablePaystackSubscription(existing.paystackSubscriptionCode, existing.paystackEmailToken);
+    }
+
+    const now = Date.now();
+    const currentPeriodEnd = intent.currentPeriodEnd || existing.currentPeriodEnd;
+    const currentPeriodStart = intent.currentPeriodStart || getExistingCurrentPeriodStart(existing, currentPeriodEnd);
+    const targetChargeCents = Math.round((intent.nextRecurringAmountCents ?? 0) * (buildProrationPreview({
+        currentPlanId: (intent.currentPlanId === "standard" || intent.currentPlanId === "pro") ? intent.currentPlanId : existing.planId as Exclude<PlanId, "free">,
+        currentBillingCycle: intent.currentBillingCycle ?? existing.billingCycle,
+        targetPlanId: intent.planId,
+        targetBillingCycle: intent.billingCycle,
+        currentPeriodStart,
+        currentPeriodEnd,
+        now,
+    }).remainingFraction));
+    const excessCreditCents = Math.max(0, (intent.prorationCreditCents ?? 0) - targetChargeCents);
+
+    let nextChargeAt = currentPeriodEnd;
+    let paystackSubscriptionCode: string | null = null;
+    let paystackEmailToken: string | null = null;
+    let paystackPlanCode = getPaystackPlanCode(intent.planId, intent.billingCycle);
+    let lastError: string | null = null;
+
+    if (excessCreditCents <= 0) {
+        try {
+            const created = await createPaystackSubscription({
+                customerId,
+                planId: intent.planId,
+                billingCycle: intent.billingCycle,
+                authorizationCode,
+                startDate: currentPeriodEnd,
+            });
+            paystackSubscriptionCode = created.subscriptionCode || paystackSubscriptionCode;
+            paystackEmailToken = created.emailToken;
+            paystackPlanCode = created.planCode;
+            nextChargeAt = created.nextPaymentDate || currentPeriodEnd;
+        } catch (error) {
+            lastError = error instanceof Error ? error.message : "The plan changed, but renewal setup still needs attention.";
+        }
+    }
+
+    await createMoneyCreditForIntent(intent.userId, intent.id, excessCreditCents);
+
+    await upsertSubscription({
+        ...existing,
+        userId: intent.userId,
+        email: intent.email,
+        paystackCustomerId: customerId,
+        paystackSubscriptionCode,
+        paystackPlanCode,
+        paystackEmailToken,
+        paystackAuthorizationCode: authorizationCode,
+        paystackAuthorizationSignature: authorization?.signature || existing.paystackAuthorizationSignature || null,
+        paystackAuthorizationLast4: authorization?.last4 || existing.paystackAuthorizationLast4 || null,
+        planId: intent.planId,
+        billingCycle: intent.billingCycle,
+        status: "active",
+        currentPeriodStart,
+        currentPeriodEnd,
+        nextChargeAt,
+        cancelAtPeriodEnd: false,
+        lastError,
+        updatedAt: now,
+    });
+
+    await upsertBillingIntent({
+        ...intent,
+        status: "completed",
+        lastPaymentStatus: "success",
+        lastVerifiedAt: now,
+        updatedAt: now,
+    });
+}
+
+async function listSubscriptionsDueForManualRenewal(referenceTime: number): Promise<SubscriptionRecord[]> {
+    await ensureBillingSchema();
+    const rows = await queryD1(
+        `
+            SELECT *
+            FROM subscriptions
+            WHERE plan_id != 'free'
+              AND next_charge_at IS NOT NULL
+              AND next_charge_at <= ?
+              AND status IN ('active', 'past_due')
+            ORDER BY next_charge_at ASC
+        `,
+        [referenceTime],
+    );
+    return rows.map(rowToSubscriptionRecord);
+}
+
+async function restoreScheduledRenewalSubscription(
+    record: SubscriptionRecord,
+    customerId: string,
+    authorizationCode: string,
+    startDate: number,
+): Promise<Pick<SubscriptionRecord, "paystackSubscriptionCode" | "paystackEmailToken" | "paystackPlanCode" | "nextChargeAt" | "lastError">> {
+    try {
+        const created = await createPaystackSubscription({
+            customerId,
+            planId: record.planId as Exclude<PlanId, "free">,
+            billingCycle: record.billingCycle,
+            authorizationCode,
+            startDate,
+        });
+
+        return {
+            paystackSubscriptionCode: created.subscriptionCode || null,
+            paystackEmailToken: created.emailToken,
+            paystackPlanCode: created.planCode,
+            nextChargeAt: created.nextPaymentDate || startDate,
+            lastError: null,
+        };
+    } catch (error) {
+        return {
+            paystackSubscriptionCode: null,
+            paystackEmailToken: null,
+            paystackPlanCode: record.paystackPlanCode || null,
+            nextChargeAt: startDate,
+            lastError: error instanceof Error
+                ? error.message
+                : "Renewal was applied, but the next automatic renewal still needs billing attention.",
+        };
+    }
+}
+
+async function processManualRenewalAdjustment(record: SubscriptionRecord, availableCreditCents: number, referenceTime: number): Promise<RenewalRunResult> {
+    if (!isPaidPlanId(record.planId)) {
+        return {
+            userId: record.userId,
+            status: "skipped",
+            amountChargedCents: 0,
+            creditAppliedCents: 0,
+            message: "Free plans do not need manual renewal handling.",
+        };
+    }
+
+    const recurringAmountCents = getBillingCatalogEntry(record.planId as Exclude<PlanId, "free">, record.billingCycle).amountCents;
+    if (recurringAmountCents <= 0) {
+        return {
+            userId: record.userId,
+            status: "skipped",
+            amountChargedCents: 0,
+            creditAppliedCents: 0,
+            message: "Recurring amount is not configured.",
+        };
+    }
+
+    const renewalStart = record.nextChargeAt ?? record.currentPeriodEnd ?? referenceTime;
+    const renewalEnd = addBillingInterval(new Date(renewalStart), record.billingCycle).getTime();
+    const amountToChargeCents = Math.max(0, recurringAmountCents - availableCreditCents);
+    const creditToApplyCents = Math.min(availableCreditCents, recurringAmountCents);
+    const now = Date.now();
+
+    try {
+        let chargeData: Record<string, unknown> | null = null;
+        if (amountToChargeCents > 0) {
+            if (!record.paystackAuthorizationCode) {
+                throw new BillingError("A saved payment method is required before we can charge the discounted renewal.", 409);
+            }
+
+            chargeData = await chargePaystackAuthorization({
+                userId: record.userId,
+                email: record.email,
+                amountCents: amountToChargeCents,
+                authorizationCode: record.paystackAuthorizationCode,
+                planId: record.planId as Exclude<PlanId, "free">,
+                billingCycle: record.billingCycle,
+            });
+        }
+
+        const appliedCredits = await consumeMoneyCredits(record.userId, creditToApplyCents, now);
+        const remainingCredits = await summarizeMoneyCreditsForUser(record.userId);
+        let restoredRenewal: Pick<SubscriptionRecord, "paystackSubscriptionCode" | "paystackEmailToken" | "paystackPlanCode" | "nextChargeAt" | "lastError"> = {
+            paystackSubscriptionCode: null,
+            paystackEmailToken: null,
+            paystackPlanCode: getPaystackPlanCode(record.planId as Exclude<PlanId, "free">, record.billingCycle),
+            nextChargeAt: renewalEnd,
+            lastError: null,
+        };
+
+        if (remainingCredits.available <= 0 && record.paystackCustomerId && record.paystackAuthorizationCode) {
+            restoredRenewal = await restoreScheduledRenewalSubscription(
+                record,
+                record.paystackCustomerId,
+                record.paystackAuthorizationCode,
+                renewalEnd,
+            );
+        }
+
+        await upsertSubscription({
+            ...record,
+            paystackSubscriptionCode: restoredRenewal.paystackSubscriptionCode,
+            paystackEmailToken: restoredRenewal.paystackEmailToken,
+            paystackPlanCode: restoredRenewal.paystackPlanCode,
+            status: "active",
+            currentPeriodStart: renewalStart,
+            currentPeriodEnd: renewalEnd,
+            nextChargeAt: restoredRenewal.nextChargeAt,
+            cancelAtPeriodEnd: false,
+            lastError: restoredRenewal.lastError,
+            updatedAt: now,
+            paystackAuthorizationCode: extractAuthorization(chargeData || {})?.authorizationCode || record.paystackAuthorizationCode || null,
+            paystackAuthorizationSignature: extractAuthorization(chargeData || {})?.signature || record.paystackAuthorizationSignature || null,
+            paystackAuthorizationLast4: extractAuthorization(chargeData || {})?.last4 || record.paystackAuthorizationLast4 || null,
+        });
+
+        return {
+            userId: record.userId,
+            status: amountToChargeCents > 0 ? "charged" : "credit_applied",
+            amountChargedCents: amountToChargeCents,
+            creditAppliedCents: appliedCredits,
+            message: amountToChargeCents > 0
+                ? "Manual renewal charge completed and the next recurring renewal was rescheduled."
+                : "Account credit covered this renewal and the subscription period was extended.",
+        };
+    } catch (error) {
+        const message = error instanceof Error
+            ? error.message
+            : "The saved payment method could not be used for the discounted renewal.";
+
+        await upsertSubscription({
+            ...record,
+            status: "past_due",
+            lastError: message,
+            updatedAt: now,
+        });
+
+        return {
+            userId: record.userId,
+            status: "failed",
+            amountChargedCents: 0,
+            creditAppliedCents: 0,
+            message,
+        };
+    }
 }
 
 async function resolveBillingIntentForCharge(reference: string | null, metadata: Record<string, unknown>): Promise<BillingIntentRecord | null> {
@@ -1362,7 +2007,11 @@ async function processSuccessfulCharge(data: Record<string, unknown>, reference:
             if (isGuestIntentUserId(intent.userId)) {
                 return markGuestPurchaseIntentPaymentReceived(intent);
             }
-            await handleInitialPurchaseSuccess(data, intent);
+            if (intent.intentKind === "plan_change") {
+                await handlePlanChangeSuccess(data, intent, existing);
+            } else {
+                await handleInitialPurchaseSuccess(data, intent);
+            }
             return true;
         }
         return true;
@@ -1429,6 +2078,7 @@ async function handleRecurringChargeSuccess(data: Record<string, unknown>, exist
         planId: mappedPlan.planId,
         billingCycle: mappedPlan.billingCycle,
         status: "active",
+        currentPeriodStart: paidAt,
         currentPeriodEnd: nextPaymentDate,
         nextChargeAt: nextPaymentDate,
         cancelAtPeriodEnd: false,
@@ -1868,25 +2518,140 @@ export async function createCheckoutSession(
     request: Request,
     user: VerifiedUser,
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle },
-): Promise<{ authorizationUrl: string; accessCode: string; reference: string }> {
+): Promise<CheckoutSessionResponse> {
+    await ensureBillingSchema();
+
     const amount = getPlanPrice(input.planId, input.billingCycle);
     if (!amount) {
         throw new BillingError("Pricing is not configured for that plan.", 400);
     }
 
-    return initializePaystackTransaction(request, user, {
-        amountCents: amount * 100,
+    const existing = await getSubscriptionByColumn("user_id", user.userId);
+    const now = Date.now();
+    const isActivePaidSubscription = Boolean(existing && isPaidPlanId(existing.planId) && existing.currentPeriodEnd > now);
+    const isSamePlan = Boolean(existing && existing.planId === input.planId && existing.billingCycle === input.billingCycle && existing.currentPeriodEnd > now);
+    if (isSamePlan) {
+        throw new BillingError("That plan is already active.", 409);
+    }
+
+    if (!isActivePaidSubscription) {
+        const intent: BillingIntentRecord = {
+            id: randomUUID(),
+            reference: buildBillingReference(user.userId),
+            userId: user.userId,
+            email: user.email,
+            planId: input.planId,
+            billingCycle: input.billingCycle,
+            intentKind: "new_subscription",
+            amountCents: amount * 100,
+            status: "pending",
+            createdAt: now,
+            updatedAt: now,
+        };
+        await upsertBillingIntent(intent);
+
+        const checkout = await initializePaystackTransaction(request, user, {
+            amountCents: intent.amountCents,
+            reference: intent.reference,
+            metadata: {
+                billing_mode: "direct_purchase",
+                intent_id: intent.id,
+                user_id: user.userId,
+                plan_id: input.planId,
+                billing_cycle: input.billingCycle,
+                source: "upgrade_page",
+            },
+            callbackQuery: {
+                mode: "purchase",
+            },
+        });
+
+        await upsertBillingIntent({
+            ...intent,
+            reference: checkout.reference,
+            status: "checkout_started",
+            updatedAt: Date.now(),
+        });
+
+        return {
+            ...checkout,
+            checkoutMode: "inline",
+        };
+    }
+
+    const currentRecord = existing as SubscriptionRecord;
+    const proration = buildProrationPreview({
+        currentPlanId: currentRecord.planId as Exclude<PlanId, "free">,
+        currentBillingCycle: currentRecord.billingCycle,
+        targetPlanId: input.planId,
+        targetBillingCycle: input.billingCycle,
+        currentPeriodStart: currentRecord.currentPeriodStart || getExistingCurrentPeriodStart(currentRecord, currentRecord.currentPeriodEnd),
+        currentPeriodEnd: currentRecord.currentPeriodEnd,
+        now,
+    });
+    const intent: BillingIntentRecord = {
+        id: randomUUID(),
+        reference: buildBillingReference(user.userId),
+        userId: user.userId,
+        email: user.email,
+        planId: input.planId,
+        billingCycle: input.billingCycle,
+        intentKind: "plan_change",
+        currentPlanId: currentRecord.planId,
+        currentBillingCycle: currentRecord.billingCycle,
+        currentPeriodStart: currentRecord.currentPeriodStart || getExistingCurrentPeriodStart(currentRecord, currentRecord.currentPeriodEnd),
+        currentPeriodEnd: currentRecord.currentPeriodEnd,
+        prorationCreditCents: proration.creditAppliedCents,
+        nextRecurringAmountCents: proration.nextRecurringAmountCents,
+        amountCents: proration.amountDueNowCents,
+        status: "pending",
+        createdAt: now,
+        updatedAt: now,
+    };
+    await upsertBillingIntent(intent);
+
+    if (proration.amountDueNowCents <= 0) {
+        await handlePlanChangeSuccess({}, intent, currentRecord);
+        return {
+            authorizationUrl: "",
+            accessCode: "",
+            reference: intent.reference,
+            checkoutMode: "no_charge",
+            proration,
+            billingAccount: await getBillingAccountForUser(user.userId),
+        };
+    }
+
+    const checkout = await initializePaystackTransaction(request, user, {
+        amountCents: proration.amountDueNowCents,
+        reference: intent.reference,
         metadata: {
-            billing_mode: "direct_purchase",
+            billing_mode: "plan_change",
+            intent_id: intent.id,
             user_id: user.userId,
             plan_id: input.planId,
             billing_cycle: input.billingCycle,
+            current_plan_id: currentRecord.planId,
+            current_billing_cycle: currentRecord.billingCycle,
             source: "upgrade_page",
         },
         callbackQuery: {
             mode: "purchase",
         },
     });
+
+    await upsertBillingIntent({
+        ...intent,
+        reference: checkout.reference,
+        status: "checkout_started",
+        updatedAt: Date.now(),
+    });
+
+    return {
+        ...checkout,
+        checkoutMode: "inline",
+        proration,
+    };
 }
 
 export async function createAnonymousPurchaseIntent(request: Request, input: {
@@ -1919,6 +2684,7 @@ export async function createAnonymousPurchaseIntent(request: Request, input: {
         email: normalizedEmail,
         planId: input.planId,
         billingCycle: input.billingCycle,
+        intentKind: "new_subscription",
         referralCode: sanitizedReferralCode,
         amountCents: amount * 100,
         status: "pending",
@@ -1958,6 +2724,30 @@ export async function createAnonymousPurchaseIntent(request: Request, input: {
         accessCode: checkout.accessCode,
         authorizationUrl: checkout.authorizationUrl,
         amountCents: intent.amountCents,
+    };
+}
+
+export async function processDueBillingRenewals(referenceTime = Date.now()): Promise<{
+    processedAt: string;
+    results: RenewalRunResult[];
+}> {
+    await ensureBillingSchema();
+
+    const dueSubscriptions = await listSubscriptionsDueForManualRenewal(referenceTime);
+    const results: RenewalRunResult[] = [];
+
+    for (const record of dueSubscriptions) {
+        const moneyCreditSummary = await summarizeMoneyCreditsForUser(record.userId);
+        if (moneyCreditSummary.available <= 0) {
+            continue;
+        }
+
+        results.push(await processManualRenewalAdjustment(record, moneyCreditSummary.available, referenceTime));
+    }
+
+    return {
+        processedAt: new Date(referenceTime).toISOString(),
+        results,
     };
 }
 

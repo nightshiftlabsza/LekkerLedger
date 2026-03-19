@@ -152,7 +152,7 @@ export default function TrustCenterPage() {
                         </div>
                     </div>
                     <div className="mt-6">
-                        <Link href="/rules" className="inline-flex items-center text-sm font-bold text-[var(--primary)] hover:underline">
+                        <Link href="/resources/checklists" className="inline-flex items-center text-sm font-bold text-[var(--primary)] hover:underline">
                             View the household checklist <ArrowRight className="h-4 w-4 ml-1" />
                         </Link>
                     </div>

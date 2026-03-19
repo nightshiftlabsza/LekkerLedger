@@ -5,6 +5,9 @@ import { MarketingHeader } from "@/components/layout/marketing-header";
 export const metadata = {
   title: "Household Employment Guides | LekkerLedger",
   description: "Plain-English guides on South African labour laws for domestic workers. Understand UIF, minimum wage, and BCEA rules.",
+  alternates: {
+    canonical: "/resources/guides",
+  },
 };
 
 const guides = [
@@ -24,6 +27,18 @@ const guides = [
         title: "The 4-Hour Minimum Pay Rule",
         description: "Understanding BCEA Section 9A: Why you must pay for at least four hours even if your employee works less.",
         href: "/resources/guides/4-hour-minimum-pay-rule",
+        date: "Updated Dec 2024"
+    },
+    {
+        title: "CCMA & Disciplinary Guide",
+        description: "How to handle warnings, fair dismissals, and documentation before a domestic worker dispute reaches the CCMA.",
+        href: "/resources/guides/ccma-and-disciplinary-procedures",
+        date: "Updated Dec 2024"
+    },
+    {
+        title: "COIDA & Return of Earnings",
+        description: "What domestic employers must do for Compensation Fund registration, annual ROE filing, and injury-risk compliance.",
+        href: "/resources/guides/coida-and-roe-compliance",
         date: "Updated Dec 2024"
     }
 ];

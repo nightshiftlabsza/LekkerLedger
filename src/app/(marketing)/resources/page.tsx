@@ -1,10 +1,13 @@
 import Link from "next/link";
-import { ArrowLeft, BookOpen, FileText, Calculator, CheckSquare } from "lucide-react";
+import { ArrowLeft, BookOpen, Calculator, CheckSquare } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 
 export const metadata = {
   title: "Household Employment Resources | LekkerLedger",
-  description: "Guides, templates, tools, and checklists for South African household employers. Everything you need to manage domestic worker compliance.",
+  description: "Guides, tools, and checklists for South African household employers. Everything you need to manage domestic worker compliance.",
+  alternates: {
+    canonical: "/resources",
+  },
 };
 
 const resourceSections = [
@@ -31,17 +34,8 @@ const resourceSections = [
             { name: "UIF for Domestic Workers", href: "/resources/guides/uif-for-domestic-workers" },
             { name: "2026 Minimum Wage", href: "/resources/guides/domestic-worker-minimum-wage-2026" },
             { name: "The 4-Hour Minimum Pay Rule", href: "/resources/guides/4-hour-minimum-pay-rule" },
-        ]
-    },
-    {
-        title: "Templates",
-        description: "Standardised employment contracts, warning letters, and other necessary documents.",
-        icon: FileText,
-        href: "/resources/templates",
-        color: "text-purple-500",
-        bg: "bg-purple-500/10",
-        items: [
-            { name: "Domestic Worker Contract Template", href: "/resources/templates/domestic-worker-contract" },
+            { name: "CCMA & Disciplinary Guide", href: "/resources/guides/ccma-and-disciplinary-procedures" },
+            { name: "COIDA & ROE Guide", href: "/resources/guides/coida-and-roe-compliance" },
         ]
     },
     {

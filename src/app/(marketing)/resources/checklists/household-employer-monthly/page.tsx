@@ -6,6 +6,9 @@ import { MarketingHeader } from "@/components/layout/marketing-header";
 export const metadata = {
   title: "Household Employer Monthly Checklist | LekkerLedger",
   description: "Your step-by-step monthly compliance checklist for domestic workers in South Africa. Pay, UIF, and record-keeping made simple.",
+  alternates: {
+    canonical: "/resources/checklists/household-employer-monthly",
+  },
 };
 
 export default function MonthlyChecklistPage() {

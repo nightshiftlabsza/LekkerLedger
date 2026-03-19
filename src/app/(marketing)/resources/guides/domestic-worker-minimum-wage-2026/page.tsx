@@ -6,6 +6,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 export const metadata = {
   title: "2026 Domestic Worker Minimum Wage Guide | LekkerLedger",
   description: "A complete guide to the 2026 South African National Minimum Wage for domestic workers, nannies, and gardeners. Current rate: R30.23 per hour.",
+  alternates: {
+    canonical: "/resources/guides/domestic-worker-minimum-wage-2026",
+  },
 };
 
 export default function NMW2026GuidePage() {

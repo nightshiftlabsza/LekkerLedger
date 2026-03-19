@@ -6,6 +6,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 export const metadata = {
   title: "Complete Guide to UIF for Domestic Workers | LekkerLedger",
   description: "Understand the 24-hour rule, calculate the 1%+1% deductions, and learn how to manage UIF declarations for your South African domestic worker.",
+  alternates: {
+    canonical: "/resources/guides/uif-for-domestic-workers",
+  },
 };
 
 export default function UIFGuidePage() {

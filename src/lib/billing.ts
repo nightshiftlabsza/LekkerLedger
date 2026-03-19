@@ -2,8 +2,33 @@ import { BillingCycle, PlanId } from "../config/plans";
 
 export type BillingStatus = "free" | "active" | "past_due" | "canceled" | "refunded" | "unknown";
 export type BillingIntentStatus = "pending" | "checkout_started" | "payment_received" | "completed" | "rejected" | "canceled";
+export type BillingIntentKind = "new_subscription" | "plan_change";
 export type ReferralStatus = "pending_first_charge" | "qualified_pending_reward" | "reward_granted" | "reversed" | "rejected";
 export type BillingCreditStatus = "pending" | "available" | "applied" | "reversed";
+export type BillingMoneyCreditStatus = "available" | "applied" | "reversed";
+export type BillingIssueCode = "renewal_setup_required" | "paystack_plan_configuration_invalid" | "manual_renewal_adjustment";
+
+export interface BillingIssue {
+    code: BillingIssueCode;
+    customerMessage: string;
+    adminMessage?: string;
+}
+
+export interface BillingUpcomingCharge {
+    dueAt: string;
+    amountCents: number;
+    currency: "ZAR";
+    source: "plan" | "manual_with_credit";
+}
+
+export interface BillingProrationPreview {
+    amountDueNowCents: number;
+    creditAppliedCents: number;
+    remainingFraction: number;
+    nextRenewalDate: string;
+    nextRecurringAmountCents: number;
+    currency: "ZAR";
+}
 
 export interface SubscriptionRecord {
     userId: string;
@@ -18,6 +43,7 @@ export interface SubscriptionRecord {
     planId: PlanId;
     billingCycle: BillingCycle;
     status: BillingStatus;
+    currentPeriodStart?: number | null;
     currentPeriodEnd: number;
     nextChargeAt?: number | null;
     cancelAtPeriodEnd?: boolean;
@@ -32,6 +58,13 @@ export interface BillingIntentRecord {
     email: string;
     planId: Exclude<PlanId, "free">;
     billingCycle: BillingCycle;
+    intentKind?: BillingIntentKind;
+    currentPlanId?: PlanId | null;
+    currentBillingCycle?: BillingCycle | null;
+    currentPeriodStart?: number | null;
+    currentPeriodEnd?: number | null;
+    prorationCreditCents?: number | null;
+    nextRecurringAmountCents?: number | null;
     referralCode?: string | null;
     amountCents: number;
     status: BillingIntentStatus;
@@ -77,6 +110,16 @@ export interface BillingCreditRecord {
     updatedAt: number;
 }
 
+export interface BillingMoneyCreditRecord {
+    id: string;
+    userId: string;
+    sourceIntentId: string;
+    amountCents: number;
+    status: BillingMoneyCreditStatus;
+    createdAt: number;
+    updatedAt: number;
+}
+
 export interface BillingAccountSummary {
     referralCode?: string | null;
     nextChargeAt?: string;
@@ -85,6 +128,10 @@ export interface BillingAccountSummary {
     pendingReferralMonths: number;
     successfulReferralCount: number;
     totalReferralMonthsEarned: number;
+    issue?: BillingIssue;
+    upcomingCharge?: BillingUpcomingCharge;
+    prorationPreview?: BillingProrationPreview;
+    availableMoneyCreditCents?: number;
     lastError?: string;
 }
 
@@ -209,7 +256,7 @@ export function entitlementsFromSubscription(
         cancelAtPeriodEnd: Boolean(record.cancelAtPeriodEnd),
         availableReferralMonths: summary?.availableReferralMonths ?? 0,
         pendingReferralMonths: summary?.pendingReferralMonths ?? 0,
-        lastError: record.lastError || undefined,
+        lastError: summary?.issue?.customerMessage || record.lastError || undefined,
         isActive,
     };
 }

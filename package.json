@@ -11,7 +11,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "typecheck": "tsc --noEmit",
-    "wording:lint": "node scripts/wording-lint.mjs"
+    "wording:lint": "node scripts/wording-lint.mjs",
+    "billing:paystack:plans": "node scripts/paystack-plan-sync.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1007.0",

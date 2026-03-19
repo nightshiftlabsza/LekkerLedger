@@ -7,6 +7,7 @@ import { StartupScripts } from "@/components/layout/startup-scripts";
 import { Suspense } from "react";
 import { AnalyticsPageView } from "@/components/AnalyticsPageView";
 import { PwaInstallTracking } from "@/components/PwaInstallTracking";
+import { ROOT_METADATA_BASE } from "@/lib/seo";
 
 const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-sans",
@@ -23,10 +24,14 @@ const ibmPlexSerif = IBM_Plex_Serif({
 });
 
 export const metadata: Metadata = {
+  metadataBase: ROOT_METADATA_BASE,
   title: "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
   description:
     "Run South African household payroll with payslips, employee records, backup, and annual paperwork in one calm workspace.",
   manifest: "/manifest.webmanifest",
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export const viewport: Viewport = {

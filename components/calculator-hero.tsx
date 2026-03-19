@@ -98,7 +98,7 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: Readonly
                             </div>
                         </div>
                         <div className="flex justify-end px-5 py-3 text-xs font-semibold" style={{ backgroundColor: "var(--surface-raised)" }}>
-                            <Link href="/help/compliance#uif" className="text-[var(--primary)] underline-offset-4 hover:underline">
+                            <Link href="/resources/guides/uif-for-domestic-workers" className="text-[var(--primary)] underline-offset-4 hover:underline">
                                 How UIF works
                             </Link>
                         </div>

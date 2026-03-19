@@ -5,6 +5,9 @@ import { MarketingHeader } from "@/components/layout/marketing-header";
 export const metadata = {
   title: "COIDA & Return of Earnings Guide for Domestic Employers | LekkerLedger",
   description: "Understand your legal obligations for the Compensation Fund (COIDA) and annual Return of Earnings (ROE) for domestic workers in South Africa.",
+  alternates: {
+    canonical: "/resources/guides/coida-and-roe-compliance",
+  },
 };
 
 export default function COIDAGuidePage() {

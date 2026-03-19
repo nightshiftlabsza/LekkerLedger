@@ -107,7 +107,14 @@ export async function fetchVerifiedEntitlements(accessToken?: string | null, for
 export async function createCheckoutSession(
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle },
     accessToken?: string | null,
-): Promise<{ authorizationUrl: string; reference: string }> {
+): Promise<{
+    authorizationUrl: string;
+    accessCode: string;
+    reference: string;
+    checkoutMode: "inline" | "redirect" | "no_charge";
+    proration?: BillingAccountSummary["prorationPreview"];
+    billingAccount?: BillingAccountPayload;
+}> {
     const authHeaders = await buildAuthHeaders(accessToken);
     const response = await fetch("/api/billing/checkout", {
         method: "POST",
@@ -129,13 +136,20 @@ export async function createCheckoutSession(
     const data = await response.json();
     return {
         authorizationUrl: data.authorizationUrl as string,
+        accessCode: data.accessCode as string,
         reference: data.reference as string,
+        checkoutMode: (data.checkoutMode as "inline" | "redirect" | "no_charge") || "inline",
+        proration: data.proration as BillingAccountSummary["prorationPreview"] | undefined,
+        billingAccount: data.billingAccount ? {
+            entitlements: (data.billingAccount.entitlements as VerifiedEntitlements | undefined) ?? getFreeEntitlements(),
+            account: data.billingAccount.account as BillingAccountSummary,
+        } : undefined,
     };
 }
 
 export async function createInlinePurchaseIntent(
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; email: string; referralCode?: string | null },
-): Promise<{ reference: string; accessCode: string; authorizationUrl: string; amountCents: number }> {
+): Promise<{ reference: string; accessCode: string; authorizationUrl: string; amountCents: number; checkoutMode?: "inline" | "redirect" }> {
     const response = await fetch("/api/billing/purchase/intent", {
         method: "POST",
         headers: {
@@ -154,6 +168,7 @@ export async function createInlinePurchaseIntent(
         accessCode: data.accessCode as string,
         authorizationUrl: data.authorizationUrl as string,
         amountCents: data.amountCents as number,
+        checkoutMode: data.checkoutMode as "inline" | "redirect" | undefined,
     };
 }
 

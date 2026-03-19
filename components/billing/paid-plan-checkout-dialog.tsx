@@ -85,18 +85,23 @@ export function PaidPlanCheckoutDialog({
                 }
             }}
         >
-            <button
-                type="button"
-                aria-label={`Close ${title}`}
+            <div
+                data-testid="paid-plan-checkout-overlay"
                 className="absolute inset-0"
-                onClick={() => onOpenChange(false)}
-            />
+            >
+                <button
+                    type="button"
+                    aria-label={`Close ${title}`}
+                    className="absolute inset-0"
+                    onClick={() => onOpenChange(false)}
+                />
+            </div>
 
             <div className="relative z-[1] w-full min-w-0 overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--surface-1)] shadow-[0_24px_70px_rgba(15,23,42,0.24)]">
                 <div className="flex max-h-[min(42rem,calc(100dvh-2rem))] min-w-0 flex-col sm:max-h-[min(42rem,calc(100dvh-3rem))]">
-                    <div className="sr-only">
-                        <span id={titleId}>{title}</span>
-                        <p id={descriptionId}>{description}</p>
+                    <div className="border-b border-[var(--border)] px-6 py-5 sm:px-7">
+                        <h2 id={titleId} className="text-xl font-black text-[var(--text)]">{title}</h2>
+                        <p id={descriptionId} className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{description}</p>
                     </div>
                     <div className="min-w-0 overflow-y-auto overflow-x-hidden p-6 sm:p-7">
                         {children}

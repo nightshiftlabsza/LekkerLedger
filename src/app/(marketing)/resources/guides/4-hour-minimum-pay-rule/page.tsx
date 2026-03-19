@@ -5,6 +5,9 @@ import { MarketingHeader } from "@/components/layout/marketing-header";
 export const metadata = {
   title: "The 4-Hour Minimum Pay Rule for Domestic Workers | LekkerLedger",
   description: "Understand Section 9A of the BCEA: Why South African household employers must pay for at least four hours of work, even for short shifts.",
+  alternates: {
+    canonical: "/resources/guides/4-hour-minimum-pay-rule",
+  },
 };
 
 export default function FourHourRuleGuidePage() {

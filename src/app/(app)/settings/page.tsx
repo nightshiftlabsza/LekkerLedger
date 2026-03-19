@@ -17,7 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/toast";
 import { PageHeader } from "@/components/ui/page-header";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
-import { PlanFeatureList } from "@/components/marketing/pricing";
+import { MarketingBillingToggle, PlanFeatureList } from "@/components/marketing/pricing";
 import { getSettings, saveSettings, resetAllData, exportData, importData, getEmployees } from "@/lib/storage";
 import { CustomLeaveType, EmployerSettings, Employee } from "@/lib/schema";
 import { cancelSubscriptionRenewal, fetchBillingAccount, type BillingAccountPayload } from "@/lib/billing-client";
@@ -101,6 +101,7 @@ function SettingsContent() {
     const [saved, setSaved] = React.useState(false);
     const [billingAccount, setBillingAccount] = React.useState<BillingAccountPayload | null>(null);
     const [billingLoading, setBillingLoading] = React.useState(true);
+    const [planComparisonCycle, setPlanComparisonCycle] = React.useState<BillingCycle>("monthly");
     const [cancelingRenewal, setCancelingRenewal] = React.useState(false);
     const [downgradingTo, setDowngradingTo] = React.useState<string | null>(null);
     const [wipeConfirmOpen, setWipeConfirmOpen] = React.useState(false);
@@ -133,6 +134,7 @@ function SettingsContent() {
             if (!active) return;
             setSettings(s);
             setEmployees(emps);
+            setPlanComparisonCycle(s.billingCycle === "yearly" ? "yearly" : "monthly");
             setLoading(false);
             setActiveTab(resolveSettingsTab(searchParams.get("tab")));
 
@@ -191,7 +193,11 @@ function SettingsContent() {
     const userPlan = getUserPlan(effectiveSettings);
     const advancedLeaveEnabled = canUseAdvancedLeaveFeatures(userPlan);
     const customLeaveTypes = React.useMemo(() => settings?.customLeaveTypes ?? [], [settings?.customLeaveTypes]);
-    const nextChargeLabel = billingAccount?.account.nextChargeAt ? new Date(billingAccount.account.nextChargeAt).toLocaleDateString("en-ZA") : null;
+    const nextChargeLabel = billingAccount?.account.upcomingCharge?.dueAt
+        ? new Date(billingAccount.account.upcomingCharge.dueAt).toLocaleDateString("en-ZA")
+        : billingAccount?.account.nextChargeAt
+            ? new Date(billingAccount.account.nextChargeAt).toLocaleDateString("en-ZA")
+            : null;
     const billingStatus = billingAccount?.entitlements.status;
     const referralCode = billingAccount?.account.referralCode || "";
 
@@ -867,7 +873,7 @@ function SettingsContent() {
                     const currentPlan = getUserPlan(effectiveSettings);
                     const currentCycle = effectiveSettings?.billingCycle === "monthly" ? "monthly" : "yearly";
                     const displayCycle: BillingCycle = currentPlan.id === "free" ? "monthly" : currentCycle;
-                    const comparisonCycle: BillingCycle = currentPlan.id === "free" ? "yearly" : currentCycle;
+                    const comparisonCycle: BillingCycle = planComparisonCycle;
                     const currentPlanDisplay = getMarketingPlanDisplay(currentPlan.id);
                     const currentPricePresentation = getMarketingPriceDisplay(currentPlan.id, displayCycle);
                     const currentPlanStatusLabel = getCurrentPlanStatusLabel({
@@ -891,9 +897,15 @@ function SettingsContent() {
                                 {nextChargeLabel && (
                                     <p><strong className="text-[var(--text)]">Next renewal:</strong> {nextChargeLabel}</p>
                                 )}
-                                {billingAccount.account.lastError && (
+                                {billingAccount.account.upcomingCharge && (
+                                    <p>
+                                        <strong className="text-[var(--text)]">Next recurring amount:</strong>{" "}
+                                        {new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(billingAccount.account.upcomingCharge.amountCents / 100)}
+                                    </p>
+                                )}
+                                {billingAccount.account.issue && (
                                     <p className="rounded-2xl border px-4 py-3 text-[var(--warning)]" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
-                                        {billingAccount.account.lastError}
+                                        {billingAccount.account.issue.customerMessage}
                                     </p>
                                 )}
                                 {!billingAccount.account.cancelAtPeriodEnd && billingAccount.entitlements.planId !== "free" && (
@@ -1068,6 +1080,13 @@ function SettingsContent() {
                                         </div>
                                     </div>
                                 )}
+                                <div className="flex justify-center">
+                                    <MarketingBillingToggle
+                                        billingCycle={comparisonCycle}
+                                        onChange={setPlanComparisonCycle}
+                                        align="center"
+                                    />
+                                </div>
                                 <div className="settings-plan-cq-grid grid gap-4">
                                     {PLAN_ORDER.map((planId) => {
                                         const plan = PLANS[planId];
@@ -1278,7 +1297,7 @@ function SettingsContent() {
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-1">Help & Resources</h2>
                             <Card className="glass-panel border-none overflow-hidden">
-                                <Link href="/rules" className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] border-b border-[var(--border)] transition-colors">
+                                <Link href="/resources/checklists" className="flex items-center justify-between p-4 hover:bg-[var(--surface-2)] border-b border-[var(--border)] transition-colors">
                                     <div className="flex items-center gap-3">
                                         <BookOpen className="h-5 w-5 text-[var(--info)]" />
                                         <div>

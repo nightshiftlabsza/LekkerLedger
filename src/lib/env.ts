@@ -9,6 +9,7 @@ const serverSchema = z.object({
     PAYSTACK_PLAN_STANDARD_YEARLY: z.string().optional(),
     PAYSTACK_PLAN_PRO_MONTHLY: z.string().optional(),
     PAYSTACK_PLAN_PRO_YEARLY: z.string().optional(),
+    BILLING_RENEWALS_SECRET: z.string().optional(),
 
     // Cloudflare D1
     CLOUDFLARE_ACCOUNT_ID: z.string().min(1, "CLOUDFLARE_ACCOUNT_ID is required"),

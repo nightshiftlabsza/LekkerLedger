@@ -5,6 +5,9 @@ import { MarketingHeader } from "@/components/layout/marketing-header";
 export const metadata = {
   title: "CCMA & Disciplinary Guide for Domestic Employers | LekkerLedger",
   description: "How to handle warnings, fair dismissals, and CCMA disputes with your domestic worker in South Africa. Protect yourself with proper documentation.",
+  alternates: {
+    canonical: "/resources/guides/ccma-and-disciplinary-procedures",
+  },
 };
 
 export default function CCMAGuidePage() {

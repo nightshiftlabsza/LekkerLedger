@@ -5,6 +5,9 @@ import { MarketingHeader } from "@/components/layout/marketing-header";
 export const metadata = {
   title: "Household Employment Checklists | LekkerLedger",
   description: "Step-by-step checklists to ensure you're meeting all your monthly and annual obligations for your domestic worker in South Africa.",
+  alternates: {
+    canonical: "/resources/checklists",
+  },
 };
 
 const checklists = [

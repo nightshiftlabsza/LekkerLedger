@@ -1,3 +1,4 @@
+import { getYearlySavingsPercent } from "./billing-catalog";
 import { PLANS, type BillingCycle, type PlanId } from "./plans";
 
 export interface PriceDisplay {
@@ -40,7 +41,7 @@ export interface PricingComparisonGroup {
 }
 
 export const MARKETING_BILLING_CYCLE_STORAGE_KEY = "lekkerledger:marketing-billing-cycle";
-export const MARKETING_YEARLY_BADGE = "Save up to 32%";
+export const MARKETING_YEARLY_BADGE = `Save up to ${getYearlySavingsPercent("pro")}%`;
 
 export const HOMEPAGE_PRICING_LINK_LABEL = "Compare plans in detail";
 

@@ -162,7 +162,7 @@ function UpgradePageContent() {
                             Paid plans start immediately.
                         </p>
                         <p>
-                            You&apos;ll be charged the full Standard or Pro price today through Paystack. {PAID_PLAN_START_AND_REFUND_SUMMARY}
+                            New paid subscriptions are charged immediately through Paystack. If you are changing from one paid plan to another mid-cycle, LekkerLedger shows the prorated amount due now before payment. {PAID_PLAN_START_AND_REFUND_SUMMARY}
                         </p>
                     </CardContent>
                 </Card>
