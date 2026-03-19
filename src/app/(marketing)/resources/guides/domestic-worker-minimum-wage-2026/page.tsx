@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ArrowLeft, ExternalLink, Calculator, DollarSign, Info, ArrowRight } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
+import { JsonLd } from "@/components/seo/json-ld";
 
 export const metadata = {
   title: "2026 Domestic Worker Minimum Wage Guide | LekkerLedger",
@@ -104,11 +106,31 @@ export default function NMW2026GuidePage() {
 
                     </div>
 
+                    <ComplianceDisclaimer />
+
+                    {/* Related Guides */}
+                    <div className="space-y-4">
+                        <h2 className="type-h3 font-semibold" style={{ color: "var(--text)" }}>Related Guides</h2>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                            {[
+                                { href: "/resources/guides/uif-for-domestic-workers", label: "UIF for Domestic Workers" },
+                                { href: "/resources/guides/4-hour-minimum-pay-rule", label: "The 4-Hour Minimum Pay Rule" },
+                                { href: "/resources/checklists/household-employer-monthly", label: "Monthly Compliance Checklist" },
+                                { href: "/uif-calculator", label: "UIF Calculator" },
+                            ].map((link) => (
+                                <Link key={link.href} href={link.href} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm font-medium transition-colors hover:border-[var(--primary)]/40" style={{ color: "var(--text)" }}>
+                                    <ArrowRight className="h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                    {link.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="pt-8 mt-12 border-t border-[var(--border)]">
                         <div className="bg-[var(--surface-raised)] rounded-2xl p-8 text-center space-y-4">
-                            <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Never worry about rate changes again</h3>
+                            <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Check your wage calculations</h3>
                             <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-                                LekkerLedger automatically updates its internal calculator every time the government gazettes a new minimum wage. When you generate a payslip, we&apos;ll warn you if the calculated rate drops below the legal minimum for that specific date.
+                                Use LekkerLedger&apos;s free calculator to estimate wages and UIF deductions based on the current gazetted rate. Then generate a payslip with the amounts pre-filled.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                                 <Link
@@ -118,20 +140,20 @@ export default function NMW2026GuidePage() {
                                     <Calculator className="h-4 w-4" /> Check your math
                                 </Link>
                                 <Link
-                                    href="/payroll/new"
+                                    href="/resources/tools/domestic-worker-payslip"
                                     className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-[var(--primary)] text-sm font-bold text-white hover:bg-[var(--primary-hover)] transition-colors w-full sm:w-auto"
                                 >
-                                    Generate a Compliant Payslip
+                                    Free Payslip Generator
                                 </Link>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="pt-8 border-t border-[var(--border)] space-y-4">
                         <h3 className="font-bold text-[var(--text)]">Official Verification Links</h3>
-                        <a 
-                            href="https://www.labour.gov.za" 
-                            target="_blank" 
+                        <a
+                            href="https://www.labour.gov.za"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:underline"
                         >
@@ -140,6 +162,29 @@ export default function NMW2026GuidePage() {
                     </div>
 
                 </article>
+
+                <JsonLd schema={{
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    mainEntity: [
+                        {
+                            "@type": "Question",
+                            name: "What is the 2026 minimum wage for domestic workers in South Africa?",
+                            acceptedAnswer: {
+                                "@type": "Answer",
+                                text: "The National Minimum Wage for domestic workers is gazetted at R30.23 per ordinary hour worked. Domestic worker wages are now fully equalized with the general NMW. Check the Department of Employment and Labour website for the latest gazetted rate.",
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            name: "Can a domestic worker agree to be paid below minimum wage?",
+                            acceptedAnswer: {
+                                "@type": "Answer",
+                                text: "No. It is illegal to pay below the National Minimum Wage even if the employee agrees. A contract clause below the gazetted rate is legally void. Payment in kind (accommodation, food, transport) cannot be counted toward the minimum hourly rate.",
+                            },
+                        },
+                    ],
+                }} />
             </main>
         </div>
     );

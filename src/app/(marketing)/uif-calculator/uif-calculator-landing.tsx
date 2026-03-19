@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Calculator, CheckCircle2, ShieldCheck } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { Button } from "@/components/ui/button";
+import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
 
 const currency = new Intl.NumberFormat("en-ZA", {
     style: "currency",
@@ -206,6 +207,29 @@ export function UifCalculatorLanding() {
                                     </div>
                                 </div>
                             </article>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Related Resources */}
+                <section className="border-t border-[var(--border)]">
+                    <div className="content-container-wide px-4 py-16 sm:px-6 lg:px-8">
+                        <div className="max-w-3xl mx-auto space-y-6">
+                            <h2 className="type-h3 font-semibold" style={{ color: "var(--text)" }}>Related Resources</h2>
+                            <div className="grid sm:grid-cols-2 gap-3">
+                                {[
+                                    { href: "/resources/guides/uif-for-domestic-workers", label: "Complete UIF Guide for Domestic Workers" },
+                                    { href: "/resources/tools/domestic-worker-payslip", label: "Free Payslip Generator" },
+                                    { href: "/calculator", label: "Broader Wage & UIF Calculator" },
+                                    { href: "/ufiling-errors", label: "Fix Common uFiling Errors" },
+                                ].map((link) => (
+                                    <Link key={link.href} href={link.href} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm font-medium transition-colors hover:border-[var(--primary)]/40" style={{ color: "var(--text)" }}>
+                                        <ArrowRight className="h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                        {link.label}
+                                    </Link>
+                                ))}
+                            </div>
+                            <ComplianceDisclaimer />
                         </div>
                     </div>
                 </section>

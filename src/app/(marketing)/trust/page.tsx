@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import * as React from "react";
 import Link from "next/link";
 import { Shield, Lock, Scale, ArrowRight, WalletCards, FolderSync, KeyRound, Bug } from "lucide-react";
@@ -7,6 +8,15 @@ import { COMPLIANCE } from "@/lib/compliance-constants";
 import { getNMWRecordForDate } from "@/lib/legal/registry";
 import { PLANS, REFUND_POLICY_SENTENCE, REFUND_POLICY_SHORT_LABEL, getPlanPricePresentation } from "@/config/plans";
 import { PRIVACY_EMAIL } from "@/config/brand";
+
+export const metadata: Metadata = {
+    title: "Trust Centre | LekkerLedger",
+    description:
+        "How LekkerLedger handles data, encryption, payroll processing, and privacy for South African household employers.",
+    alternates: {
+        canonical: "/trust",
+    },
+};
 
 export default function TrustCenterPage() {
     const nmwRecord = getNMWRecordForDate(new Date());

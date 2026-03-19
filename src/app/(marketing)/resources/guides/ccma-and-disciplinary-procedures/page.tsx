@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft, Gavel, AlertOctagon, FileWarning, ExternalLink } from "lucide-react";
+import { ArrowLeft, ArrowRight, Gavel, AlertOctagon, FileWarning, ExternalLink } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
+import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
+import { JsonLd } from "@/components/seo/json-ld";
 
 export const metadata = {
   title: "CCMA & Disciplinary Guide for Domestic Employers | LekkerLedger",
@@ -120,34 +122,54 @@ export default function CCMAGuidePage() {
 
                     </div>
 
+                    <ComplianceDisclaimer />
+
+                    {/* Related Guides */}
+                    <div className="space-y-4">
+                        <h2 className="type-h3 font-semibold" style={{ color: "var(--text)" }}>Related Guides</h2>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                            {[
+                                { href: "/resources/guides/coida-and-roe-compliance", label: "COIDA & Return of Earnings" },
+                                { href: "/resources/guides/uif-for-domestic-workers", label: "UIF for Domestic Workers" },
+                                { href: "/resources/checklists/household-employer-monthly", label: "Monthly Compliance Checklist" },
+                                { href: "/resources/tools/domestic-worker-payslip", label: "Free Payslip Generator" },
+                            ].map((link) => (
+                                <Link key={link.href} href={link.href} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm font-medium transition-colors hover:border-[var(--primary)]/40" style={{ color: "var(--text)" }}>
+                                    <ArrowRight className="h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                    {link.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="pt-8 mt-12 border-t border-[var(--border)]">
                         <div className="bg-[var(--surface-raised)] rounded-2xl p-8 text-center space-y-4 border border-[var(--border)]">
-                            <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Protect your household with the Digital Vault</h3>
+                            <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Keep your documentation organised</h3>
                             <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-                                Trying to figure out where you put a warning letter from 7 months ago is a nightmare during a dispute. LekkerLedger Pro provides a secure, cloud-based Document Vault.
+                                Finding a warning letter from months ago is difficult during a dispute. LekkerLedger Pro provides secure, cloud-based record storage for payslips, contracts, and warnings.
                             </p>
-                            <ul className="text-sm text-left max-w-md mx-auto space-y-2 py-4">
-                                <li className="flex items-center gap-2">✓ Safely store signed employment contracts</li>
-                                <li className="flex items-center gap-2">✓ Centralize all written warnings</li>
-                                <li className="flex items-center gap-2">✓ Keep 3 years of payslip history on hand instantly</li>
-                                <li className="flex items-center gap-2">✓ Access our library of warning templates</li>
-                            </ul>
-                            <div className="pt-4">
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                                <Link
+                                    href="/pricing"
+                                    className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-[var(--surface-1)] border border-[var(--border)] text-sm font-bold text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors w-full sm:w-auto"
+                                >
+                                    Compare Plans
+                                </Link>
                                 <Link
                                     href="/dashboard"
-                                    className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-[var(--primary)] text-sm font-bold text-white hover:bg-[var(--primary-hover)] transition-colors"
+                                    className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-[var(--primary)] text-sm font-bold text-white hover:bg-[var(--primary-hover)] transition-colors w-full sm:w-auto"
                                 >
-                                    Upgrade to LekkerLedger Pro
+                                    Start Using LekkerLedger
                                 </Link>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="pt-8 border-t border-[var(--border)] mt-8 space-y-4">
-                        <h3 className="font-bold text-[var(--text)]">External Resources</h3>
-                        <a 
-                            href="https://www.ccma.org.za" 
-                            target="_blank" 
+                        <h3 className="font-bold text-[var(--text)]">Official Verification Links</h3>
+                        <a
+                            href="https://www.ccma.org.za"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:underline"
                         >
@@ -155,6 +177,29 @@ export default function CCMAGuidePage() {
                         </a>
                     </div>
                 </article>
+
+                <JsonLd schema={{
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    mainEntity: [
+                        {
+                            "@type": "Question",
+                            name: "Can I dismiss my domestic worker without a hearing in South Africa?",
+                            acceptedAnswer: {
+                                "@type": "Answer",
+                                text: "No. South African labour law requires both substantive fairness (a valid reason) and procedural fairness (following the correct process, including a disciplinary hearing) before dismissal. Failure to meet either criterion may result in an unfair dismissal finding at the CCMA. Visit ccma.org.za for official guidance.",
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            name: "What compensation can the CCMA award for unfair dismissal of a domestic worker?",
+                            acceptedAnswer: {
+                                "@type": "Answer",
+                                text: "The CCMA may order compensation of up to 12 months' salary for an unfair dismissal finding. The exact amount depends on the circumstances. Consult the CCMA website or a labour law professional for guidance on your situation.",
+                            },
+                        },
+                    ],
+                }} />
             </main>
         </div>
     );

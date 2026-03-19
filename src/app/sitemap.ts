@@ -5,6 +5,8 @@ const HIGH_PRIORITY_ROUTES = new Set([
   "/",
   "/pricing",
   "/calculator",
+  "/uif-calculator",
+  "/trust",
   "/resources",
 ]);
 

@@ -22,7 +22,19 @@ const tools = [
         description: "A quick calculator to run the numbers on gross pay, the 1%+1% UIF contribution, and net pay before you commit.",
         href: "/calculator",
         type: "Calculator"
-    }
+    },
+    {
+        title: "UIF-Specific Calculator",
+        description: "Enter a monthly salary and instantly see the employee and employer UIF contributions with a plain-English explanation of how UIF works.",
+        href: "/uif-calculator",
+        type: "Calculator"
+    },
+    {
+        title: "uFiling Error Troubleshooter",
+        description: "Fix common uFiling portal errors like session timeouts and 'Employee not declared' by switching to CSV uploads.",
+        href: "/ufiling-errors",
+        type: "Troubleshooting"
+    },
 ];
 
 export default function ToolsIndex() {

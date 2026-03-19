@@ -15,32 +15,32 @@ const guides = [
         title: "UIF for Domestic Workers",
         description: "The complete guide to understanding the 24-hour rule, calculating 1%+1% deductions, and managing declaring your employee.",
         href: "/resources/guides/uif-for-domestic-workers",
-        date: "Updated Dec 2024"
     },
     {
         title: "2026 Minimum Wage Guide",
         description: "What the National Minimum Wage changes mean for your household, and how to stay compliant with R30.23/hr.",
         href: "/resources/guides/domestic-worker-minimum-wage-2026",
-        date: "Updated Dec 2024"
     },
     {
         title: "The 4-Hour Minimum Pay Rule",
         description: "Understanding BCEA Section 9A: Why you must pay for at least four hours even if your employee works less.",
         href: "/resources/guides/4-hour-minimum-pay-rule",
-        date: "Updated Dec 2024"
     },
     {
         title: "CCMA & Disciplinary Guide",
         description: "How to handle warnings, fair dismissals, and documentation before a domestic worker dispute reaches the CCMA.",
         href: "/resources/guides/ccma-and-disciplinary-procedures",
-        date: "Updated Dec 2024"
     },
     {
         title: "COIDA & Return of Earnings",
         description: "What domestic employers must do for Compensation Fund registration, annual ROE filing, and injury-risk compliance.",
         href: "/resources/guides/coida-and-roe-compliance",
-        date: "Updated Dec 2024"
-    }
+    },
+    {
+        title: "uFiling Errors & CSV Uploads",
+        description: "Fix common uFiling portal errors like session timeouts and 'Employee not declared' by switching to CSV uploads.",
+        href: "/ufiling-errors",
+    },
 ];
 
 export default function GuidesIndex() {
@@ -83,9 +83,7 @@ export default function GuidesIndex() {
                                             {guide.description}
                                         </p>
                                     </div>
-                                    <p className="text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
-                                        {guide.date}
-                                    </p>
+                                    <span className="text-[var(--primary)] group-hover:translate-x-1 transition-transform text-sm">&rarr;</span>
                                 </div>
                             </Link>
                         ))}

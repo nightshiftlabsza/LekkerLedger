@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { UifCalculatorLanding } from "./uif-calculator-landing";
 
 export const metadata: Metadata = {
-    title: "Domestic worker UIF calculator (South Africa)",
+    title: "UIF Calculator for Domestic Workers in South Africa | LekkerLedger",
     description:
-        "Estimate UIF contributions for domestic workers in South Africa and learn how employee and employer UIF deductions work.",
+        "Calculate employee and employer UIF contributions for your domestic worker. Understand how 1% + 1% deductions work and what to declare on uFiling.",
     alternates: {
-        canonical: "/calculator",
+        canonical: "/uif-calculator",
     },
 };
 

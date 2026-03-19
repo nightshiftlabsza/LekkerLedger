@@ -112,7 +112,17 @@ export default function CalculatorPage() {
                                 </li>
                                 <li>
                                     <Link href="/resources/tools/domestic-worker-payslip" className="text-[var(--primary)] hover:underline">
-                                        Use our free payslip generator to create an official record
+                                        Use our free payslip generator
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/uif-calculator" className="text-[var(--primary)] hover:underline">
+                                        Detailed UIF calculator and explainer
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/ufiling-errors" className="text-[var(--primary)] hover:underline">
+                                        Fix common uFiling errors
                                     </Link>
                                 </li>
                                 <li>

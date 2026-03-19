@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, ShieldCheck, CheckSquare, Info } from "lucide-react";
+import { ArrowLeft, ArrowRight, ExternalLink, ShieldCheck, CheckSquare } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
+import { JsonLd } from "@/components/seo/json-ld";
+import { CANONICAL_SITE_URL } from "@/lib/seo";
 
 export const metadata = {
   title: "Complete Guide to UIF for Domestic Workers | LekkerLedger",
@@ -37,13 +39,7 @@ export default function UIFGuidePage() {
                         </div>
                     </div>
 
-                    <Alert variant="default" className="border-[var(--primary)]/20 bg-[var(--primary)]/5">
-                        <Info className="h-4 w-4 text-[var(--primary)]" />
-                        <AlertTitle className="text-[var(--text)] font-semibold">Important Note</AlertTitle>
-                        <AlertDescription className="text-sm text-[var(--text-muted)] leading-relaxed">
-                            LekkerLedger helps household employers calculate deductions and prepare records. It is not legal advice. Always verify requirements against official SARS or Department of Employment and Labour sources before relying on them.
-                        </AlertDescription>
-                    </Alert>
+                    <ComplianceDisclaimer />
 
                     <div className="prose prose-slate max-w-none text-base leading-relaxed space-y-8" style={{ color: "var(--text-muted)" }}>
                         
@@ -114,11 +110,29 @@ export default function UIFGuidePage() {
 
                     </div>
 
+                    {/* Related Guides */}
+                    <div className="space-y-4">
+                        <h2 className="type-h3 font-semibold" style={{ color: "var(--text)" }}>Related Guides</h2>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                            {[
+                                { href: "/resources/guides/domestic-worker-minimum-wage-2026", label: "2026 Minimum Wage Guide" },
+                                { href: "/resources/checklists/household-employer-monthly", label: "Monthly Compliance Checklist" },
+                                { href: "/resources/guides/4-hour-minimum-pay-rule", label: "The 4-Hour Minimum Pay Rule" },
+                                { href: "/ufiling-errors", label: "Fix Common uFiling Errors" },
+                            ].map((link) => (
+                                <Link key={link.href} href={link.href} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm font-medium transition-colors hover:border-[var(--primary)]/40" style={{ color: "var(--text)" }}>
+                                    <ArrowRight className="h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                    {link.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="pt-8 mt-12 border-t border-[var(--border)]">
                         <div className="bg-[var(--surface-raised)] rounded-2xl p-8 text-center space-y-4">
                             <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Automate your calculations</h3>
                             <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-                                Use LekkerLedger&apos;s free minimum wage and UIF calculator to instantly get the correct deductions for this month. Or use our payroll tool to generate a compliant payslip automatically.
+                                Use LekkerLedger&apos;s free minimum wage and UIF calculator to estimate deductions for this month. Or generate a payslip with the correct UIF amounts pre-calculated.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                                 <Link
@@ -128,28 +142,28 @@ export default function UIFGuidePage() {
                                     Use Quick Calculator
                                 </Link>
                                 <Link
-                                    href="/payroll/new"
+                                    href="/resources/tools/domestic-worker-payslip"
                                     className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-[var(--primary)] text-sm font-bold text-white hover:bg-[var(--primary-hover)] transition-colors w-full sm:w-auto"
                                 >
-                                    Generate Payslip
+                                    Free Payslip Generator
                                 </Link>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="pt-8 border-t border-[var(--border)] space-y-4">
                         <h3 className="font-bold text-[var(--text)]">Official Verification Links</h3>
-                        <a 
-                            href="https://www.ufiling.co.za" 
-                            target="_blank" 
+                        <a
+                            href="https://www.ufiling.co.za"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:underline mr-6"
                         >
                             Official uFiling Portal <ExternalLink className="h-3 w-3" />
                         </a>
-                        <a 
-                            href="https://www.sars.gov.za/tax-types/uif/" 
-                            target="_blank" 
+                        <a
+                            href="https://www.sars.gov.za/tax-types/uif/"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:underline"
                         >
@@ -158,6 +172,37 @@ export default function UIFGuidePage() {
                     </div>
 
                 </article>
+
+                <JsonLd schema={{
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    mainEntity: [
+                        {
+                            "@type": "Question",
+                            name: "Who must pay UIF for a domestic worker in South Africa?",
+                            acceptedAnswer: {
+                                "@type": "Answer",
+                                text: "If a domestic worker works for you for 24 hours or more per month, you are required to register them for UIF. Each employer must register their pro-rata hours and pay their share. Verify current requirements on the official uFiling portal.",
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            name: "How is UIF calculated for domestic workers?",
+                            acceptedAnswer: {
+                                "@type": "Answer",
+                                text: "The total UIF contribution is 2% of the employee's gross monthly remuneration, split equally: 1% deducted from the employee's wage and 1% contributed by the employer. Check current thresholds and ceilings on the SARS website.",
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            name: "What happens if you don't pay UIF for your domestic worker?",
+                            acceptedAnswer: {
+                                "@type": "Answer",
+                                text: "If UIF contributions are not up to date when your domestic worker needs to claim benefits, the Department of Labour may hold you liable for back-pay, penalties, and interest. Consult official Department of Employment and Labour guidance for current penalty details.",
+                            },
+                        },
+                    ],
+                }} />
             </main>
         </div>
     );

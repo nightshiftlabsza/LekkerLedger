@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft, Clock, AlertTriangle, ExternalLink } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, AlertTriangle, ExternalLink } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
+import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
+import { JsonLd } from "@/components/seo/json-ld";
 
 export const metadata = {
   title: "The 4-Hour Minimum Pay Rule for Domestic Workers | LekkerLedger",
@@ -114,28 +116,54 @@ export default function FourHourRuleGuidePage() {
 
                     </div>
 
+                    <ComplianceDisclaimer />
+
+                    {/* Related Guides */}
+                    <div className="space-y-4">
+                        <h2 className="type-h3 font-semibold" style={{ color: "var(--text)" }}>Related Guides</h2>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                            {[
+                                { href: "/resources/guides/domestic-worker-minimum-wage-2026", label: "2026 Minimum Wage Guide" },
+                                { href: "/resources/guides/uif-for-domestic-workers", label: "UIF for Domestic Workers" },
+                                { href: "/resources/checklists/household-employer-monthly", label: "Monthly Compliance Checklist" },
+                                { href: "/calculator", label: "Wage & UIF Calculator" },
+                            ].map((link) => (
+                                <Link key={link.href} href={link.href} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm font-medium transition-colors hover:border-[var(--primary)]/40" style={{ color: "var(--text)" }}>
+                                    <ArrowRight className="h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                    {link.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="pt-8 mt-12 border-t border-[var(--border)]">
                         <div className="bg-[var(--surface-raised)] rounded-2xl p-8 text-center space-y-4">
                             <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Manage fractional hours easily</h3>
                             <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-                                Generating a payslip with partial hours or minimum required payouts can get messy on paper. LekkerLedger helps you record exact hours and generates a spotless, compliant digital payslip in seconds.
+                                Recording partial hours or minimum required payouts can get messy on paper. LekkerLedger helps you record exact hours and generates a payslip with the correct amounts.
                             </p>
-                            <div className="pt-4">
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                                 <Link
-                                    href="/payroll/new"
-                                    className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-[var(--primary)] text-sm font-bold text-white hover:bg-[var(--primary-hover)] transition-colors"
+                                    href="/calculator"
+                                    className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-[var(--surface-1)] border border-[var(--border)] text-sm font-bold text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors w-full sm:w-auto"
                                 >
-                                    Generate a Compliant Payslip
+                                    Check the Math
+                                </Link>
+                                <Link
+                                    href="/resources/tools/domestic-worker-payslip"
+                                    className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-[var(--primary)] text-sm font-bold text-white hover:bg-[var(--primary-hover)] transition-colors w-full sm:w-auto"
+                                >
+                                    Free Payslip Generator
                                 </Link>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="pt-8 border-t border-[var(--border)] mt-8 space-y-4">
                         <h3 className="font-bold text-[var(--text)]">Official Verification Links</h3>
-                        <a 
-                            href="https://www.labour.gov.za/DocumentCenter/Acts/Basic%20Conditions%20of%20Employment/amendmentaBasic%20Conditions%20of%20Employment%20Act.pdf" 
-                            target="_blank" 
+                        <a
+                            href="https://www.labour.gov.za/DocumentCenter/Acts/Basic%20Conditions%20of%20Employment/amendmentaBasic%20Conditions%20of%20Employment%20Act.pdf"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:underline"
                         >
@@ -143,6 +171,29 @@ export default function FourHourRuleGuidePage() {
                         </a>
                     </div>
                 </article>
+
+                <JsonLd schema={{
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    mainEntity: [
+                        {
+                            "@type": "Question",
+                            name: "What is the 4-hour minimum pay rule for domestic workers in South Africa?",
+                            acceptedAnswer: {
+                                "@type": "Answer",
+                                text: "Section 9A of the Basic Conditions of Employment Act (BCEA) states that an employee who works for less than four hours on any day must be paid for at least four hours. This applies to domestic workers earning below the BCEA earnings threshold. Refer to the official BCEA text for full details.",
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            name: "Does the 4-hour rule apply if a domestic worker leaves early by choice?",
+                            acceptedAnswer: {
+                                "@type": "Answer",
+                                text: "If the employee chooses to leave early for personal reasons, the employer is generally only required to pay for the hours actually worked. The 4-hour minimum applies when the employer initiates the short shift. Consult the Department of Employment and Labour for guidance on specific situations.",
+                            },
+                        },
+                    ],
+                }} />
             </main>
         </div>
     );

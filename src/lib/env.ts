@@ -1,10 +1,17 @@
 import { z } from "zod";
 
+const isProd = process.env.NODE_ENV === "production";
+
+/** In production every secret is required; in dev they fall back to empty strings. */
+const requiredInProd = isProd
+    ? z.string().min(1)
+    : z.string().default("");
+
 const serverSchema = z.object({
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
     // Paystack
-    PAYSTACK_SECRET_KEY: z.string().min(1, "PAYSTACK_SECRET_KEY is required"),
+    PAYSTACK_SECRET_KEY: requiredInProd,
     PAYSTACK_PLAN_STANDARD_MONTHLY: z.string().optional(),
     PAYSTACK_PLAN_STANDARD_YEARLY: z.string().optional(),
     PAYSTACK_PLAN_PRO_MONTHLY: z.string().optional(),
@@ -12,9 +19,9 @@ const serverSchema = z.object({
     BILLING_RENEWALS_SECRET: z.string().optional(),
 
     // Cloudflare D1
-    CLOUDFLARE_ACCOUNT_ID: z.string().min(1, "CLOUDFLARE_ACCOUNT_ID is required"),
-    CLOUDFLARE_D1_DATABASE_ID: z.string().min(1, "CLOUDFLARE_D1_DATABASE_ID is required"),
-    CLOUDFLARE_D1_API_TOKEN: z.string().min(1, "CLOUDFLARE_D1_API_TOKEN is required"),
+    CLOUDFLARE_ACCOUNT_ID: requiredInProd,
+    CLOUDFLARE_D1_DATABASE_ID: requiredInProd,
+    CLOUDFLARE_D1_API_TOKEN: requiredInProd,
 
     // Cloudflare R2
     CLOUDFLARE_R2_ACCESS_KEY_ID: z.string().optional(),
@@ -23,8 +30,8 @@ const serverSchema = z.object({
     CLOUDFLARE_R2_BUCKET_NAME: z.string().optional(),
 
     // Supabase Server
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, "SUPABASE_SERVICE_ROLE_KEY is required"),
-    RECOVERABLE_WRAP_SECRET: z.string().min(1, "RECOVERABLE_WRAP_SECRET is required"),
+    SUPABASE_SERVICE_ROLE_KEY: requiredInProd,
+    RECOVERABLE_WRAP_SECRET: requiredInProd,
 });
 
 const publicSchema = z.object({

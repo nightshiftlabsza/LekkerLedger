@@ -21,6 +21,8 @@ const resourceSections = [
         items: [
             { name: "UIF & Wage Calculator", href: "/calculator" },
             { name: "Free Payslip Generator", href: "/resources/tools/domestic-worker-payslip" },
+            { name: "UIF-Specific Calculator", href: "/uif-calculator" },
+            { name: "Fix uFiling Errors", href: "/ufiling-errors" },
         ]
     },
     {

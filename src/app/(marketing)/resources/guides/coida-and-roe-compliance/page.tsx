@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft, Stethoscope, FileSpreadsheet, Hospital, ExternalLink } from "lucide-react";
+import { ArrowLeft, ArrowRight, Stethoscope, FileSpreadsheet, Hospital, ExternalLink } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
+import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
+import { JsonLd } from "@/components/seo/json-ld";
 
 export const metadata = {
   title: "COIDA & Return of Earnings Guide for Domestic Employers | LekkerLedger",
@@ -106,31 +108,54 @@ export default function COIDAGuidePage() {
 
                     </div>
 
+                    <ComplianceDisclaimer />
+
+                    {/* Related Guides */}
+                    <div className="space-y-4">
+                        <h2 className="type-h3 font-semibold" style={{ color: "var(--text)" }}>Related Guides</h2>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                            {[
+                                { href: "/resources/guides/ccma-and-disciplinary-procedures", label: "CCMA & Disciplinary Procedures" },
+                                { href: "/resources/guides/uif-for-domestic-workers", label: "UIF for Domestic Workers" },
+                                { href: "/resources/checklists/household-employer-monthly", label: "Monthly Compliance Checklist" },
+                                { href: "/resources/tools/domestic-worker-payslip", label: "Free Payslip Generator" },
+                            ].map((link) => (
+                                <Link key={link.href} href={link.href} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm font-medium transition-colors hover:border-[var(--primary)]/40" style={{ color: "var(--text)" }}>
+                                    <ArrowRight className="h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                    {link.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="pt-8 mt-12 border-t border-[var(--border)]">
                         <div className="bg-[var(--surface-raised)] rounded-2xl p-8 text-center space-y-4 border border-[var(--border)]">
-                            <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Never struggle to find your annual totals</h3>
+                            <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Simplify your annual ROE filing</h3>
                             <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-                                When ROE season rolls around, many employers scramble to find 12 months of scattered bank transfers to figure out their total annual wage bill. LekkerLedger tracks everything throughout the year. 
+                                When ROE season arrives, many employers scramble to reconstruct their annual wage bill from bank statements. LekkerLedger tracks payslip totals throughout the year so the figures are ready when you need them.
                             </p>
-                            <p className="text-sm font-bold text-[var(--primary)] py-2">
-                                In April, simply click &quot;Generate ROE Report&quot; and LekkerLedger provides the exact figure you need to plug into the government portal.
-                            </p>
-                            <div className="pt-4">
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                                <Link
+                                    href="/pricing"
+                                    className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-[var(--surface-1)] border border-[var(--border)] text-sm font-bold text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors w-full sm:w-auto"
+                                >
+                                    Compare Plans
+                                </Link>
                                 <Link
                                     href="/dashboard"
-                                    className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-[var(--primary)] text-sm font-bold text-white hover:bg-[var(--primary-hover)] transition-colors"
+                                    className="inline-flex items-center justify-center h-12 px-8 rounded-full bg-[var(--primary)] text-sm font-bold text-white hover:bg-[var(--primary-hover)] transition-colors w-full sm:w-auto"
                                 >
-                                    Automate your record-keeping
+                                    Automate Record-Keeping
                                 </Link>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="pt-8 border-t border-[var(--border)] mt-8 space-y-4">
                         <h3 className="font-bold text-[var(--text)]">Official Verification Links</h3>
-                        <a 
-                            href="https://cfonline.labour.gov.za" 
-                            target="_blank" 
+                        <a
+                            href="https://cfonline.labour.gov.za"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:underline"
                         >
@@ -138,6 +163,29 @@ export default function COIDAGuidePage() {
                         </a>
                     </div>
                 </article>
+
+                <JsonLd schema={{
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    mainEntity: [
+                        {
+                            "@type": "Question",
+                            name: "Do domestic employers need to register for COIDA in South Africa?",
+                            acceptedAnswer: {
+                                "@type": "Answer",
+                                text: "Yes. Following a Constitutional Court ruling, domestic workers are covered by COIDA. Household employers must register with the Compensation Fund. Visit the Compeasy portal (cfonline.labour.gov.za) for current registration requirements.",
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            name: "When is the Return of Earnings due for domestic employers?",
+                            acceptedAnswer: {
+                                "@type": "Answer",
+                                text: "The ROE filing season typically opens in April and closes at the end of May each year. You declare the total amount paid to employees between 1 March of the previous year and 28 February of the current year. Check the Compeasy portal for the current year's exact deadlines.",
+                            },
+                        },
+                    ],
+                }} />
             </main>
         </div>
     );

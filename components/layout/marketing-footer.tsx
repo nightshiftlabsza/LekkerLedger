@@ -19,7 +19,10 @@ const FOOTER_GROUPS = [
             { href: "/resources/tools/domestic-worker-payslip", label: "Payslip Generator" },
             { href: "/resources/guides/uif-for-domestic-workers", label: "UIF Guide" },
             { href: "/resources/guides/domestic-worker-minimum-wage-2026", label: "NMW Rules 2026" },
+            { href: "/resources/guides/4-hour-minimum-pay-rule", label: "4-Hour Pay Rule" },
+            { href: "/uif-calculator", label: "UIF Calculator" },
             { href: "/resources/checklists/household-employer-monthly", label: "Monthly Checklist" },
+            { href: "/resources", label: "All Resources" },
         ],
     },
     {

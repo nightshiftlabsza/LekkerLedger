@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft, CheckSquare, Calendar, CreditCard, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckSquare, Calendar, CreditCard, ShieldCheck } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
+import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
+import { JsonLd } from "@/components/seo/json-ld";
 
 
 export const metadata = {
@@ -157,11 +159,31 @@ export default function MonthlyChecklistPage() {
                         </div>
                     </div>
 
+                    <ComplianceDisclaimer />
+
+                    {/* Related Resources */}
+                    <div className="space-y-4">
+                        <h2 className="type-h3 font-semibold" style={{ color: "var(--text)" }}>Related Resources</h2>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                            {[
+                                { href: "/resources/guides/uif-for-domestic-workers", label: "UIF for Domestic Workers Guide" },
+                                { href: "/calculator", label: "Wage & UIF Calculator" },
+                                { href: "/uif-calculator", label: "UIF-Specific Calculator" },
+                                { href: "/ufiling-errors", label: "Fix Common uFiling Errors" },
+                            ].map((link) => (
+                                <Link key={link.href} href={link.href} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 text-sm font-medium transition-colors hover:border-[var(--primary)]/40" style={{ color: "var(--text)" }}>
+                                    <ArrowRight className="h-4 w-4 shrink-0 text-[var(--primary)]" />
+                                    {link.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="pt-8 mt-12 border-t border-[var(--border)]">
                         <div className="bg-[var(--surface-raised)] rounded-2xl p-8 text-center space-y-4">
                             <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Too many steps? Automate it.</h3>
                             <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-                                LekkerLedger combines steps 1 and 2 into a single process. Enter the hours once, and we calculate everything, handle the minimum wage checks, and generate the PDF automatically.
+                                LekkerLedger combines steps 1 and 2 into a single process. Enter the hours once, and we calculate the deductions and generate the PDF payslip automatically.
                             </p>
                             <div className="pt-4">
                                 <Link
@@ -175,6 +197,30 @@ export default function MonthlyChecklistPage() {
                     </div>
 
                 </article>
+
+                <JsonLd schema={{
+                    "@context": "https://schema.org",
+                    "@type": "HowTo",
+                    name: "Monthly Household Employer Compliance Checklist",
+                    description: "A step-by-step guide to handling domestic worker payroll, UIF declarations, and record-keeping each month in South Africa.",
+                    step: [
+                        {
+                            "@type": "HowToStep",
+                            name: "Review Hours & Leave",
+                            text: "Tally all ordinary hours worked, note any public holidays worked (paid at double time), and record any sick leave taken.",
+                        },
+                        {
+                            "@type": "HowToStep",
+                            name: "Calculate & Generate Payslip",
+                            text: "Verify the rate against the National Minimum Wage, calculate the 1% UIF deduction from gross pay, and generate the PDF payslip.",
+                        },
+                        {
+                            "@type": "HowToStep",
+                            name: "Make Payment & Declare UIF",
+                            text: "Transfer the net pay to the employee, log into uFiling to submit the monthly declaration, and pay the total 2% UIF contribution.",
+                        },
+                    ],
+                }} />
             </main>
         </div>
     );
