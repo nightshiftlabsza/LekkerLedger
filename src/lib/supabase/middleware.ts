@@ -1,10 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getConfiguredAppOrigin } from '../app-origin'
 import { getRequiredEnvValue } from '../env'
 
 const E2E_AUTH_BYPASS_COOKIE = 'll-e2e-auth-bypass'
-const CANONICAL_ORIGIN = 'https://lekkerledger.co.za'
-const CANONICAL_HOST = 'lekkerledger.co.za'
 const NOINDEX_HEADER_VALUE = 'noindex, follow'
 const NON_INDEXABLE_QUERY_PARAMS = new Set([
   'auth',
@@ -84,15 +83,18 @@ export function getLegacyRedirectPath(pathname: string): string | null {
 }
 
 export function resolveCanonicalRedirect(requestUrl: URL): URL | null {
+  const configuredOrigin = getConfiguredAppOrigin()
   const legacyPath = getLegacyRedirectPath(requestUrl.pathname)
-  const needsCanonicalHost =
-    requestUrl.protocol !== 'https:' || requestUrl.hostname !== CANONICAL_HOST
+  const canonicalUrl = configuredOrigin ? new URL(configuredOrigin) : null
+  const needsCanonicalHost = canonicalUrl
+    ? requestUrl.protocol !== canonicalUrl.protocol || requestUrl.host !== canonicalUrl.host
+    : false
 
   if (!legacyPath && !needsCanonicalHost) {
     return null
   }
 
-  const redirectUrl = new URL(CANONICAL_ORIGIN)
+  const redirectUrl = canonicalUrl ? new URL(canonicalUrl.toString()) : new URL(requestUrl.toString())
   redirectUrl.pathname = legacyPath ?? requestUrl.pathname
   redirectUrl.search = requestUrl.search
 

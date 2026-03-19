@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
     buildProtectedRouteLoginRedirect,
     resolveCanonicalRedirect,
@@ -25,17 +25,43 @@ describe("buildProtectedRouteLoginRedirect", () => {
 
 describe("resolveCanonicalRedirect", () => {
     it("normalizes protocol, host, and legacy routes in one hop", () => {
-        const redirectedUrl = resolveCanonicalRedirect(
-            new URL("http://www.lekkerledger.co.za/help/coida?auth=login"),
-        );
+        vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://lekkerledger.co.za");
+        try {
+            const redirectedUrl = resolveCanonicalRedirect(
+                new URL("http://www.lekkerledger.co.za/help/coida?auth=login"),
+            );
 
-        expect(redirectedUrl?.toString()).toBe(
-            "https://lekkerledger.co.za/resources/guides/coida-and-roe-compliance?auth=login",
-        );
+            expect(redirectedUrl?.toString()).toBe(
+                "https://lekkerledger.co.za/resources/guides/coida-and-roe-compliance?auth=login",
+            );
+        } finally {
+            vi.unstubAllEnvs();
+        }
     });
 
     it("returns null for an already canonical public URL", () => {
-        expect(resolveCanonicalRedirect(new URL("https://lekkerledger.co.za/resources"))).toBeNull();
+        vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://lekkerledger.co.za");
+        try {
+            expect(resolveCanonicalRedirect(new URL("https://lekkerledger.co.za/resources"))).toBeNull();
+        } finally {
+            vi.unstubAllEnvs();
+        }
+    });
+
+    it("keeps the current host when only a legacy route rewrite is needed", () => {
+        const redirectedUrl = resolveCanonicalRedirect(
+            new URL("https://lekkerledger-production.up.railway.app/help/coida?auth=login"),
+        );
+
+        expect(redirectedUrl?.toString()).toBe(
+            "https://lekkerledger-production.up.railway.app/resources/guides/coida-and-roe-compliance?auth=login",
+        );
+    });
+
+    it("does not force Railway requests onto a hard-coded host when no site url is configured", () => {
+        expect(
+            resolveCanonicalRedirect(new URL("https://lekkerledger-production.up.railway.app/dashboard")),
+        ).toBeNull();
     });
 });
 
