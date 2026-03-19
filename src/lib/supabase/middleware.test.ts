@@ -63,6 +63,23 @@ describe("resolveCanonicalRedirect", () => {
             resolveCanonicalRedirect(new URL("https://lekkerledger-production.up.railway.app/dashboard")),
         ).toBeNull();
     });
+
+    it("honors forwarded https headers so proxied custom domains do not self-redirect", () => {
+        vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://lekkerledger.co.za");
+        try {
+            const headers = new Headers({
+                host: "lekkerledger.co.za",
+                "x-forwarded-host": "lekkerledger.co.za",
+                "x-forwarded-proto": "https",
+            });
+
+            expect(
+                resolveCanonicalRedirect(new URL("http://lekkerledger.co.za/login"), headers),
+            ).toBeNull();
+        } finally {
+            vi.unstubAllEnvs();
+        }
+    });
 });
 
 describe("shouldApplyNoIndex", () => {

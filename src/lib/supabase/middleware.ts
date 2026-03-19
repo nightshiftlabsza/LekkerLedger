@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { getConfiguredAppOrigin } from '../app-origin'
+import { getConfiguredAppOrigin, normalizeAppOrigin } from '../app-origin'
 import { getRequiredEnvValue } from '../env'
 
 const E2E_AUTH_BYPASS_COOKIE = 'll-e2e-auth-bypass'
@@ -82,19 +82,36 @@ export function getLegacyRedirectPath(pathname: string): string | null {
   return LEGACY_ROUTE_REDIRECTS.get(pathname) ?? null
 }
 
-export function resolveCanonicalRedirect(requestUrl: URL): URL | null {
+function getForwardedRequestOrigin(requestUrl: URL, headers?: Headers): string {
+  const forwardedHost = headers?.get('x-forwarded-host') || headers?.get('host')
+  const forwardedProto = headers?.get('x-forwarded-proto') || requestUrl.protocol.replace(':', '')
+
+  if (forwardedHost) {
+    const normalizedForwardedOrigin = normalizeAppOrigin(`${forwardedProto || 'https'}://${forwardedHost}`)
+    if (normalizedForwardedOrigin) {
+      return normalizedForwardedOrigin
+    }
+  }
+
+  return normalizeAppOrigin(requestUrl.origin) || requestUrl.origin
+}
+
+export function resolveCanonicalRedirect(requestUrl: URL, headers?: Headers): URL | null {
   const configuredOrigin = getConfiguredAppOrigin()
   const legacyPath = getLegacyRedirectPath(requestUrl.pathname)
   const canonicalUrl = configuredOrigin ? new URL(configuredOrigin) : null
+  const requestOriginUrl = new URL(getForwardedRequestOrigin(requestUrl, headers))
   const needsCanonicalHost = canonicalUrl
-    ? requestUrl.protocol !== canonicalUrl.protocol || requestUrl.host !== canonicalUrl.host
+    ? requestOriginUrl.protocol !== canonicalUrl.protocol || requestOriginUrl.host !== canonicalUrl.host
     : false
 
   if (!legacyPath && !needsCanonicalHost) {
     return null
   }
 
-  const redirectUrl = canonicalUrl ? new URL(canonicalUrl.toString()) : new URL(requestUrl.toString())
+  const redirectUrl = canonicalUrl
+    ? new URL(canonicalUrl.toString())
+    : new URL(requestOriginUrl.toString())
   redirectUrl.pathname = legacyPath ?? requestUrl.pathname
   redirectUrl.search = requestUrl.search
 
@@ -144,7 +161,7 @@ function hasE2EAuthBypass(request: NextRequest): boolean {
 }
 
 export async function updateSession(request: NextRequest) {
-  const canonicalRedirectUrl = resolveCanonicalRedirect(request.nextUrl)
+  const canonicalRedirectUrl = resolveCanonicalRedirect(request.nextUrl, request.headers)
   if (canonicalRedirectUrl) {
     return NextResponse.redirect(canonicalRedirectUrl, 308)
   }
