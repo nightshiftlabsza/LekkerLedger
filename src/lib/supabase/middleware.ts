@@ -20,9 +20,6 @@ const LEGACY_ROUTE_REDIRECTS = new Map<string, string>([
   ['/help/coida', '/resources/guides/coida-and-roe-compliance'],
   ['/help/compliance', '/resources/checklists'],
   ['/rules', '/resources/checklists'],
-  ['/uif-calculator', '/calculator'],
-  ['/ufiling-errors', '/resources/guides/uif-for-domestic-workers'],
-  ['/examples', '/resources/tools/domestic-worker-payslip'],
 ])
 const NOINDEX_ROUTE_PREFIXES = [
   '/billing',
@@ -33,8 +30,6 @@ const NOINDEX_ROUTE_PREFIXES = [
   '/onboarding',
   '/open-app',
   '/support',
-  '/trust',
-  '/storage',
   '/legal',
 ]
 

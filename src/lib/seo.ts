@@ -20,4 +20,6 @@ export const INDEXABLE_PUBLIC_ROUTES = [
   "/resources/tools/domestic-worker-payslip",
   "/resources/checklists",
   "/resources/checklists/household-employer-monthly",
+  "/examples",
+  "/storage",
 ] as const;
