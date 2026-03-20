@@ -66,9 +66,7 @@ export default async function MarketingLayout({
       >
         Skip to content
       </a>
-      <Suspense fallback={null}>
-        {children}
-      </Suspense>
+      {children}
       <Suspense fallback={null}>
         <AuthModal />
       </Suspense>

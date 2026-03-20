@@ -18,13 +18,11 @@ import { CardSkeleton } from "@/components/ui/loading-skeleton";
 export function EmployeesClient() {
     const router = useRouter();
     const SEARCH_VISIBILITY_THRESHOLD = 10;
-    const [isClient, setIsClient] = React.useState(false);
     const [loading, setLoading] = React.useState(true);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [searchQuery, setSearchQuery] = React.useState("");
 
     React.useEffect(() => {
-        setIsClient(true);
         let active = true;
         async function load() {
             try {
@@ -55,7 +53,7 @@ export function EmployeesClient() {
         );
 
     // Initial server render and pre-hydration: Show real Empty State as the default shell design
-    if (!isClient || loading) {
+    if (loading) {
         return (
             <div className="space-y-6">
                 <PageHeader

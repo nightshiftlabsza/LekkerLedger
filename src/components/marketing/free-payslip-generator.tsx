@@ -258,7 +258,7 @@ export function FreePayslipGenerator() {
         includeAccommodation: false,
         otherDeductions: parseNumber(form.otherDeductions),
     }), [form]);
-    const payload = React.useMemo(() => buildPayload(form), [form]);
+    const payload = React.useMemo(() => currentStep >= 4 ? buildPayload(form) : null, [form, currentStep]);
     const breakdown = React.useMemo(() => payload ? calculatePayslip(payload.payslip) : null, [payload]);
     const totalPremiumHours = parseNumber(form.overtimeHours) + parseNumber(form.sundayHours) + parseNumber(form.publicHolidayHours);
     const hourlyRate = parseNumber(form.hourlyRate);

@@ -433,8 +433,8 @@ export function MarketingPlanCard({
                         "linear-gradient(135deg, rgba(0, 122, 77, 0.05) 0%, rgba(0, 122, 77, 0.02) 100%)",
                 }}
             >
-                <div className="flex items-start justify-between gap-4">
-                    <div>
+                <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5">
+                    <div className="min-w-0">
                         <p
                             className="text-xs font-black uppercase tracking-[0.2em]"
                             style={{ color: "var(--primary)" }}
@@ -615,7 +615,7 @@ export function PlanFeatureList({
 function EarlybirdBadge({ text }: { readonly text: string }) {
     return (
         <span
-            className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-black uppercase tracking-[0.14em]"
+            className="mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-black uppercase tracking-[0.1em] sm:px-2.5 sm:text-xs sm:tracking-[0.14em]"
             style={{
                 backgroundColor: "rgba(196, 122, 28, 0.08)",
                 border: "1px solid rgba(196, 122, 28, 0.25)",

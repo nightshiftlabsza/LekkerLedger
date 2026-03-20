@@ -17,7 +17,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { FeatureGateCard } from "@/components/ui/feature-gate-card";
 
 export function UFilingClient() {
-    const [isClient, setIsClient] = React.useState(false);
     const [loading, setLoading] = React.useState(true);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [payslips, setPayslips] = React.useState<PayslipInput[]>([]);
@@ -30,7 +29,6 @@ export function UFilingClient() {
     const [showGuide, setShowGuide] = React.useState(false);
 
     React.useEffect(() => {
-        setIsClient(true);
         let active = true;
         async function load() {
             try {
@@ -97,7 +95,7 @@ export function UFilingClient() {
         await logAuditEvent("EXPORT_UFILING", `Downloaded uFiling CSV (${view})`, { view, rowCount: rows.length });
     };
 
-    if (!isClient || loading) {
+    if (loading) {
         return (
             <EmptyState
                 title="No locked periods available"

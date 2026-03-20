@@ -18,7 +18,6 @@ export function NewPayrollWizardClient() {
     const router = useRouter();
     const { toast } = useToast();
 
-    const [isClient, setIsClient] = React.useState(false);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
     const [step, setStep] = React.useState(1);
     const [saving, setSaving] = React.useState(false);
@@ -37,7 +36,6 @@ export function NewPayrollWizardClient() {
 
     React.useEffect(() => {
         let active = true;
-        setIsClient(true);
         async function load() {
             try {
                 const [emps, hId] = await Promise.all([getEmployees(), getActiveHouseholdId()]);
@@ -163,7 +161,7 @@ export function NewPayrollWizardClient() {
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             {/* Step 1: Choose Employee(s) */}
-            {step === 1 && isClient && (
+            {step === 1 && (
                 <Card className="glass-panel border-[var(--primary)]/30 border-2 shadow-2xl">
                     <CardContent className="p-4 sm:p-6 md:p-8 space-y-5">
                         <div className="flex items-center gap-3 mb-2">
@@ -239,7 +237,7 @@ export function NewPayrollWizardClient() {
             )}
 
             {/* Step 2: Pay Period */}
-            {step === 2 && isClient && (
+            {step === 2 && (
                 <Card className="glass-panel border-[var(--primary)]/30 border-2 shadow-2xl animate-in slide-in-from-right-4">
                     <CardContent className="p-4 sm:p-6 md:p-8 space-y-5">
                         <div className="flex items-center gap-3 mb-2">

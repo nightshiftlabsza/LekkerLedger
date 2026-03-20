@@ -14,7 +14,7 @@ import {
     getEmployees,
     getCurrentPayPeriod,
     getDocuments,
-    getLatestPayslip,
+    getAllPayslips,
     purgeDocumentMetas,
     saveSettings,
     subscribeToDataChanges,
@@ -121,11 +121,12 @@ function DashboardContent() {
                 setLoading(true);
             }
 
-            const [loadedEmployees, period, docs, periods] = await Promise.all([
+            const [loadedEmployees, period, docs, periods, allPayslips] = await Promise.all([
                 getEmployees(),
                 getCurrentPayPeriod(),
                 getDocuments(),
                 getPayPeriods(),
+                getAllPayslips(),
             ]);
             const plan = getUserPlan(effectiveSettings);
             let nextDocs = docs;
@@ -145,15 +146,14 @@ function DashboardContent() {
                 });
             }
 
-            const nextSummaries: EmployeeSummary[] = [];
-            for (const employee of loadedEmployees) {
-                const latestPayslip = await getLatestPayslip(employee.id);
-                nextSummaries.push({
+            const nextSummaries: EmployeeSummary[] = loadedEmployees.map((employee) => {
+                const latestPayslip = allPayslips.find((p) => p.employeeId === employee.id) ?? null;
+                return {
                     employee,
                     latestPayslip,
                     netPay: latestPayslip ? calculatePayslip(latestPayslip).netPay : null,
-                });
-            }
+                };
+            });
 
             if (!active) return;
 

@@ -17,13 +17,11 @@ export function PayrollClient() {
     const searchParams = useSearchParams();
     const employeeIdFilter = searchParams.get("employeeId");
 
-    const [isClient, setIsClient] = React.useState(false);
     const [loading, setLoading] = React.useState(true);
     const [periods, setPeriods] = React.useState<PayPeriod[]>([]);
     const [employees, setEmployees] = React.useState<Employee[]>([]);
 
     React.useEffect(() => {
-        setIsClient(true);
         let active = true;
         async function load() {
             try {
@@ -55,7 +53,7 @@ export function PayrollClient() {
     }
     const filteredEmployee = employeeIdFilter ? employees.find(e => e.id === employeeIdFilter) : null;
 
-    if (!isClient || loading) {
+    if (loading) {
         return (
             <div className="space-y-6">
                 <div className="flex justify-end">
