@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { AlertTriangle, ShieldCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,31 @@ import { PAID_LOGIN_SUCCESS_QUERY } from "@/lib/paid-activation";
 import { endAppMetric, recordAppMetric } from "@/lib/app-performance";
 import type { DocumentMeta, Employee, PayPeriod } from "@/lib/schema";
 import { calculatePayslip } from "@/lib/calculator";
-import { DashboardOverview, type EmployeeSummary } from "@/components/dashboard/dashboard-overview";
+import type { EmployeeSummary } from "@/components/dashboard/dashboard-overview";
+
+const netPayCache = new Map<string, number>();
+function getCachedNetPay(payslip: { id: string } & Parameters<typeof calculatePayslip>[0]): number {
+    const cached = netPayCache.get(payslip.id);
+    if (cached !== undefined) return cached;
+    const result = calculatePayslip(payslip).netPay;
+    netPayCache.set(payslip.id, result);
+    return result;
+}
+
+const DashboardOverview = dynamic(
+    () => import("@/components/dashboard/dashboard-overview").then(mod => ({ default: mod.DashboardOverview })),
+    { loading: () => (
+        <div className="flex w-full flex-col gap-5">
+            <CardSkeleton />
+            <div className="dashboard-cq-grid">
+                <div className="space-y-5">
+                    <CardSkeleton />
+                    <CardSkeleton />
+                </div>
+            </div>
+        </div>
+    )}
+);
 
 type DashboardSyncState = "disabled" | "enabled" | "error" | "reconnecting";
 type DashboardNetworkState = "online" | "offline" | "flaky";
@@ -151,7 +176,7 @@ function DashboardContent() {
                 return {
                     employee,
                     latestPayslip,
-                    netPay: latestPayslip ? calculatePayslip(latestPayslip).netPay : null,
+                    netPay: latestPayslip ? getCachedNetPay(latestPayslip) : null,
                 };
             });
 

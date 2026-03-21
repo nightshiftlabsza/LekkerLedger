@@ -25,12 +25,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { SyncStatusBadge, type SyncState as SyncBadgeState } from "@/components/ui/sync-status-badge";
-import { InlinePlanCheckoutButton } from "@/components/billing/inline-paid-plan-checkout";
-import { getUserPlan } from "@/lib/entitlements";
 import type { DashboardAlert as DashboardAlertData } from "@/lib/alerts";
 import { hasRequiredEmployerDetails } from "@/lib/employer-details";
 import type { DocumentMeta, Employee, EmployerSettings, PayPeriod, PayslipInput } from "@/lib/schema";
-import { getMarketingPlanDisplay, getMarketingPriceDisplay } from "@/src/config/pricing-display";
 
 export interface EmployeeSummary {
     employee: Employee;
@@ -67,7 +64,6 @@ export function DashboardOverview({
     syncBadgeState,
     syncSummary,
 }: DashboardOverviewProps) {
-    const plan = getUserPlan(settings);
     const employeeCount = employees.length;
     const currentMonth = format(new Date(), "MMMM yyyy");
     const periodEntries = currentPeriod?.entries ?? [];
@@ -167,16 +163,12 @@ export function DashboardOverview({
                         syncSummary={syncSummary}
                     />
                     <QuickActionsCard />
-                    {plan.id === "free" ? (
-                        <UpgradeCard />
-                    ) : null}
                     <ComplianceCard />
                     <SupportCard />
                 </aside>
             </div>
 
             <div className="dashboard-cq-mobile-only space-y-5">
-                {plan.id === "free" ? <UpgradeCard /> : null}
                 <ComplianceCard />
                 <SupportCard />
             </div>
@@ -638,33 +630,6 @@ function RecentRecordsCard({ recentDocs, hasEmployees }: { recentDocs: DocumentM
                         ))}
                     </div>
                 )}
-            </CardContent>
-        </Card>
-    );
-}
-
-function UpgradeCard() {
-    const standardPlan = getMarketingPlanDisplay("standard");
-    const standardMonthlyPrice = getMarketingPriceDisplay("standard", "monthly");
-
-    return (
-        <Card className="border-[var(--primary)]/15 bg-[var(--surface-muted)]">
-            <CardContent className="space-y-4 p-5">
-                <div className="space-y-2">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--primary)]">Standard plan</p>
-                    <h3 className="text-lg font-black tracking-tight text-[var(--text)]">Unlock sync, leave tracking, and more workers</h3>
-                    <p className="text-sm leading-6 text-[var(--text-muted)]">
-                        {standardPlan.subtitle} {standardMonthlyPrice.primary}{standardMonthlyPrice.periodLabel}.
-                    </p>
-                </div>
-
-                <InlinePlanCheckoutButton
-                    planId="standard"
-                    billingCycle="monthly"
-                    className="w-full font-bold text-white"
-                >
-                    Upgrade to Standard
-                </InlinePlanCheckoutButton>
             </CardContent>
         </Card>
     );

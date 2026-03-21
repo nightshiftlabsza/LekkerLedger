@@ -3,6 +3,7 @@ import Script from "next/script";
 const SAMPLE_PDF_CLEANUP_SCRIPT = `
 (() => {
   const cacheHealKey = "lekkerledger-cache-heal-v3";
+  if (localStorage.getItem(cacheHealKey)) return;
   const pdfPath = "/sample-payslip.pdf";
 
   const runCleanup = async () => {

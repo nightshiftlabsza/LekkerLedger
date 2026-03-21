@@ -56,8 +56,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <StartupScripts gaId={gaId} gaDebug={gaDebug} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body
         className={`${ibmPlexSans.variable} ${ibmPlexSerif.variable} antialiased selection:bg-[#C47A1C]/30 selection:text-[#C47A1C]`}

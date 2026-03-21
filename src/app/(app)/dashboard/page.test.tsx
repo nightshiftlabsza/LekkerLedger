@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
     getEmployeesMock: vi.fn(async () => []),
     getCurrentPayPeriodMock: vi.fn(async () => null),
     getDocumentsMock: vi.fn(async () => []),
+    getAllPayslipsMock: vi.fn(async () => []),
     getLatestPayslipMock: vi.fn(async () => null),
     getPayPeriodsMock: vi.fn(async () => []),
     purgeDocumentMetasMock: vi.fn(async () => 0),
@@ -47,6 +48,7 @@ vi.mock("@/lib/storage", () => ({
     getEmployees: () => mocks.getEmployeesMock(),
     getCurrentPayPeriod: () => mocks.getCurrentPayPeriodMock(),
     getDocuments: () => mocks.getDocumentsMock(),
+    getAllPayslips: () => mocks.getAllPayslipsMock(),
     getLatestPayslip: (...args: unknown[]) => mocks.getLatestPayslipMock(...args),
     getPayPeriods: () => mocks.getPayPeriodsMock(),
     purgeDocumentMetas: (...args: unknown[]) => mocks.purgeDocumentMetasMock(...args),
@@ -67,6 +69,17 @@ vi.mock("@/lib/alerts", () => ({
 vi.mock("@/lib/app-performance", () => ({
     endAppMetric: (...args: unknown[]) => mocks.endAppMetricMock(...args),
     recordAppMetric: (...args: unknown[]) => mocks.recordAppMetricMock(...args),
+}));
+
+vi.mock("next/dynamic", () => ({
+    default: (loader: () => Promise<{ default: React.ComponentType }>) => {
+        let Component: React.ComponentType | null = null;
+        loader().then(mod => { Component = mod.default; });
+        return function DynamicWrapper(props: Record<string, unknown>) {
+            if (!Component) return null;
+            return <Component {...props} />;
+        };
+    },
 }));
 
 vi.mock("@/components/dashboard/dashboard-overview", () => ({
@@ -133,6 +146,7 @@ describe("Dashboard paid feedback notice", () => {
         mocks.getEmployeesMock.mockClear();
         mocks.getCurrentPayPeriodMock.mockClear();
         mocks.getDocumentsMock.mockClear();
+        mocks.getAllPayslipsMock.mockClear();
         mocks.getLatestPayslipMock.mockClear();
         mocks.getPayPeriodsMock.mockClear();
         mocks.purgeDocumentMetasMock.mockClear();
