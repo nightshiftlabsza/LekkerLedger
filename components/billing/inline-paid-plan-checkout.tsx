@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import PaystackPop from "@paystack/inline-js";
+// Dynamically imported at point of use to avoid SSR crash (window is not defined)
 import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -213,6 +213,7 @@ export function useInlinePaidPlanCheckout({
             }
 
             const publicKey = getRequiredEnvValue("NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY");
+            const { default: PaystackPop } = await import("@paystack/inline-js");
             const popup = new PaystackPop();
             popup.resumeTransaction(preparedCheckout.accessCode, {
                 key: publicKey,
