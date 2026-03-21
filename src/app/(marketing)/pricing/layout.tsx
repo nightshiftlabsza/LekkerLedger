@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageOG } from "@/lib/seo";
 
 export const metadata: Metadata = {
     title: "Pricing | LekkerLedger",
@@ -7,6 +8,11 @@ export const metadata: Metadata = {
     alternates: {
         canonical: "/pricing",
     },
+    ...pageOG(
+        "Pricing | LekkerLedger",
+        "Compare LekkerLedger plans for South African household payroll, payslips, records, sync, and annual paperwork.",
+        "/pricing",
+    ),
 };
 
 export default function PricingLayout({

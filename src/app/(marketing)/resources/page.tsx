@@ -1,13 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Calculator, CheckSquare } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
+import { pageOG } from "@/lib/seo";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Household Employment Resources | LekkerLedger",
   description: "Guides, tools, and checklists for South African household employers. Everything you need to manage domestic worker compliance.",
   alternates: {
     canonical: "/resources",
   },
+  ...pageOG(
+    "Household Employment Resources | LekkerLedger",
+    "Guides, tools, and checklists for South African household employers. Everything you need to manage domestic worker compliance.",
+    "/resources",
+  ),
 };
 
 const resourceSections = [

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
     ArrowRight,
@@ -12,6 +13,67 @@ import { calculatePayslip } from "@/lib/calculator";
 import { getNMWForDate } from "@/lib/legal/registry";
 import type { Employee, PayslipInput } from "@/lib/schema";
 import { MarketingHeader } from "../../../components/layout/marketing-header";
+import { JsonLd } from "@/components/seo/json-ld";
+import { pageOG } from "@/lib/seo";
+
+export const metadata: Metadata = {
+    title: "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+    description:
+        "Run South African household payroll with payslips, employee records, backup, and annual paperwork in one calm workspace.",
+    alternates: { canonical: "/" },
+    ...pageOG(
+        "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+        "Run South African household payroll with payslips, employee records, backup, and annual paperwork in one calm workspace.",
+        "/",
+    ),
+};
+
+const homepageFaqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+        {
+            "@type": "Question",
+            name: "Will this help me know what to do each month?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes. LekkerLedger helps you reuse the same worker details, run the month clearly, and keep the paperwork tidy so you are not starting from scratch every time.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "What if I am not sure about the rules or worried about making a mistake?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "You do not need to know everything before you start. LekkerLedger helps you keep the records organised and review the main figures clearly. For unusual situations, verify against official guidance before you rely on the record.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Where are employee records stored?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users generate a payslip PDF directly in the browser and download it — no records are kept after the session.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Can I start with one employee, and what changes when I upgrade?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes. Free gives you one payslip per month as a downloadable PDF so you can try the flow before paying. Standard adds leave tracking, contracts, documents, cloud-secured records, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "What happens if I change devices later?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Paid accounts store everything in the cloud. Just sign in on any device and your records are there. Free users download a PDF each time, so there is nothing to restore.",
+            },
+        },
+    ],
+};
 
 const SAMPLE_FIGURE_GRID = [
     "hidden md:grid md:grid-cols-[minmax(10rem,1.8fr)_minmax(3.75rem,0.65fr)_minmax(5rem,0.82fr)_minmax(5.5rem,0.95fr)] md:gap-x-3",
@@ -106,6 +168,7 @@ export default function HomePage() {
 
     return (
         <div className="min-h-screen flex flex-col selection:bg-[var(--accent-subtle)]" style={{ backgroundColor: "var(--bg)" }}>
+            <JsonLd schema={homepageFaqSchema} />
             <MarketingHeader />
 
             <main id="main-content" className="flex-1">

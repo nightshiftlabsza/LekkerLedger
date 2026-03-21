@@ -9,6 +9,8 @@ import { getNMWRecordForDate } from "@/lib/legal/registry";
 import { PLANS, REFUND_POLICY_SENTENCE, REFUND_POLICY_SHORT_LABEL, getPlanPricePresentation } from "@/config/plans";
 import { PRIVACY_EMAIL } from "@/config/brand";
 
+import { pageOG } from "@/lib/seo";
+
 export const metadata: Metadata = {
     title: "Trust Centre | LekkerLedger",
     description:
@@ -16,6 +18,11 @@ export const metadata: Metadata = {
     alternates: {
         canonical: "/trust",
     },
+    ...pageOG(
+        "Trust Centre | LekkerLedger",
+        "How LekkerLedger handles data, encryption, payroll processing, and privacy for South African household employers.",
+        "/trust",
+    ),
 };
 
 export default function TrustCenterPage() {
