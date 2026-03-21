@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Stethoscope, FileSpreadsheet, Hospital, ExternalLink } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
-import { JsonLd } from "@/components/seo/json-ld";
+import { JsonLd, breadcrumbSchema } from "@/components/seo/json-ld";
 
 export const metadata = {
   title: "COIDA & Return of Earnings Guide for Domestic Employers | LekkerLedger",
@@ -186,6 +186,12 @@ export default function COIDAGuidePage() {
                         },
                     ],
                 }} />
+                <JsonLd schema={breadcrumbSchema([
+                    { name: "Home", path: "/" },
+                    { name: "Resources", path: "/resources" },
+                    { name: "Guides", path: "/resources/guides" },
+                    { name: "COIDA & ROE Compliance", path: "/resources/guides/coida-and-roe-compliance" },
+                ])} />
             </main>
         </div>
     );

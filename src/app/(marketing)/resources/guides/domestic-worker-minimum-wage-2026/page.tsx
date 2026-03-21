@@ -3,7 +3,7 @@ import { ArrowLeft, ExternalLink, Calculator, DollarSign, Info, ArrowRight } fro
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
-import { JsonLd } from "@/components/seo/json-ld";
+import { JsonLd, breadcrumbSchema } from "@/components/seo/json-ld";
 
 export const metadata = {
   title: "2026 Domestic Worker Minimum Wage Guide | LekkerLedger",
@@ -185,6 +185,12 @@ export default function NMW2026GuidePage() {
                         },
                     ],
                 }} />
+                <JsonLd schema={breadcrumbSchema([
+                    { name: "Home", path: "/" },
+                    { name: "Resources", path: "/resources" },
+                    { name: "Guides", path: "/resources/guides" },
+                    { name: "2026 Minimum Wage", path: "/resources/guides/domestic-worker-minimum-wage-2026" },
+                ])} />
             </main>
         </div>
     );

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Gavel, AlertOctagon, FileWarning, ExternalLink } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
-import { JsonLd } from "@/components/seo/json-ld";
+import { JsonLd, breadcrumbSchema } from "@/components/seo/json-ld";
 
 export const metadata = {
   title: "CCMA & Disciplinary Guide for Domestic Employers | LekkerLedger",
@@ -200,6 +200,12 @@ export default function CCMAGuidePage() {
                         },
                     ],
                 }} />
+                <JsonLd schema={breadcrumbSchema([
+                    { name: "Home", path: "/" },
+                    { name: "Resources", path: "/resources" },
+                    { name: "Guides", path: "/resources/guides" },
+                    { name: "CCMA & Disciplinary Procedures", path: "/resources/guides/ccma-and-disciplinary-procedures" },
+                ])} />
             </main>
         </div>
     );

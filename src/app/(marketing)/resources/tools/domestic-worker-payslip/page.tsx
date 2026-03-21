@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { FreePayslipGenerator } from "@/components/marketing/free-payslip-generator";
 import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
-import { JsonLd } from "@/components/seo/json-ld";
+import { JsonLd, breadcrumbSchema } from "@/components/seo/json-ld";
 import { CANONICAL_SITE_URL } from "@/lib/seo";
 
 export const metadata = {
@@ -77,6 +77,12 @@ export default function PayslipGeneratorPage() {
                 },
                 description: "Generate a compliant payslip PDF for your South African domestic worker. Free, no account required.",
             }} />
+            <JsonLd schema={breadcrumbSchema([
+                { name: "Home", path: "/" },
+                { name: "Resources", path: "/resources" },
+                { name: "Tools", path: "/resources/tools" },
+                { name: "Payslip Generator", path: "/resources/tools/domestic-worker-payslip" },
+            ])} />
         </div>
     );
 }

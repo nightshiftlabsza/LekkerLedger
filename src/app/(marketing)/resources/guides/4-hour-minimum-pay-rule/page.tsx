@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Clock, AlertTriangle, ExternalLink } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
-import { JsonLd } from "@/components/seo/json-ld";
+import { JsonLd, breadcrumbSchema } from "@/components/seo/json-ld";
 
 export const metadata = {
   title: "The 4-Hour Minimum Pay Rule for Domestic Workers | LekkerLedger",
@@ -194,6 +194,12 @@ export default function FourHourRuleGuidePage() {
                         },
                     ],
                 }} />
+                <JsonLd schema={breadcrumbSchema([
+                    { name: "Home", path: "/" },
+                    { name: "Resources", path: "/resources" },
+                    { name: "Guides", path: "/resources/guides" },
+                    { name: "4-Hour Minimum Pay Rule", path: "/resources/guides/4-hour-minimum-pay-rule" },
+                ])} />
             </main>
         </div>
     );

@@ -27,10 +27,7 @@ const NOINDEX_ROUTE_PREFIXES = [
   '/signup',
   '/forgot-password',
   '/reset-password',
-  '/onboarding',
   '/open-app',
-  '/support',
-  '/legal',
 ]
 
 const PUBLIC_PREFIXES = [

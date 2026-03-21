@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckSquare, Calendar, CreditCard, ShieldCheck } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
-import { JsonLd } from "@/components/seo/json-ld";
+import { JsonLd, breadcrumbSchema } from "@/components/seo/json-ld";
 
 
 export const metadata = {
@@ -221,6 +221,12 @@ export default function MonthlyChecklistPage() {
                         },
                     ],
                 }} />
+                <JsonLd schema={breadcrumbSchema([
+                    { name: "Home", path: "/" },
+                    { name: "Resources", path: "/resources" },
+                    { name: "Checklists", path: "/resources/checklists" },
+                    { name: "Monthly Checklist", path: "/resources/checklists/household-employer-monthly" },
+                ])} />
             </main>
         </div>
     );

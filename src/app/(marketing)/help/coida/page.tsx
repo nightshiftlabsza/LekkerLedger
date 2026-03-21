@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 export default function CoidaHelpRedirectPage() {
-    redirect("/resources/guides/coida-and-roe-compliance");
+    permanentRedirect("/resources/guides/coida-and-roe-compliance");
 }

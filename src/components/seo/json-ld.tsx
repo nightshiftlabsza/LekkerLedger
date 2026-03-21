@@ -25,6 +25,19 @@ export const softwareApplicationSchema = {
     description: "Payslip generator, UIF calculator, and employment record management for South African household employers."
 };
 
+export function breadcrumbSchema(crumbs: { name: string; path: string }[]) {
+    return {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: crumbs.map((c, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            name: c.name,
+            item: `https://lekkerledger.co.za${c.path}`,
+        })),
+    };
+}
+
 export function JsonLd({ schema }: { readonly schema: Record<string, unknown> }) {
     return (
         <script

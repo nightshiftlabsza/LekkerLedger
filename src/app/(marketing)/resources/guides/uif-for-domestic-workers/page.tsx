@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, ExternalLink, ShieldCheck, CheckSquare } from "lucide-react";
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
-import { JsonLd } from "@/components/seo/json-ld";
+import { JsonLd, breadcrumbSchema } from "@/components/seo/json-ld";
 import { CANONICAL_SITE_URL } from "@/lib/seo";
 
 export const metadata = {
@@ -203,6 +203,12 @@ export default function UIFGuidePage() {
                         },
                     ],
                 }} />
+                <JsonLd schema={breadcrumbSchema([
+                    { name: "Home", path: "/" },
+                    { name: "Resources", path: "/resources" },
+                    { name: "Guides", path: "/resources/guides" },
+                    { name: "UIF for Domestic Workers", path: "/resources/guides/uif-for-domestic-workers" },
+                ])} />
             </main>
         </div>
     );
