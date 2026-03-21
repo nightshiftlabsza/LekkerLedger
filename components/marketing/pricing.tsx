@@ -209,7 +209,7 @@ export function MarketingPlanCards({
     readonly isLoadingPlanId?: PlanId | null;
 }) {
     return (
-        <div className="plan-cards-cq-root space-y-6">
+        <div className="plan-cards-cq-root w-full space-y-6">
             <div className={`grid gap-5 md:gap-6 ${compact ? "plan-cards-compact-cq-grid" : "plan-cards-cq-grid"}`}>
                 {PLAN_ORDER.map((planId) => (
                     <MarketingPlanCard
