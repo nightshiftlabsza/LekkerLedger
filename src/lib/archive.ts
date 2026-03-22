@@ -11,6 +11,7 @@ export interface StandardRetentionStatus {
     isStandard: boolean;
     showReminder: boolean;
     showElevenMonthWarning: boolean;
+    graceActive: boolean;
     purgeCandidates: DocumentMeta[];
     purgeCount: number;
     warningCount: number;
@@ -18,6 +19,7 @@ export interface StandardRetentionStatus {
 }
 
 const RETENTION_REMINDER_INTERVAL_DAYS = 30;
+const DOWNGRADE_GRACE_PERIOD_DAYS = 30;
 
 export function getUpgradePlanForArchive(planId: PlanId): Exclude<PlanId, "free"> | null {
     if (planId === "free") return "standard";
@@ -107,15 +109,25 @@ function getOldestCreatedAt(documents: DocumentMeta[]): string | undefined {
     return sorted[0]?.createdAt;
 }
 
+export function isWithinDowngradeGracePeriod(planDowngradedAt: string | undefined, now = new Date()): boolean {
+    if (!planDowngradedAt) return false;
+    const downgradedDate = new Date(planDowngradedAt);
+    if (Number.isNaN(downgradedDate.getTime())) return false;
+    const graceEnd = new Date(downgradedDate.getTime() + DOWNGRADE_GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000);
+    return now < graceEnd;
+}
+
 export function getStandardRetentionStatus({
     plan,
     documents,
     dismissedAt,
+    planDowngradedAt,
     now = new Date(),
 }: {
     plan: PlanConfig;
     documents: DocumentMeta[];
     dismissedAt?: string;
+    planDowngradedAt?: string;
     now?: Date;
 }): StandardRetentionStatus {
     const isStandard = plan.id === "standard";
@@ -124,12 +136,14 @@ export function getStandardRetentionStatus({
             isStandard: false,
             showReminder: false,
             showElevenMonthWarning: false,
+            graceActive: false,
             purgeCandidates: [],
             purgeCount: 0,
             warningCount: 0,
         };
     }
 
+    const graceActive = isWithinDowngradeGracePeriod(planDowngradedAt, now);
     const generatedDocuments = documents.filter(isGeneratedPayrollDocument);
     const purgeCutoff = addMonths(now, -12);
     const warningCutoff = addMonths(now, -11);
@@ -152,8 +166,9 @@ export function getStandardRetentionStatus({
         isStandard,
         showReminder,
         showElevenMonthWarning: warningCandidates.length > 0,
+        graceActive,
         purgeCandidates,
-        purgeCount: purgeCandidates.length,
+        purgeCount: graceActive ? 0 : purgeCandidates.length,
         warningCount: warningCandidates.length,
         oldestAffectedAt: getOldestCreatedAt([...purgeCandidates, ...warningCandidates]),
     };

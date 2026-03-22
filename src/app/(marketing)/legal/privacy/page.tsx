@@ -8,7 +8,7 @@ import { COMPANY_NAME, PRIVACY_EMAIL } from "@/config/brand";
 import { SupplierDetails } from "@/components/legal/supplier-details";
 import { SubprocessorTable } from "@/components/legal/subprocessor-table";
 
-const UPDATED_DATE = "10 March 2026";
+const UPDATED_DATE = "21 March 2026";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
@@ -124,12 +124,14 @@ export default function PrivacyPolicy() {
 
                         <Section title="7. Retention">
                             <ul className="list-disc space-y-2 pl-6">
-                                <li><strong>Cloud-stored payroll records (paid):</strong> remain in encrypted cloud storage until you delete them from your account settings.</li>
+                                <li><strong>Cloud-stored payroll records (Standard plan):</strong> generated payslips and exports are kept in encrypted cloud storage for up to 12 months from creation. After 12 months, generated payroll documents and their underlying calculation data are automatically and permanently removed. Employee profiles, contracts, uploaded documents, and account settings are not affected by this automatic removal.</li>
+                                <li><strong>Cloud-stored payroll records (Pro plan):</strong> generated payslips, exports, and uploaded documents are kept in encrypted cloud storage for up to 5 years from creation.</li>
+                                <li><strong>Employee profiles, contracts, and settings (paid plans):</strong> remain in encrypted cloud storage until you delete them from your account settings, regardless of plan.</li>
                                 <li><strong>Free payslip PDFs:</strong> generated and downloaded in a single session. No records are retained by LekkerLedger.</li>
                                 <li><strong>Subscription, referral, analytics, and support records:</strong> may be retained for operational, accounting, fraud-prevention, support, or legal reasons for as long as reasonably necessary.</li>
                             </ul>
                             <p>
-                                Retention periods can vary depending on the category of data and the reason it was processed.
+                                Retention periods can vary depending on the category of data and the reason it was processed. South African employment law may require employers to retain certain records for 3 to 5 years. LekkerLedger warns Standard users when generated documents approach the 12-month limit so you can save your own copies. Upgrading to Pro extends in-app retention to 5 years.
                             </p>
                         </Section>
 

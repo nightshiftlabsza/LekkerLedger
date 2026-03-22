@@ -999,6 +999,9 @@ export async function purgeDocumentMetas(documentIds: string[]): Promise<number>
             continue;
         }
         await deleteDocumentMeta(id);
+        if (existing.type === "payslip") {
+            await deletePayslip(id);
+        }
         purgedCount += 1;
     }
 

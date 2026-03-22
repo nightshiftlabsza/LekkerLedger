@@ -98,7 +98,11 @@ function UpgradePageContent() {
         const currentRank = PLAN_RANK[currentPlan.id] ?? 0;
         const targetRank = PLAN_RANK[planId] ?? 0;
         if (targetRank < currentRank) {
-            setDowngradingTo(planId);
+            if (planId === "free") {
+                setDowngradingTo(planId);
+            } else {
+                setDowngradingTo(planId);
+            }
             return;
         }
         if (planId === "standard" || planId === "pro") {
@@ -117,19 +121,25 @@ function UpgradePageContent() {
     }, [ownReferralCode, toast]);
 
     const handleConfirmDowngrade = React.useCallback(async () => {
+        if (!downgradingTo) return;
         setCancelingForDowngrade(true);
         try {
-            await cancelSubscriptionRenewal();
-            setDowngradingTo(null);
-            toast("Subscription renewal canceled. You'll keep your current plan until your billing period ends.");
+            if (downgradingTo === "free") {
+                await cancelSubscriptionRenewal();
+                setDowngradingTo(null);
+                toast("Subscription renewal canceled. You'll keep your current plan until your billing period ends.");
+            } else {
+                startCheckout(downgradingTo);
+                setDowngradingTo(null);
+            }
             const updated = await getSettings();
             setSettings(updated);
         } catch (err) {
-            toast(err instanceof Error ? err.message : "Could not cancel subscription.");
+            toast(err instanceof Error ? err.message : "Could not process the plan change.");
         } finally {
             setCancelingForDowngrade(false);
         }
-    }, [toast]);
+    }, [downgradingTo, startCheckout, toast]);
 
     if (!settings) {
         return null;
@@ -230,14 +240,23 @@ function UpgradePageContent() {
                     <div className="space-y-4 rounded-2xl border p-5" style={{ borderColor: "var(--warning-border)", backgroundColor: "var(--warning-soft)" }}>
                         <div className="space-y-2">
                             <p className="font-bold text-[var(--text)]">
-                                Downgrade to {PLANS[downgradingTo].label}?
+                                {downgradingTo === "free"
+                                    ? `Cancel ${currentPlan.label} and move to Free?`
+                                    : `Change from ${currentPlan.label} to ${PLANS[downgradingTo].label}?`
+                                }
                             </p>
-                            <p className="text-sm text-[var(--warning)]">
-                                This cancels your {currentPlan.label} renewal. You keep {currentPlan.label} until your current billing period ends, then move to the Free plan.
-                            </p>
-                            {downgradingTo !== "free" && (
+                            {downgradingTo === "free" ? (
                                 <p className="text-sm text-[var(--warning)]">
-                                    After your {currentPlan.label} expires you can start a fresh {PLANS[downgradingTo].label} period from Free.
+                                    This cancels your {currentPlan.label} renewal. You keep {currentPlan.label} until your current billing period ends, then move to the Free plan.
+                                </p>
+                            ) : (
+                                <p className="text-sm text-[var(--warning)]">
+                                    Your plan changes to {PLANS[downgradingTo].label} for the rest of this billing period. No extra charge — any remaining {currentPlan.label} credit is applied automatically. Your {PLANS[downgradingTo].label} renewal starts at the end of this period.
+                                </p>
+                            )}
+                            {currentPlan.archiveMonths > PLANS[downgradingTo === "free" ? "free" : downgradingTo].archiveMonths && (
+                                <p className="text-sm font-bold text-[var(--warning)]">
+                                    Your in-app archive will change from {currentPlan.archiveMonths >= 60 ? "5 years" : `${currentPlan.archiveMonths} months`} to {PLANS[downgradingTo === "free" ? "free" : downgradingTo].archiveMonths} months. Generated payslips and exports older than the new limit will be permanently removed after a 30-day grace period. Download or export your records before the grace period ends.
                                 </p>
                             )}
                         </div>
@@ -257,7 +276,10 @@ function UpgradePageContent() {
                                 disabled={cancelingForDowngrade}
                                 className="flex-1 rounded-xl bg-[var(--warning)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-95 disabled:opacity-50"
                             >
-                                {cancelingForDowngrade ? "Canceling..." : "Confirm downgrade"}
+                                {cancelingForDowngrade
+                                    ? (downgradingTo === "free" ? "Canceling..." : "Changing plan...")
+                                    : (downgradingTo === "free" ? "Confirm cancellation" : `Confirm change to ${PLANS[downgradingTo].label}`)
+                                }
                             </button>
                         </div>
                     </div>

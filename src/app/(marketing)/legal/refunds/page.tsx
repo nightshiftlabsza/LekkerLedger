@@ -40,7 +40,7 @@ export default function RefundPolicy() {
                         <CreditCard className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Refund & Cancellation</h1>
-                    <p className="font-medium text-[var(--text-muted)]">Updated 15 March 2026 • {REFUND_POLICY_SHORT_LABEL}</p>
+                    <p className="font-medium text-[var(--text-muted)]">Updated 21 March 2026 • {REFUND_POLICY_SHORT_LABEL}</p>
                 </header>
 
                 <div className="policy-copy max-w-none space-y-8 leading-relaxed font-medium">
@@ -88,7 +88,20 @@ export default function RefundPolicy() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-2xl font-black text-[var(--text)]">5. How to Request a Refund</h2>
+                        <h2 className="text-2xl font-black text-[var(--text)]">5. What happens to your data</h2>
+                        <p>
+                            When you cancel your renewal, your paid access and current archive depth continue until the end of the billing period you already paid for. After that, your plan reverts to Free.
+                        </p>
+                        <p>
+                            Standard keeps generated payslips and exports in-app for 12 months. Pro keeps them for up to 5 years. Employee profiles, contracts, and account settings are not affected by plan-based retention limits.
+                        </p>
+                        <p>
+                            If you are on Pro and move to Standard or Free, generated payroll documents older than the new plan&apos;s retention limit may be permanently removed. Download or export your records before your plan changes.
+                        </p>
+                    </section>
+
+                    <section className="space-y-4">
+                        <h2 className="text-2xl font-black text-[var(--text)]">6. How to Request a Refund</h2>
                         <p>
                             To request a refund, email <a href={`mailto:${SUPPORT_EMAIL}`} className="font-semibold text-[var(--primary)] hover:underline">{SUPPORT_EMAIL}</a> with your transaction details. We review refund requests within 1-4 business days (Monday to Friday, South African Standard Time, excluding public holidays) after we receive the information needed to verify the payment.
                         </p>

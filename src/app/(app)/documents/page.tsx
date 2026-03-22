@@ -416,6 +416,7 @@ export default function DocumentsPage() {
                     plan: nextPlan,
                     documents: nextDocuments,
                     dismissedAt: userSettings?.standardRetentionNoticeDismissedAt,
+                    planDowngradedAt: userSettings?.planDowngradedAt,
                 });
 
                 if (nextRetentionStatus.purgeCount > 0) {

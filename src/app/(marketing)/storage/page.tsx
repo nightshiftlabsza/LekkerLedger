@@ -90,6 +90,23 @@ export default function StoragePage() {
                     </section>
 
                     <section className="space-y-4">
+                        <h2 className="text-2xl font-black text-[var(--text)]">In-app retention by plan</h2>
+                        <p>
+                            Different plans keep generated payroll documents (payslips and exports) in-app for different periods:
+                        </p>
+                        <ul className="list-disc pl-6 space-y-2">
+                            <li><strong>Standard:</strong> generated payslips and exports are kept for up to 12 months. After 12 months, they are permanently removed from the app and cloud storage. You are warned as documents approach this limit.</li>
+                            <li><strong>Pro:</strong> generated payslips, exports, and uploaded documents are kept for up to 5 years.</li>
+                        </ul>
+                        <p>
+                            Employee profiles, contracts, uploaded documents, and account settings are not affected by these limits and remain available until you delete them yourself.
+                        </p>
+                        <p>
+                            South African employment law may require employers to keep certain records for 3 to 5 years. LekkerLedger reminds Standard users to save their own copies as generated documents approach the 12-month limit.
+                        </p>
+                    </section>
+
+                    <section className="space-y-4">
                         <h2 className="text-2xl font-black text-[var(--text)]">How to delete your data</h2>
                         <p>
                             Paid accounts can delete their cloud-stored records from the <strong>Settings</strong> page. This permanently erases all employees, payslips, and settings from cloud storage.

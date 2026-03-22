@@ -163,11 +163,19 @@ export function applyVerifiedEntitlementsToSettings(
         resolvedStatus = "pro";
     }
 
+    const previousPlan = getPlanById(userProfile.proStatus || "free");
+    const newPlan = getPlanById(resolvedStatus);
+    const isArchiveDowngrade = newPlan.archiveMonths < previousPlan.archiveMonths;
+
     return {
         ...userProfile,
         proStatus: resolvedStatus,
         paidUntil: entitlements.paidUntil,
         billingCycle: entitlements.billingCycle ?? userProfile.billingCycle,
+        ...(isArchiveDowngrade ? {
+            planDowngradedAt: new Date().toISOString(),
+            previousArchiveMonths: previousPlan.archiveMonths,
+        } : {}),
     };
 }
 

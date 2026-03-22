@@ -1760,22 +1760,20 @@ async function handlePlanChangeSuccess(
     let paystackPlanCode = getPaystackPlanCode(intent.planId, intent.billingCycle);
     let lastError: string | null = null;
 
-    if (excessCreditCents <= 0) {
-        try {
-            const created = await createPaystackSubscription({
-                customerId,
-                planId: intent.planId,
-                billingCycle: intent.billingCycle,
-                authorizationCode,
-                startDate: currentPeriodEnd,
-            });
-            paystackSubscriptionCode = created.subscriptionCode || paystackSubscriptionCode;
-            paystackEmailToken = created.emailToken;
-            paystackPlanCode = created.planCode;
-            nextChargeAt = created.nextPaymentDate || currentPeriodEnd;
-        } catch (error) {
-            lastError = error instanceof Error ? error.message : "The plan changed, but renewal setup still needs attention.";
-        }
+    try {
+        const created = await createPaystackSubscription({
+            customerId,
+            planId: intent.planId,
+            billingCycle: intent.billingCycle,
+            authorizationCode,
+            startDate: currentPeriodEnd,
+        });
+        paystackSubscriptionCode = created.subscriptionCode || paystackSubscriptionCode;
+        paystackEmailToken = created.emailToken;
+        paystackPlanCode = created.planCode;
+        nextChargeAt = created.nextPaymentDate || currentPeriodEnd;
+    } catch (error) {
+        lastError = error instanceof Error ? error.message : "The plan changed, but renewal setup still needs attention.";
     }
 
     await createMoneyCreditForIntent(intent.userId, intent.id, excessCreditCents);

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { COMPANY_NAME, PRIVACY_EMAIL, SUPPORT_EMAIL } from "@/config/brand";
 import { SupplierDetails } from "@/components/legal/supplier-details";
 
-const UPDATED_DATE = "10 March 2026";
+const UPDATED_DATE = "21 March 2026";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
@@ -108,7 +108,22 @@ export default function TermsOfService() {
                             </p>
                         </Section>
 
-                        <Section title="6. Availability and changes">
+                        <Section title="6. Data retention and automatic removal">
+                            <p>
+                                Different plans retain generated payroll documents (such as payslips and exports) for different periods. On the Standard plan, generated payroll documents and their underlying calculation data are automatically and permanently removed after 12 months from their creation date. On the Pro plan, generated payroll documents are retained for up to 5 years.
+                            </p>
+                            <p>
+                                Employee profiles, contracts, uploaded documents, household settings, and other account data are not affected by this automatic removal and remain available until you delete them yourself.
+                            </p>
+                            <p>
+                                LekkerLedger displays in-app warnings when generated documents approach the retention limit on Standard, so you can save your own copies before removal. You remain responsible for keeping your own offline or printed copies of any records you may need beyond the in-app retention period, including records required under South African employment law.
+                            </p>
+                            <p>
+                                If you change from a higher plan to a lower plan, the retention limit of the new plan applies. Generated payroll documents that exceed the new retention limit may be permanently removed. For more detail, see the privacy policy.
+                            </p>
+                        </Section>
+
+                        <Section title="7. Availability and changes">
                             <p>
                                 We aim to keep LekkerLedger available and useful, but we do not promise uninterrupted availability. Maintenance, upgrades, provider outages, or technical incidents may affect access from time to time.
                             </p>
@@ -117,7 +132,7 @@ export default function TermsOfService() {
                             </p>
                         </Section>
 
-                        <Section title="7. Intellectual property">
+                        <Section title="8. Intellectual property">
                             <p>
                                 The LekkerLedger product, brand, design, text, and non-open-source materials remain the property of {COMPANY_NAME} or its licensors.
                             </p>
@@ -126,7 +141,7 @@ export default function TermsOfService() {
                             </p>
                         </Section>
 
-                        <Section title="8. Disclaimers">
+                        <Section title="9. Disclaimers">
                             <p>
                                 LekkerLedger provides tools, guidance, and calculations intended to help household employers stay organised. It does not guarantee legal outcomes, tribunal outcomes, regulator acceptance, or the correctness of information you enter.
                             </p>
@@ -135,7 +150,7 @@ export default function TermsOfService() {
                             </p>
                         </Section>
 
-                        <Section title="9. Limitation of liability">
+                        <Section title="10. Limitation of liability">
                             <p>
                                 To the extent permitted by law, LekkerLedger is provided as a tool to assist record-keeping and payroll preparation, not as a guarantee of legal or payroll outcomes.
                             </p>
@@ -144,16 +159,16 @@ export default function TermsOfService() {
                             </p>
                         </Section>
 
-                        <Section title="10. Termination">
+                        <Section title="11. Termination">
                             <p>
                                 You may stop using the service at any time. We may suspend or terminate access where reasonably necessary for abuse, fraud, legal reasons, or security reasons.
                             </p>
                             <p>
-                                Termination does not automatically delete data stored on your own device or in your encrypted sync storage. Those storage locations remain under your control.
+                                Termination does not automatically delete data stored on your own device. However, plan-based retention limits described in section 6 continue to apply to cloud-stored records.
                             </p>
                         </Section>
 
-                        <Section title="11. Governing law and contact">
+                        <Section title="12. Governing law and contact">
                             <p>These terms are governed by the laws of the Republic of South Africa.</p>
                             <p>
                                 For product or legal-policy questions, contact <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.

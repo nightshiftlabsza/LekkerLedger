@@ -159,6 +159,7 @@ function DashboardContent() {
                 plan,
                 documents: nextDocs,
                 dismissedAt: effectiveSettings.standardRetentionNoticeDismissedAt,
+                planDowngradedAt: effectiveSettings.planDowngradedAt,
             });
 
             if (nextRetentionStatus.purgeCount > 0) {
@@ -168,6 +169,7 @@ function DashboardContent() {
                     plan,
                     documents: nextDocs,
                     dismissedAt: effectiveSettings.standardRetentionNoticeDismissedAt,
+                    planDowngradedAt: effectiveSettings.planDowngradedAt,
                 });
             }
 
@@ -334,6 +336,15 @@ function DashboardContent() {
                     onDismiss={() => {
                         handleDismissPaidFeedbackNotice().catch(console.error);
                     }}
+                />
+            ) : null}
+            {retentionStatus?.graceActive ? (
+                <RetentionAlertCard
+                    title="30-day grace period — save your older records now"
+                    body="You recently changed to Standard. Generated payslips and exports older than 12 months will be permanently removed when this grace period ends. Download or export them now from the Documents page."
+                    actionHref="/documents"
+                    actionLabel="Open Documents"
+                    tone="warning"
                 />
             ) : null}
             {retentionStatus?.showElevenMonthWarning ? (
