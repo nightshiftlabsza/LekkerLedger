@@ -1,6 +1,6 @@
 export const CANONICAL_SITE_URL = "https://lekkerledger.co.za";
 export const ROOT_METADATA_BASE = new URL(CANONICAL_SITE_URL);
-export const SITEMAP_LAST_MODIFIED = new Date("2026-03-21T00:00:00.000Z");
+export const SITEMAP_LAST_MODIFIED = new Date("2026-03-22T00:00:00.000Z");
 
 export const INDEXABLE_PUBLIC_ROUTES = [
   "/",

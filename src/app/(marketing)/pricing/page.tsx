@@ -120,7 +120,7 @@ export default function PricingPage() {
                                         Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device. Free generates one downloadable PDF per month with no stored data.
                                     </p>
                                     <p>
-                                        Standard and Pro include the documents hub. Pro adds the Vault, automatic backups, year-end summaries, and longer browsable history.
+                                        Standard and Pro include the documents hub and automatic cloud-secured backup. Pro adds the Vault for any employment files, year-end summaries, and 5 years of browsable history.
                                     </p>
                                     <p>
                                         Support is by email on every plan, with faster replies on Pro.
