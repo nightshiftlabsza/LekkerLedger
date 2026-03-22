@@ -215,17 +215,37 @@ export function useInlinePaidPlanCheckout({
             const publicKey = getRequiredEnvValue("NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY");
             const { default: PaystackPop } = await import("@paystack/inline-js");
             const popup = new PaystackPop();
+
+            let callbackFired = false;
+            const redirectUrl = preparedCheckout.authorizationUrl;
+
+            // Fallback: if Paystack inline doesn't respond within 8 seconds
+            // (popup blocked, iframe fails to load, mobile issues), redirect instead.
+            const fallbackTimer = window.setTimeout(() => {
+                if (!callbackFired && redirectUrl) {
+                    callbackFired = true;
+                    closeDialog();
+                    window.location.assign(redirectUrl);
+                }
+            }, 8_000);
+
             popup.resumeTransaction(preparedCheckout.accessCode, {
                 key: publicKey,
                 onSuccess: (transaction: { reference?: string }) => {
+                    callbackFired = true;
+                    clearTimeout(fallbackTimer);
                     const successfulReference = transaction.reference || reference;
                     closeDialog();
                     router.push(buildActivationHref(successfulReference));
                 },
                 onCancel: () => {
+                    callbackFired = true;
+                    clearTimeout(fallbackTimer);
                     setLaunching(false);
                 },
                 onError: (checkoutError: { message?: string }) => {
+                    callbackFired = true;
+                    clearTimeout(fallbackTimer);
                     setLaunching(false);
                     setError(checkoutError.message || "Paystack checkout could not be opened inline.");
                 },
