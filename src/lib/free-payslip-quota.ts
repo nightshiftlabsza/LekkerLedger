@@ -209,14 +209,9 @@ export async function getFreePayslipQuotaStatus(email: string): Promise<FreePays
 export async function consumeFreePayslipQuota(email: string): Promise<FreePayslipQuotaStatus> {
     const normalizedEmail = normalizeEmail(email);
     const monthKey = toMonthKey();
-    const existing = await getQuotaRow(normalizedEmail, monthKey);
-
-    if ((existing?.downloadsUsed ?? 0) >= 1) {
-        throw new FreePayslipQuotaError("This verified email has already downloaded a free payslip this month.", 409);
-    }
-
     const now = Date.now();
     await ensureSchema();
+
     await queryD1(
         `
             INSERT INTO free_payslip_quota (
@@ -227,12 +222,35 @@ export async function consumeFreePayslipQuota(email: string): Promise<FreePaysli
                 created_at,
                 updated_at
             ) VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT(email, month_key) DO UPDATE SET
-                downloads_used = excluded.downloads_used,
-                verified_at = excluded.verified_at,
-                updated_at = excluded.updated_at
+            ON CONFLICT(email, month_key) DO NOTHING
         `,
-        [normalizedEmail, monthKey, 1, now, existing?.createdAt ?? now, now],
+        [normalizedEmail, monthKey, 0, now, now, now],
+    );
+
+    const updatedRows = await queryD1(
+        `
+            UPDATE free_payslip_quota
+            SET downloads_used = 1,
+                verified_at = ?,
+                updated_at = ?
+            WHERE email = ?
+              AND month_key = ?
+              AND downloads_used = 0
+            RETURNING email, month_key, downloads_used, verified_at, created_at, updated_at
+        `,
+        [now, now, normalizedEmail, monthKey],
+    );
+
+    if (updatedRows.length === 0) {
+        throw new FreePayslipQuotaError(
+            "This verified email has already used its one successful free payslip PDF for this calendar month.",
+            409,
+        );
+    }
+
+    await queryD1(
+        "UPDATE free_payslip_quota SET updated_at = ? WHERE email = ? AND month_key = ?",
+        [now, normalizedEmail, monthKey],
     );
 
     return getFreePayslipQuotaStatus(normalizedEmail);

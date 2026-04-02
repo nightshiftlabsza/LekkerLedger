@@ -1,21 +1,44 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
-import { AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, CheckCircle2, ChevronDown, ChevronUp, Download, FileCheck2, Mail, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+    AlertTriangle,
+    ArrowLeft,
+    ArrowRight,
+    BadgeCheck,
+    CheckCircle2,
+    ChevronDown,
+    ChevronUp,
+    Download,
+    Mail,
+    RefreshCw,
+    ShieldCheck,
+} from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { Stepper } from "@/components/ui/stepper";
 import { createClient } from "@/lib/supabase/client";
-import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
-import { buildFreePayslipVerificationHref, parseFreePayslipVerificationState } from "@/lib/free-payslip-verification";
+import { calculatePayslip, getSundayRateMultiplier, NMW_RATE } from "@/lib/calculator";
+import {
+    buildFreePayslipVerificationHref,
+    parseFreePayslipVerificationState,
+} from "@/lib/free-payslip-verification";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
 import { derivePayslipDraft, getMonthBounds, getMonthKey, normalizePayslipDraftToInput } from "@/lib/payslip-draft";
 import { downloadPdf } from "@/lib/share";
 import type { Employee, EmployerSettings, PayslipInput } from "@/lib/schema";
+import {
+    buildEmptyOrdinaryWorkPattern,
+    type OrdinaryWorkPattern,
+    normalizeOrdinaryWorkPattern,
+} from "@/lib/ordinary-work-pattern";
+import { OrdinaryWorkPatternPicker } from "@/components/payroll/ordinary-work-pattern-picker";
+import { OrdinaryWorkCalendarSummaryCard } from "@/components/payroll/ordinary-work-calendar-summary";
+import { describeOrdinaryWorkCalendar } from "@/lib/payroll-calendar";
+import { buildPayrollSummary } from "@/lib/payroll-summary";
 
 type FreePayslipFormState = {
     employerName: string;
@@ -25,7 +48,8 @@ type FreePayslipFormState = {
     employeeRole: string;
     hourlyRate: string;
     monthKey: string;
-    standardWorkingDaysThisMonth: string;
+    ordinaryWorkPattern: OrdinaryWorkPattern;
+    ordinaryDaysWorked: string;
     ordinaryHoursOverride: string;
     overtimeHours: string;
     sundayHours: string;
@@ -43,22 +67,58 @@ type QuotaStatus = {
     usedThisMonth: boolean;
 };
 
-type WizardStep = { label: string; question: string; summary: string };
 type FieldErrors = Partial<Record<keyof FreePayslipFormState, string>>;
-type VerificationState = "unverified" | "waiting" | "verified" | "quota-used" | "success";
+
+type VerificationPhase =
+    | "idle"
+    | "sending-link"
+    | "waiting-for-verification"
+    | "verified-ready"
+    | "quota-used"
+    | "invalid-link"
+    | "missing-session"
+    | "service-unavailable"
+    | "success";
+
 type NoticeTone = "info" | "warning" | "danger" | "success";
+
+type VerificationMachineState = {
+    phase: VerificationPhase;
+    tone: NoticeTone;
+    message: string;
+    verifiedEmail: string;
+    quota: QuotaStatus | null;
+};
+
+type VerificationAction =
+    | { type: "reset" }
+    | { type: "sending-link" }
+    | { type: "waiting"; message: string; tone?: NoticeTone }
+    | { type: "verified-ready"; message: string; email: string; quota: QuotaStatus }
+    | { type: "quota-used"; message: string; email: string; quota: QuotaStatus | null }
+    | { type: "invalid-link"; message: string }
+    | { type: "missing-session"; message: string }
+    | { type: "service-unavailable"; message: string }
+    | { type: "success"; message: string; email: string; quota: QuotaStatus };
+
 type SavedFreePayslipDraft = {
     form: FreePayslipFormState;
     currentStep: number;
     verificationEmail: string;
 };
 
+type WizardStep = {
+    label: string;
+    title: string;
+    summary: string;
+};
+
 const STEPS: WizardStep[] = [
-    { label: "Setup", question: "Who should appear on the payslip?", summary: "Add the employer and worker details first, then move straight into this month's payroll." },
-    { label: "Hours", question: "Set the month and ordinary time", summary: "Choose the month, confirm the rate, and capture the ordinary working pattern." },
-    { label: "Extra Pay", question: "Add overtime and premium hours", summary: "Keep overtime, Sunday work, and public-holiday work separate so the review stays easy to check." },
-    { label: "Deductions", question: "Add any agreed deductions", summary: "Only include deductions that were already agreed and recorded outside the payslip." },
-    { label: "Review", question: "Review and generate the PDF", summary: "Check the figures, verify your email at the end, and generate the payslip PDF." },
+    { label: "Details", title: "Employer and worker details", summary: "Add the employer and worker details that must appear on the payslip." },
+    { label: "Month", title: "Month and ordinary hours", summary: "Select the month, confirm the ordinary work pattern, and capture ordinary days and hours within the allowed cap." },
+    { label: "Extra pay", title: "Overtime, Sunday, and public holiday hours", summary: "Keep overtime, Sunday work, and public holiday work separate from ordinary time." },
+    { label: "Deductions", title: "Deductions", summary: "Only include deductions that were agreed and recorded outside the payslip." },
+    { label: "Review", title: "Review and generate PDF", summary: "Check the payroll figures, then verify the email before generating the PDF." },
 ];
 
 const DEFAULT_FORM: FreePayslipFormState = {
@@ -69,7 +129,8 @@ const DEFAULT_FORM: FreePayslipFormState = {
     employeeRole: "Domestic Worker",
     hourlyRate: NMW_RATE.toFixed(2),
     monthKey: "",
-    standardWorkingDaysThisMonth: "22",
+    ordinaryWorkPattern: buildEmptyOrdinaryWorkPattern(),
+    ordinaryDaysWorked: "0",
     ordinaryHoursOverride: "",
     overtimeHours: "0",
     sundayHours: "0",
@@ -80,8 +141,43 @@ const DEFAULT_FORM: FreePayslipFormState = {
 };
 
 const FREE_PAYSLIP_DRAFT_STORAGE_KEY = "free-payslip-wizard-draft";
+const ORDINARY_HOURS_PER_DAY = 8;
 const FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE = "The free payslip service is temporarily unavailable. Please try again in a moment.";
-const SAME_BROWSER_RECOVERY_MESSAGE = "Open the email link in the same browser where this form is open, then check again.";
+const FREE_PAYSLIP_RULE_MESSAGE = "One successful free payslip PDF per verified email per calendar month.";
+const SAME_BROWSER_RECOVERY_MESSAGE = "Open the email link in the same browser where this form is open, then click “I opened the link in this browser”.";
+
+const INITIAL_VERIFICATION_STATE: VerificationMachineState = {
+    phase: "idle",
+    tone: "info",
+    message: "",
+    verifiedEmail: "",
+    quota: null,
+};
+
+function verificationReducer(state: VerificationMachineState, action: VerificationAction): VerificationMachineState {
+    switch (action.type) {
+        case "reset":
+            return INITIAL_VERIFICATION_STATE;
+        case "sending-link":
+            return { ...state, phase: "sending-link", tone: "info", message: "", quota: null, verifiedEmail: "" };
+        case "waiting":
+            return { ...state, phase: "waiting-for-verification", tone: action.tone ?? "info", message: action.message, quota: null };
+        case "verified-ready":
+            return { ...state, phase: "verified-ready", tone: "success", message: action.message, verifiedEmail: action.email, quota: action.quota };
+        case "quota-used":
+            return { ...state, phase: "quota-used", tone: "warning", message: action.message, verifiedEmail: action.email, quota: action.quota };
+        case "invalid-link":
+            return { ...state, phase: "invalid-link", tone: "danger", message: action.message, verifiedEmail: "", quota: null };
+        case "missing-session":
+            return { ...state, phase: "missing-session", tone: "warning", message: action.message, verifiedEmail: "", quota: null };
+        case "service-unavailable":
+            return { ...state, phase: "service-unavailable", tone: "danger", message: action.message, quota: null };
+        case "success":
+            return { ...state, phase: "success", tone: "success", message: action.message, verifiedEmail: action.email, quota: action.quota };
+        default:
+            return state;
+    }
+}
 
 const parseNumber = (value: string) => {
     const parsed = Number(value);
@@ -94,7 +190,6 @@ function buildDefaultFormState(): FreePayslipFormState {
 
 function isValidMonthKey(monthKey: string) {
     if (!/^\d{4}-\d{2}$/.test(monthKey)) return false;
-
     const { start, end } = getMonthBounds(monthKey);
     return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime());
 }
@@ -114,8 +209,12 @@ function sanitizeSavedDraft(rawDraft: unknown): SavedFreePayslipDraft {
     if (raw.form && typeof raw.form === "object") {
         for (const key of Object.keys(defaults) as Array<keyof FreePayslipFormState>) {
             const value = raw.form[key];
+            if (key === "ordinaryWorkPattern" && value && typeof value === "object") {
+                nextForm.ordinaryWorkPattern = normalizeOrdinaryWorkPattern(value as Partial<OrdinaryWorkPattern>) ?? buildEmptyOrdinaryWorkPattern();
+                continue;
+            }
             if (typeof value === "string") {
-                nextForm[key] = value;
+                (nextForm as Record<string, unknown>)[key] = value;
             }
         }
     }
@@ -131,9 +230,18 @@ function sanitizeSavedDraft(rawDraft: unknown): SavedFreePayslipDraft {
     };
 }
 
-function buildPayload(form: FreePayslipFormState): { employee: Employee; payslip: PayslipInput; settings: EmployerSettings } | null {
-    if (!form.employerName.trim() || !form.employeeName.trim() || !form.monthKey || !isValidMonthKey(form.monthKey)) return null;
+function buildPayload(form: FreePayslipFormState): {
+    employee: Employee;
+    payslip: PayslipInput;
+    settings: EmployerSettings;
+} | null {
+    const normalizedPattern = normalizeOrdinaryWorkPattern(form.ordinaryWorkPattern);
+    if (!form.employerName.trim() || !form.employeeName.trim() || !form.monthKey || !isValidMonthKey(form.monthKey) || !normalizedPattern) {
+        return null;
+    }
+
     const monthBounds = getMonthBounds(form.monthKey);
+    const ordinaryDaysWorked = parseNumber(form.ordinaryDaysWorked);
     const employee: Employee = {
         id: crypto.randomUUID(),
         householdId: "free-tool",
@@ -149,22 +257,54 @@ function buildPayload(form: FreePayslipFormState): { employee: Employee; payslip
         leaveCycleStartDate: "",
         leaveCycleEndDate: "",
         annualLeaveBalanceAsOfDate: "",
-        ordinarilyWorksSundays: false,
-        ordinaryHoursPerDay: 8,
+        ordinarilyWorksSundays: normalizedPattern.sunday,
+        ordinaryWorkPattern: normalizedPattern,
+        ordinaryHoursPerDay: ORDINARY_HOURS_PER_DAY,
         frequency: "Monthly",
     };
     const payslip = normalizePayslipDraftToInput({
-        id: crypto.randomUUID(), householdId: "free-tool", employeeId: employee.id, monthKey: form.monthKey,
-        standardWorkingDaysThisMonth: parseNumber(form.standardWorkingDaysThisMonth), ordinaryHoursPerDay: 8,
+        id: crypto.randomUUID(),
+        householdId: "free-tool",
+        employeeId: employee.id,
+        monthKey: form.monthKey,
+        standardWorkingDaysThisMonth: ordinaryDaysWorked,
+        ordinaryHoursPerDay: ORDINARY_HOURS_PER_DAY,
         ordinaryHoursOverride: form.ordinaryHoursOverride.trim() ? parseNumber(form.ordinaryHoursOverride) : null,
-        overtimeHours: parseNumber(form.overtimeHours), sundayHours: parseNumber(form.sundayHours),
-        publicHolidayHours: parseNumber(form.publicHolidayHours), shortShiftCount: parseNumber(form.shortShiftCount),
-        shortShiftWorkedHours: parseNumber(form.shortShiftWorkedHours), hourlyRate: parseNumber(form.hourlyRate),
-        ordinarilyWorksSundays: false, includeAccommodation: false, accommodationCost: undefined,
-        otherDeductions: parseNumber(form.otherDeductions), createdAt: new Date(), annualLeaveTaken: 0, sickLeaveTaken: 0, familyLeaveTaken: 0,
+        overtimeHours: parseNumber(form.overtimeHours),
+        sundayHours: parseNumber(form.sundayHours),
+        publicHolidayHours: parseNumber(form.publicHolidayHours),
+        shortShiftCount: parseNumber(form.shortShiftCount),
+        shortShiftWorkedHours: parseNumber(form.shortShiftWorkedHours),
+        hourlyRate: parseNumber(form.hourlyRate),
+        ordinarilyWorksSundays: normalizedPattern.sunday,
+        includeAccommodation: false,
+        accommodationCost: undefined,
+        otherDeductions: parseNumber(form.otherDeductions),
+        createdAt: new Date(),
+        annualLeaveTaken: 0,
+        sickLeaveTaken: 0,
+        familyLeaveTaken: 0,
     });
     const settings: EmployerSettings = {
-        employerName: form.employerName.trim(), employerAddress: form.employerAddress.trim(), employerIdNumber: "", uifRefNumber: "", cfNumber: "", sdlNumber: "", phone: "", employerEmail: "", proStatus: "free", paidUntil: undefined, billingCycle: "monthly", activeHouseholdId: "free-tool", logoData: undefined, defaultLanguage: "en", density: "comfortable", piiObfuscationEnabled: true, installationId: "free-tool", usageHistory: [], customLeaveTypes: [],
+        employerName: form.employerName.trim(),
+        employerAddress: form.employerAddress.trim(),
+        employerIdNumber: "",
+        uifRefNumber: "",
+        cfNumber: "",
+        sdlNumber: "",
+        phone: "",
+        employerEmail: "",
+        proStatus: "free",
+        paidUntil: undefined,
+        billingCycle: "monthly",
+        activeHouseholdId: "free-tool",
+        logoData: undefined,
+        defaultLanguage: "en",
+        density: "comfortable",
+        piiObfuscationEnabled: true,
+        installationId: "free-tool",
+        usageHistory: [],
+        customLeaveTypes: [],
     };
     return { employee, payslip, settings };
 }
@@ -172,17 +312,8 @@ function buildPayload(form: FreePayslipFormState): { employee: Employee; payslip
 function loadSavedDraft() {
     if (typeof window === "undefined") return null;
     try {
-        const rawLocalDraft = window.localStorage.getItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY);
-        const rawSessionDraft = window.sessionStorage.getItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY);
-        const rawDraft = rawLocalDraft || rawSessionDraft;
-        if (!rawDraft) return null;
-
-        if (!rawLocalDraft && rawSessionDraft) {
-            window.localStorage.setItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY, rawSessionDraft);
-            window.sessionStorage.removeItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY);
-        }
-
-        return sanitizeSavedDraft(JSON.parse(rawDraft));
+        const rawDraft = window.localStorage.getItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY);
+        return rawDraft ? sanitizeSavedDraft(JSON.parse(rawDraft)) : null;
     } catch {
         return null;
     }
@@ -196,15 +327,40 @@ function getNoticeStyles(tone: NoticeTone) {
 }
 
 function TextField({ id, label, hint, error, children }: { id: string; label: string; hint?: string; error?: string; children: React.ReactNode }) {
-    return <label htmlFor={id} className="block space-y-2"><span className="block text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</span>{children}{hint ? <span className="block text-sm leading-6 text-[var(--text-muted)]">{hint}</span> : null}{error ? <span className="block text-sm font-medium text-[var(--danger)]">{error}</span> : null}</label>;
+    return (
+        <label htmlFor={id} className="block space-y-2">
+            <span className="block text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</span>
+            {children}
+            {hint ? <span className="block text-sm leading-6 text-[var(--text-muted)]">{hint}</span> : null}
+            {error ? <span className="block text-sm font-medium text-[var(--danger)]">{error}</span> : null}
+        </label>
+    );
 }
 
 function SummaryRow({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
-    return <div className="flex items-center justify-between gap-4 text-sm"><span className="text-[var(--text-muted)]">{label}</span><span className={accent ? "font-bold text-[var(--primary)]" : "font-semibold text-[var(--text)]"}>{value}</span></div>;
+    return (
+        <div className="flex items-center justify-between gap-4 text-sm">
+            <span className="text-[var(--text-muted)]">{label}</span>
+            <span className={accent ? "font-bold text-[var(--primary)]" : "font-semibold text-[var(--text)]"}>{value}</span>
+        </div>
+    );
 }
 
 function WizardActionBar({ currentStep, onBack, onNext }: { currentStep: number; onBack: () => void; onNext: () => void }) {
-    return <div className="sticky bottom-0 z-20 mt-8 border-t border-[var(--border)] bg-[var(--surface-raised)]/95 px-1 py-4 backdrop-blur"><div className="flex items-center gap-3"><Button type="button" variant="outline" className="flex-1" onClick={onBack} disabled={currentStep === 0}><ArrowLeft className="h-4 w-4" />Back</Button><Button type="button" size="lg" className="flex-[1.2]" onClick={onNext}>Continue<ArrowRight className="h-4 w-4" /></Button></div></div>;
+    return (
+        <div className="sticky bottom-0 z-20 mt-8 border-t border-[var(--border)] bg-[var(--surface-raised)]/95 px-1 py-4 backdrop-blur">
+            <div className="flex items-center gap-3">
+                <Button type="button" variant="outline" className="flex-1" onClick={onBack} disabled={currentStep === 0}>
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                </Button>
+                <Button type="button" size="lg" className="flex-[1.2]" onClick={onNext}>
+                    Continue
+                    <ArrowRight className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+    );
 }
 
 export function FreePayslipGenerator() {
@@ -216,23 +372,21 @@ export function FreePayslipGenerator() {
     const [currentStep, setCurrentStep] = React.useState(() => savedDraft?.currentStep ?? 0);
     const [errors, setErrors] = React.useState<FieldErrors>({});
     const [verificationEmail, setVerificationEmail] = React.useState(() => savedDraft?.verificationEmail ?? "");
+    const [verification, dispatchVerification] = React.useReducer(verificationReducer, INITIAL_VERIFICATION_STATE);
     const [showIdentityField, setShowIdentityField] = React.useState(() => Boolean(savedDraft?.form.employeeId));
     const [showShortShiftHelper, setShowShortShiftHelper] = React.useState(() => Boolean(savedDraft?.form.shortShiftCount && savedDraft.form.shortShiftCount !== "0"));
-    const [verifiedEmail, setVerifiedEmail] = React.useState("");
-    const [quota, setQuota] = React.useState<QuotaStatus | null>(null);
-    const [verificationState, setVerificationState] = React.useState<VerificationState>("unverified");
-    const [statusTone, setStatusTone] = React.useState<NoticeTone>("info");
-    const [statusMessage, setStatusMessage] = React.useState("");
-    const [sendingVerification, setSendingVerification] = React.useState(false);
     const [checkingVerification, setCheckingVerification] = React.useState(false);
     const [downloading, setDownloading] = React.useState(false);
 
+    const normalizedPattern = React.useMemo(() => normalizeOrdinaryWorkPattern(form.ordinaryWorkPattern) ?? buildEmptyOrdinaryWorkPattern(), [form.ordinaryWorkPattern]);
+    const monthBounds = React.useMemo(() => getMonthBounds(isValidMonthKey(form.monthKey) ? form.monthKey : getMonthKey(new Date())), [form.monthKey]);
+    const ordinaryCalendar = React.useMemo(() => describeOrdinaryWorkCalendar(monthBounds.start, monthBounds.end, normalizedPattern, ORDINARY_HOURS_PER_DAY), [monthBounds.end, monthBounds.start, normalizedPattern]);
     const derivedDraft = React.useMemo(() => derivePayslipDraft({
         householdId: "free-tool",
         employeeId: "preview",
         monthKey: isValidMonthKey(form.monthKey) ? form.monthKey : getMonthKey(new Date()),
-        standardWorkingDaysThisMonth: parseNumber(form.standardWorkingDaysThisMonth),
-        ordinaryHoursPerDay: 8,
+        standardWorkingDaysThisMonth: parseNumber(form.ordinaryDaysWorked),
+        ordinaryHoursPerDay: ORDINARY_HOURS_PER_DAY,
         ordinaryHoursOverride: form.ordinaryHoursOverride.trim() ? parseNumber(form.ordinaryHoursOverride) : null,
         overtimeHours: parseNumber(form.overtimeHours),
         sundayHours: parseNumber(form.sundayHours),
@@ -240,16 +394,16 @@ export function FreePayslipGenerator() {
         shortShiftCount: parseNumber(form.shortShiftCount),
         shortShiftWorkedHours: parseNumber(form.shortShiftWorkedHours),
         hourlyRate: parseNumber(form.hourlyRate),
-        ordinarilyWorksSundays: false,
+        ordinarilyWorksSundays: normalizedPattern.sunday,
         includeAccommodation: false,
         otherDeductions: parseNumber(form.otherDeductions),
-    }), [form]);
+    }), [form, normalizedPattern.sunday]);
     const payload = React.useMemo(() => buildPayload(form), [form]);
     const breakdown = React.useMemo(() => payload ? calculatePayslip(payload.payslip) : null, [payload]);
+    const payrollSummary = React.useMemo(() => payload ? buildPayrollSummary(payload.payslip) : null, [payload]);
     const totalPremiumHours = parseNumber(form.overtimeHours) + parseNumber(form.sundayHours) + parseNumber(form.publicHolidayHours);
-    const hourlyRate = parseNumber(form.hourlyRate);
 
-    const updateField = React.useCallback((key: keyof FreePayslipFormState, value: string) => {
+    const updateField = React.useCallback((key: keyof FreePayslipFormState, value: FreePayslipFormState[keyof FreePayslipFormState]) => {
         setForm((current) => ({ ...current, [key]: value }));
         setErrors((current) => {
             if (!current[key]) return current;
@@ -259,103 +413,84 @@ export function FreePayslipGenerator() {
         });
     }, []);
 
-    const applyVerificationState = React.useCallback((state: VerificationState, message: string, tone: NoticeTone, nextQuota: QuotaStatus | null, nextVerifiedEmail: string) => {
-        setVerificationState(state);
-        setStatusMessage(message);
-        setStatusTone(tone);
-        setQuota(nextQuota);
-        setVerifiedEmail(nextVerifiedEmail);
-        if (nextVerifiedEmail) setVerificationEmail(nextVerifiedEmail);
+    const setSimpleVerificationError = React.useCallback((phase: "invalid-link" | "missing-session" | "service-unavailable", message: string) => {
+        if (phase === "invalid-link") {
+            dispatchVerification({ type: "invalid-link", message });
+            return;
+        }
+        if (phase === "missing-session") {
+            dispatchVerification({ type: "missing-session", message });
+            return;
+        }
+        dispatchVerification({ type: "service-unavailable", message });
     }, []);
 
-    const refreshVerification = React.useCallback(async (source: "mount" | "callback" | "manual" | "focus") => {
-        if (verificationState === "success" && source !== "manual") return;
+    const refreshVerification = React.useCallback(async (reason: "callback" | "manual") => {
         setCheckingVerification(true);
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            const shouldCheckQuota = Boolean(user?.email) || callbackState === "success" || source === "manual" || source === "focus" || (source === "mount" && Boolean(verificationEmail));
-            if (!shouldCheckQuota) {
-                if (callbackState === "invalid-link") applyVerificationState(verificationEmail ? "waiting" : "unverified", "That link is invalid or expired. Send a fresh link and open it in the same browser where this form is open.", "danger", null, "");
-                else if (callbackState === "missing-session") applyVerificationState(verificationEmail ? "waiting" : "unverified", `We could not confirm this email in this browser yet. ${SAME_BROWSER_RECOVERY_MESSAGE}`, "warning", null, "");
-                else if (!verificationEmail) applyVerificationState("unverified", "", "info", null, "");
-                return;
-            }
             const response = await fetch("/api/free-payslip/quota", { method: "GET", cache: "no-store" });
+            const data = await response.json() as QuotaStatus | { error?: string };
             if (response.status === 401) {
-                applyVerificationState(
-                    verificationEmail ? "waiting" : "unverified",
-                    callbackState === "success" || callbackState === "missing-session"
-                        ? `We found the verification link, but this browser is not signed in yet. ${SAME_BROWSER_RECOVERY_MESSAGE}`
-                        : "Open the email link in the same browser where this form is open, then come back here to finish the download.",
-                    "warning",
-                    null,
-                    "",
-                );
+                dispatchVerification({ type: "waiting", message: reason === "callback" ? `We could not confirm this email in this browser yet. ${SAME_BROWSER_RECOVERY_MESSAGE}` : SAME_BROWSER_RECOVERY_MESSAGE, tone: "warning" });
                 return;
             }
-            const data = await response.json() as QuotaStatus | { error?: string };
             if (!response.ok) {
-                throw new Error(
-                    response.status >= 500
-                        ? FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE
-                        : typeof data === "object" && data && "error" in data && typeof data.error === "string"
-                            ? data.error
-                            : "The free monthly limit could not be checked.",
-                );
+                throw new Error(response.status >= 500 ? FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE : typeof data === "object" && data && "error" in data && typeof data.error === "string" ? data.error : "The free payslip verification status could not be checked.");
             }
-            const nextQuota = data as QuotaStatus;
-            if (nextQuota.usedThisMonth) applyVerificationState("quota-used", "This verified email has already used its free PDF for this month.", "warning", nextQuota, nextQuota.email);
-            else applyVerificationState("verified", source === "callback" || callbackState === "success" ? "Email verified in this browser. You can generate the PDF now." : "This email is verified for this month.", "success", nextQuota, nextQuota.email);
+            const quota = data as QuotaStatus;
+            if (quota.usedThisMonth) {
+                dispatchVerification({ type: "quota-used", message: "This verified email has already used its one successful free payslip PDF for this calendar month.", email: quota.email, quota });
+                return;
+            }
+            dispatchVerification({ type: "verified-ready", message: "Email verified in this browser. The PDF can be generated now.", email: quota.email, quota });
         } catch (error) {
-            applyVerificationState(verificationEmail ? "waiting" : "unverified", error instanceof Error ? error.message : "The verification status could not be checked.", "danger", null, "");
+            setSimpleVerificationError("service-unavailable", error instanceof Error ? error.message : "The free payslip verification status could not be checked.");
         } finally {
             setCheckingVerification(false);
         }
-    }, [applyVerificationState, callbackState, supabase.auth, verificationEmail, verificationState]);
+    }, [setSimpleVerificationError]);
 
-    React.useEffect(() => { void refreshVerification(callbackState ? "callback" : "mount"); }, [callbackState, refreshVerification]);
     React.useEffect(() => {
-        if (typeof window !== "undefined") {
-            try {
-                window.localStorage.setItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY, JSON.stringify({ form, currentStep, verificationEmail }));
-                window.sessionStorage.removeItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY);
-            } catch {
-                // Best-effort only. The free tool should still work without draft persistence.
-            }
+        if (typeof window === "undefined") return;
+        try {
+            window.localStorage.setItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY, JSON.stringify({ form, currentStep, verificationEmail }));
+        } catch {
+            // Best-effort draft persistence only.
         }
     }, [currentStep, form, verificationEmail]);
+
     React.useEffect(() => {
-        const recheck = () => { if (verificationState === "waiting") void refreshVerification("focus"); };
-        document.addEventListener("visibilitychange", recheck);
-        window.addEventListener("focus", recheck);
-        return () => {
-            document.removeEventListener("visibilitychange", recheck);
-            window.removeEventListener("focus", recheck);
-        };
-    }, [refreshVerification, verificationState]);
-    React.useEffect(() => {
-        if ((callbackState || verificationState !== "unverified") && currentStep < STEPS.length - 1) {
-            setCurrentStep(STEPS.length - 1);
+        if (!callbackState) return;
+        if (callbackState === "invalid-link") {
+            dispatchVerification({ type: "invalid-link", message: "That verification link is invalid or expired. Send a new link to continue." });
+            return;
         }
-    }, [callbackState, currentStep, verificationState]);
+        if (callbackState === "missing-session") {
+            dispatchVerification({ type: "missing-session", message: `We could not confirm this email in this browser yet. ${SAME_BROWSER_RECOVERY_MESSAGE}` });
+            return;
+        }
+        void refreshVerification("callback");
+    }, [callbackState, refreshVerification]);
 
     const validateStep = React.useCallback((stepIndex: number) => {
         const nextErrors: FieldErrors = {};
         if (stepIndex === 0) {
-            if (!form.employerName.trim()) nextErrors.employerName = "Add the household employer name.";
-            if (!form.employerAddress.trim()) nextErrors.employerAddress = "Add the employer address shown on the payslip.";
-            if (!form.employeeName.trim()) nextErrors.employeeName = "Add the worker's full name.";
-            if (!form.employeeRole.trim()) nextErrors.employeeRole = "Add the worker's role.";
+            if (!form.employerName.trim()) nextErrors.employerName = "Add the employer name.";
+            if (!form.employerAddress.trim()) nextErrors.employerAddress = "Add the employer address.";
+            if (!form.employeeName.trim()) nextErrors.employeeName = "Add the worker name.";
+            if (!form.employeeRole.trim()) nextErrors.employeeRole = "Add the worker role.";
         }
         if (stepIndex === 1) {
-            if (!form.monthKey) nextErrors.monthKey = "Choose the month for this payslip.";
+            if (!form.monthKey) nextErrors.monthKey = "Choose the payslip month.";
             else if (!isValidMonthKey(form.monthKey)) nextErrors.monthKey = "Choose a valid payslip month.";
-            if (!form.hourlyRate.trim()) nextErrors.hourlyRate = "Add the hourly rate.";
-            else if (parseNumber(form.hourlyRate) < NMW_RATE) nextErrors.hourlyRate = `The hourly rate must be at least R${NMW_RATE.toFixed(2)}.`;
-            const daysWorked = parseNumber(form.standardWorkingDaysThisMonth);
-            if (daysWorked < 0) nextErrors.standardWorkingDaysThisMonth = "Working days cannot be negative.";
-            if (daysWorked === 0 && totalPremiumHours <= 0 && parseNumber(form.shortShiftWorkedHours) <= 0) nextErrors.standardWorkingDaysThisMonth = "Add ordinary working days or paid hours first.";
-            if (daysWorked > 0 && derivedDraft.ordinaryHours <= 0) nextErrors.ordinaryHoursOverride = "Ordinary hours must be greater than 0 when days worked are entered.";
+            if (parseNumber(form.hourlyRate) < NMW_RATE) nextErrors.hourlyRate = `The hourly rate must be at least R${NMW_RATE.toFixed(2)}.`;
+            if (!normalizeOrdinaryWorkPattern(form.ordinaryWorkPattern)) nextErrors.ordinaryWorkPattern = "Confirm the ordinary work pattern before continuing.";
+            const ordinaryDaysWorked = parseNumber(form.ordinaryDaysWorked);
+            if (ordinaryDaysWorked < 0) nextErrors.ordinaryDaysWorked = "Ordinary working days cannot be negative.";
+            else if (ordinaryDaysWorked > ordinaryCalendar.ordinaryDayCap) nextErrors.ordinaryDaysWorked = `Ordinary working days cannot be more than ${ordinaryCalendar.ordinaryDayCap} for this month and work pattern.`;
+            if (ordinaryDaysWorked === 0 && totalPremiumHours <= 0 && parseNumber(form.shortShiftWorkedHours) <= 0) nextErrors.ordinaryDaysWorked = "Add ordinary working days or paid hours first.";
+            const ordinaryHoursOverride = form.ordinaryHoursOverride.trim() ? parseNumber(form.ordinaryHoursOverride) : null;
+            if (ordinaryHoursOverride !== null && ordinaryHoursOverride > ordinaryCalendar.ordinaryHourCap) nextErrors.ordinaryHoursOverride = `Ordinary hours cannot be more than ${ordinaryCalendar.ordinaryHourCap} for this month and work pattern.`;
         }
         if (stepIndex === 2) {
             if (parseNumber(form.overtimeHours) < 0) nextErrors.overtimeHours = "Hours cannot be negative.";
@@ -365,37 +500,32 @@ export function FreePayslipGenerator() {
         if (stepIndex === 3 && parseNumber(form.otherDeductions) < 0) nextErrors.otherDeductions = "Deductions cannot be negative.";
         setErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
-    }, [derivedDraft.ordinaryHours, form, totalPremiumHours]);
+    }, [form, ordinaryCalendar.ordinaryDayCap, ordinaryCalendar.ordinaryHourCap, totalPremiumHours]);
 
-    const goNext = React.useCallback(() => { if (validateStep(currentStep)) setCurrentStep((step) => Math.min(step + 1, STEPS.length - 1)); }, [currentStep, validateStep]);
+    const goNext = React.useCallback(() => {
+        if (!validateStep(currentStep)) return;
+        setCurrentStep((step) => Math.min(step + 1, STEPS.length - 1));
+    }, [currentStep, validateStep]);
+
     const goBack = React.useCallback(() => setCurrentStep((step) => Math.max(step - 1, 0)), []);
 
     const sendVerificationLink = React.useCallback(async () => {
         const email = verificationEmail.trim().toLowerCase();
         if (!email) {
-            setStatusTone("danger");
-            setStatusMessage("Enter your email address first.");
+            setSimpleVerificationError("service-unavailable", "Enter the email address that should receive the verification link.");
             return;
         }
-        setSendingVerification(true);
-        setStatusMessage("");
+        dispatchVerification({ type: "sending-link" });
         try {
-            if (typeof window === "undefined") {
-                throw new Error("This browser could not prepare the verification link.");
-            }
+            if (typeof window === "undefined") throw new Error("This browser could not prepare the verification link.");
             const next = buildFreePayslipVerificationHref("success");
             const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(next)}` } });
             if (error) throw error;
-            setVerificationState("waiting");
-            setStatusTone("info");
-            setStatusMessage("Verification link sent. Open it in the same browser where this form is open, then come back here and check again.");
+            dispatchVerification({ type: "waiting", message: `Verification link sent. ${SAME_BROWSER_RECOVERY_MESSAGE}` });
         } catch (error) {
-            setStatusTone("danger");
-            setStatusMessage(error instanceof Error ? error.message : "The verification email could not be sent.");
-        } finally {
-            setSendingVerification(false);
+            setSimpleVerificationError("service-unavailable", error instanceof Error ? error.message : "The verification email could not be sent.");
         }
-    }, [supabase.auth, verificationEmail]);
+    }, [setSimpleVerificationError, supabase.auth, verificationEmail]);
 
     const handleUseDifferentEmail = React.useCallback(async () => {
         await supabase.auth.signOut();
@@ -403,22 +533,19 @@ export function FreePayslipGenerator() {
         if (typeof window !== "undefined") {
             const nextUrl = new URL(window.location.href);
             nextUrl.searchParams.delete("freePayslipVerification");
-            nextUrl.searchParams.delete("verifiedEmail");
             window.history.replaceState({}, "", nextUrl.toString());
         }
         setVerificationEmail("");
-        applyVerificationState("unverified", "", "info", null, "");
-    }, [applyVerificationState, supabase.auth]);
+        dispatchVerification({ type: "reset" });
+    }, [supabase.auth]);
 
     const handleDownload = React.useCallback(async () => {
-        if (!payload || !breakdown) {
-            setStatusTone("danger");
-            setStatusMessage("Complete the payslip details first so the PDF can be prepared.");
+        if (!payload || !breakdown || !payrollSummary) {
+            setSimpleVerificationError("service-unavailable", "Complete the payroll details first so the PDF can be prepared.");
             return;
         }
-        if (verificationState !== "verified") {
-            setStatusTone("warning");
-            setStatusMessage("Verify your email in the same browser where this form is open before generating the PDF.");
+        if (verification.phase !== "verified-ready") {
+            dispatchVerification({ type: "waiting", message: "Verify the email in this browser before generating the PDF.", tone: "warning" });
             return;
         }
         setDownloading(true);
@@ -428,66 +555,432 @@ export function FreePayslipGenerator() {
             const quotaData = await quotaResponse.json() as QuotaStatus | { error?: string };
             if (!quotaResponse.ok) {
                 if (quotaResponse.status === 409) {
-                    applyVerificationState("quota-used", typeof quotaData === "object" && quotaData && "error" in quotaData && typeof quotaData.error === "string" ? quotaData.error : "This verified email has already used its free PDF for this month.", "warning", null, verifiedEmail);
+                    dispatchVerification({ type: "quota-used", message: typeof quotaData === "object" && quotaData && "error" in quotaData && typeof quotaData.error === "string" ? quotaData.error : "This verified email has already used its one successful free payslip PDF for this calendar month.", email: verification.verifiedEmail, quota: null });
                     return;
                 }
                 if (quotaResponse.status === 401) {
-                    applyVerificationState("waiting", `This verified session expired before download. ${SAME_BROWSER_RECOVERY_MESSAGE}`, "warning", null, "");
+                    dispatchVerification({ type: "waiting", message: `The verified session expired before the PDF was generated. ${SAME_BROWSER_RECOVERY_MESSAGE}`, tone: "warning" });
                     return;
                 }
-                throw new Error(
-                    quotaResponse.status >= 500
-                        ? FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE
-                        : typeof quotaData === "object" && quotaData && "error" in quotaData && typeof quotaData.error === "string"
-                            ? quotaData.error
-                            : "The free monthly limit could not be updated.",
-                );
+                throw new Error(quotaResponse.status >= 500 ? FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE : typeof quotaData === "object" && quotaData && "error" in quotaData && typeof quotaData.error === "string" ? quotaData.error : "The free monthly quota could not be updated.");
             }
             downloadPdf(pdfBytes, getPayslipFilename(payload.employee, payload.payslip));
             const consumedQuota = quotaData as QuotaStatus;
-            setQuota(consumedQuota);
-            setVerificationState("success");
-            setStatusTone("success");
-            setStatusMessage("Payslip downloaded. If you want next month ready faster, the paid workspace keeps worker details, history, and documents together.");
+            dispatchVerification({ type: "success", message: "Payslip PDF generated successfully. This verified email has now used its free PDF for this calendar month.", email: consumedQuota.email, quota: consumedQuota });
         } catch (error) {
-            setStatusTone("danger");
-            setStatusMessage(error instanceof Error ? error.message : "The PDF could not be downloaded.");
+            setSimpleVerificationError("service-unavailable", error instanceof Error ? error.message : "The PDF could not be generated.");
         } finally {
             setDownloading(false);
         }
-    }, [applyVerificationState, breakdown, payload, verificationState, verifiedEmail]);
+    }, [breakdown, payload, payrollSummary, setSimpleVerificationError, verification.phase, verification.verifiedEmail]);
 
-    const gateCardTitle = verificationState === "success" ? "PDF generated" : verificationState === "quota-used" ? "This month's free PDF is already used" : verificationState === "verified" ? "Ready to generate" : verificationState === "waiting" ? "Check your email" : "Verify your email";
     const step = STEPS[currentStep];
+    const sundayRateLabel = `${getSundayRateMultiplier(normalizedPattern.sunday).toFixed(1)}x`;
+    const gateCardTitle = verification.phase === "sending-link"
+        ? "Sending verification link"
+        : verification.phase === "waiting-for-verification"
+            ? "Verify email in this browser"
+            : verification.phase === "verified-ready"
+                ? "Ready to generate"
+                : verification.phase === "quota-used"
+                    ? "Free PDF already used for this month"
+                    : verification.phase === "invalid-link"
+                        ? "Verification link invalid"
+                        : verification.phase === "missing-session"
+                            ? "Verification not complete in this browser"
+                            : verification.phase === "service-unavailable"
+                                ? "Verification service unavailable"
+                                : verification.phase === "success"
+                                    ? "PDF generated"
+                                    : "Verify email";
 
     return (
         <section id="free-payslip-wizard" data-testid="free-payslip-wizard" className="scroll-mt-24">
             <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-raised)] p-5 shadow-[var(--shadow-md)] sm:p-6 lg:p-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div className="max-w-3xl space-y-3">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]"><ShieldCheck className="h-3.5 w-3.5 text-[var(--primary)]" />Free payslip wizard</div>
+                        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                            <ShieldCheck className="h-3.5 w-3.5 text-[var(--primary)]" />
+                            Free payslip tool
+                        </div>
                         <h1 className="font-serif text-3xl font-bold tracking-tight text-[var(--text)] sm:text-4xl">Create free payslip PDF</h1>
-                        <p className="max-w-2xl text-sm leading-7 text-[var(--text-muted)] sm:text-base">Move through the same calm payslip flow we use in the dashboard, then verify your email right at the download step.</p>
+                        <p className="max-w-2xl text-sm leading-7 text-[var(--text-muted)] sm:text-base">Direct payroll wording, visible holiday caps, and one successful free payslip PDF per verified email per calendar month.</p>
                     </div>
-                    <div className="rounded-[1rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text)]">Step <span className="font-bold">{currentStep + 1}</span> of {STEPS.length}</div>
                 </div>
-                <div className="mt-5 grid gap-3 lg:grid-cols-3">
-                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Fast</p><p className="mt-1 text-sm leading-6 text-[var(--text)]">Start typing immediately and finish the monthly payslip in one pass.</p></div>
-                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Trusted</p><p className="mt-1 text-sm leading-6 text-[var(--text)]">Built for South African domestic-worker payslip details and monthly review.</p></div>
-                    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Private</p><p className="mt-1 text-sm leading-6 text-[var(--text)]">The payslip figures stay on this device until you generate the PDF.</p></div>
+                <div className="mt-6 rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)] sm:p-5">
+                    <Stepper steps={STEPS.map((wizardStep) => ({ label: wizardStep.label }))} currentStep={currentStep} onStepClick={(index) => { if (index <= currentStep) setCurrentStep(index); }} />
                 </div>
-                <div className="mt-6 rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)] sm:p-5"><Stepper steps={STEPS} currentStep={currentStep} onStepClick={(index) => { if (index <= currentStep) setCurrentStep(index); }} /></div>
-                {currentStep === 1 && hourlyRate > 0 && hourlyRate < NMW_RATE ? <div className="mt-6 rounded-[1.5rem] border border-[var(--danger)]/30 bg-[color:color-mix(in_srgb,var(--danger)_8%,var(--surface-raised))] px-4 py-3 text-sm leading-7 text-[var(--text)]">The hourly rate must be at least <strong>R{NMW_RATE.toFixed(2)}</strong> for the current domestic-worker minimum wage.</div> : null}
                 <div className="mt-6 rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-sm)] sm:p-6">
-                    <div className="space-y-2"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{step.label}</p><h2 className="font-serif text-2xl font-bold text-[var(--text)] sm:text-[2rem]">{step.question}</h2><p className="max-w-2xl text-sm leading-7 text-[var(--text-muted)]">{step.summary}</p></div>
-                    {currentStep === 0 ? <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]"><div className="space-y-5"><div className="grid gap-5 md:grid-cols-2"><TextField id="free-employer-name" label="Employer name" error={errors.employerName}><Input id="free-employer-name" value={form.employerName} onChange={(event) => updateField("employerName", event.target.value)} placeholder="Household employer name" error={errors.employerName} /></TextField><TextField id="free-employee-name" label="Worker name" error={errors.employeeName}><Input id="free-employee-name" value={form.employeeName} onChange={(event) => updateField("employeeName", event.target.value)} placeholder="Worker full name" error={errors.employeeName} /></TextField></div><TextField id="free-employer-address" label="Employer address" error={errors.employerAddress}><textarea id="free-employer-address" value={form.employerAddress} onChange={(event) => updateField("employerAddress", event.target.value)} placeholder="Street address" className={`min-h-[120px] w-full rounded-[12px] border bg-[var(--surface-raised)] px-4 py-3 text-sm text-[var(--text)] outline-none transition-all focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 ${errors.employerAddress ? "border-[var(--danger)]" : "border-[var(--border)]"}`} /></TextField><TextField id="free-employee-role" label="Worker role" error={errors.employeeRole}><Input id="free-employee-role" value={form.employeeRole} onChange={(event) => updateField("employeeRole", event.target.value)} placeholder="Domestic worker" error={errors.employeeRole} /></TextField><div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] p-4"><button type="button" className="flex w-full items-center justify-between gap-3 text-left" onClick={() => setShowIdentityField((current) => !current)}><div><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Optional identity field</p><p className="mt-1 text-sm font-semibold text-[var(--text)]">Add ID or passport only if you want it printed on the payslip.</p></div>{showIdentityField ? <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />}</button>{showIdentityField ? <div className="mt-4"><TextField id="free-employee-id" label="ID or passport" hint="Optional for a basic payslip."><Input id="free-employee-id" value={form.employeeId} onChange={(event) => updateField("employeeId", event.target.value)} placeholder="ID or passport number" /></TextField></div> : null}</div></div><div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">What goes on the PDF</p><div className="mt-4 space-y-3"><SummaryRow label="Employer" value={form.employerName || "Add employer details"} /><SummaryRow label="Worker" value={form.employeeName || "Add worker details"} /><SummaryRow label="Role" value={form.employeeRole || "Domestic worker"} /><SummaryRow label="ID / passport" value={form.employeeId || "Optional"} /></div></div></div> : null}
-                    {currentStep === 1 ? <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]"><div className="space-y-5"><div className="grid gap-5 md:grid-cols-2"><TextField id="free-payslip-month" label="Payslip month" hint="We use the first and last day of that calendar month automatically." error={errors.monthKey}><Input id="free-payslip-month" type="month" value={form.monthKey} onChange={(event) => updateField("monthKey", event.target.value)} error={errors.monthKey} /></TextField><TextField id="free-hourly-rate" label="Hourly rate (R)" error={errors.hourlyRate}><Input id="free-hourly-rate" type="number" step="0.01" value={form.hourlyRate} onChange={(event) => updateField("hourlyRate", event.target.value)} error={errors.hourlyRate} /></TextField></div><div className="grid gap-4 sm:grid-cols-2"><TextField id="free-period-start" label="Period start"><Input id="free-period-start" type="date" value={format(derivedDraft.payPeriodStart, "yyyy-MM-dd")} readOnly /></TextField><TextField id="free-period-end" label="Period end"><Input id="free-period-end" type="date" value={format(derivedDraft.payPeriodEnd, "yyyy-MM-dd")} readOnly /></TextField></div><TextField id="free-working-days" label="Standard working days this month" hint="Example: if the worker usually works Monday to Friday and worked 20 normal days this month, enter 20." error={errors.standardWorkingDaysThisMonth}><div className="flex items-center gap-2"><Input id="free-working-days" type="number" min="0" value={form.standardWorkingDaysThisMonth} onChange={(event) => updateField("standardWorkingDaysThisMonth", event.target.value)} error={errors.standardWorkingDaysThisMonth} /><InfoTooltip label="Explain standard working days" tooltip="Enter the normal number of workdays for this payslip month. LekkerLedger uses this to calculate ordinary hours automatically." /></div></TextField><TextField id="free-ordinary-hours" label="Ordinary hours" hint={derivedDraft.hasManualOrdinaryHoursOverride ? `Manual override in use. Auto-calculated hours would be ${derivedDraft.autoOrdinaryHours}.` : `Auto-calculated as ${derivedDraft.autoOrdinaryHours} hours from ${parseNumber(form.standardWorkingDaysThisMonth)} standard days x 8 hours.`} error={errors.ordinaryHoursOverride}><div className="space-y-2"><div className="flex items-center gap-2"><Input id="free-ordinary-hours" type="number" step="0.01" value={form.ordinaryHoursOverride || (derivedDraft.autoOrdinaryHours ? String(derivedDraft.autoOrdinaryHours) : "")} onChange={(event) => updateField("ordinaryHoursOverride", event.target.value)} error={errors.ordinaryHoursOverride} /><InfoTooltip label="Explain ordinary hours" tooltip="These are the normal paid hours for the month before overtime, Sunday work, and public-holiday work." /></div>{derivedDraft.hasManualOrdinaryHoursOverride ? <button type="button" className="text-sm font-semibold text-[var(--primary)] underline-offset-4 hover:underline" onClick={() => updateField("ordinaryHoursOverride", "")}>Use auto-calculated hours</button> : null}</div></TextField><div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] p-4"><button type="button" className="flex w-full items-center justify-between gap-3 text-left" onClick={() => setShowShortShiftHelper((current) => !current)}><div><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Short shifts (4-hour rule)</p><p className="mt-1 text-sm font-semibold text-[var(--text)]">Had any shifts under 4 hours this month? Add them here.</p></div>{showShortShiftHelper ? <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />}</button>{showShortShiftHelper ? <div className="mt-4 grid gap-4 sm:grid-cols-2"><TextField id="free-short-shift-count" label="How many short shifts?"><Input id="free-short-shift-count" type="number" min="0" value={form.shortShiftCount} onChange={(event) => updateField("shortShiftCount", event.target.value)} /></TextField><TextField id="free-short-shift-hours" label="Hours actually worked across them"><Input id="free-short-shift-hours" type="number" step="0.01" value={form.shortShiftWorkedHours} onChange={(event) => updateField("shortShiftWorkedHours", event.target.value)} /></TextField></div> : null}</div></div><div className="space-y-4 rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Monthly setup</p><p className="text-sm leading-7 text-[var(--text-muted)]">Choose the month once. The wizard uses it to prepare the pay-period dates automatically, so you can focus on the actual work done.</p><div className="space-y-3"><SummaryRow label="Ordinary hours" value={`${derivedDraft.ordinaryHours.toFixed(2)}h`} /><SummaryRow label="4-hour top-up" value={`${derivedDraft.shortFallHours.toFixed(2)}h`} /><SummaryRow label="Extra pay hours" value={`${totalPremiumHours.toFixed(2)}h`} /></div></div></div> : null}
-                    {currentStep === 2 ? <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.8fr)]"><div className="grid gap-5 md:grid-cols-3"><TextField id="free-overtime-hours" label="Overtime hours" error={errors.overtimeHours}><Input id="free-overtime-hours" type="number" step="0.01" value={form.overtimeHours} onChange={(event) => updateField("overtimeHours", event.target.value)} error={errors.overtimeHours} /></TextField><TextField id="free-sunday-hours" label="Sunday hours" error={errors.sundayHours}><Input id="free-sunday-hours" type="number" step="0.01" value={form.sundayHours} onChange={(event) => updateField("sundayHours", event.target.value)} error={errors.sundayHours} /></TextField><TextField id="free-public-holiday-hours" label="Public holiday hours" hint="Use this only for hours actually worked on the public holiday." error={errors.publicHolidayHours}><div className="flex items-center gap-2"><Input id="free-public-holiday-hours" type="number" step="0.01" value={form.publicHolidayHours} onChange={(event) => updateField("publicHolidayHours", event.target.value)} error={errors.publicHolidayHours} /><InfoTooltip label="Explain public holiday hours" tooltip="Only enter hours actually worked on a public holiday. Do not use this field for a paid day off." /></div></TextField></div><div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Extra pay summary</p><div className="mt-4 space-y-3"><SummaryRow label="Overtime" value={`${parseNumber(form.overtimeHours).toFixed(2)}h`} /><SummaryRow label="Sunday" value={`${parseNumber(form.sundayHours).toFixed(2)}h`} /><SummaryRow label="Public holiday" value={`${parseNumber(form.publicHolidayHours).toFixed(2)}h`} /><SummaryRow label="Total premium hours" value={`${totalPremiumHours.toFixed(2)}h`} accent /></div></div></div> : null}
-                    {currentStep === 3 ? <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.8fr)]"><TextField id="free-other-deductions" label="Other agreed deductions (R)" hint="Only include deductions that were already agreed and recorded separately." error={errors.otherDeductions}><Input id="free-other-deductions" type="number" step="0.01" value={form.otherDeductions} onChange={(event) => updateField("otherDeductions", event.target.value)} error={errors.otherDeductions} /></TextField><div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Keep this exact</p><ul className="mt-4 space-y-3 text-sm leading-7 text-[var(--text-muted)]"><li>UIF is still calculated automatically when the month qualifies.</li><li>Only add deductions that are lawful and already agreed.</li><li>The next step shows gross pay, deductions, and net pay before the PDF is generated.</li></ul></div></div> : null}
-                    {currentStep === 4 ? <div className="mt-8 space-y-6"><div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-2)] p-5 sm:p-6"><div className="flex flex-col gap-4 border-b border-[var(--border)] pb-5 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Payslip review</p><h3 className="mt-2 font-serif text-2xl font-bold text-[var(--text)]">{form.employeeName || "Worker name"}</h3><p className="mt-1 text-sm text-[var(--text-muted)]">{form.employeeRole || "Domestic worker"} · {form.monthKey ? format(getMonthBounds(form.monthKey).start, "MMMM yyyy") : "Choose a month"}</p></div><div className="rounded-[1rem] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Net pay</p><p className="mt-1 font-serif text-3xl font-bold text-[var(--text)]">{breakdown ? `R ${breakdown.netPay.toFixed(2)}` : "R 0.00"}</p></div></div><div className="mt-5 grid gap-5 lg:grid-cols-2"><div className="space-y-4 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-raised)] p-4"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Document details</p><SummaryRow label="Employer" value={form.employerName || "-"} /><SummaryRow label="Worker" value={form.employeeName || "-"} /><SummaryRow label="ID / passport" value={form.employeeId || "Not added"} /><SummaryRow label="Pay period" value={form.monthKey ? `${format(derivedDraft.payPeriodStart, "dd MMM yyyy")} to ${format(derivedDraft.payPeriodEnd, "dd MMM yyyy")}` : "-"} /></div><div className="space-y-4 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-raised)] p-4"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Pay totals</p><SummaryRow label="Gross pay" value={breakdown ? `R ${breakdown.grossPay.toFixed(2)}` : "R 0.00"} /><SummaryRow label="Employee UIF" value={breakdown ? `R ${breakdown.deductions.uifEmployee.toFixed(2)}` : "R 0.00"} /><SummaryRow label="Other deductions" value={`R ${parseNumber(form.otherDeductions).toFixed(2)}`} /><SummaryRow label="Net pay" value={breakdown ? `R ${breakdown.netPay.toFixed(2)}` : "R 0.00"} accent /></div></div></div><div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-raised)] p-5 sm:p-6" data-testid={`free-payslip-gate-${verificationState}`}><div className="space-y-2"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Download step</p><h4 className="font-serif text-2xl font-bold text-[var(--text)]">{gateCardTitle}</h4><p className="max-w-2xl text-sm leading-7 text-[var(--text-muted)]">{verificationState === "success" ? "Your free PDF is ready. If you want the same worker details and monthly history saved for next time, the paid workspace keeps everything together." : "Verify the email in the same browser where this form is open before the PDF is generated. We only use the verified email and quota record here: one free PDF download per verified email, per calendar month."}</p></div>{verifiedEmail && verificationState !== "success" ? <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--text)]"><BadgeCheck className="h-4 w-4 text-[var(--primary)]" />Verified as <span className="font-semibold">{verifiedEmail}</span></div> : null}{statusMessage ? <div className={`mt-5 rounded-[1.25rem] border px-4 py-3 text-sm leading-6 ${getNoticeStyles(statusTone)}`}>{statusMessage}</div> : null}{verificationState === "unverified" ? <div className="mt-5 space-y-3"><div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto]"><Input type="email" value={verificationEmail} onChange={(event) => setVerificationEmail(event.target.value)} placeholder="you@example.com" /><Button type="button" size="lg" onClick={() => void sendVerificationLink()} loading={sendingVerification}><Mail className="h-4 w-4" />Send verification link</Button></div><p className="text-sm leading-6 text-[var(--text-muted)]">If this page is open in Chrome, open the email link in Chrome too.</p></div> : verificationState === "waiting" ? <div className="mt-5 flex flex-col gap-3 sm:flex-row"><Button type="button" size="lg" onClick={() => void refreshVerification("manual")} loading={checkingVerification}><RefreshCw className="h-4 w-4" />I opened the link in this browser</Button><Button type="button" variant="outline" onClick={() => void sendVerificationLink()} loading={sendingVerification}>Send a new link</Button></div> : verificationState === "verified" ? <div className="mt-5"><Button type="button" size="lg" onClick={() => void handleDownload()} loading={downloading}><Download className="h-4 w-4" />Generate payslip PDF</Button></div> : null}{(verificationState === "success" || verificationState === "quota-used") && quota ? <div className="mt-5 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm leading-6 text-[var(--text)]">Free downloads used this month: <strong>{quota.downloadsUsed}</strong>. Remaining this month: <strong>{quota.remainingDownloads}</strong>.</div> : null}{verificationState === "success" || verificationState === "quota-used" ? <div className="mt-6 rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5"><div className="flex items-start gap-3"><FileCheck2 className="mt-1 h-5 w-5 text-[var(--primary)]" /><div className="space-y-2"><p className="font-semibold text-[var(--text)]">Want this saved and ready next month?</p><p className="text-sm leading-7 text-[var(--text-muted)]">Paid plans keep worker details, payslip history, and supporting documents in one place so next month starts from a saved record instead of a blank form.</p><Link href="/pricing" className="inline-flex"><Button type="button" variant="outline">See plans that save your records<ArrowRight className="h-4 w-4" /></Button></Link></div></div></div> : null}{verificationState !== "success" && verificationState !== "unverified" ? <button type="button" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] underline-offset-4 hover:underline" onClick={() => void handleUseDifferentEmail()}>Use a different email</button> : null}{verificationState === "success" ? <div className="mt-6 rounded-[1.5rem] border border-[var(--success)]/25 bg-[color:color-mix(in_srgb,var(--success)_10%,var(--surface-raised))] p-5"><div className="flex items-start gap-3"><CheckCircle2 className="mt-1 h-6 w-6 text-[var(--success)]" /><div><h5 className="font-serif text-xl font-bold text-[var(--text)]">Free payslip done</h5><p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">You have used this month&apos;s free download on <span className="font-semibold text-[var(--text)]">{verifiedEmail || quota?.email}</span>.</p></div></div></div> : null}</div></div> : null}
-                    {currentStep === STEPS.length - 1 && (!payload || !breakdown) ? <div className="mt-6 rounded-[1.5rem] border border-[var(--warning)]/30 bg-[color:color-mix(in_srgb,var(--warning)_10%,var(--surface-raised))] px-4 py-3 text-sm leading-7 text-[var(--text)]"><AlertTriangle className="mr-2 inline h-4 w-4 text-[var(--warning)]" />Finish the earlier steps first so the review figures can be prepared.</div> : null}
-                    {currentStep < STEPS.length - 1 ? <WizardActionBar currentStep={currentStep} onBack={goBack} onNext={goNext} /> : null}
+                    <div className="space-y-2">
+                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{step.label}</p>
+                        <h2 className="font-serif text-2xl font-bold text-[var(--text)] sm:text-[2rem]">{step.title}</h2>
+                        <p className="max-w-3xl text-sm leading-7 text-[var(--text-muted)]">{step.summary}</p>
+                    </div>
+                    <div className="mt-8 space-y-6">
+                        {currentStep === 0 ? (
+                            <div className="grid gap-5 lg:grid-cols-2">
+                                <TextField id="free-employer-name" label="Employer name" error={errors.employerName}>
+                                    <Input
+                                        id="free-employer-name"
+                                        value={form.employerName}
+                                        onChange={(event) => updateField("employerName", event.target.value)}
+                                        placeholder="Employer name"
+                                    />
+                                </TextField>
+                                <TextField id="free-employer-address" label="Employer address" error={errors.employerAddress}>
+                                    <Input
+                                        id="free-employer-address"
+                                        value={form.employerAddress}
+                                        onChange={(event) => updateField("employerAddress", event.target.value)}
+                                        placeholder="Employer address"
+                                    />
+                                </TextField>
+                                <TextField id="free-worker-name" label="Worker name" error={errors.employeeName}>
+                                    <Input
+                                        id="free-worker-name"
+                                        value={form.employeeName}
+                                        onChange={(event) => updateField("employeeName", event.target.value)}
+                                        placeholder="Worker name"
+                                    />
+                                </TextField>
+                                <TextField id="free-worker-role" label="Worker role" error={errors.employeeRole}>
+                                    <Input
+                                        id="free-worker-role"
+                                        value={form.employeeRole}
+                                        onChange={(event) => updateField("employeeRole", event.target.value)}
+                                        placeholder="Domestic Worker"
+                                    />
+                                </TextField>
+                                <div className="lg:col-span-2 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowIdentityField((current) => !current)}
+                                        className="flex w-full items-center justify-between gap-3 text-left"
+                                    >
+                                        <div>
+                                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Worker ID or passport</p>
+                                            <p className="mt-1 text-sm text-[var(--text-muted)]">Optional for the free tool. Useful for UIF and record matching later.</p>
+                                        </div>
+                                        {showIdentityField ? <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />}
+                                    </button>
+                                    {showIdentityField ? (
+                                        <div className="mt-4">
+                                            <TextField id="free-worker-id" label="ID or passport number">
+                                                <Input
+                                                    id="free-worker-id"
+                                                    value={form.employeeId}
+                                                    onChange={(event) => updateField("employeeId", event.target.value)}
+                                                    placeholder="ID or passport number"
+                                                />
+                                            </TextField>
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </div>
+                        ) : null}
+
+                        {currentStep === 1 ? (
+                            <div className="space-y-6">
+                                <div className="grid gap-5 lg:grid-cols-2">
+                                    <TextField id="free-month" label="Payslip month" error={errors.monthKey}>
+                                        <Input
+                                            id="free-month"
+                                            type="month"
+                                            value={form.monthKey}
+                                            onChange={(event) => updateField("monthKey", event.target.value)}
+                                        />
+                                    </TextField>
+                                    <TextField
+                                        id="free-hourly-rate"
+                                        label="Hourly rate"
+                                        hint={`The hourly rate must be at least R${NMW_RATE.toFixed(2)}.`}
+                                        error={errors.hourlyRate}
+                                    >
+                                        <Input
+                                            id="free-hourly-rate"
+                                            type="number"
+                                            min={NMW_RATE}
+                                            step="0.01"
+                                            value={form.hourlyRate}
+                                            onChange={(event) => updateField("hourlyRate", event.target.value)}
+                                        />
+                                    </TextField>
+                                </div>
+                                <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Ordinary work pattern</p>
+                                    <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">Select the days the worker ordinarily works. Sunday pay uses {sundayRateLabel} because Sunday is {normalizedPattern.sunday ? "" : "not "}part of the ordinary work pattern.</p>
+                                    <div className="mt-4">
+                                        <OrdinaryWorkPatternPicker
+                                            value={form.ordinaryWorkPattern}
+                                            onChange={(nextPattern) => updateField("ordinaryWorkPattern", nextPattern)}
+                                            error={errors.ordinaryWorkPattern}
+                                            helperText="This schedule controls the Sunday multiplier and the ordinary-day/hour cap."
+                                        />
+                                    </div>
+                                </div>
+                                <OrdinaryWorkCalendarSummaryCard summary={ordinaryCalendar} ordinaryHoursPerDay={ORDINARY_HOURS_PER_DAY} />
+                                <div className="grid gap-5 lg:grid-cols-2">
+                                    <TextField
+                                        id="free-ordinary-days"
+                                        label="Ordinary working days"
+                                        hint={`Maximum allowed for this month and work pattern: ${ordinaryCalendar.ordinaryDayCap}.`}
+                                        error={errors.ordinaryDaysWorked}
+                                    >
+                                        <Input
+                                            id="free-ordinary-days"
+                                            type="number"
+                                            min="0"
+                                            max={ordinaryCalendar.ordinaryDayCap}
+                                            value={form.ordinaryDaysWorked}
+                                            onChange={(event) => updateField("ordinaryDaysWorked", event.target.value)}
+                                        />
+                                    </TextField>
+                                    <TextField
+                                        id="free-ordinary-hours"
+                                        label="Ordinary hours"
+                                        hint={`Leave blank to use ${(parseNumber(form.ordinaryDaysWorked) || 0)} days x ${ORDINARY_HOURS_PER_DAY} hours. Maximum allowed: ${ordinaryCalendar.ordinaryHourCap} hours.`}
+                                        error={errors.ordinaryHoursOverride}
+                                    >
+                                        <Input
+                                            id="free-ordinary-hours"
+                                            type="number"
+                                            min="0"
+                                            max={ordinaryCalendar.ordinaryHourCap}
+                                            value={form.ordinaryHoursOverride}
+                                            onChange={(event) => updateField("ordinaryHoursOverride", event.target.value)}
+                                            placeholder={`${derivedDraft.autoOrdinaryHours}`}
+                                        />
+                                    </TextField>
+                                </div>
+                            </div>
+                        ) : null}
+
+                        {currentStep === 2 ? (
+                            <div className="space-y-6">
+                                <div className="grid gap-5 lg:grid-cols-3">
+                                    <TextField id="free-overtime-hours" label="Overtime hours" hint="Paid at 1.5x." error={errors.overtimeHours}>
+                                        <Input
+                                            id="free-overtime-hours"
+                                            type="number"
+                                            min="0"
+                                            value={form.overtimeHours}
+                                            onChange={(event) => updateField("overtimeHours", event.target.value)}
+                                        />
+                                    </TextField>
+                                    <TextField
+                                        id="free-sunday-hours"
+                                        label="Sunday hours"
+                                        hint={`Paid at ${sundayRateLabel} because Sunday is ${normalizedPattern.sunday ? "" : "not "}part of the ordinary work pattern.`}
+                                        error={errors.sundayHours}
+                                    >
+                                        <Input
+                                            id="free-sunday-hours"
+                                            type="number"
+                                            min="0"
+                                            value={form.sundayHours}
+                                            onChange={(event) => updateField("sundayHours", event.target.value)}
+                                        />
+                                    </TextField>
+                                    <TextField
+                                        id="free-public-holiday-hours"
+                                        label="Public holiday hours"
+                                        hint="Only enter hours actually worked on a South African public holiday. These hours stay separate from ordinary hours."
+                                        error={errors.publicHolidayHours}
+                                    >
+                                        <Input
+                                            id="free-public-holiday-hours"
+                                            type="number"
+                                            min="0"
+                                            value={form.publicHolidayHours}
+                                            onChange={(event) => updateField("publicHolidayHours", event.target.value)}
+                                        />
+                                    </TextField>
+                                </div>
+                                <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowShortShiftHelper((current) => !current)}
+                                        className="flex w-full items-center justify-between gap-3 text-left"
+                                    >
+                                        <div>
+                                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Short shifts under four hours</p>
+                                            <p className="mt-1 text-sm text-[var(--text-muted)]">Use this only when the worker was booked for ordinary work but worked under four hours, so the minimum paid time must be topped up.</p>
+                                        </div>
+                                        {showShortShiftHelper ? <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />}
+                                    </button>
+                                    {showShortShiftHelper ? (
+                                        <div className="mt-4 grid gap-5 lg:grid-cols-2">
+                                            <TextField id="free-short-shifts" label="Number of short shifts">
+                                                <Input
+                                                    id="free-short-shifts"
+                                                    type="number"
+                                                    min="0"
+                                                    value={form.shortShiftCount}
+                                                    onChange={(event) => updateField("shortShiftCount", event.target.value)}
+                                                />
+                                            </TextField>
+                                            <TextField id="free-short-shift-hours" label="Worked hours across those short shifts">
+                                                <Input
+                                                    id="free-short-shift-hours"
+                                                    type="number"
+                                                    min="0"
+                                                    value={form.shortShiftWorkedHours}
+                                                    onChange={(event) => updateField("shortShiftWorkedHours", event.target.value)}
+                                                />
+                                            </TextField>
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </div>
+                        ) : null}
+
+                        {currentStep === 3 ? (
+                            <div className="grid gap-5 lg:grid-cols-2">
+                                <TextField
+                                    id="free-other-deductions"
+                                    label="Other deductions"
+                                    hint="Only enter agreed deductions that should appear on this payslip."
+                                    error={errors.otherDeductions}
+                                >
+                                    <Input
+                                        id="free-other-deductions"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={form.otherDeductions}
+                                        onChange={(event) => updateField("otherDeductions", event.target.value)}
+                                    />
+                                </TextField>
+                            </div>
+                        ) : null}
+
+                        {currentStep === 4 ? (
+                            payload && breakdown && payrollSummary ? (
+                                <div className="space-y-6">
+                                    <div className="grid gap-5 xl:grid-cols-[1.3fr_0.7fr]">
+                                        <div className="space-y-5">
+                                            <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5">
+                                                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Payroll summary</p>
+                                                <div className="mt-4 space-y-3">
+                                                    <SummaryRow label={`Ordinary pay (${breakdown.effectiveOrdinaryHours}h)`} value={`R ${breakdown.ordinaryPay.toFixed(2)}`} />
+                                                    {breakdown.overtimePay > 0 ? <SummaryRow label={`Overtime (${payload.payslip.overtimeHours}h @ 1.5x)`} value={`R ${breakdown.overtimePay.toFixed(2)}`} /> : null}
+                                                    {breakdown.sundayPay > 0 ? <SummaryRow label={`Sunday (${payload.payslip.sundayHours}h @ ${sundayRateLabel})`} value={`R ${breakdown.sundayPay.toFixed(2)}`} /> : null}
+                                                    {breakdown.publicHolidayPay > 0 ? <SummaryRow label={`Public holiday (${payload.payslip.publicHolidayHours}h @ 2x)`} value={`R ${breakdown.publicHolidayPay.toFixed(2)}`} /> : null}
+                                                    {breakdown.topUps.fourHourMinimumHours > 0 ? <SummaryRow label="Short-shift top-up" value={`${breakdown.topUps.fourHourMinimumHours}h included`} /> : null}
+                                                    <SummaryRow label="Gross pay" value={`R ${payrollSummary.grossPay.toFixed(2)}`} accent />
+                                                    <SummaryRow label="Employee UIF deduction" value={`R ${payrollSummary.employeeUifDeduction.toFixed(2)}`} />
+                                                    <SummaryRow label="Net pay to employee" value={`R ${payrollSummary.netPayToEmployee.toFixed(2)}`} accent />
+                                                    <SummaryRow label="Employer UIF contribution" value={`R ${payrollSummary.employerUifContribution.toFixed(2)}`} />
+                                                    <SummaryRow label="Total UIF due for the period" value={`R ${payrollSummary.totalUifDue.toFixed(2)}`} />
+                                                    <SummaryRow label="Employer total cost" value={`R ${payrollSummary.employerTotalCost.toFixed(2)}`} accent />
+                                                </div>
+                                            </div>
+                                            <OrdinaryWorkCalendarSummaryCard summary={ordinaryCalendar} ordinaryHoursPerDay={ORDINARY_HOURS_PER_DAY} title="Ordinary work cap used for this payslip" />
+                                        </div>
+                                        <div className="space-y-5">
+                                            <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5">
+                                                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Employer and worker details</p>
+                                                <div className="mt-4 space-y-3 text-sm">
+                                                    <SummaryRow label="Employer" value={payload.settings.employerName} />
+                                                    <SummaryRow label="Worker" value={payload.employee.name} />
+                                                    <SummaryRow label="Role" value={payload.employee.role} />
+                                                    <SummaryRow label="Payslip month" value={format(payload.payslip.payPeriodEnd, "MMMM yyyy")} />
+                                                    <SummaryRow label="Ordinary working days" value={`${payload.payslip.daysWorked}`} />
+                                                    <SummaryRow label="Sunday basis" value={normalizedPattern.sunday ? "Ordinarily works Sundays (1.5x)" : "Does not ordinarily work Sundays (2x)"} />
+                                                </div>
+                                            </div>
+                                            <div data-testid={`free-payslip-gate-${verification.phase}`} className={`rounded-[1.5rem] border p-5 ${getNoticeStyles(verification.tone)}`}>
+                                                <div className="flex items-start gap-3">
+                                                    {verification.tone === "success" ? (
+                                                        <BadgeCheck className="mt-0.5 h-5 w-5 text-[var(--success)]" />
+                                                    ) : verification.tone === "danger" ? (
+                                                        <AlertTriangle className="mt-0.5 h-5 w-5 text-[var(--danger)]" />
+                                                    ) : verification.tone === "warning" ? (
+                                                        <AlertTriangle className="mt-0.5 h-5 w-5 text-[var(--warning)]" />
+                                                    ) : (
+                                                        <Mail className="mt-0.5 h-5 w-5 text-[var(--primary)]" />
+                                                    )}
+                                                    <div className="min-w-0 flex-1 space-y-4">
+                                                        <div className="space-y-2">
+                                                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{gateCardTitle}</p>
+                                                            <p className="text-sm leading-7 text-[var(--text-muted)]">{verification.message || FREE_PAYSLIP_RULE_MESSAGE}</p>
+                                                            <p className="text-sm leading-7 text-[var(--text-muted)]">{FREE_PAYSLIP_RULE_MESSAGE}</p>
+                                                        </div>
+                                                        <TextField id="free-verification-email" label="Verification email">
+                                                            <Input
+                                                                id="free-verification-email"
+                                                                type="email"
+                                                                value={verificationEmail}
+                                                                onChange={(event) => setVerificationEmail(event.target.value)}
+                                                                placeholder="name@example.com"
+                                                            />
+                                                        </TextField>
+                                                        <div className="flex flex-col gap-3 sm:flex-row">
+                                                            <Button
+                                                                type="button"
+                                                                onClick={() => void sendVerificationLink()}
+                                                                disabled={verification.phase === "sending-link"}
+                                                                className="gap-2"
+                                                            >
+                                                                {verification.phase === "sending-link" ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                                                                Send verification link
+                                                            </Button>
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                onClick={() => void refreshVerification("manual")}
+                                                                disabled={checkingVerification || verification.phase === "idle" || verification.phase === "sending-link"}
+                                                                className="gap-2"
+                                                            >
+                                                                {checkingVerification ? <RefreshCw className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                                                                I opened the link in this browser
+                                                            </Button>
+                                                        </div>
+                                                        <div className="flex flex-col gap-3 sm:flex-row">
+                                                            <Button
+                                                                type="button"
+                                                                size="lg"
+                                                                onClick={() => void handleDownload()}
+                                                                disabled={verification.phase !== "verified-ready" || downloading}
+                                                                className="gap-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
+                                                            >
+                                                                {downloading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                                                Generate PDF
+                                                            </Button>
+                                                            <Button type="button" variant="outline" onClick={() => void handleUseDifferentEmail()} disabled={verification.phase === "sending-link"}>
+                                                                Use different email
+                                                            </Button>
+                                                        </div>
+                                                        {verification.quota ? (
+                                                            <div className="rounded-[1rem] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 text-sm text-[var(--text-muted)]">
+                                                                Verified email: <strong className="text-[var(--text)]">{verification.quota.email}</strong><br />
+                                                                Month: <strong className="text-[var(--text)]">{verification.quota.monthKey}</strong><br />
+                                                                Free PDFs used this month: <strong className="text-[var(--text)]">{verification.quota.downloadsUsed}</strong>
+                                                            </div>
+                                                        ) : null}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5 text-sm leading-7 text-[var(--text-muted)]">
+                                    Finish the payroll details first so the review figures can be prepared.
+                                </div>
+                            )
+                        ) : null}
+                    </div>
                 </div>
+                {currentStep < STEPS.length - 1 ? <WizardActionBar currentStep={currentStep} onBack={goBack} onNext={goNext} /> : null}
+                {currentStep === STEPS.length - 1 ? (
+                    <div className="mt-6 flex items-center justify-start">
+                        <Button type="button" variant="outline" onClick={goBack}>
+                            <ArrowLeft className="h-4 w-4" />
+                            Back
+                        </Button>
+                    </div>
+                ) : null}
             </div>
         </section>
     );

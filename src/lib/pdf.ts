@@ -5,6 +5,7 @@ import { calculatePayslip, type PayBreakdown } from "./calculator";
 import { loadPdfFonts } from "./pdf-fonts";
 import { drawPdfBrandMark } from "./pdf-brand";
 import { PDF_COLORS as SHARED_PDF_COLORS } from "./pdf-theme";
+import { buildPayrollSummary, buildPayrollSummaryFromBreakdown } from "./payroll-summary";
 
 export const PDF_COLORS = {
     ...SHARED_PDF_COLORS,
@@ -50,6 +51,12 @@ interface PayslipPdfDictionary {
     annual: string;
     sick: string;
     family: string;
+    grossPayLabel: string;
+    employeeUifLabel: string;
+    netPayToEmployeeLabel: string;
+    employerUifLabel: string;
+    totalUifDueLabel: string;
+    employerTotalCostLabel: string;
 }
 
 export interface PayslipPdfTemplateData {
@@ -130,6 +137,12 @@ const TRANSLATIONS: Record<SupportLang, PayslipPdfDictionary> = {
         annual: "Annual",
         sick: "Sick",
         family: "Family",
+        grossPayLabel: "Gross pay",
+        employeeUifLabel: "Employee UIF deduction",
+        netPayToEmployeeLabel: "Net pay to employee",
+        employerUifLabel: "Employer UIF contribution",
+        totalUifDueLabel: "Total UIF due",
+        employerTotalCostLabel: "Employer total cost",
     },
     zu: {
         payslip: "ISILIPHU SEHOLO",
@@ -161,6 +174,12 @@ const TRANSLATIONS: Record<SupportLang, PayslipPdfDictionary> = {
         annual: "Lonyaka",
         sick: "Lokugula",
         family: "Lomndeni",
+        grossPayLabel: "Inani lilonke",
+        employeeUifLabel: "I-UIF yomsebenzi",
+        netPayToEmployeeLabel: "Imali yomsebenzi",
+        employerUifLabel: "I-UIF yomqashi",
+        totalUifDueLabel: "I-UIF yonke",
+        employerTotalCostLabel: "Izindleko zomqashi",
     },
     xh: {
         payslip: "ISILIPHU SOMVUZO",
@@ -192,6 +211,12 @@ const TRANSLATIONS: Record<SupportLang, PayslipPdfDictionary> = {
         annual: "Yonyaka",
         sick: "Yokugula",
         family: "Yosapho",
+        grossPayLabel: "Imali iyonke",
+        employeeUifLabel: "I-UIF yomsebenzi",
+        netPayToEmployeeLabel: "Imali yomsebenzi",
+        employerUifLabel: "I-UIF yomqashi",
+        totalUifDueLabel: "I-UIF iyonke",
+        employerTotalCostLabel: "Iindleko zomqashi",
     },
 };
 
@@ -286,6 +311,7 @@ export async function generatePayslipPdfBytes(
 ): Promise<Uint8Array> {
     const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
     const breakdown = calculatePayslip(payslip);
+    const payrollSummary = buildPayrollSummaryFromBreakdown(breakdown);
     const templateData = buildPayslipPdfTemplateDataFromBreakdown(employee, payslip, breakdown, lang);
 
     const pdfDoc = await PDFDocument.create();
@@ -365,10 +391,12 @@ export async function generatePayslipPdfBytes(
         sansBold,
     });
     drawNetPaySummary(renderContext, cy, {
+        dict,
         templateData,
-        breakdown,
+        payrollSummary,
         serifBold,
         sansBold,
+        sansRegular,
     });
     drawFooter(page, width, templateData, sansRegular, t, drawLine);
 
@@ -648,16 +676,18 @@ function drawNetPaySummary(
     renderContext: PdfRenderContext,
     startY: number,
     data: {
+        dict: PayslipPdfDictionary;
         templateData: PayslipPdfTemplateData;
-        breakdown: PayBreakdown;
+        payrollSummary: ReturnType<typeof buildPayrollSummary>;
         serifBold: PDFFont;
         sansBold: PDFFont;
+        sansRegular: PDFFont;
     },
 ) {
     const { page, width, t } = renderContext;
-    const { templateData, breakdown, serifBold, sansBold } = data;
+    const { dict, templateData, payrollSummary, serifBold, sansBold, sansRegular } = data;
     const boxY = startY - 40;
-    const netPayHeight = 34;
+    const netPayHeight = 106;
 
     page.drawRectangle({
         x: PDF_MARGIN,
@@ -675,13 +705,30 @@ function drawNetPaySummary(
         color: PDF_COLORS.PRIMARY_GREEN,
     });
 
-    t(templateData.netPayLabel, PDF_MARGIN + 14, boxY + 12, { font: sansBold, size: 9, color: PDF_COLORS.TEXT });
-    t(`R ${breakdown.netPay.toFixed(2)}`, width - PDF_MARGIN - 14, boxY + 11, {
-        font: serifBold,
-        size: 13,
-        color: PDF_COLORS.TEXT,
-        align: "right",
-    });
+    const rows = [
+        { label: dict.grossPayLabel, value: payrollSummary.grossPay, bold: false },
+        { label: dict.employeeUifLabel, value: payrollSummary.employeeUifDeduction, bold: false },
+        { label: dict.netPayToEmployeeLabel || templateData.netPayLabel, value: payrollSummary.netPayToEmployee, bold: true },
+        { label: dict.employerUifLabel, value: payrollSummary.employerUifContribution, bold: false },
+        { label: dict.totalUifDueLabel, value: payrollSummary.totalUifDue, bold: false },
+        { label: dict.employerTotalCostLabel, value: payrollSummary.employerTotalCost, bold: true },
+    ];
+
+    let currentY = boxY + netPayHeight - 16;
+    for (const row of rows) {
+        t(row.label, PDF_MARGIN + 14, currentY, {
+            font: row.bold ? sansBold : sansRegular,
+            size: 8.5,
+            color: PDF_COLORS.TEXT,
+        });
+        t(`R ${row.value.toFixed(2)}`, width - PDF_MARGIN - 14, currentY, {
+            font: row.bold ? serifBold : sansBold,
+            size: row.bold ? 10.5 : 9,
+            color: PDF_COLORS.TEXT,
+            align: "right",
+        });
+        currentY -= 15;
+    }
 }
 
 function drawFooter(

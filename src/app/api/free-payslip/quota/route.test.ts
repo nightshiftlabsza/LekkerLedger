@@ -93,13 +93,13 @@ describe("free payslip quota route", () => {
         mocks.consumeQuotaMock.mockRejectedValue(new Error("already used"));
         mocks.errorResponseMock.mockReturnValue({
             status: 409,
-            message: "This verified email has already downloaded a free payslip this month.",
+            message: "This verified email has already used its one successful free payslip PDF for this calendar month.",
         });
 
         const response = await POST(new Request("https://lekkerledger.co.za/api/free-payslip/quota", { method: "POST" }));
         expect(response.status).toBe(409);
         await expect(response.json()).resolves.toMatchObject({
-            error: "This verified email has already downloaded a free payslip this month.",
+            error: "This verified email has already used its one successful free payslip PDF for this calendar month.",
         });
     });
 

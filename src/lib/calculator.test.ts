@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculatePayslip, NMW_RATE } from "./calculator";
+import { calculatePayslip, getSundayRateMultiplier, NMW_RATE } from "./calculator";
 import { PayslipInput } from "./schema";
 
 describe("calculatePayslip() - Complex SD7 Edge Cases", () => {
@@ -95,6 +95,11 @@ describe("calculatePayslip() - Complex SD7 Edge Cases", () => {
         expect(result.effectiveOrdinaryHours).toBe(160);
         expect(result.ordinaryPay).toBe(6400);
         expect(result.grossPay).toBe(8000);
+    });
+
+    it("8. uses 1.5x for ordinary Sunday workers and 2x otherwise", () => {
+        expect(getSundayRateMultiplier(true)).toBe(1.5);
+        expect(getSundayRateMultiplier(false)).toBe(2);
     });
 });
 

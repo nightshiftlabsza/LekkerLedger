@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Loader2, Save, Check } from "lucide-react";
+import { ArrowLeft, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,12 @@ import { NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
 import { formatEmployeeIdNumberInput, normalizeEmployeeIdNumber } from "@/src/lib/employee-id";
 import { useUnsavedChanges } from "@/app/hooks/use-unsaved-changes";
+import { OrdinaryWorkPatternPicker } from "@/components/payroll/ordinary-work-pattern-picker";
+import {
+    buildEmptyOrdinaryWorkPattern,
+    normalizeOrdinaryWorkPattern,
+    ordinarilyWorksSundaysFromPattern,
+} from "@/lib/ordinary-work-pattern";
 
 export default function EditEmployeePage() {
     const router = useRouter();
@@ -38,7 +44,7 @@ export default function EditEmployeePage() {
         leaveCycleEndDate: "",
         annualLeaveDaysRemaining: "",
         annualLeaveBalanceAsOfDate: "",
-        ordinarilyWorksSundays: false,
+        ordinaryWorkPattern: buildEmptyOrdinaryWorkPattern(),
         ordinaryHoursPerDay: "8",
     });
     const [isDirty, setIsDirty] = React.useState(false);
@@ -77,7 +83,7 @@ export default function EditEmployeePage() {
                 leaveCycleEndDate: emp.leaveCycleEndDate || "",
                 annualLeaveDaysRemaining: emp.annualLeaveDaysRemaining === undefined ? "" : String(emp.annualLeaveDaysRemaining),
                 annualLeaveBalanceAsOfDate: emp.annualLeaveBalanceAsOfDate || "",
-                ordinarilyWorksSundays: emp.ordinarilyWorksSundays ?? false,
+                ordinaryWorkPattern: emp.ordinaryWorkPattern ?? buildEmptyOrdinaryWorkPattern(),
                 ordinaryHoursPerDay: (emp.ordinaryHoursPerDay ?? 8).toString(),
             });
             setStartDateLocked(payrollExists);
@@ -115,6 +121,8 @@ export default function EditEmployeePage() {
             })(),
             leaveCycleStartDate: enableLeaveSetup ? formData.leaveCycleStartDate : "",
             leaveCycleEndDate: enableLeaveSetup ? formData.leaveCycleEndDate : "",
+            ordinaryWorkPattern: normalizeOrdinaryWorkPattern(formData.ordinaryWorkPattern),
+            ordinarilyWorksSundays: ordinarilyWorksSundaysFromPattern(formData.ordinaryWorkPattern),
         };
 
         const parsed = EmployeeSchema.safeParse(submissionData);
@@ -375,33 +383,17 @@ export default function EditEmployeePage() {
                                 />
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={() => updateForm({ ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
-                                className="w-full flex items-start gap-4 p-5 rounded-2xl text-left transition-all duration-200 active-scale hover:bg-[var(--surface-2)] shadow-[var(--shadow-sm)] border border-[var(--border)]"
-                                style={{
-                                    backgroundColor: formData.ordinarilyWorksSundays ? "var(--accent-subtle)" : "var(--surface-1)",
-                                    borderColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)",
-                                }}
-                            >
-                                <div
-                                    className="h-6 w-6 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200"
-                                    style={{
-                                        backgroundColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "transparent",
-                                        border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
-                                    }}
-                                >
-                                    {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-bold text-sm" style={{ color: "var(--text)" }}>Ordinarily works on Sundays</p>
-                                    <p className="text-xs mt-1 leading-relaxed opacity-70">
-                                        {formData.ordinarilyWorksSundays
-                                            ? "Currently: Sunday work charged at 1.5× (ordinary Sunday worker — BCEA)"
-                                            : "Currently: Sunday work charged at 2.0× (casual Sunday work — BCEA)"}
-                                    </p>
-                                </div>
-                            </button>
+                            <div className="space-y-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-5">
+                                <Label>Ordinary work pattern</Label>
+                                <OrdinaryWorkPatternPicker
+                                    value={formData.ordinaryWorkPattern}
+                                    onChange={(ordinaryWorkPattern) => updateForm({ ordinaryWorkPattern })}
+                                    helperText="Select the days this worker ordinarily works. Payroll excludes South African public holidays that fall on these selected days."
+                                />
+                                <p className="text-xs text-[var(--text-muted)]">
+                                    Sunday pay is 1.5× only if Sunday is selected here. Otherwise Sunday pay stays at 2×.
+                                </p>
+                            </div>
 
                             <div className="pt-6 border-t border-[var(--border)]">
                                 <Button

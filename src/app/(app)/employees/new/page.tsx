@@ -18,6 +18,12 @@ import { useToast } from "@/components/ui/toast";
 import { formatEmployeeIdNumberInput, normalizeEmployeeIdNumber } from "@/src/lib/employee-id";
 import { useUnsavedChanges } from "@/app/hooks/use-unsaved-changes";
 import { REFUND_WINDOW_LABEL } from "@/config/plans";
+import { OrdinaryWorkPatternPicker } from "@/components/payroll/ordinary-work-pattern-picker";
+import {
+    buildEmptyOrdinaryWorkPattern,
+    normalizeOrdinaryWorkPattern,
+    ordinarilyWorksSundaysFromPattern,
+} from "@/lib/ordinary-work-pattern";
 
 export default function AddEmployeePage() {
     const router = useRouter();
@@ -36,7 +42,7 @@ export default function AddEmployeePage() {
         leaveCycleStartDate: "",
         leaveCycleEndDate: "",
         annualLeaveDaysRemaining: "",
-        ordinarilyWorksSundays: false,
+        ordinaryWorkPattern: buildEmptyOrdinaryWorkPattern(),
         ordinaryHoursPerDay: "8",
         frequency: "Monthly",
     });
@@ -88,6 +94,8 @@ export default function AddEmployeePage() {
                 : "",
             leaveCycleStartDate: enableLeaveSetup ? formData.leaveCycleStartDate : "",
             leaveCycleEndDate: enableLeaveSetup ? formData.leaveCycleEndDate : "",
+            ordinaryWorkPattern: normalizeOrdinaryWorkPattern(formData.ordinaryWorkPattern),
+            ordinarilyWorksSundays: ordinarilyWorksSundaysFromPattern(formData.ordinaryWorkPattern),
         };
 
         const parsed = EmployeeSchema.safeParse(submissionData);
@@ -399,33 +407,17 @@ export default function AddEmployeePage() {
                                     </select>
                                 </div>
 
-                                <button
-                                    type="button"
-                                    onClick={() => updateForm({ ordinarilyWorksSundays: !formData.ordinarilyWorksSundays })}
-                                    className="w-full flex items-start gap-4 p-5 rounded-2xl text-left transition-all duration-200 active-scale hover:bg-[var(--surface-2)] shadow-[var(--shadow-sm)] border border-[var(--border)]"
-                                    style={{
-                                        backgroundColor: formData.ordinarilyWorksSundays ? "var(--accent-subtle)" : "var(--surface-1)",
-                                        borderColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)",
-                                    }}
-                                >
-                                    <div
-                                        className="h-6 w-6 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-200"
-                                        style={{
-                                            backgroundColor: formData.ordinarilyWorksSundays ? "var(--primary)" : "transparent",
-                                            border: `1.5px solid ${formData.ordinarilyWorksSundays ? "var(--primary)" : "var(--border)"}`,
-                                        }}
-                                    >
-                                        {formData.ordinarilyWorksSundays && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-sm" style={{ color: "var(--text)" }}>
-                                            Ordinarily works on Sundays
-                                        </p>
-                                        <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                            Adjusts calculation between 1.5× and 2.0× normal rate (BCEA).
-                                        </p>
-                                    </div>
-                                </button>
+                                <div className="space-y-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-5">
+                                    <Label>Ordinary work pattern</Label>
+                                    <OrdinaryWorkPatternPicker
+                                        value={formData.ordinaryWorkPattern}
+                                        onChange={(ordinaryWorkPattern) => updateForm({ ordinaryWorkPattern })}
+                                        helperText="Select the days this worker ordinarily works. Payroll will exclude South African public holidays that fall on these selected days."
+                                    />
+                                    <p className="text-xs text-[var(--text-muted)]">
+                                        Sunday pay is 1.5× only if Sunday is selected here. Otherwise Sunday pay stays at 2×.
+                                    </p>
+                                </div>
 
                                 <div className="pt-6 border-t border-[var(--border)]">
                                     <Button

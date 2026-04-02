@@ -17,6 +17,7 @@ import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
 import { shareViaEmail, shareViaWhatsApp } from "@/lib/share";
 import { getComplianceAudit } from "@/lib/compliance";
 import { track } from "@/lib/analytics";
+import { buildPayrollSummary } from "@/lib/payroll-summary";
 
 function Row({ label, value, bold, red }: { label: string; value: string; bold?: boolean; red?: boolean }) {
     return (
@@ -191,12 +192,12 @@ function PreviewContent() {
     }
 
     const breakdown = calculatePayslip(payslip);
+    const payrollSummary = buildPayrollSummary(payslip);
     const audit = getComplianceAudit(employee, breakdown, payslip.payPeriodEnd);
     const periodStartLabel = format(new Date(payslip.payPeriodStart), "d MMM");
     const periodEndLabel = format(new Date(payslip.payPeriodEnd), "d MMM yyyy");
     const periodLabel = `${periodStartLabel} - ${periodEndLabel}`;
     const employeeRole = employee.role || "Domestic Worker";
-    const employerCost = breakdown.grossPay + breakdown.employerContributions.uifEmployer;
     const ordinaryTopUpLabel = breakdown.topUps.fourHourMinimumHours > 0
         ? ` + ${breakdown.topUps.fourHourMinimumHours}h 4-hr top-up`
         : "";
@@ -271,12 +272,12 @@ function PreviewContent() {
                             {breakdown.topUps.fourHourMinimumHours > 0 && (
                                 <Row label="4-hour minimum top-up included" value={`${breakdown.topUps.fourHourMinimumHours}h`} />
                             )}
-                            <Row label="Gross pay" value={`R ${breakdown.grossPay.toFixed(2)}`} bold />
+                            <Row label="Gross pay" value={`R ${payrollSummary.grossPay.toFixed(2)}`} bold />
 
                             <p className="mb-2 mt-6 text-[10px] font-black uppercase tracking-widest text-[var(--focus)]">Deductions</p>
                             <Row
                                 label={isUifApplicable(breakdown.totalHours, payslip.payPeriodStart, payslip.payPeriodEnd) ? "Employee UIF (1%)" : "Employee UIF (n/a)"}
-                                value={`-R ${breakdown.deductions.uifEmployee.toFixed(2)}`}
+                                value={`-R ${payrollSummary.employeeUifDeduction.toFixed(2)}`}
                                 red
                             />
                             {breakdown.deductions.accommodation ? <Row label="Accommodation" value={`-R ${breakdown.deductions.accommodation.toFixed(2)}`} red /> : null}
@@ -285,18 +286,19 @@ function PreviewContent() {
                             <Row label="Total deductions" value={`R ${breakdown.deductions.total.toFixed(2)}`} bold />
 
                             <p className="mb-2 mt-6 text-[10px] font-black uppercase tracking-widest text-[var(--focus)]">Employer side</p>
-                            <Row label="Employer UIF (1%)" value={`R ${breakdown.employerContributions.uifEmployer.toFixed(2)}`} />
-                            <Row label="Employer cost this period" value={`R ${employerCost.toFixed(2)}`} bold />
+                            <Row label="Employer UIF (1%)" value={`R ${payrollSummary.employerUifContribution.toFixed(2)}`} />
+                            <Row label="Total UIF due" value={`R ${payrollSummary.totalUifDue.toFixed(2)}`} />
+                            <Row label="Employer total cost" value={`R ${payrollSummary.employerTotalCost.toFixed(2)}`} bold />
                         </CardContent>
                         <div className="grid gap-3 border-t border-[var(--border)] bg-[var(--surface-2)] p-5 sm:grid-cols-2">
                             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Employer cost</p>
-                                <p className="mt-2 text-2xl font-black tabular-nums text-[var(--text)]">R {employerCost.toFixed(2)}</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Employer total cost</p>
+                                <p className="mt-2 text-2xl font-black tabular-nums text-[var(--text)]">R {payrollSummary.employerTotalCost.toFixed(2)}</p>
                                 <p className="mt-1 text-xs text-[var(--text-muted)]">Gross pay plus the employer UIF contribution.</p>
                             </div>
                             <div className="rounded-2xl bg-[var(--primary)] p-4 text-white shadow-[var(--shadow-sm)]">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-white/75">Net transfer amount</p>
-                                <p className="mt-2 text-2xl font-black tabular-nums">R {breakdown.netPay.toFixed(2)}</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-white/75">Net pay to employee</p>
+                                <p className="mt-2 text-2xl font-black tabular-nums">R {payrollSummary.netPayToEmployee.toFixed(2)}</p>
                                 <p className="mt-1 text-xs text-white/80">This is the amount to send to the employee.</p>
                             </div>
                         </div>

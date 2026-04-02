@@ -28,6 +28,10 @@ import { EMPLOYER_DETAILS_REQUIRED_ERROR, hasRequiredEmployerDetails } from "./e
 import { calculateAnnualLeaveSummary, getLeaveTypeLabel } from "./leave";
 import { syncService } from "./sync-service";
 import { clearAllLocalRecoveryProfiles } from "./recovery-profile-store";
+import {
+    normalizeOrdinaryWorkPattern,
+    ordinarilyWorksSundaysFromPattern,
+} from "./ordinary-work-pattern";
 
 const employeeStore = localforage.createInstance({ name: "LekkerLedger", storeName: "employees" });
 const payslipStore = localforage.createInstance({ name: "LekkerLedger", storeName: "payslips" });
@@ -470,12 +474,17 @@ export async function getEmployee(id: string): Promise<Employee | null> {
 
 export async function saveEmployee(employee: Employee): Promise<void> {
     const activeHouseholdId = await getActiveHouseholdId();
+    const normalizedPattern = normalizeOrdinaryWorkPattern(employee.ordinaryWorkPattern);
     const normalized = withUpdatedAt({
         ...employee,
         householdId: employee.householdId || activeHouseholdId,
         name: employee.name.trim(),
         idNumber: normalizeEmployeeIdNumber(employee.idNumber ?? ""),
         phone: employee.phone?.trim() ?? "",
+        ordinaryWorkPattern: normalizedPattern,
+        ordinarilyWorksSundays: normalizedPattern
+            ? ordinarilyWorksSundaysFromPattern(normalizedPattern)
+            : employee.ordinarilyWorksSundays ?? false,
     }) as Employee;
     if (normalized.idNumber) {
         const employees = await getEmployees();

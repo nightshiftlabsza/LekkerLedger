@@ -157,6 +157,9 @@ describe("Payslip preview page", () => {
 
         await screen.findAllByRole("button", { name: "WhatsApp" });
         expect(screen.queryByText("Payslip ready to review, download, and share.")).toBeNull();
+        expect(screen.getAllByText("Employer total cost").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("Total UIF due").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("Net pay to employee").length).toBeGreaterThan(0);
     });
 
     it("opens the in-app WhatsApp instructions before sharing", async () => {

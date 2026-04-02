@@ -20,7 +20,7 @@ import {
     getEmployees, getSettings, getLeaveForEmployee,
     savePayslip, saveDocumentMeta
 } from "@/lib/storage";
-import { calculatePayslip } from "@/lib/calculator";
+import { calculatePayslip, getSundayRateMultiplier } from "@/lib/calculator";
 import { getMonthKey, normalizePayslipDraftToInput } from "@/lib/payslip-draft";
 import { PayPeriod, Employee, EmployeeEntry, PayslipInput, EmployerSettings, LeaveRecord } from "@/lib/schema";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
@@ -28,6 +28,10 @@ import { getUserPlan, isRecordWithinArchive } from "@/lib/entitlements";
 import { track } from "@/lib/analytics";
 import { PLANS, PlanConfig } from "../../../../config/plans";
 import { EMPLOYER_DETAILS_REQUIRED_ERROR, getEmployerDetailsSettingsHref, hasRequiredEmployerDetails } from "@/lib/employer-details";
+import { describeOrdinaryWorkCalendar } from "@/lib/payroll-calendar";
+import { buildPayrollSummary } from "@/lib/payroll-summary";
+import { formatOrdinaryWorkPattern, normalizeOrdinaryWorkPattern } from "@/lib/ordinary-work-pattern";
+import { OrdinaryWorkCalendarSummaryCard } from "@/components/payroll/ordinary-work-calendar-summary";
 
 function openWhatsAppDesktop(): void {
     globalThis.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
@@ -108,6 +112,31 @@ export default function PayPeriodWorkspacePage() {
         setPeriod({ ...period, entries });
     };
 
+    const getEntryCalendarSummary = React.useCallback((emp: Employee) => (
+        describeOrdinaryWorkCalendar(
+            new Date(period?.startDate ?? new Date()),
+            new Date(period?.endDate ?? new Date()),
+            normalizeOrdinaryWorkPattern(emp.ordinaryWorkPattern),
+            emp.ordinaryHoursPerDay ?? 8,
+        )
+    ), [period?.endDate, period?.startDate]);
+
+    const getEntryBlockingIssue = React.useCallback((entry: EmployeeEntry, emp: Employee) => {
+        const workPattern = normalizeOrdinaryWorkPattern(emp.ordinaryWorkPattern);
+        if (!workPattern) {
+            return "Save the worker's ordinary work pattern before payroll can continue.";
+        }
+
+        const calendar = getEntryCalendarSummary(emp);
+        if (entry.ordinaryDaysWorked > calendar.ordinaryDayCap) {
+            return `Ordinary working days cannot be more than ${calendar.ordinaryDayCap} for this range and work pattern.`;
+        }
+        if (entry.ordinaryHours > calendar.ordinaryHourCap) {
+            return `Ordinary hours cannot be more than ${calendar.ordinaryHourCap} for this range and work pattern.`;
+        }
+        return null;
+    }, [getEntryCalendarSummary]);
+
     const handleSave = async () => {
         if (!period || saving) return;
         setSaving(true);
@@ -132,6 +161,18 @@ export default function PayPeriodWorkspacePage() {
 
     const handleMoveToReview = async () => {
         if (!period) return;
+        const blockingIssues = (period.entries ?? []).flatMap((entry) => {
+            const emp = employees.find((employee) => employee.id === entry.employeeId);
+            if (!emp) return [];
+            const issue = getEntryBlockingIssue(entry, emp);
+            return issue ? [`${emp.name}: ${issue}`] : [];
+        });
+
+        if (blockingIssues.length > 0) {
+            toast(blockingIssues[0], "error");
+            return;
+        }
+
         const updated: PayPeriod = { ...period, status: "review" };
         await savePayPeriod(updated);
         setPeriod(updated);
@@ -212,6 +253,7 @@ export default function PayPeriodWorkspacePage() {
         const annual = records.filter(r => r.type === "annual").reduce((s, r) => s + r.days, 0);
         const sick = records.filter(r => r.type === "sick").reduce((s, r) => s + r.days, 0);
         const family = records.filter(r => r.type === "family").reduce((s, r) => s + r.days, 0);
+        const workPattern = normalizeOrdinaryWorkPattern(emp.ordinaryWorkPattern);
 
         return {
             ...normalizePayslipDraftToInput({
@@ -219,7 +261,7 @@ export default function PayPeriodWorkspacePage() {
                 householdId: period!.householdId || emp.householdId || "default",
                 employeeId: entry.employeeId,
                 monthKey: getMonthKey(new Date(period!.startDate)),
-                standardWorkingDaysThisMonth: Math.ceil(entry.ordinaryHours / (emp.ordinaryHoursPerDay || 8)),
+                standardWorkingDaysThisMonth: entry.ordinaryDaysWorked,
                 ordinaryHoursPerDay: emp.ordinaryHoursPerDay ?? 8,
                 ordinaryHoursOverride: entry.ordinaryHours,
                 overtimeHours: entry.overtimeHours,
@@ -234,7 +276,7 @@ export default function PayPeriodWorkspacePage() {
                 annualLeaveTaken: annual,
                 sickLeaveTaken: sick,
                 familyLeaveTaken: family,
-                ordinarilyWorksSundays: emp.ordinarilyWorksSundays ?? false,
+                ordinarilyWorksSundays: workPattern?.sunday ?? false,
                 createdAt: new Date(),
             }),
             advanceAmount: entry.advanceAmount || 0,
@@ -392,6 +434,12 @@ export default function PayPeriodWorkspacePage() {
         saveButtonIcon = <CheckCircle2 className="h-4 w-4" />;
         saveButtonLabel = "Changes Saved";
     }
+    const reviewBlockingIssues = safeEntries.flatMap((entry) => {
+        const emp = employees.find((employee) => employee.id === entry.employeeId);
+        if (!emp) return [];
+        const issue = getEntryBlockingIssue(entry, emp);
+        return issue ? [{ employeeId: entry.employeeId, message: `${emp.name}: ${issue}` }] : [];
+    });
 
     // Wizard status logic
     let enterHoursStatus: Step["status"] = "upcoming";
@@ -467,27 +515,27 @@ export default function PayPeriodWorkspacePage() {
                                     if (!emp) return { title: "Unknown", items: [] };
                                     const input = entryToPayslipInput(entry, emp);
                                     const calc = calculatePayslip(input);
-
-                                    const sundayRate = emp.ordinarilyWorksSundays ? 1.5 : 2.0;
-                                    const ordinaryPaySuffix = calc.topUps.fourHourMinimumHours > 0
-                                        ? ` + ${calc.topUps.fourHourMinimumHours}h 4-hr top-up`
-                                        : "";
+                                    const payrollSummary = buildPayrollSummary(input);
+                                    const sundayRate = getSundayRateMultiplier(input.ordinarilyWorksSundays);
                                     return {
                                         title: emp.name,
                                         items: [
-                                            { label: `Ordinary Pay (${input.ordinaryHours}h${ordinaryPaySuffix})`, value: `R${calc.ordinaryPay.toFixed(2)}` },
-                                            ...(input.overtimeHours > 0 ? [{ label: `Overtime Pay (${input.overtimeHours}h @ 1.5×)`, value: `R${(input.overtimeHours * (entry.rateOverride ?? emp.hourlyRate) * 1.5).toFixed(2)}` }] : []),
-                                            ...(input.sundayHours > 0 ? [{ label: `Sunday Pay (${input.sundayHours}h @ ${sundayRate}×)`, value: `R${(input.sundayHours * (entry.rateOverride ?? emp.hourlyRate) * sundayRate).toFixed(2)}` }] : []),
-                                            ...(input.publicHolidayHours > 0 ? [{ label: `Public Holiday Pay (${input.publicHolidayHours}h @ 2.0×)`, value: `R${(input.publicHolidayHours * (entry.rateOverride ?? emp.hourlyRate) * 2.0).toFixed(2)}` }] : []),
+                                            { label: `Ordinary pay (${input.ordinaryHours}h${calc.topUps.fourHourMinimumHours > 0 ? ` + ${calc.topUps.fourHourMinimumHours}h 4-hr top-up` : ""})`, value: `R${calc.ordinaryPay.toFixed(2)}` },
+                                            { label: "Ordinary working days", value: `${entry.ordinaryDaysWorked}` },
+                                            { label: "Ordinary work pattern", value: formatOrdinaryWorkPattern(normalizeOrdinaryWorkPattern(emp.ordinaryWorkPattern)) },
+                                            ...(input.overtimeHours > 0 ? [{ label: `Overtime pay (${input.overtimeHours}h @ 1.5x)`, value: `R${calc.overtimePay.toFixed(2)}` }] : []),
+                                            ...(input.sundayHours > 0 ? [{ label: `Sunday pay (${input.sundayHours}h @ ${sundayRate.toFixed(1)}x)`, value: `R${calc.sundayPay.toFixed(2)}` }] : []),
+                                            ...(input.publicHolidayHours > 0 ? [{ label: `Public holiday pay (${input.publicHolidayHours}h @ 2.0x)`, value: `R${calc.publicHolidayPay.toFixed(2)}` }] : []),
                                             ...(calc.topUps.fourHourMinimumHours > 0 ? [{ label: "4-hour minimum top-up included", value: `${calc.topUps.fourHourMinimumHours}h`, highlight: true }] : []),
-                                            { label: "Total Gross", value: `R${calc.grossPay.toFixed(2)}`, highlight: true },
-                                            ...(calc.deductions.uifEmployee > 0 ? [{ label: "Employee UIF (1%)", value: `-R${calc.deductions.uifEmployee.toFixed(2)}` }] : []),
+                                            { label: "Gross pay", value: `R${payrollSummary.grossPay.toFixed(2)}`, highlight: true },
+                                            { label: "Employee UIF deduction", value: `R${payrollSummary.employeeUifDeduction.toFixed(2)}` },
                                             ...(calc.deductions.advance && calc.deductions.advance > 0 ? [{ label: "Advance", value: `-R${calc.deductions.advance.toFixed(2)}` }] : []),
                                             ...(calc.deductions.other > 0 ? [{ label: "Other Deductions", value: `-R${calc.deductions.other.toFixed(2)}` }] : []),
                                             ...(calc.deductions.total > 0 ? [{ label: "Total Deductions", value: `-R${calc.deductions.total.toFixed(2)}` }] : []),
-                                            ...(calc.employerContributions.uifEmployer > 0 ? [{ label: "Employer UIF (1%)", value: `R${calc.employerContributions.uifEmployer.toFixed(2)}` }] : []),
-                                            { label: "Employer cost", value: `R${(calc.grossPay + calc.employerContributions.uifEmployer).toFixed(2)}`, highlight: true },
-                                            { label: "Net Pay", value: `R${calc.netPay.toFixed(2)}`, isError: calc.grossPay < calc.deductions.total, highlight: true },
+                                            { label: "Employer UIF contribution", value: `R${payrollSummary.employerUifContribution.toFixed(2)}` },
+                                            { label: "Total UIF due", value: `R${payrollSummary.totalUifDue.toFixed(2)}` },
+                                            { label: "Employer total cost", value: `R${payrollSummary.employerTotalCost.toFixed(2)}`, highlight: true },
+                                            { label: "Net pay to employee", value: `R${payrollSummary.netPayToEmployee.toFixed(2)}`, isError: calc.grossPay < calc.deductions.total, highlight: true },
                                             { label: "Hourly Rate", value: calc.hourlyRate }
                                         ],
                                         editAction: () => setShowReview(false)
@@ -502,12 +550,16 @@ export default function PayPeriodWorkspacePage() {
                                     const emp = employees.find(e => e.id === entry.employeeId);
                                     if (!emp) return;
                                     const calc = calculatePayslip(entryToPayslipInput(entry, emp));
-                                    totalCost += calc.grossPay + calc.employerContributions.uifEmployer;
+                                    totalCost += buildPayrollSummary(entryToPayslipInput(entry, emp)).employerTotalCost;
                                     calc.complianceWarnings.forEach(w => {
                                         if (!allWarnings.includes(w)) allWarnings.push(`${emp.name}: ${w}`);
                                     });
                                     if (calc.grossPay < calc.deductions.total) {
                                         allErrors.push(`${emp.name}: Net pay is zero because deductions (R${calc.deductions.total.toFixed(2)}) exceed gross pay (R${calc.grossPay.toFixed(2)}).`);
+                                    }
+                                    const issue = getEntryBlockingIssue(entry, emp);
+                                    if (issue) {
+                                        allErrors.push(`${emp.name}: ${issue}`);
                                     }
                                 });
 
@@ -587,10 +639,18 @@ export default function PayPeriodWorkspacePage() {
                         </h3>
                     </div>
                     <div className="p-5 pt-3 space-y-3">
+                        {reviewBlockingIssues.length > 0 && !isLocked && (
+                            <div className="rounded-xl border border-[var(--danger-border)] bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger)]">
+                                {reviewBlockingIssues[0].message}
+                            </div>
+                        )}
                         {(period.entries ?? []).map(entry => {
                             const emp = employees.find(e => e.id === entry.employeeId);
                             if (!emp) return null;
                             const entryBreakdown = calculatePayslip(entryToPayslipInput(entry, emp));
+                            const entryCalendar = getEntryCalendarSummary(emp);
+                            const entryIssue = getEntryBlockingIssue(entry, emp);
+                            const savedPattern = normalizeOrdinaryWorkPattern(emp.ordinaryWorkPattern);
 
                             return (
                                 <Card key={entry.employeeId} className="border border-[var(--border)] bg-[var(--surface-1)] shadow-sm">
@@ -605,16 +665,36 @@ export default function PayPeriodWorkspacePage() {
                                                 <p className="type-overline text-[var(--text-muted)]">R{emp.hourlyRate.toFixed(2)}/hr</p>
                                             </div>
                                         </div>
+                                        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text-muted)]">
+                                            Ordinary work pattern: <strong className="text-[var(--text)]">{formatOrdinaryWorkPattern(savedPattern)}</strong><br />
+                                            Sunday pay rate: <strong className="text-[var(--text)]">{getSundayRateMultiplier(savedPattern?.sunday ?? false).toFixed(1)}x</strong>
+                                        </div>
 
                                         {/* Input fields */}
                                                 {!isLocked && (
+                                                    <div className="space-y-4">
+                                                        <OrdinaryWorkCalendarSummaryCard summary={entryCalendar} ordinaryHoursPerDay={emp.ordinaryHoursPerDay ?? 8} title="Ordinary work cap for this payroll range" />
                                                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                        <div className="min-w-0">
+                                                    <label htmlFor={`ordinary-days-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Ordinary working days</label>
+                                                    <input
+                                                        id={`ordinary-days-${entry.employeeId}`}
+                                                        type="number"
+                                                        min={0}
+                                                        max={entryCalendar.ordinaryDayCap}
+                                                        value={entry.ordinaryDaysWorked}
+                                                        onChange={e => updateEntry(entry.employeeId, "ordinaryDaysWorked", Number.parseFloat(e.target.value) || 0)}
+                                                        className="min-h-[44px] w-full rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2.5 text-[var(--text)] text-sm font-mono"
+                                                        placeholder="0"
+                                                    />
+                                                </div>
                                                         <div className="min-w-0">
                                                     <label htmlFor={`ordinary-hours-${entry.employeeId}`} className="type-overline text-[var(--text-muted)] block mb-1">Ordinary hours</label>
                                                     <input
                                                         id={`ordinary-hours-${entry.employeeId}`}
                                                         type="number"
                                                         min={0}
+                                                        max={entryCalendar.ordinaryHourCap}
                                                         value={entry.ordinaryHours}
                                                         onChange={e => updateEntry(entry.employeeId, "ordinaryHours", Number.parseFloat(e.target.value) || 0)}
                                                         className="min-h-[44px] w-full rounded-lg border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2.5 text-[var(--text)] text-sm font-mono"
@@ -678,6 +758,7 @@ export default function PayPeriodWorkspacePage() {
                                                     />
                                                 </div>
                                             </div>
+                                            </div>
                                         )}
 
                                         {/* Locked view - just show totals */}
@@ -724,6 +805,12 @@ export default function PayPeriodWorkspacePage() {
                                                 <span>Deductions are higher than gross pay for this employee. Reduce the deductions before you finalise this month.</span>
                                             </div>
                                         )}
+                                        {!isLocked && entryIssue && (
+                                            <div className="flex items-start gap-2 rounded-xl border px-3 py-2 text-xs" style={{ borderColor: "var(--danger-border)", backgroundColor: "var(--danger-soft)", color: "var(--danger)" }}>
+                                                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                                <span>{entryIssue}</span>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             );
@@ -741,7 +828,7 @@ export default function PayPeriodWorkspacePage() {
                             primaryAction={
                                 <Button
                                     onClick={handleMoveToReview}
-                                    disabled={!allComplete}
+                                    disabled={!allComplete || reviewBlockingIssues.length > 0}
                                     className="flex-1 sm:flex-none gap-3 px-5 bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] disabled:opacity-50"
                                 >
                                     <FileText className="h-4 w-4" /> Review & Generate

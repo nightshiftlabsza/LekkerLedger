@@ -126,6 +126,7 @@ export function NewPayrollWizardClient() {
                 status: "draft",
                 entries: selectedEmployeeIds.map(empId => ({
                     employeeId: empId,
+                    ordinaryDaysWorked: 0,
                     ordinaryHours: 0,
                     overtimeHours: 0,
                     sundayHours: 0,

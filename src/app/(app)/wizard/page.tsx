@@ -21,22 +21,25 @@ import { Employee, PayslipInput, EmployerSettings } from "@/lib/schema";
 import { format } from "date-fns";
 import { calculatePayslip, getSundayRateMultiplier, isUifApplicable, NMW_RATE } from "@/lib/calculator";
 import { useToast } from "@/components/ui/toast";
-import { getHolidaysInRange } from "@/lib/holidays";
 import {
     derivePayslipDraft,
     getMonthBounds,
     getMonthKey,
     normalizePayslipDraftToInput,
 } from "@/lib/payslip-draft";
+import { describeOrdinaryWorkCalendar } from "@/lib/payroll-calendar";
+import { buildPayrollSummary } from "@/lib/payroll-summary";
+import { normalizeOrdinaryWorkPattern, formatOrdinaryWorkPattern } from "@/lib/ordinary-work-pattern";
+import { OrdinaryWorkCalendarSummaryCard } from "@/components/payroll/ordinary-work-calendar-summary";
 
 import { canUseLeaveTracking, getUserPlan } from "@/lib/entitlements";
 import { getEmployerDetailsSettingsHref, hasRequiredEmployerDetails } from "@/lib/employer-details";
 
 const STEPS = [
-    { label: "Hours", description: "Period & ordinary time" },
-    { label: "Extra Pay", description: "Overtime, Sundays & holidays" },
+    { label: "Month", description: "Month and ordinary hours" },
+    { label: "Extra Pay", description: "Overtime, Sunday, and public holiday hours" },
     { label: "Deductions", description: "UIF & accommodation" },
-    { label: "Review", description: "Final confirmation" },
+    { label: "Review", description: "Review and generate PDF" },
 ];
 
 
@@ -71,6 +74,9 @@ function getWizardNextButtonContent(loading: boolean, currentStep: number): Reac
 
 function validateWizardPeriodStep({
     monthKey,
+    workPatternConfirmed,
+    ordinaryDayCap,
+    ordinaryHourCap,
     enteredDaysWorked,
     hours,
     ordinaryHours,
@@ -78,6 +84,9 @@ function validateWizardPeriodStep({
     setHoursError,
 }: {
     monthKey: string;
+    workPatternConfirmed: boolean;
+    ordinaryDayCap: number;
+    ordinaryHourCap: number;
     enteredDaysWorked: number;
     hours: { overtime: string; sunday: string; holiday: string };
     ordinaryHours: number;
@@ -88,12 +97,24 @@ function validateWizardPeriodStep({
         setPeriodError("Please select the month for this payslip.");
         return false;
     }
+    if (!workPatternConfirmed) {
+        setPeriodError("Confirm and save the worker's ordinary work pattern before payroll can continue.");
+        return false;
+    }
     if (enteredDaysWorked === 0 && !hours.overtime && !hours.sunday && !hours.holiday) {
-        setHoursError("Enter the standard working days for this month, or add premium hours if this month had no ordinary schedule.");
+        setHoursError("Enter ordinary working days, or add overtime, Sunday, or public holiday hours if there was no ordinary schedule.");
+        return false;
+    }
+    if (enteredDaysWorked > ordinaryDayCap) {
+        setHoursError(`Ordinary working days cannot be more than ${ordinaryDayCap} for this month and work pattern.`);
         return false;
     }
     if (enteredDaysWorked > 0 && ordinaryHours <= 0) {
-        setHoursError("Ordinary hours must be greater than 0 when standard working days are entered.");
+        setHoursError("Ordinary hours must be greater than 0 when ordinary working days are entered.");
+        return false;
+    }
+    if (ordinaryHours > ordinaryHourCap) {
+        setHoursError(`Ordinary hours cannot be more than ${ordinaryHourCap} for this month and work pattern.`);
         return false;
     }
     setPeriodError("");
@@ -126,7 +147,6 @@ function WizardContent() {
     const monthBounds = React.useMemo(() => getMonthBounds(monthKey), [monthKey]);
     const payPeriodStartLabel = React.useMemo(() => format(monthBounds.start, "yyyy-MM-dd"), [monthBounds.start]);
     const payPeriodEndLabel = React.useMemo(() => format(monthBounds.end, "yyyy-MM-dd"), [monthBounds.end]);
-    const detectedHolidays = React.useMemo(() => getHolidaysInRange(monthBounds.start, monthBounds.end), [monthBounds.end, monthBounds.start]);
     const [periodError, setPeriodError] = React.useState("");
     const [hoursError, setHoursError] = React.useState("");
     const [includeAccommodation, setIncludeAccommodation] = React.useState(false);
@@ -161,13 +181,20 @@ function WizardContent() {
 
     const [leave, setLeave] = React.useState({ annual: "", sick: "", family: "" });
     const enteredDaysWorked = Number(standardWorkingDaysThisMonth) || 0;
+    const ordinaryWorkPattern = React.useMemo(() => normalizeOrdinaryWorkPattern(employee?.ordinaryWorkPattern), [employee?.ordinaryWorkPattern]);
+    const workPatternConfirmed = Boolean(ordinaryWorkPattern);
+    const ordinaryHoursPerDay = employee?.ordinaryHoursPerDay ?? 8;
+    const ordinaryCalendar = React.useMemo(
+        () => describeOrdinaryWorkCalendar(monthBounds.start, monthBounds.end, ordinaryWorkPattern, ordinaryHoursPerDay),
+        [monthBounds.end, monthBounds.start, ordinaryHoursPerDay, ordinaryWorkPattern],
+    );
     const monthlyDraft = employee
         ? derivePayslipDraft({
             householdId: employee.householdId ?? "default",
             employeeId: employee.id,
             monthKey,
             standardWorkingDaysThisMonth: enteredDaysWorked,
-            ordinaryHoursPerDay: employee.ordinaryHoursPerDay ?? 8,
+            ordinaryHoursPerDay: ordinaryHoursPerDay,
             ordinaryHoursOverride: ordinaryHoursOverride.trim() ? Number(ordinaryHoursOverride) : null,
             overtimeHours: Number(hours.overtime) || 0,
             sundayHours: Number(hours.sunday) || 0,
@@ -175,7 +202,7 @@ function WizardContent() {
             shortShiftCount,
             shortShiftWorkedHours: totalWorkedInShortShifts,
             hourlyRate: employee.hourlyRate,
-            ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
+            ordinarilyWorksSundays: ordinaryWorkPattern?.sunday ?? false,
             includeAccommodation,
             accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
             otherDeductions: 0,
@@ -190,7 +217,7 @@ function WizardContent() {
         (Number(hours.overtime) || 0) +
         (Number(hours.sunday) || 0) +
         (Number(hours.holiday) || 0);
-    const sundayRateLabel = employee ? `${getSundayRateMultiplier(employee.ordinarilyWorksSundays ?? false).toFixed(1)}x` : "2.0x";
+    const sundayRateLabel = employee ? `${getSundayRateMultiplier(ordinaryWorkPattern?.sunday ?? false).toFixed(1)}x` : "2.0x";
 
     const breakdown = employee
         ? calculatePayslip(normalizePayslipDraftToInput({
@@ -199,7 +226,7 @@ function WizardContent() {
             employeeId: employee.id,
             monthKey,
             standardWorkingDaysThisMonth: enteredDaysWorked,
-            ordinaryHoursPerDay: employee.ordinaryHoursPerDay ?? 8,
+            ordinaryHoursPerDay: ordinaryHoursPerDay,
             ordinaryHoursOverride: ordinaryHoursOverride.trim() ? Number(ordinaryHoursOverride) : null,
             overtimeHours: Number(hours.overtime) || 0,
             sundayHours: Number(hours.sunday) || 0,
@@ -207,7 +234,7 @@ function WizardContent() {
             shortShiftCount,
             shortShiftWorkedHours: totalWorkedInShortShifts,
             hourlyRate: employee.hourlyRate,
-            ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
+            ordinarilyWorksSundays: ordinaryWorkPattern?.sunday ?? false,
             includeAccommodation,
             accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
             otherDeductions: 0,
@@ -229,7 +256,33 @@ function WizardContent() {
     }
     const ordinaryHoursHelperText = monthlyDraft?.hasManualOrdinaryHoursOverride
         ? `Manual ordinary-hours override in use. Auto-calculated hours for this month would be ${monthlyDraft.autoOrdinaryHours}.`
-        : `Auto-calculated as ${monthlyDraft?.autoOrdinaryHours ?? 0} hours from ${enteredDaysWorked} standard day${enteredDaysWorked === 1 ? "" : "s"} x ${employee?.ordinaryHoursPerDay ?? 8} hours.`;
+        : `Auto-calculated as ${monthlyDraft?.autoOrdinaryHours ?? 0} hours from ${enteredDaysWorked} ordinary day${enteredDaysWorked === 1 ? "" : "s"} x ${employee?.ordinaryHoursPerDay ?? 8} hours.`;
+    const payrollSummary = React.useMemo(() => {
+        if (!employee) return null;
+        return buildPayrollSummary(normalizePayslipDraftToInput({
+            id: "summary-preview",
+            householdId: employee.householdId ?? "default",
+            employeeId: employee.id,
+            monthKey,
+            standardWorkingDaysThisMonth: enteredDaysWorked,
+            ordinaryHoursPerDay,
+            ordinaryHoursOverride: ordinaryHoursOverride.trim() ? Number(ordinaryHoursOverride) : null,
+            overtimeHours: Number(hours.overtime) || 0,
+            sundayHours: Number(hours.sunday) || 0,
+            publicHolidayHours: Number(hours.holiday) || 0,
+            shortShiftCount,
+            shortShiftWorkedHours: totalWorkedInShortShifts,
+            hourlyRate: employee.hourlyRate,
+            ordinarilyWorksSundays: ordinaryWorkPattern?.sunday ?? false,
+            includeAccommodation,
+            accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
+            otherDeductions: 0,
+            annualLeaveTaken: leaveTrackingEnabled ? Number(leave.annual) || 0 : 0,
+            sickLeaveTaken: leaveTrackingEnabled ? Number(leave.sick) || 0 : 0,
+            familyLeaveTaken: leaveTrackingEnabled ? Number(leave.family) || 0 : 0,
+            createdAt: new Date(),
+        }));
+    }, [accommodationCost, employee, enteredDaysWorked, hours.holiday, hours.overtime, hours.sunday, includeAccommodation, leave.annual, leave.family, leave.sick, leaveTrackingEnabled, monthKey, ordinaryHoursOverride, ordinaryHoursPerDay, ordinaryWorkPattern?.sunday, shortShiftCount, totalWorkedInShortShifts]);
     const hasFourHourTopUp = breakdown
         ? breakdown.topUps.fourHourMinimumHours > 0
         : false;
@@ -252,7 +305,7 @@ function WizardContent() {
                 employeeId: employee.id,
                 monthKey,
                 standardWorkingDaysThisMonth: enteredDaysWorked,
-                ordinaryHoursPerDay: employee.ordinaryHoursPerDay ?? 8,
+                ordinaryHoursPerDay,
                 ordinaryHoursOverride: ordinaryHoursOverride.trim() ? Number(ordinaryHoursOverride) : null,
                 overtimeHours: Number(hours.overtime) || 0,
                 sundayHours: Number(hours.sunday) || 0,
@@ -260,7 +313,7 @@ function WizardContent() {
                 shortShiftCount,
                 shortShiftWorkedHours: totalWorkedInShortShifts,
                 hourlyRate: employee.hourlyRate,
-                ordinarilyWorksSundays: employee.ordinarilyWorksSundays ?? false,
+                ordinarilyWorksSundays: ordinaryWorkPattern?.sunday ?? false,
                 includeAccommodation,
                 accommodationCost: includeAccommodation && accommodationCost ? Number(accommodationCost) : undefined,
                 otherDeductions: 0,
@@ -298,12 +351,15 @@ function WizardContent() {
         } finally {
             setLoading(false);
         }
-    }, [employee, monthKey, enteredDaysWorked, ordinaryHoursOverride, hours, shortShiftCount, totalWorkedInShortShifts, includeAccommodation, accommodationCost, leave, leaveTrackingEnabled, router, toast, monthBounds.start]);
+    }, [employee, monthKey, enteredDaysWorked, ordinaryHoursOverride, ordinaryHoursPerDay, hours, shortShiftCount, totalWorkedInShortShifts, includeAccommodation, accommodationCost, leave, leaveTrackingEnabled, ordinaryWorkPattern?.sunday, router, toast, monthBounds.start]);
 
     const handleNext = async () => {
         if (currentStep === 0) {
             if (!validateWizardPeriodStep({
                 monthKey,
+                workPatternConfirmed,
+                ordinaryDayCap: ordinaryCalendar.ordinaryDayCap,
+                ordinaryHourCap: ordinaryCalendar.ordinaryHourCap,
                 enteredDaysWorked,
                 hours,
                 ordinaryHours,
@@ -422,6 +478,13 @@ function WizardContent() {
                         </AlertDescription>
                     </Alert>
                 )}
+                {!!employee && !workPatternConfirmed && (
+                    <Alert variant="warning">
+                        <AlertDescription>
+                            Payroll is blocked until this worker has a saved ordinary work pattern. Update the worker record first so Sunday pay and public holiday caps are correct.
+                        </AlertDescription>
+                    </Alert>
+                )}
 
                 {/* Step Card */}
                 <Card key={currentStep} className="animate-slide-right">
@@ -468,10 +531,10 @@ function WizardContent() {
                                         </div>
                                     </div>
                                     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-4 space-y-3">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Monthly setup</p>
-                                        <p className="text-sm font-semibold text-[var(--text)]">Choose the month once.</p>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Ordinary work pattern</p>
+                                        <p className="text-sm font-semibold text-[var(--text)]">{workPatternConfirmed ? formatOrdinaryWorkPattern(ordinaryWorkPattern) : "Not confirmed"}</p>
                                         <p className="text-sm leading-6 text-[var(--text-muted)]">
-                                            LekkerLedger fills the first and last day of that month automatically so the main job here is just the work schedule and any extra pay.
+                                            Sunday pay uses {sundayRateLabel} because Sunday is {ordinaryWorkPattern?.sunday ? "" : "not "}part of the saved ordinary work pattern. Public holiday dates on ordinary workdays are excluded from ordinary time automatically.
                                         </p>
                                     </div>
                                 </div>
@@ -488,25 +551,26 @@ function WizardContent() {
                                     </div>
 
                                     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-                                        <div className="space-y-4">
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Label htmlFor="standardWorkingDays" className="text-xs">Standard Working Days This Month</Label>
-                                                    <InfoTooltip
-                                                        label="Explain standard working days this month"
-                                                        tooltip="Enter the normal number of workdays for this payslip month. LekkerLedger uses this to calculate ordinary hours automatically from the employee's standard hours per day."
-                                                    />
-                                                </div>
+                                            <div className="space-y-4">
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <Label htmlFor="standardWorkingDays" className="text-xs">Ordinary working days</Label>
+                                                        <InfoTooltip
+                                                            label="Explain ordinary working days"
+                                                            tooltip="Enter only the ordinary working days actually worked in this month. The cap is derived from the saved work pattern and South African public holidays in this month."
+                                                        />
+                                                    </div>
                                                 <Input
                                                     id="standardWorkingDays"
                                                     type="number"
                                                     min="0"
+                                                    max={ordinaryCalendar.ordinaryDayCap}
                                                     placeholder="e.g. 20"
                                                     value={standardWorkingDaysThisMonth}
                                                     onChange={(e) => setStandardWorkingDaysThisMonth(e.target.value)}
                                                 />
                                                 <p className="text-[11px] leading-5 text-[var(--text-muted)]">
-                                                    Example: if the employee usually works Monday to Friday and worked 20 normal days this month, enter 20.
+                                                    Maximum allowed for this month and work pattern: {ordinaryCalendar.ordinaryDayCap} ordinary day{ordinaryCalendar.ordinaryDayCap === 1 ? "" : "s"}.
                                                 </p>
                                             </div>
                                             <div className="space-y-2">
@@ -532,6 +596,7 @@ function WizardContent() {
                                                     id="ordinary"
                                                     type="number"
                                                     min="0"
+                                                    max={ordinaryCalendar.ordinaryHourCap}
                                                     placeholder="0"
                                                     value={ordinaryHoursInputValue}
                                                     onChange={(e) => setOrdinaryHoursOverride(e.target.value)}
@@ -597,6 +662,7 @@ function WizardContent() {
                                             Overtime, Sunday hours, and public-holiday work are entered separately on the next step so the ordinary monthly hours stay clear.
                                         </p>
                                     </div>
+                                    <OrdinaryWorkCalendarSummaryCard summary={ordinaryCalendar} ordinaryHoursPerDay={ordinaryHoursPerDay} />
                                     {hoursError && (
                                         <p className="text-xs font-medium text-[var(--danger)]">{hoursError}</p>
                                     )}
@@ -610,7 +676,7 @@ function WizardContent() {
                                 <Alert variant="default">
                                     <AlertDescription>
                                         Sunday pay depends on the worker&apos;s normal schedule. This employee is set to{" "}
-                                        <strong>{employee.ordinarilyWorksSundays ? "normally work Sundays" : "not normally work Sundays"}</strong>,
+                                        <strong>{ordinaryWorkPattern?.sunday ? "ordinarily work Sundays" : "not ordinarily work Sundays"}</strong>,
                                         {" "}so Sunday hours here pay at <strong>{sundayRateLabel}</strong>. Public holiday hours stay at <strong>2.0x</strong>.
                                     </AlertDescription>
                                 </Alert>
@@ -658,25 +724,24 @@ function WizardContent() {
                                         value={hours.holiday}
                                         onChange={(e) => setHours((prev) => ({ ...prev, holiday: e.target.value }))}
                                     />
-                                    {detectedHolidays.length > 0 && (
+                                    {ordinaryCalendar.publicHolidaysInRange.length > 0 && (
                                         <div className="rounded-xl border border-[var(--focus)]/15 bg-[var(--primary)]/[0.03] p-3 space-y-2">
                                             <p className="text-[11px] font-semibold" style={{ color: "var(--primary)" }}>
-                                                Public holiday{detectedHolidays.length > 1 ? "s" : ""} in this period:
+                                                South African public holiday{ordinaryCalendar.publicHolidaysInRange.length > 1 ? "s" : ""} in this month:
                                             </p>
                                             <ul className="space-y-1 text-[11px] text-[var(--text-muted)]">
-                                                {detectedHolidays.map((holiday) => {
+                                                {ordinaryCalendar.publicHolidaysInRange.map((holiday) => {
                                                     const holidayDate = safeDate(holiday.date);
                                                     return (
                                                         <li key={holiday.date}>
                                                             {format(holidayDate, "EEE d MMM yyyy")}: {holiday.name}
-                                                            {holidayDate.getDay() === 6 ? " (falls on Saturday)" : ""}
-                                                            {holidayDate.getDay() === 0 ? " (falls on Sunday)" : ""}
+                                                            {ordinaryCalendar.excludedHolidayDates.includes(holiday.date) ? " (excluded from ordinary time)" : ""}
                                                         </li>
                                                     );
                                                 })}
                                             </ul>
                                             <p className="text-[11px] text-[var(--text-muted)]">
-                                                Enter hours here only if the employee actually worked on that public holiday. If they did not work, do not add hours here.
+                                                Enter hours here only if the employee actually worked on that public holiday. Public holiday work must stay separate from ordinary time.
                                             </p>
                                         </div>
                                     )}
@@ -774,7 +839,7 @@ function WizardContent() {
                         )}
 
                         {/* STEP 3 — Review */}
-                        {currentStep === 3 && breakdown && (
+                        {currentStep === 3 && breakdown && payrollSummary && (
                             <div className="space-y-4 animate-fade-in">
                                 {/* Duplicate payslip warning */}
                                 {!!duplicateId && (
@@ -861,7 +926,7 @@ function WizardContent() {
                                         {(Number(hours.overtime) || 0) > 0 && <Row label={`Overtime (${Number(hours.overtime)}h @ 1.5x)`} value={formatCurrency(breakdown.overtimePay)} />}
                                         {(Number(hours.sunday) || 0) > 0 && <Row label={`Sunday (${Number(hours.sunday)}h @ ${sundayRateLabel})`} value={formatCurrency(breakdown.sundayPay)} />}
                                         {(Number(hours.holiday) || 0) > 0 && <Row label={`Public Holiday (${Number(hours.holiday)}h @ 2x)`} value={formatCurrency(breakdown.publicHolidayPay)} />}
-                                        <Row label="Gross Pay" value={formatCurrency(breakdown.grossPay)} bold />
+                                        <Row label="Gross pay" value={formatCurrency(payrollSummary.grossPay)} bold />
                                     </div>
 
                                     <div style={{ borderTop: "1px solid var(--border)" }} />
@@ -869,11 +934,20 @@ function WizardContent() {
                                     {/* Deductions */}
                                     <div className="px-4 pt-3 pb-2 space-y-2">
                                         <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--primary)" }}>Deductions</p>
-                                        <Row label={`UIF ${uifApplicable ? "(1%)" : "(n/a)"}`} value={formatCurrency(breakdown.deductions.uifEmployee)} red />
+                                        <Row label={`Employee UIF ${uifApplicable ? "(1%)" : "(n/a)"}`} value={formatCurrency(payrollSummary.employeeUifDeduction)} red />
                                         {shouldShowAccommodationDeduction && (
                                             <Row label="Accommodation (10%)" value={formatCurrency(breakdown.deductions.accommodation)} red />
                                         )}
                                         <Row label="Total Deductions" value={formatCurrency(breakdown.deductions.total)} bold />
+                                    </div>
+
+                                    <div style={{ borderTop: "1px solid var(--border)" }} />
+
+                                    <div className="px-4 pt-3 pb-2 space-y-2">
+                                        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--primary)" }}>UIF and employer cost</p>
+                                        <Row label="Employer UIF contribution" value={formatCurrency(payrollSummary.employerUifContribution)} />
+                                        <Row label="Total UIF due for the period" value={formatCurrency(payrollSummary.totalUifDue)} />
+                                        <Row label="Employer total cost" value={formatCurrency(payrollSummary.employerTotalCost)} bold />
                                     </div>
 
                                     {/* Net Pay bar */}
@@ -881,12 +955,13 @@ function WizardContent() {
                                         className="flex justify-between items-center px-5 py-5"
                                         style={{ backgroundColor: "var(--primary)" }}
                                     >
-                                        <span className="font-bold text-lg text-white">Net Pay</span>
+                                        <span className="font-bold text-lg text-white">Net pay to employee</span>
                                         <span className="font-extrabold text-2xl text-white tabular-nums">
-                                            {formatCurrency(breakdown.netPay)}
+                                            {formatCurrency(payrollSummary.netPayToEmployee)}
                                         </span>
                                     </div>
                                 </div>
+                                <OrdinaryWorkCalendarSummaryCard summary={ordinaryCalendar} ordinaryHoursPerDay={ordinaryHoursPerDay} title="Ordinary work cap used for this review" />
                             </div>
                         )}
                     </CardContent>

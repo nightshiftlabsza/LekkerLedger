@@ -2,8 +2,22 @@ import { z } from "zod";
 import { getNMW } from "./calculator";
 import { getNMWForDate } from "./legal/registry";
 import { getEmployeeIdValidationMessage, normalizeEmployeeIdNumber } from "./employee-id";
+import {
+    buildEmptyOrdinaryWorkPattern,
+    hasConfirmedOrdinaryWorkPattern,
+    ordinarilyWorksSundaysFromPattern,
+    ORDINARY_WORK_PATTERN_KEYS,
+} from "./ordinary-work-pattern";
 
 export const NMW_DOMESTIC = getNMW(); // SD7 NMW as of current date
+
+export const OrdinaryWorkPatternSchema = z.object(
+    Object.fromEntries(
+        ORDINARY_WORK_PATTERN_KEYS.map((key) => [key, z.boolean().default(false)]),
+    ) as Record<(typeof ORDINARY_WORK_PATTERN_KEYS)[number], z.ZodDefault<z.ZodBoolean>>,
+);
+
+export type OrdinaryWorkPatternSchemaType = z.infer<typeof OrdinaryWorkPatternSchema>;
 
 export const EmployeeSchema = z.object({
     id: z.string().uuid(),
@@ -22,10 +36,28 @@ export const EmployeeSchema = z.object({
     annualLeaveDaysRemaining: z.number().min(0).optional(),
     annualLeaveBalanceAsOfDate: z.string().optional().default(""),
     ordinarilyWorksSundays: z.boolean().default(false),
+    ordinaryWorkPattern: OrdinaryWorkPatternSchema.optional(),
     ordinaryHoursPerDay: z.number().min(1).max(24).default(8),
     frequency: z.enum(["Weekly", "Fortnightly", "Monthly"]).default("Monthly"),
     updatedAt: z.string().optional(),
 }).superRefine((employee, ctx) => {
+    const normalizedPattern = employee.ordinaryWorkPattern;
+    if (normalizedPattern && !hasConfirmedOrdinaryWorkPattern(normalizedPattern)) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["ordinaryWorkPattern"],
+            message: "Select at least one ordinary workday when you save a work pattern.",
+        });
+    }
+
+    if (normalizedPattern && employee.ordinarilyWorksSundays !== ordinarilyWorksSundaysFromPattern(normalizedPattern)) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["ordinarilyWorksSundays"],
+            message: "Sunday status must match the saved ordinary work pattern.",
+        });
+    }
+
     const referenceDate = employee.startDate ? new Date(employee.startDate) : new Date();
     const nmwDate = Number.isNaN(referenceDate.getTime()) ? new Date() : referenceDate;
     const minimumRate = getNMWForDate(nmwDate);
@@ -234,6 +266,7 @@ export type EmployeeEntryStatus = "empty" | "partial" | "complete" | "blocked";
 
 export const EmployeeEntrySchema = z.object({
     employeeId: z.string(),
+    ordinaryDaysWorked: z.number().min(0).default(0),
     ordinaryHours: z.number().min(0).default(0),
     overtimeHours: z.number().min(0).default(0),
     sundayHours: z.number().min(0).default(0),
