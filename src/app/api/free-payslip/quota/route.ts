@@ -23,6 +23,10 @@ async function getVerifiedEmail(request: Request) {
     return user.email;
 }
 
+function isVerificationError(error: unknown) {
+    return error instanceof Error && error.message.includes("Email verification is required");
+}
+
 export async function GET(request: Request) {
     try {
         const email = await getVerifiedEmail(request);
@@ -33,8 +37,13 @@ export async function GET(request: Request) {
             },
         });
     } catch (error) {
-        const message = error instanceof Error ? error.message : "Email verification is required.";
-        return NextResponse.json({ error: message }, { status: 401 });
+        if (isVerificationError(error)) {
+            const message = error instanceof Error ? error.message : "Email verification is required.";
+            return NextResponse.json({ error: message }, { status: 401 });
+        }
+
+        const { status, message } = toFreePayslipQuotaErrorResponse(error);
+        return NextResponse.json({ error: message }, { status });
     }
 }
 
@@ -48,7 +57,7 @@ export async function POST(request: Request) {
             },
         });
     } catch (error) {
-        if (error instanceof Error && error.message.includes("Email verification")) {
+        if (isVerificationError(error)) {
             return NextResponse.json({ error: error.message }, { status: 401 });
         }
 

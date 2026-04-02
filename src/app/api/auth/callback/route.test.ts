@@ -2,10 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
     exchangeCodeForSessionMock: vi.fn(),
+    getRequestAppOriginMock: vi.fn(() => "https://lekkerledger.co.za"),
+    getRequestCurrentOriginMock: vi.fn(() => "https://lekkerledger.co.za"),
 }));
 
 vi.mock("@/lib/app-origin", () => ({
-    getRequestAppOrigin: () => "https://lekkerledger.co.za",
+    getRequestAppOrigin: (...args: unknown[]) => mocks.getRequestAppOriginMock(...args),
+    getRequestCurrentOrigin: (...args: unknown[]) => mocks.getRequestCurrentOriginMock(...args),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -21,6 +24,10 @@ import { GET } from "./route";
 describe("free payslip auth callback", () => {
     beforeEach(() => {
         mocks.exchangeCodeForSessionMock.mockReset();
+        mocks.getRequestAppOriginMock.mockReset();
+        mocks.getRequestCurrentOriginMock.mockReset();
+        mocks.getRequestAppOriginMock.mockReturnValue("https://lekkerledger.co.za");
+        mocks.getRequestCurrentOriginMock.mockReturnValue("https://lekkerledger.co.za");
         vi.unstubAllEnvs();
     });
 
@@ -89,5 +96,19 @@ describe("free payslip auth callback", () => {
             "https://lekkerledger.co.za/resources/tools/domestic-worker-payslip?freePayslipVerification=success",
         );
         expect(response.headers.get("set-cookie")).toContain("ll-e2e-free-payslip-email=tester%40example.com");
+    });
+
+    it("keeps the free payslip callback on the current host even when the app URL points somewhere else", async () => {
+        mocks.exchangeCodeForSessionMock.mockResolvedValue({ error: null });
+        mocks.getRequestAppOriginMock.mockReturnValue("https://lekkerledger.co.za");
+        mocks.getRequestCurrentOriginMock.mockReturnValue("https://preview.lekkerledger.co.za");
+
+        const response = await GET(new Request(
+            "https://preview.lekkerledger.co.za/api/auth/callback?code=abc123&next=%2Fresources%2Ftools%2Fdomestic-worker-payslip%3FfreePayslipVerification%3Dsuccess",
+        ));
+
+        expect(response.headers.get("location")).toBe(
+            "https://preview.lekkerledger.co.za/resources/tools/domestic-worker-payslip?freePayslipVerification=success",
+        );
     });
 });

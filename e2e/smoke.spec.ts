@@ -25,8 +25,10 @@ test('calculator page loads in the browser', async ({ page }) => {
 
 test('homepage pricing CTA opens the paid checkout dialog', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
-    await page.getByRole('button', { name: /Try Standard for R1|Choose Standard/i }).click();
-    await expect(page.getByRole('heading', { name: 'Open secure payment' })).toBeVisible();
+    await page.getByRole('button', { name: /Choose Standard/i }).click();
+    await expect(page.getByRole('heading', { name: 'Enter your email to continue' })).toBeVisible();
+    await expect(page.getByLabel('Email address')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Continue to secure payment' })).toBeVisible();
 });
 
 test('homepage "Generate free payslip" CTA sends to the free payslip generator', async ({ page }) => {

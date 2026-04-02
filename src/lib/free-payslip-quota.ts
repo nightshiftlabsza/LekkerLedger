@@ -1,4 +1,6 @@
 type QueryParam = string | number | null;
+const D1_QUERY_TIMEOUT_MS = 8_000;
+const D1_MAX_ATTEMPTS = 2;
 
 interface D1ApiEnvelope {
     success?: boolean;
@@ -25,10 +27,12 @@ export interface FreePayslipQuotaStatus {
 
 class FreePayslipQuotaError extends Error {
     status: number;
+    retryable: boolean;
 
-    constructor(message: string, status = 500) {
+    constructor(message: string, status = 500, retryable = false) {
         super(message);
         this.status = status;
+        this.retryable = retryable;
     }
 }
 
@@ -67,24 +71,70 @@ function extractD1Rows(payload: D1ApiEnvelope): Array<Record<string, unknown>> {
     return [];
 }
 
-async function queryD1(sql: string, params: QueryParam[] = []): Promise<Array<Record<string, unknown>>> {
-    const { accountId, databaseId, apiToken } = getD1Config();
-    const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiToken}`,
-        },
-        body: JSON.stringify({ sql, params }),
-        cache: "no-store",
-    });
+function isRetryableQuotaError(error: unknown) {
+    return error instanceof FreePayslipQuotaError && error.retryable;
+}
 
-    const payload = await response.json() as D1ApiEnvelope;
-    if (!response.ok || payload.success === false) {
-        throw new FreePayslipQuotaError(payload.errors?.[0]?.message || "Cloudflare D1 query failed.", 502);
+async function queryD1Once(sql: string, params: QueryParam[] = []): Promise<Array<Record<string, unknown>>> {
+    const { accountId, databaseId, apiToken } = getD1Config();
+    const controller = new AbortController();
+    const timeoutId = globalThis.setTimeout(() => controller.abort(), D1_QUERY_TIMEOUT_MS);
+
+    try {
+        const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiToken}`,
+            },
+            body: JSON.stringify({ sql, params }),
+            cache: "no-store",
+            signal: controller.signal,
+        });
+
+        const payload = await response.json() as D1ApiEnvelope;
+        if (!response.ok || payload.success === false) {
+            const status = response.status >= 500 ? 502 : response.status;
+            throw new FreePayslipQuotaError(
+                payload.errors?.[0]?.message || "Cloudflare D1 query failed.",
+                status,
+                response.status >= 500,
+            );
+        }
+
+        return extractD1Rows(payload);
+    } catch (error) {
+        if (error instanceof FreePayslipQuotaError) {
+            throw error;
+        }
+
+        if (error instanceof DOMException && error.name === "AbortError") {
+            throw new FreePayslipQuotaError("The free payslip service took too long to respond.", 503, true);
+        }
+
+        throw new FreePayslipQuotaError("The free payslip service could not be reached.", 503, true);
+    } finally {
+        globalThis.clearTimeout(timeoutId);
+    }
+}
+
+async function queryD1(sql: string, params: QueryParam[] = []): Promise<Array<Record<string, unknown>>> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= D1_MAX_ATTEMPTS; attempt += 1) {
+        try {
+            return await queryD1Once(sql, params);
+        } catch (error) {
+            lastError = error;
+            if (!isRetryableQuotaError(error) || attempt === D1_MAX_ATTEMPTS) {
+                throw error;
+            }
+        }
     }
 
-    return extractD1Rows(payload);
+    throw lastError instanceof Error
+        ? lastError
+        : new FreePayslipQuotaError("The free payslip service could not be reached.", 503, false);
 }
 
 function toMonthKey(date = new Date()): string {
@@ -193,5 +243,5 @@ export function toFreePayslipQuotaErrorResponse(error: unknown) {
         return { status: error.status, message: error.message };
     }
 
-    return { status: 500, message: "The free payslip limit could not be checked." };
+    return { status: 500, message: "The free payslip service had an unexpected error." };
 }

@@ -17,6 +17,7 @@ export default defineConfig({
             "@/components/marketing": path.resolve(__dirname, "components/marketing"),
             "@/components/billing": path.resolve(__dirname, "components/billing"),
             "@/components/layout": path.resolve(__dirname, "components/layout"),
+            "@/components/ui": path.resolve(__dirname, "components/ui"),
             "@/components/ui/alert": path.resolve(__dirname, "components/ui/alert.tsx"),
             "@/components/ui/card": path.resolve(__dirname, "components/ui/card.tsx"),
             "@/components/ui/input": path.resolve(__dirname, "components/ui/input.tsx"),

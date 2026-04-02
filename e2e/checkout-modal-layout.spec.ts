@@ -25,7 +25,10 @@ async function expectModalLayout(page: Page) {
     const overlay = page.getByTestId("paid-plan-checkout-overlay");
 
     await expect(modal).toBeVisible();
-    await expect(modal.getByRole("heading", { name: "Open secure payment" }).last()).toBeVisible();
+    await expect(modal.getByRole("heading", { name: "Enter your email to continue" }).last()).toBeVisible();
+    await expect(modal.getByLabel("Email address")).toBeVisible();
+    await expect(modal.getByRole("button", { name: "Continue to secure payment" })).toBeVisible();
+    await expect(modal.getByText("Selected plan")).toBeVisible();
     await expect.poll(async () => page.evaluate(() => getComputedStyle(document.body).overflow)).toBe("hidden");
     await expect.poll(async () => page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe("hidden");
 

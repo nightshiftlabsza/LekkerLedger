@@ -91,8 +91,8 @@ test.describe("Free public payslip flow", () => {
         await page.getByRole("button", { name: "Send verification link" }).click();
 
         await expect(page.getByTestId("free-payslip-gate-waiting")).toBeVisible();
-        await expect(page.getByText("Verification link sent. Open it on this phone")).toBeVisible();
-        await expect(page.getByRole("button", { name: "I opened the link on this device" })).toBeVisible();
+        await expect(page.getByText("Verification link sent. Open it in the same browser where this form is open")).toBeVisible();
+        await expect(page.getByRole("button", { name: "I opened the link in this browser" })).toBeVisible();
     });
 
     test("returns through the callback, checks quota, and downloads successfully", async ({ page }) => {
@@ -145,7 +145,6 @@ test.describe("Free public payslip flow", () => {
 
         await completeWizardToReview(page);
         await page.getByPlaceholder("you@example.com").fill("owner@example.com");
-        await page.getByRole("button", { name: "Send verification link" }).click();
 
         callbackCompleted = true;
         await simulateSameDeviceCallback(page, "owner@example.com");
@@ -210,7 +209,25 @@ test.describe("Free public payslip flow", () => {
         await expect(page.getByText("That link is invalid or expired.")).toBeVisible();
 
         await page.goto("/resources/tools/domestic-worker-payslip?freePayslipVerification=missing-session");
-        await expect(page.getByText("We could not confirm this email on this device yet.")).toBeVisible();
+        await expect(page.getByText("We could not confirm this email in this browser yet.")).toBeVisible();
+    });
+
+    test("shows a temporary service message instead of asking for verification again when quota lookup fails", async ({ page }) => {
+        await mockSupabasePublicAuth(page);
+
+        await page.route("**/api/free-payslip/quota", async (route) => {
+            await route.fulfill({
+                status: 503,
+                contentType: "application/json",
+                body: JSON.stringify({ error: "Cloudflare D1 query failed." }),
+            });
+        });
+
+        await completeWizardToReview(page);
+        await page.getByPlaceholder("you@example.com").fill("owner@example.com");
+        await page.goto("/resources/tools/domestic-worker-payslip?freePayslipVerification=success");
+
+        await expect(page.getByText("The free payslip service is temporarily unavailable. Please try again in a moment.")).toBeVisible();
     });
 
     test("shows the quota-used state after verification when this month's free PDF is already used", async ({ page }) => {

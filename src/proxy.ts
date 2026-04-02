@@ -1,7 +1,15 @@
-import { type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
+import { getCanonicalAppOrigin, getRequestCurrentOrigin } from '@/lib/app-origin'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function proxy(request: NextRequest) {
+  const requestOrigin = getRequestCurrentOrigin(request)
+  const canonicalOrigin = getCanonicalAppOrigin(requestOrigin)
+
+  if (canonicalOrigin && canonicalOrigin !== requestOrigin) {
+    return NextResponse.redirect(new URL(`${request.nextUrl.pathname}${request.nextUrl.search}`, canonicalOrigin), 308)
+  }
+
   return await updateSession(request)
 }
 

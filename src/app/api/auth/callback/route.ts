@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getRequestAppOrigin } from "@/lib/app-origin";
+import { getRequestAppOrigin, getRequestCurrentOrigin } from "@/lib/app-origin";
 import { createClient } from "@/lib/supabase/server";
 import { E2E_FREE_PAYSLIP_COOKIE } from "@/lib/e2e-free-payslip";
 import {
@@ -13,11 +13,11 @@ function buildRedirect(origin: string, pathname: string) {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const origin = getRequestAppOrigin(request);
   const code = searchParams.get("code");
   const next = searchParams.get("next");
   const safeNext = next?.startsWith("/") ? next : "/dashboard";
   const isFreePayslipFlow = isFreePayslipVerificationPath(next);
+  const origin = isFreePayslipFlow ? getRequestCurrentOrigin(request) : getRequestAppOrigin(request);
   const e2eFreePayslipEmail = searchParams.get("e2eFreePayslipEmail")?.trim().toLowerCase() ?? "";
 
   if (process.env.E2E_BYPASS_AUTH === "1" && isFreePayslipFlow && e2eFreePayslipEmail) {

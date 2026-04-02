@@ -66,6 +66,25 @@ describe("free payslip quota route", () => {
         });
     });
 
+    it("returns a service status when quota lookup fails for infra reasons", async () => {
+        mocks.getUserMock.mockResolvedValue({
+            data: { user: { email: "worker@example.com" } },
+            error: null,
+        });
+        mocks.getStatusMock.mockRejectedValue(new Error("d1 timeout"));
+        mocks.errorResponseMock.mockReturnValue({
+            status: 503,
+            message: "The free payslip service is temporarily unavailable. Please try again in a moment.",
+        });
+
+        const response = await GET(new Request("https://lekkerledger.co.za/api/free-payslip/quota"));
+
+        expect(response.status).toBe(503);
+        await expect(response.json()).resolves.toMatchObject({
+            error: "The free payslip service is temporarily unavailable. Please try again in a moment.",
+        });
+    });
+
     it("returns 409 when the monthly quota has already been used", async () => {
         mocks.getUserMock.mockResolvedValue({
             data: { user: { email: "worker@example.com" } },

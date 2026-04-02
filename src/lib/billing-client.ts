@@ -2,7 +2,6 @@
 
 import { BillingCycle, PlanId } from "../config/plans";
 import { BillingAccountSummary, getFreeEntitlements, VerifiedEntitlements } from "./billing";
-import { PaidActivationState } from "./billing-activation";
 import { createClient } from "./supabase/client";
 
 interface CachedEntitlements {
@@ -70,7 +69,7 @@ export function clearVerifiedEntitlementsCache() {
 export async function fetchVerifiedEntitlements(accessToken?: string | null, force = false): Promise<VerifiedEntitlements | null> {
     const { sessionKey } = await getAuthContext(accessToken);
 
-    if (!force && cachedEntitlements?.sessionKey === sessionKey && (Date.now() - cachedEntitlements.fetchedAt) < ENTITLEMENTS_CACHE_TTL_MS) {
+    if (!force && cachedEntitlements && cachedEntitlements.sessionKey === sessionKey && (Date.now() - cachedEntitlements.fetchedAt) < ENTITLEMENTS_CACHE_TTL_MS) {
         return cachedEntitlements.value;
     }
 
@@ -87,7 +86,7 @@ export async function fetchVerifiedEntitlements(accessToken?: string | null, for
     }
 
     if (!response.ok) {
-        if (cachedEntitlements?.sessionKey === sessionKey) {
+        if (cachedEntitlements && cachedEntitlements.sessionKey === sessionKey) {
             return cachedEntitlements.value;
         }
 
@@ -107,14 +106,7 @@ export async function fetchVerifiedEntitlements(accessToken?: string | null, for
 export async function createCheckoutSession(
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle },
     accessToken?: string | null,
-): Promise<{
-    authorizationUrl: string;
-    accessCode: string;
-    reference: string;
-    checkoutMode: "inline" | "redirect" | "no_charge";
-    proration?: BillingAccountSummary["prorationPreview"];
-    billingAccount?: BillingAccountPayload;
-}> {
+): Promise<{ authorizationUrl: string; reference: string }> {
     const authHeaders = await buildAuthHeaders(accessToken);
     const response = await fetch("/api/billing/checkout", {
         method: "POST",
@@ -136,20 +128,13 @@ export async function createCheckoutSession(
     const data = await response.json();
     return {
         authorizationUrl: data.authorizationUrl as string,
-        accessCode: data.accessCode as string,
         reference: data.reference as string,
-        checkoutMode: (data.checkoutMode as "inline" | "redirect" | "no_charge") || "inline",
-        proration: data.proration as BillingAccountSummary["prorationPreview"] | undefined,
-        billingAccount: data.billingAccount ? {
-            entitlements: (data.billingAccount.entitlements as VerifiedEntitlements | undefined) ?? getFreeEntitlements(),
-            account: data.billingAccount.account as BillingAccountSummary,
-        } : undefined,
     };
 }
 
 export async function createInlinePurchaseIntent(
     input: { planId: Exclude<PlanId, "free">; billingCycle: BillingCycle; email: string; referralCode?: string | null },
-): Promise<{ reference: string; accessCode: string; authorizationUrl: string; amountCents: number; checkoutMode?: "inline" | "redirect" }> {
+): Promise<{ reference: string; accessCode: string; amountCents: number }> {
     const response = await fetch("/api/billing/purchase/intent", {
         method: "POST",
         headers: {
@@ -159,16 +144,14 @@ export async function createInlinePurchaseIntent(
     });
 
     if (!response.ok) {
-        throw await buildErrorMessage(response, "Hosted checkout could not be started.");
+        throw await buildErrorMessage(response, "Secure payment could not be opened. Please try again.");
     }
 
     const data = await response.json();
     return {
         reference: data.reference as string,
         accessCode: data.accessCode as string,
-        authorizationUrl: data.authorizationUrl as string,
         amountCents: data.amountCents as number,
-        checkoutMode: data.checkoutMode as "inline" | "redirect" | undefined,
     };
 }
 
@@ -274,41 +257,4 @@ export async function confirmGuestBillingTransaction(reference: string): Promise
     }
 
     return await response.json();
-}
-
-export async function resolvePaidActivation(reference: string): Promise<PaidActivationState> {
-    const response = await fetch("/api/billing/activation/resolve", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ reference }),
-        cache: "no-store",
-    });
-
-    if (!response.ok) {
-        throw await buildErrorMessage(response, "Paid activation could not be resolved.");
-    }
-
-    return await response.json() as PaidActivationState;
-}
-
-export async function createPaidActivationAccount(input: {
-    reference: string;
-    password: string;
-}): Promise<PaidActivationState> {
-    const response = await fetch("/api/billing/activation/create-account", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(input),
-        cache: "no-store",
-    });
-
-    if (!response.ok) {
-        throw await buildErrorMessage(response, "Paid account creation could not be completed.");
-    }
-
-    return await response.json() as PaidActivationState;
 }

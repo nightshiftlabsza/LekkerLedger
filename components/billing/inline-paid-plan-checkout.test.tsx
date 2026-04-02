@@ -1,158 +1,178 @@
 import * as React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useInlinePaidPlanCheckout } from "./inline-paid-plan-checkout";
 
-const { push, resumeTransaction, createCheckoutSession } = vi.hoisted(() => ({
-    push: vi.fn(),
-    resumeTransaction: vi.fn(),
-    createCheckoutSession: vi.fn(),
+const mocks = vi.hoisted(() => ({
+    pushMock: vi.fn(),
+    getUserMock: vi.fn(),
+    getSettingsMock: vi.fn(),
+    createInlinePurchaseIntentMock: vi.fn(),
+    writePendingBillingEmailMock: vi.fn(),
+    writePendingBillingReferenceMock: vi.fn(),
+    startAppMetricMock: vi.fn(),
+    endAppMetricMock: vi.fn(),
+    resumeTransactionMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
     useRouter: () => ({
-        push,
+        push: mocks.pushMock,
     }),
-}));
-
-vi.mock("@paystack/inline-js", () => ({
-    default: class MockPaystackPop {
-        resumeTransaction = resumeTransaction;
-    },
-}));
-
-vi.mock("@/lib/billing-client", () => ({
-    createCheckoutSession,
-    createInlinePurchaseIntent: vi.fn(),
-}));
-
-vi.mock("@/lib/billing-handoff", () => ({
-    writePendingBillingCheckoutState: vi.fn(),
-    writePendingBillingEmail: vi.fn(),
-    writePendingBillingReference: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/client", () => ({
     createClient: () => ({
         auth: {
-            getSession: vi.fn().mockResolvedValue({
-                data: {
-                    session: {
-                        user: {
-                            email: "owner@example.com",
-                        },
-                    },
-                },
-            }),
+            getUser: mocks.getUserMock,
         },
     }),
 }));
 
-vi.mock("@/lib/env", () => ({
-    getRequiredEnvValue: vi.fn(() => "pk_live_example"),
+vi.mock("@/lib/storage", () => ({
+    getSettings: mocks.getSettingsMock,
 }));
 
-vi.mock("./paid-plan-checkout-dialog", () => ({
-    PaidPlanCheckoutDialog: ({
-        open,
-        children,
-    }: {
-        open: boolean;
-        children: React.ReactNode;
-    }) => (open ? <div data-testid="paid-plan-checkout-modal">{children}</div> : null),
+vi.mock("@/lib/billing-client", () => ({
+    createInlinePurchaseIntent: mocks.createInlinePurchaseIntentMock,
 }));
 
-describe("useInlinePaidPlanCheckout", () => {
+vi.mock("@/lib/billing-handoff", () => ({
+    writePendingBillingEmail: mocks.writePendingBillingEmailMock,
+    writePendingBillingReference: mocks.writePendingBillingReferenceMock,
+}));
+
+vi.mock("@/lib/paid-activation", () => ({
+    buildPaidDashboardHref: ({ reference }: { reference?: string | null }) => reference ? `/dashboard?reference=${reference}` : "/dashboard",
+    buildPaidLoginHref: (reference?: string | null) => reference ? `/login?reference=${reference}` : "/login",
+}));
+
+vi.mock("@/lib/app-performance", () => ({
+    startAppMetric: mocks.startAppMetricMock,
+    endAppMetric: mocks.endAppMetricMock,
+}));
+
+vi.mock("@paystack/inline-js", () => ({
+    default: class PaystackPopupMock {
+        resumeTransaction(accessCode: string, handlers: {
+            onLoad: () => void;
+            onSuccess: (response: unknown) => void;
+            onCancel: () => void;
+            onError: (error: { message?: string } | undefined) => void;
+        }) {
+            return mocks.resumeTransactionMock(accessCode, handlers);
+        }
+    },
+}));
+
+import { InlinePlanCheckoutButton } from "./inline-paid-plan-checkout";
+
+function TestCheckoutButton() {
+    return (
+        <InlinePlanCheckoutButton planId="standard" billingCycle="monthly">
+            Choose Standard
+        </InlinePlanCheckoutButton>
+    );
+}
+
+async function openGuestModal() {
+    render(<TestCheckoutButton />);
+    fireEvent.click(screen.getByRole("button", { name: "Choose Standard" }));
+    return await screen.findByRole("heading", { name: "Enter your email to continue" });
+}
+
+describe("Inline paid plan checkout", () => {
     beforeEach(() => {
-        resumeTransaction.mockReset();
-        createCheckoutSession.mockReset();
-        push.mockReset();
-    });
+        mocks.pushMock.mockReset();
+        mocks.getUserMock.mockReset();
+        mocks.getSettingsMock.mockReset();
+        mocks.createInlinePurchaseIntentMock.mockReset();
+        mocks.writePendingBillingEmailMock.mockReset();
+        mocks.writePendingBillingReferenceMock.mockReset();
+        mocks.startAppMetricMock.mockReset();
+        mocks.endAppMetricMock.mockReset();
+        mocks.resumeTransactionMock.mockReset();
+        window.localStorage.clear();
 
-    function Harness() {
-        const { startCheckout, dialog } = useInlinePaidPlanCheckout({ billingCycle: "monthly" });
-
-        return (
-            <>
-                <button type="button" onClick={() => startCheckout("pro")}>
-                    Upgrade now
-                </button>
-                {dialog}
-            </>
-        );
-    }
-
-    it("uses Paystack inline checkout by default for signed-in upgrades", async () => {
-        createCheckoutSession.mockResolvedValue({
-            authorizationUrl: "https://paystack.example/hosted",
-            accessCode: "ACS_inline_123",
-            reference: "ref_inline_123",
-            checkoutMode: "inline",
-            proration: {
-                amountDueNowCents: 1000,
-                creditAppliedCents: 500,
-                remainingFraction: 0.5,
-                nextRenewalDate: "2026-04-19T00:00:00.000Z",
-                nextRecurringAmountCents: 4900,
-                currency: "ZAR",
-            },
-        });
-        resumeTransaction.mockImplementation((_accessCode, options: { onSuccess: (transaction: { reference?: string }) => void }) => {
-            options.onSuccess({ reference: "ref_inline_success" });
-        });
-
-        render(
-            <Harness />,
-        );
-
-        fireEvent.click(screen.getByRole("button", { name: "Upgrade now" }));
-        fireEvent.click(await screen.findByRole("button", { name: "Review payment" }));
-        fireEvent.click(await screen.findByRole("button", { name: /Pay R.*10,00 now/ }));
-
-        await waitFor(() => {
-            expect(createCheckoutSession).toHaveBeenCalledWith({
-                planId: "pro",
-                billingCycle: "monthly",
-            });
-            expect(resumeTransaction).toHaveBeenCalledTimes(1);
-            expect(resumeTransaction).toHaveBeenCalledWith("ACS_inline_123", expect.objectContaining({
-                key: "pk_live_example",
-            }));
-            expect(push).toHaveBeenCalledWith("/billing/activate?reference=ref_inline_success");
+        mocks.getUserMock.mockResolvedValue({ data: { user: null } });
+        mocks.getSettingsMock.mockResolvedValue({});
+        mocks.resumeTransactionMock.mockImplementation((_accessCode: string, handlers: { onLoad: () => void }) => {
+            handlers.onLoad();
         });
     });
 
-    it("falls back to redirect only when checkout requires it", async () => {
-        const assignSpy = vi.fn();
-        Object.defineProperty(globalThis, "location", {
-            configurable: true,
-            value: {
-                ...window.location,
-                assign: assignSpy,
-                pathname: "/settings",
-                search: "",
-            },
+    it("shows the guest email-first copy, plan summary, and plain email field", async () => {
+        await openGuestModal();
+
+        expect(screen.getAllByText("We'll use this email for your receipt and account setup. Then you'll continue to secure Paystack payment.").length).toBeGreaterThan(0);
+        expect(screen.getByLabelText("Email address")).toBeVisible();
+        expect(screen.getByText("Selected plan")).toBeVisible();
+        expect(screen.getByText("Standard plan - R29 today, then monthly")).toBeVisible();
+        expect(screen.getByRole("button", { name: "Continue to secure payment" })).toBeVisible();
+
+        const emailInput = screen.getByLabelText("Email address");
+        expect(emailInput.className).not.toMatch(/\bpl-(10|11)\b/);
+
+        const emailField = emailInput.closest("div");
+        expect(emailField).not.toBeNull();
+        expect(emailField ? within(emailField).queryByTestId("checkout-email-icon") : null).not.toBeInTheDocument();
+        expect(emailField?.querySelector("svg")).toBeNull();
+    });
+
+    it("validates the email before opening payment", async () => {
+        await openGuestModal();
+
+        fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "not-an-email" } });
+        fireEvent.submit(screen.getByRole("button", { name: "Continue to secure payment" }).closest("form")!);
+
+        expect(await screen.findByText("Enter a valid email address to continue.")).toBeVisible();
+        expect(mocks.createInlinePurchaseIntentMock).not.toHaveBeenCalled();
+    });
+
+    it("prepares checkout and opens Paystack when the email is valid", async () => {
+        mocks.createInlinePurchaseIntentMock.mockResolvedValue({
+            reference: "ref_123",
+            accessCode: "access_123",
+            amountCents: 2900,
         });
 
-        createCheckoutSession.mockResolvedValue({
-            authorizationUrl: "https://paystack.example/redirect",
-            accessCode: "",
-            reference: "ref_redirect_123",
-            checkoutMode: "redirect",
-        });
+        await openGuestModal();
 
-        render(
-            <Harness />,
-        );
-
-        fireEvent.click(screen.getByRole("button", { name: "Upgrade now" }));
-        fireEvent.click(await screen.findByRole("button", { name: "Review payment" }));
-        fireEvent.click(await screen.findByRole("button", { name: "Continue to secure payment" }));
+        fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "guest@example.com" } });
+        fireEvent.submit(screen.getByRole("button", { name: "Continue to secure payment" }).closest("form")!);
 
         await waitFor(() => {
-            expect(assignSpy).toHaveBeenCalledWith("https://paystack.example/redirect");
-            expect(resumeTransaction).not.toHaveBeenCalled();
-            expect(push).not.toHaveBeenCalled();
+            expect(mocks.resumeTransactionMock).toHaveBeenCalledWith(
+                "access_123",
+                expect.objectContaining({
+                    onLoad: expect.any(Function),
+                    onSuccess: expect.any(Function),
+                    onCancel: expect.any(Function),
+                    onError: expect.any(Function),
+                }),
+            );
         });
+
+        expect(
+            mocks.createInlinePurchaseIntentMock.mock.calls.some(([input]) =>
+                input.planId === "standard"
+                && input.billingCycle === "monthly"
+                && input.email === "guest@example.com"
+                && input.referralCode === null,
+            ),
+        ).toBe(true);
+    });
+
+    it("keeps failure copy customer-friendly without internal redirect wording", async () => {
+        mocks.createInlinePurchaseIntentMock.mockRejectedValue(new Error("Secure payment could not be opened. Please try again."));
+
+        await openGuestModal();
+
+        fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "guest@example.com" } });
+        fireEvent.submit(screen.getByRole("button", { name: "Continue to secure payment" }).closest("form")!);
+
+        expect(await screen.findByText("Secure payment could not be opened. Please try again.")).toBeVisible();
+        expect(screen.queryByText(/redirect/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/inline/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/popup/i)).not.toBeInTheDocument();
     });
 });
