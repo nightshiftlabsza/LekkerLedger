@@ -4,6 +4,7 @@ import * as React from "react";
 import {
     buildEmptyOrdinaryWorkPattern,
     type OrdinaryWorkPattern,
+    type OrdinaryWorkPatternKey,
     ORDINARY_WORK_PATTERN_KEYS,
     ORDINARY_WORK_PATTERN_LABELS,
 } from "@/lib/ordinary-work-pattern";
@@ -14,6 +15,7 @@ interface OrdinaryWorkPatternPickerProps {
     disabled?: boolean;
     error?: string;
     helperText?: string;
+    hiddenDayKeys?: OrdinaryWorkPatternKey[];
 }
 
 export function OrdinaryWorkPatternPicker({
@@ -22,13 +24,18 @@ export function OrdinaryWorkPatternPicker({
     disabled,
     error,
     helperText,
+    hiddenDayKeys,
 }: OrdinaryWorkPatternPickerProps) {
     const pattern = value ?? buildEmptyOrdinaryWorkPattern();
+    const visibleDayKeys = React.useMemo(
+        () => ORDINARY_WORK_PATTERN_KEYS.filter((dayKey) => !(hiddenDayKeys ?? []).includes(dayKey)),
+        [hiddenDayKeys],
+    );
 
     return (
         <div className="space-y-3">
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-                {ORDINARY_WORK_PATTERN_KEYS.map((dayKey) => {
+            <div className={`grid grid-cols-4 gap-2 ${visibleDayKeys.length === 7 ? "sm:grid-cols-7" : "sm:grid-cols-6"}`}>
+                {visibleDayKeys.map((dayKey) => {
                     const selected = pattern[dayKey];
                     return (
                         <button

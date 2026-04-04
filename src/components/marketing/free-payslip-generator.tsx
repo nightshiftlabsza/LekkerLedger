@@ -7,7 +7,6 @@ import {
     ArrowLeft,
     ArrowRight,
     BadgeCheck,
-    CheckCircle2,
     ChevronDown,
     ChevronUp,
     Download,
@@ -18,7 +17,6 @@ import {
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { Stepper } from "@/components/ui/stepper";
 import { createClient } from "@/lib/supabase/client";
 import { calculatePayslip, getSundayRateMultiplier, NMW_RATE } from "@/lib/calculator";
@@ -104,6 +102,7 @@ type VerificationAction =
 type SavedFreePayslipDraft = {
     form: FreePayslipFormState;
     currentStep: number;
+    furthestStepReached: number;
     verificationEmail: string;
 };
 
@@ -115,10 +114,10 @@ type WizardStep = {
 
 const STEPS: WizardStep[] = [
     { label: "Details", title: "Employer and worker details", summary: "Add the employer and worker details that must appear on the payslip." },
-    { label: "Month", title: "Month and ordinary hours", summary: "Select the month, confirm the ordinary work pattern, and capture ordinary days and hours within the allowed cap." },
+    { label: "Month", title: "Month and ordinary hours", summary: "Choose the month, set the normal work pattern, and confirm how Sunday work should be treated." },
     { label: "Extra pay", title: "Overtime, Sunday, and public holiday hours", summary: "Keep overtime, Sunday work, and public holiday work separate from ordinary time." },
-    { label: "Deductions", title: "Deductions", summary: "Only include deductions that were agreed and recorded outside the payslip." },
-    { label: "Review", title: "Review and generate PDF", summary: "Check the payroll figures, then verify the email before generating the PDF." },
+    { label: "Deductions", title: "Deductions", summary: "Add any agreed deductions and preview UIF before you reach the review step." },
+    { label: "Review", title: "Review and generate PDF", summary: "Check the figures, fix anything quickly, then verify an email in this browser to unlock the PDF." },
 ];
 
 const DEFAULT_FORM: FreePayslipFormState = {
@@ -202,7 +201,7 @@ function clampStep(value: unknown) {
 function sanitizeSavedDraft(rawDraft: unknown): SavedFreePayslipDraft {
     const defaults = buildDefaultFormState();
     const raw = rawDraft && typeof rawDraft === "object"
-        ? rawDraft as { form?: Partial<Record<keyof FreePayslipFormState, unknown>>; currentStep?: unknown; verificationEmail?: unknown }
+        ? rawDraft as { form?: Partial<Record<keyof FreePayslipFormState, unknown>>; currentStep?: unknown; furthestStepReached?: unknown; verificationEmail?: unknown }
         : {};
     const nextForm = { ...defaults };
 
@@ -226,6 +225,7 @@ function sanitizeSavedDraft(rawDraft: unknown): SavedFreePayslipDraft {
     return {
         form: nextForm,
         currentStep: clampStep(raw.currentStep),
+        furthestStepReached: clampStep(raw.furthestStepReached ?? raw.currentStep),
         verificationEmail: typeof raw.verificationEmail === "string" ? raw.verificationEmail : "",
     };
 }
@@ -339,9 +339,9 @@ function TextField({ id, label, hint, error, children }: { id: string; label: st
 
 function SummaryRow({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
     return (
-        <div className="flex items-center justify-between gap-4 text-sm">
-            <span className="text-[var(--text-muted)]">{label}</span>
-            <span className={accent ? "font-bold text-[var(--primary)]" : "font-semibold text-[var(--text)]"}>{value}</span>
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 text-sm">
+            <span className="min-w-0 leading-6 text-[var(--text-muted)]">{label}</span>
+            <span className={`text-right tabular-nums ${accent ? "font-bold text-[var(--primary)]" : "font-semibold text-[var(--text)]"}`}>{value}</span>
         </div>
     );
 }
@@ -370,6 +370,7 @@ export function FreePayslipGenerator() {
     const savedDraft = React.useMemo(() => loadSavedDraft(), []);
     const [form, setForm] = React.useState<FreePayslipFormState>(() => savedDraft?.form ?? buildDefaultFormState());
     const [currentStep, setCurrentStep] = React.useState(() => savedDraft?.currentStep ?? 0);
+    const [furthestStepReached, setFurthestStepReached] = React.useState(() => savedDraft?.furthestStepReached ?? savedDraft?.currentStep ?? 0);
     const [errors, setErrors] = React.useState<FieldErrors>({});
     const [verificationEmail, setVerificationEmail] = React.useState(() => savedDraft?.verificationEmail ?? "");
     const [verification, dispatchVerification] = React.useReducer(verificationReducer, INITIAL_VERIFICATION_STATE);
@@ -378,7 +379,8 @@ export function FreePayslipGenerator() {
     const [checkingVerification, setCheckingVerification] = React.useState(false);
     const [downloading, setDownloading] = React.useState(false);
 
-    const normalizedPattern = React.useMemo(() => normalizeOrdinaryWorkPattern(form.ordinaryWorkPattern) ?? buildEmptyOrdinaryWorkPattern(), [form.ordinaryWorkPattern]);
+    const confirmedPattern = React.useMemo(() => normalizeOrdinaryWorkPattern(form.ordinaryWorkPattern), [form.ordinaryWorkPattern]);
+    const normalizedPattern = React.useMemo(() => confirmedPattern ?? buildEmptyOrdinaryWorkPattern(), [confirmedPattern]);
     const monthBounds = React.useMemo(() => getMonthBounds(isValidMonthKey(form.monthKey) ? form.monthKey : getMonthKey(new Date())), [form.monthKey]);
     const ordinaryCalendar = React.useMemo(() => describeOrdinaryWorkCalendar(monthBounds.start, monthBounds.end, normalizedPattern, ORDINARY_HOURS_PER_DAY), [monthBounds.end, monthBounds.start, normalizedPattern]);
     const derivedDraft = React.useMemo(() => derivePayslipDraft({
@@ -402,6 +404,19 @@ export function FreePayslipGenerator() {
     const breakdown = React.useMemo(() => payload ? calculatePayslip(payload.payslip) : null, [payload]);
     const payrollSummary = React.useMemo(() => payload ? buildPayrollSummary(payload.payslip) : null, [payload]);
     const totalPremiumHours = parseNumber(form.overtimeHours) + parseNumber(form.sundayHours) + parseNumber(form.publicHolidayHours);
+    const hasConfirmedPattern = Boolean(confirmedPattern);
+    const ordinaryDaysHint = hasConfirmedPattern
+        ? `Cap this month: ${ordinaryCalendar.ordinaryDayCap} ordinary day${ordinaryCalendar.ordinaryDayCap === 1 ? "" : "s"}.`
+        : "Select the ordinary work pattern first to calculate the cap.";
+    const ordinaryHoursHint = hasConfirmedPattern
+        ? `Auto-calculated from ordinary days × ${ORDINARY_HOURS_PER_DAY} hours. Edit only if the worker's ordinary hours differ from full days.${ordinaryCalendar.ordinaryHourCap > 0 ? ` Cap this month: ${ordinaryCalendar.ordinaryHourCap} hours.` : ""}`
+        : "Select the ordinary work pattern first to calculate the cap.";
+    const sundayBasisHelp = normalizedPattern.sunday
+        ? "Yes. Sunday hours will be paid at 1.5x."
+        : "No. Sunday hours will be paid at 2.0x.";
+    const reviewSundayBasis = normalizedPattern.sunday
+        ? "Usually works Sundays, so Sunday hours pay at 1.5x."
+        : "Does not usually work Sundays, so Sunday hours pay at 2.0x.";
 
     const updateField = React.useCallback((key: keyof FreePayslipFormState, value: FreePayslipFormState[keyof FreePayslipFormState]) => {
         setForm((current) => ({ ...current, [key]: value }));
@@ -411,6 +426,15 @@ export function FreePayslipGenerator() {
             delete nextErrors[key];
             return nextErrors;
         });
+    }, []);
+
+    const updateSundayBasis = React.useCallback((ordinarilyWorksSundays: boolean) => {
+        updateField("ordinaryWorkPattern", { ...form.ordinaryWorkPattern, sunday: ordinarilyWorksSundays });
+    }, [form.ordinaryWorkPattern, updateField]);
+
+    const jumpToStep = React.useCallback((stepIndex: number) => {
+        setCurrentStep(stepIndex);
+        setFurthestStepReached((current) => Math.max(current, stepIndex));
     }, []);
 
     const setSimpleVerificationError = React.useCallback((phase: "invalid-link" | "missing-session" | "service-unavailable", message: string) => {
@@ -453,11 +477,11 @@ export function FreePayslipGenerator() {
     React.useEffect(() => {
         if (typeof window === "undefined") return;
         try {
-            window.localStorage.setItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY, JSON.stringify({ form, currentStep, verificationEmail }));
+            window.localStorage.setItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY, JSON.stringify({ form, currentStep, furthestStepReached, verificationEmail }));
         } catch {
             // Best-effort draft persistence only.
         }
-    }, [currentStep, form, verificationEmail]);
+    }, [currentStep, form, furthestStepReached, verificationEmail]);
 
     React.useEffect(() => {
         if (!callbackState) return;
@@ -484,13 +508,13 @@ export function FreePayslipGenerator() {
             if (!form.monthKey) nextErrors.monthKey = "Choose the payslip month.";
             else if (!isValidMonthKey(form.monthKey)) nextErrors.monthKey = "Choose a valid payslip month.";
             if (parseNumber(form.hourlyRate) < NMW_RATE) nextErrors.hourlyRate = `The hourly rate must be at least R${NMW_RATE.toFixed(2)}.`;
-            if (!normalizeOrdinaryWorkPattern(form.ordinaryWorkPattern)) nextErrors.ordinaryWorkPattern = "Confirm the ordinary work pattern before continuing.";
+            if (!confirmedPattern) nextErrors.ordinaryWorkPattern = "Confirm the ordinary work pattern before continuing.";
             const ordinaryDaysWorked = parseNumber(form.ordinaryDaysWorked);
             if (ordinaryDaysWorked < 0) nextErrors.ordinaryDaysWorked = "Ordinary working days cannot be negative.";
-            else if (ordinaryDaysWorked > ordinaryCalendar.ordinaryDayCap) nextErrors.ordinaryDaysWorked = `Ordinary working days cannot be more than ${ordinaryCalendar.ordinaryDayCap} for this month and work pattern.`;
-            if (ordinaryDaysWorked === 0 && totalPremiumHours <= 0 && parseNumber(form.shortShiftWorkedHours) <= 0) nextErrors.ordinaryDaysWorked = "Add ordinary working days or paid hours first.";
+            else if (confirmedPattern && ordinaryDaysWorked > ordinaryCalendar.ordinaryDayCap) nextErrors.ordinaryDaysWorked = `Ordinary working days cannot be more than ${ordinaryCalendar.ordinaryDayCap} for this month and work pattern.`;
+            if (hasConfirmedPattern && ordinaryDaysWorked === 0 && totalPremiumHours <= 0 && parseNumber(form.shortShiftWorkedHours) <= 0) nextErrors.ordinaryDaysWorked = "Add ordinary working days or paid hours first.";
             const ordinaryHoursOverride = form.ordinaryHoursOverride.trim() ? parseNumber(form.ordinaryHoursOverride) : null;
-            if (ordinaryHoursOverride !== null && ordinaryHoursOverride > ordinaryCalendar.ordinaryHourCap) nextErrors.ordinaryHoursOverride = `Ordinary hours cannot be more than ${ordinaryCalendar.ordinaryHourCap} for this month and work pattern.`;
+            if (ordinaryHoursOverride !== null && confirmedPattern && ordinaryHoursOverride > ordinaryCalendar.ordinaryHourCap) nextErrors.ordinaryHoursOverride = `Ordinary hours cannot be more than ${ordinaryCalendar.ordinaryHourCap} for this month and work pattern.`;
         }
         if (stepIndex === 2) {
             if (parseNumber(form.overtimeHours) < 0) nextErrors.overtimeHours = "Hours cannot be negative.";
@@ -500,11 +524,15 @@ export function FreePayslipGenerator() {
         if (stepIndex === 3 && parseNumber(form.otherDeductions) < 0) nextErrors.otherDeductions = "Deductions cannot be negative.";
         setErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
-    }, [form, ordinaryCalendar.ordinaryDayCap, ordinaryCalendar.ordinaryHourCap, totalPremiumHours]);
+    }, [confirmedPattern, form, hasConfirmedPattern, ordinaryCalendar.ordinaryDayCap, ordinaryCalendar.ordinaryHourCap, totalPremiumHours]);
 
     const goNext = React.useCallback(() => {
         if (!validateStep(currentStep)) return;
-        setCurrentStep((step) => Math.min(step + 1, STEPS.length - 1));
+        setCurrentStep((step) => {
+            const nextStep = Math.min(step + 1, STEPS.length - 1);
+            setFurthestStepReached((current) => Math.max(current, nextStep));
+            return nextStep;
+        });
     }, [currentStep, validateStep]);
 
     const goBack = React.useCallback(() => setCurrentStep((step) => Math.max(step - 1, 0)), []);
@@ -576,6 +604,15 @@ export function FreePayslipGenerator() {
 
     const step = STEPS[currentStep];
     const sundayRateLabel = `${getSundayRateMultiplier(normalizedPattern.sunday).toFixed(1)}x`;
+    const verificationIntroMessage = `${FREE_PAYSLIP_RULE_MESSAGE} Verify the same email in this browser to unlock the download.`;
+    const shouldPromoteRecoveryAction = verification.phase === "waiting-for-verification" || verification.phase === "missing-session";
+    const verificationLinkButtonLabel = shouldPromoteRecoveryAction ? "Resend verification link" : "Send verification link";
+    const canRefreshVerification = verification.phase !== "idle" && verification.phase !== "sending-link";
+    const generateLockedMessage = verification.phase === "verified-ready"
+        ? ""
+        : verification.phase === "quota-used" || verification.phase === "success"
+            ? "This verified email has already used its free PDF for this calendar month."
+            : "Generate PDF unlocks after this email is verified in this browser.";
     const gateCardTitle = verification.phase === "sending-link"
         ? "Sending verification link"
         : verification.phase === "waiting-for-verification"
@@ -595,20 +632,24 @@ export function FreePayslipGenerator() {
                                     : "Verify email";
 
     return (
-        <section id="free-payslip-wizard" data-testid="free-payslip-wizard" className="scroll-mt-24">
+        <section id="free-payslip-wizard" data-testid="free-payslip-wizard" className="mx-auto max-w-[72rem] scroll-mt-24">
             <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-raised)] p-5 shadow-[var(--shadow-md)] sm:p-6 lg:p-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div className="max-w-3xl space-y-3">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                            <ShieldCheck className="h-3.5 w-3.5 text-[var(--primary)]" />
-                            Free payslip tool
-                        </div>
-                        <h1 className="font-serif text-3xl font-bold tracking-tight text-[var(--text)] sm:text-4xl">Create free payslip PDF</h1>
-                        <p className="max-w-2xl text-sm leading-7 text-[var(--text-muted)] sm:text-base">Direct payroll wording, visible holiday caps, and one successful free payslip PDF per verified email per calendar month.</p>
+                        <h2 className="font-serif text-3xl font-bold tracking-tight text-[var(--text)] sm:text-4xl">Build the payslip step by step.</h2>
+                        <p className="max-w-2xl text-sm leading-7 text-[var(--text-muted)] sm:text-base">
+                            We work out ordinary pay, UIF, Sunday treatment, and public holiday treatment as you go.
+                            Verify an email in this browser to unlock one free PDF download for the month.
+                        </p>
                     </div>
                 </div>
                 <div className="mt-6 rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-1)] p-4 shadow-[var(--shadow-sm)] sm:p-5">
-                    <Stepper steps={STEPS.map((wizardStep) => ({ label: wizardStep.label }))} currentStep={currentStep} onStepClick={(index) => { if (index <= currentStep) setCurrentStep(index); }} />
+                    <Stepper
+                        steps={STEPS.map((wizardStep) => ({ label: wizardStep.label }))}
+                        currentStep={currentStep}
+                        furthestStepReached={furthestStepReached}
+                        onStepClick={(index) => jumpToStep(index)}
+                    />
                 </div>
                 <div className="mt-6 rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-sm)] sm:p-6">
                     <div className="space-y-2">
@@ -707,14 +748,38 @@ export function FreePayslipGenerator() {
                                     </TextField>
                                 </div>
                                 <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5">
-                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Ordinary work pattern</p>
-                                    <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">Select the days the worker ordinarily works. Sunday pay uses {sundayRateLabel} because Sunday is {normalizedPattern.sunday ? "" : "not "}part of the ordinary work pattern.</p>
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Sunday treatment</p>
+                                    <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">Does the worker ordinarily work Sundays?</p>
+                                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => updateSundayBasis(false)}
+                                            className={`rounded-[1.25rem] border px-4 py-4 text-left transition-colors ${!normalizedPattern.sunday ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                        >
+                                            <p className="text-sm font-bold">No</p>
+                                            <p className={`mt-1 text-sm leading-6 ${!normalizedPattern.sunday ? "text-white/88" : "text-[var(--text-muted)]"}`}>Sunday hours will be paid at 2.0x.</p>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => updateSundayBasis(true)}
+                                            className={`rounded-[1.25rem] border px-4 py-4 text-left transition-colors ${normalizedPattern.sunday ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                        >
+                                            <p className="text-sm font-bold">Yes</p>
+                                            <p className={`mt-1 text-sm leading-6 ${normalizedPattern.sunday ? "text-white/88" : "text-[var(--text-muted)]"}`}>Sunday hours will be paid at 1.5x.</p>
+                                        </button>
+                                    </div>
+                                    <p className="mt-4 text-sm leading-6 text-[var(--text-muted)]">{sundayBasisHelp}</p>
+                                </div>
+                                <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Ordinary weekday pattern</p>
+                                    <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">Select the regular weekdays and Saturday that count as ordinary work for this month&apos;s cap.</p>
                                     <div className="mt-4">
                                         <OrdinaryWorkPatternPicker
                                             value={form.ordinaryWorkPattern}
                                             onChange={(nextPattern) => updateField("ordinaryWorkPattern", nextPattern)}
                                             error={errors.ordinaryWorkPattern}
-                                            helperText="This schedule controls the Sunday multiplier and the ordinary-day/hour cap."
+                                            helperText="Sunday is set separately above. This pattern controls the ordinary day and hour cap."
+                                            hiddenDayKeys={["sunday"]}
                                         />
                                     </div>
                                 </div>
@@ -723,7 +788,7 @@ export function FreePayslipGenerator() {
                                     <TextField
                                         id="free-ordinary-days"
                                         label="Ordinary working days"
-                                        hint={`Maximum allowed for this month and work pattern: ${ordinaryCalendar.ordinaryDayCap}.`}
+                                        hint={ordinaryDaysHint}
                                         error={errors.ordinaryDaysWorked}
                                     >
                                         <Input
@@ -738,7 +803,7 @@ export function FreePayslipGenerator() {
                                     <TextField
                                         id="free-ordinary-hours"
                                         label="Ordinary hours"
-                                        hint={`Leave blank to use ${(parseNumber(form.ordinaryDaysWorked) || 0)} days x ${ORDINARY_HOURS_PER_DAY} hours. Maximum allowed: ${ordinaryCalendar.ordinaryHourCap} hours.`}
+                                        hint={ordinaryHoursHint}
                                         error={errors.ordinaryHoursOverride}
                                     >
                                         <Input
@@ -748,7 +813,7 @@ export function FreePayslipGenerator() {
                                             max={ordinaryCalendar.ordinaryHourCap}
                                             value={form.ordinaryHoursOverride}
                                             onChange={(event) => updateField("ordinaryHoursOverride", event.target.value)}
-                                            placeholder={`${derivedDraft.autoOrdinaryHours}`}
+                                            placeholder={hasConfirmedPattern ? `${derivedDraft.autoOrdinaryHours}` : ""}
                                         />
                                     </TextField>
                                 </div>
@@ -835,29 +900,56 @@ export function FreePayslipGenerator() {
                         ) : null}
 
                         {currentStep === 3 ? (
-                            <div className="grid gap-5 lg:grid-cols-2">
-                                <TextField
-                                    id="free-other-deductions"
-                                    label="Other deductions"
-                                    hint="Only enter agreed deductions that should appear on this payslip."
-                                    error={errors.otherDeductions}
-                                >
-                                    <Input
+                            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.95fr)]">
+                                <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5">
+                                    <TextField
                                         id="free-other-deductions"
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={form.otherDeductions}
-                                        onChange={(event) => updateField("otherDeductions", event.target.value)}
-                                    />
-                                </TextField>
+                                        label="Other deductions"
+                                        hint="Only enter agreed deductions that should appear on this payslip."
+                                        error={errors.otherDeductions}
+                                    >
+                                        <Input
+                                            id="free-other-deductions"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={form.otherDeductions}
+                                            onChange={(event) => updateField("otherDeductions", event.target.value)}
+                                        />
+                                    </TextField>
+                                </div>
+                                <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">UIF preview</p>
+                                    {breakdown && payrollSummary ? (
+                                        <div className="mt-3 space-y-3">
+                                            <p className="text-sm leading-7 text-[var(--text-muted)]">
+                                                {payrollSummary.totalUifDue > 0
+                                                    ? "UIF applies on the current figures, so it will show on the payslip and employer summary."
+                                                    : "UIF does not apply on the current figures, so it will stay at zero on the payslip."}
+                                            </p>
+                                            <div className="space-y-2 text-sm">
+                                                <SummaryRow label="Employee UIF (1%)" value={`R ${payrollSummary.employeeUifDeduction.toFixed(2)}`} />
+                                                <SummaryRow label="Employer UIF (1%)" value={`R ${payrollSummary.employerUifContribution.toFixed(2)}`} />
+                                                <SummaryRow label="Total UIF due" value={`R ${payrollSummary.totalUifDue.toFixed(2)}`} accent />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">Finish the month and hours first to preview UIF here.</p>
+                                    )}
+                                </div>
                             </div>
                         ) : null}
 
                         {currentStep === 4 ? (
                             payload && breakdown && payrollSummary ? (
                                 <div className="space-y-6">
-                                    <div className="grid gap-5 xl:grid-cols-[1.3fr_0.7fr]">
+                                    <div className="flex flex-wrap gap-3">
+                                        <Button type="button" variant="outline" onClick={() => jumpToStep(0)}>Edit details</Button>
+                                        <Button type="button" variant="outline" onClick={() => jumpToStep(1)}>Edit month and hours</Button>
+                                        <Button type="button" variant="outline" onClick={() => jumpToStep(2)}>Edit extra pay</Button>
+                                        <Button type="button" variant="outline" onClick={() => jumpToStep(3)}>Edit deductions</Button>
+                                    </div>
+                                    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(19rem,0.9fr)]">
                                         <div className="space-y-5">
                                             <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-2)] p-5">
                                                 <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Payroll summary</p>
@@ -886,7 +978,7 @@ export function FreePayslipGenerator() {
                                                     <SummaryRow label="Role" value={payload.employee.role} />
                                                     <SummaryRow label="Payslip month" value={format(payload.payslip.payPeriodEnd, "MMMM yyyy")} />
                                                     <SummaryRow label="Ordinary working days" value={`${payload.payslip.daysWorked}`} />
-                                                    <SummaryRow label="Sunday basis" value={normalizedPattern.sunday ? "Ordinarily works Sundays (1.5x)" : "Does not ordinarily work Sundays (2x)"} />
+                                                    <SummaryRow label="Sunday treatment" value={reviewSundayBasis} />
                                                 </div>
                                             </div>
                                             <div data-testid={`free-payslip-gate-${verification.phase}`} className={`rounded-[1.5rem] border p-5 ${getNoticeStyles(verification.tone)}`}>
@@ -903,8 +995,8 @@ export function FreePayslipGenerator() {
                                                     <div className="min-w-0 flex-1 space-y-4">
                                                         <div className="space-y-2">
                                                             <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{gateCardTitle}</p>
-                                                            <p className="text-sm leading-7 text-[var(--text-muted)]">{verification.message || FREE_PAYSLIP_RULE_MESSAGE}</p>
-                                                            <p className="text-sm leading-7 text-[var(--text-muted)]">{FREE_PAYSLIP_RULE_MESSAGE}</p>
+                                                            <p className="text-sm leading-7 text-[var(--text-muted)]">{verificationIntroMessage}</p>
+                                                            {verification.message ? <p className="text-sm leading-7 text-[var(--text-muted)]">{verification.message}</p> : null}
                                                         </div>
                                                         <TextField id="free-verification-email" label="Verification email">
                                                             <Input
@@ -916,25 +1008,51 @@ export function FreePayslipGenerator() {
                                                             />
                                                         </TextField>
                                                         <div className="flex flex-col gap-3 sm:flex-row">
-                                                            <Button
-                                                                type="button"
-                                                                onClick={() => void sendVerificationLink()}
-                                                                disabled={verification.phase === "sending-link"}
-                                                                className="gap-2"
-                                                            >
-                                                                {verification.phase === "sending-link" ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-                                                                Send verification link
-                                                            </Button>
-                                                            <Button
-                                                                type="button"
-                                                                variant="outline"
-                                                                onClick={() => void refreshVerification("manual")}
-                                                                disabled={checkingVerification || verification.phase === "idle" || verification.phase === "sending-link"}
-                                                                className="gap-2"
-                                                            >
-                                                                {checkingVerification ? <RefreshCw className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                                                                I opened the link in this browser
-                                                            </Button>
+                                                            {shouldPromoteRecoveryAction ? (
+                                                                <>
+                                                                    <Button
+                                                                        type="button"
+                                                                        onClick={() => void refreshVerification("manual")}
+                                                                        disabled={checkingVerification || !canRefreshVerification}
+                                                                        className="gap-2"
+                                                                    >
+                                                                        {checkingVerification ? <RefreshCw className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                                                                        I opened the link in this browser
+                                                                    </Button>
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        onClick={() => void sendVerificationLink()}
+                                                                        disabled={verification.phase === "sending-link"}
+                                                                        className="gap-2"
+                                                                    >
+                                                                        {verification.phase === "sending-link" ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                                                                        {verificationLinkButtonLabel}
+                                                                    </Button>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Button
+                                                                        type="button"
+                                                                        onClick={() => void sendVerificationLink()}
+                                                                        disabled={verification.phase === "sending-link"}
+                                                                        className="gap-2"
+                                                                    >
+                                                                        {verification.phase === "sending-link" ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                                                                        {verificationLinkButtonLabel}
+                                                                    </Button>
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        onClick={() => void refreshVerification("manual")}
+                                                                        disabled={checkingVerification || !canRefreshVerification}
+                                                                        className="gap-2"
+                                                                    >
+                                                                        {checkingVerification ? <RefreshCw className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                                                                        I opened the link in this browser
+                                                                    </Button>
+                                                                </>
+                                                            )}
                                                         </div>
                                                         <div className="flex flex-col gap-3 sm:flex-row">
                                                             <Button
@@ -951,6 +1069,7 @@ export function FreePayslipGenerator() {
                                                                 Use different email
                                                             </Button>
                                                         </div>
+                                                        {generateLockedMessage ? <p className="text-sm leading-6 text-[var(--text-muted)]">{generateLockedMessage}</p> : null}
                                                         {verification.quota ? (
                                                             <div className="rounded-[1rem] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 text-sm text-[var(--text-muted)]">
                                                                 Verified email: <strong className="text-[var(--text)]">{verification.quota.email}</strong><br />

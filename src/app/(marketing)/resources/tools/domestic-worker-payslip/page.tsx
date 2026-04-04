@@ -8,7 +8,7 @@ import { CANONICAL_SITE_URL } from "@/lib/seo";
 
 export const metadata = {
     title: "Free Domestic Worker Payslip Generator | LekkerLedger",
-    description: "Create a compliant domestic worker payslip PDF in minutes. No account required. Payroll figures stay on your device until you download the PDF.",
+    description: "Create a domestic worker payslip PDF with ordinary pay, UIF, Sunday pay, and public holiday treatment worked out for you. Verify an email in this browser to unlock one free PDF each month.",
     alternates: {
         canonical: "/resources/tools/domestic-worker-payslip",
     },
@@ -18,7 +18,7 @@ export default function PayslipGeneratorPage() {
     return (
         <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
             <MarketingHeader />
-            <main className="content-container-wide px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+            <main className="marketing-tool-shell py-10 sm:py-14">
                 <div className="mb-8">
                     <Link
                         href="/resources/tools"
@@ -29,16 +29,20 @@ export default function PayslipGeneratorPage() {
                     </Link>
                 </div>
 
-                <div className="max-w-3xl mx-auto mb-10 space-y-3">
-                    <h1 className="type-h1" style={{ color: "var(--text)" }}>Free Domestic Worker Payslip Generator</h1>
-                    <p className="text-lg leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                        South African employers must provide a written payslip to domestic workers each pay period. Enter the details below to generate a PDF payslip. No account needed — your figures stay on this device until you download.
-                    </p>
-                </div>
+                <section className="mb-10 overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--surface-raised)] px-5 py-8 shadow-[var(--shadow-md)] sm:px-8 sm:py-10">
+                    <div className="marketing-tool-reading mx-auto space-y-4 text-center">
+                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">Free domestic worker payslip tool</p>
+                        <h1 className="type-h1" style={{ color: "var(--text)" }}>Create a clear domestic worker payslip without wrestling the payroll maths.</h1>
+                        <p className="text-base leading-7 sm:text-lg" style={{ color: "var(--text-muted)" }}>
+                            Enter the month, pay, and any extra hours. LekkerLedger works out ordinary pay, UIF, Sunday treatment, and public holiday treatment for you.
+                            Your figures stay in this browser while you complete the form, and email verification is only used to unlock one free PDF download per month.
+                        </p>
+                    </div>
+                </section>
 
                 <FreePayslipGenerator />
 
-                <div className="max-w-3xl mx-auto mt-16 space-y-10">
+                <div className="mx-auto mt-16 max-w-3xl space-y-10">
                     {/* Related Resources */}
                     <div className="space-y-4">
                         <h2 className="type-h3 font-semibold" style={{ color: "var(--text)" }}>Related Resources</h2>
@@ -75,7 +79,7 @@ export default function PayslipGeneratorPage() {
                     price: "0",
                     priceCurrency: "ZAR",
                 },
-                description: "Generate a compliant payslip PDF for your South African domestic worker. Free, no account required.",
+                description: "Generate a domestic worker payslip PDF with UIF, Sunday pay, and public holiday treatment handled for you. Verify an email in this browser to unlock one free PDF per month.",
             }} />
             <JsonLd schema={breadcrumbSchema([
                 { name: "Home", path: "/" },

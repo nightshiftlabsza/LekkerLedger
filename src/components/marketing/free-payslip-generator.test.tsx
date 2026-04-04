@@ -54,8 +54,22 @@ const VALID_DRAFT = {
         otherDeductions: "0",
     },
     currentStep: 4,
+    furthestStepReached: 4,
     verificationEmail: "owner@example.com",
 };
+
+function saveDraft(overrides?: Partial<typeof VALID_DRAFT>) {
+    const nextDraft = {
+        ...VALID_DRAFT,
+        ...overrides,
+        form: {
+            ...VALID_DRAFT.form,
+            ...overrides?.form,
+        },
+    };
+    window.localStorage.setItem("free-payslip-wizard-draft", JSON.stringify(nextDraft));
+    return nextDraft;
+}
 
 describe("FreePayslipGenerator", () => {
     beforeEach(() => {
@@ -65,7 +79,7 @@ describe("FreePayslipGenerator", () => {
         mocks.signOutMock.mockResolvedValue(undefined);
         window.localStorage.clear();
         window.sessionStorage.clear();
-        window.localStorage.setItem("free-payslip-wizard-draft", JSON.stringify(VALID_DRAFT));
+        saveDraft();
         vi.stubGlobal("fetch", vi.fn(async () => ({
             status: 401,
             ok: false,
@@ -76,7 +90,7 @@ describe("FreePayslipGenerator", () => {
     it("keeps the verification state idle while the email field is being typed", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Create free payslip PDF" });
+        await screen.findByRole("heading", { name: "Build the payslip step by step." });
         expect(screen.getByTestId("free-payslip-gate-idle")).toBeInTheDocument();
 
         fireEvent.change(screen.getByLabelText("Verification email"), { target: { value: "owner@exam" } });
@@ -89,7 +103,7 @@ describe("FreePayslipGenerator", () => {
     it("only enters the waiting state after Send verification link is clicked", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Create free payslip PDF" });
+        await screen.findByRole("heading", { name: "Build the payslip step by step." });
         fireEvent.change(screen.getByLabelText("Verification email"), { target: { value: "owner@example.com" } });
         fireEvent.click(screen.getByRole("button", { name: "Send verification link" }));
 
@@ -121,5 +135,83 @@ describe("FreePayslipGenerator", () => {
         await screen.findByText(/We could not confirm this email in this browser yet\./);
         expect(screen.getByTestId("free-payslip-gate-missing-session")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "I opened the link in this browser" })).toBeInTheDocument();
+    });
+
+    it("shows the monthly quota copy once and explains why Generate PDF is locked", async () => {
+        render(<FreePayslipGenerator />);
+
+        await screen.findByText("One successful free payslip PDF per verified email per calendar month. Verify the same email in this browser to unlock the download.");
+        expect(screen.getAllByText(/One successful free payslip PDF per verified email per calendar month\./)).toHaveLength(1);
+        expect(screen.getByRole("button", { name: "Generate PDF" })).toBeDisabled();
+        expect(screen.getByText("Generate PDF unlocks after this email is verified in this browser.")).toBeInTheDocument();
+    });
+
+    it("makes Sunday treatment explicit and keeps the multiplier tied to the same pattern state", async () => {
+        window.localStorage.clear();
+        saveDraft({
+            currentStep: 1,
+            furthestStepReached: 1,
+            form: {
+                ordinaryWorkPattern: {
+                    monday: true,
+                    tuesday: true,
+                    wednesday: true,
+                    thursday: true,
+                    friday: true,
+                    saturday: false,
+                    sunday: false,
+                },
+            },
+        });
+
+        render(<FreePayslipGenerator />);
+
+        await screen.findByText("Does the worker ordinarily work Sundays?");
+        expect(screen.getByText("No. Sunday hours will be paid at 2.0x.")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Sun" })).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: /Yes/ }));
+
+        expect(screen.getByText("Yes. Sunday hours will be paid at 1.5x.")).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+
+        await screen.findByRole("heading", { name: "Overtime, Sunday, and public holiday hours" });
+        expect(screen.getByText("Paid at 1.5x because Sunday is part of the ordinary work pattern.")).toBeInTheDocument();
+    });
+
+    it("shows an actionable ordinary-hours helper before any work pattern is selected", async () => {
+        window.localStorage.clear();
+        saveDraft({
+            currentStep: 1,
+            furthestStepReached: 1,
+            form: {
+                ordinaryWorkPattern: {
+                    monday: false,
+                    tuesday: false,
+                    wednesday: false,
+                    thursday: false,
+                    friday: false,
+                    saturday: false,
+                    sunday: false,
+                },
+                ordinaryDaysWorked: "0",
+                ordinaryHoursOverride: "",
+            },
+        });
+
+        render(<FreePayslipGenerator />);
+
+        await screen.findAllByText("Select the ordinary work pattern first to calculate the cap.");
+        expect(screen.queryByText(/Maximum allowed: 0 hours\./)).toBeNull();
+    });
+
+    it("adds review edit actions that jump back to the correct step", async () => {
+        render(<FreePayslipGenerator />);
+
+        await screen.findByRole("button", { name: "Edit extra pay" });
+        fireEvent.click(screen.getByRole("button", { name: "Edit extra pay" }));
+
+        expect(screen.getByRole("heading", { name: "Overtime, Sunday, and public holiday hours" })).toBeInTheDocument();
     });
 });
