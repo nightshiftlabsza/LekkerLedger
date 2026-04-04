@@ -117,7 +117,7 @@ export default function PricingPage() {
                                 </h3>
                                 <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device. Free generates one downloadable PDF per month with no stored data.
+                                        Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device. Free emails one payslip PDF per email address each calendar month with no account needed.
                                     </p>
                                     <p>
                                         Standard and Pro include the documents hub and automatic cloud-secured backup. Pro adds the Vault for any employment files, year-end summaries, and 5 years of browsable history.

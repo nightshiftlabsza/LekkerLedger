@@ -17,7 +17,7 @@ interface OrdinaryWorkCalendarSummaryCardProps {
 export function OrdinaryWorkCalendarSummaryCard({
     summary,
     ordinaryHoursPerDay,
-    title = "Ordinary work cap",
+    title = "This month's normal days and hours",
 }: OrdinaryWorkCalendarSummaryCardProps) {
     const [showHolidayDetails, setShowHolidayDetails] = React.useState(false);
     const plainLanguage = React.useMemo(
@@ -40,7 +40,7 @@ export function OrdinaryWorkCalendarSummaryCard({
                     className="flex w-full items-center justify-between gap-3 text-left"
                 >
                     <div>
-                        <p className="text-sm font-semibold text-[var(--text)]">Public holiday check</p>
+                        <p className="text-sm font-semibold text-[var(--text)]">Public holidays this month</p>
                         <p className="mt-1 text-sm text-[var(--text-muted)]">{plainLanguage.holidayDetails}</p>
                     </div>
                     {showHolidayDetails ? (
@@ -58,7 +58,7 @@ export function OrdinaryWorkCalendarSummaryCard({
                                 const excluded = summary.excludedHolidayDates.includes(holiday.date);
                                 return (
                                     <li key={holiday.date}>
-                                        {format(new Date(`${holiday.date}T00:00:00`), "EEE d MMM yyyy")} · {holiday.name} · {excluded ? "removed from normal days" : "not part of this usual work week"}
+                                        {format(new Date(`${holiday.date}T00:00:00`), "EEE d MMM yyyy")} · {holiday.name} · {excluded ? "not counted as a normal day" : "not on the usual work week"}
                                     </li>
                                 );
                             })}

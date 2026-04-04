@@ -130,7 +130,7 @@ export default function SupportPage() {
                             <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
                                 <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-[var(--text)]"><AlertCircle className="h-4 w-4 text-[var(--danger)]" /> &quot;My payslip disappeared after I closed the browser!&quot;</h3>
                                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                    If you are a paid user, sign in to access your cloud-stored records. If you used the free payslip tool, the PDF was available for download during the session only — generate it again if needed.
+                                    If you are a paid user, sign in to access your cloud-stored records. If you used the free payslip tool, check the email address you entered for the PDF, then generate it again if needed.
                                 </p>
                             </div>
 

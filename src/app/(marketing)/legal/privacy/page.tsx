@@ -44,7 +44,7 @@ export default function PrivacyPolicy() {
                         <h2 className="text-xl font-black text-[var(--text)]">Plain-language summary</h2>
                         <ul className="mt-4 list-disc space-y-2 pl-6 text-sm leading-7">
                             <li>Paid accounts store employee payroll records in end-to-end encrypted cloud storage. LekkerLedger does not have access to your unencrypted payroll data.</li>
-                            <li>Free users generate a single payslip PDF per month. No payroll records are stored after the session.</li>
+                            <li>Free users can email themselves a single payslip PDF per email address each calendar month. The free tool does not create stored payroll records in the app.</li>
                             <li>When a paid user signs out, all user data is cleared from the device.</li>
                             <li>We do collect limited product and website analytics so we can operate and improve the service.</li>
                             <li>We use payment and infrastructure providers for paid plans and service delivery, but we do not store your card details ourselves.</li>
@@ -86,7 +86,7 @@ export default function PrivacyPolicy() {
                             </p>
                             <ul className="list-disc space-y-2 pl-6">
                                 <li><strong>Encrypted cloud storage (paid accounts):</strong> payroll records, employee details, payslips, and related records are encrypted on your device before upload and stored in the cloud.</li>
-                                <li><strong>Session-only (free users):</strong> the free payslip tool generates a PDF in-browser. No payroll records are stored after the session ends.</li>
+                                <li><strong>Free payslip delivery:</strong> the free payslip tool generates the PDF server-side and emails it to the address entered. The free tool does not keep payroll records as stored app records.</li>
                                 <li><strong>In our service systems where needed:</strong> analytics, support messages, subscription records, and payment-related references may be processed through service providers used to operate the product.</li>
                             </ul>
                             <p>
@@ -127,7 +127,7 @@ export default function PrivacyPolicy() {
                                 <li><strong>Cloud-stored payroll records (Standard plan):</strong> generated payslips and exports are kept in encrypted cloud storage for up to 12 months from creation. After 12 months, generated payroll documents and their underlying calculation data are automatically and permanently removed. Employee profiles, contracts, uploaded documents, and account settings are not affected by this automatic removal.</li>
                                 <li><strong>Cloud-stored payroll records (Pro plan):</strong> generated payslips, exports, and uploaded documents are kept in encrypted cloud storage for up to 5 years from creation.</li>
                                 <li><strong>Employee profiles, contracts, and settings (paid plans):</strong> remain in encrypted cloud storage until you delete them from your account settings, regardless of plan.</li>
-                                <li><strong>Free payslip PDFs:</strong> generated and downloaded in a single session. No records are retained by LekkerLedger.</li>
+                                <li><strong>Free payslip PDFs:</strong> generated for email delivery. The free tool does not keep payroll records as stored app records.</li>
                                 <li><strong>Subscription, referral, analytics, and support records:</strong> may be retained for operational, accounting, fraud-prevention, support, or legal reasons for as long as reasonably necessary.</li>
                             </ul>
                             <p>

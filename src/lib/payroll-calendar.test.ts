@@ -91,10 +91,10 @@ describe("South African payroll calendar", () => {
         const plainLanguage = buildOrdinaryWorkCalendarPlainLanguage(summary, 8);
 
         expect(plainLanguage.summary).toContain("April 2026");
-        expect(plainLanguage.summary).toContain("possible normal work days");
-        expect(plainLanguage.summary).toContain("maximum normal days is 19");
-        expect(plainLanguage.summary).toContain("maximum normal hours is 152");
-        expect(plainLanguage.holidayDetails).toContain("excluded");
+        expect(plainLanguage.summary).toContain("22 workdays in this schedule");
+        expect(plainLanguage.summary).toContain("Maximum normal paid days this month: 19");
+        expect(plainLanguage.summary).toContain("Maximum normal hours this month: 152");
+        expect(plainLanguage.holidayDetails).toContain("not counted as normal days");
     });
 
     it("returns a guidance message when no usual work week is selected", () => {

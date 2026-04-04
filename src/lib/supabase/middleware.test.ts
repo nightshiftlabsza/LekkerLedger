@@ -92,11 +92,11 @@ describe("shouldApplyNoIndex", () => {
     });
 
     it("marks public utility routes as noindex", () => {
-        expect(shouldApplyNoIndex("/support", new URLSearchParams())).toBe(true);
         expect(shouldApplyNoIndex("/billing/checkout", new URLSearchParams("plan=pro"))).toBe(true);
     });
 
     it("keeps clean public marketing pages indexable", () => {
+        expect(shouldApplyNoIndex("/support", new URLSearchParams())).toBe(false);
         expect(shouldApplyNoIndex("/resources/guides/uif-for-domestic-workers", new URLSearchParams())).toBe(false);
     });
 });

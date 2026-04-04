@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 const steps = [
     {
         title: "Try the free payslip tool",
-        body: "Generate one payslip per month as a downloadable PDF in the browser, with no data stored after the session.",
+        body: "Generate one payslip per month per email address and have the PDF emailed to you.",
     },
     {
         title: "Upgrade for cloud-secured records",
@@ -74,7 +74,7 @@ export default function OnboardingPage() {
                     </div>
 
                     <ul className="mt-6 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
-                        <li>The free payslip tool works in the browser and does not keep records after the session.</li>
+                        <li>The free payslip tool emails one PDF per month per email address and does not create stored app records.</li>
                         <li>Paid plans unlock cloud-secured records, the dashboard, and account-based access from any device.</li>
                         <li>On a new device, sign in to access your encrypted cloud records.</li>
                     </ul>

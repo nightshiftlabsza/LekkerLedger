@@ -25,6 +25,8 @@ export interface FreePayslipQuotaStatus {
     usedThisMonth: boolean;
 }
 
+export const FREE_PAYSLIP_MONTHLY_LIMIT_MESSAGE = "This verified email has already used its one successful free payslip PDF for this calendar month.";
+
 class FreePayslipQuotaError extends Error {
     status: number;
     retryable: boolean;
@@ -243,7 +245,7 @@ export async function consumeFreePayslipQuota(email: string): Promise<FreePaysli
 
     if (updatedRows.length === 0) {
         throw new FreePayslipQuotaError(
-            "This verified email has already used its one successful free payslip PDF for this calendar month.",
+            FREE_PAYSLIP_MONTHLY_LIMIT_MESSAGE,
             409,
         );
     }

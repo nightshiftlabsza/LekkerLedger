@@ -29,6 +29,10 @@ const serverSchema = z.object({
     CLOUDFLARE_R2_ENDPOINT: z.string().optional(),
     CLOUDFLARE_R2_BUCKET_NAME: z.string().optional(),
 
+    // Transactional email
+    RESEND_API_KEY: z.string().optional(),
+    FREE_PAYSLIP_FROM_EMAIL: z.string().optional(),
+
     // Supabase Server
     SUPABASE_SERVICE_ROLE_KEY: requiredInProd,
     RECOVERABLE_WRAP_SECRET: requiredInProd,

@@ -18,7 +18,7 @@ describe("sitemap", () => {
         expect(entries.some((entry) => entry.url.includes("/resources/templates"))).toBe(false);
         expect(entries.some((entry) => entry.url.includes("/help/"))).toBe(false);
         expect(entries.some((entry) => entry.url.includes("/billing/"))).toBe(false);
-        expect(entries.some((entry) => entry.url.includes("/support"))).toBe(false);
+        expect(entries.some((entry) => entry.url.endsWith("/support"))).toBe(true);
         expect(entries.some((entry) => entry.url.includes("/dashboard"))).toBe(false);
     });
 });

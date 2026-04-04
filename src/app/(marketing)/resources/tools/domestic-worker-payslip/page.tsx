@@ -8,7 +8,7 @@ import { CANONICAL_SITE_URL } from "@/lib/seo";
 
 export const metadata = {
     title: "Free Domestic Worker Payslip Generator | LekkerLedger",
-    description: "Create a domestic worker payslip PDF with ordinary pay, UIF, Sunday pay, and public holiday treatment worked out for you. Verify an email in this browser to unlock one free PDF each month.",
+    description: "Create a domestic worker payslip PDF for this month. Enter the pay details and we will email one free payslip PDF per email address each calendar month.",
     alternates: {
         canonical: "/resources/tools/domestic-worker-payslip",
     },
@@ -32,10 +32,9 @@ export default function PayslipGeneratorPage() {
                 <section className="mb-10 overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--surface-raised)] px-5 py-8 shadow-[var(--shadow-md)] sm:px-8 sm:py-10">
                     <div className="marketing-tool-reading mx-auto space-y-4 text-center">
                         <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">Free domestic worker payslip tool</p>
-                        <h1 className="type-h1" style={{ color: "var(--text)" }}>Create a clear domestic worker payslip without wrestling the payroll maths.</h1>
+                        <h1 className="type-h1" style={{ color: "var(--text)" }}>Create this month&apos;s payslip</h1>
                         <p className="text-base leading-7 sm:text-lg" style={{ color: "var(--text-muted)" }}>
-                            Enter the month, pay, and any extra hours. LekkerLedger works out ordinary pay, UIF, Sunday treatment, and public holiday treatment for you.
-                            Your figures stay in this browser while you complete the form, and email verification is only used to unlock one free PDF download per month.
+                            Enter the month, pay rate, normal days worked, and any extra hours. We email the PDF after a successful send, with one free payslip per email address each calendar month.
                         </p>
                     </div>
                 </section>
@@ -79,7 +78,7 @@ export default function PayslipGeneratorPage() {
                     price: "0",
                     priceCurrency: "ZAR",
                 },
-                description: "Generate a domestic worker payslip PDF with UIF, Sunday pay, and public holiday treatment handled for you. Verify an email in this browser to unlock one free PDF per month.",
+                description: "Create a domestic worker payslip PDF for this month. Enter the pay details and we will email one free payslip PDF per email address each calendar month.",
             }} />
             <JsonLd schema={breadcrumbSchema([
                 { name: "Home", path: "/" },

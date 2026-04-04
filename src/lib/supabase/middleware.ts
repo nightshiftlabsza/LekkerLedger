@@ -14,7 +14,6 @@ const NON_INDEXABLE_QUERY_PARAMS = new Set([
   'source',
   'activation',
   'sync',
-  'freePayslipVerification',
 ])
 const LEGACY_ROUTE_REDIRECTS = new Map<string, string>([
   ['/help/coida', '/resources/guides/coida-and-roe-compliance'],

@@ -31,7 +31,7 @@ export default function StoragePage() {
                             Paid accounts store all payroll records in end-to-end encrypted cloud storage. Your data is encrypted before it leaves your device and can only be decrypted with your credentials.
                         </p>
                         <p>
-                            Free users do not have persistent storage. The free payslip tool generates a single PDF per month that you download directly — no records are retained in the browser or on our servers after the session.
+                            Free users do not have persistent storage. The free payslip tool emails one PDF per month per email address after a successful send, and the payroll details are not kept as stored records in the app.
                         </p>
                     </section>
 
@@ -66,12 +66,12 @@ export default function StoragePage() {
                             </div>
                             <h3 className="text-xl font-bold text-[var(--text)] mb-2">Free Payslip Tool</h3>
                             <p className="text-sm text-[var(--text-muted)] mb-4 leading-relaxed">
-                                One free payslip per month. Enter details, generate the PDF, download it. Nothing is stored in the browser or on our servers.
+                                One free payslip per month per email address. Enter details and we email the PDF after a successful send.
                             </p>
                             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> No account required</li>
-                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> PDF generated in-browser and downloaded</li>
-                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> No records persist after the session</li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> PDF generated server-side and emailed</li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> No free-tool payroll records are kept as stored app records</li>
                             </ul>
                         </div>
                     </div>
@@ -112,7 +112,7 @@ export default function StoragePage() {
                             Paid accounts can delete their cloud-stored records from the <strong>Settings</strong> page. This permanently erases all employees, payslips, and settings from cloud storage.
                         </p>
                         <p>
-                            Free users have nothing to delete — the PDF is generated and downloaded in a single session with no persistent storage.
+                            Free users have no stored account records to delete from the app. Their PDF is emailed after a successful send.
                         </p>
                     </section>
                     </div>
@@ -124,7 +124,7 @@ export default function StoragePage() {
                                 Choose based on what you need from LekkerLedger.
                             </p>
                             <ul className="mt-5 space-y-3 text-sm leading-7 text-[var(--text-muted)]">
-                                <li><strong className="text-[var(--text)]">Free:</strong> One payslip per month as a downloadable PDF. No account, no stored data.</li>
+                                <li><strong className="text-[var(--text)]">Free:</strong> One payslip per month per email address, delivered by email. No account.</li>
                                 <li><strong className="text-[var(--text)]">Paid:</strong> Cloud-secured records, encrypted sync across devices, dashboard, contracts, leave tracking, and exports.</li>
                             </ul>
                         </div>

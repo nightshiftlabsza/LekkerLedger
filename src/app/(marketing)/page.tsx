@@ -53,7 +53,7 @@ const homepageFaqSchema = {
             name: "Where are employee records stored?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users generate a payslip PDF directly in the browser and download it — no records are kept after the session.",
+                text: "Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one payslip PDF per email address each calendar month without creating an account.",
             },
         },
         {
@@ -61,7 +61,7 @@ const homepageFaqSchema = {
             name: "Can I start with one employee, and what changes when I upgrade?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "Yes. Free gives you one payslip per month as a downloadable PDF so you can try the flow before paying. Standard adds leave tracking, contracts, documents, cloud-secured records, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
+                text: "Yes. Free lets you email yourself one payslip PDF per email address each calendar month so you can try the flow before paying. Standard adds leave tracking, contracts, documents, cloud-secured records, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
             },
         },
         {
@@ -69,7 +69,7 @@ const homepageFaqSchema = {
             name: "What happens if I change devices later?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "Paid accounts store everything in the cloud. Just sign in on any device and your records are there. Free users download a PDF each time, so there is nothing to restore.",
+                text: "Paid accounts store everything in the cloud. Just sign in on any device and your records are there. Free users receive the PDF by email each time, so there is nothing to restore inside the app.",
             },
         },
     ],
@@ -670,15 +670,15 @@ function FAQPreview() {
         },
         {
             q: "Where are employee records stored?",
-            a: "Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users generate a payslip PDF directly in the browser and download it — no records are kept after the session.",
+            a: "Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one payslip PDF per email address each calendar month without creating an account.",
         },
         {
             q: "Can I start with one employee, and what changes when I upgrade?",
-            a: "Yes. Free gives you one payslip per month as a downloadable PDF so you can try the flow before paying. Standard adds leave tracking, contracts, documents, cloud-secured records, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
+            a: "Yes. Free lets you email yourself one payslip PDF per email address each calendar month so you can try the flow before paying. Standard adds leave tracking, contracts, documents, cloud-secured records, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
         },
         {
             q: "What happens if I change devices later?",
-            a: "Paid accounts store everything in the cloud. Just sign in on any device and your records are there. Free users download a PDF each time, so there is nothing to restore.",
+            a: "Paid accounts store everything in the cloud. Just sign in on any device and your records are there. Free users receive the PDF by email each time, so there is nothing to restore inside the app.",
         },
     ];
 
