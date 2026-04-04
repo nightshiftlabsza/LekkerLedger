@@ -98,20 +98,20 @@ describe("free payslip quota helper", () => {
             throw new Error(`Unhandled SQL in test: ${sql}`);
         }));
 
-        const module = await import("./free-payslip-quota");
+        const quotaModule = await import("./free-payslip-quota");
 
-        const firstStatus = await module.consumeFreePayslipQuota("Owner@example.com");
+        const firstStatus = await quotaModule.consumeFreePayslipQuota("Owner@example.com");
         expect(firstStatus.email).toBe("owner@example.com");
         expect(firstStatus.downloadsUsed).toBe(1);
         expect(firstStatus.remainingDownloads).toBe(0);
         expect(firstStatus.usedThisMonth).toBe(true);
 
-        await expect(module.consumeFreePayslipQuota("owner@example.com")).rejects.toMatchObject({
+        await expect(quotaModule.consumeFreePayslipQuota("owner@example.com")).rejects.toMatchObject({
             status: 409,
             message: "This verified email has already used its one successful free payslip PDF for this calendar month.",
         });
 
-        const differentEmail = await module.consumeFreePayslipQuota("second@example.com");
+        const differentEmail = await quotaModule.consumeFreePayslipQuota("second@example.com");
         expect(differentEmail.downloadsUsed).toBe(1);
     });
 
@@ -155,11 +155,11 @@ describe("free payslip quota helper", () => {
             throw new Error(`Unhandled SQL in test: ${sql}`);
         }));
 
-        const module = await import("./free-payslip-quota");
+        const quotaModule = await import("./free-payslip-quota");
 
-        const april = await module.consumeFreePayslipQuota("owner@example.com");
+        const april = await quotaModule.consumeFreePayslipQuota("owner@example.com");
         vi.setSystemTime(new Date("2026-05-02T09:00:00.000Z"));
-        const may = await module.consumeFreePayslipQuota("owner@example.com");
+        const may = await quotaModule.consumeFreePayslipQuota("owner@example.com");
 
         expect(april.monthKey).not.toBe(may.monthKey);
         expect(may.downloadsUsed).toBe(1);
