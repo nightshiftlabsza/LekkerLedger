@@ -1,4 +1,4 @@
-import { addDays } from "date-fns";
+import { addDays, format } from "date-fns";
 import { toIsoDate } from "./utils";
 import {
     buildEmptyOrdinaryWorkPattern,
@@ -154,6 +154,11 @@ export interface OrdinaryWorkCalendarSummary {
     explanation: string;
 }
 
+export interface OrdinaryWorkCalendarPlainLanguage {
+    summary: string;
+    holidayDetails: string;
+}
+
 function assertSupportedYear(year: number) {
     if (!PAYROLL_HOLIDAY_FIXTURES.some((entry) => entry.year === year)) {
         throw new Error(`South African public holiday fixtures are only pinned for 2026-2030. Received ${year}.`);
@@ -247,5 +252,38 @@ export function describeOrdinaryWorkCalendar(
         ordinaryDayCap,
         ordinaryHourCap,
         explanation,
+    };
+}
+
+export function buildOrdinaryWorkCalendarPlainLanguage(
+    summary: OrdinaryWorkCalendarSummary,
+    ordinaryHoursPerDay: number,
+): OrdinaryWorkCalendarPlainLanguage {
+    const selectedPatternDays = ORDINARY_WORK_PATTERN_KEYS.filter((key) => summary.workPattern[key]).length;
+    if (selectedPatternDays === 0) {
+        return {
+            summary: "Choose the usual work week to work out the maximum normal days and hours for this month.",
+            holidayDetails: "South African public holidays will be checked automatically once the usual work week is selected.",
+        };
+    }
+
+    const monthLabel = format(new Date(`${summary.startDate}T00:00:00`), "MMMM yyyy");
+    const possibleNormalDays = summary.ordinaryWorkDates.length + summary.publicHolidaysOnOrdinaryWorkDays.length;
+    const holidayCount = summary.publicHolidaysOnOrdinaryWorkDays.length;
+    const safeOrdinaryHoursPerDay = Math.max(0, ordinaryHoursPerDay);
+
+    const summaryText = holidayCount > 0
+        ? `For ${monthLabel}, this usual work week gives ${possibleNormalDays} possible normal work days. ${holidayCount} South African public holiday${holidayCount === 1 ? "" : "s"} fall on those days, so the maximum normal days is ${summary.ordinaryDayCap}. At ${safeOrdinaryHoursPerDay} hours a day, the maximum normal hours is ${summary.ordinaryHourCap}.`
+        : `For ${monthLabel}, this usual work week gives ${summary.ordinaryDayCap} normal work days. At ${safeOrdinaryHoursPerDay} hours a day, the maximum normal hours is ${summary.ordinaryHourCap}.`;
+
+    const holidayDetails = summary.publicHolidaysInRange.length === 0
+        ? "No South African public holidays fall in this month."
+        : holidayCount > 0
+            ? `${holidayCount} public holiday${holidayCount === 1 ? "" : "s"} are excluded from the maximum because they fall on the usual work week.`
+            : "Public holidays fall in this month, but none of them land on the usual work week.";
+
+    return {
+        summary: summaryText,
+        holidayDetails,
     };
 }

@@ -45,9 +45,14 @@ This project uses Google Analytics 4 to track conversions.
    - Production: Add it as an environment variable in your hosting provider (for this app, Railway).
 
 ### Events Tracked
-- `payslip_export`: Fired when a user clicks "Download PDF" on the preview page.
-  - Parameter: `{ method: "download_pdf" }`
+Current code examples include:
+
+- `payslip_export`: Fired when a user downloads a payslip PDF from the preview, payroll, or history flows.
+  - Example parameter: `{ method: "download_pdf" }`
 - `onboarding_complete`: Fired when a user completes the payslip wizard.
+- `app_performance_metric`: Fired for named timing and performance metrics such as `paystack_open_latency`, `login_to_interactive`, `auth_resolved_after_login`, `subscription_resolved_after_login`, and `dashboard_mount_renders`.
+- `pwa_install_prompt`: Fired when the web install prompt is shown.
+- `pwa_install`: Fired when the web app install completes.
 
 ### Verification
 You can verify that events are firing by using the **GA4 Realtime report** or **DebugView**.

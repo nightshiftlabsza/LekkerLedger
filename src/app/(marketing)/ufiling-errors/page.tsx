@@ -36,7 +36,7 @@ const ufilingHowToSchema = {
       "@type": "HowToStep",
       position: 2,
       name: "Download the uFiling export",
-      text: "At the end of the month, click \"Download uFiling Export\" in your Pro dashboard.",
+      text: "At the end of the month, download the uFiling export from your Standard or Pro dashboard.",
     },
     {
       "@type": "HowToStep",
@@ -122,7 +122,7 @@ export default function UFilingErrorsPage() {
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">2</div>
-                                        <p className="text-sm">At the end of the month, click <b>&quot;Download uFiling Export&quot;</b> in your Pro dashboard.</p>
+                                        <p className="text-sm">At the end of the month, download <b>&quot;uFiling Export&quot;</b> from your Standard or Pro dashboard.</p>
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">3</div>
@@ -140,11 +140,11 @@ export default function UFilingErrorsPage() {
                             <FileText className="h-10 w-10 text-[var(--text-muted)] mx-auto" />
                             <h3 className="text-xl font-bold" style={{ color: "var(--text)" }}>Ready to stop fighting uFiling?</h3>
                             <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-                                The CSV export feature is available to all LekkerLedger Pro users. It maps perfectly to the Department&apos;s technical specifications.
+                                The uFiling CSV export is available on Standard and Pro paid plans. Compare the paid tiers to choose the one that matches your household.
                             </p>
-                            <Link href="/dashboard" className="inline-block">
+                            <Link href="/pricing" className="inline-block">
                                 <Button size="lg" className="h-12 px-8 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-full">
-                                    Upgrade Your Workflow
+                                    See plans with uFiling CSV export
                                 </Button>
                             </Link>
                         </div>

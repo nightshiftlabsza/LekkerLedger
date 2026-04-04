@@ -74,7 +74,7 @@ function extractReference(value: unknown): string | null {
 
 function getPlanChargeLabel(planId: Exclude<PlanId, "free">, billingCycle: BillingCycle): string {
     if (planId === "standard") {
-        return billingCycle === "monthly" ? "R29 today, then monthly" : "R249 today, then yearly";
+        return billingCycle === "monthly" ? "R29 today, then monthly" : "R299 today, then yearly";
     }
     return billingCycle === "monthly" ? "R49 today, then monthly" : "R399 today, then yearly";
 }

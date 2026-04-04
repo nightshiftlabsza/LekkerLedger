@@ -74,14 +74,35 @@ function TestCheckoutButton() {
     );
 }
 
+function TestYearlyCheckoutButton() {
+    return (
+        <InlinePlanCheckoutButton planId="standard" billingCycle="yearly">
+            Choose Standard yearly
+        </InlinePlanCheckoutButton>
+    );
+}
+
 async function openGuestModal() {
     render(<TestCheckoutButton />);
     fireEvent.click(screen.getByRole("button", { name: "Choose Standard" }));
-    return await screen.findByRole("heading", { name: "Enter your email to continue" });
+    return await screen.findByLabelText("Email address");
 }
 
 describe("Inline paid plan checkout", () => {
     beforeEach(() => {
+        if (!HTMLDialogElement.prototype.showModal) {
+            HTMLDialogElement.prototype.showModal = function showModal() {
+                this.open = true;
+            };
+        }
+
+        if (!HTMLDialogElement.prototype.close) {
+            HTMLDialogElement.prototype.close = function close() {
+                this.open = false;
+                this.dispatchEvent(new Event("close"));
+            };
+        }
+
         mocks.pushMock.mockReset();
         mocks.getUserMock.mockReset();
         mocks.getSettingsMock.mockReset();
@@ -116,6 +137,14 @@ describe("Inline paid plan checkout", () => {
         expect(emailField).not.toBeNull();
         expect(emailField ? within(emailField).queryByTestId("checkout-email-icon") : null).not.toBeInTheDocument();
         expect(emailField?.querySelector("svg")).toBeNull();
+    });
+
+    it("shows the live yearly Standard amount in the guest plan summary", async () => {
+        render(<TestYearlyCheckoutButton />);
+        fireEvent.click(screen.getByRole("button", { name: "Choose Standard yearly" }));
+
+        await screen.findByLabelText("Email address");
+        expect(screen.getByText("Standard plan - R299 today, then yearly")).toBeVisible();
     });
 
     it("validates the email before opening payment", async () => {

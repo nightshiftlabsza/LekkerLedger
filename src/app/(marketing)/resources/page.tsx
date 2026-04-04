@@ -119,8 +119,8 @@ export default function ResourcesHub() {
                         <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
                             LekkerLedger helps you generate compliant payslips, track UIF, and securely store employment records, all from your phone.
                         </p>
-                        <Link href="/dashboard" className="inline-block mt-4 rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-[var(--primary-hover)] transition-colors">
-                            Start for free
+                        <Link href="/resources/tools/domestic-worker-payslip" className="inline-block mt-4 rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-[var(--primary-hover)] transition-colors">
+                            Try the free payslip tool
                         </Link>
                     </div>
                 </div>

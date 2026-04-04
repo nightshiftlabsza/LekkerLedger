@@ -137,14 +137,14 @@ export default function SupportPage() {
                             <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
                                 <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-[var(--text)]"><AlertCircle className="h-4 w-4 text-[var(--danger)]" /> &quot;It says sync failed&quot;</h3>
                                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                    This usually happens if your browser blocks third-party cookies or pop-ups. Make sure you allow pop-ups for lekkerledger.co.za to complete the sign-in flow.
+                                    Refresh the page and sign in again before retrying the action. LekkerLedger login and signup stay in the same browser tab, so if sync still looks stuck after a refresh, email support with the page you were on and the message you saw.
                                 </p>
                             </div>
 
                             <div className="border border-[var(--border)] p-5 rounded-xl bg-[var(--surface-1)]">
                                 <h3 className="text-lg font-bold text-[var(--text)] mb-2 flex items-center gap-2"><HelpCircle className="h-4 w-4 text-[var(--text-muted)]" /> &quot;Which browser works best?&quot;</h3>
                                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                    LekkerLedger works best in a recent version of Chrome or Edge on Android or Windows. Avoid Incognito or Private Browsing for normal use. If a screen looks stuck on an older device, reopen the app in Chrome or Edge and try again there.
+                                    LekkerLedger is built for current mobile and desktop browsers. If a screen looks wrong, update your browser first, then refresh the page and sign in again before contacting support.
                                 </p>
                             </div>
 

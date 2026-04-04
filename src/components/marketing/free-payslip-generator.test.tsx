@@ -26,51 +26,6 @@ vi.mock("@/lib/supabase/client", () => ({
     }),
 }));
 
-const VALID_DRAFT = {
-    form: {
-        employerName: "Nomsa Dlamini",
-        employerAddress: "18 Acacia Avenue",
-        employeeName: "Thandi Maseko",
-        employeeId: "",
-        employeeRole: "Domestic Worker",
-        hourlyRate: "30.23",
-        monthKey: "2026-04",
-        ordinaryWorkPattern: {
-            monday: true,
-            tuesday: true,
-            wednesday: true,
-            thursday: true,
-            friday: true,
-            saturday: false,
-            sunday: false,
-        },
-        ordinaryDaysWorked: "19",
-        ordinaryHoursOverride: "",
-        overtimeHours: "2",
-        sundayHours: "0",
-        publicHolidayHours: "0",
-        shortShiftCount: "0",
-        shortShiftWorkedHours: "0",
-        otherDeductions: "0",
-    },
-    currentStep: 4,
-    furthestStepReached: 4,
-    verificationEmail: "owner@example.com",
-};
-
-function saveDraft(overrides?: Partial<typeof VALID_DRAFT>) {
-    const nextDraft = {
-        ...VALID_DRAFT,
-        ...overrides,
-        form: {
-            ...VALID_DRAFT.form,
-            ...overrides?.form,
-        },
-    };
-    window.localStorage.setItem("free-payslip-wizard-draft", JSON.stringify(nextDraft));
-    return nextDraft;
-}
-
 describe("FreePayslipGenerator", () => {
     beforeEach(() => {
         vi.restoreAllMocks();
@@ -79,7 +34,6 @@ describe("FreePayslipGenerator", () => {
         mocks.signOutMock.mockResolvedValue(undefined);
         window.localStorage.clear();
         window.sessionStorage.clear();
-        saveDraft();
         vi.stubGlobal("fetch", vi.fn(async () => ({
             status: 401,
             ok: false,
@@ -87,131 +41,93 @@ describe("FreePayslipGenerator", () => {
         })));
     });
 
-    it("keeps the verification state idle while the email field is being typed", async () => {
+    it("removes the wizard framing and keeps secondary fields hidden by default", async () => {
+        window.localStorage.setItem("free-payslip-wizard-draft", JSON.stringify({
+            form: { employerName: "Old wizard draft" },
+            currentStep: 4,
+        }));
+
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Build the payslip step by step." });
-        expect(screen.getByTestId("free-payslip-gate-idle")).toBeInTheDocument();
-
-        fireEvent.change(screen.getByLabelText("Verification email"), { target: { value: "owner@exam" } });
-
-        expect(screen.getByLabelText("Verification email")).toHaveValue("owner@exam");
-        expect(screen.getByTestId("free-payslip-gate-idle")).toBeInTheDocument();
-        expect(screen.queryByTestId("free-payslip-gate-waiting-for-verification")).toBeNull();
+        await screen.findByRole("heading", { name: "Fill in a few obvious details." });
+        expect(screen.queryByText("Build the payslip step by step.")).toBeNull();
+        expect(screen.queryByText("Details")).toBeNull();
+        expect(screen.queryByLabelText("Worker role")).toBeNull();
+        expect(screen.queryByLabelText("ID or passport number")).toBeNull();
+        expect(screen.queryByLabelText("Other deductions")).toBeNull();
+        expect(screen.getByLabelText("Employer name")).toHaveValue("");
     });
 
-    it("only enters the waiting state after Send verification link is clicked", async () => {
+    it("uses the preset buttons to explain the monthly maximum in plain English", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Build the payslip step by step." });
-        fireEvent.change(screen.getByLabelText("Verification email"), { target: { value: "owner@example.com" } });
-        fireEvent.click(screen.getByRole("button", { name: "Send verification link" }));
+        await screen.findByText("How this month's normal-work maximum was worked out");
+        expect(screen.getByText(/maximum normal days is 19/i)).toBeInTheDocument();
+        expect(screen.getByText(/maximum normal hours is 152/i)).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: /Monday to Saturday/i }));
+
+        expect(screen.getByText(/maximum normal days is 23/i)).toBeInTheDocument();
+        expect(screen.getByText(/maximum normal hours is 184/i)).toBeInTheDocument();
+    });
+
+    it("keeps custom days behind the custom preset and wires Sunday into the same schedule logic", async () => {
+        render(<FreePayslipGenerator />);
+
+        await screen.findByText("Usual work week");
+        expect(screen.queryByRole("button", { name: "Mon" })).toBeNull();
+
+        fireEvent.click(screen.getByRole("button", { name: /Custom days/i }));
+        expect(screen.getByRole("button", { name: "Mon" })).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: /Yes Sunday is part of the usual schedule\./i }));
+        expect(screen.getByText("Sunday is treated as part of the worker's usual schedule.")).toBeInTheDocument();
+        expect(screen.getAllByText("Sunday is part of the usual schedule.").length).toBeGreaterThan(0);
+    });
+
+    it("keeps the compact summary visible and demotes detailed breakdown behind a toggle", async () => {
+        render(<FreePayslipGenerator />);
+
+        await screen.findByText("Payslip summary and download");
+        expect(screen.getByText("Gross pay")).toBeInTheDocument();
+        expect(screen.queryByText(/Normal pay \(/)).toBeNull();
+
+        fireEvent.click(screen.getByRole("button", { name: /Detailed pay breakdown/i }));
+        expect(screen.getByText(/Normal pay \(/)).toBeInTheDocument();
+    });
+
+    it("only enters the waiting state after Send unlock link is clicked", async () => {
+        render(<FreePayslipGenerator />);
+
+        await screen.findByRole("heading", { name: "Fill in a few obvious details." });
+        fireEvent.change(screen.getByLabelText("Email for the unlock link"), { target: { value: "owner@example.com" } });
+        fireEvent.click(screen.getByRole("button", { name: "Send unlock link" }));
 
         await waitFor(() => {
             expect(screen.getByTestId("free-payslip-gate-waiting-for-verification")).toBeInTheDocument();
         });
         expect(mocks.signInWithOtpMock).toHaveBeenCalledTimes(1);
+        expect(screen.getByRole("button", { name: "I opened the link in this browser" })).toBeInTheDocument();
     });
 
-    it("shows a service outage message instead of a verification loop when quota lookup fails", async () => {
+    it("shows a compact ready state that swaps unlock actions for Download PDF", async () => {
         mocks.useSearchParamsMock.mockReturnValue(new URLSearchParams("freePayslipVerification=success"));
         vi.stubGlobal("fetch", vi.fn(async () => ({
-            status: 503,
-            ok: false,
-            json: async () => ({ error: "Cloudflare D1 query failed." }),
+            status: 200,
+            ok: true,
+            json: async () => ({
+                email: "owner@example.com",
+                monthKey: "2026-04",
+                downloadsUsed: 0,
+                remainingDownloads: 1,
+                usedThisMonth: false,
+            }),
         })));
 
         render(<FreePayslipGenerator />);
 
-        await screen.findByText("The free payslip service is temporarily unavailable. Please try again in a moment.");
-        expect(screen.getByTestId("free-payslip-gate-service-unavailable")).toBeInTheDocument();
-    });
-
-    it("shows the missing-session recovery state when the callback cannot confirm this browser", async () => {
-        mocks.useSearchParamsMock.mockReturnValue(new URLSearchParams("freePayslipVerification=missing-session"));
-
-        render(<FreePayslipGenerator />);
-
-        await screen.findByText(/We could not confirm this email in this browser yet\./);
-        expect(screen.getByTestId("free-payslip-gate-missing-session")).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "I opened the link in this browser" })).toBeInTheDocument();
-    });
-
-    it("shows the monthly quota copy once and explains why Generate PDF is locked", async () => {
-        render(<FreePayslipGenerator />);
-
-        await screen.findByText("One successful free payslip PDF per verified email per calendar month. Verify the same email in this browser to unlock the download.");
-        expect(screen.getAllByText(/One successful free payslip PDF per verified email per calendar month\./)).toHaveLength(1);
-        expect(screen.getByRole("button", { name: "Generate PDF" })).toBeDisabled();
-        expect(screen.getByText("Generate PDF unlocks after this email is verified in this browser.")).toBeInTheDocument();
-    });
-
-    it("makes Sunday treatment explicit and keeps the multiplier tied to the same pattern state", async () => {
-        window.localStorage.clear();
-        saveDraft({
-            currentStep: 1,
-            furthestStepReached: 1,
-            form: {
-                ordinaryWorkPattern: {
-                    monday: true,
-                    tuesday: true,
-                    wednesday: true,
-                    thursday: true,
-                    friday: true,
-                    saturday: false,
-                    sunday: false,
-                },
-            },
-        });
-
-        render(<FreePayslipGenerator />);
-
-        await screen.findByText("Does the worker ordinarily work Sundays?");
-        expect(screen.getByText("No. Sunday hours will be paid at 2.0x.")).toBeInTheDocument();
-        expect(screen.queryByRole("button", { name: "Sun" })).not.toBeInTheDocument();
-
-        fireEvent.click(screen.getByRole("button", { name: /Yes/ }));
-
-        expect(screen.getByText("Yes. Sunday hours will be paid at 1.5x.")).toBeInTheDocument();
-
-        fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-
-        await screen.findByRole("heading", { name: "Overtime, Sunday, and public holiday hours" });
-        expect(screen.getByText("Paid at 1.5x because Sunday is part of the ordinary work pattern.")).toBeInTheDocument();
-    });
-
-    it("shows an actionable ordinary-hours helper before any work pattern is selected", async () => {
-        window.localStorage.clear();
-        saveDraft({
-            currentStep: 1,
-            furthestStepReached: 1,
-            form: {
-                ordinaryWorkPattern: {
-                    monday: false,
-                    tuesday: false,
-                    wednesday: false,
-                    thursday: false,
-                    friday: false,
-                    saturday: false,
-                    sunday: false,
-                },
-                ordinaryDaysWorked: "0",
-                ordinaryHoursOverride: "",
-            },
-        });
-
-        render(<FreePayslipGenerator />);
-
-        await screen.findAllByText("Select the ordinary work pattern first to calculate the cap.");
-        expect(screen.queryByText(/Maximum allowed: 0 hours\./)).toBeNull();
-    });
-
-    it("adds review edit actions that jump back to the correct step", async () => {
-        render(<FreePayslipGenerator />);
-
-        await screen.findByRole("button", { name: "Edit extra pay" });
-        fireEvent.click(screen.getByRole("button", { name: "Edit extra pay" }));
-
-        expect(screen.getByRole("heading", { name: "Overtime, Sunday, and public holiday hours" })).toBeInTheDocument();
+        await screen.findByTestId("free-payslip-gate-verified-ready");
+        expect(screen.getByRole("button", { name: "Download PDF" })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Send unlock link" })).toBeNull();
     });
 });

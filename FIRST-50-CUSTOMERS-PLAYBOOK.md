@@ -9,11 +9,11 @@ LekkerLedger is a South African household employer payroll tool — a PWA that g
 
 **Easiest first 50 customers:** Middle-class South African homeowners in Gauteng, Western Cape, and KZN who already employ a domestic worker and are either (a) nervous about UIF compliance after hearing about penalties, or (b) tired of calculating pay manually each month. The sweet spot is women aged 30-55 who manage the household admin and are active in Facebook community groups or neighbourhood WhatsApp groups.
 
-**Single best free acquisition wedge:** The free calculator/payslip tool combined with SEO-optimised compliance guides. People Google "domestic worker UIF calculator" and "minimum wage 2026 domestic worker" every single month. The calculator already exists. It just needs to capture emails and funnel people to paid plans.
+**Single best free acquisition wedge:** The free calculator/payslip tool combined with SEO-optimised compliance guides. People Google "domestic worker UIF calculator" and "minimum wage 2026 domestic worker" every single month. The calculator already exists, and the free payslip flow now uses verified email to unlock one PDF per month.
 
-**Biggest conversion blockers:** Zero social proof (no testimonials, no user count). The /features, /about, and /faq pages redirect to login — killing the education funnel. "Early-bird pricing" has no expiration date, so there's no urgency. The free tool doesn't capture email, so you lose every free user forever.
+**Biggest conversion blockers:** Zero social proof (no testimonials, no user count). The `/resources` page still ends with a "Start for free" CTA that sends cold visitors to the dashboard/login wall instead of the public payslip tool. The `/ufiling-errors` page still says CSV export is Pro-only even though Standard includes it. The inline checkout flow still labels Standard yearly as `R249` in one place even though the live price is `R299`.
 
-**Fastest path to traction:** Fix the email capture gap on the free tool, write 3-5 more SEO pages targeting high-intent South African domestic employer queries, then personally reach out in 10-15 Facebook groups and WhatsApp communities where household employers hang out. Manual outreach + free tool + SEO content = 50 customers in 6-8 weeks if you execute daily.
+**Fastest path to traction:** Fix the current CTA and plan-copy mismatches first, then write 3-5 more SEO pages targeting high-intent South African domestic employer queries and personally reach out in 10-15 Facebook groups and WhatsApp communities where household employers hang out. Manual outreach + free tool + SEO content = 50 customers in 6-8 weeks if you execute daily.
 
 ---
 
@@ -33,9 +33,10 @@ LekkerLedger is a South African household employer payroll tool — a PWA that g
 - Homepage messaging is clear but emotionally flat
 - Pricing is transparent and competitive (R29/mo vs R2,000+/mo for an accountant)
 - Zero testimonials, zero user counts, zero case studies
-- /features, /about, /faq redirect to login — prospects can't learn before buying
-- Free payslip tool has no email capture at all
-- "Early-bird pricing" stated but no deadline — creates zero urgency
+- /resources ends with a "Start for free" CTA that links to the dashboard/login wall instead of the public payslip tool
+- /ufiling-errors still says CSV export is Pro-only even though Standard includes it
+- Free payslip tool now uses verified email to unlock one free PDF per month
+- Inline checkout still shows Standard yearly as R249 in one place even though the live price is R299
 - FAQ on homepage is good but buried at the bottom
 - Compliance guides are excellent SEO assets but under-promoted
 - No comparison to alternatives (spreadsheets, accountants, doing nothing)
@@ -49,10 +50,10 @@ LekkerLedger is a South African household employer payroll tool — a PWA that g
 - The product works — the compliance engine and payslip flow are functional
 
 ## Evidence that most shaped recommendations
-1. The free calculator exists but doesn't capture leads — this is the single biggest missed opportunity
-2. The compliance guides are high-quality SEO content that Google will rank — they just need more volume
-3. Facebook groups for South African household employers are active and free
-4. The product's R29/mo price point is an impulse buy — the friction is trust, not cost
+1. The free calculator already uses verified email to unlock one free PDF per month, so the old "no email capture at all" assumption is stale
+2. The biggest current leaks are CTA and plan-copy mismatches, not missing billing infrastructure
+3. The compliance guides are high-quality SEO content that Google will rank — they just need more volume
+4. Facebook groups for South African household employers are active and free
 5. The local-first privacy angle is genuinely differentiating but underplayed on the site
 
 ---
@@ -103,24 +104,24 @@ Focus 80% of effort on Segment A. Segment B will come naturally through the same
 - **Priority:** CRITICAL
 - **Effort:** 1 hour (write the copy, add to homepage)
 
-### 4.2 Free Tool Doesn't Capture Email
-- **Problem:** Someone uses the free payslip calculator, downloads a PDF, and leaves. You have no way to contact them again. Ever.
-- **Why it matters:** This is your #1 acquisition funnel. Every free user who leaves without giving an email is lost permanently. Even a 20% email capture rate would give you a massive retargeting list.
-- **Fix:** After the payslip is generated, show: "Want a copy emailed to you? Enter your email and we'll also send you a monthly household employer checklist." Optional, not forced. Then build a 3-email nurture sequence.
+### 4.2 Free Tool Gate Assumptions Are Out Of Date
+- **Problem:** The free payslip tool no longer runs as a completely anonymous download flow. It now uses verified email in the same browser to unlock one free PDF each calendar month.
+- **Why it matters:** Any recommendation that assumes "no email capture at all" is stale. The real funnel problem is whether people are routed to that free tool cleanly and understand what happens next.
+- **Fix:** Keep the verified-email unlock accurate in site copy and send cold traffic straight to the public payslip tool instead of the dashboard/login wall.
 - **Priority:** CRITICAL
-- **Effort:** Half day (add email field, connect to email service, write 3 emails)
+- **Effort:** 30 min
 
-### 4.3 /features, /about, /faq Redirect to Login
-- **Problem:** A prospect who wants to learn more about features, see who's behind the product, or read FAQs gets dumped at a login screen. This kills the education-to-conversion funnel.
-- **Why it matters:** Prospects research before buying. If they can't see features or FAQ without an account, most will just leave. This is especially bad for a compliance tool where trust = conversion.
-- **Fix:** Make /features, /about, and /faq public pages. Even simple versions. A /features page showing screenshots and a feature list. An /about page with your story. A /faq page with the existing homepage FAQ expanded.
+### 4.3 /resources Sends Cold Traffic To Login
+- **Problem:** The `/resources` page ends with a "Start for free" CTA that links to `/dashboard`, so unauthenticated visitors hit the login screen instead of the free payslip tool.
+- **Why it matters:** This is a direct conversion leak. Someone expecting a free tool gets an auth wall instead.
+- **Fix:** Point that CTA to `/resources/tools/domestic-worker-payslip`.
 - **Priority:** CRITICAL
-- **Effort:** Half day
+- **Effort:** 15 min
 
-### 4.4 No Urgency on Early-Bird Pricing
-- **Problem:** "Early-bird pricing" is mentioned on Standard and Pro but there's no expiration date. This creates zero urgency — a visitor thinks "I'll come back later" and never does.
-- **Why it matters:** Urgency is one of the most reliable conversion levers. Without a deadline, "early-bird" is just a word.
-- **Fix:** Add: "Early-bird pricing ends 30 April 2026. Lock in R29/month before it increases." Add a simple date on the pricing cards.
+### 4.4 /ufiling-errors Disagrees With Pricing
+- **Problem:** The `/ufiling-errors` page says the CSV export is for Pro users, but the pricing page and plan entitlements show that Standard and Pro both include uFiling CSV export.
+- **Why it matters:** This creates distrust right at a high-intent moment where a visitor is looking for relief from uFiling friction.
+- **Fix:** Make the `/ufiling-errors` page match Standard + Pro entitlements and send its main CTA to pricing instead of the dashboard/login wall.
 - **Priority:** CRITICAL
 - **Effort:** 15 min
 
@@ -254,13 +255,13 @@ Reach out to pages/organisations that already talk to household employers: domes
 **Objective:** Patch the biggest conversion holes before driving any traffic.
 
 **Tasks:**
-1. Add email capture to the free payslip tool. After PDF generation, show: "Want this emailed to you? We'll also send you a free monthly household employer checklist." Use a simple email field. Connect it to a Google Sheet or free Mailchimp/Brevo account for now.
-2. Add "Early-bird pricing ends 30 April 2026" to pricing cards.
-3. Add "7-day money-back guarantee" under paid CTAs.
-4. Add "Most popular" badge to Standard plan.
+1. Change the `/resources` CTA so "Start for free" opens the public payslip tool instead of `/dashboard`.
+2. Update `/ufiling-errors` so it says Standard and Pro include CSV export, and point the page CTA to pricing.
+3. Fix the Standard yearly checkout label from `R249` to `R299`.
+4. Keep "7-day money-back guarantee" under paid CTAs.
 
 **Metric:** All 4 changes live by end of day.
-**Done looks like:** Free tool now captures emails. Pricing has urgency. CTAs have risk reversal.
+**Done looks like:** Public CTAs point to the right place. The uFiling page matches plan entitlements. The paid flow no longer shows a stale yearly amount.
 
 ## Day 2 (Thursday 3 April): Add Trust Layer
 
@@ -275,17 +276,17 @@ Reach out to pages/organisations that already talk to household employers: domes
 **Metric:** Homepage now has social proof, founder story, comparison, and a stronger headline.
 **Done looks like:** A stranger landing on the site can answer: "Who made this? Do other people use it? Why is it better than what I do now?"
 
-## Day 3 (Friday 4 April): Make Hidden Pages Public
+## Day 3 (Friday 4 April): Clean Public Funnel Pages
 
-**Objective:** Ungate /features, /about, /faq so prospects can research before buying.
+**Objective:** Tighten the public pages that already attract high-intent visitors.
 
 **Tasks:**
-1. Create a public /features page — even a simple one with 6-8 features, each with a one-line description and an icon.
-2. Create a public /about page — founder story, why you built it, NightShift Labs ZA.
-3. Create a public /faq page — move the homepage FAQ here and expand it with 5-10 more questions (see Section 8 for FAQ copy).
+1. Refresh the `/resources` CTA so it opens the free payslip tool.
+2. Update the `/ufiling-errors` page so the CSV-export message matches the paid plans.
+3. Refresh the stale support troubleshooting copy so it matches the current email/password flow.
 
-**Metric:** All three pages live and linked from navigation.
-**Done looks like:** A prospect can navigate Home → Features → Pricing → FAQ → About without ever hitting a login wall.
+**Metric:** All three public pages are aligned with the current product.
+**Done looks like:** A prospect can move from resources or uFiling content into the right next step without hitting stale copy or an unnecessary login wall.
 
 ## Day 4 (Saturday 5 April): SEO Content Batch
 
@@ -918,11 +919,11 @@ That's the entire system.
 
 ## Top 5 Copy/Site Fixes
 
-1. Rewrite hero headline: "Household payroll sorted. UIF included. Under 90 seconds."
-2. Add "7-day money-back guarantee" under all paid CTAs
-3. Add "Most popular" badge to Standard plan
-4. Ungate /features, /about, /faq pages
-5. Add the "Why not just..." comparison block (spreadsheet vs accountant vs LekkerLedger)
+1. Fix the `/resources` CTA so "Start for free" opens the public payslip tool
+2. Align `/ufiling-errors` with Standard + Pro uFiling CSV export
+3. Fix the Standard yearly checkout label from `R249` to `R299`
+4. Keep "7-day money-back guarantee" under all paid CTAs
+5. Refresh stale support troubleshooting copy so it matches the current email/password flow
 
 ## Top 5 Automation Setups
 
@@ -934,7 +935,7 @@ That's the entire system.
 
 ## Top 5 Risks
 
-1. **No email capture = no retargeting** — every free user who leaves without an email is gone forever. Fix this immediately.
+1. **Mixed CTA destinations and plan copy create avoidable distrust** — if free-tool pages send people to login or paid-plan copy disagrees with pricing, visitors will hesitate even when the product is good.
 2. **Zero social proof kills trust** — compliance tools need credibility. Add testimonials this week, even if they're from friends.
 3. **Facebook group admins may flag promotional posts** — keep posts genuinely helpful and framed as PSAs, not ads. If a post gets removed, don't repost — adjust the angle.
 4. **Sole operator burnout** — you're doing product, marketing, support, and dev. Protect 2-3 hours/day for acquisition and don't let product work eat it.
@@ -944,11 +945,11 @@ That's the entire system.
 
 Spend them on exactly these things, in this order:
 
-1. **(30 min)** Add email capture field to the free payslip tool — even a janky version that logs to a Google Sheet.
-2. **(30 min)** Add "Early-bird pricing ends 30 April" + "7-day money-back guarantee" to pricing section.
-3. **(30 min)** Write 3 short testimonials and add to homepage.
-4. **(1 hour)** Join 10 Facebook groups and write 3 different post templates.
-5. **(2.5 hours)** Post in 5 groups. Send 10 WhatsApp messages to people you know who employ domestic workers. Follow up with anyone who responds.
+1. **(15 min)** Fix the `/resources` CTA so it opens the public payslip tool.
+2. **(15 min)** Fix the `/ufiling-errors` copy and CTA so it matches Standard + Pro export access.
+3. **(15 min)** Fix the Standard yearly checkout label from `R249` to `R299`.
+4. **(30 min)** Refresh the stale support troubleshooting copy so it matches the current sign-in flow.
+5. **(4 hours)** Write 3 short testimonials and add them to the homepage, then spend the remaining time on direct outreach.
 
 That's it. Do only this. Everything else can wait.
 

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { describeOrdinaryWorkCalendar, getSouthAfricanPublicHolidaysForYear } from "./payroll-calendar";
+import {
+    buildOrdinaryWorkCalendarPlainLanguage,
+    describeOrdinaryWorkCalendar,
+    getSouthAfricanPublicHolidaysForYear,
+} from "./payroll-calendar";
 
 const mondayToFriday = {
     monday: true,
@@ -74,5 +78,43 @@ describe("South African payroll calendar", () => {
         expect(summary.publicHolidaysInRange.map((holiday) => holiday.date)).toEqual(["2026-06-16"]);
         expect(summary.ordinaryDayCap).toBe(25);
         expect(summary.ordinaryHourCap).toBe(200);
+    });
+
+    it("explains the monthly normal-work maximum in plain English", () => {
+        const summary = describeOrdinaryWorkCalendar(
+            new Date("2026-04-01T00:00:00.000Z"),
+            new Date("2026-04-30T00:00:00.000Z"),
+            mondayToFriday,
+            8,
+        );
+
+        const plainLanguage = buildOrdinaryWorkCalendarPlainLanguage(summary, 8);
+
+        expect(plainLanguage.summary).toContain("April 2026");
+        expect(plainLanguage.summary).toContain("possible normal work days");
+        expect(plainLanguage.summary).toContain("maximum normal days is 19");
+        expect(plainLanguage.summary).toContain("maximum normal hours is 152");
+        expect(plainLanguage.holidayDetails).toContain("excluded");
+    });
+
+    it("returns a guidance message when no usual work week is selected", () => {
+        const summary = describeOrdinaryWorkCalendar(
+            new Date("2026-04-01T00:00:00.000Z"),
+            new Date("2026-04-30T00:00:00.000Z"),
+            {
+                monday: false,
+                tuesday: false,
+                wednesday: false,
+                thursday: false,
+                friday: false,
+                saturday: false,
+                sunday: false,
+            },
+            8,
+        );
+
+        const plainLanguage = buildOrdinaryWorkCalendarPlainLanguage(summary, 8);
+
+        expect(plainLanguage.summary).toContain("Choose the usual work week");
     });
 });

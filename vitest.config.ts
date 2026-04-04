@@ -13,6 +13,7 @@ export default defineConfig({
     resolve: {
         alias: {
             "@/app": path.resolve(__dirname, "src/app"),
+            "@/config": path.resolve(__dirname, "src/config"),
             "@/lib": path.resolve(__dirname, "src/lib"),
             "@/components/marketing": path.resolve(__dirname, "components/marketing"),
             "@/components/billing": path.resolve(__dirname, "components/billing"),
@@ -23,6 +24,7 @@ export default defineConfig({
             "@/components/ui/input": path.resolve(__dirname, "components/ui/input.tsx"),
             "@/components/ui/label": path.resolve(__dirname, "components/ui/label.tsx"),
             "@/components/ui/loading-skeleton": path.resolve(__dirname, "components/ui/loading-skeleton.tsx"),
+            "@/components/ui/logo": path.resolve(__dirname, "src/components/ui/logo.tsx"),
             "@/components/ui/page-header": path.resolve(__dirname, "components/ui/page-header.tsx"),
             "@/components/ui/switch": path.resolve(__dirname, "components/ui/switch.tsx"),
             "@/components/ui/toast": path.resolve(__dirname, "components/ui/toast.tsx"),
