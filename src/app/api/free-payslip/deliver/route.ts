@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { addNewsletterSubscriber } from "@/lib/newsletter";
 import { sendFreePayslipEmail } from "@/lib/free-payslip-email";
 import {
     buildFreePayslipPayload,
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
         }
 
         const email = parsed.data.email.trim().toLowerCase();
+        const marketingConsent = parsed.data.marketingConsent === true;
         const normalizedForm = normalizeFreePayslipFormState(parsed.data.form);
         const validationErrors = validateFreePayslipForm(normalizedForm);
         if (Object.keys(validationErrors).length > 0) {
@@ -62,6 +64,12 @@ export async function POST(request: Request) {
                 throw error;
             }
             console.warn("Free payslip quota was already consumed by a concurrent request after email send.", { email, monthKey: quota.monthKey });
+        }
+
+        if (marketingConsent) {
+            void addNewsletterSubscriber(email).catch((error) => {
+                console.error("[newsletter] subscriber insert failed after free payslip delivery", { email, error });
+            });
         }
 
         return NextResponse.json(

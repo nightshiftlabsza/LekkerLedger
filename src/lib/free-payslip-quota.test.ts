@@ -36,7 +36,7 @@ describe("free payslip quota helper", () => {
         vi.unstubAllGlobals();
     });
 
-    it("enforces one successful free payslip PDF per verified email per calendar month", async () => {
+    it("enforces one successful free payslip PDF per email address per calendar month", async () => {
         const rows = new Map<string, QuotaRow>();
 
         vi.stubGlobal("fetch", vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
@@ -108,14 +108,14 @@ describe("free payslip quota helper", () => {
 
         await expect(quotaModule.consumeFreePayslipQuota("owner@example.com")).rejects.toMatchObject({
             status: 409,
-            message: "This verified email has already used its one successful free payslip PDF for this calendar month.",
+            message: "This email address has already used its one successful free payslip PDF for this calendar month.",
         });
 
         const differentEmail = await quotaModule.consumeFreePayslipQuota("second@example.com");
         expect(differentEmail.downloadsUsed).toBe(1);
     });
 
-    it("allows the same verified email again in a new Johannesburg calendar month", async () => {
+    it("allows the same email address again in a new Johannesburg calendar month", async () => {
         const rows = new Map<string, QuotaRow>();
 
         vi.stubGlobal("fetch", vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {

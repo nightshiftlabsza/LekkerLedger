@@ -131,6 +131,7 @@ export function FreePayslipGenerator() {
     const [form, setForm] = React.useState<FreePayslipFormState>(() => savedDraft?.form ?? buildDefaultFreePayslipFormState());
     const [errors, setErrors] = React.useState<FreePayslipFieldErrors>({});
     const [deliveryEmail, setDeliveryEmail] = React.useState(() => savedDraft?.email ?? "");
+    const [marketingConsent, setMarketingConsent] = React.useState(() => savedDraft?.marketingConsent ?? false);
     const [delivery, setDelivery] = React.useState<DeliveryState>(INITIAL_DELIVERY_STATE);
     const [showIdentityField, setShowIdentityField] = React.useState(() => Boolean(savedDraft?.form.employeeId));
     const [showRoleOverride, setShowRoleOverride] = React.useState(() => (savedDraft?.form.employeeRole ?? "Domestic Worker") !== "Domestic Worker");
@@ -193,11 +194,15 @@ export function FreePayslipGenerator() {
     React.useEffect(() => {
         if (typeof window === "undefined") return;
         try {
-            window.localStorage.setItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY, JSON.stringify({ form, email: deliveryEmail }));
+            window.localStorage.setItem(FREE_PAYSLIP_DRAFT_STORAGE_KEY, JSON.stringify({
+                form,
+                email: deliveryEmail,
+                marketingConsent,
+            }));
         } catch {
             // Best-effort draft persistence only.
         }
-    }, [deliveryEmail, form]);
+    }, [deliveryEmail, form, marketingConsent]);
 
     const focusField = React.useCallback((field: keyof FreePayslipFormState) => {
         if (typeof document === "undefined") return;
@@ -290,6 +295,7 @@ export function FreePayslipGenerator() {
                 cache: "no-store",
                 body: JSON.stringify({
                     email: normalizedEmail,
+                    marketingConsent,
                     form,
                 }),
             });
@@ -773,20 +779,34 @@ export function FreePayslipGenerator() {
                                         </div>
 
                                         {delivery.phase !== "success" ? (
-                                            <TextField id="free-verification-email" label="Email address">
-                                                <Input
-                                                    id="free-verification-email"
-                                                    type="email"
-                                                    value={deliveryEmail}
-                                                    onChange={(event) => {
-                                                        setDeliveryEmail(event.target.value);
-                                                        if (delivery.phase !== "idle") {
-                                                            resetDeliveryState();
-                                                        }
-                                                    }}
-                                                    placeholder="name@example.com"
-                                                />
-                                            </TextField>
+                                            <>
+                                                <TextField id="free-delivery-email" label="Email address">
+                                                    <Input
+                                                        id="free-delivery-email"
+                                                        type="email"
+                                                        value={deliveryEmail}
+                                                        onChange={(event) => {
+                                                            setDeliveryEmail(event.target.value);
+                                                            if (delivery.phase !== "idle") {
+                                                                resetDeliveryState();
+                                                            }
+                                                        }}
+                                                        placeholder="name@example.com"
+                                                    />
+                                                </TextField>
+
+                                                <label className="flex items-start gap-3 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={marketingConsent}
+                                                        onChange={(event) => setMarketingConsent(event.target.checked)}
+                                                        className="mt-1 h-4 w-4 rounded border-[var(--border)]"
+                                                    />
+                                                    <span className="text-sm leading-6 text-[var(--text)]">
+                                                        Send me a free monthly household employer checklist and tips. Unsubscribe anytime.
+                                                    </span>
+                                                </label>
+                                            </>
                                         ) : null}
 
                                         {delivery.phase === "success" ? (

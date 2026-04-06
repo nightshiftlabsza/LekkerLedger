@@ -29,6 +29,7 @@ export type FreePayslipFieldErrors = Partial<Record<keyof FreePayslipFormState, 
 export type SavedFreePayslipDraft = {
     form: FreePayslipFormState;
     email: string;
+    marketingConsent: boolean;
 };
 
 export type OrdinaryWorkPreset = "monday-to-friday" | "monday-to-saturday" | "custom";
@@ -58,6 +59,7 @@ const StringFormSchema = z.object({
 
 export const FreePayslipRequestSchema = z.object({
     email: z.string().trim().email("Enter a valid email address."),
+    marketingConsent: z.boolean().optional(),
     form: z.object({
         employerName: z.string(),
         employerAddress: z.string(),
@@ -147,7 +149,12 @@ export function buildDefaultFreePayslipFormState(): FreePayslipFormState {
 export function sanitizeSavedFreePayslipDraft(rawDraft: unknown): SavedFreePayslipDraft {
     const defaults = buildDefaultFreePayslipFormState();
     const raw = rawDraft && typeof rawDraft === "object"
-        ? rawDraft as { form?: Partial<Record<keyof FreePayslipFormState, unknown>>; email?: unknown; verificationEmail?: unknown }
+        ? rawDraft as {
+            form?: Partial<Record<keyof FreePayslipFormState, unknown>>;
+            email?: unknown;
+            marketingConsent?: unknown;
+            verificationEmail?: unknown;
+        }
         : {};
     const nextForm = { ...defaults };
 
@@ -177,6 +184,7 @@ export function sanitizeSavedFreePayslipDraft(rawDraft: unknown): SavedFreePaysl
     return {
         form: nextForm,
         email: savedEmail,
+        marketingConsent: raw.marketingConsent === true,
     };
 }
 

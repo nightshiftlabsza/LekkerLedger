@@ -27,6 +27,13 @@ describe("FreePayslipGenerator", () => {
         })));
     });
 
+    function getDraft() {
+        return JSON.parse(window.localStorage.getItem("free-payslip-simple-draft-v1") || "null") as {
+            email?: string;
+            marketingConsent?: boolean;
+        } | null;
+    }
+
     it("keeps the simplified layout and removes same-browser wording", async () => {
         render(<FreePayslipGenerator />);
 
@@ -60,12 +67,57 @@ describe("FreePayslipGenerator", () => {
         expect(screen.getByText("Your payslip has been sent to owner@example.com")).toBeInTheDocument();
     });
 
+    it("keeps the marketing opt-in unchecked by default and sends it in the request body", async () => {
+        const fetchMock = vi.fn(async () => ({
+            status: 200,
+            ok: true,
+            json: async () => ({
+                status: "sent",
+                email: "owner@example.com",
+                monthKey: "2026-04",
+            }),
+        }));
+        vi.stubGlobal("fetch", fetchMock);
+
+        render(<FreePayslipGenerator />);
+
+        await screen.findByRole("heading", { name: "Enter this month's pay details" });
+        const checkbox = screen.getByRole("checkbox", { name: /send me a free monthly household employer checklist and tips/i });
+        expect(checkbox).not.toBeChecked();
+
+        fillRequiredFields();
+        fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "owner@example.com" } });
+        fireEvent.click(screen.getByRole("button", { name: "Email my free payslip" }));
+
+        await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+        const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+        expect(JSON.parse(String(requestInit.body))).toMatchObject({
+            email: "owner@example.com",
+            marketingConsent: false,
+        });
+    });
+
+    it("persists the marketing opt-in in the saved draft", async () => {
+        render(<FreePayslipGenerator />);
+
+        await screen.findByRole("heading", { name: "Enter this month's pay details" });
+        fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "owner@example.com" } });
+        fireEvent.click(screen.getByRole("checkbox", { name: /send me a free monthly household employer checklist and tips/i }));
+
+        await waitFor(() => {
+            expect(getDraft()).toMatchObject({
+                email: "owner@example.com",
+                marketingConsent: true,
+            });
+        });
+    });
+
     it("shows the monthly limit state cleanly", async () => {
         vi.stubGlobal("fetch", vi.fn(async () => ({
             status: 409,
             ok: false,
             json: async () => ({
-                error: "This verified email has already used its one successful free payslip PDF for this calendar month.",
+                error: "This email address has already used its one successful free payslip PDF for this calendar month.",
             }),
         })));
 
@@ -79,7 +131,7 @@ describe("FreePayslipGenerator", () => {
         await waitFor(() => {
             expect(screen.getByTestId("free-payslip-gate-quota-used")).toBeInTheDocument();
         });
-        expect(screen.getByText("This verified email has already used its one successful free payslip PDF for this calendar month.")).toBeInTheDocument();
+        expect(screen.getByText("This email address has already used its one successful free payslip PDF for this calendar month.")).toBeInTheDocument();
     });
 
     it("shows the service-unavailable state cleanly", async () => {

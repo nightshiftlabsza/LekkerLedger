@@ -33,6 +33,9 @@ const serverSchema = z.object({
     RESEND_API_KEY: z.string().optional(),
     FREE_PAYSLIP_FROM_EMAIL: z.string().optional(),
 
+    // Newsletter drip
+    NEWSLETTER_DRIP_SECRET: z.string().optional(),
+
     // Supabase Server
     SUPABASE_SERVICE_ROLE_KEY: requiredInProd,
     RECOVERABLE_WRAP_SECRET: requiredInProd,
