@@ -339,7 +339,7 @@ export function FreePayslipGenerator() {
                 email: normalizedEmail,
             });
         }
-    }, [breakdown, deliveryEmail, form, payload, payrollSummary, validateForm]);
+    }, [breakdown, deliveryEmail, form, marketingConsent, payload, payrollSummary, validateForm]);
 
     const gateCardTitle = delivery.phase === "sending"
         ? "Sending your payslip"
