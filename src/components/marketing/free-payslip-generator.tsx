@@ -325,11 +325,11 @@ export function FreePayslipGenerator() {
                 message: `Your payslip has been sent to ${sent.email}`,
                 email: sent.email,
             });
-        } catch (error) {
+        } catch {
             setDelivery({
                 phase: "service-unavailable",
                 tone: "danger",
-                message: error instanceof Error ? error.message : FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE,
+                message: FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE,
                 email: normalizedEmail,
             });
         }

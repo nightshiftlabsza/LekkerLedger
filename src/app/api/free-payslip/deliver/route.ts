@@ -82,9 +82,8 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: quotaError.message }, { status: 409 });
         }
 
-        const message = error instanceof Error ? error.message : FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE;
         return NextResponse.json(
-            { error: message || FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE },
+            { error: FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE },
             { status: 503 },
         );
     }

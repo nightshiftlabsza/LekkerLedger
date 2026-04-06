@@ -149,6 +149,9 @@ describe("free payslip deliver route", () => {
         }));
 
         expect(response.status).toBe(503);
+        await expect(response.json()).resolves.toMatchObject({
+            error: "The free payslip service is temporarily unavailable. Please try again in a moment.",
+        });
         expect(mocks.sendEmailMock).not.toHaveBeenCalled();
         expect(mocks.consumeQuotaMock).not.toHaveBeenCalled();
     });
@@ -165,6 +168,9 @@ describe("free payslip deliver route", () => {
         }));
 
         expect(response.status).toBe(503);
+        await expect(response.json()).resolves.toMatchObject({
+            error: "The free payslip service is temporarily unavailable. Please try again in a moment.",
+        });
         expect(mocks.consumeQuotaMock).not.toHaveBeenCalled();
     });
 });
