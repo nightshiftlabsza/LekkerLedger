@@ -1,12 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { getCanonicalAppOrigin, getRequestCurrentOrigin } from '@/lib/app-origin'
+import { getCanonicalAppOrigin, getRequestCurrentOrigin, isLocalAppOrigin } from '@/lib/app-origin'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function proxy(request: NextRequest) {
   const requestOrigin = getRequestCurrentOrigin(request)
   const canonicalOrigin = getCanonicalAppOrigin(requestOrigin)
+  const isLocalRequest =
+    isLocalAppOrigin(requestOrigin)
+    || process.env.NODE_ENV !== "production"
+    || process.env.E2E_BYPASS_AUTH === "1"
 
-  if (canonicalOrigin && canonicalOrigin !== requestOrigin) {
+  if (!isLocalRequest && canonicalOrigin && canonicalOrigin !== requestOrigin) {
     return NextResponse.redirect(new URL(`${request.nextUrl.pathname}${request.nextUrl.search}`, canonicalOrigin), 308)
   }
 

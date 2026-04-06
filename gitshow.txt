@@ -1,0 +1,23 @@
+commit 8d0dff532f4066d7e96f0d6ba711d781e9a0769b
+Author: Nightshift Labs <nightshiftlabsza@gmail.com>
+Date:   Sat Apr 4 14:57:41 2026 +0200
+
+    Apply audit fixes and current workspace updates
+
+M	FIRST-50-CUSTOMERS-PLAYBOOK.md
+M	README.md
+M	components/billing/inline-paid-plan-checkout.test.tsx
+M	components/billing/inline-paid-plan-checkout.tsx
+A	components/ui/logo.tsx
+M	e2e/free-payslip.spec.ts
+M	public/sw.js
+A	src/app/(marketing)/public-audit-fixes.test.tsx
+M	src/app/(marketing)/resources/page.tsx
+M	src/app/(marketing)/support/page.tsx
+M	src/app/(marketing)/ufiling-errors/page.tsx
+M	src/components/marketing/free-payslip-generator.test.tsx
+M	src/components/marketing/free-payslip-generator.tsx
+M	src/components/payroll/ordinary-work-calendar-summary.tsx
+M	src/lib/payroll-calendar.test.ts
+M	src/lib/payroll-calendar.ts
+M	vitest.config.ts

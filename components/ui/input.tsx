@@ -10,7 +10,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <div className="flex flex-col gap-1.5 w-full">
                 <input
                     type={type}
-                    inputMode={type === "number" ? "decimal" : props.inputMode}
+                    inputMode={props.inputMode ?? (type === "number" ? "decimal" : undefined)}
                     ref={ref}
                     className={[
                         "w-full rounded-[10px] px-4 py-[10px] type-body outline-none transition-all duration-200 placeholder:font-normal",

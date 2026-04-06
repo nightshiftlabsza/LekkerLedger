@@ -8,7 +8,7 @@ import { CANONICAL_SITE_URL } from "@/lib/seo";
 
 export const metadata = {
     title: "Free Domestic Worker Payslip Generator | LekkerLedger",
-    description: "Create a domestic worker payslip PDF for this month. Enter the pay details and we will email one free payslip PDF per email address each calendar month.",
+    description: "Create this month's domestic worker payslip. Tell us her schedule, what she worked, and where to send the PDF.",
     alternates: {
         canonical: "/resources/tools/domestic-worker-payslip",
     },
@@ -34,7 +34,7 @@ export default function PayslipGeneratorPage() {
                         <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">Free domestic worker payslip tool</p>
                         <h1 className="type-h1" style={{ color: "var(--text)" }}>Create this month&apos;s payslip</h1>
                         <p className="text-base leading-7 sm:text-lg" style={{ color: "var(--text-muted)" }}>
-                            Enter the month, pay rate, normal days worked, and any extra hours. We email the PDF after a successful send, with one free payslip per email address each calendar month.
+                            Tell us her usual schedule, what she worked this month, and where to send the PDF. We&apos;ll calculate the pay and email the payslip.
                         </p>
                     </div>
                 </section>
@@ -78,7 +78,7 @@ export default function PayslipGeneratorPage() {
                     price: "0",
                     priceCurrency: "ZAR",
                 },
-                description: "Create a domestic worker payslip PDF for this month. Enter the pay details and we will email one free payslip PDF per email address each calendar month.",
+                description: "Create this month's domestic worker payslip. Tell us her schedule, what she worked, and where to send the PDF.",
             }} />
             <JsonLd schema={breadcrumbSchema([
                 { name: "Home", path: "/" },

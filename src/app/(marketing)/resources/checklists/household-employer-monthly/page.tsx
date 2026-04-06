@@ -40,7 +40,7 @@ export default function MonthlyChecklistPage() {
                                 Monthly Household Employer Checklist
                             </h1>
                             <p className="text-xl leading-relaxed font-medium" style={{ color: "var(--text-muted)" }}>
-                                A foolproof, step-by-step guide to ensuring your domestic worker&apos;s payroll and compliance are perfectly handled every single month.
+                                Simple monthly checklist so you don&apos;t miss the basics.
                             </p>
                         </div>
                     </div>

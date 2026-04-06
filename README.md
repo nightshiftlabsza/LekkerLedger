@@ -33,6 +33,14 @@ LekkerLedger is configured for deployment on Railway with [`railway.json`](./rai
 
 General deployment guidance for Next.js is available in the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
 
+## Newsletter Drip Setup
+
+The newsletter drip runs on Railway plus one external scheduled request.
+
+Use these instructions:
+
+- [Railway newsletter drip setup](./docs/newsletter-drip-setup.md)
+
 ## Analytics (GA4)
 
 This project uses Google Analytics 4 to track conversions.

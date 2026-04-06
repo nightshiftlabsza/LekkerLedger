@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { getConfiguredAppOrigin, normalizeAppOrigin } from '../app-origin'
+import { getConfiguredAppOrigin, isLocalAppOrigin, normalizeAppOrigin } from '../app-origin'
 import { getRequiredEnvValue } from '../env'
 
 const E2E_AUTH_BYPASS_COOKIE = 'll-e2e-auth-bypass'
@@ -88,10 +88,20 @@ function getForwardedRequestOrigin(requestUrl: URL, headers?: Headers): string {
 }
 
 export function resolveCanonicalRedirect(requestUrl: URL, headers?: Headers): URL | null {
+  const requestOrigin = getForwardedRequestOrigin(requestUrl, headers)
+  const skipCanonicalRedirect =
+    isLocalAppOrigin(requestOrigin)
+    || process.env.NODE_ENV !== 'production'
+    || process.env.E2E_BYPASS_AUTH === '1'
+
+  if (skipCanonicalRedirect) {
+    return null
+  }
+
   const configuredOrigin = getConfiguredAppOrigin()
   const legacyPath = getLegacyRedirectPath(requestUrl.pathname)
   const canonicalUrl = configuredOrigin ? new URL(configuredOrigin) : null
-  const requestOriginUrl = new URL(getForwardedRequestOrigin(requestUrl, headers))
+  const requestOriginUrl = new URL(requestOrigin)
   const needsCanonicalHost = canonicalUrl
     ? requestOriginUrl.protocol !== canonicalUrl.protocol || requestOriginUrl.host !== canonicalUrl.host
     : false

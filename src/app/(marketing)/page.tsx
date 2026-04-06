@@ -200,20 +200,28 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
 
                         <div className="space-y-4">
                             <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                                Payslips and household employment records in one place.
+                                Get your domestic worker payslips and UIF done in minutes.
                             </h1>
                             <p className="max-w-[35rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                                Track monthly pay, show UIF deductions clearly on payslips, and keep records available when you need them.
+                                Built for South African household employers who want clear pay calculations, proper payslips, and a tidy record trail when uFiling or paperwork comes up.
                             </p>
                         </div>
 
                         <div className="space-y-3">
+                            <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-start sm:items-center">
                             <Link
-                                href="/resources/tools/domestic-worker-payslip"
+                                href="/calculator"
                                 className="inline-flex min-h-[44px] items-center gap-2 self-start rounded-xl bg-[var(--primary)] px-7 py-3 text-base font-bold text-white shadow-[var(--shadow-2)] transition-colors hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]"
                             >
-                                Generate free payslip <ArrowRight className="h-4 w-4" />
+                                Check UIF + take-home pay (free) <ArrowRight className="h-4 w-4" />
                             </Link>
+                                <Link
+                                    href="/resources/tools/domestic-worker-payslip"
+                                    className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] px-7 py-3 text-sm font-bold text-[var(--text)] transition-colors hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)]"
+                                >
+                                    Email yourself a payslip PDF (free—1/month)
+                                </Link>
+                            </div>
                             <p className="text-xs font-medium leading-6" style={{ color: "var(--text-muted)" }}>
                                 Free uses the public payslip tool. Paid plans unlock accounts, sync, and the dashboard.
                             </p>
@@ -266,7 +274,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                     </p>
                 </div>
                 <p className="mt-3 max-w-[38ch] text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                    Gross earnings, UIF deduction, and net pay stay easy to scan before you download the full document.
+                    Gross earnings, UIF deduction, and net pay stay easy to scan before you receive the full document.
                 </p>
             </div>
 

@@ -412,6 +412,64 @@ p,
   }
 }
 
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes wizardStepEnterForward {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes wizardStepExitForward {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+
+@keyframes wizardStepEnterBack {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes wizardStepExitBack {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
 @keyframes drawerIn {
   from {
     transform: translateX(-100%);
@@ -438,8 +496,28 @@ p,
   animation: fadeIn 0.4s ease-out forwards;
 }
 
+.animate-fade-out {
+  animation: fadeOut 0.15s ease-out forwards;
+}
+
 .animate-drawer-in {
   animation: drawerIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-wizard-step-enter-forward {
+  animation: wizardStepEnterForward 0.22s ease-out forwards;
+}
+
+.animate-wizard-step-exit-forward {
+  animation: wizardStepExitForward 0.22s ease-out forwards;
+}
+
+.animate-wizard-step-enter-back {
+  animation: wizardStepEnterBack 0.22s ease-out forwards;
+}
+
+.animate-wizard-step-exit-back {
+  animation: wizardStepExitBack 0.22s ease-out forwards;
 }
 
 /* Stagger utilities */
@@ -470,6 +548,7 @@ p,
   .animate-slide-down,
   .animate-slide-right,
   .animate-fade-in,
+  .animate-fade-out,
   .animate-drawer-in {
     animation-duration: 0.01ms !important;
     animation-delay: 0ms !important;
@@ -587,6 +666,30 @@ p,
   width: min(100%, var(--marketing-tool-reading-max));
   margin-left: auto;
   margin-right: auto;
+}
+
+.free-payslip-wizard-shell {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+@media (min-width: 640px) {
+  .free-payslip-wizard-shell {
+    max-width: 37.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .free-payslip-wizard-shell {
+    max-width: 40rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .free-payslip-wizard-shell {
+    max-width: 42.5rem;
+  }
 }
 
 .marketing-proof-shell {

@@ -58,7 +58,7 @@ export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
         subtitle: "One worker. Basic monthly payslips. No sign-up needed.",
         liveFeatures: [
             "1 payslip per month as PDF",
-            "Enter details, generate, download",
+            "Enter details, generate, receive via email",
             "Household checklist and guides",
         ],
         ctaLabel: "Start free",

@@ -31,11 +31,11 @@ test('homepage pricing CTA opens the paid checkout dialog', async ({ page }) => 
     await expect(page.getByRole('button', { name: 'Continue to secure payment' })).toBeVisible();
 });
 
-test('homepage "Generate free payslip" CTA sends to the free payslip generator', async ({ page }) => {
+test('homepage "Email yourself a payslip PDF" CTA sends to the free payslip generator', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await Promise.all([
         page.waitForURL('**/resources/tools/domestic-worker-payslip'),
-        page.getByRole('link', { name: 'Generate free payslip' }).click(),
+        page.getByRole('link', { name: 'Email yourself a payslip PDF (free—1/month)' }).click(),
     ]);
     await expect(page).toHaveURL(/\/resources\/tools\/domestic-worker-payslip$/);
 });

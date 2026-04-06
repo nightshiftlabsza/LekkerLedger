@@ -61,7 +61,7 @@ export function getConfiguredAppOrigin(): string | null {
     );
 }
 
-function isLocalOrigin(origin: string | null | undefined): boolean {
+export function isLocalAppOrigin(origin: string | null | undefined): boolean {
     if (!origin) return false;
 
     try {
@@ -91,10 +91,10 @@ function hasForwardedHost(request: Request): boolean {
 
 export function getRequestAppOrigin(request: Request): string {
     const requestOrigin = getCanonicalAppOrigin(getRequestCurrentOrigin(request)) || getRequestCurrentOrigin(request);
-    if (!isLocalOrigin(requestOrigin)) return requestOrigin;
+    if (!isLocalAppOrigin(requestOrigin)) return requestOrigin;
 
     const configuredOrigin = getConfiguredAppOrigin();
-    if (!hasForwardedHost(request) && configuredOrigin && !isLocalOrigin(configuredOrigin)) return configuredOrigin;
+    if (!hasForwardedHost(request) && configuredOrigin && !isLocalAppOrigin(configuredOrigin)) return configuredOrigin;
 
     return requestOrigin;
 }

@@ -18,7 +18,7 @@ describe("Home page", () => {
             render(<Page />);
         });
         expect(screen.getByRole("heading", { name: /payslips and household employment records in one place/i })).toBeTruthy();
-        expect(screen.getByRole("link", { name: /generate free payslip/i })).toBeTruthy();
+        expect(screen.getByRole("link", { name: /check uif \+ take-home pay \(free\)/i })).toBeTruthy();
         expect(screen.getByRole("heading", { name: /^payslip$/i })).toBeTruthy();
         expect(screen.queryByText(/live preview/i)).toBeNull();
         expect(screen.queryByText(/the homepage now shows the flow once/i)).toBeNull();

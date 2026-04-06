@@ -1,48 +1,84 @@
 import { expect, test, type Page } from "@playwright/test";
 
-async function fillCoreFlow(page: Page) {
-    await page.goto("/resources/tools/domestic-worker-payslip");
-    await expect(page.getByRole("heading", { name: "Enter this month's pay details" })).toBeVisible({ timeout: 20000 });
-
+async function completeStepOne(page: Page) {
+    await page.getByLabel("Worker name").fill("Thandi Maseko");
+    await page.getByRole("button", { name: /Payslip details/i }).click();
     await page.getByLabel("Employer name").fill("Nomsa Dlamini");
     await page.getByLabel("Employer address").fill("18 Acacia Avenue, Northcliff, Johannesburg");
-    await page.getByLabel("Worker name").fill("Thandi Maseko");
-    await page.getByLabel("Normal days worked").fill("19");
+    await page.getByRole("button", { name: "Continue to this month’s work" }).click();
+}
+
+async function completeStepTwo(page: Page) {
+    await page.getByLabel("Days she came in").fill("19");
+    await page.getByRole("button", { name: "Review the payslip" }).click();
+}
+
+async function reachReviewStep(page: Page) {
+    await page.goto("/resources/tools/domestic-worker-payslip");
+    await expect(page.getByRole("heading", { name: "Create this month's payslip" }).first()).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole("heading", { name: "Her schedule and hourly rate" })).toBeVisible();
+    await completeStepOne(page);
+    await expect(page.getByRole("heading", { name: "How much did she work this month?" })).toBeVisible();
+    await completeStepTwo(page);
+    await expect(page.getByRole("heading", { name: "Review and email" })).toBeVisible();
 }
 
 test.describe("Free public payslip flow", () => {
-    test("feels like one short flow instead of a verification ritual", async ({ page }) => {
-        await fillCoreFlow(page);
+    test("uses the new wizard flow and keeps optional fields tucked away", async ({ page }) => {
+        await page.goto("/resources/tools/domestic-worker-payslip");
+        await expect(page.getByRole("heading", { name: "Create this month's payslip" }).first()).toBeVisible({ timeout: 20000 });
+        await expect(page.getByRole("heading", { name: "Her schedule and hourly rate" })).toBeVisible();
 
-        await expect(page.getByText("Build the payslip step by step.")).toHaveCount(0);
-        await expect(page.getByText("Details")).toHaveCount(0);
-        await expect(page.getByLabel("Job title")).toHaveCount(0);
-        await expect(page.getByLabel("ID or passport number")).toHaveCount(0);
-        await expect(page.getByLabel("Other deductions")).toHaveCount(0);
+        await expect(page.getByLabel("Employer name")).toHaveCount(0);
+        await expect(page.getByLabel("Anything deducted from her pay")).toHaveCount(0);
         await expect(page.getByText(/same browser/i)).toHaveCount(0);
-        await expect(page.getByRole("button", { name: "I opened the email link" })).toHaveCount(0);
-        await expect(page.getByText(/maximum normal days is 19/i)).toBeVisible();
-        await expect(page.getByText("Gross pay")).toBeVisible();
+
+        await completeStepOne(page);
+        await expect(page.getByRole("heading", { name: "How much did she work this month?" })).toBeVisible();
+        await expect(page.getByLabel("Total normal hours worked")).toHaveCount(0);
+        await expect(page.getByLabel("Anything deducted from her pay")).toHaveCount(0);
     });
 
-    test("reveals extra schedule controls only when custom days is selected", async ({ page }) => {
+    test("updates the Sunday helper copy when the normal schedule changes", async ({ page }) => {
         await page.goto("/resources/tools/domestic-worker-payslip");
+        await page.getByLabel("Worker name").fill("Thandi Maseko");
+        await page.getByRole("button", { name: /Other days/i }).click();
+        await page.getByRole("button", { name: "Sun" }).click();
+        await page.getByRole("button", { name: /Payslip details/i }).click();
+        await page.getByLabel("Employer name").fill("Nomsa Dlamini");
+        await page.getByLabel("Employer address").fill("18 Acacia Avenue, Northcliff, Johannesburg");
+        await page.getByRole("button", { name: "Continue to this month’s work" }).click();
 
-        await expect(page.getByRole("button", { name: "Mon" })).toHaveCount(0);
-        await page.getByRole("button", { name: /Custom days/i }).click();
-        await expect(page.getByRole("button", { name: "Mon" })).toBeVisible();
+        const optionalAdjustmentsButton = page.getByRole("button", { name: /Anything else\?/i });
+        const sundayHoursField = page.getByLabel("Sunday hours worked");
+
+        await optionalAdjustmentsButton.click();
+        await expect(sundayHoursField).toBeVisible();
+        await expect(page.getByText(/Sunday hours are paid at 1\.5x/i)).toBeVisible();
+
+        await page.getByRole("button", { name: "Back" }).click();
+        await expect(page.getByRole("heading", { name: "Her schedule and hourly rate" })).toBeVisible();
+        await page.getByRole("button", { name: /Monday to Friday/i }).click();
+        await page.getByRole("button", { name: "Continue to this month’s work" }).click();
+        await expect(page.getByRole("heading", { name: "How much did she work this month?" })).toBeVisible();
+
+        if (!(await sundayHoursField.isVisible())) {
+            await optionalAdjustmentsButton.click();
+        }
+
+        await expect(sundayHoursField).toBeVisible();
+        await expect(page.getByText(/Sunday hours are paid at 2x/i)).toBeVisible();
     });
 
-    test("keeps optional adjustments collapsed until needed", async ({ page }) => {
-        await page.goto("/resources/tools/domestic-worker-payslip");
+    test("shows the new review summary and fresh checkbox state", async ({ page }) => {
+        await reachReviewStep(page);
 
-        await expect(page.getByLabel("Other deductions")).toHaveCount(0);
-        await page.getByRole("button", { name: /Deductions and short shifts/i }).click();
-        await expect(page.getByLabel("Other deductions")).toBeVisible();
-        await expect(page.getByLabel("Short shifts under four hours")).toBeVisible();
+        await expect(page.getByText("Amount to pay her")).toBeVisible();
+        await expect(page.getByText("UIF total")).toBeVisible();
+        await expect(page.getByRole("checkbox", { name: /send me a free monthly household employer checklist and tips/i })).not.toBeChecked();
     });
 
-    test("emails the payslip in one step when delivery succeeds", async ({ page }) => {
+    test("emails the payslip when delivery succeeds", async ({ page }) => {
         let deliverCount = 0;
         await page.route("**/api/free-payslip/deliver", async (route) => {
             deliverCount += 1;
@@ -57,35 +93,35 @@ test.describe("Free public payslip flow", () => {
             });
         });
 
-        await fillCoreFlow(page);
+        await reachReviewStep(page);
         await page.getByLabel("Email address").fill("owner@example.com");
         await page.getByRole("button", { name: "Email my free payslip" }).click();
 
-        await expect(page.getByTestId("free-payslip-gate-success")).toBeVisible();
-        await expect(page.getByText("Your payslip has been sent to owner@example.com")).toBeVisible();
+        const successGate = page.getByTestId("free-payslip-gate-success");
+        await expect(successGate).toBeVisible();
+        await expect(successGate.getByText(/✓ Payslip sent to owner@example\.com/)).toBeVisible();
         expect(deliverCount).toBe(1);
     });
 
-    test("shows the monthly limit state cleanly", async ({ page }) => {
+    test("shows the monthly limit and service-unavailable states", async ({ page }) => {
         await page.route("**/api/free-payslip/deliver", async (route) => {
             await route.fulfill({
                 status: 409,
                 contentType: "application/json",
                 body: JSON.stringify({
-                    error: "This verified email has already used its one successful free payslip PDF for this calendar month.",
+                    error: "This email address has already used its one successful free payslip PDF for this calendar month.",
                 }),
             });
         });
 
-        await fillCoreFlow(page);
+        await reachReviewStep(page);
         await page.getByLabel("Email address").fill("owner@example.com");
         await page.getByRole("button", { name: "Email my free payslip" }).click();
 
         await expect(page.getByTestId("free-payslip-gate-quota-used")).toBeVisible();
-        await expect(page.getByText("This verified email has already used its one successful free payslip PDF for this calendar month.")).toBeVisible();
-    });
+        await expect(page.getByText("This email address has already used its one successful free payslip PDF for this calendar month.")).toBeVisible();
 
-    test("shows the service unavailable state cleanly", async ({ page }) => {
+        await page.unroute("**/api/free-payslip/deliver");
         await page.route("**/api/free-payslip/deliver", async (route) => {
             await route.fulfill({
                 status: 503,
@@ -96,7 +132,6 @@ test.describe("Free public payslip flow", () => {
             });
         });
 
-        await fillCoreFlow(page);
         await page.getByLabel("Email address").fill("owner@example.com");
         await page.getByRole("button", { name: "Email my free payslip" }).click();
 

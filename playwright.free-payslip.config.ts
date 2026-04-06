@@ -16,14 +16,15 @@ export default defineConfig({
         },
     ],
     webServer: {
-        command: "cmd /c \"(if exist .next-playwright rmdir /s /q .next-playwright) && set PLAYWRIGHT_BUILD=1 && set E2E_BYPASS_AUTH=1 && npx next build --webpack && npx next start -p 3002 -H 0.0.0.0\"",
+        command: "cmd /c \"(if exist .next-playwright rmdir /s /q .next-playwright) && set PLAYWRIGHT_BUILD=1 && set E2E_BYPASS_AUTH=1 && set RECOVERABLE_WRAP_SECRET=local-playwright-recoverable-wrap-secret && npx next build --webpack && npx next start -p 3002 -H 0.0.0.0\"",
         url: "http://localhost:3002",
-        reuseExistingServer: false,
+        reuseExistingServer: true,
         timeout: 240000,
         env: {
             ...process.env,
             PLAYWRIGHT_BUILD: "1",
             E2E_BYPASS_AUTH: "1",
+            RECOVERABLE_WRAP_SECRET: "local-playwright-recoverable-wrap-secret",
         },
     },
 });

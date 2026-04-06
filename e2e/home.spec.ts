@@ -20,9 +20,9 @@ test("home page scrolls with wheel input", async ({ page }) => {
 
 test("home page hero shows new headline and CTAs", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Payslips and household employment records in one place\./i })).toBeVisible();
-    await expect(page.getByText(/Track monthly pay, show UIF deductions clearly on payslips, and keep records available when you need them\./i)).toBeVisible();
-    await expect(page.getByRole("link", { name: /Generate free payslip/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Get your domestic worker payslips and UIF done in minutes\./i })).toBeVisible();
+    await expect(page.getByText(/Built for South African household employers who want clear pay calculations, proper payslips, and a tidy record trail when uFiling or paperwork comes up\./i)).toBeVisible();
+    await expect(page.getByRole("link", { name: /Check UIF \+ take-home pay \(free\)/i })).toBeVisible();
     await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();
 });
 
