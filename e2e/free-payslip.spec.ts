@@ -15,7 +15,8 @@ async function completeStepTwo(page: Page) {
 
 async function reachReviewStep(page: Page) {
     await page.goto("/resources/tools/domestic-worker-payslip");
-    await expect(page.getByRole("heading", { name: "Create this month's payslip" }).first()).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole("heading", { name: "Free Domestic Worker Payslip Generator (South Africa)" })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole("heading", { name: "Enter the monthly pay details" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Her schedule and hourly rate" })).toBeVisible();
     await completeStepOne(page);
     await expect(page.getByRole("heading", { name: "How much did she work this month?" })).toBeVisible();
@@ -26,7 +27,8 @@ async function reachReviewStep(page: Page) {
 test.describe("Free public payslip flow", () => {
     test("uses the new wizard flow and keeps optional fields tucked away", async ({ page }) => {
         await page.goto("/resources/tools/domestic-worker-payslip");
-        await expect(page.getByRole("heading", { name: "Create this month's payslip" }).first()).toBeVisible({ timeout: 20000 });
+        await expect(page.getByRole("heading", { name: "Free Domestic Worker Payslip Generator (South Africa)" })).toBeVisible({ timeout: 20000 });
+        await expect(page.getByRole("heading", { name: "Enter the monthly pay details" })).toBeVisible();
         await expect(page.getByRole("heading", { name: "Her schedule and hourly rate" })).toBeVisible();
 
         await expect(page.getByLabel("Employer name")).toHaveCount(0);

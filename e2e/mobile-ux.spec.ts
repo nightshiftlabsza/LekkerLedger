@@ -440,8 +440,8 @@ test.describe("Mobile UX regressions", () => {
 
     test("free payslip generator fits on phone without horizontal overflow", async ({ page }) => {
         await page.goto("/resources/tools/domestic-worker-payslip");
-        await expect(page.getByText("Create this month's payslip step by step")).toBeVisible();
-        await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Free Domestic Worker Payslip Generator (South Africa)" })).toBeVisible();
+        await expect(page.getByRole("button", { name: "Continue to this month’s work" })).toBeVisible();
 
         const metrics = await page.evaluate(() => ({
             bodyOverflowing: document.body.scrollWidth > window.innerWidth + 1,

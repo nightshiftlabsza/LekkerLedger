@@ -624,10 +624,10 @@ export function FreePayslipGenerator() {
             <div className="free-payslip-wizard-shell rounded-[2rem] border border-[var(--border)] bg-[var(--surface-raised)] p-5 shadow-[var(--shadow-md)] sm:p-6 lg:p-8">
                 <div className="space-y-3">
                     <h2 className="font-[family:var(--font-serif)] text-[clamp(2rem,5vw,2.8rem)] font-semibold tracking-[var(--h1-ls)] text-[var(--text)]">
-                        Create this month&apos;s payslip
+                        Enter the monthly pay details
                     </h2>
                     <p className="max-w-[42rem] text-sm leading-7 text-[var(--text-muted)] sm:text-base">
-                        Tell us her usual schedule, what she worked this month, and where to send the PDF. We&apos;ll calculate the pay and email the payslip.
+                        Enter the employer, worker, month, and hours to generate the payslip PDF with UIF shown separately.
                     </p>
                 </div>
 

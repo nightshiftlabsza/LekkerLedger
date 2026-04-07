@@ -42,7 +42,7 @@ describe("FreePayslipGenerator", () => {
 
     async function reachStepThree() {
         render(<FreePayslipGenerator />);
-        await screen.findByRole("heading", { name: "Create this month's payslip" });
+        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fillStepOne();
         await screen.findByRole("heading", { name: "How much did she work this month?" });
         fillStepTwo();
@@ -52,7 +52,7 @@ describe("FreePayslipGenerator", () => {
     it("renders the three-step wizard and keeps optional sections hidden at first", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Create this month's payslip" });
+        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         expect(screen.getByRole("button", { name: "Continue to this month’s work" })).toBeInTheDocument();
         expect(screen.queryByLabelText("Employer name")).toBeNull();
         expect(screen.queryByLabelText("Job title")).toBeNull();
@@ -63,7 +63,7 @@ describe("FreePayslipGenerator", () => {
     it("preserves entered values when moving back and forward", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Create this month's payslip" });
+        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fillStepOne();
         await screen.findByRole("heading", { name: "How much did she work this month?" });
 
@@ -87,7 +87,7 @@ describe("FreePayslipGenerator", () => {
     it("fills the full month shortcut and keeps the optional section closed", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Create this month's payslip" });
+        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fillStepOne();
         await screen.findByRole("heading", { name: "How much did she work this month?" });
         fireEvent.click(screen.getByRole("button", { name: "She worked the full month" }));
@@ -99,7 +99,7 @@ describe("FreePayslipGenerator", () => {
     it("reveals partial-day hours only when the toggle is opened", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Create this month's payslip" });
+        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fillStepOne();
         await screen.findByRole("heading", { name: "How much did she work this month?" });
 
@@ -111,7 +111,7 @@ describe("FreePayslipGenerator", () => {
     it("updates the Sunday helper text when the normal schedule changes", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Create this month's payslip" });
+        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fireEvent.change(screen.getByLabelText("Worker name"), { target: { value: "Thandi Maseko" } });
         fireEvent.click(screen.getByRole("button", { name: /Other days/i }));
         fireEvent.click(screen.getByRole("button", { name: "Sun" }));
@@ -135,7 +135,7 @@ describe("FreePayslipGenerator", () => {
     it("shows an inline warning when hours exceed the new schedule cap", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Create this month's payslip" });
+        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fillStepOne();
         await screen.findByRole("heading", { name: "How much did she work this month?" });
         fireEvent.click(screen.getByRole("button", { name: /She sometimes works partial days/i }));
@@ -191,7 +191,7 @@ describe("FreePayslipGenerator", () => {
         }));
 
         render(<FreePayslipGenerator />);
-        await screen.findByRole("heading", { name: "Create this month's payslip" });
+        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fillStepOne();
         await screen.findByRole("heading", { name: "How much did she work this month?" });
         fillStepTwo();
