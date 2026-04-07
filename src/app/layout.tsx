@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   description:
     "Run South African household payroll with payslips, employee records, backup, and annual paperwork in one calm workspace.",
   manifest: "/manifest.webmanifest",
+  verification: {
+    google: "O85R9OVTC6x7gCqVIEBiNU1Q90ddkPUu_pw5Q0qigmg",
+  },
   alternates: {
     canonical: "/",
   },
