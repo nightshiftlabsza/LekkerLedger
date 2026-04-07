@@ -9,7 +9,7 @@ async function completeStepOne(page: Page) {
 }
 
 async function completeStepTwo(page: Page) {
-    await page.getByLabel("Days she came in").fill("19");
+    await page.getByLabel("Days worked").fill("19");
     await page.getByRole("button", { name: "Review the payslip" }).click();
 }
 
@@ -17,9 +17,9 @@ async function reachReviewStep(page: Page) {
     await page.goto("/resources/tools/domestic-worker-payslip");
     await expect(page.getByRole("heading", { name: "Free Domestic Worker Payslip Generator (South Africa)" })).toBeVisible({ timeout: 20000 });
     await expect(page.getByRole("heading", { name: "Enter the monthly pay details" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Her schedule and hourly rate" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Schedule and hourly rate" })).toBeVisible();
     await completeStepOne(page);
-    await expect(page.getByRole("heading", { name: "How much did she work this month?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "How much did the worker work this month?" })).toBeVisible();
     await completeStepTwo(page);
     await expect(page.getByRole("heading", { name: "Review and email" })).toBeVisible();
 }
@@ -29,16 +29,16 @@ test.describe("Free public payslip flow", () => {
         await page.goto("/resources/tools/domestic-worker-payslip");
         await expect(page.getByRole("heading", { name: "Free Domestic Worker Payslip Generator (South Africa)" })).toBeVisible({ timeout: 20000 });
         await expect(page.getByRole("heading", { name: "Enter the monthly pay details" })).toBeVisible();
-        await expect(page.getByRole("heading", { name: "Her schedule and hourly rate" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Schedule and hourly rate" })).toBeVisible();
 
         await expect(page.getByLabel("Employer name")).toHaveCount(0);
-        await expect(page.getByLabel("Anything deducted from her pay")).toHaveCount(0);
+        await expect(page.getByLabel("Any deductions from pay")).toHaveCount(0);
         await expect(page.getByText(/same browser/i)).toHaveCount(0);
 
         await completeStepOne(page);
-        await expect(page.getByRole("heading", { name: "How much did she work this month?" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "How much did the worker work this month?" })).toBeVisible();
         await expect(page.getByLabel("Total normal hours worked")).toHaveCount(0);
-        await expect(page.getByLabel("Anything deducted from her pay")).toHaveCount(0);
+        await expect(page.getByLabel("Any deductions from pay")).toHaveCount(0);
     });
 
     test("updates the Sunday helper copy when the normal schedule changes", async ({ page }) => {
@@ -59,10 +59,10 @@ test.describe("Free public payslip flow", () => {
         await expect(page.getByText(/Sunday hours are paid at 1\.5x/i)).toBeVisible();
 
         await page.getByRole("button", { name: "Back" }).click();
-        await expect(page.getByRole("heading", { name: "Her schedule and hourly rate" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Schedule and hourly rate" })).toBeVisible();
         await page.getByRole("button", { name: /Monday to Friday/i }).click();
         await page.getByRole("button", { name: "Continue to this month’s work" }).click();
-        await expect(page.getByRole("heading", { name: "How much did she work this month?" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "How much did the worker work this month?" })).toBeVisible();
 
         if (!(await sundayHoursField.isVisible())) {
             await optionalAdjustmentsButton.click();
@@ -75,7 +75,7 @@ test.describe("Free public payslip flow", () => {
     test("shows the new review summary and fresh checkbox state", async ({ page }) => {
         await reachReviewStep(page);
 
-        await expect(page.getByText("Amount to pay her")).toBeVisible();
+        await expect(page.getByText("Amount to pay")).toBeVisible();
         await expect(page.getByText("UIF total")).toBeVisible();
         await expect(page.getByRole("checkbox", { name: /send me a free monthly household employer checklist and tips/i })).not.toBeChecked();
     });

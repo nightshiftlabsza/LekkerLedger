@@ -276,10 +276,10 @@ export function FreePayslipGenerator() {
     const ordinaryHoursOverride = form.ordinaryHoursOverride.trim() ? Number(form.ordinaryHoursOverride) : null;
 
     const sundayRateHelper = normalizedPattern.sunday
-        ? "Sunday hours are paid at 1.5x because Sunday is part of her normal schedule."
-        : "Sunday hours are paid at 2x because Sunday is not part of her normal schedule.";
-    const daysHint = `${format(monthBounds.end, "MMMM yyyy")} allows up to ${ordinaryCalendar.ordinaryDayCap} day${ordinaryCalendar.ordinaryDayCap === 1 ? "" : "s"} for her normal schedule.`;
-    const hoursHint = `${format(monthBounds.end, "MMMM yyyy")} allows up to ${ordinaryCalendar.ordinaryHourCap} normal hour${ordinaryCalendar.ordinaryHourCap === 1 ? "" : "s"} for her schedule.`;
+        ? "Sunday hours are paid at 1.5x because Sunday is part of the normal schedule."
+        : "Sunday hours are paid at 2x because Sunday is not part of the normal schedule.";
+    const daysHint = `${format(monthBounds.end, "MMMM yyyy")} allows up to ${ordinaryCalendar.ordinaryDayCap} day${ordinaryCalendar.ordinaryDayCap === 1 ? "" : "s"} for the normal schedule.`;
+    const hoursHint = `${format(monthBounds.end, "MMMM yyyy")} allows up to ${ordinaryCalendar.ordinaryHourCap} normal hour${ordinaryCalendar.ordinaryHourCap === 1 ? "" : "s"} for the schedule.`;
     const daysCapWarning = ordinaryDaysWorked > ordinaryCalendar.ordinaryDayCap
         ? `This schedule allows up to ${ordinaryCalendar.ordinaryDayCap} day${ordinaryCalendar.ordinaryDayCap === 1 ? "" : "s"} this month.`
         : undefined;
@@ -287,9 +287,9 @@ export function FreePayslipGenerator() {
         ? `This schedule allows up to ${ordinaryCalendar.ordinaryHourCap} normal hour${ordinaryCalendar.ordinaryHourCap === 1 ? "" : "s"} this month.`
         : undefined;
     const holidaySummary = ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length > 0
-        ? `${ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length} public holiday${ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length === 1 ? "" : "s"} land on her normal work days this month. Do not count them in "Days she came in" unless she actually worked those hours.`
+        ? `${ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length} public holiday${ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length === 1 ? "" : "s"} land on the normal work days this month. Do not count them in "Days worked" unless the worker actually worked those hours.`
         : ordinaryCalendar.publicHolidaysInRange.length > 0
-            ? "Public holidays fall this month, but none are on her normal work days."
+            ? "Public holidays fall this month, but none are on the normal work days."
             : "No South African public holidays fall in this month.";
 
     const clearTransitionTimers = React.useCallback(() => {
@@ -641,7 +641,7 @@ export function FreePayslipGenerator() {
                             <div className="space-y-6">
                                 <SectionIntro
                                     eyebrow="Step 1 of 3"
-                                    title="Her schedule and hourly rate"
+                                    title="Schedule and hourly rate"
                                     description="Start with the details most people know straight away. We’ll use these to work out the rest."
                                     headingRef={stepHeadingRef}
                                 />
@@ -685,20 +685,20 @@ export function FreePayslipGenerator() {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Which days does she normally work?</p>
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Which days does the worker normally work?</p>
                                     <div className="grid gap-3 sm:grid-cols-3">
                                         <ScheduleOption
                                             id="free-schedule-preset-monday-to-friday"
                                             active={schedulePreset === "monday-to-friday"}
                                             label="Monday to Friday"
-                                            detail="Her normal week is weekdays."
+                                            detail="Normal week is weekdays."
                                             onClick={() => updateSchedulePreset("monday-to-friday")}
                                         />
                                         <ScheduleOption
                                             id="free-schedule-preset-monday-to-saturday"
                                             active={schedulePreset === "monday-to-saturday"}
                                             label="Monday to Saturday"
-                                            detail="She normally works six days."
+                                            detail="Normal week is six days."
                                             onClick={() => updateSchedulePreset("monday-to-saturday")}
                                         />
                                         <ScheduleOption
@@ -714,8 +714,8 @@ export function FreePayslipGenerator() {
 
                                 {schedulePreset === "custom" ? (
                                     <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] p-4">
-                                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Her normal work days</p>
-                                        <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">Tap the days she normally works, including Sunday if it is part of her usual schedule.</p>
+                                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Normal work days</p>
+                                        <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">Tap the days the worker normally works, including Sunday if it is part of the usual schedule.</p>
                                         <div className="mt-4">
                                             <OrdinaryWorkPatternPicker
                                                 value={form.ordinaryWorkPattern}
@@ -776,7 +776,7 @@ export function FreePayslipGenerator() {
                                                 >
                                                     <div>
                                                         <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Different job title</p>
-                                                        <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">Default: Domestic Worker. Change this only if she has a specific role like Gardener or Cook.</p>
+                                                        <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">Default: Domestic Worker. Change this only if the worker has a specific role like Gardener or Cook.</p>
                                                     </div>
                                                     {showRoleOverride ? <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />}
                                                 </button>
@@ -831,7 +831,7 @@ export function FreePayslipGenerator() {
                             <div className="space-y-6">
                                 <SectionIntro
                                     eyebrow="Step 2 of 3"
-                                    title="How much did she work this month?"
+                                    title="How much did the worker work this month?"
                                     description="Fill in the usual case first. You only need the extra fields if something different happened this month."
                                     headingRef={stepHeadingRef}
                                 />
@@ -840,10 +840,10 @@ export function FreePayslipGenerator() {
                                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <div>
                                             <p className="text-sm font-semibold text-[var(--text)]">Quick option</p>
-                                            <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">If she worked her full normal month, we can fill that in for you.</p>
+                                            <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">If the worker worked the full normal month, we can fill that in for you.</p>
                                         </div>
                                         <Button type="button" variant="secondary" onClick={handleFullMonth} className="w-full sm:w-auto">
-                                            She worked the full month
+                                            Worked the full month
                                         </Button>
                                     </div>
                                 </div>
@@ -851,7 +851,7 @@ export function FreePayslipGenerator() {
                                 <div className="grid gap-5 sm:grid-cols-2">
                                     <TextField
                                         id="free-ordinary-days"
-                                        label="Days she came in"
+                                        label="Days worked"
                                         hint={daysHint}
                                         warning={daysCapWarning}
                                         error={errors.ordinaryDaysWorked}
@@ -882,7 +882,7 @@ export function FreePayslipGenerator() {
                                         className="flex w-full items-center justify-between gap-3 text-left"
                                     >
                                         <div>
-                                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">She sometimes works partial days</p>
+                                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Sometimes works partial days</p>
                                             <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">Turn this on if this month was not made up of full normal days.</p>
                                         </div>
                                         {showOrdinaryHoursOverride ? <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />}
@@ -934,7 +934,7 @@ export function FreePayslipGenerator() {
                                                         const onSchedule = ordinaryCalendar.excludedHolidayDates.includes(holiday.date);
                                                         return (
                                                             <li key={holiday.date}>
-                                                                {format(new Date(`${holiday.date}T00:00:00`), "EEE d MMM yyyy")} · {holiday.name} · {onSchedule ? "on her normal work days" : "not on her normal work days"}
+                                                                {format(new Date(`${holiday.date}T00:00:00`), "EEE d MMM yyyy")} · {holiday.name} · {onSchedule ? "on normal work days" : "not on normal work days"}
                                                             </li>
                                                         );
                                                     })}
@@ -960,7 +960,7 @@ export function FreePayslipGenerator() {
                                     {showOptionalAdjustments ? (
                                         <div className="mt-4 space-y-5">
                                             <div className="grid gap-5 sm:grid-cols-3">
-                                                <TextField id="free-overtime-hours" label="Overtime hours" hint="Hours worked outside her normal time." error={errors.overtimeHours}>
+                                                <TextField id="free-overtime-hours" label="Overtime hours" hint="Hours worked outside normal time." error={errors.overtimeHours}>
                                                     <Input
                                                         id="free-overtime-hours"
                                                         type="number"
@@ -985,7 +985,7 @@ export function FreePayslipGenerator() {
                                                 <TextField
                                                     id="free-public-holiday-hours"
                                                     label="Public holiday hours"
-                                                    hint="Only add hours she actually worked on a South African public holiday."
+                                                    hint="Only add hours actually worked on a South African public holiday."
                                                     error={errors.publicHolidayHours}
                                                 >
                                                     <Input
@@ -1002,7 +1002,7 @@ export function FreePayslipGenerator() {
                                             <div className="grid gap-5 sm:grid-cols-2">
                                                 <TextField
                                                     id="free-other-deductions"
-                                                    label="Anything deducted from her pay"
+                                                    label="Any deductions from pay"
                                                     hint="Only add agreed deductions that should appear on this payslip."
                                                     error={errors.otherDeductions}
                                                 >
@@ -1059,9 +1059,9 @@ export function FreePayslipGenerator() {
 
                                 {breakdown && payrollSummary ? (
                                     <div className="space-y-4">
-                                        <MajorSummaryRow label="Amount to pay her" value={`R ${payrollSummary.netPayToEmployee.toFixed(2)}`} accent />
+                                        <MajorSummaryRow label="Amount to pay" value={`R ${payrollSummary.netPayToEmployee.toFixed(2)}`} accent />
                                         <div className="grid gap-4 sm:grid-cols-3">
-                                            <MajorSummaryRow label="Her total earnings" value={`R ${payrollSummary.grossPay.toFixed(2)}`} />
+                                            <MajorSummaryRow label="Total earnings" value={`R ${payrollSummary.grossPay.toFixed(2)}`} />
                                             <MajorSummaryRow label="UIF total" value={`R ${payrollSummary.totalUifDue.toFixed(2)}`} />
                                             <MajorSummaryRow label="Total this costs you" value={`R ${payrollSummary.employerTotalCost.toFixed(2)}`} />
                                         </div>
@@ -1093,7 +1093,7 @@ export function FreePayslipGenerator() {
                                                 {breakdown.sundayPay > 0 ? <SummaryRow label={`Sunday (${calculationInput?.sundayHours ?? 0}h)`} value={`R ${breakdown.sundayPay.toFixed(2)}`} /> : null}
                                                 {breakdown.publicHolidayPay > 0 ? <SummaryRow label={`Public holiday (${calculationInput?.publicHolidayHours ?? 0}h)`} value={`R ${breakdown.publicHolidayPay.toFixed(2)}`} /> : null}
                                                 {breakdown.topUps.fourHourMinimumHours > 0 ? <SummaryRow label="Extra hours added for short shifts" value={`${breakdown.topUps.fourHourMinimumHours}h`} /> : null}
-                                                <SummaryRow label="UIF taken off her pay" value={`R ${payrollSummary.employeeUifDeduction.toFixed(2)}`} />
+                                                <SummaryRow label="UIF deducted from pay" value={`R ${payrollSummary.employeeUifDeduction.toFixed(2)}`} />
                                                 <SummaryRow label="Your UIF contribution" value={`R ${payrollSummary.employerUifContribution.toFixed(2)}`} />
                                                 <SummaryRow label="Other deductions" value={`R ${breakdown.deductions.other.toFixed(2)}`} />
                                                 <SummaryRow label="Payslip month" value={format(monthBounds.end, "MMMM yyyy")} strong />
