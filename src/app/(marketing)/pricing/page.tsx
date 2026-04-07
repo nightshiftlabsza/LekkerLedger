@@ -9,14 +9,31 @@ import {
     PricingComparisonTable,
 } from "@/components/marketing/pricing";
 import { useInlinePaidPlanCheckout } from "@/components/billing/inline-paid-plan-checkout";
-import {
-    PRICING_PAGE_NUDGE_BODY,
-    PRICING_PAGE_NUDGE_TITLE,
-    PRICING_PAGE_SUBTITLE,
-    PRICING_PAGE_TITLE,
-} from "@/src/config/pricing-display";
 import { REFUND_POLICY_SUMMARY } from "@/src/config/plans";
 import { useMarketingBillingCycle } from "@/src/lib/use-marketing-billing-cycle";
+
+const PRICING_PAGE_TITLE = "Pricing for domestic worker payslips, UIF, and payroll records";
+const PRICING_PAGE_SUBTITLE = "Start free with one payslip a month, or choose a paid plan for leave, contracts, records, and uFiling-ready admin.";
+const PRICING_PAGE_NUDGE_TITLE = "Choose Pro only if you need more storage, more history, or multiple households";
+const PRICING_PAGE_NUDGE_BODY = "Standard will fit most single-household setups. Pro is for longer history, more files, and more complex record-keeping.";
+const PRICING_PAGE_PLAN_DISPLAY_OVERRIDES = {
+    free: {
+        headline: "One free payslip each month",
+        subtitle: "Best if you only need an occasional domestic worker payslip PDF",
+    },
+    standard: {
+        headline: "Best for one household with regular monthly admin",
+        subtitle: "Payslips, leave tracking, contracts, UIF-ready exports, and 12 months of records for up to 3 workers",
+        badge: "Launch pricing",
+        launchNote: undefined,
+    },
+    pro: {
+        headline: "Best for multiple households, longer history, and more files",
+        subtitle: "Adds file vault, year-end summaries, 5 years of history, and support for more complex record-keeping",
+        badge: "Launch pricing",
+        launchNote: undefined,
+    },
+} as const;
 
 export default function PricingPage() {
     const [billingCycle, setBillingCycle] = useMarketingBillingCycle();
@@ -34,10 +51,10 @@ export default function PricingPage() {
                                 <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                                     Household pricing
                                 </div>
-                                <h1 className="type-h1 max-w-[18ch]" style={{ color: "var(--text)" }}>
+                                <h1 className="type-h1 max-w-[26ch]" style={{ color: "var(--text)" }}>
                                     {PRICING_PAGE_TITLE}
                                 </h1>
-                                <p className="max-w-3xl text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                <p className="max-w-[60ch] text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     {PRICING_PAGE_SUBTITLE}
                                 </p>
                             </div>
@@ -55,6 +72,7 @@ export default function PricingPage() {
                             onSelect={startCheckout}
                             onWarmSelect={warmCheckout}
                             isLoadingPlanId={loadingPlanId}
+                            planDisplayOverrides={PRICING_PAGE_PLAN_DISPLAY_OVERRIDES}
                         />
                     </div>
                 </section>
@@ -65,7 +83,7 @@ export default function PricingPage() {
                             <p className="text-base font-black" style={{ color: "var(--text)" }}>
                                 {PRICING_PAGE_NUDGE_TITLE}
                             </p>
-                            <p className="mt-2 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
+                            <p className="mx-auto mt-2 max-w-[62ch] text-sm leading-6" style={{ color: "var(--text-muted)" }}>
                                 {PRICING_PAGE_NUDGE_BODY}
                             </p>
                         </div>
@@ -77,10 +95,10 @@ export default function PricingPage() {
                         <div className="mb-8 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                             <div className="max-w-3xl space-y-3">
                                 <h2 className="type-h2" style={{ color: "var(--text)" }}>
-                                    Compare plans in detail.
+                                    Compare Free, Standard, and Pro in detail.
                                 </h2>
-                                <p className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    The comparison below shows exactly what changes as you move from basic payslips to organised records, backup, and longer history.
+                                <p className="max-w-[62ch] text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                                    Use this table if you are choosing between one free payslip a month, one-household payroll admin, or longer records with more file storage.
                                 </p>
                             </div>
                         </div>
@@ -97,13 +115,13 @@ export default function PricingPage() {
                                 </h3>
                                 <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Free has no billing. Standard and Pro start billing immediately on the monthly or yearly cycle you choose.
+                                        Free has no billing. Standard and Pro start billing right away on the monthly or yearly cycle you choose.
                                     </p>
                                     <p>
                                         {REFUND_POLICY_SUMMARY}
                                     </p>
                                     <p>
-                                        Each successful referral that reaches its first real paid month earns the referrer 1 extra free month, up to 12 months total.
+                                        Referral rewards apply after the referred account reaches its first full paid month and clears the refund window.
                                     </p>
                                     <Link href="/legal/refunds" className="inline-flex items-center gap-2 font-semibold text-[var(--primary)]">
                                         View the refund policy <ChevronRight className="h-4 w-4" />
@@ -117,10 +135,10 @@ export default function PricingPage() {
                                 </h3>
                                 <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device. Free emails one payslip PDF per email address each calendar month with no account needed.
+                                        Paid accounts keep records in Cloud-secured storage you can access from any device. Free sends one payslip PDF per email address each calendar month with no account needed.
                                     </p>
                                     <p>
-                                        Standard and Pro include the documents hub and automatic cloud-secured backup. Pro adds the Vault for any employment files, year-end summaries, and 5 years of browsable history.
+                                        Standard and Pro include the documents hub and Cloud-secured storage. Pro adds the Vault for employment files, year-end summaries, and 5 years of payroll records.
                                     </p>
                                     <p>
                                         Support is by email on every plan, with faster replies on Pro.

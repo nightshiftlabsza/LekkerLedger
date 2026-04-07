@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import { pageOG } from "@/lib/seo";
 
 export const metadata: Metadata = {
-    title: "Pricing | LekkerLedger",
+    title: "Pricing for Domestic Worker Payroll Software | LekkerLedger",
     description:
-        "Compare LekkerLedger plans for South African household payroll, payslips, records, sync, and annual paperwork.",
+        "Compare Free, Standard, and Pro for domestic worker payslips, UIF records, leave tracking, contracts, and household payroll admin in South Africa.",
     alternates: {
         canonical: "/pricing",
     },
     ...pageOG(
-        "Pricing | LekkerLedger",
-        "Compare LekkerLedger plans for South African household payroll, payslips, records, sync, and annual paperwork.",
+        "Pricing for Domestic Worker Payroll Software | LekkerLedger",
+        "Compare Free, Standard, and Pro for domestic worker payslips, UIF records, leave tracking, contracts, and household payroll admin in South Africa.",
         "/pricing",
     ),
 };

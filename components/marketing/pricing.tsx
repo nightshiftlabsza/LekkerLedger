@@ -14,6 +14,7 @@ import {
     MARKETING_YEARLY_BADGE,
     PRICING_COMPARISON_GROUPS,
     isPlannedComparisonValue,
+    type MarketingPlanDisplay,
     type PricingComparisonValue,
 } from "@/src/config/pricing-display";
 
@@ -68,6 +69,25 @@ const COMPARISON_PLAN_LABELS: Record<PlanId, string> = {
     standard: "Standard",
     pro: "Pro",
 };
+
+export type MarketingPlanDisplayOverrides = Partial<Record<PlanId, Partial<MarketingPlanDisplay>>>;
+
+function resolveMarketingPlanDisplay(
+    planId: PlanId,
+    planDisplayOverrides?: MarketingPlanDisplayOverrides,
+): MarketingPlanDisplay {
+    const basePlan = getMarketingPlanDisplay(planId);
+    const overrides = planDisplayOverrides?.[planId];
+
+    if (!overrides) {
+        return basePlan;
+    }
+
+    return {
+        ...basePlan,
+        ...overrides,
+    };
+}
 
 // ─── Billing Toggle ────────────────────────────────────────────────────────────
 
@@ -200,6 +220,7 @@ export function MarketingPlanCards({
     onSelect,
     onWarmSelect,
     isLoadingPlanId,
+    planDisplayOverrides,
 }: {
     readonly billingCycle: BillingCycle;
     readonly compact?: boolean;
@@ -207,6 +228,7 @@ export function MarketingPlanCards({
     readonly onSelect?: (planId: PlanId) => void;
     readonly onWarmSelect?: (planId: Exclude<PlanId, "free">) => void;
     readonly isLoadingPlanId?: PlanId | null;
+    readonly planDisplayOverrides?: MarketingPlanDisplayOverrides;
 }) {
     return (
         <div className="plan-cards-cq-root w-full space-y-6">
@@ -223,6 +245,7 @@ export function MarketingPlanCards({
                         onWarmSelect={onWarmSelect}
                         isLoading={isLoadingPlanId === planId}
                         isDisabled={!!isLoadingPlanId && isLoadingPlanId !== planId}
+                        planDisplayOverrides={planDisplayOverrides}
                     />
                 ))}
             </div>
@@ -380,6 +403,7 @@ export function MarketingPlanCard({
     onWarmSelect,
     isLoading = false,
     isDisabled = false,
+    planDisplayOverrides,
 }: {
     readonly planId: PlanId;
     readonly billingCycle: BillingCycle;
@@ -390,8 +414,9 @@ export function MarketingPlanCard({
     readonly onWarmSelect?: (planId: Exclude<PlanId, "free">) => void;
     readonly isLoading?: boolean;
     readonly isDisabled?: boolean;
+    readonly planDisplayOverrides?: MarketingPlanDisplayOverrides;
 }) {
-    const plan = getMarketingPlanDisplay(planId);
+    const plan = resolveMarketingPlanDisplay(planId, planDisplayOverrides);
     const featured = planId === "standard";
     const priceDisplay = getMarketingPriceDisplay(planId, billingCycle);
     const isDowngrade =
@@ -422,6 +447,8 @@ export function MarketingPlanCard({
 
         onWarmSelect(planId);
     };
+
+    const ctaOnSelect = planId === "free" && !currentPlanId ? undefined : onSelect;
 
     return (
         <article className={getPlanCardClassName(featured, isDisabled)}>
@@ -513,7 +540,7 @@ export function MarketingPlanCard({
                 className={`mt-auto space-y-2.5 border-t border-[var(--border)] ${compact ? "p-5" : "p-6 pb-5 sm:p-7 sm:pb-6"}`}
             >
                 <MarketingPlanCardCta
-                    onSelect={onSelect}
+                    onSelect={ctaOnSelect}
                     href={href}
                     handleAction={handleAction}
                     handleWarm={handleWarm}

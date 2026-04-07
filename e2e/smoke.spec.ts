@@ -15,7 +15,7 @@ test('examples page renders in the browser', async ({ page }) => {
 
 test('pricing page loads', async ({ page }) => {
     await page.goto('/pricing', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('h1')).toContainText('Pick the plan that fits your household.');
+    await expect(page.locator('h1')).toContainText('Pricing for domestic worker payslips, UIF, and payroll records');
 });
 
 test('calculator page loads in the browser', async ({ page }) => {

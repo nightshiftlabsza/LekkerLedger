@@ -25,6 +25,8 @@ describe("SEO metadata", () => {
         expect(homeMetadata.title).toBe("Domestic Worker Payslips, UIF & Payroll Records | LekkerLedger South Africa");
         expect(homeMetadata.description).toBe("Create domestic worker payslips, calculate UIF, track leave, store contracts, and keep payroll records organised for South African household employers.");
         expect(pricingMetadata.alternates?.canonical).toBe("/pricing");
+        expect(pricingMetadata.title).toBe("Pricing for Domestic Worker Payroll Software | LekkerLedger");
+        expect(pricingMetadata.description).toBe("Compare Free, Standard, and Pro for domestic worker payslips, UIF records, leave tracking, contracts, and household payroll admin in South Africa.");
         expect(calculatorMetadata.alternates?.canonical).toBe("/calculator");
         expect(resourcesMetadata.alternates?.canonical).toBe("/resources");
         expect(guidesMetadata.alternates?.canonical).toBe("/resources/guides");
