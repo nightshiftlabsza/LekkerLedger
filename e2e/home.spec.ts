@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test("home page loads and has correct title", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/LekkerLedger/i);
+    await expect(page).toHaveTitle(/Domestic Worker Payslips, UIF & Payroll Records/i);
 });
 
 test("home page contains a main element", async ({ page }) => {
@@ -20,9 +20,10 @@ test("home page scrolls with wheel input", async ({ page }) => {
 
 test("home page hero shows new headline and CTAs", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Get your domestic worker payslips and UIF done in minutes\./i })).toBeVisible();
-    await expect(page.getByText(/Built for South African household employers who want clear pay calculations, proper payslips, and a tidy record trail when uFiling or paperwork comes up\./i)).toBeVisible();
-    await expect(page.getByRole("link", { name: /Check UIF \+ take-home pay \(free\)/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Domestic worker payslips and UIF for South African households/i })).toBeVisible();
+    await expect(page.getByText(/Create monthly payslips, show UIF clearly, track leave, and keep contracts and records together for your domestic worker, nanny, gardener, or caregiver\./i)).toBeVisible();
+    await expect(page.getByRole("link", { name: /Generate a free domestic worker payslip/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Check UIF and take-home pay/i })).toBeVisible();
     await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();
 });
 
@@ -48,8 +49,8 @@ test("home page has marketing header (no app nav)", async ({ page }) => {
 test("home page has all major sections", async ({ page }) => {
     await page.goto("/");
     // Key section headings
-    await expect(page.getByText(/Set up once\. Generate payslips\. Keep the records together/i)).toBeVisible();
-    await expect(page.getByText(/Not just a payslip\. Your household record trail/i)).toBeVisible();
+    await expect(page.getByText(/Run monthly domestic worker admin without spreadsheets or guesswork/i)).toBeVisible();
+    await expect(page.getByText(/Everything you need for monthly pay and paperwork/i)).toBeVisible();
     await expect(page.getByText(/Questions households ask before they start/i)).toBeVisible();
 });
 

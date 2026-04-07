@@ -17,13 +17,13 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { pageOG } from "@/lib/seo";
 
 export const metadata: Metadata = {
-    title: "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+    title: "Domestic Worker Payslips, UIF & Payroll Records | LekkerLedger South Africa",
     description:
-        "Run South African household payroll with payslips, employee records, backup, and annual paperwork in one calm workspace.",
+        "Create domestic worker payslips, calculate UIF, track leave, store contracts, and keep payroll records organised for South African household employers.",
     alternates: { canonical: "/" },
     ...pageOG(
-        "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
-        "Run South African household payroll with payslips, employee records, backup, and annual paperwork in one calm workspace.",
+        "Domestic Worker Payslips, UIF & Payroll Records | LekkerLedger South Africa",
+        "Create domestic worker payslips, calculate UIF, track leave, store contracts, and keep payroll records organised for South African household employers.",
         "/",
     ),
 };
@@ -80,9 +80,9 @@ const SAMPLE_FIGURE_GRID = [
     "min-[1440px]:grid-cols-[minmax(11rem,1.85fr)_minmax(4rem,0.68fr)_minmax(5.5rem,0.86fr)_minmax(6rem,0.98fr)] min-[1440px]:gap-x-4",
 ].join(" ");
 const HERO_TRUST_POINTS = [
-    "UIF deductions are clearly shown on each payslip.",
-    "Contracts, exports, and payroll records stay together.",
-    "Paid plans add accounts, sync, and dashboard access.",
+    "UIF is shown clearly on every payslip.",
+    "Keep contracts, payslips, and exports in one place.",
+    "Stop rebuilding monthly records from scratch.",
 ] as const;
 
 function formatRand(value: number) {
@@ -200,30 +200,34 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
 
                         <div className="space-y-4">
                             <h1 className="type-h1" style={{ color: "var(--text)" }}>
-                                Get your domestic worker payslips and UIF done in minutes.
+                                Domestic worker payslips and UIF for South African households
                             </h1>
                             <p className="max-w-[35rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                                Built for South African household employers who want clear pay calculations, proper payslips, and a tidy record trail when uFiling or paperwork comes up.
+                                Create monthly payslips, show UIF clearly, track leave, and keep contracts and records together for your domestic worker, nanny, gardener, or caregiver.
                             </p>
                         </div>
 
                         <div className="space-y-3">
                             <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-start sm:items-center">
-                            <Link
-                                href="/calculator"
-                                className="inline-flex min-h-[44px] items-center gap-2 self-start rounded-xl bg-[var(--primary)] px-7 py-3 text-base font-bold text-white shadow-[var(--shadow-2)] transition-colors hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)]"
-                            >
-                                Check UIF + take-home pay (free) <ArrowRight className="h-4 w-4" />
-                            </Link>
                                 <Link
                                     href="/resources/tools/domestic-worker-payslip"
-                                    className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] px-7 py-3 text-sm font-bold text-[var(--text)] transition-colors hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)]"
+                                    className="inline-flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 self-start rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-bold leading-5 text-center text-white shadow-[var(--shadow-2)] transition-colors hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] sm:px-7 sm:text-base"
                                 >
-                                    Email yourself a payslip PDF (free—1/month)
+                                    Generate a free domestic worker payslip <ArrowRight className="h-4 w-4" />
+                                </Link>
+                                <Link
+                                    href="/calculator"
+                                    className="inline-flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] px-5 py-3 text-sm font-bold leading-5 text-center text-[var(--text)] transition-colors hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)] sm:px-7"
+                                >
+                                    Check UIF and take-home pay
                                 </Link>
                             </div>
                             <p className="text-xs font-medium leading-6" style={{ color: "var(--text-muted)" }}>
-                                Free uses the public payslip tool. Paid plans unlock accounts, sync, and the dashboard.
+                                Start with the free payslip tool, or use the{" "}
+                                <Link href="/uif-calculator" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
+                                    UIF calculator
+                                </Link>{" "}
+                                when you only need a quick check before payday.
                             </p>
                         </div>
 
@@ -274,7 +278,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                     </p>
                 </div>
                 <p className="mt-3 max-w-[38ch] text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                    Gross earnings, UIF deduction, and net pay stay easy to scan before you receive the full document.
+                    Gross earnings, UIF deduction, and net pay stay easy to scan before you create the full record.
                 </p>
             </div>
 
@@ -379,7 +383,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                     </div>
 
                     <p className="mt-4 text-xs leading-6" style={{ color: "var(--text-muted)" }}>
-                        Sample only. Your real payslips are generated from your own payroll records and kept with the rest of your monthly admin trail.
+                        Sample only. Your real payslips are created from your own payroll records and kept with the rest of your monthly pay paperwork.
                     </p>
                 </div>
 
@@ -395,7 +399,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                             Why this matters
                         </p>
                         <p className="mt-2 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                            The paid app keeps payslips, contracts, exports, and backup access in one calm workspace.
+                            Keep monthly payslips, contracts, exports, and payroll records together in one calm workspace.
                         </p>
                     </div>
                 </div>
@@ -545,18 +549,18 @@ function HowItWorks() {
     const steps = [
         {
             icon: Users,
-            title: "Add your worker",
-            body: "Save the worker's details and pay setup so it can be reused each month.",
+            title: "Add your worker once",
+            body: "Save their details, pay setup, and leave basics so you can reuse them each month.",
         },
         {
             icon: Calendar,
-            title: "Generate the payslip",
-            body: "Review hours worked, leave, deductions, and UIF amounts before creating the payslip.",
+            title: "Create the month's payslip with UIF shown clearly",
+            body: "Review hours, leave, and deductions with UIF shown clearly before you finalise the payslip.",
         },
         {
             icon: FileText,
-            title: "Keep the record trail",
-            body: "Payslips and related documents stay organised so they're easy to retrieve later for UIF submissions or other household employment paperwork.",
+            title: "Keep leave, contracts, and records ready",
+            body: "Keep the month organised so your records are ready for uFiling and household employment paperwork.",
         },
     ];
 
@@ -567,11 +571,15 @@ function HowItWorks() {
                     <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                         How it works
                     </p>
-                    <h2 className="type-h2 max-w-[28ch]" style={{ color: "var(--text)" }}>
-                        Set up once. Generate payslips. Keep the records together.
+                    <h2 className="type-h2 max-w-[26ch]" style={{ color: "var(--text)" }}>
+                        Run monthly domestic worker admin without spreadsheets or guesswork
                     </h2>
                     <p className="max-w-[44rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                        LekkerLedger helps household employers record pay, generate payslips, and keep the employment documents that may be needed later for UIF submissions or other household employment administration.
+                        LekkerLedger helps household employers run the month clearly, keep payroll records together, and follow the same process each time. If you want a fuller checklist, start with the{" "}
+                        <Link href="/resources/checklists/household-employer-monthly" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
+                            monthly employer checklist
+                        </Link>
+                        .
                     </p>
                 </div>
 
@@ -603,8 +611,8 @@ function HowItWorks() {
                 </div>
 
                 <div className="mt-7 flex justify-center">
-                    <Link href="/resources/checklists" className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-6 py-3 text-sm font-bold text-[var(--primary)] transition-all hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)]">
-                        View the complete household checklist <ArrowRight className="h-4 w-4" />
+                    <Link href="/resources/checklists/household-employer-monthly" className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-6 py-3 text-sm font-bold text-[var(--primary)] transition-all hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)]">
+                        View the monthly employer checklist <ArrowRight className="h-4 w-4" />
                     </Link>
                 </div>
             </div>
@@ -616,19 +624,19 @@ function WhatYouKeep() {
     const recordTypes = [
         {
             title: "Payslips",
-            body: "Monthly pay records showing wages, deductions, and UIF amounts.",
+            body: "Monthly pay records with UIF shown clearly.",
         },
         {
             title: "Contracts",
-            body: "Starter templates and saved employment agreements so the employment paperwork stays together.",
+            body: "Drafts and signed agreements kept together.",
         },
         {
             title: "Exports",
-            body: "Downloadable records when you need to prepare UIF paperwork or other documentation.",
+            body: "Files ready for UIF or year-end admin.",
         },
         {
             title: "History",
-            body: "Access older periods and documents without rebuilding records.",
+            body: "Find older records without rebuilding them.",
         },
     ];
 
@@ -640,17 +648,21 @@ function WhatYouKeep() {
                         <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
                             What you keep
                         </p>
-                        <h2 className="type-h2 max-w-[14ch]" style={{ color: "var(--text)" }}>
-                            Not just a payslip. Your household record trail.
+                        <h2 className="type-h2 max-w-[18ch]" style={{ color: "var(--text)" }}>
+                            Everything you need for monthly pay and paperwork
                         </h2>
                         <p className="max-w-[34rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            LekkerLedger keeps your monthly payslips and supporting documents together, organised, and ready when a future requirement appears.
+                            LekkerLedger keeps your monthly pay records and supporting documents together so you are not scrambling later. See the{" "}
+                            <Link href="/resources/guides/uif-for-domestic-workers" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
+                                UIF guide for domestic workers
+                            </Link>{" "}
+                            when you need the rules in plain English.
                         </p>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
                         {recordTypes.map((item) => (
-                            <div key={item.title} className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-1)]">
+                            <div key={item.title} className="h-full rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-1)]">
                                 <h3 className="text-lg font-black" style={{ color: "var(--text)" }}>
                                     {item.title}
                                 </h3>

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ROOT_METADATA_BASE } from "@/lib/seo";
 import { metadata as authMetadata } from "./(auth)/layout";
 import { metadata as billingMetadata } from "./billing/layout";
+import { metadata as homeMetadata } from "./(marketing)/page";
 import { metadata as pricingMetadata } from "./(marketing)/pricing/layout";
 import { metadata as calculatorMetadata } from "./(marketing)/calculator/layout";
 import { metadata as resourcesMetadata } from "./(marketing)/resources/page";
@@ -20,6 +21,9 @@ describe("SEO metadata", () => {
     });
 
     it("sets explicit canonical paths for key public pages", () => {
+        expect(homeMetadata.alternates?.canonical).toBe("/");
+        expect(homeMetadata.title).toBe("Domestic Worker Payslips, UIF & Payroll Records | LekkerLedger South Africa");
+        expect(homeMetadata.description).toBe("Create domestic worker payslips, calculate UIF, track leave, store contracts, and keep payroll records organised for South African household employers.");
         expect(pricingMetadata.alternates?.canonical).toBe("/pricing");
         expect(calculatorMetadata.alternates?.canonical).toBe("/calculator");
         expect(resourcesMetadata.alternates?.canonical).toBe("/resources");
