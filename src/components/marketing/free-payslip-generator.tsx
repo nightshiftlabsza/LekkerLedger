@@ -263,21 +263,6 @@ export function FreePayslipGenerator() {
     const [showPayslipDetails, setShowPayslipDetails] = React.useState(false);
     const [showRoleOverride, setShowRoleOverride] = React.useState(() => (savedDraft?.form.employeeRole ?? "Domestic Worker") !== "Domestic Worker");
     const [showIdentityField, setShowIdentityField] = React.useState(() => Boolean(savedDraft?.form.employeeId));
-    const [showOrdinaryHoursOverride, setShowOrdinaryHoursOverride] = React.useState(() => Boolean(savedDraft?.form.ordinaryHoursOverride));
-    const [showOptionalAdjustments, setShowOptionalAdjustments] = React.useState(() => {
-        const savedForm = savedDraft?.form;
-        return Boolean(
-            savedForm
-            && (
-                savedForm.overtimeHours !== "0"
-                || savedForm.sundayHours !== "0"
-                || savedForm.publicHolidayHours !== "0"
-                || savedForm.shortShiftCount !== "0"
-                || savedForm.shortShiftWorkedHours !== "0"
-                || savedForm.otherDeductions !== "0"
-            ),
-        );
-    });
     const [showSummaryDetails, setShowSummaryDetails] = React.useState(false);
     const [currentStep, setCurrentStep] = React.useState<WizardStep>(0);
     const [stepperStep, setStepperStep] = React.useState<WizardStep>(0);
@@ -435,19 +420,6 @@ export function FreePayslipGenerator() {
         if (stepErrors.includes("employerName") || stepErrors.includes("employerAddress")) {
             setShowPayslipDetails(true);
         }
-        if (stepErrors.includes("ordinaryHoursOverride")) {
-            setShowOrdinaryHoursOverride(true);
-        }
-        if (
-            stepErrors.includes("overtimeHours")
-            || stepErrors.includes("sundayHours")
-            || stepErrors.includes("publicHolidayHours")
-            || stepErrors.includes("shortShiftCount")
-            || stepErrors.includes("shortShiftWorkedHours")
-            || stepErrors.includes("otherDeductions")
-        ) {
-            setShowOptionalAdjustments(true);
-        }
 
         if (focusFirstError && stepErrors[0]) {
             focusField(stepErrors[0]);
@@ -507,37 +479,9 @@ export function FreePayslipGenerator() {
         updateField("ordinaryWorkPattern", buildPatternFromPreset(preset, sunday));
     }, [normalizedPattern.sunday, updateField]);
 
-    const handleFullMonth = React.useCallback(() => {
-        setForm((current) => ({
-            ...current,
-            ordinaryDaysWorked: String(ordinaryCalendar.ordinaryDayCap),
-            ordinaryHoursOverride: "",
-            overtimeHours: "0",
-            sundayHours: "0",
-            publicHolidayHours: "0",
-            shortShiftCount: "0",
-            shortShiftWorkedHours: "0",
-            otherDeductions: "0",
-        }));
-        setShowOrdinaryHoursOverride(false);
-        setShowOptionalAdjustments(false);
-        setErrors((current) => {
-            const nextErrors = { ...current };
-            delete nextErrors.ordinaryDaysWorked;
-            delete nextErrors.ordinaryHoursOverride;
-            delete nextErrors.overtimeHours;
-            delete nextErrors.sundayHours;
-            delete nextErrors.publicHolidayHours;
-            delete nextErrors.shortShiftCount;
-            delete nextErrors.shortShiftWorkedHours;
-            delete nextErrors.otherDeductions;
-            return nextErrors;
-        });
-    }, [ordinaryCalendar.ordinaryDayCap]);
-
-    // Validates the full-month defaults synchronously and advances to Step 3.
-    // Cannot use handleFullMonth() + handleContinue() sequentially — React batches
-    // state updates, so handleContinue would read stale form values.
+    // Validates full-month defaults synchronously and advances to Step 3.
+    // Cannot chain two state-updating calls sequentially — React batches state
+    // updates, so a second call would read stale form values from the first.
     const handleStandardMonth = React.useCallback(() => {
         const nextForm: FreePayslipFormState = {
             ...form,
@@ -572,20 +516,8 @@ export function FreePayslipGenerator() {
         setErrors(nextErrors);
         if (Object.keys(nextErrors).length > 0) {
             const employerFieldsHaveErrors = Boolean(nextErrors.employerName || nextErrors.employerAddress);
-            const workFieldsHaveErrors = Boolean(
-                nextErrors.ordinaryDaysWorked
-                || nextErrors.ordinaryHoursOverride
-                || nextErrors.overtimeHours
-                || nextErrors.sundayHours
-                || nextErrors.publicHolidayHours
-                || nextErrors.shortShiftCount
-                || nextErrors.shortShiftWorkedHours
-                || nextErrors.otherDeductions,
-            );
 
             if (employerFieldsHaveErrors) setShowPayslipDetails(true);
-            if (nextErrors.ordinaryHoursOverride) setShowOrdinaryHoursOverride(true);
-            if (workFieldsHaveErrors) setShowOptionalAdjustments(true);
 
             if (currentStep !== 2) {
                 const targetStep: WizardStep = employerFieldsHaveErrors || nextErrors.employeeName || nextErrors.monthKey || nextErrors.hourlyRate || nextErrors.ordinaryWorkPattern ? 0 : 1;
@@ -939,7 +871,7 @@ export function FreePayslipGenerator() {
                                                 })()}
                                             </p>
                                         ) : ordinaryCalendar.publicHolidaysInRange.length > 0 ? (
-                                            <p className="text-sm leading-6 text-[var(--text-muted)]">No public holidays fall on the worker's scheduled days this month.</p>
+                                            <p className="text-sm leading-6 text-[var(--text-muted)]">No public holidays fall on the worker&apos;s scheduled days this month.</p>
                                         ) : null}
                                     </div>
                                     <div className="space-y-3">
