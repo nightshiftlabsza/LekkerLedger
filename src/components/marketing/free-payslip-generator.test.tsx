@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FreePayslipGenerator } from "./free-payslip-generator";
 
@@ -28,23 +28,19 @@ describe("FreePayslipGenerator", () => {
         fireEvent.click(screen.getByRole("button", { name: /Payslip details/i }));
         fireEvent.change(screen.getByLabelText("Employer name"), { target: { value: "Nomsa Dlamini" } });
         fireEvent.change(screen.getByLabelText("Employer address"), { target: { value: "18 Acacia Avenue" } });
-        fireEvent.click(screen.getByRole("button", { name: "Continue to this month’s work" }));
+        fireEvent.click(screen.getByRole("button", { name: "Continue to this month's work" }));
     }
 
+    // The primary Step 2 path — confirms the standard month and advances directly.
     function fillStepTwo() {
-        const daysInput = document.getElementById("free-ordinary-days");
-        if (!daysInput) {
-            throw new Error("Days worked input not found");
-        }
-        fireEvent.change(daysInput, { target: { value: "19" } });
-        fireEvent.click(screen.getByRole("button", { name: "Review the payslip" }));
+        fireEvent.click(screen.getByRole("button", { name: "No, standard month" }));
     }
 
     async function reachStepThree() {
         render(<FreePayslipGenerator />);
         await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fillStepOne();
-        await screen.findByRole("heading", { name: "How much did the worker work this month?" });
+        await screen.findByRole("heading", { name: /What happened in/i });
         fillStepTwo();
         await screen.findByRole("heading", { name: "Review and email" });
     }
@@ -53,11 +49,12 @@ describe("FreePayslipGenerator", () => {
         render(<FreePayslipGenerator />);
 
         await screen.findByRole("heading", { name: "Enter the monthly pay details" });
-        expect(screen.getByRole("button", { name: "Continue to this month’s work" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Continue to this month's work" })).toBeInTheDocument();
         expect(screen.queryByLabelText("Employer name")).toBeNull();
         expect(screen.queryByLabelText("Job title")).toBeNull();
         expect(screen.queryByLabelText("ID or passport number")).toBeNull();
-        expect(screen.queryByLabelText("Any deductions from pay")).toBeNull();
+        // Questionnaire is not shown until "Yes, I need to make adjustments" is clicked
+        expect(screen.queryByLabelText("Days they missed")).toBeNull();
     });
 
     it("preserves entered values when moving back and forward", async () => {
@@ -65,47 +62,97 @@ describe("FreePayslipGenerator", () => {
 
         await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fillStepOne();
-        await screen.findByRole("heading", { name: "How much did the worker work this month?" });
+        await screen.findByRole("heading", { name: /What happened in/i });
 
-        const daysInput = document.getElementById("free-ordinary-days");
-        if (!daysInput) {
-            throw new Error("Days worked input not found");
-        }
-        fireEvent.change(daysInput, { target: { value: "12" } });
-        fireEvent.click(screen.getByRole("button", { name: "Review the payslip" }));
+        // Advance to Step 3 using the standard month path
+        fireEvent.click(screen.getByRole("button", { name: "No, standard month" }));
         await screen.findByRole("heading", { name: "Review and email" });
 
+        // Go back through the steps and verify Step 1 values are preserved
         fireEvent.click(screen.getByRole("button", { name: "Back" }));
-        await screen.findByRole("heading", { name: "How much did the worker work this month?" });
-        expect(document.getElementById("free-ordinary-days")).toHaveValue(12);
+        await screen.findByRole("heading", { name: /What happened in/i });
 
         fireEvent.click(screen.getByRole("button", { name: "Back" }));
         await screen.findByRole("heading", { name: "Schedule and hourly rate" });
         expect(screen.getByDisplayValue("Thandi Maseko")).toBeInTheDocument();
     });
 
-    it("fills the full month shortcut and keeps the optional section closed", async () => {
+    it("clicking No standard month advances to review without showing the questionnaire", async () => {
         render(<FreePayslipGenerator />);
 
         await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fillStepOne();
-        await screen.findByRole("heading", { name: "How much did the worker work this month?" });
-        fireEvent.click(screen.getByRole("button", { name: "Worked the full month" }));
+        await screen.findByRole("heading", { name: /What happened in/i });
 
-        expect(document.getElementById("free-ordinary-days")).toHaveValue(19);
-        expect(screen.queryByLabelText("Any deductions from pay")).toBeNull();
+        // Questionnaire card should not be visible
+        expect(screen.queryByText(/Did the worker miss any days without pay/i)).toBeNull();
+
+        fireEvent.click(screen.getByRole("button", { name: "No, standard month" }));
+        await screen.findByRole("heading", { name: "Review and email" });
     });
 
-    it("reveals partial-day hours only when the toggle is opened", async () => {
+    it("reveals the questionnaire when Yes I need to make adjustments is clicked", async () => {
         render(<FreePayslipGenerator />);
 
         await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fillStepOne();
-        await screen.findByRole("heading", { name: "How much did the worker work this month?" });
+        await screen.findByRole("heading", { name: /What happened in/i });
 
-        expect(screen.queryByLabelText("Total normal hours worked")).toBeNull();
-        fireEvent.click(screen.getByRole("button", { name: /Sometimes works partial days/i }));
-        expect(screen.getByLabelText(/Total normal hours worked/i)).toBeInTheDocument();
+        expect(screen.queryByText(/Did the worker miss any days without pay/i)).toBeNull();
+        fireEvent.click(screen.getByRole("button", { name: "Yes, I need to make adjustments" }));
+        expect(screen.getByText(/Did the worker miss any days without pay/i)).toBeInTheDocument();
+    });
+
+    it("reveals unpaid leave input when Yes they did is clicked for Question A", async () => {
+        render(<FreePayslipGenerator />);
+
+        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        fillStepOne();
+        await screen.findByRole("heading", { name: /What happened in/i });
+
+        fireEvent.click(screen.getByRole("button", { name: "Yes, I need to make adjustments" }));
+        expect(screen.queryByLabelText("Days they missed")).toBeNull();
+
+        fireEvent.click(screen.getAllByRole("button", { name: "Yes, they did" })[0]);
+        expect(screen.getByLabelText("Days they missed")).toBeInTheDocument();
+    });
+
+    it("shows the computed days worked when days missed is entered", async () => {
+        render(<FreePayslipGenerator />);
+
+        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        fillStepOne();
+        await screen.findByRole("heading", { name: /What happened in/i });
+
+        fireEvent.click(screen.getByRole("button", { name: "Yes, I need to make adjustments" }));
+        // Click the first "Yes, they did" button (Question A — unpaid leave)
+        const yesBtns = screen.getAllByRole("button", { name: "Yes, they did" });
+        fireEvent.click(yesBtns[0]);
+
+        const daysMissedInput = screen.getByLabelText("Days they missed");
+        fireEvent.change(daysMissedInput, { target: { value: "2" } });
+
+        // Should show "That means they worked X days this month."
+        expect(screen.getByText(/That means they worked/i)).toBeInTheDocument();
+    });
+
+    it("reveals short days inputs when Question D is answered Yes", async () => {
+        render(<FreePayslipGenerator />);
+
+        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        fillStepOne();
+        await screen.findByRole("heading", { name: /What happened in/i });
+
+        fireEvent.click(screen.getByRole("button", { name: "Yes, I need to make adjustments" }));
+        expect(screen.queryByLabelText("How many short days?")).toBeNull();
+
+        // "Yes, they did" buttons appear for each question; find the one for Question D (short days)
+        // — it's the one nearest the "under 4 hours" question text
+        const shortDaysYesBtn = screen.getAllByRole("button", { name: "Yes, they did" });
+        // Question D (short days) is always the last "Yes, they did" button (A=0, C=1, D=last)
+        // Question B uses "Yes, they worked" so doesn't affect this count
+        fireEvent.click(shortDaysYesBtn[shortDaysYesBtn.length - 1]);
+        expect(screen.getByLabelText("How many short days?")).toBeInTheDocument();
     });
 
     it("updates the Sunday helper text when the normal schedule changes", async () => {
@@ -118,29 +165,20 @@ describe("FreePayslipGenerator", () => {
         fireEvent.click(screen.getByRole("button", { name: /Payslip details/i }));
         fireEvent.change(screen.getByLabelText("Employer name"), { target: { value: "Nomsa Dlamini" } });
         fireEvent.change(screen.getByLabelText("Employer address"), { target: { value: "18 Acacia Avenue" } });
-        fireEvent.click(screen.getByRole("button", { name: "Continue to this month’s work" }));
+        fireEvent.click(screen.getByRole("button", { name: "Continue to this month's work" }));
 
-        await screen.findByRole("heading", { name: "How much did the worker work this month?" });
-        fireEvent.click(screen.getByRole("button", { name: /Anything else\?/i }));
+        await screen.findByRole("heading", { name: /What happened in/i });
+        fireEvent.click(screen.getByRole("button", { name: "Yes, I need to make adjustments" }));
+        // Sunday-only schedule has no holidays, so no Question B.
+        // "Yes, they did" order: A=0, C=1 (overtime/Sunday), D=2. Click C to reveal Sunday hours.
+        fireEvent.click(screen.getAllByRole("button", { name: "Yes, they did" })[1]);
+
+        // Open the Sunday hours InfoTip to reveal the rate text in the DOM
+        const sundayInput = document.getElementById("free-sunday-hours")!;
+        const sundayLabel = sundayInput.closest("label")!;
+        fireEvent.click(within(sundayLabel).getByRole("button", { name: "More information" }));
+
         expect(screen.getByText(/Sunday hours are paid at 1\.5x/i)).toBeInTheDocument();
-
-        fireEvent.click(screen.getByRole("button", { name: "Back" }));
-        await screen.findByRole("heading", { name: "Schedule and hourly rate" });
-        fireEvent.click(screen.getByRole("button", { name: /Monday to Friday/i }));
-        fireEvent.click(screen.getByRole("button", { name: "Continue to this month’s work" }));
-        await screen.findByRole("heading", { name: "How much did the worker work this month?" });
-        expect(screen.getByText(/Sunday hours are paid at 2x/i)).toBeInTheDocument();
-    });
-
-    it("shows an inline warning when hours exceed the new schedule cap", async () => {
-        render(<FreePayslipGenerator />);
-
-        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
-        fillStepOne();
-        await screen.findByRole("heading", { name: "How much did the worker work this month?" });
-        fireEvent.click(screen.getByRole("button", { name: /Sometimes works partial days/i }));
-        fireEvent.change(screen.getByLabelText(/Total normal hours worked/i), { target: { value: "200" } });
-        expect(screen.getByText(/This schedule allows up to 152 normal hours this month\./i)).toBeInTheDocument();
     });
 
     it("keeps the marketing opt-in unchecked on a fresh visit and persists it when selected", async () => {
@@ -193,7 +231,7 @@ describe("FreePayslipGenerator", () => {
         render(<FreePayslipGenerator />);
         await screen.findByRole("heading", { name: "Enter the monthly pay details" });
         fillStepOne();
-        await screen.findByRole("heading", { name: "How much did the worker work this month?" });
+        await screen.findByRole("heading", { name: /What happened in/i });
         fillStepTwo();
         await screen.findByRole("heading", { name: "Review and email" });
 

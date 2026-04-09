@@ -161,14 +161,24 @@ export default function FourHourRuleGuidePage() {
 
                     <div className="pt-8 border-t border-[var(--border)] mt-8 space-y-4">
                         <h3 className="font-bold text-[var(--text)]">Official Verification Links</h3>
-                        <a
-                            href="https://www.labour.gov.za/DocumentCenter/Acts/Basic%20Conditions%20of%20Employment/amendmentaBasic%20Conditions%20of%20Employment%20Act.pdf"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:underline"
-                        >
-                            Read Section 9A of the BCEA Amendment Act (PDF) <ExternalLink className="h-3 w-3" />
-                        </a>
+                        <div className="flex flex-col gap-3">
+                            <a
+                                href="https://www.gov.za/sites/default/files/gcis_document/202602/54075rg11941gon7083.pdf"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:underline"
+                            >
+                                Official 2026 Minimum Wage & BCEA Update (Government Gazette PDF) <ExternalLink className="h-3 w-3" />
+                            </a>
+                            <a
+                                href="https://www.gov.za/documents/basic-conditions-employment-act"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--primary)] hover:underline transition-colors"
+                            >
+                                Read Section 9A of the Basic Conditions of Employment Act <ExternalLink className="h-3 w-3" />
+                            </a>
+                        </div>
                     </div>
                 </article>
 

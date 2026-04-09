@@ -8,6 +8,7 @@ import {
     BadgeCheck,
     ChevronDown,
     ChevronUp,
+    Info,
     Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -130,7 +131,7 @@ function TextField({
     children,
 }: {
     id: string;
-    label: string;
+    label: React.ReactNode;
     hint?: string;
     warning?: string;
     error?: string;
@@ -219,6 +220,34 @@ function MajorSummaryRow({ label, value, accent = false }: { label: string; valu
     );
 }
 
+function InfoTip({ text }: { text: string }) {
+    const [visible, setVisible] = React.useState(false);
+    return (
+        <span className="relative inline-flex items-center align-middle">
+            <button
+                type="button"
+                aria-label="More information"
+                onMouseEnter={() => setVisible(true)}
+                onMouseLeave={() => setVisible(false)}
+                onFocus={() => setVisible(true)}
+                onBlur={() => setVisible(false)}
+                onClick={() => setVisible((v) => !v)}
+                className="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2"
+            >
+                <Info className="h-2.5 w-2.5" />
+            </button>
+            {visible ? (
+                <span
+                    role="tooltip"
+                    className="absolute bottom-full left-1/2 z-10 mb-2 w-56 -translate-x-1/2 rounded-[0.75rem] border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-2 text-xs leading-5 text-[var(--text-muted)] shadow-[var(--shadow-md)]"
+                >
+                    {text}
+                </span>
+            ) : null}
+        </span>
+    );
+}
+
 export function FreePayslipGenerator() {
     const savedDraft = React.useMemo(() => loadSavedDraft(), []);
     const prefersReducedMotion = usePrefersReducedMotion();
@@ -249,13 +278,21 @@ export function FreePayslipGenerator() {
             ),
         );
     });
-    const [showHolidayDetails, setShowHolidayDetails] = React.useState(false);
     const [showSummaryDetails, setShowSummaryDetails] = React.useState(false);
     const [currentStep, setCurrentStep] = React.useState<WizardStep>(0);
     const [stepperStep, setStepperStep] = React.useState<WizardStep>(0);
     const [furthestStepReached, setFurthestStepReached] = React.useState<WizardStep>(0);
     const [transitionPhase, setTransitionPhase] = React.useState<TransitionPhase>("idle");
     const [transitionDirection, setTransitionDirection] = React.useState<TransitionDirection>("forward");
+
+    // Step 2 conversational questionnaire state
+    const [adjustmentsNeeded, setAdjustmentsNeeded] = React.useState<boolean | null>(null);
+    const [daysMissed, setDaysMissed] = React.useState("0");
+    const [hasUnpaidLeave, setHasUnpaidLeave] = React.useState<boolean | null>(null);
+    const [workedOnHoliday, setWorkedOnHoliday] = React.useState<boolean | null>(null);
+    const [hasExtraHours, setHasExtraHours] = React.useState<boolean | null>(null);
+    const [hasShortDays, setHasShortDays] = React.useState<boolean | null>(null);
+    const [hasDeductions, setHasDeductions] = React.useState<boolean | null>(null);
 
     const confirmedPattern = React.useMemo(() => normalizeOrdinaryWorkPattern(form.ordinaryWorkPattern), [form.ordinaryWorkPattern]);
     const normalizedPattern = React.useMemo(() => confirmedPattern ?? buildEmptyOrdinaryWorkPattern(), [confirmedPattern]);
@@ -272,25 +309,10 @@ export function FreePayslipGenerator() {
     const breakdown = React.useMemo(() => calculationInput ? calculatePayslip(calculationInput) : null, [calculationInput]);
     const payrollSummary = React.useMemo(() => calculationInput ? buildPayrollSummary(calculationInput) : null, [calculationInput]);
     const payload = React.useMemo(() => buildFreePayslipPayload(form), [form]);
-    const ordinaryDaysWorked = Number(form.ordinaryDaysWorked || 0);
-    const ordinaryHoursOverride = form.ordinaryHoursOverride.trim() ? Number(form.ordinaryHoursOverride) : null;
 
     const sundayRateHelper = normalizedPattern.sunday
         ? "Sunday hours are paid at 1.5x because Sunday is part of the normal schedule."
         : "Sunday hours are paid at 2x because Sunday is not part of the normal schedule.";
-    const daysHint = `${format(monthBounds.end, "MMMM yyyy")} allows up to ${ordinaryCalendar.ordinaryDayCap} day${ordinaryCalendar.ordinaryDayCap === 1 ? "" : "s"} for the normal schedule.`;
-    const hoursHint = `${format(monthBounds.end, "MMMM yyyy")} allows up to ${ordinaryCalendar.ordinaryHourCap} normal hour${ordinaryCalendar.ordinaryHourCap === 1 ? "" : "s"} for the schedule.`;
-    const daysCapWarning = ordinaryDaysWorked > ordinaryCalendar.ordinaryDayCap
-        ? `This schedule allows up to ${ordinaryCalendar.ordinaryDayCap} day${ordinaryCalendar.ordinaryDayCap === 1 ? "" : "s"} this month.`
-        : undefined;
-    const hoursCapWarning = ordinaryHoursOverride !== null && ordinaryHoursOverride > ordinaryCalendar.ordinaryHourCap
-        ? `This schedule allows up to ${ordinaryCalendar.ordinaryHourCap} normal hour${ordinaryCalendar.ordinaryHourCap === 1 ? "" : "s"} this month.`
-        : undefined;
-    const holidaySummary = ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length > 0
-        ? `${ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length} public holiday${ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length === 1 ? "" : "s"} land on the normal work days this month. Do not count them in "Days worked" unless the worker actually worked those hours.`
-        : ordinaryCalendar.publicHolidaysInRange.length > 0
-            ? "Public holidays fall this month, but none are on the normal work days."
-            : "No South African public holidays fall in this month.";
 
     const clearTransitionTimers = React.useCallback(() => {
         motionTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
@@ -311,6 +333,40 @@ export function FreePayslipGenerator() {
             // Best-effort draft persistence only.
         }
     }, [deliveryEmail, form, marketingConsent]);
+
+    // Pre-fill Step 2 with smart defaults when first entering it.
+    // The prevStepRef guard means this only fires on the transition into Step 1,
+    // not while already on Step 1 if ordinaryDayCap changes (impossible in this UI anyway).
+    const prevStepRef = React.useRef<WizardStep>(currentStep);
+    React.useEffect(() => {
+        const entering = currentStep === 1 && prevStepRef.current !== 1;
+        prevStepRef.current = currentStep;
+        if (!entering) return;
+
+        setForm((f) => ({
+            ...f,
+            ordinaryDaysWorked: String(ordinaryCalendar.ordinaryDayCap),
+            ordinaryHoursOverride: "",
+            overtimeHours: "0",
+            sundayHours: "0",
+            publicHolidayHours: "0",
+            shortShiftCount: "0",
+            shortShiftWorkedHours: "0",
+            otherDeductions: "0",
+        }));
+        setErrors((e) => {
+            const next = { ...e };
+            (STEP_FIELDS[1] as Array<keyof FreePayslipFormState>).forEach((k) => delete next[k]);
+            return next;
+        });
+        setAdjustmentsNeeded(null);
+        setDaysMissed("0");
+        setHasUnpaidLeave(null);
+        setWorkedOnHoliday(null);
+        setHasExtraHours(null);
+        setHasShortDays(null);
+        setHasDeductions(null);
+    }, [currentStep, ordinaryCalendar.ordinaryDayCap]);
 
     const resetDeliveryState = React.useCallback(() => {
         setDelivery(INITIAL_DELIVERY_STATE);
@@ -337,7 +393,7 @@ export function FreePayslipGenerator() {
             employeeRole: "free-worker-role",
             hourlyRate: "free-hourly-rate",
             monthKey: "free-month",
-            ordinaryDaysWorked: "free-ordinary-days",
+            ordinaryDaysWorked: "free-days-missed",
             ordinaryHoursOverride: "free-ordinary-hours",
             overtimeHours: "free-overtime-hours",
             sundayHours: "free-sunday-hours",
@@ -478,6 +534,38 @@ export function FreePayslipGenerator() {
             return nextErrors;
         });
     }, [ordinaryCalendar.ordinaryDayCap]);
+
+    // Validates the full-month defaults synchronously and advances to Step 3.
+    // Cannot use handleFullMonth() + handleContinue() sequentially — React batches
+    // state updates, so handleContinue would read stale form values.
+    const handleStandardMonth = React.useCallback(() => {
+        const nextForm: FreePayslipFormState = {
+            ...form,
+            ordinaryDaysWorked: String(ordinaryCalendar.ordinaryDayCap),
+            ordinaryHoursOverride: "",
+            overtimeHours: "0",
+            sundayHours: "0",
+            publicHolidayHours: "0",
+            shortShiftCount: "0",
+            shortShiftWorkedHours: "0",
+            otherDeductions: "0",
+        };
+        const allErrors = validateFreePayslipForm(nextForm);
+        const stepErrors = STEP_FIELDS[1].filter((f) => Boolean(allErrors[f]));
+        if (stepErrors.length > 0) {
+            setErrors(allErrors);
+            return;
+        }
+        setForm(nextForm);
+        setAdjustmentsNeeded(false);
+        setDaysMissed("0");
+        setErrors((e) => {
+            const next = { ...e };
+            (STEP_FIELDS[1] as Array<keyof FreePayslipFormState>).forEach((k) => delete next[k]);
+            return next;
+        });
+        startStepTransition(2);
+    }, [form, ordinaryCalendar.ordinaryDayCap, startStepTransition]);
 
     const handleEmailPayslip = React.useCallback(async () => {
         const nextErrors = validateFreePayslipForm(form);
@@ -831,194 +919,247 @@ export function FreePayslipGenerator() {
                             <div className="space-y-6">
                                 <SectionIntro
                                     eyebrow="Step 2 of 3"
-                                    title="How much did the worker work this month?"
-                                    description="Fill in the usual case first. You only need the extra fields if something different happened this month."
+                                    title={`What happened in ${format(monthBounds.end, "MMMM yyyy")}?`}
+                                    description="We've worked out the normal month based on the worker's schedule. Confirm or adjust below."
                                     headingRef={stepHeadingRef}
                                 />
 
-                                <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] p-4">
-                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                        <div>
-                                            <p className="text-sm font-semibold text-[var(--text)]">Quick option</p>
-                                            <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">If the worker worked the full normal month, we can fill that in for you.</p>
+                                {/* Card 1: The baseline — always visible */}
+                                <div className="space-y-4 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-semibold text-[var(--text)]">
+                                            {format(monthBounds.end, "MMMM yyyy")} has {ordinaryCalendar.ordinaryDayCap} working {ordinaryCalendar.ordinaryDayCap === 1 ? "day" : "days"} on this schedule.
+                                        </p>
+                                        {ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length > 0 ? (
+                                            <p className="text-sm leading-6 text-[var(--text-muted)]">
+                                                {(() => {
+                                                    const names = ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.map((h) => h.name);
+                                                    const joined = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+                                                    return `This already excludes ${joined} — ${names.length === 1 ? "it falls" : "they fall"} on working days. The worker is still paid for ${names.length === 1 ? "this day" : "these days"}.`;
+                                                })()}
+                                            </p>
+                                        ) : ordinaryCalendar.publicHolidaysInRange.length > 0 ? (
+                                            <p className="text-sm leading-6 text-[var(--text-muted)]">No public holidays fall on the worker's scheduled days this month.</p>
+                                        ) : null}
+                                    </div>
+                                    <div className="space-y-3">
+                                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Did anything change this month?</p>
+                                        <div className="flex flex-col gap-3 sm:flex-row">
+                                            <Button type="button" onClick={handleStandardMonth} className="w-full sm:flex-1">
+                                                No, standard month
+                                            </Button>
+                                            <Button type="button" variant="secondary" onClick={() => setAdjustmentsNeeded(true)} className="w-full sm:flex-1">
+                                                Yes, I need to make adjustments
+                                            </Button>
                                         </div>
-                                        <Button type="button" variant="secondary" onClick={handleFullMonth} className="w-full sm:w-auto">
-                                            Worked the full month
-                                        </Button>
                                     </div>
                                 </div>
 
-                                <div className="grid gap-5 sm:grid-cols-2">
-                                    <TextField
-                                        id="free-ordinary-days"
-                                        label="Days worked"
-                                        hint={daysHint}
-                                        warning={daysCapWarning}
-                                        error={errors.ordinaryDaysWorked}
-                                    >
-                                        <Input
-                                            id="free-ordinary-days"
-                                            type="number"
-                                            min="0"
-                                            max={ordinaryCalendar.ordinaryDayCap}
-                                            inputMode="numeric"
-                                            pattern="[0-9]*"
-                                            value={form.ordinaryDaysWorked}
-                                            onChange={(event) => updateField("ordinaryDaysWorked", event.target.value)}
-                                        />
-                                    </TextField>
-                                </div>
+                                {/* Card 2: Questionnaire — revealed when adjustments are needed */}
+                                {adjustmentsNeeded === true ? (
+                                    <div className="space-y-6 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] p-4">
 
-                                <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] p-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowOrdinaryHoursOverride((current) => {
-                                                const next = !current;
-                                                if (!next) updateField("ordinaryHoursOverride", "");
-                                                return next;
-                                            });
-                                        }}
-                                        className="flex w-full items-center justify-between gap-3 text-left"
-                                    >
-                                        <div>
-                                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Sometimes works partial days</p>
-                                            <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">Turn this on if this month was not made up of full normal days.</p>
-                                        </div>
-                                        {showOrdinaryHoursOverride ? <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />}
-                                    </button>
-                                    {showOrdinaryHoursOverride ? (
-                                        <div className="mt-4">
-                                            <TextField
-                                                id="free-ordinary-hours"
-                                                label="Total normal hours worked"
-                                                hint={hoursHint}
-                                                warning={hoursCapWarning}
-                                                error={errors.ordinaryHoursOverride}
-                                            >
-                                                <Input
-                                                    id="free-ordinary-hours"
-                                                    type="number"
-                                                    min="0"
-                                                    max={ordinaryCalendar.ordinaryHourCap}
-                                                    inputMode="decimal"
-                                                    value={form.ordinaryHoursOverride}
-                                                    onChange={(event) => updateField("ordinaryHoursOverride", event.target.value)}
-                                                />
-                                            </TextField>
-                                        </div>
-                                    ) : null}
-                                </div>
-
-                                <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] p-4">
-                                    <div className="flex w-full items-start justify-between gap-3">
-                                        <div>
-                                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Public holidays this month</p>
-                                            <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">{holidaySummary}</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowHolidayDetails((current) => !current)}
-                                            className="min-h-[var(--touch-target-min)] rounded-[0.9rem] px-3 text-sm font-semibold text-[var(--primary)] hover:bg-[var(--surface-raised)]"
-                                        >
-                                            {showHolidayDetails ? "Hide" : "Show"}
-                                        </button>
-                                    </div>
-                                    {showHolidayDetails ? (
-                                        <div className="mt-4 rounded-[1rem] border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-                                            {ordinaryCalendar.publicHolidaysInRange.length === 0 ? (
-                                                <p className="text-sm leading-6 text-[var(--text-muted)]">No South African public holidays fall in this month.</p>
-                                            ) : (
-                                                <ul className="space-y-2 text-sm leading-6 text-[var(--text)]">
-                                                    {ordinaryCalendar.publicHolidaysInRange.map((holiday) => {
-                                                        const onSchedule = ordinaryCalendar.excludedHolidayDates.includes(holiday.date);
-                                                        return (
-                                                            <li key={holiday.date}>
-                                                                {format(new Date(`${holiday.date}T00:00:00`), "EEE d MMM yyyy")} · {holiday.name} · {onSchedule ? "on normal work days" : "not on normal work days"}
-                                                            </li>
-                                                        );
-                                                    })}
-                                                </ul>
-                                            )}
-                                        </div>
-                                    ) : null}
-                                </div>
-
-                                <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] p-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowOptionalAdjustments((current) => !current)}
-                                        className="flex w-full items-center justify-between gap-3 text-left"
-                                    >
-                                        <div>
-                                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Anything else?</p>
-                                            <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">Add overtime, Sunday work, public holiday hours, deductions, or short shifts only if they happened this month.</p>
-                                        </div>
-                                        {showOptionalAdjustments ? <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />}
-                                    </button>
-
-                                    {showOptionalAdjustments ? (
-                                        <div className="mt-4 space-y-5">
-                                            <div className="grid gap-5 sm:grid-cols-3">
-                                                <TextField id="free-overtime-hours" label="Overtime hours" hint="Hours worked outside normal time." error={errors.overtimeHours}>
-                                                    <Input
-                                                        id="free-overtime-hours"
-                                                        type="number"
-                                                        min="0"
-                                                        inputMode="decimal"
-                                                        value={form.overtimeHours}
-                                                        onChange={(event) => updateField("overtimeHours", event.target.value)}
-                                                    />
-                                                </TextField>
-
-                                                <TextField id="free-sunday-hours" label="Sunday hours worked" hint={sundayRateHelper} error={errors.sundayHours}>
-                                                    <Input
-                                                        id="free-sunday-hours"
-                                                        type="number"
-                                                        min="0"
-                                                        inputMode="decimal"
-                                                        value={form.sundayHours}
-                                                        onChange={(event) => updateField("sundayHours", event.target.value)}
-                                                    />
-                                                </TextField>
-
-                                                <TextField
-                                                    id="free-public-holiday-hours"
-                                                    label="Public holiday hours"
-                                                    hint="Only add hours actually worked on a South African public holiday."
-                                                    error={errors.publicHolidayHours}
+                                        {/* Question A — Unpaid absence */}
+                                        <div className="space-y-3" role="group" aria-labelledby="q-unpaid-label">
+                                            <p id="q-unpaid-label" className="text-sm font-semibold text-[var(--text)]">Did the worker miss any days without pay?</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasUnpaidLeave === true}
+                                                    onClick={() => setHasUnpaidLeave(true)}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasUnpaidLeave === true ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
                                                 >
-                                                    <Input
-                                                        id="free-public-holiday-hours"
-                                                        type="number"
-                                                        min="0"
-                                                        inputMode="decimal"
-                                                        value={form.publicHolidayHours}
-                                                        onChange={(event) => updateField("publicHolidayHours", event.target.value)}
-                                                    />
-                                                </TextField>
+                                                    Yes, they did
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasUnpaidLeave === false}
+                                                    onClick={() => {
+                                                        setHasUnpaidLeave(false);
+                                                        setDaysMissed("0");
+                                                        updateField("ordinaryDaysWorked", String(ordinaryCalendar.ordinaryDayCap));
+                                                    }}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasUnpaidLeave === false ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                >
+                                                    No, they worked all month
+                                                </button>
                                             </div>
+                                            {hasUnpaidLeave === true ? (
+                                                <div className="space-y-2 pt-1">
+                                                    <TextField id="free-days-missed" label="Days they missed" error={errors.ordinaryDaysWorked}>
+                                                        <Input
+                                                            id="free-days-missed"
+                                                            type="number"
+                                                            min="0"
+                                                            max={ordinaryCalendar.ordinaryDayCap}
+                                                            inputMode="numeric"
+                                                            pattern="[0-9]*"
+                                                            value={daysMissed}
+                                                            onChange={(event) => {
+                                                                const val = event.target.value;
+                                                                setDaysMissed(val);
+                                                                updateField("ordinaryDaysWorked", String(Math.max(0, ordinaryCalendar.ordinaryDayCap - (Number(val) || 0))));
+                                                            }}
+                                                        />
+                                                    </TextField>
+                                                    {Number(daysMissed) > 0 && ordinaryCalendar.ordinaryDayCap - Number(daysMissed) >= 0 ? (
+                                                        <p className="text-sm leading-6 text-[var(--text-muted)]">
+                                                            That means they worked {ordinaryCalendar.ordinaryDayCap - Number(daysMissed)} {ordinaryCalendar.ordinaryDayCap - Number(daysMissed) === 1 ? "day" : "days"} this month.
+                                                        </p>
+                                                    ) : null}
+                                                </div>
+                                            ) : null}
+                                        </div>
 
-                                            <div className="grid gap-5 sm:grid-cols-2">
-                                                <TextField
-                                                    id="free-other-deductions"
-                                                    label="Any deductions from pay"
-                                                    hint="Only add agreed deductions that should appear on this payslip."
-                                                    error={errors.otherDeductions}
+                                        <div className="border-t border-[var(--border)]" />
+
+                                        {/* Question B — Public holiday work (only if holidays land on scheduled days) */}
+                                        {ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length > 0 ? (
+                                            <>
+                                                <div className="space-y-3" role="group" aria-labelledby="q-holiday-label">
+                                                    <p id="q-holiday-label" className="text-sm font-semibold text-[var(--text)]">
+                                                        {(() => {
+                                                            const names = ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.map((h) => h.name);
+                                                            const joined = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+                                                            return `Did the worker come in on ${joined}?`;
+                                                        })()}
+                                                    </p>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            type="button"
+                                                            aria-pressed={workedOnHoliday === true}
+                                                            onClick={() => setWorkedOnHoliday(true)}
+                                                            className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${workedOnHoliday === true ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                        >
+                                                            Yes, they worked
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            aria-pressed={workedOnHoliday === false}
+                                                            onClick={() => {
+                                                                setWorkedOnHoliday(false);
+                                                                updateField("publicHolidayHours", "0");
+                                                            }}
+                                                            className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${workedOnHoliday === false ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                        >
+                                                            No, they had the day off
+                                                        </button>
+                                                    </div>
+                                                    {workedOnHoliday === true ? (
+                                                        <div className="pt-1">
+                                                            <TextField
+                                                                id="free-public-holiday-hours"
+                                                                label={<>Hours worked on the public holiday <InfoTip text="Public holiday hours are paid at double the normal rate (2×)." /></>}
+                                                                error={errors.publicHolidayHours}
+                                                            >
+                                                                <Input
+                                                                    id="free-public-holiday-hours"
+                                                                    type="number"
+                                                                    min="0"
+                                                                    inputMode="decimal"
+                                                                    value={form.publicHolidayHours}
+                                                                    onChange={(event) => updateField("publicHolidayHours", event.target.value)}
+                                                                />
+                                                            </TextField>
+                                                        </div>
+                                                    ) : null}
+                                                </div>
+                                                <div className="border-t border-[var(--border)]" />
+                                            </>
+                                        ) : null}
+
+                                        {/* Question C — Overtime and Sunday */}
+                                        <div className="space-y-3" role="group" aria-labelledby="q-overtime-label">
+                                            <p id="q-overtime-label" className="text-sm font-semibold text-[var(--text)]">Did the worker do any overtime or work on a Sunday?</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasExtraHours === true}
+                                                    onClick={() => setHasExtraHours(true)}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasExtraHours === true ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
                                                 >
-                                                    <Input
-                                                        id="free-other-deductions"
-                                                        type="number"
-                                                        min="0"
-                                                        step="0.01"
-                                                        inputMode="decimal"
-                                                        value={form.otherDeductions}
-                                                        onChange={(event) => updateField("otherDeductions", event.target.value)}
-                                                    />
-                                                </TextField>
+                                                    Yes, they did
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasExtraHours === false}
+                                                    onClick={() => {
+                                                        setHasExtraHours(false);
+                                                        updateField("overtimeHours", "0");
+                                                        updateField("sundayHours", "0");
+                                                    }}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasExtraHours === false ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                >
+                                                    No, they didn&apos;t
+                                                </button>
+                                            </div>
+                                            {hasExtraHours === true ? (
+                                                <div className="grid gap-4 pt-1 sm:grid-cols-2">
+                                                    <TextField
+                                                        id="free-overtime-hours"
+                                                        label={<>Overtime hours <InfoTip text="Hours worked beyond the normal day on a scheduled day. Paid at 1.5× the hourly rate." /></>}
+                                                        error={errors.overtimeHours}
+                                                    >
+                                                        <Input
+                                                            id="free-overtime-hours"
+                                                            type="number"
+                                                            min="0"
+                                                            inputMode="decimal"
+                                                            value={form.overtimeHours}
+                                                            onChange={(event) => updateField("overtimeHours", event.target.value)}
+                                                        />
+                                                    </TextField>
+                                                    <TextField
+                                                        id="free-sunday-hours"
+                                                        label={<>Sunday hours <InfoTip text={sundayRateHelper} /></>}
+                                                        error={errors.sundayHours}
+                                                    >
+                                                        <Input
+                                                            id="free-sunday-hours"
+                                                            type="number"
+                                                            min="0"
+                                                            inputMode="decimal"
+                                                            value={form.sundayHours}
+                                                            onChange={(event) => updateField("sundayHours", event.target.value)}
+                                                        />
+                                                    </TextField>
+                                                </div>
+                                            ) : null}
+                                        </div>
 
-                                                <div className="grid gap-5 sm:grid-cols-2">
-                                                    <TextField id="free-short-shifts" label="Short shifts" hint="How many shifts were under four hours?" error={errors.shortShiftCount}>
+                                        <div className="border-t border-[var(--border)]" />
+
+                                        {/* Question D — Short days under 4 hours (BCEA s9(1)) */}
+                                        <div className="space-y-3" role="group" aria-labelledby="q-short-label">
+                                            <p id="q-short-label" className="text-sm font-semibold text-[var(--text)]">
+                                                Did the worker do any very short days — under 4 hours?{" "}
+                                                <InfoTip text="South African law requires at least 4 hours' pay for any day worked, even if they only came in for 2 hours. We apply the top-up automatically." />
+                                            </p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasShortDays === true}
+                                                    onClick={() => setHasShortDays(true)}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasShortDays === true ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                >
+                                                    Yes, they did
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasShortDays === false}
+                                                    onClick={() => {
+                                                        setHasShortDays(false);
+                                                        updateField("shortShiftCount", "0");
+                                                        updateField("shortShiftWorkedHours", "0");
+                                                    }}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasShortDays === false ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                >
+                                                    No, all full days
+                                                </button>
+                                            </div>
+                                            {hasShortDays === true ? (
+                                                <div className="grid gap-4 pt-1 sm:grid-cols-2">
+                                                    <TextField id="free-short-shifts" label="How many short days?" error={errors.shortShiftCount}>
                                                         <Input
                                                             id="free-short-shifts"
                                                             type="number"
@@ -1029,8 +1170,11 @@ export function FreePayslipGenerator() {
                                                             onChange={(event) => updateField("shortShiftCount", event.target.value)}
                                                         />
                                                     </TextField>
-
-                                                    <TextField id="free-short-shift-hours" label="Hours across those short shifts" error={errors.shortShiftWorkedHours}>
+                                                    <TextField
+                                                        id="free-short-shift-hours"
+                                                        label={<>Total hours across those days <InfoTip text="We'll top up to 4 hours' pay for each of these days automatically, as required by law." /></>}
+                                                        error={errors.shortShiftWorkedHours}
+                                                    >
                                                         <Input
                                                             id="free-short-shift-hours"
                                                             type="number"
@@ -1041,10 +1185,58 @@ export function FreePayslipGenerator() {
                                                         />
                                                     </TextField>
                                                 </div>
-                                            </div>
+                                            ) : null}
                                         </div>
-                                    ) : null}
-                                </div>
+
+                                        <div className="border-t border-[var(--border)]" />
+
+                                        {/* Question E — Deductions */}
+                                        <div className="space-y-3" role="group" aria-labelledby="q-deductions-label">
+                                            <p id="q-deductions-label" className="text-sm font-semibold text-[var(--text)]">Do you need to deduct anything from this month&apos;s pay?</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasDeductions === true}
+                                                    onClick={() => setHasDeductions(true)}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasDeductions === true ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                >
+                                                    Yes, deduct something
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasDeductions === false}
+                                                    onClick={() => {
+                                                        setHasDeductions(false);
+                                                        updateField("otherDeductions", "0");
+                                                    }}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasDeductions === false ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                >
+                                                    No deductions
+                                                </button>
+                                            </div>
+                                            {hasDeductions === true ? (
+                                                <div className="pt-1">
+                                                    <TextField
+                                                        id="free-other-deductions"
+                                                        label={<>Amount to deduct (R) <InfoTip text="Only for deductions agreed in writing with the worker, such as a loan repayment." /></>}
+                                                        error={errors.otherDeductions}
+                                                    >
+                                                        <Input
+                                                            id="free-other-deductions"
+                                                            type="number"
+                                                            min="0"
+                                                            step="0.01"
+                                                            inputMode="decimal"
+                                                            value={form.otherDeductions}
+                                                            onChange={(event) => updateField("otherDeductions", event.target.value)}
+                                                        />
+                                                    </TextField>
+                                                </div>
+                                            ) : null}
+                                        </div>
+
+                                    </div>
+                                ) : null}
                             </div>
                         ) : null}
 
@@ -1194,7 +1386,7 @@ export function FreePayslipGenerator() {
                     </Button>
                     {currentStep < 2 ? (
                         <Button type="button" onClick={handleContinue} className="w-full sm:w-auto">
-                            {currentStep === 0 ? "Continue to this month’s work" : "Review the payslip"}
+                            {currentStep === 0 ? "Continue to this month's work" : "Review the payslip"}
                         </Button>
                     ) : null}
                 </div>
