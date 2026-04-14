@@ -21,6 +21,9 @@ export async function sendFreePayslipEmail(input: SendFreePayslipEmailInput) {
     const from = getRequiredEnvValue("FREE_PAYSLIP_FROM_EMAIL");
     const monthLabel = monthLabelFromKey(input.monthKey);
     const attachmentBase64 = Buffer.from(input.pdfBytes).toString("base64");
+    const subject = "Your free payslip sample from LekkerLedger";
+    const text = `Attached is your free payslip sample for ${input.employeeName} for ${monthLabel}. This is your first free payslip sample.`;
+    const html = `<p>Attached is your free payslip sample for <strong>${input.employeeName}</strong> for <strong>${monthLabel}</strong>.</p><p>This is your first free payslip sample.</p>`;
 
     const response = await fetch(RESEND_API_URL, {
         method: "POST",
@@ -31,9 +34,9 @@ export async function sendFreePayslipEmail(input: SendFreePayslipEmailInput) {
         body: JSON.stringify({
             from,
             to: [input.to],
-            subject: `Your free payslip for ${monthLabel}`,
-            text: `Attached is the free payslip for ${input.employeeName} for ${monthLabel}.`,
-            html: `<p>Attached is the free payslip for <strong>${input.employeeName}</strong> for <strong>${monthLabel}</strong>.</p>`,
+            subject,
+            text,
+            html,
             attachments: [
                 {
                     filename: input.filename,

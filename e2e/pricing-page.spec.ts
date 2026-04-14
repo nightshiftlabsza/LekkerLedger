@@ -31,7 +31,7 @@ test("pricing page copy and free CTA stay on the intended route", async ({ page 
 
     await Promise.all([
         page.waitForURL("**/resources/tools/domestic-worker-payslip"),
-        page.getByRole("button", { name: "Start free" }).click(),
+        page.getByRole("button", { name: "Get your first payslip free" }).click(),
     ]);
 
     await expect(page).toHaveURL(/\/resources\/tools\/domestic-worker-payslip$/);
@@ -49,7 +49,7 @@ for (const viewport of pricingViewports) {
         ).toBeVisible();
         await expect(page.getByRole("button", { name: /Monthly/i })).toBeVisible();
         await expect(page.getByRole("button", { name: /Yearly/i })).toBeVisible();
-        await expect(page.getByRole("button", { name: "Start free" })).toBeVisible();
+        await expect(page.getByRole("button", { name: "Get your first payslip free" })).toBeVisible();
         await expect(page.getByRole("button", { name: "Choose Standard" })).toBeVisible();
         await expect(page.getByRole("button", { name: "Choose Pro" })).toBeVisible();
         await expect(page.getByText("Cloud-secured storage").first()).toBeVisible();

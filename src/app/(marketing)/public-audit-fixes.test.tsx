@@ -47,10 +47,10 @@ import SupportPage from "./support/page";
 import UFilingErrorsPage from "./ufiling-errors/page";
 
 describe("public audit fixes", () => {
-    it("routes the resources CTA to the free payslip tool", () => {
+    it("routes the resources CTA to the free payslip sample", () => {
         render(<ResourcesHub />);
 
-        expect(screen.getByRole("link", { name: "Try the free payslip tool" })).toHaveAttribute(
+        expect(screen.getByRole("link", { name: "Get your first payslip free" })).toHaveAttribute(
             "href",
             "/resources/tools/domestic-worker-payslip",
         );

@@ -8,7 +8,7 @@ import { JsonLd, breadcrumbSchema } from "@/components/seo/json-ld";
 import { CANONICAL_SITE_URL, pageOG } from "@/lib/seo";
 
 const pageTitle = "Free Domestic Worker Payslip Template & Generator | LekkerLedger";
-const pageDescription = "Create a domestic worker payslip template and PDF for this month. Enter the pay details and email yourself one free payslip each calendar month.";
+const pageDescription = "Get your first free domestic worker payslip sample. Enter the pay details and we’ll email the PDF to you.";
 
 export const metadata: Metadata = {
     title: pageTitle,
@@ -52,7 +52,7 @@ export default function PayslipGeneratorPage() {
                         <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">Free domestic worker payslip tool</p>
                         <h1 className="type-h1" style={{ color: "var(--text)" }}>Free Domestic Worker Payslip Template &amp; Generator</h1>
                         <p className="text-base leading-7 sm:text-lg" style={{ color: "var(--text-muted)" }}>
-                            Create a domestic worker payslip template and PDF for this month. Enter the pay details, check the figures, and email yourself one free payslip per email address each calendar month.
+                            Get your first payslip free. Enter the pay details, check the figures, and we’ll email the PDF to you.
                         </p>
                         <p className="text-sm leading-7" style={{ color: "var(--text-muted)" }}>
                             Where UIF applies, it should be shown clearly. LekkerLedger shows UIF clearly when it applies.
@@ -91,11 +91,11 @@ export default function PayslipGeneratorPage() {
                     <div className="space-y-4">
                         <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-raised)] p-5 shadow-[var(--shadow-sm)] sm:p-6">
                             <p className="text-sm leading-7" style={{ color: "var(--text-muted)" }}>
-                                Free covers one emailed payslip each calendar month. Paid plans keep leave, contracts, documents, exports, and longer history together.{" "}
+                                Free covers your first emailed payslip sample. Paid plans keep leave, contracts, documents, exports, and longer history together.{" "}
                                 <Link href="/pricing" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
                                     See the paid plans
                                 </Link>{" "}
-                                when you need more than the free page.
+                                when you need more than the free sample.
                             </p>
                         </div>
 

@@ -27,7 +27,7 @@ const resourceSections = [
         bg: "bg-blue-500/10",
         items: [
             { name: "UIF & Wage Calculator", href: "/calculator" },
-            { name: "Free Payslip Generator", href: "/resources/tools/domestic-worker-payslip" },
+            { name: "Free Payslip Sample", href: "/resources/tools/domestic-worker-payslip" },
             { name: "UIF-Specific Calculator", href: "/uif-calculator" },
             { name: "Fix uFiling Errors", href: "/ufiling-errors" },
         ]
@@ -79,7 +79,7 @@ export default function ResourcesHub() {
                             Household Employment Resources
                         </h1>
                         <p className="text-lg leading-relaxed max-w-2xl" style={{ color: "var(--text-muted)" }}>
-                            Everything you need to confidently manage your household employees in South Africa. From free payslip generators to plain-English guides on labour laws.
+                            Everything you need to confidently manage your household employees in South Africa. From a first free payslip sample to plain-English guides on labour laws.
                         </p>
                     </div>
 
@@ -120,7 +120,7 @@ export default function ResourcesHub() {
                             LekkerLedger helps you generate compliant payslips, track UIF, and securely store employment records, all from your phone.
                         </p>
                         <Link href="/resources/tools/domestic-worker-payslip" className="inline-block mt-4 rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-[var(--primary-hover)] transition-colors">
-                            Try the free payslip tool
+                            Get your first payslip free
                         </Link>
                     </div>
                 </div>

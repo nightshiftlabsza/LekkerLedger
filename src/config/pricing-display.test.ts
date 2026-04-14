@@ -16,8 +16,8 @@ describe("pricing display routes", () => {
         expect(getMarketingPlanHref("pro", "yearly")).toBe("/upgrade?plan=pro&billing=yearly&pay=1");
     });
 
-    it("removes the redundant no-account feature from the free plan list", () => {
-        expect(getMarketingPlanDisplay("free").liveFeatures).not.toContain("No account needed");
+    it("includes the no-account sample language in the free plan list", () => {
+        expect(getMarketingPlanDisplay("free").liveFeatures).toContain("No account needed for your first sample");
     });
 
     it("keeps pro live features separate from planned features", () => {
@@ -53,6 +53,11 @@ describe("pricing display routes", () => {
             primary: "R299",
             periodLabel: "/year",
             helperText: "≈ R24.92/month",
+        });
+        expect(getMarketingPriceDisplay("free", "monthly")).toEqual({
+            primary: "Free",
+            periodLabel: "",
+            helperText: "First sample only. No billing. No account.",
         });
     });
 });

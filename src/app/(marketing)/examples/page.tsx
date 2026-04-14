@@ -291,7 +291,7 @@ export default function ExamplesPage() {
                             </div>
                             <Link href="/onboarding" className="block">
                                 <Button className="w-full gap-2 bg-[var(--text)] text-white hover:opacity-90 font-bold h-12 rounded-xl">
-                                    Start free <ArrowRight className="h-4 w-4" />
+                                    Get your first payslip free <ArrowRight className="h-4 w-4" />
                                 </Button>
                             </Link>
                         </section>

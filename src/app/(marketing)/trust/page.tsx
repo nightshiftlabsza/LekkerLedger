@@ -71,7 +71,7 @@ export default function TrustCenterPage() {
                                 This architecture means LekkerLedger does not have access to your unencrypted payroll data. All accounts use Recoverable Encryption - your records are encrypted before upload and can be restored via account login if you lose access.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Free users can email themselves a single payslip PDF per email address each calendar month without creating an account. The free tool does not create stored payroll records in the app.
+                                Free users can email themselves one first payslip sample per email address without creating an account. The free tool does not create stored payroll records in the app.
                             </p>
                             <Link href="/storage" className="inline-flex items-center text-sm font-bold text-[var(--primary)] hover:underline mt-2">
                                 Read the storage guide <ArrowRight className="h-4 w-4 ml-1" />
@@ -208,7 +208,7 @@ export default function TrustCenterPage() {
                             <div>
                                 <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text)" }}>No Hidden Fees</h3>
                                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    Free covers the essentials. Standard is {standardMonthlyPrice}/month or {standardYearlyPrice}/year, which works out to about {standardYearlyEquivalent}/month on yearly billing, for most households that want organised records, backup, contracts, and annual paperwork. Pro is {proMonthlyPrice}/month or {proYearlyPrice}/year, which works out to about {proYearlyEquivalent}/month on yearly billing, for full document storage, longer archive history, and richer admin tracking, with unlimited employees and multi-household workspaces when you need them. Both paid tiers are still priced for households rather than the higher monthly fees common in managed payroll services.
+                                    Free covers the sample. Standard is {standardMonthlyPrice}/month or {standardYearlyPrice}/year, which works out to about {standardYearlyEquivalent}/month on yearly billing, for household employers who need monthly payroll done properly with organised records, backup, contracts, and annual paperwork. Pro is {proMonthlyPrice}/month or {proYearlyPrice}/year, which works out to about {proYearlyEquivalent}/month on yearly billing, for full document storage, longer archive history, and richer admin tracking, with unlimited employees and multi-household workspaces when you need them. Both paid tiers are still priced for households rather than the higher monthly fees common in managed payroll services.
                                 </p>
                             </div>
                         </div>

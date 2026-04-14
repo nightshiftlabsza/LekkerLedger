@@ -9,10 +9,11 @@ import {
     validateFreePayslipForm,
 } from "@/lib/free-payslip-form";
 import {
-    consumeFreePayslipQuota,
-    FREE_PAYSLIP_MONTHLY_LIMIT_MESSAGE,
-    getFreePayslipQuotaStatus,
-    toFreePayslipQuotaErrorResponse,
+    claimFreePayslipSample,
+    FREE_PAYSLIP_ALREADY_USED_MESSAGE,
+    getFreePayslipClaimStatus,
+    normalizeFreePayslipEmail,
+    toFreePayslipClaimErrorResponse,
 } from "@/lib/free-payslip-quota";
 import { generatePayslipPdfBytes, getPayslipFilename } from "@/lib/pdf";
 
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: parsed.error.issues[0]?.message || "Enter a valid email address." }, { status: 400 });
         }
 
-        const email = parsed.data.email.trim().toLowerCase();
+        const email = normalizeFreePayslipEmail(parsed.data.email);
         const marketingConsent = parsed.data.marketingConsent === true;
         const normalizedForm = normalizeFreePayslipFormState(parsed.data.form);
         const validationErrors = validateFreePayslipForm(normalizedForm);
@@ -40,9 +41,16 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Complete the required payslip details before sending." }, { status: 400 });
         }
 
-        const quota = await getFreePayslipQuotaStatus(email);
-        if (quota.usedThisMonth) {
-            return NextResponse.json({ error: FREE_PAYSLIP_MONTHLY_LIMIT_MESSAGE }, { status: 409 });
+        const claimStatus = await getFreePayslipClaimStatus(email);
+        if (claimStatus.isClaimed) {
+            return NextResponse.json(
+                {
+                    status: "already-used",
+                    email,
+                    error: FREE_PAYSLIP_ALREADY_USED_MESSAGE,
+                },
+                { status: 409 },
+            );
         }
 
         const pdfBytes = await generatePayslipPdfBytes(payload.employee, payload.payslip, payload.settings, "en");
@@ -51,20 +59,10 @@ export async function POST(request: Request) {
         await sendFreePayslipEmail({
             to: email,
             employeeName: payload.employee.name,
-            monthKey: quota.monthKey,
+            monthKey: normalizedForm.monthKey,
             filename,
             pdfBytes,
         });
-
-        try {
-            await consumeFreePayslipQuota(email);
-        } catch (error) {
-            const quotaError = toFreePayslipQuotaErrorResponse(error);
-            if (quotaError.status !== 409) {
-                throw error;
-            }
-            console.warn("Free payslip quota was already consumed by a concurrent request after email send.", { email, monthKey: quota.monthKey });
-        }
 
         if (marketingConsent) {
             void addNewsletterSubscriber(email).catch((error) => {
@@ -72,11 +70,30 @@ export async function POST(request: Request) {
             });
         }
 
+        try {
+            await claimFreePayslipSample(email);
+        } catch (error) {
+            const claimError = toFreePayslipClaimErrorResponse(error);
+            if (claimError.status === 409) {
+                console.warn("Free payslip sample was already claimed by a concurrent request after email send.", { email });
+                return NextResponse.json(
+                    {
+                        status: "already-used",
+                        email,
+                        error: claimError.message,
+                    },
+                    { status: 409 },
+                );
+            }
+
+            throw error;
+        }
+
         return NextResponse.json(
             {
                 status: "sent",
                 email,
-                monthKey: quota.monthKey,
+                monthKey: normalizedForm.monthKey,
             },
             {
                 headers: {
@@ -85,9 +102,15 @@ export async function POST(request: Request) {
             },
         );
     } catch (error) {
-        const quotaError = toFreePayslipQuotaErrorResponse(error);
-        if (quotaError.status === 409) {
-            return NextResponse.json({ error: quotaError.message }, { status: 409 });
+        const claimError = toFreePayslipClaimErrorResponse(error);
+        if (claimError.status === 409) {
+            return NextResponse.json(
+                {
+                    status: "already-used",
+                    error: claimError.message,
+                },
+                { status: 409 },
+            );
         }
 
         return NextResponse.json(

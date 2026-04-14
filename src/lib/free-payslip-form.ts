@@ -37,7 +37,7 @@ export type OrdinaryWorkPreset = "monday-to-friday" | "monday-to-saturday" | "cu
 export const ORDINARY_HOURS_PER_DAY = 8;
 export const FREE_PAYSLIP_DRAFT_STORAGE_KEY = "free-payslip-simple-draft-v1";
 export const FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE = "The free payslip service is temporarily unavailable. Please try again in a moment.";
-export const FREE_PAYSLIP_RULE_MESSAGE = "Free once a month per email address.";
+export const FREE_PAYSLIP_RULE_MESSAGE = "Your first payslip is free. We’ll email it to you, and you do not need an account for the first sample.";
 
 const StringFormSchema = z.object({
     employerName: z.string(),

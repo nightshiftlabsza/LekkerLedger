@@ -46,28 +46,29 @@ export const MARKETING_YEARLY_BADGE = `Save up to ${getYearlySavingsPercent("pro
 export const HOMEPAGE_PRICING_LINK_LABEL = "Compare plans in detail";
 
 export const PRICING_PAGE_TITLE = "Pick the plan that fits your household.";
-export const PRICING_PAGE_SUBTITLE = "Use the public free payslip tool, or pay now for Standard or Pro dashboard access.";
+export const PRICING_PAGE_SUBTITLE = "Get your first payslip free, or pay now for Standard or Pro dashboard access.";
 export const PRICING_PAGE_NUDGE_TITLE = "Standard to Pro is less than R13/month extra.";
-export const PRICING_PAGE_NUDGE_BODY = "That's the price of a cup of coffee for full document storage, year-end summaries, and 5 years of searchable history.";
+export const PRICING_PAGE_NUDGE_BODY = "Standard is the ongoing monthly option for household employers who want leave tracking, records, and UIF-ready admin. Pro adds full document storage, year-end summaries, and 5 years of searchable history.";
 export const PLANNED_FEATURES_TITLE = "Planned features";
 
 export const MARKETING_PLAN_DISPLAY: Record<PlanId, MarketingPlanDisplay> = {
     free: {
         label: "Free",
-        headline: "Start simple.",
-        subtitle: "One worker. Basic monthly payslips. No sign-up needed.",
+        headline: "Get your first payslip free.",
+        subtitle: "No account needed for your first sample. We’ll email the PDF to you.",
         liveFeatures: [
-            "1 payslip per month as PDF",
+            "One free payslip sample per email address",
+            "No account needed for your first sample",
             "Enter details, generate, receive via email",
             "Household checklist and guides",
         ],
-        ctaLabel: "Start free",
-        ctaSubtext: "Public payslip tool. No billing. No account.",
+        ctaLabel: "Get your first payslip free",
+        ctaSubtext: "We’ll email your sample. No billing. No account.",
     },
     standard: {
         label: "Standard",
-        headline: "For most households.",
-        subtitle: "Payslips, leave, contracts, organised records, and automatic private backup.",
+        headline: "For monthly household payroll.",
+        subtitle: "Payslips, leave, contracts, organised records, and automatic private backup for a household employer who needs payroll done properly.",
         badge: "Early-bird pricing",
         badgeTone: "earlybird",
         launchNote: "Launch pricing for early customers.",
@@ -160,7 +161,7 @@ export const PRICING_COMPARISON_GROUPS: PricingComparisonGroup[] = [
         rows: [
             { label: "Active employees", values: { free: "1", standard: "Up to 3", pro: "Unlimited" } },
             { label: "Households", values: { free: "1", standard: "1", pro: "Multiple" } },
-            { label: "Searchable history", values: { free: "3 months", standard: "12 months", pro: "5 years" } },
+            { label: "Searchable history", values: { free: "Local only", standard: "12 months", pro: "5 years" } },
         ],
     },
     {
@@ -235,7 +236,7 @@ export function getMarketingPriceDisplay(planId: PlanId, billingCycle: BillingCy
         return {
             primary: "Free",
             periodLabel: "",
-            helperText: "Public payslip tool. No billing. No account.",
+            helperText: "First sample only. No billing. No account.",
         };
     }
 
@@ -246,7 +247,7 @@ export function getMarketingPriceDisplay(planId: PlanId, billingCycle: BillingCy
         return {
             primary: "Free",
             periodLabel: "",
-            helperText: "Public payslip tool. No billing. No account.",
+            helperText: "First sample only. No billing. No account.",
         };
     }
 

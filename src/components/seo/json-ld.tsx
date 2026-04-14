@@ -22,7 +22,7 @@ export const softwareApplicationSchema = {
         price: "0",
         priceCurrency: "ZAR"
     },
-    description: "Create domestic worker payslips, estimate UIF deductions, and keep monthly household employer admin organised."
+    description: "Create domestic worker payslips, estimate UIF deductions, and keep household payroll organised."
 };
 
 export function breadcrumbSchema(crumbs: { name: string; path: string }[]) {

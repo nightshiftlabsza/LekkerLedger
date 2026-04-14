@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 
 const steps = [
     {
-        title: "Try the free payslip tool",
-        body: "Generate one payslip per month per email address and have the PDF emailed to you.",
+        title: "Try the free payslip sample",
+        body: "Generate your first payslip sample and have the PDF emailed to you.",
     },
     {
         title: "Upgrade for cloud-secured records",
@@ -28,16 +28,16 @@ export default function OnboardingPage() {
                     </div>
 
                     <h1 className="mt-6 font-serif text-4xl font-bold tracking-tight text-[var(--text)] sm:text-5xl">
-                        Try a free payslip. Upgrade when you need more.
+                        Get your first payslip free. Upgrade when you need more.
                     </h1>
                     <p className="mt-4 max-w-[42rem] text-base leading-7 text-[var(--text-muted)]">
-                        Start with the free payslip tool. When you need cloud-secured records, the dashboard, contracts, and more, upgrade to a paid plan.
+                        Start with the free payslip sample. When you need cloud-secured records, the dashboard, contracts, and more, upgrade to a paid plan.
                     </p>
 
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                         <Link href="/dashboard" className="w-full sm:w-auto">
                             <Button className="w-full sm:min-w-[220px]">
-                                Start free
+                                Get your first payslip free
                                 <ArrowRight className="h-4 w-4" />
                             </Button>
                         </Link>
@@ -69,12 +69,12 @@ export default function OnboardingPage() {
                         </div>
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Good to know</p>
-                            <p className="text-sm font-semibold text-[var(--text)]">Free is one PDF per month</p>
+                            <p className="text-sm font-semibold text-[var(--text)]">Free is your first payslip sample</p>
                         </div>
                     </div>
 
                     <ul className="mt-6 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
-                        <li>The free payslip tool emails one PDF per month per email address and does not create stored app records.</li>
+                        <li>The free payslip tool emails your first sample to the email address you enter and does not create stored app records.</li>
                         <li>Paid plans unlock cloud-secured records, the dashboard, and account-based access from any device.</li>
                         <li>On a new device, sign in to access your encrypted cloud records.</li>
                     </ul>

@@ -51,6 +51,6 @@ describe("PlanFeatureList", () => {
         ).toBeInTheDocument();
         expect(screen.getByText("Launch pricing")).toBeInTheDocument();
         expect(screen.queryByText("Launch pricing for early customers.")).toBeNull();
-        expect(getMarketingPlanDisplay("standard").headline).toBe("For most households.");
+        expect(getMarketingPlanDisplay("standard").headline).toBe("For monthly household payroll.");
     });
 });

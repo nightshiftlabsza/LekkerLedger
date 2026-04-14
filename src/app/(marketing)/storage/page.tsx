@@ -20,7 +20,7 @@ export default function StoragePage() {
                         <Database className="h-6 w-6" />
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Security & Storage</h1>
-                    <p className="font-medium text-[var(--text-muted)]">How paid accounts keep records cloud-secured, and how the free payslip flow works.</p>
+                    <p className="font-medium text-[var(--text-muted)]">How paid accounts keep records cloud-secured, and how the free sample flow works.</p>
                 </header>
 
                 <div className="grid gap-12 xl:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)] xl:items-start">
@@ -31,7 +31,7 @@ export default function StoragePage() {
                             Paid accounts store all payroll records in end-to-end encrypted cloud storage. Your data is encrypted before it leaves your device and can only be decrypted with your credentials.
                         </p>
                         <p>
-                            Free users do not have persistent storage. The free payslip tool emails one PDF per month per email address after a successful send, and the payroll details are not kept as stored records in the app.
+                            Free users do not have persistent storage. The free payslip tool emails one first sample per email address after a successful send, and the payroll details are not kept as stored records in the app.
                         </p>
                     </section>
 
@@ -66,10 +66,10 @@ export default function StoragePage() {
                             </div>
                             <h3 className="text-xl font-bold text-[var(--text)] mb-2">Free Payslip Tool</h3>
                             <p className="text-sm text-[var(--text-muted)] mb-4 leading-relaxed">
-                                One free payslip per month per email address. Enter details and we email the PDF after a successful send.
+                                Your first payslip is free. Enter details and we email the PDF after a successful send.
                             </p>
                             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> No account required</li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> No account required for the first sample</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> PDF generated server-side and emailed</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--success)] shrink-0" /> No free-tool payroll records are kept as stored app records</li>
                             </ul>
@@ -124,7 +124,7 @@ export default function StoragePage() {
                                 Choose based on what you need from LekkerLedger.
                             </p>
                             <ul className="mt-5 space-y-3 text-sm leading-7 text-[var(--text-muted)]">
-                                <li><strong className="text-[var(--text)]">Free:</strong> One payslip per month per email address, delivered by email. No account.</li>
+                                <li><strong className="text-[var(--text)]">Free:</strong> One first payslip sample per email address, delivered by email. No account.</li>
                                 <li><strong className="text-[var(--text)]">Paid:</strong> Cloud-secured records, encrypted sync across devices, dashboard, contracts, leave tracking, and exports.</li>
                             </ul>
                         </div>

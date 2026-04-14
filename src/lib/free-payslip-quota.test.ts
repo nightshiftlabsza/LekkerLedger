@@ -1,10 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-type QuotaRow = {
+type ClaimRow = {
     email: string;
-    month_key: string;
-    downloads_used: number;
-    verified_at: number;
+    claimed_at: number;
     created_at: number;
     updated_at: number;
 };
@@ -20,7 +18,7 @@ function createD1Response(results: Array<Record<string, unknown>> = []) {
     };
 }
 
-describe("free payslip quota helper", () => {
+describe("free payslip claim helper", () => {
     beforeEach(() => {
         vi.resetModules();
         vi.useFakeTimers();
@@ -36,132 +34,101 @@ describe("free payslip quota helper", () => {
         vi.unstubAllGlobals();
     });
 
-    it("enforces one successful free payslip PDF per email address per calendar month", async () => {
-        const rows = new Map<string, QuotaRow>();
+    it("claims exactly one sample per normalized email address", async () => {
+        const rows = new Map<string, ClaimRow>();
 
         vi.stubGlobal("fetch", vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
             const body = JSON.parse(String(init?.body ?? "{}")) as { sql?: string; params?: Array<string | number> };
             const sql = body.sql ?? "";
             const params = body.params ?? [];
 
-            if (sql.includes("CREATE TABLE IF NOT EXISTS")) {
-                return createD1Response();
-            }
-
-            if (sql.includes("SELECT * FROM free_payslip_quota")) {
-                const key = `${params[0]}::${params[1]}`;
-                const row = rows.get(key);
+            if (sql.includes("SELECT email, claimed_at, created_at, updated_at") && sql.includes("FROM free_payslip_claims")) {
+                const row = rows.get(String(params[0]));
                 return createD1Response(row ? [row] : []);
             }
 
-            if (sql.includes("INSERT INTO free_payslip_quota")) {
-                const key = `${params[0]}::${params[1]}`;
-                if (!rows.has(key)) {
-                    rows.set(key, {
-                        email: String(params[0]),
-                        month_key: String(params[1]),
-                        downloads_used: Number(params[2]),
-                        verified_at: Number(params[3]),
-                        created_at: Number(params[4]),
-                        updated_at: Number(params[5]),
-                    });
-                }
-                return createD1Response();
-            }
-
-            if (sql.includes("UPDATE free_payslip_quota") && sql.includes("RETURNING")) {
-                const key = `${params[2]}::${params[3]}`;
-                const row = rows.get(key);
-                if (!row || row.downloads_used !== 0) {
+            if (sql.includes("INSERT INTO free_payslip_claims")) {
+                const key = String(params[0]);
+                const existing = rows.get(key);
+                if (existing) {
                     return createD1Response([]);
                 }
 
-                const updated: QuotaRow = {
-                    ...row,
-                    downloads_used: 1,
-                    verified_at: Number(params[0]),
-                    updated_at: Number(params[1]),
+                const inserted: ClaimRow = {
+                    email: key,
+                    claimed_at: Number(params[1]),
+                    created_at: Number(params[2]),
+                    updated_at: Number(params[3]),
                 };
-                rows.set(key, updated);
-                return createD1Response([updated]);
-            }
-
-            if (sql.includes("UPDATE free_payslip_quota SET updated_at")) {
-                const key = `${params[1]}::${params[2]}`;
-                const row = rows.get(key);
-                if (row) {
-                    rows.set(key, { ...row, updated_at: Number(params[0]) });
-                }
-                return createD1Response();
+                rows.set(key, inserted);
+                return createD1Response([inserted]);
             }
 
             throw new Error(`Unhandled SQL in test: ${sql}`);
         }));
 
-        const quotaModule = await import("./free-payslip-quota");
+        const claimModule = await import("./free-payslip-quota");
 
-        const firstStatus = await quotaModule.consumeFreePayslipQuota("Owner@example.com");
-        expect(firstStatus.email).toBe("owner@example.com");
-        expect(firstStatus.downloadsUsed).toBe(1);
-        expect(firstStatus.remainingDownloads).toBe(0);
-        expect(firstStatus.usedThisMonth).toBe(true);
-
-        await expect(quotaModule.consumeFreePayslipQuota("owner@example.com")).rejects.toMatchObject({
-            status: 409,
-            message: "This email address has already used its one successful free payslip PDF for this calendar month.",
+        expect(await claimModule.getFreePayslipClaimStatus(" Owner@Example.com ")).toMatchObject({
+            email: "owner@example.com",
+            isClaimed: false,
+            claimedAt: null,
         });
 
-        const differentEmail = await quotaModule.consumeFreePayslipQuota("second@example.com");
-        expect(differentEmail.downloadsUsed).toBe(1);
+        const firstClaim = await claimModule.claimFreePayslipSample(" Owner@Example.com ");
+        expect(firstClaim).toMatchObject({
+            email: "owner@example.com",
+            isClaimed: true,
+        });
+        expect(typeof firstClaim.claimedAt).toBe("number");
+
+        expect(await claimModule.getFreePayslipClaimStatus("owner@example.com")).toMatchObject({
+            email: "owner@example.com",
+            isClaimed: true,
+        });
+
+        await expect(claimModule.claimFreePayslipSample("owner@example.com")).rejects.toMatchObject({
+            status: 409,
+            message: "This email address has already used its free payslip sample. To keep generating monthly payslips and manage household payroll, create an account and choose a paid plan.",
+        });
+
+        const differentEmail = await claimModule.claimFreePayslipSample("second@example.com");
+        expect(differentEmail.email).toBe("second@example.com");
+        expect(differentEmail.isClaimed).toBe(true);
     });
 
-    it("allows the same email address again in a new Johannesburg calendar month", async () => {
-        const rows = new Map<string, QuotaRow>();
+    it("returns the claimed status when the row already exists", async () => {
+        const rows = new Map<string, ClaimRow>([
+            ["already@example.com", {
+                email: "already@example.com",
+                claimed_at: 1700000000000,
+                created_at: 1700000000000,
+                updated_at: 1700000000000,
+            }],
+        ]);
 
         vi.stubGlobal("fetch", vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
             const body = JSON.parse(String(init?.body ?? "{}")) as { sql?: string; params?: Array<string | number> };
             const sql = body.sql ?? "";
             const params = body.params ?? [];
 
-            if (sql.includes("CREATE TABLE IF NOT EXISTS")) return createD1Response();
-            if (sql.includes("SELECT * FROM free_payslip_quota")) {
-                const row = rows.get(`${params[0]}::${params[1]}`);
+            if (sql.includes("SELECT email, claimed_at, created_at, updated_at") && sql.includes("FROM free_payslip_claims")) {
+                const row = rows.get(String(params[0]));
                 return createD1Response(row ? [row] : []);
             }
-            if (sql.includes("INSERT INTO free_payslip_quota")) {
-                const key = `${params[0]}::${params[1]}`;
-                if (!rows.has(key)) {
-                    rows.set(key, {
-                        email: String(params[0]),
-                        month_key: String(params[1]),
-                        downloads_used: Number(params[2]),
-                        verified_at: Number(params[3]),
-                        created_at: Number(params[4]),
-                        updated_at: Number(params[5]),
-                    });
-                }
-                return createD1Response();
+
+            if (sql.includes("INSERT INTO free_payslip_claims")) {
+                return createD1Response([]);
             }
-            if (sql.includes("UPDATE free_payslip_quota") && sql.includes("RETURNING")) {
-                const key = `${params[2]}::${params[3]}`;
-                const row = rows.get(key);
-                if (!row || row.downloads_used !== 0) return createD1Response([]);
-                const updated = { ...row, downloads_used: 1, verified_at: Number(params[0]), updated_at: Number(params[1]) };
-                rows.set(key, updated);
-                return createD1Response([updated]);
-            }
-            if (sql.includes("UPDATE free_payslip_quota SET updated_at")) return createD1Response();
 
             throw new Error(`Unhandled SQL in test: ${sql}`);
         }));
 
-        const quotaModule = await import("./free-payslip-quota");
+        const claimModule = await import("./free-payslip-quota");
 
-        const april = await quotaModule.consumeFreePayslipQuota("owner@example.com");
-        vi.setSystemTime(new Date("2026-05-02T09:00:00.000Z"));
-        const may = await quotaModule.consumeFreePayslipQuota("owner@example.com");
-
-        expect(april.monthKey).not.toBe(may.monthKey);
-        expect(may.downloadsUsed).toBe(1);
+        await expect(claimModule.claimFreePayslipSample("already@example.com")).rejects.toMatchObject({
+            status: 409,
+            message: "This email address has already used its free payslip sample. To keep generating monthly payslips and manage household payroll, create an account and choose a paid plan.",
+        });
     });
 });

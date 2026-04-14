@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   title: "LekkerLedger | Domestic Worker Payslips and UIF for South African Households",
   description:
-    "Create domestic worker payslips, check UIF, and keep monthly household employer admin in order.",
+    "Create domestic worker payslips, check UIF, and keep household payroll in order.",
   manifest: "/manifest.webmanifest",
   robots: {
     index: true,

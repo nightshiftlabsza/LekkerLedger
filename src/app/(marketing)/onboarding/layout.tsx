@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
     title: "Get Started | LekkerLedger",
     description:
-        "Start with a free payslip, then upgrade to cloud-secured records, contracts, and dashboard access for South African household payroll.",
+        "Start with your first free payslip sample, then upgrade to cloud-secured records, contracts, and dashboard access for South African household payroll.",
     alternates: {
         canonical: "/onboarding",
     },

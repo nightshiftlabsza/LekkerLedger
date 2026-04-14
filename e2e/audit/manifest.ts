@@ -74,12 +74,12 @@ const marketingActions: AuditAction[] = [
     {
         id: "marketing-home-start-free-mobile",
         group: "marketing",
-        label: "Follow the homepage Email yourself a payslip PDF CTA on phone",
+        label: "Follow the homepage first sample CTA on phone",
         route: "/",
         device: "mobile",
         seed: "empty",
         steps: [
-            { type: "clickByRole", role: "link", name: "Email yourself a payslip PDF (free—1/month)" },
+            { type: "clickByRole", role: "link", name: "Get your first payslip free" },
             { type: "waitForUrl", pattern: "/resources/tools/domestic-worker-payslip" },
         ],
     },
@@ -161,12 +161,12 @@ const onboardingShellActions: AuditAction[] = [
     {
         id: "shell-onboarding-start-free-mobile",
         group: "onboarding-shell",
-        label: "Start free from onboarding on phone",
+        label: "Start the free sample from onboarding on phone",
         route: "/onboarding",
         device: "mobile",
         seed: "empty",
         steps: [
-            { type: "clickByRole", role: "link", name: "Start free" },
+            { type: "clickByRole", role: "link", name: "Get your first payslip free" },
             { type: "waitForUrl", pattern: "/dashboard" },
         ],
     },
@@ -189,7 +189,7 @@ const onboardingShellActions: AuditAction[] = [
         route: "/onboarding",
         device: "mobile",
         seed: "empty",
-        steps: [{ type: "assertText", text: "The free payslip tool works in the browser and does not keep records after the session." }],
+        steps: [{ type: "assertText", text: "The free payslip tool emails your first sample to the email address you enter and does not create stored app records." }],
     },
     {
         id: "shell-dashboard-open-account-desktop",

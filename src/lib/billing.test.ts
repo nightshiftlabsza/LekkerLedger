@@ -35,7 +35,7 @@ describe("billing helpers", () => {
     });
 
     it("blocks referral attachment after any real billing state exists", () => {
-        expect(canAttachReferralToAccount(createSubscription({ status: "active", currentPeriodEnd: Date.parse("2026-03-24T00:00:00Z") } as Partial<SubscriptionRecord>))).toBe(false);
+        expect(canAttachReferralToAccount(createSubscription({ status: "active", currentPeriodEnd: Date.parse("2026-05-24T00:00:00Z") } as Partial<SubscriptionRecord>))).toBe(false);
         expect(canAttachReferralToAccount(createSubscription({ planId: "standard" }))).toBe(false);
         expect(canAttachReferralToAccount(createSubscription({ paystackCustomerId: "CUS_123" }))).toBe(false);
         expect(canAttachReferralToAccount(createSubscription({ paystackAuthorizationCode: "AUTH_123" }))).toBe(false);

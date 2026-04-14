@@ -2,9 +2,18 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FreePayslipGenerator } from "./free-payslip-generator";
 
+const analyticsMocks = vi.hoisted(() => ({
+    trackMock: vi.fn(),
+}));
+
+vi.mock("@/lib/analytics", () => ({
+    track: (...args: unknown[]) => analyticsMocks.trackMock(...args),
+}));
+
 describe("FreePayslipGenerator", () => {
     beforeEach(() => {
         window.localStorage.clear();
+        analyticsMocks.trackMock.mockReset();
         vi.stubGlobal("fetch", vi.fn(async () => ({
             status: 200,
             ok: true,
@@ -38,7 +47,7 @@ describe("FreePayslipGenerator", () => {
 
     async function reachStepThree() {
         render(<FreePayslipGenerator />);
-        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        await screen.findByRole("heading", { name: "Get your first payslip free" });
         fillStepOne();
         await screen.findByRole("heading", { name: /What happened in/i });
         fillStepTwo();
@@ -48,7 +57,7 @@ describe("FreePayslipGenerator", () => {
     it("renders the three-step wizard and keeps optional sections hidden at first", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        await screen.findByRole("heading", { name: "Get your first payslip free" });
         expect(screen.getByRole("button", { name: "Continue to this month's work" })).toBeInTheDocument();
         expect(screen.queryByLabelText("Employer name")).toBeNull();
         expect(screen.queryByLabelText("Job title")).toBeNull();
@@ -60,7 +69,7 @@ describe("FreePayslipGenerator", () => {
     it("preserves entered values when moving back and forward", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        await screen.findByRole("heading", { name: "Get your first payslip free" });
         fillStepOne();
         await screen.findByRole("heading", { name: /What happened in/i });
 
@@ -80,7 +89,7 @@ describe("FreePayslipGenerator", () => {
     it("clicking No standard month advances to review without showing the questionnaire", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        await screen.findByRole("heading", { name: "Get your first payslip free" });
         fillStepOne();
         await screen.findByRole("heading", { name: /What happened in/i });
 
@@ -94,7 +103,7 @@ describe("FreePayslipGenerator", () => {
     it("reveals the questionnaire when Yes I need to make adjustments is clicked", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        await screen.findByRole("heading", { name: "Get your first payslip free" });
         fillStepOne();
         await screen.findByRole("heading", { name: /What happened in/i });
 
@@ -106,7 +115,7 @@ describe("FreePayslipGenerator", () => {
     it("reveals unpaid leave input when Yes they did is clicked for Question A", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        await screen.findByRole("heading", { name: "Get your first payslip free" });
         fillStepOne();
         await screen.findByRole("heading", { name: /What happened in/i });
 
@@ -120,7 +129,7 @@ describe("FreePayslipGenerator", () => {
     it("shows the computed days worked when days missed is entered", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        await screen.findByRole("heading", { name: "Get your first payslip free" });
         fillStepOne();
         await screen.findByRole("heading", { name: /What happened in/i });
 
@@ -139,7 +148,7 @@ describe("FreePayslipGenerator", () => {
     it("reveals short days inputs when Question D is answered Yes", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        await screen.findByRole("heading", { name: "Get your first payslip free" });
         fillStepOne();
         await screen.findByRole("heading", { name: /What happened in/i });
 
@@ -158,7 +167,7 @@ describe("FreePayslipGenerator", () => {
     it("updates the Sunday helper text when the normal schedule changes", async () => {
         render(<FreePayslipGenerator />);
 
-        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        await screen.findByRole("heading", { name: "Get your first payslip free" });
         fireEvent.change(screen.getByLabelText("Worker name"), { target: { value: "Thandi Maseko" } });
         fireEvent.click(screen.getByRole("button", { name: /Other days/i }));
         fireEvent.click(screen.getByRole("button", { name: "Sun" }));
@@ -184,7 +193,7 @@ describe("FreePayslipGenerator", () => {
     it("keeps the marketing opt-in unchecked on a fresh visit and persists it when selected", async () => {
         await reachStepThree();
 
-        const checkbox = screen.getByRole("checkbox", { name: /send me a free monthly household employer checklist and tips/i });
+        const checkbox = screen.getByRole("checkbox", { name: /send me household employer updates and tips/i });
         expect(checkbox).not.toBeChecked();
 
         fireEvent.click(checkbox);
@@ -229,26 +238,32 @@ describe("FreePayslipGenerator", () => {
         }));
 
         render(<FreePayslipGenerator />);
-        await screen.findByRole("heading", { name: "Enter the monthly pay details" });
+        await screen.findByRole("heading", { name: "Get your first payslip free" });
         fillStepOne();
         await screen.findByRole("heading", { name: /What happened in/i });
         fillStepTwo();
         await screen.findByRole("heading", { name: "Review and email" });
 
-        expect(screen.getByRole("checkbox", { name: /send me a free monthly household employer checklist and tips/i })).toBeChecked();
+        expect(screen.getByRole("checkbox", { name: /send me household employer updates and tips/i })).toBeChecked();
     });
 
     it("shows the combined review summary and success state after a successful send", async () => {
         await reachStepThree();
         fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "owner@example.com" } });
-        fireEvent.click(screen.getByRole("button", { name: "Email my free payslip" }));
+        fireEvent.click(screen.getByRole("button", { name: "Email my first payslip free" }));
 
         await waitFor(() => {
             expect(screen.getByTestId("free-payslip-gate-success")).toBeInTheDocument();
         });
+        await waitFor(() => {
+            expect(analyticsMocks.trackMock).toHaveBeenCalledWith("free_payslip_started", { source: "public_generator" });
+        });
+        await waitFor(() => {
+            expect(analyticsMocks.trackMock).toHaveBeenCalledWith("free_payslip_sent", { source: "public_generator" });
+        });
         expect(screen.getByText("Amount to pay")).toBeInTheDocument();
         expect(screen.getByText("UIF total")).toBeInTheDocument();
-        expect(screen.getByText("Payslip sent to owner@example.com")).toBeInTheDocument();
+        expect(screen.getByTestId("free-payslip-gate-success")).toHaveTextContent("Your free sample was emailed to owner@example.com");
     });
 
     it("sends the marketing opt-in state in the request body", async () => {
@@ -264,9 +279,9 @@ describe("FreePayslipGenerator", () => {
         vi.stubGlobal("fetch", fetchMock);
 
         await reachStepThree();
-        fireEvent.click(screen.getByRole("checkbox", { name: /send me a free monthly household employer checklist and tips/i }));
+        fireEvent.click(screen.getByRole("checkbox", { name: /send me household employer updates and tips/i }));
         fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "owner@example.com" } });
-        fireEvent.click(screen.getByRole("button", { name: "Email my free payslip" }));
+        fireEvent.click(screen.getByRole("button", { name: "Email my first payslip free" }));
 
         await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
         const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -281,18 +296,24 @@ describe("FreePayslipGenerator", () => {
             status: 409,
             ok: false,
             json: async () => ({
-                error: "This email address has already used its one successful free payslip PDF for this calendar month.",
+                status: "already-used",
+                error: "This email address has already used its free payslip sample. To keep generating monthly payslips and manage household payroll, create an account and choose a paid plan.",
             }),
         })));
 
         await reachStepThree();
         fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "owner@example.com" } });
-        fireEvent.click(screen.getByRole("button", { name: "Email my free payslip" }));
+        fireEvent.click(screen.getByRole("button", { name: "Email my first payslip free" }));
 
         await waitFor(() => {
-            expect(screen.getByTestId("free-payslip-gate-quota-used")).toBeInTheDocument();
+            expect(screen.getByTestId("free-payslip-gate-already-used")).toBeInTheDocument();
         });
-        expect(screen.getByText("This email address has already used its one successful free payslip PDF for this calendar month.")).toBeInTheDocument();
+        expect(screen.getByText("This email address has already used its free payslip sample. To keep generating monthly payslips and manage household payroll, create an account and choose a paid plan.")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(analyticsMocks.trackMock).toHaveBeenCalledWith("free_payslip_blocked_already_used", { source: "public_generator" });
+        });
+        fireEvent.click(screen.getByRole("link", { name: "Start Standard" }));
+        expect(analyticsMocks.trackMock).toHaveBeenCalledWith("upgrade_cta_clicked_from_free_limit", { source: "public_generator" });
 
         vi.stubGlobal("fetch", vi.fn(async () => ({
             status: 503,
@@ -302,7 +323,7 @@ describe("FreePayslipGenerator", () => {
             }),
         })));
 
-        fireEvent.click(screen.getByRole("button", { name: "Email my free payslip" }));
+        fireEvent.click(screen.getByRole("button", { name: "Email my first payslip free" }));
 
         await waitFor(() => {
             expect(screen.getByTestId("free-payslip-gate-service-unavailable")).toBeInTheDocument();

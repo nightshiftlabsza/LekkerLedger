@@ -19,11 +19,11 @@ import { pageOG } from "@/lib/seo";
 export const metadata: Metadata = {
     title: "Domestic Worker Payslips & UIF Calculator for South African Households | LekkerLedger",
     description:
-        "Create domestic worker payslips, check UIF deductions, and keep monthly household employer admin organised.",
+        "Create domestic worker payslips, check UIF deductions, and keep household payroll organised.",
     alternates: { canonical: "/" },
     ...pageOG(
         "Domestic Worker Payslips & UIF Calculator for South African Households | LekkerLedger",
-        "Create domestic worker payslips, check UIF deductions, and keep monthly household employer admin organised.",
+        "Create domestic worker payslips, check UIF deductions, and keep household payroll organised.",
         "/",
     ),
 };
@@ -53,7 +53,7 @@ const homepageFaqSchema = {
             name: "Where are employee records stored?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "Paid accounts store monthly household-employer records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one payslip PDF per email address each calendar month without creating an account.",
+                text: "Paid accounts store household-employer records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one first payslip sample per email address without creating an account.",
             },
         },
         {
@@ -61,7 +61,7 @@ const homepageFaqSchema = {
             name: "Can I start with one employee, and what changes when I upgrade?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "Yes. Free lets you email yourself one payslip PDF per email address each calendar month. Paid plans keep leave, contracts, documents, exports, and ongoing monthly records together. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
+                text: "Yes. Free lets you email yourself one first payslip sample per email address. Paid plans keep leave, contracts, documents, exports, and ongoing monthly records together. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
             },
         },
         {
@@ -212,7 +212,7 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
                                     href="/resources/tools/domestic-worker-payslip"
                                     className="inline-flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 self-start rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-bold leading-5 text-center text-white shadow-[var(--shadow-2)] transition-colors hover:bg-[var(--primary-hover)] active:bg-[var(--primary-pressed)] sm:px-7 sm:text-base"
                                 >
-                                    Generate a free domestic worker payslip <ArrowRight className="h-4 w-4" />
+                                    Get your first payslip free <ArrowRight className="h-4 w-4" />
                                 </Link>
                                 <Link
                                     href="/calculator"
@@ -222,7 +222,7 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
                                 </Link>
                             </div>
                             <p className="text-xs font-medium leading-6" style={{ color: "var(--text-muted)" }}>
-                                Free gives you one emailed payslip PDF per calendar month. Paid plans keep leave, contracts, documents, exports, and the monthly record together. Start with the{" "}
+                                Free gives you one emailed first payslip sample. Paid plans keep leave, contracts, documents, exports, and the monthly record together. Start with the{" "}
                                 <Link href="/resources/tools/domestic-worker-payslip" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
                                     domestic worker payslip template
                                 </Link>{" "}
@@ -402,7 +402,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                             Why this matters
                         </p>
                         <p className="mt-2 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                            Free covers one emailed PDF each calendar month. Paid plans keep leave, contracts, documents, exports, and the monthly record together.
+                            Free covers one emailed first sample. Paid plans keep leave, contracts, documents, exports, and the monthly record together.
                         </p>
                     </div>
                 </div>
@@ -563,7 +563,7 @@ function HowItWorks() {
         {
             icon: FileText,
             title: "Choose free or keep the full month together",
-            body: "Use the free monthly payslip when that is enough, or move to paid plans for leave, contracts, documents, and ongoing record-keeping.",
+            body: "Use your first free sample when that is enough, or move to paid plans for leave, contracts, documents, and ongoing record-keeping.",
         },
     ];
 
@@ -626,8 +626,8 @@ function HowItWorks() {
 function WhatYouKeep() {
     const recordTypes = [
         {
-            title: "Free monthly PDF",
-            body: "Email yourself one payslip PDF per calendar month without opening a paid account.",
+            title: "First free sample",
+            body: "Email yourself your first payslip sample without opening a paid account.",
         },
         {
             title: "Leave",
@@ -652,10 +652,10 @@ function WhatYouKeep() {
                             Free and paid
                         </p>
                         <h2 className="type-h2 max-w-[18ch]" style={{ color: "var(--text)" }}>
-                            Start with one free payslip, then keep the full month together
+                            Start with one free payslip sample, then keep the full month together
                         </h2>
                         <p className="max-w-[34rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            The free tool covers one emailed payslip PDF each calendar month. When you need more than that, paid plans keep the month together. For the UIF basics, read{" "}
+                            The free tool covers one emailed payslip sample. When you need more than that, paid plans keep the month together. For the UIF basics, read{" "}
                             <Link href="/resources/guides/uif-for-domestic-workers" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
                                 how UIF works for domestic workers
                             </Link>{" "}
@@ -693,11 +693,11 @@ function FAQPreview() {
         },
         {
             q: "Where are employee records stored?",
-            a: "Paid accounts store monthly household-employer records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one payslip PDF per email address each calendar month without creating an account.",
+            a: "Paid accounts store household-employer records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one first payslip sample per email address without creating an account.",
         },
         {
             q: "Can I start with one employee, and what changes when I upgrade?",
-            a: "Yes. Free lets you email yourself one payslip PDF per email address each calendar month. Paid plans keep leave, contracts, documents, exports, and ongoing monthly records together. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
+            a: "Yes. Free lets you email yourself one first payslip sample per email address. Paid plans keep leave, contracts, documents, exports, and ongoing monthly records together. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
         },
         {
             q: "What happens if I change devices later?",

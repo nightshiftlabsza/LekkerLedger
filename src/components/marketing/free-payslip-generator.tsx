@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Stepper } from "@/components/ui/stepper";
+import { track } from "@/lib/analytics";
 import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
 import {
     buildEmptyOrdinaryWorkPattern,
@@ -39,7 +40,7 @@ import { describeOrdinaryWorkCalendar } from "@/lib/payroll-calendar";
 import { buildPayrollSummary } from "@/lib/payroll-summary";
 import { getMonthBounds, getMonthKey } from "@/lib/payslip-draft";
 
-type DeliveryPhase = "idle" | "sending" | "quota-used" | "service-unavailable" | "success";
+type DeliveryPhase = "idle" | "sending" | "already-used" | "service-unavailable" | "success";
 type NoticeTone = "info" | "warning" | "danger" | "success";
 type DeliveryState = {
     phase: DeliveryPhase;
@@ -560,9 +561,10 @@ export function FreePayslipGenerator() {
         setDelivery({
             phase: "sending",
             tone: "info",
-            message: "Sending your payslip now.",
+            message: "Sending your first free payslip sample now.",
             email: normalizedEmail,
         });
+        track("free_payslip_started", { source: "public_generator" });
 
         try {
             const response = await fetch("/api/free-payslip/deliver", {
@@ -583,8 +585,9 @@ export function FreePayslipGenerator() {
                     : FREE_PAYSLIP_SERVICE_UNAVAILABLE_MESSAGE;
 
                 if (response.status === 409) {
+                    track("free_payslip_blocked_already_used", { source: "public_generator" });
                     setDelivery({
-                        phase: "quota-used",
+                        phase: "already-used",
                         tone: "warning",
                         message,
                         email: normalizedEmail,
@@ -602,10 +605,11 @@ export function FreePayslipGenerator() {
             }
 
             const sent = data as DeliverResponse;
+            track("free_payslip_sent", { source: "public_generator" });
             setDelivery({
                 phase: "success",
                 tone: "success",
-                message: `Payslip sent to ${sent.email}`,
+                message: `Your first free payslip sample was emailed to ${sent.email}.`,
                 email: sent.email,
             });
         } catch {
@@ -630,24 +634,24 @@ export function FreePayslipGenerator() {
     }, [prefersReducedMotion, transitionDirection, transitionPhase]);
 
     const gateCardTitle = delivery.phase === "sending"
-        ? "Sending your payslip"
-        : delivery.phase === "quota-used"
-            ? "Free payslip already used this month"
+        ? "Sending your free sample"
+        : delivery.phase === "already-used"
+            ? "This sample has already been used"
             : delivery.phase === "service-unavailable"
                 ? "We could not send it just now"
                 : delivery.phase === "success"
-                    ? "Payslip sent"
-                    : "Email the PDF";
+                    ? "Free sample emailed"
+                    : "Get your first payslip free";
 
     return (
         <section id="free-payslip-generator" data-testid="free-payslip-generator" className="mx-auto w-full">
             <div className="free-payslip-wizard-shell rounded-[2rem] border border-[var(--border)] bg-[var(--surface-raised)] p-5 shadow-[var(--shadow-md)] sm:p-6 lg:p-8">
                 <div className="space-y-3">
                     <h2 className="font-[family:var(--font-serif)] text-[clamp(2rem,5vw,2.8rem)] font-semibold tracking-[var(--h1-ls)] text-[var(--text)]">
-                        Enter the monthly pay details
+                        Get your first payslip free
                     </h2>
                     <p className="max-w-[42rem] text-sm leading-7 text-[var(--text-muted)] sm:text-base">
-                        Enter the employer, worker, month, and hours to generate the payslip PDF with UIF shown separately.
+                        No account needed for your first sample. Enter the employer, worker, month, and hours to generate the payslip PDF we’ll email to you.
                     </p>
                 </div>
 
@@ -1233,21 +1237,47 @@ export function FreePayslipGenerator() {
                                             <div className="min-w-0 flex-1">
                                                 <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{gateCardTitle}</p>
                                                 <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">{FREE_PAYSLIP_RULE_MESSAGE}</p>
-                                                <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">
-                                                    {delivery.message || "We’ll email you the PDF now."}
+                                <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">
+                                                    {delivery.message || "We’ll email your first payslip sample now."}
                                                 </p>
-                                            </div>
                                         </div>
+                                    </div>
 
-                                        {delivery.phase === "quota-used" ? (
-                                            <div className="rounded-[1rem] border border-[var(--warning-border)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--text)]">
-                                                Need more than one payslip this month? <Link href="/pricing" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">See the paid plans.</Link>
+                                        {delivery.phase === "already-used" ? (
+                                            <div className="space-y-4 rounded-[1rem] border border-[var(--warning-border)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--text)]">
+                                                <p>This email address has already used its free payslip sample. To keep generating monthly payslips and manage household payroll, create an account and choose Standard.</p>
+                                                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                                                    <Link
+                                                        href="/upgrade?plan=standard&billing=monthly&pay=1"
+                                                        onClick={() => track("upgrade_cta_clicked_from_free_limit", { source: "public_generator" })}
+                                                        className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary-hover)]"
+                                                    >
+                                                        Start Standard
+                                                    </Link>
+                                                    <Link href="/pricing" className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition-colors hover:border-[var(--primary)]/40">
+                                                        View pricing
+                                                    </Link>
+                                                    <Link href="/login" className="inline-flex min-h-[44px] items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
+                                                        Sign in
+                                                    </Link>
+                                                </div>
                                             </div>
                                         ) : null}
 
                                         {delivery.phase === "success" ? (
                                             <div className="rounded-[1rem] border border-[var(--success-border)] bg-[var(--surface-raised)] p-4">
-                                                <p className="text-sm font-semibold text-[var(--success)]">✓ Payslip sent to {delivery.email}</p>
+                                                <p className="text-sm font-semibold text-[var(--success)]">✓ Your free sample was emailed to {delivery.email}</p>
+                                                <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
+                                                    This was your first free payslip sample. Ongoing monthly payroll, leave tracking, stored records, and exports require a paid plan.
+                                                </p>
+                                                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                                                    <Link href="/pricing" className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary-hover)]">
+                                                        View pricing
+                                                    </Link>
+                                                    <Link href="/login" className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition-colors hover:border-[var(--primary)]/40">
+                                                        Sign in
+                                                    </Link>
+                                                </div>
                                                 <Button
                                                     type="button"
                                                     variant="link"
@@ -1274,9 +1304,9 @@ export function FreePayslipGenerator() {
                                                             }
                                                         }}
                                                         placeholder="name@example.com"
-                                                        autoComplete="email"
-                                                    />
-                                                </TextField>
+                                                    autoComplete="email"
+                                                />
+                                            </TextField>
 
                                                 <label className="flex items-start gap-3 rounded-[1rem] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3">
                                                     <input
@@ -1286,7 +1316,7 @@ export function FreePayslipGenerator() {
                                                         className="mt-1 h-4 w-4 rounded border-[var(--border)]"
                                                     />
                                                     <span className="text-sm leading-6 text-[var(--text)]">
-                                                        Send me a free monthly household employer checklist and tips. Unsubscribe anytime.
+                                                        Send me household employer updates and tips. Unsubscribe anytime.
                                                     </span>
                                                 </label>
 
@@ -1301,7 +1331,7 @@ export function FreePayslipGenerator() {
                                                         ? "Sending..."
                                                         : delivery.phase === "service-unavailable"
                                                             ? "Try again"
-                                                            : "Email my free payslip"}
+                                                            : "Email my first payslip free"}
                                                 </Button>
                                             </>
                                         )}

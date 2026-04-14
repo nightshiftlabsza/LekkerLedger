@@ -21,7 +21,6 @@ const pricingResponsiveSurfaces = [
 ];
 
 async function assertPricingCopy(page: import("@playwright/test").Page) {
-    await expect(page.locator("body")).not.toContainText("No account needed");
     await expect(page.locator("body")).toContainText("Planned features");
     await expect(page.locator("body")).toContainText("Android app access when available");
     await expect(page.locator("body")).toContainText("Notification reminders");

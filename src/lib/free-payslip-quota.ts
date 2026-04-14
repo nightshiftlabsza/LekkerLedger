@@ -1,6 +1,7 @@
 type QueryParam = string | number | null;
 const D1_QUERY_TIMEOUT_MS = 8_000;
 const D1_MAX_ATTEMPTS = 2;
+const FREE_PAYSLIP_CLAIMS_TABLE = "free_payslip_claims";
 
 interface D1ApiEnvelope {
     success?: boolean;
@@ -8,26 +9,22 @@ interface D1ApiEnvelope {
     result?: unknown;
 }
 
-interface FreePayslipQuotaRow {
+interface FreePayslipClaimRow {
     email: string;
-    monthKey: string;
-    downloadsUsed: number;
-    verifiedAt: number;
+    claimedAt: number;
     createdAt: number;
     updatedAt: number;
 }
 
-export interface FreePayslipQuotaStatus {
+export interface FreePayslipClaimStatus {
     email: string;
-    monthKey: string;
-    downloadsUsed: number;
-    remainingDownloads: number;
-    usedThisMonth: boolean;
+    isClaimed: boolean;
+    claimedAt: number | null;
 }
 
-export const FREE_PAYSLIP_MONTHLY_LIMIT_MESSAGE = "This email address has already used its one successful free payslip PDF for this calendar month.";
+export const FREE_PAYSLIP_ALREADY_USED_MESSAGE = "This email address has already used its free payslip sample. To keep generating monthly payslips and manage household payroll, create an account and choose a paid plan.";
 
-class FreePayslipQuotaError extends Error {
+class FreePayslipClaimError extends Error {
     status: number;
     retryable: boolean;
 
@@ -38,12 +35,10 @@ class FreePayslipQuotaError extends Error {
     }
 }
 
-let schemaPromise: Promise<void> | null = null;
-
 function getRequiredEnv(name: string): string {
     const value = process.env[name]?.trim();
     if (!value || value === "undefined" || value === "null") {
-        throw new FreePayslipQuotaError(`${name} is missing.`, 503);
+        throw new FreePayslipClaimError(`${name} is missing.`, 503);
     }
     return value;
 }
@@ -74,7 +69,7 @@ function extractD1Rows(payload: D1ApiEnvelope): Array<Record<string, unknown>> {
 }
 
 function isRetryableQuotaError(error: unknown) {
-    return error instanceof FreePayslipQuotaError && error.retryable;
+    return error instanceof FreePayslipClaimError && error.retryable;
 }
 
 async function queryD1Once(sql: string, params: QueryParam[] = []): Promise<Array<Record<string, unknown>>> {
@@ -97,7 +92,7 @@ async function queryD1Once(sql: string, params: QueryParam[] = []): Promise<Arra
         const payload = await response.json() as D1ApiEnvelope;
         if (!response.ok || payload.success === false) {
             const status = response.status >= 500 ? 502 : response.status;
-            throw new FreePayslipQuotaError(
+            throw new FreePayslipClaimError(
                 payload.errors?.[0]?.message || "Cloudflare D1 query failed.",
                 status,
                 response.status >= 500,
@@ -106,15 +101,15 @@ async function queryD1Once(sql: string, params: QueryParam[] = []): Promise<Arra
 
         return extractD1Rows(payload);
     } catch (error) {
-        if (error instanceof FreePayslipQuotaError) {
+        if (error instanceof FreePayslipClaimError) {
             throw error;
         }
 
         if (error instanceof DOMException && error.name === "AbortError") {
-            throw new FreePayslipQuotaError("The free payslip service took too long to respond.", 503, true);
+            throw new FreePayslipClaimError("The free payslip service took too long to respond.", 503, true);
         }
 
-        throw new FreePayslipQuotaError("The free payslip service could not be reached.", 503, true);
+        throw new FreePayslipClaimError("The free payslip service could not be reached.", 503, true);
     } finally {
         globalThis.clearTimeout(timeoutId);
     }
@@ -136,130 +131,82 @@ async function queryD1(sql: string, params: QueryParam[] = []): Promise<Array<Re
 
     throw lastError instanceof Error
         ? lastError
-        : new FreePayslipQuotaError("The free payslip service could not be reached.", 503, false);
+        : new FreePayslipClaimError("The free payslip service could not be reached.", 503, false);
 }
 
-function toMonthKey(date = new Date()): string {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Africa/Johannesburg",
-        year: "numeric",
-        month: "2-digit",
-    }).formatToParts(date);
-
-    const year = parts.find((part) => part.type === "year")?.value ?? "0000";
-    const month = parts.find((part) => part.type === "month")?.value ?? "00";
-    return `${year}-${month}`;
-}
-
-function normalizeEmail(email: string): string {
+export function normalizeFreePayslipEmail(email: string): string {
     return email.trim().toLowerCase();
 }
 
-function rowToQuota(row: Record<string, unknown>): FreePayslipQuotaRow {
+function rowToClaim(row: Record<string, unknown>): FreePayslipClaimRow {
     return {
         email: typeof row.email === "string" ? row.email : "",
-        monthKey: typeof row.month_key === "string" ? row.month_key : "",
-        downloadsUsed: Number(row.downloads_used || 0),
-        verifiedAt: Number(row.verified_at || 0),
+        claimedAt: Number(row.claimed_at || 0),
         createdAt: Number(row.created_at || 0),
         updatedAt: Number(row.updated_at || 0),
     };
 }
 
-async function ensureSchema() {
-    schemaPromise ??= (async () => {
-        await queryD1(`
-            CREATE TABLE IF NOT EXISTS free_payslip_quota (
-                email TEXT NOT NULL,
-                month_key TEXT NOT NULL,
-                downloads_used INTEGER NOT NULL DEFAULT 0,
-                verified_at INTEGER NOT NULL,
-                created_at INTEGER NOT NULL,
-                updated_at INTEGER NOT NULL,
-                PRIMARY KEY (email, month_key)
-            )
-        `);
-    })();
-
-    await schemaPromise;
-}
-
-async function getQuotaRow(email: string, monthKey: string): Promise<FreePayslipQuotaRow | null> {
-    await ensureSchema();
-    const rows = await queryD1(
-        "SELECT * FROM free_payslip_quota WHERE email = ? AND month_key = ? LIMIT 1",
-        [normalizeEmail(email), monthKey],
-    );
-    return rows[0] ? rowToQuota(rows[0]) : null;
-}
-
-export async function getFreePayslipQuotaStatus(email: string): Promise<FreePayslipQuotaStatus> {
-    const normalizedEmail = normalizeEmail(email);
-    const monthKey = toMonthKey();
-    const row = await getQuotaRow(normalizedEmail, monthKey);
-    const downloadsUsed = row?.downloadsUsed ?? 0;
-
+function rowToClaimStatus(row: FreePayslipClaimRow): FreePayslipClaimStatus {
     return {
-        email: normalizedEmail,
-        monthKey,
-        downloadsUsed,
-        remainingDownloads: Math.max(0, 1 - downloadsUsed),
-        usedThisMonth: downloadsUsed >= 1,
+        email: row.email,
+        isClaimed: true,
+        claimedAt: row.claimedAt,
     };
 }
 
-export async function consumeFreePayslipQuota(email: string): Promise<FreePayslipQuotaStatus> {
-    const normalizedEmail = normalizeEmail(email);
-    const monthKey = toMonthKey();
-    const now = Date.now();
-    await ensureSchema();
-
-    await queryD1(
-        `
-            INSERT INTO free_payslip_quota (
-                email,
-                month_key,
-                downloads_used,
-                verified_at,
-                created_at,
-                updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT(email, month_key) DO NOTHING
-        `,
-        [normalizedEmail, monthKey, 0, now, now, now],
+async function getClaimRow(email: string): Promise<FreePayslipClaimRow | null> {
+    const rows = await queryD1(
+        `SELECT email, claimed_at, created_at, updated_at
+         FROM ${FREE_PAYSLIP_CLAIMS_TABLE}
+         WHERE email = ?
+         LIMIT 1`,
+        [normalizeFreePayslipEmail(email)],
     );
-
-    const updatedRows = await queryD1(
-        `
-            UPDATE free_payslip_quota
-            SET downloads_used = 1,
-                verified_at = ?,
-                updated_at = ?
-            WHERE email = ?
-              AND month_key = ?
-              AND downloads_used = 0
-            RETURNING email, month_key, downloads_used, verified_at, created_at, updated_at
-        `,
-        [now, now, normalizedEmail, monthKey],
-    );
-
-    if (updatedRows.length === 0) {
-        throw new FreePayslipQuotaError(
-            FREE_PAYSLIP_MONTHLY_LIMIT_MESSAGE,
-            409,
-        );
-    }
-
-    await queryD1(
-        "UPDATE free_payslip_quota SET updated_at = ? WHERE email = ? AND month_key = ?",
-        [now, normalizedEmail, monthKey],
-    );
-
-    return getFreePayslipQuotaStatus(normalizedEmail);
+    return rows[0] ? rowToClaim(rows[0]) : null;
 }
 
-export function toFreePayslipQuotaErrorResponse(error: unknown) {
-    if (error instanceof FreePayslipQuotaError) {
+export async function getFreePayslipClaimStatus(email: string): Promise<FreePayslipClaimStatus> {
+    const normalizedEmail = normalizeFreePayslipEmail(email);
+    const row = await getClaimRow(normalizedEmail);
+
+    return {
+        email: normalizedEmail,
+        isClaimed: Boolean(row),
+        claimedAt: row?.claimedAt ?? null,
+    };
+}
+
+export async function claimFreePayslipSample(email: string): Promise<FreePayslipClaimStatus> {
+    const normalizedEmail = normalizeFreePayslipEmail(email);
+    const now = Date.now();
+
+    const insertedRows = await queryD1(
+        `INSERT INTO ${FREE_PAYSLIP_CLAIMS_TABLE} (
+                email,
+                claimed_at,
+                created_at,
+                updated_at
+            ) VALUES (?, ?, ?, ?)
+            ON CONFLICT(email) DO NOTHING
+            RETURNING email, claimed_at, created_at, updated_at`,
+        [normalizedEmail, now, now, now],
+    );
+
+    if (insertedRows.length === 0) {
+        const existing = await getClaimRow(normalizedEmail);
+        if (existing) {
+            throw new FreePayslipClaimError(FREE_PAYSLIP_ALREADY_USED_MESSAGE, 409);
+        }
+
+        throw new FreePayslipClaimError("The free payslip claim could not be recorded.", 503, true);
+    }
+
+    return rowToClaimStatus(rowToClaim(insertedRows[0]));
+}
+
+export function toFreePayslipClaimErrorResponse(error: unknown) {
+    if (error instanceof FreePayslipClaimError) {
         return { status: error.status, message: error.message };
     }
 

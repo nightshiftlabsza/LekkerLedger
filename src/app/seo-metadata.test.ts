@@ -27,7 +27,7 @@ describe("SEO metadata", () => {
     it("keeps legacy help pages out of the index without affecting public resources", () => {
         expect(marketingMetadata.robots).toMatchObject({ index: true, follow: true });
         expect(marketingMetadata.title).toBe("LekkerLedger | Domestic Worker Payslips and UIF for South African Households");
-        expect(marketingMetadata.description).toBe("Create domestic worker payslips, check UIF, and keep monthly household employer admin in order.");
+        expect(marketingMetadata.description).toBe("Create domestic worker payslips, check UIF, and keep household payroll in order.");
         expect(helpMetadata.robots).toMatchObject({ index: false, follow: true });
         expect(checklistsMetadata.robots).toBeUndefined();
     });
@@ -35,7 +35,7 @@ describe("SEO metadata", () => {
     it("sets explicit canonical paths for key public pages", () => {
         expect(homeMetadata.alternates?.canonical).toBe("/");
         expect(homeMetadata.title).toBe("Domestic Worker Payslips & UIF Calculator for South African Households | LekkerLedger");
-        expect(homeMetadata.description).toBe("Create domestic worker payslips, check UIF deductions, and keep monthly household employer admin organised.");
+        expect(homeMetadata.description).toBe("Create domestic worker payslips, check UIF deductions, and keep household payroll organised.");
         expect(pricingMetadata.alternates?.canonical).toBe("/pricing");
         expect(pricingMetadata.title).toBe("Pricing for Domestic Worker Payroll Software | LekkerLedger");
         expect(pricingMetadata.description).toBe("Compare Free, Standard, and Pro for domestic worker payslips, UIF records, leave tracking, contracts, and household payroll admin in South Africa.");
@@ -51,6 +51,6 @@ describe("SEO metadata", () => {
         expect(checklistsMetadata.alternates?.canonical).toBe("/resources/checklists");
         expect(payslipToolMetadata.alternates?.canonical).toBe("/resources/tools/domestic-worker-payslip");
         expect(payslipToolMetadata.title).toBe("Free Domestic Worker Payslip Template & Generator | LekkerLedger");
-        expect(payslipToolMetadata.description).toBe("Create a domestic worker payslip template and PDF for this month. Enter the pay details and email yourself one free payslip each calendar month.");
+        expect(payslipToolMetadata.description).toBe("Get your first free domestic worker payslip sample. Enter the pay details and we’ll email the PDF to you.");
     });
 });

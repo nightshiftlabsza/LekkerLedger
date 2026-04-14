@@ -35,7 +35,7 @@ describe("PricingPreview", () => {
             screen.getByRole("heading", { level: 2, name: "Pick the plan that fits your household." }),
         ).toBeInTheDocument();
         expect(
-            screen.getByText("Use the public free payslip tool, or pay now for Standard or Pro dashboard access."),
+            screen.getByText("Get your first payslip free, or pay now for Standard or Pro dashboard access."),
         ).toBeInTheDocument();
     });
 });

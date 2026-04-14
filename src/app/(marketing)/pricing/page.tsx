@@ -13,23 +13,23 @@ import { REFUND_POLICY_SUMMARY } from "@/src/config/plans";
 import { useMarketingBillingCycle } from "@/src/lib/use-marketing-billing-cycle";
 
 const PRICING_PAGE_TITLE = "Pricing for domestic worker payslips, UIF, and payroll records";
-const PRICING_PAGE_SUBTITLE = "Start free with one payslip a month, or choose a paid plan for leave, contracts, records, and uFiling-ready admin.";
+const PRICING_PAGE_SUBTITLE = "Get your first payslip free, or pay now for Standard or Pro dashboard access.";
 const PRICING_PAGE_NUDGE_TITLE = "Choose Pro only if you need more storage, more history, or multiple households";
-const PRICING_PAGE_NUDGE_BODY = "Standard will fit most single-household setups. Pro is for longer history, more files, and more complex record-keeping.";
+const PRICING_PAGE_NUDGE_BODY = "Standard is the ongoing monthly option for household employers who want leave tracking, records, and UIF-ready admin. Pro adds full document storage, year-end summaries, and 5 years of searchable history.";
 const PRICING_PAGE_PLAN_DISPLAY_OVERRIDES = {
     free: {
-        headline: "One free payslip each month",
-        subtitle: "Best if you only need an occasional domestic worker payslip PDF",
+        headline: "Get your first payslip free",
+        subtitle: "No account needed for your first sample. We’ll email the PDF to you.",
     },
     standard: {
-        headline: "Best for one household with regular monthly admin",
-        subtitle: "Payslips, leave tracking, contracts, UIF-ready exports, and 12 months of records for up to 3 workers",
+        headline: "For monthly household payroll.",
+        subtitle: "Payslips, leave, contracts, organised records, and automatic private backup for a household employer who needs payroll done properly.",
         badge: "Launch pricing",
         launchNote: undefined,
     },
     pro: {
-        headline: "Best for multiple households, longer history, and more files",
-        subtitle: "Adds file vault, year-end summaries, 5 years of history, and support for more complex record-keeping",
+        headline: "For long-term records and more control.",
+        subtitle: "Advanced document tools, full storage, longer history, and support for more complexity.",
         badge: "Launch pricing",
         launchNote: undefined,
     },
@@ -98,7 +98,7 @@ export default function PricingPage() {
                                     Compare Free, Standard, and Pro in detail.
                                 </h2>
                                 <p className="max-w-[62ch] text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                    Use this table if you are choosing between one free payslip a month, one-household payroll admin, or longer records with more file storage.
+                                    Use this table if you are choosing between a first free sample, one-household payroll admin, or longer records with more file storage.
                                 </p>
                             </div>
                         </div>
@@ -135,7 +135,7 @@ export default function PricingPage() {
                                 </h3>
                                 <div className="space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                     <p>
-                                        Paid accounts keep records in Cloud-secured storage you can access from any device. Free sends one payslip PDF per email address each calendar month with no account needed.
+                                        Paid accounts keep records in Cloud-secured storage you can access from any device. Free sends one first payslip sample per email address with no account needed.
                                     </p>
                                     <p>
                                         Standard and Pro include the documents hub and Cloud-secured storage. Pro adds the Vault for employment files, year-end summaries, and 5 years of payroll records.

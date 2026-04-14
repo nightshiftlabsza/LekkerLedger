@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test("home page loads and has correct title", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/Domestic Worker Payslips, UIF & Payroll Records/i);
+    await expect(page).toHaveTitle(/Domestic Worker Payslips & UIF Calculator for South African Households/i);
 });
 
 test("home page contains a main element", async ({ page }) => {
@@ -21,8 +21,8 @@ test("home page scrolls with wheel input", async ({ page }) => {
 test("home page hero shows new headline and CTAs", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: /Domestic worker payslips and UIF for South African households/i })).toBeVisible();
-    await expect(page.getByText(/Create monthly payslips, show UIF clearly, track leave, and keep contracts and records together for your domestic worker, nanny, gardener, or caregiver\./i)).toBeVisible();
-    await expect(page.getByRole("link", { name: /Generate a free domestic worker payslip/i })).toBeVisible();
+    await expect(page.getByText(/Create domestic worker payslips, check UIF deductions, and keep the month organised for your domestic worker, nanny, gardener, or caregiver\./i)).toBeVisible();
+    await expect(page.getByRole("link", { name: /Get your first payslip free/i }).first()).toBeVisible();
     await expect(page.getByRole("link", { name: /Check UIF and take-home pay/i })).toBeVisible();
     await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();
 });
@@ -33,7 +33,7 @@ test("home page does not contain old fear messaging", async ({ page }) => {
     await expect(page.getByText("The Stakes Are Real")).not.toBeVisible();
     await expect(page.getByText("100% Legal & Private")).not.toBeVisible();
     await expect(page.getByText("Zero servers")).not.toBeVisible();
-    await expect(page.getByText("Start free Check")).not.toBeVisible();
+    await expect(page.getByRole("link", { name: "Get your first payslip free" }).first()).toBeVisible();
 });
 
 test("home page has marketing header (no app nav)", async ({ page }) => {
@@ -49,8 +49,8 @@ test("home page has marketing header (no app nav)", async ({ page }) => {
 test("home page has all major sections", async ({ page }) => {
     await page.goto("/");
     // Key section headings
-    await expect(page.getByText(/Run monthly domestic worker admin without spreadsheets or guesswork/i)).toBeVisible();
-    await expect(page.getByText(/Everything you need for monthly pay and paperwork/i)).toBeVisible();
+    await expect(page.getByText(/Run monthly domestic worker admin without guessing the figures/i)).toBeVisible();
+    await expect(page.getByText(/Start with one free payslip sample, then keep the full month together/i)).toBeVisible();
     await expect(page.getByText(/Questions households ask before they start/i)).toBeVisible();
 });
 

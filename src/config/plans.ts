@@ -68,8 +68,8 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             roeDownloads: false,
             multiHousehold: false,
         },
-        description: "One worker. Quick monthly payslips. No sign-up needed.",
-        bestFor: "Try it out, or keep it simple.",
+        description: "One worker. Get your first payslip free. No sign-up needed for the sample.",
+        bestFor: "Try the sample, then upgrade when you need monthly payroll.",
     },
     standard: {
         id: "standard",
@@ -98,8 +98,8 @@ export const PLANS: Record<PlanId, PlanConfig> = {
             roeDownloads: true,
             multiHousehold: false,
         },
-        description: "A domestic worker, nanny, and gardener — up to 3 workers with organised records and backup.",
-        bestFor: "Do it properly.",
+        description: "For household employers who need payroll done properly every month — up to 3 workers with organised records and backup.",
+        bestFor: "Monthly household payroll done properly.",
     },
     pro: {
         id: "pro",

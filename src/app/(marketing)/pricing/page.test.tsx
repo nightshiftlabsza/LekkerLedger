@@ -47,13 +47,13 @@ describe("PricingPage", () => {
             }),
         ).toBeInTheDocument();
         expect(
-            screen.getByText("Start free with one payslip a month, or choose a paid plan for leave, contracts, records, and uFiling-ready admin."),
+            screen.getByText("Get your first payslip free, or pay now for Standard or Pro dashboard access."),
         ).toBeInTheDocument();
         expect(
             screen.getByText("Choose Pro only if you need more storage, more history, or multiple households"),
         ).toBeInTheDocument();
         expect(
-            screen.getByText("Standard will fit most single-household setups. Pro is for longer history, more files, and more complex record-keeping."),
+            screen.getByText("Standard is the ongoing monthly option for household employers who want leave tracking, records, and UIF-ready admin. Pro adds full document storage, year-end summaries, and 5 years of searchable history."),
         ).toBeInTheDocument();
     });
 
@@ -67,18 +67,18 @@ describe("PricingPage", () => {
         };
 
         expect(firstCall.planDisplayOverrides?.free).toMatchObject({
-            headline: "One free payslip each month",
-            subtitle: "Best if you only need an occasional domestic worker payslip PDF",
+            headline: "Get your first payslip free",
+            subtitle: "No account needed for your first sample. We’ll email the PDF to you.",
         });
         expect(firstCall.planDisplayOverrides?.standard).toMatchObject({
-            headline: "Best for one household with regular monthly admin",
-            subtitle: "Payslips, leave tracking, contracts, UIF-ready exports, and 12 months of records for up to 3 workers",
+            headline: "For monthly household payroll.",
+            subtitle: "Payslips, leave, contracts, organised records, and automatic private backup for a household employer who needs payroll done properly.",
             badge: "Launch pricing",
             launchNote: undefined,
         });
         expect(firstCall.planDisplayOverrides?.pro).toMatchObject({
-            headline: "Best for multiple households, longer history, and more files",
-            subtitle: "Adds file vault, year-end summaries, 5 years of history, and support for more complex record-keeping",
+            headline: "For long-term records and more control.",
+            subtitle: "Advanced document tools, full storage, longer history, and support for more complexity.",
             badge: "Launch pricing",
             launchNote: undefined,
         });
