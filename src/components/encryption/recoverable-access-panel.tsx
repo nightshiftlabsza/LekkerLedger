@@ -71,7 +71,7 @@ export function RecoverableAccessPanel({
 
     if (isSetupFlow) {
         heading = "Finish secure setup";
-        body = "Recoverable Encryption keeps your records encrypted before upload and lets you restore access later.";
+        body = "Your records are encrypted before they leave this device. You can restore access at any time by signing in.";
         submitLabel = "Finish setup";
         loadingLabel = "Securing account...";
         icon = <ShieldCheck className="h-8 w-8" />;

@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   title: "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
   description:
-    "Run South African household payroll with payslips, employee records, backup, and annual paperwork in one calm workspace.",
+    "South African household payroll: payslips, employee records, cloud backup, and annual paperwork in one place.",
   manifest: "/manifest.webmanifest",
   robots: {
     index: true,

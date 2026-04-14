@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   metadataBase: ROOT_METADATA_BASE,
   title: "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
   description:
-    "Run South African household payroll with payslips, employee records, backup, and annual paperwork in one calm workspace.",
+    "South African household payroll: payslips, employee records, cloud backup, and annual paperwork in one place.",
   manifest: "/manifest.webmanifest",
   verification: {
     google: "O85R9OVTC6x7gCqVIEBiNU1Q90ddkPUu_pw5Q0qigmg",

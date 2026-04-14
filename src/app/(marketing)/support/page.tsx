@@ -41,7 +41,7 @@ export default function SupportPage() {
                                 <h3 className="text-xl font-bold text-[var(--text)]">Household checklist</h3>
                             </div>
                             <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                                Unsure what to check each month or each year? Open the household checklist for plain-language steps, official sources, and calmer guidance.
+                                Unsure what to check each month or each year? Open the household checklist for plain-language steps and official sources.
                             </p>
                         </div>
                     </Link>

@@ -12,8 +12,8 @@ const steps = [
         body: "Paid plans add encrypted cloud storage, the dashboard, documents, contracts, leave tracking, and exports.",
     },
     {
-        title: "Choose your encryption mode",
-        body: "During secure setup, choose Recoverable Encryption for password-based recovery or Maximum Privacy for key-only access.",
+        title: "Set up encrypted access",
+        body: "Your payroll records are encrypted before upload. You can restore access via your account login.",
     },
 ] as const;
 
@@ -24,7 +24,7 @@ export default function OnboardingPage() {
                 <section className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-raised)] p-6 shadow-[var(--shadow-lg)] sm:p-8 lg:p-10">
                     <div className="inline-flex items-center gap-2 rounded-full border border-[var(--primary)]/15 bg-[var(--primary)]/8 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">
                         <ShieldCheck className="h-3.5 w-3.5" />
-                        Start calmly
+                        Get started
                     </div>
 
                     <h1 className="mt-6 font-serif text-4xl font-bold tracking-tight text-[var(--text)] sm:text-5xl">

@@ -49,7 +49,7 @@ export function RecoveryKeyInput({
                     Unlock your records
                 </h1>
                 <p className="text-[var(--text-muted)] text-[0.95rem] leading-relaxed max-w-[38ch] mx-auto">
-                    This account uses Maximum Privacy. Enter your recovery key to open the encrypted records on this device.
+                    This account was set up with a personal recovery key. Enter it below to open your records on this device.
                 </p>
             </div>
 

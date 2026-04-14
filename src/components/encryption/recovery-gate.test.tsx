@@ -242,15 +242,17 @@ describe("RecoveryGate", () => {
         });
     });
 
-    it("shows the mode chooser for a new encrypted account", async () => {
+    it("sends a new encrypted account straight to recoverable setup", async () => {
         renderGate();
 
         await waitFor(() => {
-            expect(screen.getByText("Choose how you want account recovery to work.")).toBeTruthy();
+            expect(screen.getByRole("heading", { name: "Finish secure setup" })).toBeTruthy();
         });
 
-        expect(screen.getByRole("button", { name: "Use Recoverable Encryption" })).toBeTruthy();
-        expect(screen.getByRole("button", { name: "Use Maximum Privacy" })).toBeTruthy();
+        expect(screen.getByText("Your records are encrypted before they leave this device. You can restore access at any time by signing in.")).toBeTruthy();
+        expect(screen.getByRole("button", { name: "Finish setup" })).toBeTruthy();
+        expect(screen.queryByText("Choose how you want account recovery to work.")).toBeNull();
+        expect(screen.queryByRole("button", { name: "Use Maximum Privacy" })).toBeNull();
     });
 
     it("shows the Maximum Privacy unlock path for existing legacy accounts", async () => {
@@ -272,7 +274,7 @@ describe("RecoveryGate", () => {
         renderGate();
 
         await waitFor(() => {
-            expect(screen.getByText("This account uses Maximum Privacy. Enter your recovery key to open the encrypted records on this device.")).toBeTruthy();
+            expect(screen.getByText("This account was set up with a personal recovery key. Enter it below to open your records on this device.")).toBeTruthy();
         });
 
         expect(screen.queryByText("Choose how you want account recovery to work.")).toBeNull();

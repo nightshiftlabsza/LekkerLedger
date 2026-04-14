@@ -50,7 +50,7 @@ export default function TrustCenterPage() {
                     </div>
                     <h1 className="type-h1" style={{ color: "var(--text)" }}>Trust Center</h1>
                     <p className="type-body-large" style={{ color: "var(--text-muted)" }}>
-                        How we process your data, compute your payroll, and protect your privacy. Everything laid out clearly, so your payroll records can feel calm rather than intimidating.
+                        How we process your data, compute your payroll, and protect your privacy — laid out clearly.
                     </p>
                 </div>
             </header>
@@ -68,7 +68,7 @@ export default function TrustCenterPage() {
                                 Paid accounts store payroll records in end-to-end encrypted cloud storage. Employee names, wages, and ID details are encrypted on your device before upload and can only be decrypted with your credentials.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                This architecture means LekkerLedger does not have access to your unencrypted payroll data. You choose between Recoverable Encryption and Maximum Privacy during secure setup.
+                                This architecture means LekkerLedger does not have access to your unencrypted payroll data. All accounts use Recoverable Encryption - your records are encrypted before upload and can be restored via account login if you lose access.
                             </p>
                             <p className="leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 Free users can email themselves a single payslip PDF per email address each calendar month without creating an account. The free tool does not create stored payroll records in the app.
@@ -112,7 +112,7 @@ export default function TrustCenterPage() {
                             <KeyRound className="h-5 w-5 text-[var(--primary)] mb-3" />
                             <h4 className="font-bold mb-2" style={{ color: "var(--text)" }}>Limited data access</h4>
                             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                Authentication uses email and password via Supabase. Encrypted sync is available on paid plans and keeps payroll records encrypted before upload, with recovery rules based on the mode you choose.
+                                Authentication uses email and password via Supabase. Encrypted sync is available on paid plans and keeps payroll records encrypted before upload, with account login used to restore access.
                             </p>
                         </div>
                         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">

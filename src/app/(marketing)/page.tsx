@@ -399,7 +399,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                             Why this matters
                         </p>
                         <p className="mt-2 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                            Keep monthly payslips, contracts, exports, and payroll records together in one calm workspace.
+                            Keep monthly payslips, contracts, exports, and payroll records together in one place.
                         </p>
                     </div>
                 </div>

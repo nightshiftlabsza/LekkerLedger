@@ -127,17 +127,5 @@ export const ENCRYPTION_MODE_OPTIONS: EncryptionModeOption[] = [
         ],
         cta: "Use Recoverable Encryption",
     },
-    {
-        mode: "maximum_privacy",
-        badge: "Advanced privacy",
-        eyebrow: "Maximum Privacy",
-        title: "Maximum Privacy",
-        summary: "Your payroll records are encrypted with a key only you control.",
-        bullets: [
-            "We cannot reset that key for you.",
-            "Strongest privacy option.",
-            "Lose the key, lose the data.",
-        ],
-        cta: "Use Maximum Privacy",
-    },
+    // Maximum Privacy remains supported for legacy accounts, but new users no longer see it in setup.
 ];

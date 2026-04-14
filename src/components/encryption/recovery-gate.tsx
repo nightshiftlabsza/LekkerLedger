@@ -6,10 +6,8 @@ import { Loader2 } from "lucide-react";
 import { useAppMode } from "@/lib/app-mode";
 import { clearCredentialHandoff, consumeCredentialHandoff, hasCredentialHandoff } from "@/lib/credential-handoff";
 import { buildRecoverableSetupArtifacts, requestRecoveredMasterKey, sendRecoverableSetupRequest } from "@/lib/recoverable-account";
-import { RecoveryKeySetup } from "./recovery-key-setup";
 import { RecoveryKeyInput } from "./recovery-key-input";
 import { RecoverableAccessPanel } from "./recoverable-access-panel";
-import { EncryptionModeChoice } from "./encryption-mode-choice";
 import { createClient } from "@/lib/supabase/client";
 import {
     decryptData,
@@ -30,7 +28,6 @@ import {
     getEncryptionModeSummary,
     getLockedSummary,
     normalizeEncryptionMode,
-    type EncryptionMode,
 } from "@/lib/encryption-mode";
 import { getLocalRecoveryProfile, saveLocalRecoveryProfile } from "@/lib/recovery-profile-store";
 import { storeRecoveryNotice } from "@/lib/recovery-notice";
@@ -38,8 +35,6 @@ import { storeRecoveryNotice } from "@/lib/recovery-notice";
 type RecoveryGateStep =
     | "checking"
     | "opening_device"
-    | "choose_mode"
-    | "max_privacy_setup"
     | "max_privacy_input"
     | "recoverable_setup"
     | "recoverable_input"
@@ -85,7 +80,6 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
     const [profileState, setProfileState] = React.useState<EncryptionProfileState | null>(null);
     const [setupError, setSetupError] = React.useState<string | null>(null);
     const [inputError, setInputError] = React.useState<string | null>(null);
-    const [selectedMode, setSelectedMode] = React.useState<EncryptionMode | null>(null);
     const [isSubmittingSetup, setIsSubmittingSetup] = React.useState(false);
     const [isSubmittingInput, setIsSubmittingInput] = React.useState(false);
     const [isRecovering, setIsRecovering] = React.useState(false);
@@ -102,7 +96,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         return `/login?${params.toString()}`;
     }, [pathname]);
 
-    const effectiveMode = selectedMode ?? profileState?.encryptionMode ?? encryptionMode;
+    const effectiveMode = profileState?.encryptionMode ?? encryptionMode;
 
     const getAuthenticatedUser = React.useCallback(async () => {
         let { data: { user } } = await supabase.auth.getUser();
@@ -118,7 +112,6 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         if (mode !== "account_locked") {
             setSetupError(null);
             setInputError(null);
-            setSelectedMode(null);
             setStatus("ready");
             return;
         }
@@ -142,14 +135,13 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 const canUseSavedPassword = hasCredentialHandoff(user.email ?? null);
 
                 setProfileState(nextProfileState);
-                setSelectedMode(null);
                 setSetupError(null);
                 setInputError(null);
                 setEncryptionMode(nextProfileState.source === "none" ? null : nextProfileState.encryptionMode);
                 setSavedPasswordReady(canUseSavedPassword);
 
                 if (!nextProfileState.keySetupComplete) {
-                    setStatus("choose_mode");
+                    setStatus("recoverable_setup");
                     return;
                 }
 
@@ -235,69 +227,6 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         };
     }, [encryptionMode, getAuthenticatedUser, mode, supabase]);
 
-    const handleMaximumPrivacySetup = React.useCallback(async (keyString: string) => {
-        setSetupError(null);
-        setInputError(null);
-        setIsSubmittingSetup(true);
-        try {
-            const user = await getAuthenticatedUser();
-            if (!user) {
-                redirectToLoginForExpiredSession(router, sessionExpiredLoginHref, setStatus, setSetupError, "max_privacy_setup");
-                return;
-            }
-
-            const cryptoKey = await deriveKey(keyString);
-            const payload = await generateValidationPayload(cryptoKey);
-
-            const { error } = await supabase
-                .from("user_profiles")
-                .upsert({
-                    id: user.id,
-                    encryption_mode: "maximum_privacy",
-                    mode_version: 1,
-                    key_setup_complete: true,
-                    validation_payload: payload,
-                    wrapped_master_key_user: null,
-                    user_wrap_salt: null,
-                    user_wrap_kdf: null,
-                }, {
-                    onConflict: "id",
-                });
-
-            if (error) {
-                throw error;
-            }
-
-            await saveLocalRecoveryProfile(user.id, {
-                encryptionMode: "maximum_privacy",
-                keySetupComplete: true,
-                validationPayload: payload,
-                recoveryKey: keyString,
-                updatedAt: new Date().toISOString(),
-            });
-
-            setProfileState({
-                encryptionMode: "maximum_privacy",
-                modeVersion: 1,
-                keySetupComplete: true,
-                validationPayload: payload,
-                wrappedMasterKeyUser: null,
-                recentRecoveryNoticeAt: null,
-                recentRecoveryEventKind: null,
-                source: "remote",
-                fallbackEncryptedRecord: null,
-            });
-            setEncryptionMode("maximum_privacy");
-            await unlockAccount(cryptoKey, user.id);
-        } catch (error) {
-            console.error(error);
-            setSetupError(formatRecoverySetupError(error));
-            setStatus("max_privacy_setup");
-        } finally {
-            setIsSubmittingSetup(false);
-        }
-    }, [getAuthenticatedUser, router, sessionExpiredLoginHref, setEncryptionMode, supabase, unlockAccount]);
-
     const handleMaximumPrivacyUnlock = React.useCallback(async (keyString: string, cryptoKey: CryptoKey) => {
         setInputError(null);
         setIsSubmittingInput(true);
@@ -311,8 +240,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             const nextProfileState = await loadEncryptionProfileState(user.id, supabase);
 
             if (!nextProfileState.keySetupComplete) {
-                setStatus("choose_mode");
-                setSetupError("Choose how you want account recovery to work on this device first.");
+                setInputError("This account's secure setup looks incomplete. Please sign in again.");
                 return;
             }
 
@@ -609,14 +537,6 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         }
     }, [getAuthenticatedUser, router, sessionExpiredLoginHref, setEncryptionMode, supabase, unlockAccount]);
 
-    const handleModeSelect = React.useCallback((nextMode: EncryptionMode) => {
-        setSelectedMode(nextMode);
-        setSetupError(null);
-        setInputError(null);
-        setEncryptionMode(nextMode);
-        setStatus(nextMode === "recoverable" ? "recoverable_setup" : "max_privacy_setup");
-    }, [setEncryptionMode]);
-
     let gateHeading = "Unlock your encrypted records.";
     if (status === "opening_device") {
         gateHeading = "Opening your encrypted workspace.";
@@ -626,9 +546,11 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         gateHeading = "Finish secure setup.";
     }
 
-    let gateSummary = "Choose the recovery style that fits your household, then finish the secure unlock step on this device.";
+    let gateSummary = "Finish the secure unlock step on this device so your encrypted records can open.";
     if (status === "opening_device") {
         gateSummary = "Sign-in worked. We are opening the encrypted records on this device now.";
+    } else if (status === "recoverable_setup") {
+        gateSummary = "Set up Recoverable Encryption with your password so this device can open your encrypted records.";
     } else if (status === "recoverable_input") {
         gateSummary = "Sign-in worked, but this device still needs one local password check before your records can open.";
     } else if (effectiveMode) {
@@ -675,21 +597,6 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                                 </div>
                             ) : null}
 
-                            {status === "choose_mode" ? (
-                                <EncryptionModeChoice
-                                    onSelect={handleModeSelect}
-                                    selectedMode={selectedMode}
-                                />
-                            ) : null}
-
-                            {status === "max_privacy_setup" ? (
-                                <RecoveryKeySetup
-                                    onComplete={handleMaximumPrivacySetup}
-                                    errorMessage={setupError}
-                                    isSubmitting={isSubmittingSetup}
-                                />
-                            ) : null}
-
                             {status === "max_privacy_input" ? (
                                 <RecoveryKeyInput
                                     onComplete={handleMaximumPrivacyUnlock}
@@ -727,14 +634,14 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                                     What this means
                                 </h3>
                                 <div className="mt-3 space-y-4 text-sm leading-7 text-[var(--text-muted)]">
-                                    <p>{getLockedSummary(effectiveMode ?? null)}</p>
+                                    <p>{getLockedSummary(effectiveMode ?? "recoverable")}</p>
                                     {effectiveMode ? (
                                         <p className="font-semibold text-[var(--text)]">
                                             {getEncryptionModeLabel(effectiveMode)} keeps the sync flow encrypted before upload.
                                         </p>
                                     ) : (
                                         <p className="font-semibold text-[var(--text)]">
-                                            Both options keep the sync flow encrypted before upload.
+                                            Recoverable Encryption keeps the sync flow encrypted before upload.
                                         </p>
                                     )}
                                 </div>
@@ -745,10 +652,10 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                                     Current setup
                                 </p>
                                 <p className="mt-3 text-lg font-bold text-[var(--text)]">
-                                    {effectiveMode ? getEncryptionModeLabel(effectiveMode) : "Choose your encryption mode"}
+                                    {effectiveMode ? getEncryptionModeLabel(effectiveMode) : "Recoverable Encryption"}
                                 </p>
                                 <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">
-                                    {getAccountStatusSummary(effectiveMode ?? null)}
+                                    {getAccountStatusSummary(effectiveMode ?? "recoverable")}
                                 </p>
                             </div>
                         </aside>
@@ -757,18 +664,6 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             </div>
         </div>
     );
-}
-
-function formatRecoverySetupError(error: unknown) {
-    if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
-        const message = error.message;
-        if (message.includes("expired") || message.includes("session")) {
-            return "Your session expired. Please sign in again.";
-        }
-        return message;
-    }
-
-    return "Secure setup could not be completed. Please try again.";
 }
 
 function formatRecoveryUnlockError(error: unknown) {

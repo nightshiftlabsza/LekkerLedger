@@ -51,7 +51,7 @@ export default function StoragePage() {
                             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> End-to-end encrypted before upload</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Access records across any device</li>
-                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Choose Recoverable Encryption or Maximum Privacy during setup</li>
+                                <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Recoverable Encryption — encrypted before upload, restored via your account</li>
                                 <li className="flex gap-2"><ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" /> Signing out clears all data from the device</li>
                             </ul>
                         </div>
@@ -83,8 +83,8 @@ export default function StoragePage() {
                         </p>
                         <ul className="list-disc pl-6 space-y-2">
                             <li><strong>We do not</strong> have access to your unencrypted payroll records on our servers.</li>
-                            <li><strong>We only</strong> store encrypted data plus the minimum account metadata needed for the recovery mode you choose.</li>
-                            <li>You can choose between Recoverable Encryption (password-based recovery) or Maximum Privacy (recovery-key-only access).</li>
+                            <li><strong>We only</strong> store encrypted data plus the minimum account metadata needed to restore access through your account.</li>
+                            <li>All accounts use Recoverable Encryption: records are encrypted before upload and can be restored via your account login.</li>
                             <li>When you sign out, all data is cleared from the device. Your records remain safe in encrypted cloud storage.</li>
                         </ul>
                     </section>
@@ -132,11 +132,10 @@ export default function StoragePage() {
                         <div className="rounded-[2rem] border border-[var(--primary)]/15 bg-[var(--primary)]/5 p-6 shadow-[var(--shadow-sm)] sm:p-7">
                             <div className="flex items-center gap-3 mb-3">
                                 <KeyRound className="h-5 w-5 text-[var(--primary)]" />
-                                <p className="text-sm font-bold text-[var(--text)]">Encryption modes</p>
+                                <p className="text-sm font-bold text-[var(--text)]">Encryption</p>
                             </div>
                             <ul className="space-y-2 text-sm leading-7 text-[var(--text-muted)]">
                                 <li><strong className="text-[var(--text)]">Recoverable:</strong> Password-wrapped key. If you forget your password, account recovery restores access.</li>
-                                <li><strong className="text-[var(--text)]">Maximum Privacy:</strong> Recovery key only. If you lose the key, data cannot be recovered — not even by us.</li>
                             </ul>
                         </div>
 

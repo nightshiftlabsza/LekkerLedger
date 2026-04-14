@@ -77,7 +77,7 @@ export function AuthShell({ children }: Readonly<{ children: React.ReactNode }>)
                             Secure account access
                         </div>
                         <h1 className="type-h1 mt-6 max-w-[14ch] text-[var(--text)]">
-                            Paid access, recovery, and setup in one calm flow.
+                            Paid access, recovery, and setup in one place.
                         </h1>
                         <p className="mt-4 measure-readable text-base leading-7 text-[var(--text-muted)]">
                             Use this area to log in, create the paid account that holds your encrypted sync, or reset your password. The screen stays simple on mobile and gives more context on wider layouts without turning into a stretched form.
