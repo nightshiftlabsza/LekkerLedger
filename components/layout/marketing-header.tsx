@@ -10,9 +10,9 @@ import { Logo } from "@/components/ui/logo";
 
 const NAV_LINKS = [
     { href: "/#how-it-works", label: "How it works" },
-    { href: "/resources/tools/domestic-worker-payslip", label: "Payslip Generator" },
-    { href: "/calculator", label: "Wage calculator" },
-    { href: "/resources/checklists/household-employer-monthly", label: "Employer Checklist" },
+    { href: "/resources/tools/domestic-worker-payslip", label: "Payslip template" },
+    { href: "/calculator", label: "Pay calculator" },
+    { href: "/resources/checklists/household-employer-monthly", label: "Monthly checklist" },
     { href: "/pricing", label: "Pricing" },
 ] as const;
 
@@ -104,7 +104,7 @@ export function MarketingHeader() {
                                 email={user.email}
                                 open={accountMenuOpen}
                                 onToggle={() => setAccountMenuOpen((current) => !current)}
-                                onClose={() => setAccountMenuOpen(false)}
+                                _onClose={() => setAccountMenuOpen(false)}
                                 onSignOut={handleSignOut}
                             />
                         </>
@@ -208,10 +208,10 @@ const AccountMenu = React.forwardRef<HTMLDivElement, {
     email: string | null;
     open: boolean;
     onToggle: () => void;
-    onClose: () => void;
+    _onClose: () => void;
     onSignOut: () => Promise<void>;
 }>(
-    ({ email, open, onToggle, onClose, onSignOut }, ref) => (
+    ({ email, open, onToggle, _onClose, onSignOut }, ref) => (
         <div ref={ref} className="relative">
             <button
                 type="button"

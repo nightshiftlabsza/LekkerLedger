@@ -17,13 +17,13 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { pageOG } from "@/lib/seo";
 
 export const metadata: Metadata = {
-    title: "Domestic Worker Payslips, UIF & Payroll Records | LekkerLedger South Africa",
+    title: "Domestic Worker Payslips & UIF Calculator for South African Households | LekkerLedger",
     description:
-        "Create domestic worker payslips, calculate UIF, track leave, store contracts, and keep payroll records organised for South African household employers.",
+        "Create domestic worker payslips, check UIF deductions, and keep monthly household employer admin organised.",
     alternates: { canonical: "/" },
     ...pageOG(
-        "Domestic Worker Payslips, UIF & Payroll Records | LekkerLedger South Africa",
-        "Create domestic worker payslips, calculate UIF, track leave, store contracts, and keep payroll records organised for South African household employers.",
+        "Domestic Worker Payslips & UIF Calculator for South African Households | LekkerLedger",
+        "Create domestic worker payslips, check UIF deductions, and keep monthly household employer admin organised.",
         "/",
     ),
 };
@@ -37,7 +37,7 @@ const homepageFaqSchema = {
             name: "Will this help me know what to do each month?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "Yes. LekkerLedger helps you reuse the same worker details, run the month clearly, and keep the paperwork tidy so you are not starting from scratch every time.",
+                text: "Yes. LekkerLedger helps you reuse the same worker details, check the monthly pay figures, and keep the month organised so you are not starting from scratch each time.",
             },
         },
         {
@@ -45,7 +45,7 @@ const homepageFaqSchema = {
             name: "What if I am not sure about the rules or worried about making a mistake?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "You do not need to know everything before you start. LekkerLedger helps you keep the records organised and review the main figures clearly. For unusual situations, verify against official guidance before you rely on the record.",
+                text: "You do not need to know everything before you start. LekkerLedger helps you review the main figures clearly and keep the month organised. For unusual situations, verify against official guidance before you rely on the figures.",
             },
         },
         {
@@ -53,7 +53,7 @@ const homepageFaqSchema = {
             name: "Where are employee records stored?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one payslip PDF per email address each calendar month without creating an account.",
+                text: "Paid accounts store monthly household-employer records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one payslip PDF per email address each calendar month without creating an account.",
             },
         },
         {
@@ -61,7 +61,7 @@ const homepageFaqSchema = {
             name: "Can I start with one employee, and what changes when I upgrade?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "Yes. Free lets you email yourself one payslip PDF per email address each calendar month so you can try the flow before paying. Standard adds leave tracking, contracts, documents, cloud-secured records, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
+                text: "Yes. Free lets you email yourself one payslip PDF per email address each calendar month. Paid plans keep leave, contracts, documents, exports, and ongoing monthly records together. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
             },
         },
         {
@@ -80,9 +80,9 @@ const SAMPLE_FIGURE_GRID = [
     "min-[1440px]:grid-cols-[minmax(11rem,1.85fr)_minmax(4rem,0.68fr)_minmax(5.5rem,0.86fr)_minmax(6rem,0.98fr)] min-[1440px]:gap-x-4",
 ].join(" ");
 const HERO_TRUST_POINTS = [
-    "UIF is shown clearly on every payslip.",
-    "Keep contracts, payslips, and exports in one place.",
-    "Stop rebuilding monthly records from scratch.",
+    "Check gross pay, UIF, and net pay before payday.",
+    "LekkerLedger shows UIF clearly when it applies.",
+    "Paid plans keep leave, contracts, and documents together.",
 ] as const;
 
 function formatRand(value: number) {
@@ -158,7 +158,6 @@ function buildHomepageSample(referenceDate: Date) {
         breakdown: calculatePayslip(payslip),
         monthLabel,
         periodLabel,
-        leaveDaysRemaining: 4.5,
     };
 }
 
@@ -203,7 +202,7 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
                                 Domestic worker payslips and UIF for South African households
                             </h1>
                             <p className="max-w-[35rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                                Create monthly payslips, show UIF clearly, track leave, and keep contracts and records together for your domestic worker, nanny, gardener, or caregiver.
+                                Create domestic worker payslips, check UIF deductions, and keep the month organised for your domestic worker, nanny, gardener, or caregiver.
                             </p>
                         </div>
 
@@ -223,9 +222,13 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
                                 </Link>
                             </div>
                             <p className="text-xs font-medium leading-6" style={{ color: "var(--text-muted)" }}>
-                                Start with the free payslip tool, or use the{" "}
+                                Free gives you one emailed payslip PDF per calendar month. Paid plans keep leave, contracts, documents, exports, and the monthly record together. Start with the{" "}
+                                <Link href="/resources/tools/domestic-worker-payslip" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
+                                    domestic worker payslip template
+                                </Link>{" "}
+                                or use the{" "}
                                 <Link href="/uif-calculator" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
-                                    UIF calculator
+                                    UIF deduction calculator
                                 </Link>{" "}
                                 when you only need a quick check before payday.
                             </p>
@@ -278,7 +281,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                     </p>
                 </div>
                 <p className="mt-3 max-w-[38ch] text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                    Gross earnings, UIF deduction, and net pay stay easy to scan before you create the full record.
+                    Gross pay, UIF where it applies, and net pay stay easy to scan before you create the full payslip.
                 </p>
             </div>
 
@@ -293,7 +296,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                                 PAYSLIP
                             </h2>
                             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
-                                Household payroll record
+                                Monthly pay details
                             </p>
                         </div>
                         <div className="text-left sm:text-right">
@@ -337,7 +340,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                             detail={
                                 <>
                                     <p>{sample.payslip.daysWorked} days worked</p>
-                                    <p style={{ color: "var(--primary)" }}>{sample.leaveDaysRemaining.toFixed(1)} leave days remaining</p>
+                                    <p style={{ color: "var(--primary)" }}>{sample.payslip.ordinaryHours} ordinary hours</p>
                                 </>
                             }
                         />
@@ -376,19 +379,19 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                                 rate={`${formatRand(sample.breakdown.hourlyRate)}/hr`}
                                 total={formatRand(sample.breakdown.ordinaryPay)}
                             />
-                            <SampleFigureRow label="Gross Earnings" hours="" rate="" total={formatRand(sample.breakdown.grossPay)} bold />
+                            <SampleFigureRow label="Gross pay" hours="" rate="" total={formatRand(sample.breakdown.grossPay)} bold />
                             <SampleFigureRow label="UIF (Employee 1%)" hours="" rate="" total={`- ${formatRand(sample.breakdown.deductions.uifEmployee)}`} />
                             <SampleFigureRow label="Total Deductions" hours="" rate="" total={formatRand(sample.breakdown.deductions.total)} bold />
                         </div>
                     </div>
 
                     <p className="mt-4 text-xs leading-6" style={{ color: "var(--text-muted)" }}>
-                        Sample only. Your real payslips are created from your own payroll records and kept with the rest of your monthly pay paperwork.
+                        Sample only. Your own payslip will reflect that month&apos;s pay details and UIF where it applies.
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-3">
-                    <ProofMetric label="Gross earnings" value={formatRand(sample.breakdown.grossPay)} />
+                    <ProofMetric label="Gross pay" value={formatRand(sample.breakdown.grossPay)} />
                     <ProofMetric label="UIF deduction" value={`- ${formatRand(sample.breakdown.deductions.uifEmployee)}`} />
                     <ProofMetric className="min-[360px]:col-span-2 md:col-span-1" label="Net pay" value={formatRand(sample.breakdown.netPay)} emphasis />
                     <div
@@ -399,7 +402,7 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                             Why this matters
                         </p>
                         <p className="mt-2 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                            Keep monthly payslips, contracts, exports, and payroll records together in one place.
+                            Free covers one emailed PDF each calendar month. Paid plans keep leave, contracts, documents, exports, and the monthly record together.
                         </p>
                     </div>
                 </div>
@@ -550,17 +553,17 @@ function HowItWorks() {
         {
             icon: Users,
             title: "Add your worker once",
-            body: "Save their details, pay setup, and leave basics so you can reuse them each month.",
+            body: "Save the worker details and pay setup you need so the next month is quicker to prepare.",
         },
         {
             icon: Calendar,
-            title: "Create the month's payslip with UIF shown clearly",
-            body: "Review hours, leave, and deductions with UIF shown clearly before you finalise the payslip.",
+            title: "Check pay, UIF, and take-home pay",
+            body: "Review hours worked, gross pay, and where UIF applies before you finalise the payslip.",
         },
         {
             icon: FileText,
-            title: "Keep leave, contracts, and records ready",
-            body: "Keep the month organised so your records are ready for uFiling and household employment paperwork.",
+            title: "Choose free or keep the full month together",
+            body: "Use the free monthly payslip when that is enough, or move to paid plans for leave, contracts, documents, and ongoing record-keeping.",
         },
     ];
 
@@ -572,12 +575,12 @@ function HowItWorks() {
                         How it works
                     </p>
                     <h2 className="type-h2 max-w-[26ch]" style={{ color: "var(--text)" }}>
-                        Run monthly domestic worker admin without spreadsheets or guesswork
+                        Run monthly domestic worker admin without guessing the figures
                     </h2>
                     <p className="max-w-[44rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                        LekkerLedger helps household employers run the month clearly, keep payroll records together, and follow the same process each time. If you want a fuller checklist, start with the{" "}
+                        LekkerLedger helps household employers check the month&apos;s pay figures, show UIF clearly where it applies, and reuse the same process each month. If you want a fuller checklist, start with the{" "}
                         <Link href="/resources/checklists/household-employer-monthly" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
-                            monthly employer checklist
+                            monthly household employer checklist
                         </Link>
                         .
                     </p>
@@ -612,7 +615,7 @@ function HowItWorks() {
 
                 <div className="mt-7 flex justify-center">
                     <Link href="/resources/checklists/household-employer-monthly" className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-6 py-3 text-sm font-bold text-[var(--primary)] transition-all hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)]">
-                        View the monthly employer checklist <ArrowRight className="h-4 w-4" />
+                        View the monthly household employer checklist <ArrowRight className="h-4 w-4" />
                     </Link>
                 </div>
             </div>
@@ -623,20 +626,20 @@ function HowItWorks() {
 function WhatYouKeep() {
     const recordTypes = [
         {
-            title: "Payslips",
-            body: "Monthly pay records with UIF shown clearly.",
+            title: "Free monthly PDF",
+            body: "Email yourself one payslip PDF per calendar month without opening a paid account.",
         },
         {
-            title: "Contracts",
-            body: "Drafts and signed agreements kept together.",
+            title: "Leave",
+            body: "Paid plans keep leave with the same monthly record.",
         },
         {
-            title: "Exports",
-            body: "Files ready for UIF or year-end admin.",
+            title: "Contracts and documents",
+            body: "Paid plans keep signed paperwork and supporting documents together.",
         },
         {
-            title: "History",
-            body: "Find older records without rebuilding them.",
+            title: "Exports and history",
+            body: "Paid plans keep exports and older monthly records in one place.",
         },
     ];
 
@@ -646,17 +649,17 @@ function WhatYouKeep() {
                 <div className="grid gap-6 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:items-start">
                     <div className="space-y-4">
                         <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                            What you keep
+                            Free and paid
                         </p>
                         <h2 className="type-h2 max-w-[18ch]" style={{ color: "var(--text)" }}>
-                            Everything you need for monthly pay and paperwork
+                            Start with one free payslip, then keep the full month together
                         </h2>
                         <p className="max-w-[34rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            LekkerLedger keeps your monthly pay records and supporting documents together so you are not scrambling later. See the{" "}
+                            The free tool covers one emailed payslip PDF each calendar month. When you need more than that, paid plans keep the month together. For the UIF basics, read{" "}
                             <Link href="/resources/guides/uif-for-domestic-workers" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
-                                UIF guide for domestic workers
+                                how UIF works for domestic workers
                             </Link>{" "}
-                            when you need the rules in plain English.
+                            in plain language.
                         </p>
                     </div>
 
@@ -682,19 +685,19 @@ function FAQPreview() {
     const faqs = [
         {
             q: "Will this help me know what to do each month?",
-            a: "Yes. LekkerLedger helps you reuse the same worker details, run the month clearly, and keep the paperwork tidy so you are not starting from scratch every time.",
+            a: "Yes. LekkerLedger helps you reuse the same worker details, check the month&apos;s pay figures, and keep the month organised so you are not starting from scratch each time.",
         },
         {
             q: "What if I am not sure about the rules or worried about making a mistake?",
-            a: "You do not need to know everything before you start. LekkerLedger helps you keep the records organised and review the main figures clearly. For unusual situations, verify against official guidance before you rely on the record.",
+            a: "You do not need to know everything before you start. LekkerLedger helps you review the main figures clearly and keep the month organised. For unusual situations, verify against official guidance before you rely on the figures.",
         },
         {
             q: "Where are employee records stored?",
-            a: "Paid accounts store records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one payslip PDF per email address each calendar month without creating an account.",
+            a: "Paid accounts store monthly household-employer records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one payslip PDF per email address each calendar month without creating an account.",
         },
         {
             q: "Can I start with one employee, and what changes when I upgrade?",
-            a: "Yes. Free lets you email yourself one payslip PDF per email address each calendar month so you can try the flow before paying. Standard adds leave tracking, contracts, documents, cloud-secured records, and annual exports. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
+            a: "Yes. Free lets you email yourself one payslip PDF per email address each calendar month. Paid plans keep leave, contracts, documents, exports, and ongoing monthly records together. Pro adds multiple households, unlimited employees, and longer archive access when you need separate records for more than one home.",
         },
         {
             q: "What happens if I change devices later?",

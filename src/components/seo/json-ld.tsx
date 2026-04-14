@@ -4,7 +4,7 @@ export const organizationSchema = {
     name: "LekkerLedger",
     url: "https://lekkerledger.co.za",
     logo: "https://lekkerledger.co.za/icon.png",
-    description: "South African household employment administration software. Manage payslips, UIF, and employment records.",
+    description: "Domestic worker payslips, UIF checks, and household-employer admin tools for South Africa.",
     address: {
         "@type": "PostalAddress",
         addressCountry: "ZA"
@@ -22,7 +22,7 @@ export const softwareApplicationSchema = {
         price: "0",
         priceCurrency: "ZAR"
     },
-    description: "Payslip generator, UIF calculator, and employment record management for South African household employers."
+    description: "Create domestic worker payslips, estimate UIF deductions, and keep monthly household employer admin organised."
 };
 
 export function breadcrumbSchema(crumbs: { name: string; path: string }[]) {

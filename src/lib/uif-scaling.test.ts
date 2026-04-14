@@ -26,33 +26,65 @@ const baseInput: PayslipInput = {
 };
 
 describe("UIF threshold logic", () => {
-    it("should calculate UIF for a weekly employee working > 5.5 hours", () => {
-        // 1 week (7 days), 10 hours. Threshold is (24 / 4.33) * 1 = 5.54h.
-        // 10h > 5.54h, so UIF should be applied.
-        const breakdown = calculatePayslip({ ...baseInput, id: "test1", ordinaryHours: 10 });
-        expect(breakdown.grossPay).toBe(1000);
-        expect(breakdown.deductions.uifEmployee).toBeGreaterThan(0); // 1% of 1000 = 10
-        expect(breakdown.deductions.uifEmployee).toBe(10);
-    });
-
-    it("should NOT calculate UIF for a weekly employee working <= 5.5 hours", () => {
-        // 1 week, 5 hours. 5h < 5.54h.
-        const breakdown = calculatePayslip({ ...baseInput, id: "test2", ordinaryHours: 5 });
-        expect(breakdown.grossPay).toBe(500);
-        expect(breakdown.deductions.uifEmployee).toBe(0);
-    });
-
-    it("should calculate UIF for a full monthly payslip at exactly 24 hours", () => {
+    it("does not calculate UIF for a monthly payslip at exactly 24 hours", () => {
         const breakdown = calculatePayslip({
             ...baseInput,
-            id: "test3",
+            id: "test1",
+            payPeriodStart: new Date("2026-03-01"),
             payPeriodEnd: new Date("2026-03-31"),
             ordinaryHours: 24,
             daysWorked: 3,
         });
 
         expect(breakdown.grossPay).toBe(2400);
-        expect(breakdown.deductions.uifEmployee).toBe(24);
-        expect(breakdown.employerContributions.uifEmployer).toBe(24);
+        expect(breakdown.deductions.uifEmployee).toBe(0);
+        expect(breakdown.employerContributions.uifEmployer).toBe(0);
+    });
+
+    it("does calculate UIF once monthly hours go above 24", () => {
+        const breakdown = calculatePayslip({
+            ...baseInput,
+            id: "test2",
+            payPeriodStart: new Date("2026-03-01"),
+            payPeriodEnd: new Date("2026-03-31"),
+            ordinaryHours: 25,
+            daysWorked: 4,
+        });
+
+        expect(breakdown.grossPay).toBe(2500);
+        expect(breakdown.deductions.uifEmployee).toBe(25);
+        expect(breakdown.employerContributions.uifEmployer).toBe(25);
+    });
+
+    it("does not let 4-hour minimum-pay top-ups create UIF eligibility by themselves", () => {
+        const breakdown = calculatePayslip({
+            ...baseInput,
+            id: "test3",
+            payPeriodStart: new Date("2026-03-01"),
+            payPeriodEnd: new Date("2026-03-31"),
+            ordinaryHours: 20,
+            daysWorked: 6,
+        });
+
+        expect(breakdown.grossPay).toBe(2400);
+        expect(breakdown.totalHours).toBe(24);
+        expect(breakdown.uifQualifyingHours).toBe(20);
+        expect(breakdown.deductions.uifEmployee).toBe(0);
+    });
+
+    it("caps UIF at the monthly ceiling", () => {
+        const breakdown = calculatePayslip({
+            ...baseInput,
+            id: "test4",
+            payPeriodStart: new Date("2026-03-01"),
+            payPeriodEnd: new Date("2026-03-31"),
+            ordinaryHours: 200,
+            hourlyRate: 100,
+            daysWorked: 25,
+        });
+
+        expect(breakdown.grossPay).toBe(20000);
+        expect(breakdown.deductions.uifEmployee).toBe(177.12);
+        expect(breakdown.employerContributions.uifEmployer).toBe(177.12);
     });
 });

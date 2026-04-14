@@ -9,9 +9,9 @@ import { buildE2EAuthUserSnapshot } from "@/lib/e2e-billing";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "LekkerLedger | Household Payroll, Records, and Annual Paperwork",
+  title: "LekkerLedger | Domestic Worker Payslips and UIF for South African Households",
   description:
-    "South African household payroll: payslips, employee records, cloud backup, and annual paperwork in one place.",
+    "Create domestic worker payslips, check UIF, and keep monthly household employer admin in order.",
   manifest: "/manifest.webmanifest",
   robots: {
     index: true,

@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getNMW, isUifApplicable, UIF_MONTHLY_CAP, UIF_RATE } from "@/lib/calculator";
+import { getNMW, isUifApplicable, UIF_MAX_EMPLOYEE_CONTRIBUTION, UIF_MAX_TOTAL_CONTRIBUTION, UIF_MONTHLY_CAP, UIF_RATE, UIF_THRESHOLD_HOURS } from "@/lib/calculator";
 import { roundTo } from "@/lib/money";
 import { COMPLIANCE } from "@/lib/compliance-constants";
 
@@ -29,7 +29,16 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: Readonly
         const uifBase = Math.min(gross, UIF_MONTHLY_CAP);
         const employeeUif = uifActive ? roundTo(uifBase * UIF_RATE) : 0;
         const employerUif = uifActive ? roundTo(uifBase * UIF_RATE) : 0;
-        return { gross, employeeUif, employerUif, net: roundTo(gross - employeeUif), uifActive, effectiveRate };
+        const capped = gross > UIF_MONTHLY_CAP;
+        return {
+            gross,
+            employeeUif,
+            employerUif,
+            net: roundTo(gross - employeeUif),
+            uifActive,
+            effectiveRate,
+            capped,
+        };
     }, [rateNum, hoursNum, nmwRate]);
 
     return (
@@ -37,7 +46,7 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: Readonly
             <CardContent className="p-6 sm:p-8 space-y-7">
                 <h2 className="text-lg font-extrabold flex items-center gap-2 mb-2" style={{ color: "var(--text)" }}>
                     <Calculator className="h-6 w-6" style={{ color: "var(--primary)" }} />
-                    National Minimum Wage &amp; UIF Calculator
+                    Pay estimate with UIF
                 </h2>
 
                 <div className="grid grid-cols-2 gap-5">
@@ -81,29 +90,42 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: Readonly
                 {preview && (
                     <div className="rounded-2xl overflow-hidden mt-2 border border-[var(--border)]">
                         <div className="flex justify-between items-center px-5 py-4 text-xs font-bold uppercase tracking-wider" style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}>
-                            <span>Gross ({hoursNum}h × R{preview.effectiveRate.toFixed(2)})</span>
+                            <span>Gross pay ({hoursNum}h × R{preview.effectiveRate.toFixed(2)})</span>
                             <span className="tabular-nums text-sm font-black" style={{ color: "var(--text)" }}>R {preview.gross.toFixed(2)}</span>
                         </div>
                         <div className="space-y-0 border-b border-[var(--border)]">
                             <div className="flex justify-between items-center px-5 py-3.5 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                                 <span>
-                                    Employee UIF (1%)
-                                    {!preview.uifActive && <span className="text-[10px] lowercase" style={{ color: "var(--primary)" }}> · under 24hrs</span>}
+                                    Employee UIF
                                 </span>
                                 <span className="tabular-nums text-sm font-black" style={{ color: "var(--danger)" }}>{preview.uifActive ? `-R ${preview.employeeUif.toFixed(2)}` : "R 0.00"}</span>
                             </div>
                             <div className="flex justify-between items-center px-5 pb-3.5 text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>
-                                <span>Employer UIF (1%) - not deducted from pay</span>
+                                <span>Your UIF</span>
                                 <span className="tabular-nums text-sm font-black" style={{ color: "var(--text)" }}>{preview.uifActive ? `R ${preview.employerUif.toFixed(2)}` : "R 0.00"}</span>
                             </div>
                         </div>
+                        {!preview.uifActive || preview.capped ? (
+                            <div className="space-y-2 border-b border-[var(--border)] px-5 py-3 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
+                                {!preview.uifActive ? (
+                                    <p>
+                                        UIF usually applies when the worker works more than {UIF_THRESHOLD_HOURS} hours a month for that employer.
+                                    </p>
+                                ) : null}
+                                {preview.capped ? (
+                                    <p>
+                                        This UIF estimate is capped at R {UIF_MAX_EMPLOYEE_CONTRIBUTION.toFixed(2)} for the worker and R {UIF_MAX_TOTAL_CONTRIBUTION.toFixed(2)} in total for the month.
+                                    </p>
+                                ) : null}
+                            </div>
+                        ) : null}
                         <div className="flex justify-end px-5 py-3 text-xs font-semibold" style={{ backgroundColor: "var(--surface-raised)" }}>
                             <Link href="/resources/guides/uif-for-domestic-workers" className="text-[var(--primary)] underline-offset-4 hover:underline">
-                                How UIF works
+                                How UIF works for domestic workers
                             </Link>
                         </div>
                         <div className="flex justify-between items-center px-6 py-6 shadow-inner" style={{ background: "var(--primary)" }}>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--on-primary)]">Net Pay (est.)</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--on-primary)]">Take-home pay</span>
                             <span className="text-3xl font-black tabular-nums text-[var(--on-primary)]">R {preview.net.toFixed(2)}</span>
                         </div>
                     </div>
@@ -121,7 +143,7 @@ export function CalculatorHero({ onStart, startHref = "/payroll/new" }: Readonly
                         }
                     }}
                 >
-                    Create Full Payslip <ChevronRight className="h-4 w-4" />
+                    Create payslip for this month <ChevronRight className="h-4 w-4" />
                 </Button>
             </CardContent>
         </Card>

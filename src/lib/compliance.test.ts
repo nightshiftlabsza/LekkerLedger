@@ -83,6 +83,20 @@ describe("Compliance Logic (SD7 & NMW)", () => {
         expect(audit.uifStatusText).toContain("Not Applicable");
     });
 
+    it("should use qualifying hours instead of top-up hours for UIF checks", () => {
+        const toppedUpBreakdown = {
+            ...mockBreakdown,
+            totalHours: 24,
+            uifQualifyingHours: 20,
+            grossPay: 2400,
+            deductions: { ...mockBreakdown.deductions, uifEmployee: 0, total: 0 },
+            employerContributions: { ...mockBreakdown.employerContributions, uifEmployer: 0 },
+            netPay: 2400,
+        };
+        const audit = getComplianceAudit(mockEmployee, toppedUpBreakdown);
+        expect(audit.uifStatusText).toContain("Not Applicable");
+    });
+
     it("should detect non-compliant accommodation deduction (>10%)", () => {
         const highAccommodationBreakdown = {
             ...mockBreakdown,

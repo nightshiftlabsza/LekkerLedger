@@ -20,6 +20,8 @@ export const COMPLIANCE = {
         THRESHOLD_HOURS_PER_MONTH: 24,
         DEDUCTION_PERCENTAGE: 0.01,
         MONTHLY_CAP: 17712,
+        MAX_EMPLOYEE_CONTRIBUTION: 177.12,
+        MAX_TOTAL_CONTRIBUTION: 354.24,
         SOURCE_URL: "https://www.gov.za/faq/government-services/how-do-i-register-my-domestic-worker-uif",
     },
     RECORD_KEEPING: {

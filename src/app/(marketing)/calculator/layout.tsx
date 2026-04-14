@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import { pageOG } from "@/lib/seo";
 
 export const metadata: Metadata = {
-    title: "Wage & UIF Calculator | LekkerLedger",
+    title: "Domestic Worker Pay Calculator (Hours, Wage & UIF) | LekkerLedger",
     description:
-        "Estimate domestic worker wages and UIF deductions for South African household payroll before creating a full payslip.",
+        "Estimate domestic worker pay from hours worked, hourly rate, minimum wage, and UIF deduction.",
     alternates: {
         canonical: "/calculator",
     },
     ...pageOG(
-        "Wage & UIF Calculator | LekkerLedger",
-        "Estimate domestic worker wages and UIF deductions for South African household payroll before creating a full payslip.",
+        "Domestic Worker Pay Calculator (Hours, Wage & UIF) | LekkerLedger",
+        "Estimate domestic worker pay from hours worked, hourly rate, minimum wage, and UIF deduction.",
         "/calculator",
     ),
 };

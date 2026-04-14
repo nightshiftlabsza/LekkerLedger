@@ -1,5 +1,5 @@
 import { Employee } from "./schema";
-import { PayBreakdown, ACCOMMODATION_MAX_PCT, UIF_RATE, getUifThresholdHoursForPeriod, isUifApplicable } from "./calculator";
+import { PayBreakdown, ACCOMMODATION_MAX_PCT, UIF_MONTHLY_CAP, UIF_RATE, getUifThresholdHoursForPeriod, isUifApplicable } from "./calculator";
 import { getNMWForDate } from "./legal/registry";
 
 export interface ComplianceAudit {
@@ -27,16 +27,16 @@ export function getComplianceAudit(employee: Employee, breakdown: PayBreakdown, 
         : `Below the current minimum-wage check (R${employee.hourlyRate.toFixed(2)}/hr vs R${nmw.toFixed(2)}/hr)`;
 
     // 2. UIF check
-    const totalHours = breakdown.totalHours;
+    const totalHours = breakdown.uifQualifyingHours ?? breakdown.totalHours;
     const periodUifThreshold = getUifThresholdHoursForPeriod(breakdown.periodStart, breakdown.periodEnd);
     const expectedUIF = isUifApplicable(totalHours, breakdown.periodStart, breakdown.periodEnd)
-        ? Math.min(breakdown.grossPay, 17712) * UIF_RATE
+        ? Math.min(breakdown.grossPay, UIF_MONTHLY_CAP) * UIF_RATE
         : 0;
     const meetsUifCheck = Math.abs(breakdown.deductions.uifEmployee - expectedUIF) < 0.01;
     const thresholdUnit = periodUifThreshold >= 24 ? "month" : "period";
     const uifStatusText = (() => {
         if (!isUifApplicable(totalHours, breakdown.periodStart, breakdown.periodEnd)) {
-            return `Not Applicable (< ${periodUifThreshold.toFixed(1)}hrs/${thresholdUnit})`;
+            return `Not Applicable (${periodUifThreshold.toFixed(1)}hrs/${thresholdUnit} or less)`;
         }
         return meetsUifCheck
             ? "Matches the 1% deduction check"

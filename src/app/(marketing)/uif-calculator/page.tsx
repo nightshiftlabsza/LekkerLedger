@@ -3,15 +3,15 @@ import { pageOG } from "@/lib/seo";
 import { UifCalculatorLanding } from "./uif-calculator-landing";
 
 export const metadata: Metadata = {
-    title: "UIF Calculator for Domestic Workers in South Africa | LekkerLedger",
+    title: "UIF Deduction Calculator for Domestic Workers | LekkerLedger",
     description:
-        "Calculate employee and employer UIF contributions for your domestic worker. Understand how 1% + 1% deductions work and what to declare on uFiling.",
+        "Calculate employer and employee UIF contributions for a domestic worker, check the current ceiling, and understand the monthly deduction.",
     alternates: {
         canonical: "/uif-calculator",
     },
     ...pageOG(
-        "UIF Calculator for Domestic Workers in South Africa | LekkerLedger",
-        "Calculate employee and employer UIF contributions for your domestic worker. Understand how 1% + 1% deductions work and what to declare on uFiling.",
+        "UIF Deduction Calculator for Domestic Workers | LekkerLedger",
+        "Calculate employer and employee UIF contributions for a domestic worker, check the current ceiling, and understand the monthly deduction.",
         "/uif-calculator",
     ),
 };

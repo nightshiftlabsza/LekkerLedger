@@ -56,4 +56,19 @@ describe("buildPayrollSummary", () => {
         expect(summary.totalUifDue).toBe(0);
         expect(summary.employerTotalCost).toBe(summary.grossPay);
     });
+
+    it("caps the combined monthly UIF at R354.24", () => {
+        const summary = buildPayrollSummary(buildPayslip({
+            ordinaryHours: 200,
+            overtimeHours: 0,
+            sundayHours: 0,
+            publicHolidayHours: 0,
+            daysWorked: 25,
+            hourlyRate: 100,
+        }));
+
+        expect(summary.employeeUifDeduction).toBe(177.12);
+        expect(summary.employerUifContribution).toBe(177.12);
+        expect(summary.totalUifDue).toBe(354.24);
+    });
 });

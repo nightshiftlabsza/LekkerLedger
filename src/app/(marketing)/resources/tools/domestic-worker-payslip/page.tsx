@@ -7,8 +7,8 @@ import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
 import { JsonLd, breadcrumbSchema } from "@/components/seo/json-ld";
 import { CANONICAL_SITE_URL, pageOG } from "@/lib/seo";
 
-const pageTitle = "Free Domestic Worker Payslip Generator | LekkerLedger";
-const pageDescription = "Create a free domestic worker payslip PDF for South Africa. Enter pay details, hours worked, and UIF to email one free payslip per month.";
+const pageTitle = "Free Domestic Worker Payslip Template & Generator | LekkerLedger";
+const pageDescription = "Create a domestic worker payslip template and PDF for this month. Enter the pay details and email yourself one free payslip each calendar month.";
 
 export const metadata: Metadata = {
     title: pageTitle,
@@ -20,16 +20,16 @@ export const metadata: Metadata = {
 };
 
 const helperItems = [
-    "Create a domestic worker payslip for the current month",
-    "Show UIF deducted from pay clearly",
-    "Include overtime, Sunday work, and public holiday hours",
-    "Email a PDF payslip for your records",
+    "Employer and worker details",
+    "Pay period for this month",
+    "Wages, deductions, and actual amount paid",
+    "Hours and rates where they matter",
 ];
 
 const supportingLinks = [
-    { href: "/uif-calculator", label: "UIF calculator" },
-    { href: "/resources/guides/uif-for-domestic-workers", label: "UIF for Domestic Workers Guide" },
-    { href: "/resources/checklists/household-employer-monthly", label: "Monthly Compliance Checklist" },
+    { href: "/uif-calculator", label: "UIF deduction calculator" },
+    { href: "/resources/guides/uif-for-domestic-workers", label: "How UIF works for domestic workers" },
+    { href: "/resources/checklists/household-employer-monthly", label: "Monthly household employer checklist" },
 ];
 
 export default function PayslipGeneratorPage() {
@@ -50,9 +50,12 @@ export default function PayslipGeneratorPage() {
                 <section className="mb-10 overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--surface-raised)] px-5 py-8 shadow-[var(--shadow-md)] sm:px-8 sm:py-10">
                     <div className="marketing-tool-reading mx-auto space-y-4 text-center">
                         <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--primary)]">Free domestic worker payslip tool</p>
-                        <h1 className="type-h1" style={{ color: "var(--text)" }}>Free Domestic Worker Payslip Generator (South Africa)</h1>
+                        <h1 className="type-h1" style={{ color: "var(--text)" }}>Free Domestic Worker Payslip Template &amp; Generator</h1>
                         <p className="text-base leading-7 sm:text-lg" style={{ color: "var(--text-muted)" }}>
-                            Create a domestic worker payslip PDF for South Africa. Enter the month, pay details, and hours worked to generate a clear payslip with UIF shown separately. One free payslip PDF per email address each calendar month.
+                            Create a domestic worker payslip template and PDF for this month. Enter the pay details, check the figures, and email yourself one free payslip per email address each calendar month.
+                        </p>
+                        <p className="text-sm leading-7" style={{ color: "var(--text-muted)" }}>
+                            Where UIF applies, it should be shown clearly. LekkerLedger shows UIF clearly when it applies.
                         </p>
                     </div>
                 </section>
@@ -61,7 +64,7 @@ export default function PayslipGeneratorPage() {
                     <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-raised)] p-5 shadow-[var(--shadow-sm)] sm:p-6">
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <h2 className="type-h3 font-semibold" style={{ color: "var(--text)" }}>What this payslip generator helps with</h2>
+                                <h2 className="type-h3 font-semibold" style={{ color: "var(--text)" }}>What this includes</h2>
                                 <p className="text-sm leading-7" style={{ color: "var(--text-muted)" }}>
                                     Use this for a domestic worker, nanny, gardener, or caregiver employed by a South African household.
                                 </p>
@@ -88,11 +91,11 @@ export default function PayslipGeneratorPage() {
                     <div className="space-y-4">
                         <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-raised)] p-5 shadow-[var(--shadow-sm)] sm:p-6">
                             <p className="text-sm leading-7" style={{ color: "var(--text-muted)" }}>
-                                Need more than one free payslip a month?{" "}
+                                Free covers one emailed payslip each calendar month. Paid plans keep leave, contracts, documents, exports, and longer history together.{" "}
                                 <Link href="/pricing" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
-                                    Use LekkerLedger
+                                    See the paid plans
                                 </Link>{" "}
-                                to keep monthly payslips, contracts, leave, and records together.
+                                when you need more than the free page.
                             </p>
                         </div>
 
@@ -113,7 +116,7 @@ export default function PayslipGeneratorPage() {
             <JsonLd schema={{
                 "@context": "https://schema.org",
                 "@type": "WebApplication",
-                name: "Free Domestic Worker Payslip Generator",
+                name: "Free Domestic Worker Payslip Template & Generator",
                 url: `${CANONICAL_SITE_URL}/resources/tools/domestic-worker-payslip`,
                 applicationCategory: "BusinessApplication",
                 operatingSystem: "Web",
@@ -128,7 +131,7 @@ export default function PayslipGeneratorPage() {
                 { name: "Home", path: "/" },
                 { name: "Resources", path: "/resources" },
                 { name: "Tools", path: "/resources/tools" },
-                { name: "Domestic Worker Payslip Generator", path: "/resources/tools/domestic-worker-payslip" },
+                { name: "Domestic Worker Payslip Template & Generator", path: "/resources/tools/domestic-worker-payslip" },
             ])} />
         </div>
     );

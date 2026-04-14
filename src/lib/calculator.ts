@@ -15,6 +15,8 @@ export const UIF_MONTHLY_CAP = LEGAL_REGISTRY.UIF.MONTHLY_CAP;
 export const ACCOMMODATION_MAX_PCT = LEGAL_REGISTRY.SD7.ACCOMMODATION_MAX_PCT;
 export const UIF_RATE = LEGAL_REGISTRY.UIF.RATE;
 export const UIF_THRESHOLD_HOURS = LEGAL_REGISTRY.UIF.THRESHOLD_HOURS;
+export const UIF_MAX_EMPLOYEE_CONTRIBUTION = LEGAL_REGISTRY.UIF.MAX_EMPLOYEE_CONTRIBUTION;
+export const UIF_MAX_TOTAL_CONTRIBUTION = LEGAL_REGISTRY.UIF.MAX_TOTAL_CONTRIBUTION;
 const OVERTIME_MULTIPLIER = LEGAL_REGISTRY.SD7.OVERTIME_MULTIPLIER;
 const SUNDAY_PH_MULTIPLIER = LEGAL_REGISTRY.SD7.SUNDAY_PH_MULTIPLIER;
 const SUNDAY_NON_ORDINARY_MULTIPLIER = LEGAL_REGISTRY.SD7.SUNDAY_NON_ORDINARY_MULTIPLIER;
@@ -31,6 +33,7 @@ export interface PayBreakdown {
     publicHolidayPay: number;
     grossPay: number;
     totalHours: number;
+    uifQualifyingHours?: number;
     deductions: {
         uifEmployee: number;
         accommodation: number | undefined;
@@ -83,7 +86,7 @@ export function getUifThresholdHoursForPeriod(periodStart?: Date | string, perio
 }
 
 export function isUifApplicable(totalHours: number, periodStart?: Date | string, periodEnd?: Date | string): boolean {
-    return totalHours >= getUifThresholdHoursForPeriod(periodStart, periodEnd);
+    return totalHours > getUifThresholdHoursForPeriod(periodStart, periodEnd);
 }
 
 export function getSundayRateMultiplier(ordinarilyWorksSundays: boolean): number {
@@ -118,10 +121,11 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
     const publicHolidayPay = roundTo(input.publicHolidayHours * rate * SUNDAY_PH_MULTIPLIER);
     const grossPay = roundTo(ordinaryPay + overtimePay + sundayPay + publicHolidayPay);
     const totalHours = effectiveOrdinaryHours + input.overtimeHours + input.sundayHours + input.publicHolidayHours;
+    const uifQualifyingHours = input.ordinaryHours + input.overtimeHours + input.sundayHours + input.publicHolidayHours;
 
     const uifBase = Math.min(grossPay, UIF_MONTHLY_CAP);
     const weeksInPeriod = getPeriodWeeks(input);
-    const uifContribution = isUifApplicable(totalHours, input.payPeriodStart, input.payPeriodEnd)
+    const uifContribution = isUifApplicable(uifQualifyingHours, input.payPeriodStart, input.payPeriodEnd)
         ? roundTo(uifBase * UIF_RATE)
         : 0;
 
@@ -158,6 +162,7 @@ export function calculatePayslip(input: PayslipInput): PayBreakdown {
         publicHolidayPay,
         grossPay,
         totalHours,
+        uifQualifyingHours,
         hourlyRate: rate,
         deductions: {
             uifEmployee: uifContribution,

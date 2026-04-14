@@ -9,19 +9,19 @@ const FOOTER_GROUPS = [
         links: [
             { href: "/#how-it-works", label: "How it works" },
             { href: "/pricing", label: "Pricing" },
-            { href: "/calculator", label: "Wage & UIF calculator" },
+            { href: "/calculator", label: "Pay calculator" },
             { href: "/login", label: "Log in" },
         ],
     },
     {
         title: "Resources",
         links: [
-            { href: "/resources/tools/domestic-worker-payslip", label: "Payslip Generator" },
-            { href: "/resources/guides/uif-for-domestic-workers", label: "UIF Guide" },
+            { href: "/resources/tools/domestic-worker-payslip", label: "Payslip template" },
+            { href: "/resources/guides/uif-for-domestic-workers", label: "How UIF works" },
             { href: "/resources/guides/domestic-worker-minimum-wage-2026", label: "NMW Rules 2026" },
             { href: "/resources/guides/4-hour-minimum-pay-rule", label: "4-Hour Pay Rule" },
-            { href: "/uif-calculator", label: "UIF Calculator" },
-            { href: "/resources/checklists/household-employer-monthly", label: "Monthly Checklist" },
+            { href: "/uif-calculator", label: "UIF deduction calculator" },
+            { href: "/resources/checklists/household-employer-monthly", label: "Monthly household employer checklist" },
             { href: "/resources", label: "All Resources" },
         ],
     },
@@ -62,7 +62,7 @@ export function MarketingFooter() {
                         </Link>
 
                         <p className="max-w-[34ch] text-sm leading-7" style={{ color: "var(--text-muted)" }}>
-                            Household payroll records, calmer monthly admin, and organised annual paperwork.
+                            Domestic worker payslips, UIF checks, and practical monthly household employer admin.
                         </p>
 
                         <div className="space-y-1.5 text-[11px] leading-5" style={{ color: "var(--text-muted)" }}>
@@ -125,7 +125,7 @@ export function MarketingFooter() {
 
                 <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,44rem)] lg:items-start">
                     <div className="max-w-[30rem] text-xs leading-6" style={{ color: "var(--text-muted)" }}>
-                        Keep payslips, contracts, exports, backup access, and support information in one place so the practical and legal details stay easy to find.
+                        Keep payslips, contracts, exports, and support details easy to find when you need them.
                     </div>
 
                     <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-raised)] p-5 sm:p-6">
