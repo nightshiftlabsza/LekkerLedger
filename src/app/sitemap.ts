@@ -1,17 +1,17 @@
 import { MetadataRoute } from "next";
-import { CANONICAL_SITE_URL, INDEXABLE_PUBLIC_ROUTES, SITEMAP_LAST_MODIFIED } from "@/lib/seo";
+import { CANONICAL_SITE_URL, SITEMAP_LAST_MODIFIED, SITEMAP_PUBLIC_ROUTES } from "@/lib/seo";
 
 const HIGH_PRIORITY_ROUTES = new Set([
   "/",
   "/pricing",
   "/calculator",
   "/uif-calculator",
-  "/trust",
-  "/resources",
+  "/ufiling-errors",
+  "/resources/tools/domestic-worker-payslip",
 ]);
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return INDEXABLE_PUBLIC_ROUTES.map((route) => ({
+  return SITEMAP_PUBLIC_ROUTES.map((route) => ({
     url: `${CANONICAL_SITE_URL}${route === "/" ? "" : route}`,
     lastModified: SITEMAP_LAST_MODIFIED,
     changeFrequency: route.startsWith("/resources/") ? "monthly" : "weekly",

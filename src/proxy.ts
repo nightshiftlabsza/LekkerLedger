@@ -1,17 +1,48 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { getCanonicalAppOrigin, getRequestCurrentOrigin, isLocalAppOrigin } from '@/lib/app-origin'
+import {
+  getCanonicalAppOrigin,
+  getConfiguredAppOrigin,
+  getRequestCurrentOrigin,
+  isLocalAppOrigin,
+} from '@/lib/app-origin'
 import { updateSession } from '@/lib/supabase/middleware'
 
-export async function proxy(request: NextRequest) {
+const LEGACY_ROUTE_REDIRECTS = new Map<string, string>([
+  ['/help/coida', '/resources/guides/coida-and-roe-compliance'],
+  ['/help/compliance', '/resources/checklists'],
+  ['/rules', '/resources/checklists'],
+])
+
+function getCanonicalRedirectUrl(request: NextRequest): URL | null {
   const requestOrigin = getRequestCurrentOrigin(request)
-  const canonicalOrigin = getCanonicalAppOrigin(requestOrigin)
   const isLocalRequest =
     isLocalAppOrigin(requestOrigin)
     || process.env.NODE_ENV !== "production"
     || process.env.E2E_BYPASS_AUTH === "1"
 
-  if (!isLocalRequest && canonicalOrigin && canonicalOrigin !== requestOrigin) {
-    return NextResponse.redirect(new URL(`${request.nextUrl.pathname}${request.nextUrl.search}`, canonicalOrigin), 308)
+  if (isLocalRequest) {
+    return null
+  }
+
+  const redirectOrigin = getConfiguredAppOrigin() || getCanonicalAppOrigin(requestOrigin)
+  const legacyPath = LEGACY_ROUTE_REDIRECTS.get(request.nextUrl.pathname) ?? null
+  const needsCanonicalOrigin = !!redirectOrigin && redirectOrigin !== requestOrigin
+
+  if (!legacyPath && !needsCanonicalOrigin) {
+    return null
+  }
+
+  const redirectUrl = new URL(redirectOrigin || requestOrigin)
+  redirectUrl.pathname = legacyPath ?? request.nextUrl.pathname
+  redirectUrl.search = request.nextUrl.search
+
+  return redirectUrl
+}
+
+export async function proxy(request: NextRequest) {
+  const canonicalRedirectUrl = getCanonicalRedirectUrl(request)
+  if (canonicalRedirectUrl) {
+    return NextResponse.redirect(canonicalRedirectUrl, 308)
   }
 
   return await updateSession(request)

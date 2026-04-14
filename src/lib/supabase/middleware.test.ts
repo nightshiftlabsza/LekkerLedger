@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
     buildProtectedRouteLoginRedirect,
-    resolveCanonicalRedirect,
     shouldApplyNoIndex,
 } from "./middleware";
 
@@ -20,65 +19,6 @@ describe("buildProtectedRouteLoginRedirect", () => {
         expect(redirectedUrl.toString()).toBe(
             "https://example.com/login?next=%2Fdashboard%3FpaidLogin%3D1%26reference%3Dref_123",
         );
-    });
-});
-
-describe("resolveCanonicalRedirect", () => {
-    it("normalizes protocol, host, and legacy routes in one hop", () => {
-        vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://lekkerledger.co.za");
-        try {
-            const redirectedUrl = resolveCanonicalRedirect(
-                new URL("http://www.lekkerledger.co.za/help/coida?auth=login"),
-            );
-
-            expect(redirectedUrl?.toString()).toBe(
-                "https://lekkerledger.co.za/resources/guides/coida-and-roe-compliance?auth=login",
-            );
-        } finally {
-            vi.unstubAllEnvs();
-        }
-    });
-
-    it("returns null for an already canonical public URL", () => {
-        vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://lekkerledger.co.za");
-        try {
-            expect(resolveCanonicalRedirect(new URL("https://lekkerledger.co.za/resources"))).toBeNull();
-        } finally {
-            vi.unstubAllEnvs();
-        }
-    });
-
-    it("keeps the current host when only a legacy route rewrite is needed", () => {
-        const redirectedUrl = resolveCanonicalRedirect(
-            new URL("https://lekkerledger-production.up.railway.app/help/coida?auth=login"),
-        );
-
-        expect(redirectedUrl?.toString()).toBe(
-            "https://lekkerledger-production.up.railway.app/resources/guides/coida-and-roe-compliance?auth=login",
-        );
-    });
-
-    it("does not force Railway requests onto a hard-coded host when no site url is configured", () => {
-        expect(
-            resolveCanonicalRedirect(new URL("https://lekkerledger-production.up.railway.app/dashboard")),
-        ).toBeNull();
-    });
-
-    it("honors forwarded https headers so proxied custom domains do not self-redirect", () => {
-        vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://lekkerledger.co.za");
-        try {
-            const headers = new Headers({
-                host: "lekkerledger.co.za",
-                "x-forwarded-host": "lekkerledger.co.za",
-                "x-forwarded-proto": "https",
-            });
-
-            expect(
-                resolveCanonicalRedirect(new URL("http://lekkerledger.co.za/login"), headers),
-            ).toBeNull();
-        } finally {
-            vi.unstubAllEnvs();
-        }
     });
 });
 

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { ROOT_METADATA_BASE } from "@/lib/seo";
 import { metadata as authMetadata } from "./(auth)/layout";
 import { metadata as billingMetadata } from "./billing/layout";
+import { metadata as marketingMetadata } from "./(marketing)/layout";
+import { metadata as helpMetadata } from "./(marketing)/help/layout";
 import { metadata as homeMetadata } from "./(marketing)/page";
 import { metadata as pricingMetadata } from "./(marketing)/pricing/layout";
 import { metadata as calculatorMetadata } from "./(marketing)/calculator/layout";
@@ -18,6 +20,12 @@ describe("SEO metadata", () => {
     it("keeps auth and billing routes out of the index", () => {
         expect(authMetadata.robots).toMatchObject({ index: false, follow: true });
         expect(billingMetadata.robots).toMatchObject({ index: false, follow: true });
+    });
+
+    it("keeps legacy help pages out of the index without affecting public resources", () => {
+        expect(marketingMetadata.robots).toMatchObject({ index: true, follow: true });
+        expect(helpMetadata.robots).toMatchObject({ index: false, follow: true });
+        expect(checklistsMetadata.robots).toBeUndefined();
     });
 
     it("sets explicit canonical paths for key public pages", () => {
