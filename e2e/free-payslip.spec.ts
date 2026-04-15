@@ -18,7 +18,7 @@ async function reachReviewStep(page: Page) {
     await expect(page.getByRole("heading", { name: "Free Domestic Worker Payslip Template & Generator" })).toBeVisible({ timeout: 20000 });
     await expect(page.getByRole("heading", { name: "Schedule and hourly rate" })).toBeVisible();
     await completeStepOne(page);
-    await expect(page.getByRole("heading", { name: /What happened in .*?\?/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Normal month for/i })).toBeVisible();
     await completeStepTwo(page);
     await expect(page.getByRole("heading", { name: "Review and email" })).toBeVisible();
 }
@@ -32,14 +32,17 @@ test.describe("Free public payslip flow", () => {
         await expect(page.getByLabel("Employer name")).toHaveCount(0);
         await expect(page.getByLabel("Days they missed")).toHaveCount(0);
         await expect(page.getByLabel("How many short days?")).toHaveCount(0);
+        await expect(page.getByLabel("Hours worked on public holidays")).toHaveCount(0);
 
         await completeStepOne(page);
-        await expect(page.getByRole("heading", { name: /What happened in .*?\?/ })).toBeVisible();
+        await expect(page.getByRole("heading", { name: /Normal month for/i })).toBeVisible();
         await expect(page.getByLabel("Days they missed")).toHaveCount(0);
         await expect(page.getByLabel("How many short days?")).toHaveCount(0);
+        await expect(page.getByLabel("Hours worked on public holidays")).toHaveCount(0);
+        await expect(page.getByRole("button", { name: /See .* public holidays/i })).toBeVisible();
     });
 
-    test("updates the Sunday helper copy when the normal schedule changes", async ({ page }) => {
+    test("shows the Sunday helper and public-holiday helper copy", async ({ page }) => {
         await page.goto("/resources/tools/domestic-worker-payslip");
         await page.getByLabel("Worker name").fill("Thandi Maseko");
         await page.getByRole("button", { name: /Other days/i }).click();
@@ -49,31 +52,25 @@ test.describe("Free public payslip flow", () => {
         await page.getByLabel("Employer address").fill("18 Acacia Avenue, Northcliff, Johannesburg");
         await page.getByRole("button", { name: "Continue to this month's work" }).click();
 
-        const overtimeGroup = page.getByRole("group", { name: /Did the worker do any overtime or work on a Sunday\?/i });
-        const sundayHoursField = page.getByLabel("Sunday hours");
-        const sundayInfoButton = page.locator("span").filter({ hasText: "Sunday hours" }).getByRole("button", { name: "More information" });
-
         await page.getByRole("button", { name: "Yes, I need to make adjustments" }).click();
-        await expect(overtimeGroup).toBeVisible();
-        await overtimeGroup.getByRole("button", { name: "Yes, they did" }).click();
-        await expect(sundayHoursField).toBeVisible();
-        await sundayInfoButton.hover();
-        await expect(page.locator('[role="tooltip"]')).toContainText(/Sunday hours are paid at 1\.5x/i);
+        const publicHolidayGroup = page.getByRole("group", { name: /Did the worker work on any South African public holidays this month\?/i });
+        await publicHolidayGroup.getByRole("button", { name: "Yes" }).click();
+        await expect(page.getByLabel("Hours worked on public holidays")).toBeVisible();
+        await page.getByRole("button", { name: /See .* public holidays/i }).click();
+        await expect(page.getByText("Good Friday")).toBeVisible();
 
         await page.getByRole("button", { name: "Back" }).click();
         await expect(page.getByRole("heading", { name: "Schedule and hourly rate" })).toBeVisible();
         await page.getByRole("button", { name: /Monday to Friday/i }).click();
         await page.getByRole("button", { name: "Continue to this month's work" }).click();
-        await expect(page.getByRole("heading", { name: /What happened in .*?\?/ })).toBeVisible();
+        await expect(page.getByRole("heading", { name: /Normal month for/i })).toBeVisible();
 
-        if (!(await sundayHoursField.isVisible())) {
-            await page.getByRole("button", { name: "Yes, I need to make adjustments" }).click();
-            await page.getByRole("group", { name: /Did the worker do any overtime or work on a Sunday\?/i }).getByRole("button", { name: "Yes, they did" }).click();
-        }
-
-        await expect(sundayHoursField).toBeVisible();
-        await page.locator("span").filter({ hasText: "Sunday hours" }).getByRole("button", { name: "More information" }).hover();
-        await expect(page.locator('[role="tooltip"]')).toContainText(/Sunday hours are paid at 2x/i);
+        await page.getByRole("button", { name: "Yes, I need to make adjustments" }).click();
+        const sundayGroup = page.getByRole("group", { name: /Did the worker work on a Sunday\?/i });
+        await sundayGroup.getByRole("button", { name: "Yes" }).click();
+        await expect(page.getByLabel("Sunday hours")).toBeVisible();
+        await page.getByRole("button", { name: "Show Sunday pay rule" }).click();
+        await expect(page.getByText(/2x the normal hourly rate/i)).toBeVisible();
     });
 
     test("shows the new review summary and fresh checkbox state", async ({ page }) => {

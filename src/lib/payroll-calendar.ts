@@ -263,23 +263,18 @@ export function buildOrdinaryWorkCalendarPlainLanguage(
     if (selectedPatternDays === 0) {
         return {
             summary: "Choose the usual work week to see the normal days and hours for this month.",
-            holidayDetails: "We will check South African public holidays after you choose the usual work week.",
+            holidayDetails: "Public holidays will appear here after you choose the usual work week.",
         };
     }
 
     const monthLabel = format(new Date(`${summary.startDate}T00:00:00`), "MMMM yyyy");
-    const scheduledWorkDays = summary.ordinaryWorkDates.length + summary.publicHolidaysOnOrdinaryWorkDays.length;
-    const holidayCount = summary.publicHolidaysOnOrdinaryWorkDays.length;
-
-    const summaryText = holidayCount > 0
-        ? `${monthLabel} has ${scheduledWorkDays} workday${scheduledWorkDays === 1 ? "" : "s"} in this schedule. ${holidayCount} public holiday${holidayCount === 1 ? "" : "s"} fall on those days. Maximum normal paid days this month: ${summary.ordinaryDayCap}. Maximum normal hours this month: ${summary.ordinaryHourCap}.`
-        : `${monthLabel} has ${summary.ordinaryDayCap} workday${summary.ordinaryDayCap === 1 ? "" : "s"} in this schedule. Maximum normal hours this month: ${summary.ordinaryHourCap}.`;
+    const summaryText = `${monthLabel} has ${summary.ordinaryDayCap} normal workday${summary.ordinaryDayCap === 1 ? "" : "s"} and ${summary.ordinaryHourCap} normal hour${summary.ordinaryHourCap === 1 ? "" : "s"} for this schedule.`;
 
     const holidayDetails = summary.publicHolidaysInRange.length === 0
         ? "No South African public holidays fall in this month."
-        : holidayCount > 0
-            ? `${holidayCount} public holiday${holidayCount === 1 ? "" : "s"} fall on the usual work week, so they are not counted as normal days.`
-            : "Public holidays fall in this month, but none of them are on the usual work week.";
+        : summary.publicHolidaysOnOrdinaryWorkDays.length > 0
+            ? "Some public holidays fall on the usual work week. Open the helper below to see them."
+            : "Public holidays fall in this month, but none are on the usual work week.";
 
     return {
         summary: summaryText,

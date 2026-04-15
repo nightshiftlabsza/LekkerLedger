@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Stepper } from "@/components/ui/stepper";
 import { track } from "@/lib/analytics";
-import { calculatePayslip, NMW_RATE } from "@/lib/calculator";
+import { calculatePayslip, getNMW } from "@/lib/calculator";
 import {
     buildEmptyOrdinaryWorkPattern,
     normalizeOrdinaryWorkPattern,
@@ -205,7 +205,7 @@ function SummaryRow({ label, value, strong = false }: { label: string; value: st
     return (
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 text-sm">
             <span className={`${strong ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]"} leading-6`}>{label}</span>
-            <span className={`text-right tabular-nums ${strong ? "font-semibold text-[var(--text)]" : "font-medium text-[var(--text)]"}`}>{value}</span>
+            <span className={`whitespace-nowrap text-right tabular-nums leading-none ${strong ? "font-semibold text-[var(--text)]" : "font-medium text-[var(--text)]"}`}>{value}</span>
         </div>
     );
 }
@@ -214,7 +214,7 @@ function MajorSummaryRow({ label, value, accent = false }: { label: string; valu
     return (
         <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-4">
             <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</p>
-            <p className={`mt-2 font-[family:var(--font-serif)] text-[clamp(1.35rem,4vw,2rem)] font-semibold leading-tight tabular-nums ${accent ? "text-[var(--primary)]" : "text-[var(--text)]"}`}>
+            <p className={`mt-2 whitespace-nowrap font-[family:var(--font-serif)] text-[clamp(1.2rem,2.6vw,1.9rem)] font-semibold leading-none tabular-nums ${accent ? "text-[var(--primary)]" : "text-[var(--text)]"}`}>
                 {value}
             </p>
         </div>
@@ -249,6 +249,40 @@ function InfoTip({ text }: { text: string }) {
     );
 }
 
+function InlineDisclosure({
+    summary,
+    buttonLabel,
+    children,
+}: {
+    summary: string;
+    buttonLabel: string;
+    children: React.ReactNode;
+}) {
+    const [open, setOpen] = React.useState(false);
+    const panelId = React.useId();
+
+    return (
+        <div className="space-y-2">
+            {summary ? <p className="text-sm leading-6 text-[var(--text-muted)]">{summary}</p> : null}
+            <button
+                type="button"
+                aria-expanded={open}
+                aria-controls={panelId}
+                onClick={() => setOpen((current) => !current)}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2"
+            >
+                {buttonLabel}
+                {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {open ? (
+                <div id={panelId} className="rounded-[1rem] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3">
+                    {children}
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
 export function FreePayslipGenerator() {
     const savedDraft = React.useMemo(() => loadSavedDraft(), []);
     const prefersReducedMotion = usePrefersReducedMotion();
@@ -275,8 +309,9 @@ export function FreePayslipGenerator() {
     const [adjustmentsNeeded, setAdjustmentsNeeded] = React.useState<boolean | null>(null);
     const [daysMissed, setDaysMissed] = React.useState("0");
     const [hasUnpaidLeave, setHasUnpaidLeave] = React.useState<boolean | null>(null);
-    const [workedOnHoliday, setWorkedOnHoliday] = React.useState<boolean | null>(null);
-    const [hasExtraHours, setHasExtraHours] = React.useState<boolean | null>(null);
+    const [hasOvertime, setHasOvertime] = React.useState<boolean | null>(null);
+    const [hasSundayWork, setHasSundayWork] = React.useState<boolean | null>(null);
+    const [hasPublicHolidayWork, setHasPublicHolidayWork] = React.useState<boolean | null>(null);
     const [hasShortDays, setHasShortDays] = React.useState<boolean | null>(null);
     const [hasDeductions, setHasDeductions] = React.useState<boolean | null>(null);
 
@@ -295,10 +330,13 @@ export function FreePayslipGenerator() {
     const breakdown = React.useMemo(() => calculationInput ? calculatePayslip(calculationInput) : null, [calculationInput]);
     const payrollSummary = React.useMemo(() => calculationInput ? buildPayrollSummary(calculationInput) : null, [calculationInput]);
     const payload = React.useMemo(() => buildFreePayslipPayload(form), [form]);
-
-    const sundayRateHelper = normalizedPattern.sunday
-        ? "Sunday hours are paid at 1.5x because Sunday is part of the normal schedule."
-        : "Sunday hours are paid at 2x because Sunday is not part of the normal schedule.";
+    const selectedMonthLabel = React.useMemo(() => format(monthBounds.end, "MMMM yyyy"), [monthBounds.end]);
+    const activeNmwRate = React.useMemo(() => getNMW(monthBounds.end), [monthBounds.end]);
+    const publicHolidayHelperLabel = React.useMemo(() => `See ${selectedMonthLabel} public holidays`, [selectedMonthLabel]);
+    const sundayRateSummary = "Sunday pay depends on the ordinary schedule entered above.";
+    const sundayRateDetails = normalizedPattern.sunday
+        ? "If Sunday is part of the worker’s ordinary schedule, Sunday hours are paid at 1.5x the normal hourly rate. The calculator applies the rule from the schedule entered above, and the existing Sunday minimum-pay rule stays unchanged."
+        : "If Sunday is not part of the worker’s ordinary schedule, Sunday hours are paid at 2x the normal hourly rate. The calculator applies the rule from the schedule entered above, and the existing Sunday minimum-pay rule stays unchanged.";
 
     const clearTransitionTimers = React.useCallback(() => {
         motionTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
@@ -348,8 +386,9 @@ export function FreePayslipGenerator() {
         setAdjustmentsNeeded(null);
         setDaysMissed("0");
         setHasUnpaidLeave(null);
-        setWorkedOnHoliday(null);
-        setHasExtraHours(null);
+        setHasOvertime(null);
+        setHasSundayWork(null);
+        setHasPublicHolidayWork(null);
         setHasShortDays(null);
         setHasDeductions(null);
     }, [currentStep, ordinaryCalendar.ordinaryDayCap]);
@@ -693,13 +732,13 @@ export function FreePayslipGenerator() {
                                     <TextField
                                         id="free-hourly-rate"
                                         label="Hourly rate"
-                                        hint={`The hourly rate must be at least R${NMW_RATE.toFixed(2)}.`}
+                                        hint={`The hourly rate must be at least R${activeNmwRate.toFixed(2)} for ${selectedMonthLabel}.`}
                                         error={errors.hourlyRate}
                                     >
                                         <Input
                                             id="free-hourly-rate"
                                             type="number"
-                                            min={NMW_RATE}
+                                            min={activeNmwRate}
                                             step="0.01"
                                             inputMode="decimal"
                                             value={form.hourlyRate}
@@ -855,29 +894,39 @@ export function FreePayslipGenerator() {
                             <div className="space-y-6">
                                 <SectionIntro
                                     eyebrow="Step 2 of 3"
-                                    title={`What happened in ${format(monthBounds.end, "MMMM yyyy")}?`}
-                                    description="We've worked out the normal month based on the worker's schedule. Confirm or adjust below."
+                                    title={`Normal month for ${selectedMonthLabel}`}
+                                    description="Review the ordinary month first, then only add the exceptions below."
                                     headingRef={stepHeadingRef}
                                 />
 
                                 {/* Card 1: The baseline — always visible */}
                                 <div className="space-y-4 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-2)] p-4">
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-semibold text-[var(--text)]">
-                                            {format(monthBounds.end, "MMMM yyyy")} has {ordinaryCalendar.ordinaryDayCap} working {ordinaryCalendar.ordinaryDayCap === 1 ? "day" : "days"} on this schedule.
+                                    <div className="space-y-2">
+                                        <p className="text-sm leading-7 text-[var(--text-muted)]">
+                                            Based on the usual schedule, this month has {ordinaryCalendar.ordinaryDayCap} normal workday{ordinaryCalendar.ordinaryDayCap === 1 ? "" : "s"}. Use the questions below only if something was different this month.
                                         </p>
-                                        {ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length > 0 ? (
-                                            <p className="text-sm leading-6 text-[var(--text-muted)]">
-                                                {(() => {
-                                                    const names = ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.map((h) => h.name);
-                                                    const joined = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-                                                    return `This already excludes ${joined} — ${names.length === 1 ? "it falls" : "they fall"} on working days. The worker is still paid for ${names.length === 1 ? "this day" : "these days"}.`;
-                                                })()}
-                                            </p>
-                                        ) : ordinaryCalendar.publicHolidaysInRange.length > 0 ? (
-                                            <p className="text-sm leading-6 text-[var(--text-muted)]">No public holidays fall on the worker&apos;s scheduled days this month.</p>
-                                        ) : null}
+                                        <p className="text-sm leading-7 text-[var(--text-muted)]">
+                                            Public holiday work is entered separately if the worker actually worked on a public holiday.
+                                        </p>
                                     </div>
+                                    <InlineDisclosure
+                                        summary="Public holiday work is entered separately if it happened this month."
+                                        buttonLabel={publicHolidayHelperLabel}
+                                    >
+                                        <div className="space-y-3">
+                                            {ordinaryCalendar.publicHolidaysInRange.length === 0 ? (
+                                                <p className="text-sm leading-6 text-[var(--text-muted)]">No South African public holidays fall in this month.</p>
+                                            ) : (
+                                                <ul className="space-y-2 text-sm leading-6 text-[var(--text)]">
+                                                    {ordinaryCalendar.publicHolidaysInRange.map((holiday) => (
+                                                        <li key={holiday.date}>
+                                                            {format(new Date(`${holiday.date}T00:00:00`), "EEE d MMM yyyy")} · {holiday.name}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    </InlineDisclosure>
                                     <div className="space-y-3">
                                         <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Did anything change this month?</p>
                                         <div className="flex flex-col gap-3 sm:flex-row">
@@ -949,91 +998,81 @@ export function FreePayslipGenerator() {
 
                                         <div className="border-t border-[var(--border)]" />
 
-                                        {/* Question B — Public holiday work (only if holidays land on scheduled days) */}
-                                        {ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.length > 0 ? (
-                                            <>
-                                                <div className="space-y-3" role="group" aria-labelledby="q-holiday-label">
-                                                    <p id="q-holiday-label" className="text-sm font-semibold text-[var(--text)]">
-                                                        {(() => {
-                                                            const names = ordinaryCalendar.publicHolidaysOnOrdinaryWorkDays.map((h) => h.name);
-                                                            const joined = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-                                                            return `Did the worker come in on ${joined}?`;
-                                                        })()}
-                                                    </p>
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            type="button"
-                                                            aria-pressed={workedOnHoliday === true}
-                                                            onClick={() => setWorkedOnHoliday(true)}
-                                                            className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${workedOnHoliday === true ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
-                                                        >
-                                                            Yes, they worked
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            aria-pressed={workedOnHoliday === false}
-                                                            onClick={() => {
-                                                                setWorkedOnHoliday(false);
-                                                                updateField("publicHolidayHours", "0");
-                                                            }}
-                                                            className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${workedOnHoliday === false ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
-                                                        >
-                                                            No, they had the day off
-                                                        </button>
-                                                    </div>
-                                                    {workedOnHoliday === true ? (
-                                                        <div className="pt-1">
-                                                            <TextField
-                                                                id="free-public-holiday-hours"
-                                                                label={<>Hours worked on the public holiday <InfoTip text="Public holiday hours are paid at double the normal rate (2×)." /></>}
-                                                                error={errors.publicHolidayHours}
-                                                            >
-                                                                <Input
-                                                                    id="free-public-holiday-hours"
-                                                                    type="number"
-                                                                    min="0"
-                                                                    inputMode="decimal"
-                                                                    value={form.publicHolidayHours}
-                                                                    onChange={(event) => updateField("publicHolidayHours", event.target.value)}
-                                                                />
-                                                            </TextField>
-                                                        </div>
-                                                    ) : null}
-                                                </div>
-                                                <div className="border-t border-[var(--border)]" />
-                                            </>
-                                        ) : null}
-
-                                        {/* Question C — Overtime and Sunday */}
-                                        <div className="space-y-3" role="group" aria-labelledby="q-overtime-label">
-                                            <p id="q-overtime-label" className="text-sm font-semibold text-[var(--text)]">Did the worker do any overtime or work on a Sunday?</p>
+                                        {/* Question B — Public holiday work */}
+                                        <div className="space-y-3" role="group" aria-labelledby="q-holiday-label">
+                                            <p id="q-holiday-label" className="text-sm font-semibold text-[var(--text)]">Did the worker work on any South African public holidays this month?</p>
                                             <div className="flex gap-2">
                                                 <button
                                                     type="button"
-                                                    aria-pressed={hasExtraHours === true}
-                                                    onClick={() => setHasExtraHours(true)}
-                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasExtraHours === true ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                    aria-pressed={hasPublicHolidayWork === false}
+                                                    onClick={() => {
+                                                        setHasPublicHolidayWork(false);
+                                                        updateField("publicHolidayHours", "0");
+                                                    }}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasPublicHolidayWork === false ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
                                                 >
-                                                    Yes, they did
+                                                    No
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    aria-pressed={hasExtraHours === false}
-                                                    onClick={() => {
-                                                        setHasExtraHours(false);
-                                                        updateField("overtimeHours", "0");
-                                                        updateField("sundayHours", "0");
-                                                    }}
-                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasExtraHours === false ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                    aria-pressed={hasPublicHolidayWork === true}
+                                                    onClick={() => setHasPublicHolidayWork(true)}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasPublicHolidayWork === true ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
                                                 >
-                                                    No, they didn&apos;t
+                                                    Yes
                                                 </button>
                                             </div>
-                                            {hasExtraHours === true ? (
-                                                <div className="grid gap-4 pt-1 sm:grid-cols-2">
+                                            {hasPublicHolidayWork === true ? (
+                                                <div className="pt-1">
+                                                    <TextField
+                                                        id="free-public-holiday-hours"
+                                                        label={<>Hours worked on public holidays <InfoTip text="Public holiday hours are paid at double the normal rate (2×)." /></>}
+                                                        error={errors.publicHolidayHours}
+                                                    >
+                                                        <Input
+                                                            id="free-public-holiday-hours"
+                                                            type="number"
+                                                            min="0"
+                                                            inputMode="decimal"
+                                                            value={form.publicHolidayHours}
+                                                            onChange={(event) => updateField("publicHolidayHours", event.target.value)}
+                                                        />
+                                                    </TextField>
+                                                </div>
+                                            ) : null}
+                                        </div>
+
+                                        <div className="border-t border-[var(--border)]" />
+
+                                        {/* Question C — Overtime */}
+                                        <div className="space-y-3" role="group" aria-labelledby="q-overtime-label">
+                                            <p id="q-overtime-label" className="text-sm font-semibold text-[var(--text)]">Did the worker do any overtime?</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasOvertime === false}
+                                                    onClick={() => {
+                                                        setHasOvertime(false);
+                                                        updateField("overtimeHours", "0");
+                                                    }}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasOvertime === false ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                >
+                                                    No
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasOvertime === true}
+                                                    onClick={() => setHasOvertime(true)}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasOvertime === true ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                >
+                                                    Yes
+                                                </button>
+                                            </div>
+                                            {hasOvertime === true ? (
+                                                <div className="pt-1">
                                                     <TextField
                                                         id="free-overtime-hours"
-                                                        label={<>Overtime hours <InfoTip text="Hours worked beyond the normal day on a scheduled day. Paid at 1.5× the hourly rate." /></>}
+                                                        label={<>Hours beyond the normal schedule (overtime) <InfoTip text="Enter only hours worked beyond the worker’s normal ordinary hours. Do not include Sunday or public-holiday hours here. These hours are paid at 1.5× the normal hourly rate." /></>}
                                                         error={errors.overtimeHours}
                                                     >
                                                         <Input
@@ -1045,11 +1084,45 @@ export function FreePayslipGenerator() {
                                                             onChange={(event) => updateField("overtimeHours", event.target.value)}
                                                         />
                                                     </TextField>
-                                                    <TextField
-                                                        id="free-sunday-hours"
-                                                        label={<>Sunday hours <InfoTip text={sundayRateHelper} /></>}
-                                                        error={errors.sundayHours}
-                                                    >
+                                                </div>
+                                            ) : null}
+                                        </div>
+
+                                        <div className="border-t border-[var(--border)]" />
+
+                                        {/* Question D — Sunday work */}
+                                        <div className="space-y-3" role="group" aria-labelledby="q-sunday-label">
+                                            <p id="q-sunday-label" className="text-sm font-semibold text-[var(--text)]">Did the worker work on a Sunday?</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasSundayWork === false}
+                                                    onClick={() => {
+                                                        setHasSundayWork(false);
+                                                        updateField("sundayHours", "0");
+                                                    }}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasSundayWork === false ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                >
+                                                    No
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={hasSundayWork === true}
+                                                    onClick={() => setHasSundayWork(true)}
+                                                    className={`min-h-[var(--touch-target-min)] flex-1 rounded-[0.9rem] border px-4 text-sm font-semibold transition-colors ${hasSundayWork === true ? "border-[var(--primary)] bg-[var(--primary)] text-white" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text)] hover:border-[var(--primary)]/40"}`}
+                                                >
+                                                    Yes
+                                                </button>
+                                            </div>
+                                            {hasSundayWork === true ? (
+                                                <div className="pt-1">
+                                                    <div className="mb-2 space-y-2">
+                                                        <p className="text-sm leading-6 text-[var(--text-muted)]">{sundayRateSummary}</p>
+                                                        <InlineDisclosure buttonLabel="Show Sunday pay rule" summary="">
+                                                            <p className="text-sm leading-6 text-[var(--text-muted)]">{sundayRateDetails}</p>
+                                                        </InlineDisclosure>
+                                                    </div>
+                                                    <TextField id="free-sunday-hours" label="Sunday hours" error={errors.sundayHours}>
                                                         <Input
                                                             id="free-sunday-hours"
                                                             type="number"
@@ -1065,11 +1138,11 @@ export function FreePayslipGenerator() {
 
                                         <div className="border-t border-[var(--border)]" />
 
-                                        {/* Question D — Short days under 4 hours (BCEA s9(1)) */}
+                                        {/* Question E — Short days under 4 hours (BCEA s9(1)) */}
                                         <div className="space-y-3" role="group" aria-labelledby="q-short-label">
                                             <p id="q-short-label" className="text-sm font-semibold text-[var(--text)]">
                                                 Did the worker do any very short days — under 4 hours?{" "}
-                                                <InfoTip text="South African law requires at least 4 hours' pay for any day worked, even if they only came in for 2 hours. We apply the top-up automatically." />
+                                                <InfoTip text="South African employment rules require at least 4 hours’ pay for any day on which the worker worked. If a shorter shift is entered, the required top-up is applied automatically." />
                                             </p>
                                             <div className="flex gap-2">
                                                 <button
@@ -1108,7 +1181,7 @@ export function FreePayslipGenerator() {
                                                     </TextField>
                                                     <TextField
                                                         id="free-short-shift-hours"
-                                                        label={<>Total hours across those days <InfoTip text="We'll top up to 4 hours' pay for each of these days automatically, as required by law." /></>}
+                                                        label={<>Total hours across those days <InfoTip text="The calculator will top up each short day to 4 hours’ pay automatically, as required by South African employment rules." /></>}
                                                         error={errors.shortShiftWorkedHours}
                                                     >
                                                         <Input

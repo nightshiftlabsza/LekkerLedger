@@ -40,7 +40,7 @@ export function OrdinaryWorkCalendarSummaryCard({
                     className="flex w-full items-center justify-between gap-3 text-left"
                 >
                     <div>
-                        <p className="text-sm font-semibold text-[var(--text)]">Public holidays this month</p>
+                        <p className="text-sm font-semibold text-[var(--text)]">See public holidays for this month</p>
                         <p className="mt-1 text-sm text-[var(--text-muted)]">{plainLanguage.holidayDetails}</p>
                     </div>
                     {showHolidayDetails ? (

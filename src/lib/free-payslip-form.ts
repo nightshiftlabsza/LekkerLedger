@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { NMW_RATE } from "./calculator";
 import { type OrdinaryWorkPattern, normalizeOrdinaryWorkPattern } from "./ordinary-work-pattern";
+import { getNMWForDate } from "./legal/registry";
 import { describeOrdinaryWorkCalendar } from "./payroll-calendar";
 import { getMonthBounds, getMonthKey, normalizePayslipDraftToInput } from "./payslip-draft";
 import type { Employee, EmployerSettings, PayslipInput } from "./schema";
@@ -304,6 +305,7 @@ export function validateFreePayslipForm(form: FreePayslipFormState): FreePayslip
 
     const monthKey = isValidMonthKey(form.monthKey) ? form.monthKey : getMonthKey(new Date());
     const { start, end } = getMonthBounds(monthKey);
+    const activeNmwRate = getNMWForDate(end);
     const ordinaryCalendar = describeOrdinaryWorkCalendar(
         start,
         end,
@@ -316,13 +318,13 @@ export function validateFreePayslipForm(form: FreePayslipFormState): FreePayslip
     if (!form.employeeName.trim()) nextErrors.employeeName = "Add the worker name.";
     if (!form.monthKey) nextErrors.monthKey = "Choose the payslip month.";
     else if (!isValidMonthKey(form.monthKey)) nextErrors.monthKey = "Choose a valid payslip month.";
-    if (parseNumber(form.hourlyRate) < NMW_RATE) nextErrors.hourlyRate = `The hourly rate must be at least R${NMW_RATE.toFixed(2)}.`;
+    if (parseNumber(form.hourlyRate) < activeNmwRate) nextErrors.hourlyRate = `The hourly rate must be at least R${activeNmwRate.toFixed(2)} for the selected month.`;
     if (!confirmedSchedule) nextErrors.ordinaryWorkPattern = "Choose the usual work week before continuing.";
-    if (ordinaryDaysWorked < 0) nextErrors.ordinaryDaysWorked = "Days worked cannot be negative.";
-    else if (confirmedSchedule && ordinaryDaysWorked > ordinaryCalendar.ordinaryDayCap) nextErrors.ordinaryDaysWorked = `This month allows up to ${ordinaryCalendar.ordinaryDayCap} working day${ordinaryCalendar.ordinaryDayCap === 1 ? "" : "s"} for her normal schedule.`;
-    if (ordinaryDaysWorked === 0 && !hasEnteredHours) nextErrors.ordinaryDaysWorked = "Add the days she worked, or enter hours instead.";
+    if (ordinaryDaysWorked < 0) nextErrors.ordinaryDaysWorked = "Normal workdays worked cannot be negative.";
+    else if (confirmedSchedule && ordinaryDaysWorked > ordinaryCalendar.ordinaryDayCap) nextErrors.ordinaryDaysWorked = `This month allows up to ${ordinaryCalendar.ordinaryDayCap} working day${ordinaryCalendar.ordinaryDayCap === 1 ? "" : "s"} for the selected schedule.`;
+    if (ordinaryDaysWorked === 0 && !hasEnteredHours) nextErrors.ordinaryDaysWorked = "Add the normal workdays worked, or enter hours instead.";
     if (ordinaryHoursOverride !== null && ordinaryHoursOverride < 0) nextErrors.ordinaryHoursOverride = "Hours worked cannot be negative.";
-    else if (ordinaryHoursOverride !== null && confirmedSchedule && ordinaryHoursOverride > ordinaryCalendar.ordinaryHourCap) nextErrors.ordinaryHoursOverride = `This month allows up to ${ordinaryCalendar.ordinaryHourCap} normal hour${ordinaryCalendar.ordinaryHourCap === 1 ? "" : "s"} for her schedule.`;
+    else if (ordinaryHoursOverride !== null && confirmedSchedule && ordinaryHoursOverride > ordinaryCalendar.ordinaryHourCap) nextErrors.ordinaryHoursOverride = `This month allows up to ${ordinaryCalendar.ordinaryHourCap} normal hour${ordinaryCalendar.ordinaryHourCap === 1 ? "" : "s"} for the selected schedule.`;
     if (parseNumber(form.overtimeHours) < 0) nextErrors.overtimeHours = "Hours cannot be negative.";
     if (parseNumber(form.sundayHours) < 0) nextErrors.sundayHours = "Hours cannot be negative.";
     if (parseNumber(form.publicHolidayHours) < 0) nextErrors.publicHolidayHours = "Hours cannot be negative.";
