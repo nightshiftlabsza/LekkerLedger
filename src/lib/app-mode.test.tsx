@@ -114,6 +114,20 @@ describe("AppModeProvider", () => {
         mocks.restoreFromCloudMock.mockResolvedValue(undefined);
     });
 
+    it("starts authenticated accounts locked while secure access is checked", async () => {
+        render(
+            <AppModeProvider>
+                <Harness />
+            </AppModeProvider>,
+        );
+
+        expect(screen.getByTestId("mode").textContent).toBe("account_locked");
+
+        await waitFor(() => {
+            expect(mocks.loadEncryptionProfileStateMock).toHaveBeenCalledWith("user-1", expect.any(Object));
+        });
+    });
+
     it("stays unlocked after a successful unlock while the auth snapshot stays the same", async () => {
         const { rerender } = render(
             <AppModeProvider>

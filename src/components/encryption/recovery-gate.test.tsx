@@ -242,6 +242,17 @@ describe("RecoveryGate", () => {
         });
     });
 
+    it("hides protected content while a locked account is being checked", async () => {
+        renderGate();
+
+        expect(screen.queryByText("Protected child")).toBeNull();
+        expect(screen.getByRole("heading", { name: "Checking your secure access" })).toBeTruthy();
+
+        await waitFor(() => {
+            expect(screen.getByRole("heading", { name: "Finish secure setup" })).toBeTruthy();
+        });
+    });
+
     it("sends a new encrypted account straight to recoverable setup", async () => {
         renderGate();
 

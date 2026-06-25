@@ -85,11 +85,11 @@ export function ResetPasswordForm() {
                 </div>
                 <h1 className="mt-6 font-serif text-3xl font-bold tracking-tight text-[var(--text)]">Password updated</h1>
                 <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">
-                    Your password has been changed. You can return to login and continue with your account normally.
+                    Your password has been changed. Continue to your dashboard so this device can open your encrypted records with the new password.
                 </p>
                 <div className="mt-8">
-                    <Link href="/login" className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[var(--primary)] px-6 py-3 font-bold text-white transition-colors hover:bg-[var(--primary-hover)]">
-                        Return to login
+                    <Link href="/dashboard" className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[var(--primary)] px-6 py-3 font-bold text-white transition-colors hover:bg-[var(--primary-hover)]">
+                        Continue to dashboard
                     </Link>
                 </div>
             </div>

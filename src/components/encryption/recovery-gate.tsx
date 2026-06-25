@@ -76,7 +76,7 @@ function resolvePasswordForCurrentUser(
 
 export function RecoveryGate({ children }: { children: React.ReactNode }) {
     const { mode, encryptionMode, setEncryptionMode, unlockAccount } = useAppMode();
-    const [status, setStatus] = React.useState<RecoveryGateStep>("ready");
+    const [status, setStatus] = React.useState<RecoveryGateStep>("checking");
     const [profileState, setProfileState] = React.useState<EncryptionProfileState | null>(null);
     const [setupError, setSetupError] = React.useState<string | null>(null);
     const [inputError, setInputError] = React.useState<string | null>(null);
@@ -586,7 +586,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
 
     let gateSummary = "Finish the secure unlock step on this device so your encrypted records can open.";
     if (status === "opening_device") {
-        gateSummary = "Sign-in worked. We are opening the encrypted records on this device now.";
+        gateSummary = "Sign-in worked. We are opening or recovering the encrypted records on this device now.";
     } else if (status === "recoverable_setup") {
         gateSummary = "Set up Recoverable Encryption with your password so this device can open your encrypted records.";
     } else if (status === "recoverable_input") {
@@ -595,7 +595,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         gateSummary = getEncryptionModeSummary(effectiveMode);
     }
 
-    if (mode === "local_guest" || mode === "account_unlocked" || status === "ready") {
+    if (mode === "local_guest" || mode === "account_unlocked") {
         return <>{children}</>;
     }
 
@@ -630,7 +630,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                                     <Loader2 className="mx-auto mb-6 h-12 w-12 animate-spin text-[var(--primary)]" />
                                     <h2 className="font-serif text-2xl font-bold text-[var(--text)]">Opening this device</h2>
                                     <p className="mt-2 text-[var(--text-muted)]">
-                                        We&apos;re using the password you just entered to open your encrypted records locally.
+                                        We&apos;re using the password you just entered to open your encrypted records locally. If you just reset your password, this may take a few seconds.
                                     </p>
                                 </div>
                             ) : null}

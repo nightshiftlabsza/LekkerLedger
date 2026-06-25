@@ -83,12 +83,12 @@ async function tryRestoreUnlockedState(
 }
 
 export function AppModeProvider({ children }: { children: React.ReactNode }) {
-    const [mode, setMode] = React.useState<AppMode>("local_guest");
+    const { user, isLoading: authLoading } = useAuthState();
+    const [mode, setMode] = React.useState<AppMode>(() => (user || authLoading ? "account_locked" : "local_guest"));
     const [encryptionMode, setEncryptionMode] = React.useState<EncryptionMode | null>(null);
     const [authenticatedUserId, setAuthenticatedUserId] = React.useState<string | null>(null);
     const supabase = React.useMemo(() => createClient(), []);
     const currentUserIdRef = React.useRef<string | null>(null);
-    const { user, isLoading: authLoading } = useAuthState();
 
     const clearUnlockedState = React.useCallback(() => {
         syncEngine.setCryptoKey(null);
