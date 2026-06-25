@@ -1,6 +1,8 @@
 import { PAID_LOGIN_SUCCESS_QUERY } from "./paid-activation";
 import { type PlanId } from "../config/plans";
 
+const DASHBOARD_SYNC_FOLLOW_UPS = new Set(["restored", "password-reset"]);
+
 export function isPaidDashboardFlow(input: {
     pathname: string;
     paidLoginParam: string | null;
@@ -10,7 +12,7 @@ export function isPaidDashboardFlow(input: {
     if (input.pathname !== "/dashboard") return false;
     if (input.paidLoginParam === "1") return true;
     if (input.activationParam === PAID_LOGIN_SUCCESS_QUERY) return true;
-    return Boolean(input.syncParam?.trim());
+    return DASHBOARD_SYNC_FOLLOW_UPS.has(input.syncParam?.trim() ?? "");
 }
 
 export function shouldRedirectFreeUserFromApp(input: {

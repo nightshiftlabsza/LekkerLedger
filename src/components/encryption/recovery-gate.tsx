@@ -11,7 +11,6 @@ import { RecoverableAccessPanel } from "./recoverable-access-panel";
 import { createClient } from "@/lib/supabase/client";
 import {
     decryptData,
-    deriveKey,
     exportAccountMasterKey,
     generateAccountMasterKey,
     generateValidationPayload,
@@ -453,7 +452,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                     console.error(recoveryError);
                     clearCredentialHandoff();
                     setSavedPasswordReady(false);
-                    setInputError("Sign-in worked, but we could not finish account recovery automatically. Enter your current password and tap Recover this account.");
+                    setInputError("Sign-in worked, but we could not finish account recovery automatically. Enter your current password and open records again.");
                     setStatus("recoverable_input");
                 } finally {
                     if (mounted) {
@@ -576,39 +575,6 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         }
     }, [getAuthenticatedUser, recoverRecoverableAccount, router, sessionExpiredLoginHref, setEncryptionMode, status, unlockRecoverableAccount, unlockAccount]);
 
-    const handleRecoverableRecovery = React.useCallback(async (input: { password: string | null; useSavedPassword: boolean }) => {
-        setInputError(null);
-        setIsRecovering(true);
-        try {
-            const user = await getAuthenticatedUser();
-            if (!user) {
-                redirectToLoginForExpiredSession(router, sessionExpiredLoginHref, setStatus, setInputError, "recoverable_input");
-                return;
-            }
-
-            const password = resolvePasswordForCurrentUser(user.email ?? null, input);
-            if (!password) {
-                setSavedPasswordReady(false);
-                setInputError("Enter your current password so we can finish recovery on this device.");
-                return;
-            }
-
-            await recoverRecoverableAccount({ user, password });
-        } catch (error) {
-            console.error(error);
-            if (input.useSavedPassword) {
-                clearCredentialHandoff();
-                setSavedPasswordReady(false);
-                setInputError("We could not finish recovery with the saved password. Enter your current password and try again.");
-            } else {
-                setInputError(formatRecoverableRecoveryError(error));
-            }
-            setStatus("recoverable_input");
-        } finally {
-            setIsRecovering(false);
-        }
-    }, [getAuthenticatedUser, recoverRecoverableAccount, router, sessionExpiredLoginHref]);
-
     let gateHeading = "Unlock your encrypted records.";
     if (status === "opening_device") {
         gateHeading = "Opening your encrypted workspace.";
@@ -692,7 +658,6 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                                     purpose="unlock"
                                     hasSavedPassword={savedPasswordReady}
                                     onSubmit={handleRecoverableSubmit}
-                                    onRecover={handleRecoverableRecovery}
                                     errorMessage={inputError}
                                     isSubmitting={isSubmittingInput}
                                     isRecovering={isRecovering}

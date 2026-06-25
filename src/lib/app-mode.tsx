@@ -155,7 +155,11 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
                 setMode("account_locked");
             } catch (error) {
                 if (!mounted) return;
-                console.warn("Could not restore encrypted account mode. Falling back to signed-out mode.", error);
+                console.warn("Could not restore encrypted account mode. Falling back to locked mode for signed-in accounts.", error);
+                if (user?.id) {
+                    transitionToLocked();
+                    return;
+                }
                 transitionToGuest();
             }
         }
@@ -165,7 +169,7 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
         return () => {
             mounted = false;
         };
-    }, [authLoading, supabase, transitionToGuest, user?.id]);
+    }, [authLoading, supabase, transitionToGuest, transitionToLocked, user?.id]);
 
     React.useEffect(() => {
         if (mode !== "account_unlocked" || !authenticatedUserId) {

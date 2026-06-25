@@ -152,4 +152,22 @@ describe("paid dashboard flow detection", () => {
             syncParam: "restored",
         })).toBe(true);
     });
+
+    it("recognizes password reset recovery as a dashboard follow-up state", () => {
+        expect(isPaidDashboardFlow({
+            pathname: "/dashboard",
+            paidLoginParam: null,
+            activationParam: null,
+            syncParam: "password-reset",
+        })).toBe(true);
+    });
+
+    it("does not treat unknown sync values as dashboard follow-up states", () => {
+        expect(isPaidDashboardFlow({
+            pathname: "/dashboard",
+            paidLoginParam: null,
+            activationParam: null,
+            syncParam: "anything",
+        })).toBe(false);
+    });
 });

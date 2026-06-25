@@ -9,7 +9,6 @@ interface RecoverableAccessPanelProps {
     purpose: "setup" | "unlock";
     hasSavedPassword: boolean;
     onSubmit: (input: { password: string | null; useSavedPassword: boolean }) => Promise<void> | void;
-    onRecover?: (input: { password: string | null; useSavedPassword: boolean }) => Promise<void> | void;
     isSubmitting?: boolean;
     isRecovering?: boolean;
     errorMessage?: string | null;

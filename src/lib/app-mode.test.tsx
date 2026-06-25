@@ -178,6 +178,23 @@ describe("AppModeProvider", () => {
         });
     });
 
+    it("keeps signed-in accounts locked when automatic restore throws", async () => {
+        mocks.loadEncryptionProfileStateMock.mockRejectedValueOnce(new Error("Profile unavailable"));
+        vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+        render(
+            <AppModeProvider>
+                <Harness />
+            </AppModeProvider>,
+        );
+
+        await waitFor(() => {
+            expect(mocks.loadEncryptionProfileStateMock).toHaveBeenCalledWith("user-1", expect.any(Object));
+        });
+
+        expect(screen.getByTestId("mode").textContent).toBe("account_locked");
+    });
+
     it("auto-unlocks and reconciles when a saved recovery key is present for Maximum Privacy", async () => {
         mocks.loadEncryptionProfileStateMock.mockResolvedValue({
             encryptionMode: "maximum_privacy",
