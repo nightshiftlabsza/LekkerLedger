@@ -367,17 +367,19 @@ function DashboardContent() {
                     tone="info"
                 />
             ) : null}
-            <DashboardOverview
-                employees={employees}
-                settings={effectiveSettings}
-                currentPeriod={currentPeriod}
-                recentDocs={recentDocs}
-                summaries={summaries}
-                allPeriods={allPeriods}
-                alerts={alerts}
-                syncBadgeState={syncBadgeState}
-                syncSummary={syncSummary}
-            />
+            <div data-testid="dashboard-proof-workspace">
+                <DashboardOverview
+                    employees={employees}
+                    settings={effectiveSettings}
+                    currentPeriod={currentPeriod}
+                    recentDocs={recentDocs}
+                    summaries={summaries}
+                    allPeriods={allPeriods}
+                    alerts={alerts}
+                    syncBadgeState={syncBadgeState}
+                    syncSummary={syncSummary}
+                />
+            </div>
         </div>
     );
 }

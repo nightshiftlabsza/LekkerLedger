@@ -1017,7 +1017,7 @@ export default function DocumentsPage() {
                     ) : null}
 
                     {activeTab === "payslips" ? (
-                        <section className="space-y-4">
+                        <section className="space-y-4" data-testid="contracts-proof-panel">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                                 <div className="max-w-[62ch]">
                                     <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">Payroll records</p>

@@ -9,7 +9,7 @@ import {
     REFERRAL_REWARD_PENDING_SUMMARY,
     REFUND_WINDOW_LABEL,
 } from "@/config/plans";
-import { PRIVACY_EMAIL, SUPPORT_EMAIL } from "@/config/brand";
+import { PRIVACY_EMAIL, SUPPORT_EMAIL, SUPPORT_RESPONSE_WINDOW_SENTENCE } from "@/config/brand";
 
 export default function SupportPage() {
     return (
@@ -27,7 +27,7 @@ export default function SupportPage() {
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Support & Contact</h1>
                     <p className="text-lg font-medium text-[var(--text-muted)]">We are here to help you get your household payroll set up correctly and keep the record trail tidy.</p>
-                    <p className="text-sm font-semibold text-[var(--text-muted)]">Email support replies within 1-4 business days in South Africa, Monday to Friday, excluding public holidays.</p>
+                    <p className="text-sm font-semibold text-[var(--text-muted)]">{SUPPORT_RESPONSE_WINDOW_SENTENCE}</p>
                 </header>
 
                 <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -56,7 +56,7 @@ export default function SupportPage() {
                                 <h3 className="text-xl font-bold text-[var(--text)]">Email Support</h3>
                             </div>
                             <p className="text-sm text-[var(--text-muted)] leading-relaxed mb-4">
-                                Found a bug? Confused about backup, payslips, or billing? Our team replies within 1-4 business days in South Africa, Monday to Friday, excluding public holidays.
+                                Found a bug? Confused about backup, payslips, or billing? {SUPPORT_RESPONSE_WINDOW_SENTENCE}
                             </p>
                             <p className="text-xs text-[var(--text-muted)] leading-relaxed mb-2">
                                 Privacy, data-rights, or security reports should go to{" "}

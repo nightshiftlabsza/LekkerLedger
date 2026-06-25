@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { COMPANY_NAME, PRIVACY_EMAIL, SUPPORT_EMAIL } from "@/config/brand";
+import { COMPANY_NAME, PRIVACY_EMAIL, SUPPORT_EMAIL, SUPPORT_RESPONSE_WINDOW_SENTENCE } from "@/config/brand";
 
 const FOOTER_GROUPS = [
     {
         title: "Product",
         links: [
-            { href: "/#how-it-works", label: "How it works" },
+            { href: "/#paid-plans", label: "Paid plans" },
             { href: "/pricing", label: "Pricing" },
             { href: "/calculator", label: "Pay calculator" },
             { href: "/login", label: "Log in" },
@@ -114,7 +114,7 @@ export function MarketingFooter() {
                                             </span>
                                         </a>
                                         <p className="max-w-[24ch] text-xs leading-6" style={{ color: "var(--text-muted)" }}>
-                                            Replies usually land within 1 to 4 business days in South African time, Monday to Friday.
+                                            {SUPPORT_RESPONSE_WINDOW_SENTENCE}
                                         </p>
                                     </div>
                                 ) : null}

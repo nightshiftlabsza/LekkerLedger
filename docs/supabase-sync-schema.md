@@ -11,7 +11,7 @@ Stores the selected encryption mode, unlock validation payload, and user-side wr
 ```sql
 create table if not exists public.user_profiles (
     id uuid primary key references auth.users(id) on delete cascade,
-    encryption_mode text not null default 'maximum_privacy',
+    encryption_mode text not null default 'recoverable',
     mode_version integer not null default 1,
     key_setup_complete boolean not null default false,
     validation_payload jsonb,
@@ -117,3 +117,7 @@ RECOVERABLE_WRAP_SECRET=<long random secret>
 ```
 
 The app uses this secret to wrap the recoverable account master key before it is stored in `account_key_recovery`. Keep it only in your deployment environment, not in client-side variables.
+
+## Legacy Maximum Privacy
+
+`maximum_privacy` remains supported for older accounts that already completed recovery-key setup. New or incomplete profile rows should default to `recoverable` so new users go through Recoverable Encryption setup.

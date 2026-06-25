@@ -6,7 +6,7 @@ export type AuditGroup =
     | "compliance-storage-billing";
 
 export type AuditDevice = "mobile" | "tablet" | "desktop";
-export type SeedMode = "empty" | "starter" | "full";
+export type SeedMode = "empty" | "starter" | "full" | "marketing-proof";
 
 export type AuditStep =
     | { type: "clickByRole"; role: "button" | "link" | "tab"; name: string; exact?: boolean }

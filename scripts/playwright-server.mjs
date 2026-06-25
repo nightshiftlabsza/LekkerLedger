@@ -13,6 +13,7 @@ function spawnNext(args, extraEnv = {}) {
       ...process.env,
       PLAYWRIGHT_BUILD: "1",
       E2E_BYPASS_AUTH: "1",
+      RECOVERABLE_WRAP_SECRET: process.env.RECOVERABLE_WRAP_SECRET ?? "local-playwright-recoverable-wrap-secret",
       ...extraEnv,
     },
   });

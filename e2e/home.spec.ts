@@ -39,7 +39,7 @@ test("home page does not contain old fear messaging", async ({ page }) => {
 test("home page has marketing header (no app nav)", async ({ page }) => {
     await page.goto("/");
     // Marketing nav links should be visible on desktop
-    await expect(page.getByRole("link", { name: /How it works/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /Paid plans/i }).first()).toBeVisible();
     await expect(page.getByRole("link", { name: /Pricing/i }).first()).toBeVisible();
     // App nav items should NOT be visible
     await expect(page.getByRole("link", { name: "Dashboard", exact: true })).not.toBeVisible();
@@ -49,9 +49,20 @@ test("home page has marketing header (no app nav)", async ({ page }) => {
 test("home page has all major sections", async ({ page }) => {
     await page.goto("/");
     // Key section headings
-    await expect(page.getByText(/Run monthly domestic worker admin without guessing the figures/i)).toBeVisible();
-    await expect(page.getByText(/Start with one free payslip sample, then keep the full month together/i)).toBeVisible();
+    await expect(page.getByText(/What paid plans add after the first payslip/i)).toBeVisible();
+    await expect(page.getByText(/Why this exists/i)).toBeVisible();
     await expect(page.getByText(/Questions households ask before they start/i)).toBeVisible();
+});
+
+test("home page removes duplicate hero proof and old explainer sections", async ({ page }) => {
+    await page.goto("/");
+
+    await expect(page.getByTestId("sample-payslip-card")).toBeVisible();
+    await expect(page.getByText(/Check gross pay, UIF, and net pay before payday\./i)).toHaveCount(0);
+    await expect(page.getByText(/Run monthly domestic worker admin without guessing the figures/i)).toHaveCount(0);
+    await expect(page.getByText(/Start with one free payslip sample, then keep the full month together/i)).toHaveCount(0);
+    await expect(page.getByText(/What paid plans add after the first payslip/i)).toBeVisible();
+    await expect(page.getByText(/Before you pay/i)).toBeVisible();
 });
 
 test("paid login opens an in-page auth area with inline password reset", async ({ page }) => {

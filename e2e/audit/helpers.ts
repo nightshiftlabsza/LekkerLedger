@@ -11,7 +11,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://mdqzuspgjs
 const SUPABASE_PROJECT_REF = new URL(SUPABASE_URL).hostname.split(".")[0];
 const SUPABASE_STORAGE_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
 const QA_USER_ID = "e2e-paid-user";
-const QA_EMAIL = "qa-paid@example.com";
+const QA_EMAIL = "rethabile.naidoo@example.co.za";
 const encodeStoredRecord = (value: unknown) => btoa(encodeURIComponent(JSON.stringify(value)));
 const SUPABASE_CORS_HEADERS = {
     "access-control-allow-origin": "*",
@@ -24,13 +24,19 @@ export const AUDIT_IDS = {
     employeeA: "11111111-1111-4111-8111-111111111111",
     employeeB: "22222222-2222-4222-8222-222222222222",
     employeeC: "33333333-3333-4333-8333-333333333333",
+    marketingEmployee: "55555555-5555-4555-8555-555555555555",
     draftPeriodId: "period-draft-april-2026",
     lockedPeriodId: "period-locked-march-2026",
+    marketingPeriodId: "period-marketing-april-2026",
     contractId: "44444444-4444-4444-8444-444444444444",
+    marketingContractId: "66666666-6666-4666-8666-666666666666",
     payslipA: "payslip-thandi-april-2026",
     payslipB: "payslip-sipho-march-2026",
+    marketingPayslip: "payslip-anele-april-2026",
     documentA: "document-payslip-april",
     documentB: "document-contract-thandi",
+    marketingDocumentPayslip: "document-marketing-payslip-april",
+    marketingDocumentContract: "document-marketing-contract-anele",
     leaveA: "leave-thandi-annual-april",
 } as const;
 
@@ -290,6 +296,162 @@ function buildSeedPayload(mode: SeedMode) {
             payPeriods: [],
             documents: [],
             contracts: [],
+        };
+    }
+
+    if (mode === "marketing-proof") {
+        return {
+            households,
+            settings: {
+                ...globalSettings,
+                employerName: "Rethabile Naidoo",
+                employerAddress: "14 Finch Street, Linden, Johannesburg, 2195",
+                uifRefNumber: "U123456789",
+                cfNumber: "9900012345",
+                phone: "082 555 0192",
+                proStatus: "standard",
+            },
+            householdSettings: {
+                ...householdSettings,
+                employerName: "Rethabile Naidoo",
+                employerAddress: "14 Finch Street, Linden, Johannesburg, 2195",
+                uifRefNumber: "U123456789",
+                cfNumber: "9900012345",
+                phone: "082 555 0192",
+            },
+            employees: [
+                {
+                    id: AUDIT_IDS.marketingEmployee,
+                    householdId: AUDIT_IDS.defaultHouseholdId,
+                    name: "Anele Jacobs",
+                    idNumber: "9204085176083",
+                    role: "Caregiver",
+                    hourlyRate: 36.5,
+                    phone: "083 640 1182",
+                    startDate: "2025-11-03",
+                    ordinarilyWorksSundays: false,
+                    ordinaryHoursPerDay: 8,
+                    frequency: "Monthly",
+                },
+            ],
+            payslips: [
+                {
+                    id: AUDIT_IDS.marketingPayslip,
+                    householdId: AUDIT_IDS.defaultHouseholdId,
+                    employeeId: AUDIT_IDS.marketingEmployee,
+                    payPeriodStart: new Date("2026-04-01T00:00:00.000Z"),
+                    payPeriodEnd: new Date("2026-04-30T00:00:00.000Z"),
+                    ordinaryHours: 168,
+                    overtimeHours: 4,
+                    sundayHours: 0,
+                    publicHolidayHours: 0,
+                    daysWorked: 21,
+                    shortFallHours: 0,
+                    hourlyRate: 36.5,
+                    includeAccommodation: false,
+                    accommodationCost: 0,
+                    otherDeductions: 0,
+                    createdAt: new Date(today),
+                    ordinarilyWorksSundays: false,
+                    ordinaryHoursPerDay: 8,
+                    annualLeaveTaken: 0,
+                    sickLeaveTaken: 0,
+                    familyLeaveTaken: 0,
+                },
+            ],
+            leave: [],
+            payPeriods: [
+                {
+                    id: AUDIT_IDS.marketingPeriodId,
+                    householdId: AUDIT_IDS.defaultHouseholdId,
+                    name: "April 2026",
+                    startDate: "2026-04-01T00:00:00.000Z",
+                    endDate: "2026-04-30T00:00:00.000Z",
+                    payDate: "2026-04-30T00:00:00.000Z",
+                    status: "review",
+                    entries: [
+                        {
+                            employeeId: AUDIT_IDS.marketingEmployee,
+                            ordinaryHours: 168,
+                            overtimeHours: 4,
+                            sundayHours: 0,
+                            publicHolidayHours: 0,
+                            leaveDays: 0,
+                            advanceAmount: 0,
+                            otherDeductions: 0,
+                            note: "Contract renewal filed.",
+                            status: "complete",
+                        },
+                    ],
+                    lockedAt: undefined,
+                    createdAt: today,
+                    updatedAt: today,
+                },
+            ],
+            documents: [
+                {
+                    id: AUDIT_IDS.marketingDocumentPayslip,
+                    householdId: AUDIT_IDS.defaultHouseholdId,
+                    type: "payslip",
+                    employeeId: AUDIT_IDS.marketingEmployee,
+                    periodId: AUDIT_IDS.marketingPeriodId,
+                    fileName: "Anele Jacobs - April 2026.pdf",
+                    mimeType: "application/pdf",
+                    source: "generated",
+                    sizeBytes: 118240,
+                    createdAt: today,
+                },
+                {
+                    id: AUDIT_IDS.marketingDocumentContract,
+                    householdId: AUDIT_IDS.defaultHouseholdId,
+                    type: "contract",
+                    employeeId: AUDIT_IDS.marketingEmployee,
+                    fileName: "Anele Jacobs Contract.pdf",
+                    mimeType: "application/pdf",
+                    source: "uploaded",
+                    sizeBytes: 102384,
+                    createdAt: "2026-04-12T09:30:00.000Z",
+                },
+            ],
+            contracts: [
+                {
+                    id: AUDIT_IDS.marketingContractId,
+                    householdId: AUDIT_IDS.defaultHouseholdId,
+                    employeeId: AUDIT_IDS.marketingEmployee,
+                    status: "signed_copy_stored",
+                    version: 1,
+                    signedAt: "2025-11-03",
+                    effectiveDate: "2025-11-03",
+                    jobTitle: "Caregiver",
+                    placeOfWork: "14 Finch Street, Linden, Johannesburg, 2195",
+                    duties: ["Daily care support", "Household mobility support", "Medication reminders"],
+                    workingHours: {
+                        daysPerWeek: 5,
+                        startAt: "08:00",
+                        endAt: "17:00",
+                        breakDuration: 60,
+                    },
+                    salary: {
+                        amount: 36.5,
+                        frequency: "Monthly",
+                    },
+                    leave: {
+                        annualDays: 21,
+                        sickDays: 30,
+                    },
+                    terms: {
+                        accommodationProvided: false,
+                        accommodationDetails: "",
+                        overtimeAgreement: "Overtime must be agreed in advance and paid according to the BCEA.",
+                        sundayHolidayAgreement: "Sunday and public-holiday work must be agreed and paid at the correct rate.",
+                        noticeClause: "Notice periods follow the BCEA and should be given in writing.",
+                        lawyerReviewAcknowledged: true,
+                    },
+                    signedDocumentId: AUDIT_IDS.marketingDocumentContract,
+                    createdAt: "2025-11-03T08:00:00.000Z",
+                    updatedAt: today,
+                },
+            ],
         };
     }
 

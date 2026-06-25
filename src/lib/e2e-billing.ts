@@ -3,7 +3,7 @@ import type { BillingCycle, PlanId } from "../config/plans";
 
 const E2E_AUTH_BYPASS_COOKIE = "ll-e2e-auth-bypass";
 const QA_USER_ID = "e2e-paid-user";
-const QA_EMAIL = "qa-paid@example.com";
+const QA_EMAIL = "rethabile.naidoo@example.co.za";
 
 function buildCookieMap(request: Request) {
     const rawCookie = request.headers.get("cookie") ?? "";

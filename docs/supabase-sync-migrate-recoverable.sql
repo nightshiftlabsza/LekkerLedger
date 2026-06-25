@@ -20,7 +20,7 @@ where encryption_mode is null
    or mode_version is null;
 
 alter table public.user_profiles
-    alter column encryption_mode set default 'maximum_privacy',
+    alter column encryption_mode set default 'recoverable',
     alter column encryption_mode set not null,
     alter column mode_version set default 1,
     alter column mode_version set not null;

@@ -82,7 +82,7 @@ export function ContractsTab({
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" data-testid="contracts-proof-list">
             <div className="flex items-center justify-end gap-4">
                 <a href="/guide-contracts" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-[var(--primary)] hover:underline">
                     View contract guide

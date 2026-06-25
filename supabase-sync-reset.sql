@@ -10,7 +10,7 @@ drop table if exists public.user_profiles cascade;
 
 create table public.user_profiles (
     id uuid primary key references auth.users(id) on delete cascade,
-    encryption_mode text not null default 'maximum_privacy',
+    encryption_mode text not null default 'recoverable',
     mode_version integer not null default 1,
     key_setup_complete boolean not null default false,
     validation_payload jsonb,

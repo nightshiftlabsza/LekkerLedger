@@ -10,6 +10,9 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "marketing:screenshots:capture": "playwright test e2e/marketing-homepage-assets.spec.ts",
+    "marketing:screenshots:export": "node scripts/export-marketing-homepage-assets.mjs",
+    "marketing:screenshots": "npm run marketing:screenshots:capture && npm run marketing:screenshots:export",
     "typecheck": "tsc --noEmit",
     "wording:lint": "node scripts/wording-lint.mjs",
     "billing:paystack:plans": "node scripts/paystack-plan-sync.mjs"

@@ -28,7 +28,7 @@ vi.mock("@/src/lib/use-marketing-billing-cycle", () => ({
 }));
 
 describe("PricingPreview", () => {
-    it("keeps the shared preview headline and subtitle unchanged", () => {
+    it("keeps the shared preview headline and adds compact reassurance beside pricing", () => {
         render(<PricingPreview />);
 
         expect(
@@ -37,5 +37,8 @@ describe("PricingPreview", () => {
         expect(
             screen.getByText("Get your first payslip free, or pay now for Standard or Pro dashboard access."),
         ).toBeInTheDocument();
+        expect(screen.getByText("Before you pay")).toBeInTheDocument();
+        expect(screen.getByText("Why this exists")).toBeInTheDocument();
+        expect(screen.getByText("support@lekkerledger.co.za")).toBeInTheDocument();
     });
 });

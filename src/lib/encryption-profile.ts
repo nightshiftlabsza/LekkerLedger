@@ -23,10 +23,12 @@ export interface SupabaseLikeClient {
 }
 
 function buildRemoteProfile(data: Record<string, unknown>): RemoteEncryptionProfile {
+    const keySetupComplete = Boolean(data.key_setup_complete);
+
     return {
-        encryptionMode: normalizeEncryptionMode(data.encryption_mode),
+        encryptionMode: keySetupComplete ? normalizeEncryptionMode(data.encryption_mode) : "recoverable",
         modeVersion: typeof data.mode_version === "number" ? data.mode_version : 1,
-        keySetupComplete: Boolean(data.key_setup_complete),
+        keySetupComplete,
         validationPayload: (data.validation_payload as EncryptedPayload | null) ?? null,
         wrappedMasterKeyUser: (data.wrapped_master_key_user as WrappedKeyPayload | null) ?? null,
         recentRecoveryNoticeAt: typeof data.recent_recovery_notice_at === "string" ? data.recent_recovery_notice_at : null,

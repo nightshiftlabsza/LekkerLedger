@@ -9,7 +9,7 @@ import { useAuthState } from "@/components/auth/auth-state-provider";
 import { Logo } from "@/components/ui/logo";
 
 const NAV_LINKS = [
-    { href: "/#how-it-works", label: "How it works" },
+    { href: "/#paid-plans", label: "Paid plans" },
     { href: "/resources/tools/domestic-worker-payslip", label: "Payslip template" },
     { href: "/calculator", label: "Pay calculator" },
     { href: "/resources/checklists/household-employer-monthly", label: "Monthly checklist" },

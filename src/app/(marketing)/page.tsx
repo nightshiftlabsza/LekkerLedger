@@ -1,13 +1,8 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-    ArrowRight,
-    Calendar,
-    ChevronDown,
-    FileText,
-    Users,
-} from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
+import { PaidPlansProofSection } from "@/components/marketing/paid-plans-proof-section";
 import { PricingPreview } from "@/components/marketing/pricing-preview";
 import { calculatePayslip } from "@/lib/calculator";
 import { getNMWForDate } from "@/lib/legal/registry";
@@ -34,14 +29,6 @@ const homepageFaqSchema = {
     mainEntity: [
         {
             "@type": "Question",
-            name: "Will this help me know what to do each month?",
-            acceptedAnswer: {
-                "@type": "Answer",
-                text: "Yes. LekkerLedger helps you reuse the same worker details, check the monthly pay figures, and keep the month organised so you are not starting from scratch each time.",
-            },
-        },
-        {
-            "@type": "Question",
             name: "What if I am not sure about the rules or worried about making a mistake?",
             acceptedAnswer: {
                 "@type": "Answer",
@@ -53,7 +40,7 @@ const homepageFaqSchema = {
             name: "Where are employee records stored?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "Paid accounts store household-employer records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one first payslip sample per email address without creating an account.",
+                text: "Paid accounts store records in end-to-end encrypted cloud storage. Records are encrypted on your device before upload and restored through your account login. Free users can email themselves one first payslip sample per email address without creating an account, and the free tool does not keep stored app records.",
             },
         },
         {
@@ -79,11 +66,6 @@ const SAMPLE_FIGURE_GRID = [
     "hidden md:grid md:grid-cols-[minmax(10rem,1.8fr)_minmax(3.75rem,0.65fr)_minmax(5rem,0.82fr)_minmax(5.5rem,0.95fr)] md:gap-x-3",
     "min-[1440px]:grid-cols-[minmax(11rem,1.85fr)_minmax(4rem,0.68fr)_minmax(5.5rem,0.86fr)_minmax(6rem,0.98fr)] min-[1440px]:gap-x-4",
 ].join(" ");
-const HERO_TRUST_POINTS = [
-    "Check gross pay, UIF, and net pay before payday.",
-    "LekkerLedger shows UIF clearly when it applies.",
-    "Paid plans keep leave, contracts, and documents together.",
-] as const;
 
 function formatRand(value: number) {
     return `R ${value.toFixed(2)}`;
@@ -172,8 +154,7 @@ export default function HomePage() {
 
             <main id="main-content" className="flex-1">
                 <Hero sample={sample} />
-                <HowItWorks />
-                <WhatYouKeep />
+                <PaidPlansProofSection />
                 <PricingPreview />
                 <FAQPreview />
             </main>
@@ -221,30 +202,9 @@ function Hero({ sample }: Readonly<{ sample: ReturnType<typeof buildHomepageSamp
                                     Check UIF and take-home pay
                                 </Link>
                             </div>
-                            <p className="text-xs font-medium leading-6" style={{ color: "var(--text-muted)" }}>
-                                Free gives you one emailed first payslip sample. Paid plans keep leave, contracts, documents, exports, and the monthly record together. Start with the{" "}
-                                <Link href="/resources/tools/domestic-worker-payslip" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
-                                    domestic worker payslip template
-                                </Link>{" "}
-                                or use the{" "}
-                                <Link href="/uif-calculator" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
-                                    UIF deduction calculator
-                                </Link>{" "}
-                                when you only need a quick check before payday.
+                            <p className="max-w-[34rem] text-xs font-medium leading-6" style={{ color: "var(--text-muted)" }}>
+                                Free gives you one emailed first payslip sample. Paid plans keep the monthly record, contracts, and documents together after that.
                             </p>
-                        </div>
-
-                        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-                            {HERO_TRUST_POINTS.map((point) => (
-                                <div
-                                    key={point}
-                                    className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 text-sm leading-6 shadow-[var(--shadow-sm)]"
-                                    style={{ color: "var(--text-muted)" }}
-                                >
-                                    <span className="mb-2 block h-2 w-2 rounded-full bg-[var(--primary)]" />
-                                    {point}
-                                </div>
-                            ))}
                         </div>
                     </div>
 
@@ -394,17 +354,6 @@ function SamplePayslipCard({ sample }: Readonly<{ sample: ReturnType<typeof buil
                     <ProofMetric label="Gross pay" value={formatRand(sample.breakdown.grossPay)} />
                     <ProofMetric label="UIF deduction" value={`- ${formatRand(sample.breakdown.deductions.uifEmployee)}`} />
                     <ProofMetric className="min-[360px]:col-span-2 md:col-span-1" label="Net pay" value={formatRand(sample.breakdown.netPay)} emphasis />
-                    <div
-                        className="hidden rounded-[20px] border border-[var(--focus)]/20 p-4 md:col-span-3 md:block"
-                        style={{ background: "linear-gradient(135deg, rgba(0, 122, 77, 0.06) 0%, rgba(0, 122, 77, 0.02) 100%)" }}
-                    >
-                        <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                            Why this matters
-                        </p>
-                        <p className="mt-2 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                            Free covers one emailed first sample. Paid plans keep leave, contracts, documents, exports, and the monthly record together.
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -548,152 +497,15 @@ function SampleFigureRow({ label, hours, rate, total, bold = false }: Readonly<{
     );
 }
 
-function HowItWorks() {
-    const steps = [
-        {
-            icon: Users,
-            title: "Add your worker once",
-            body: "Save the worker details and pay setup you need so the next month is quicker to prepare.",
-        },
-        {
-            icon: Calendar,
-            title: "Check pay, UIF, and take-home pay",
-            body: "Review hours worked, gross pay, and where UIF applies before you finalise the payslip.",
-        },
-        {
-            icon: FileText,
-            title: "Choose free or keep the full month together",
-            body: "Use your first free sample when that is enough, or move to paid plans for leave, contracts, documents, and ongoing record-keeping.",
-        },
-    ];
-
-    return (
-        <section id="how-it-works" style={{ backgroundColor: "var(--bg)" }}>
-            <div className="marketing-shell marketing-section">
-                <div className="max-w-3xl space-y-3">
-                    <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                        How it works
-                    </p>
-                    <h2 className="type-h2 max-w-[26ch]" style={{ color: "var(--text)" }}>
-                        Run monthly domestic worker admin without guessing the figures
-                    </h2>
-                    <p className="max-w-[44rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                        LekkerLedger helps household employers check the month&apos;s pay figures, show UIF clearly where it applies, and reuse the same process each month. If you want a fuller checklist, start with the{" "}
-                        <Link href="/resources/checklists/household-employer-monthly" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
-                            monthly household employer checklist
-                        </Link>
-                        .
-                    </p>
-                </div>
-
-                <div className="mt-6 grid gap-4 lg:grid-cols-3">
-                    {steps.map((step, index) => {
-                        const Icon = step.icon;
-
-                        return (
-                            <div key={step.title} className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-1)]">
-                                <div className="flex items-start gap-4">
-                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-[var(--border)] bg-[var(--surface-raised)]">
-                                        <Icon className="h-5 w-5 text-[var(--primary)]" />
-                                    </span>
-                                    <div className="space-y-2">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                                            Step {index + 1}
-                                        </p>
-                                        <h3 className="text-lg font-black" style={{ color: "var(--text)" }}>
-                                            {step.title}
-                                        </h3>
-                                        <p className="text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                                            {step.body}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                <div className="mt-7 flex justify-center">
-                    <Link href="/resources/checklists/household-employer-monthly" className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-6 py-3 text-sm font-bold text-[var(--primary)] transition-all hover:border-[var(--primary)]/30 hover:bg-[var(--surface-1)]">
-                        View the monthly household employer checklist <ArrowRight className="h-4 w-4" />
-                    </Link>
-                </div>
-            </div>
-        </section>
-    );
-}
-
-function WhatYouKeep() {
-    const recordTypes = [
-        {
-            title: "First free sample",
-            body: "Email yourself your first payslip sample without opening a paid account.",
-        },
-        {
-            title: "Leave",
-            body: "Paid plans keep leave with the same monthly record.",
-        },
-        {
-            title: "Contracts and documents",
-            body: "Paid plans keep signed paperwork and supporting documents together.",
-        },
-        {
-            title: "Exports and history",
-            body: "Paid plans keep exports and older monthly records in one place.",
-        },
-    ];
-
-    return (
-        <section style={{ backgroundColor: "var(--bg)" }}>
-            <div className="marketing-shell marketing-section">
-                <div className="grid gap-6 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:items-start">
-                    <div className="space-y-4">
-                        <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "var(--text-muted)" }}>
-                            Free and paid
-                        </p>
-                        <h2 className="type-h2 max-w-[18ch]" style={{ color: "var(--text)" }}>
-                            Start with one free payslip sample, then keep the full month together
-                        </h2>
-                        <p className="max-w-[34rem] text-base leading-7" style={{ color: "var(--text-muted)" }}>
-                            The free tool covers one emailed payslip sample. When you need more than that, paid plans keep the month together. For the UIF basics, read{" "}
-                            <Link href="/resources/guides/uif-for-domestic-workers" className="font-semibold text-[var(--primary)] underline-offset-4 hover:underline">
-                                how UIF works for domestic workers
-                            </Link>{" "}
-                            in plain language.
-                        </p>
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {recordTypes.map((item) => (
-                            <div key={item.title} className="h-full rounded-[24px] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[var(--shadow-1)]">
-                                <h3 className="text-lg font-black" style={{ color: "var(--text)" }}>
-                                    {item.title}
-                                </h3>
-                                <p className="mt-3 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
-                                    {item.body}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </section>
-    );
-}
-
 function FAQPreview() {
     const faqs = [
-        {
-            q: "Will this help me know what to do each month?",
-            a: "Yes. LekkerLedger helps you reuse the same worker details, check the month&apos;s pay figures, and keep the month organised so you are not starting from scratch each time.",
-        },
         {
             q: "What if I am not sure about the rules or worried about making a mistake?",
             a: "You do not need to know everything before you start. LekkerLedger helps you review the main figures clearly and keep the month organised. For unusual situations, verify against official guidance before you rely on the figures.",
         },
         {
             q: "Where are employee records stored?",
-            a: "Paid accounts store household-employer records in end-to-end encrypted cloud storage, accessible from any device you sign into. Free users can email themselves one first payslip sample per email address without creating an account.",
+            a: "Paid accounts store records in end-to-end encrypted cloud storage. Records are encrypted on your device before upload and restored through your account login. Free users can email themselves one first payslip sample per email address without creating an account, and the free tool does not keep stored app records.",
         },
         {
             q: "Can I start with one employee, and what changes when I upgrade?",
@@ -701,7 +513,7 @@ function FAQPreview() {
         },
         {
             q: "What happens if I change devices later?",
-            a: "Paid accounts store everything in the cloud. Just sign in on any device and your records are there. Free users receive the PDF by email each time, so there is nothing to restore inside the app.",
+            a: "Paid accounts restore access through your account login, so you can sign in on another device and continue there. Free users receive the PDF by email each time, so there is nothing to restore inside the app.",
         },
     ];
 

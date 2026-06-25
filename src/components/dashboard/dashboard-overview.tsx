@@ -104,7 +104,7 @@ export function DashboardOverview({
             ) : null}
 
             <div className="dashboard-cq-grid">
-                <div className="min-w-0 space-y-5">
+                <div className="min-w-0 space-y-5" data-testid="dashboard-proof-workspace">
                     <HeroCard
                         eyebrow={hero.eyebrow}
                         title={hero.title}
@@ -199,6 +199,7 @@ function HeroCard({
 }) {
     return (
         <Card
+            data-testid="dashboard-proof-hero"
             className="overflow-hidden border-none text-white hover:translate-y-0"
             style={{
                 backgroundImage: "var(--dashboard-hero-gradient)",
@@ -284,7 +285,7 @@ function EmployeeRunCard({
     const summaryMap = React.useMemo(() => new Map(summaries.map((summary) => [summary.employee.id, summary])), [summaries]);
 
     return (
-        <Card className="border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-sm)]">
+        <Card data-testid="dashboard-proof-payroll-card" className="border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-sm)]">
             <CardContent className="p-0">
                 <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] px-5 py-4">
                     <div>
@@ -417,7 +418,7 @@ function OnboardingChecklist({
     ];
 
     return (
-        <Card className="border-[var(--border)] bg-[var(--surface-1)]">
+        <Card data-testid="dashboard-proof-records-card" className="border-[var(--border)] bg-[var(--surface-1)]">
             <CardContent className="space-y-4 p-5">
                 <div className="flex items-center justify-between gap-3">
                     <div>

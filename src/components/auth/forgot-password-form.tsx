@@ -3,16 +3,43 @@
 import * as React from "react";
 import Link from "next/link";
 import { Loader2, Mail, CheckCircle2, AlertCircle } from "lucide-react";
-import { getBrowserAppOrigin } from "@/lib/app-origin";
-import { createClient } from "@/lib/supabase/client";
 
 function mapResetError(message: string): string {
     const lower = message.toLowerCase();
     if (lower.includes("you can only request this") || lower.includes("rate limit") || lower.includes("too many requests"))
         return "Too many reset attempts. Please wait a moment before trying again.";
-    if (lower.includes("network") || lower.includes("fetch"))
+    if (lower.includes("network") || lower.includes("fetch") || lower.includes("load failed"))
         return "Unable to reach the server. Please check your internet connection and try again.";
     return message;
+}
+
+async function requestPasswordReset(email: string): Promise<{ error?: string }> {
+    let response: Response;
+
+    try {
+        response = await fetch("/api/auth/reset-password", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email }),
+        });
+    } catch (error) {
+        return { error: error instanceof Error ? error.message : "Network request failed" };
+    }
+
+    let body: { error?: string } | null = null;
+    try {
+        body = await response.json();
+    } catch {
+        body = null;
+    }
+
+    if (!response.ok) {
+        return { error: body?.error || "We could not send the reset email right now. Please try again in a moment." };
+    }
+
+    return {};
 }
 
 type ForgotPasswordFormProps = {
@@ -30,8 +57,6 @@ export function ForgotPasswordForm({
     returnLabel = "Back to log in",
     embedded = false,
 }: ForgotPasswordFormProps = {}) {
-    const supabase = createClient();
-    
     const [email, setEmail] = React.useState("");
     const [error, setError] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(false);
@@ -41,14 +66,11 @@ export function ForgotPasswordForm({
         e.preventDefault();
         setError(null);
         setIsLoading(true);
-        const appOrigin = getBrowserAppOrigin();
 
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${appOrigin}/api/auth/callback?next=${encodeURIComponent("/reset-password")}`,
-        });
+        const { error: resetError } = await requestPasswordReset(email);
 
         if (resetError) {
-            setError(mapResetError(resetError.message));
+            setError(mapResetError(resetError));
             setIsLoading(false);
             return;
         }

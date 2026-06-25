@@ -1,0 +1,16 @@
+
+> lekkerledger@0.1.0 dev
+> node -e "require('fs').rmSync('.next', { recursive: true, force: true })" && next dev --webpack -p 3002 -H 0.0.0.0
+
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://localhost:3002
+- Network:       http://0.0.0.0:3002
+- Environments: .env.local
+
+✓ Starting...
+○ (serwist) Serwist is disabled.
+○ (serwist) Serwist is disabled.
+✓ Ready in 2s
+○ Compiling / ...
+ GET / 200 in 10.7s (compile: 9.5s, proxy.ts: 329ms, render: 966ms)
+ GET / 200 in 561ms (compile: 21ms, proxy.ts: 295ms, render: 246ms)
