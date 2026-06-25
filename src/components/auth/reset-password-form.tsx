@@ -88,7 +88,7 @@ export function ResetPasswordForm() {
                     Your password has been changed. Continue to your dashboard so this device can open your encrypted records with the new password.
                 </p>
                 <div className="mt-8">
-                    <Link href="/dashboard" className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[var(--primary)] px-6 py-3 font-bold text-white transition-colors hover:bg-[var(--primary-hover)]">
+                    <Link href="/dashboard?sync=password-reset" className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[var(--primary)] px-6 py-3 font-bold text-white transition-colors hover:bg-[var(--primary-hover)]">
                         Continue to dashboard
                     </Link>
                 </div>

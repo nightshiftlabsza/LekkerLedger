@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { AlertCircle, Loader2, LockKeyhole, RefreshCcw, ShieldCheck } from "lucide-react";
+import { AlertCircle, Loader2, LockKeyhole, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface RecoverableAccessPanelProps {
@@ -15,47 +15,10 @@ interface RecoverableAccessPanelProps {
     errorMessage?: string | null;
 }
 
-function RecoverableRecoveryActions({
-    isSubmitting,
-    isRecovering,
-    onRecover,
-}: Readonly<{
-    isSubmitting: boolean;
-    isRecovering: boolean;
-    onRecover?: () => Promise<void>;
-}>) {
-    if (!onRecover) {
-        return null;
-    }
-
-    return (
-        <Button
-            type="button"
-            variant="outline"
-            onClick={onRecover}
-            disabled={isSubmitting || isRecovering}
-            className="min-h-[44px] rounded-2xl font-bold"
-        >
-            {isRecovering ? (
-                <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Recovering...
-                </>
-            ) : (
-                <>
-                    <RefreshCcw className="mr-2 h-4 w-4" />
-                    Recover this account
-                </>
-            )}
-        </Button>
-    );
-}
-
 export function RecoverableAccessPanel({
     purpose,
     hasSavedPassword,
     onSubmit,
-    onRecover,
     isSubmitting = false,
     isRecovering = false,
     errorMessage = null,
@@ -64,7 +27,7 @@ export function RecoverableAccessPanel({
 
     const isSetupFlow = purpose === "setup";
     let heading = "Finish opening this device";
-    let body = "You are signed in. Confirm your password once so this device can open the encrypted records locally.";
+    let body = "You are signed in. Confirm your current password once so this device can open the encrypted records locally.";
     let submitLabel = "Open records on this device";
     let loadingLabel = "Opening records...";
     let icon = <LockKeyhole className="h-8 w-8" />;
@@ -80,17 +43,6 @@ export function RecoverableAccessPanel({
     async function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
         await onSubmit({
-            password: hasSavedPassword ? null : password,
-            useSavedPassword: hasSavedPassword,
-        });
-    }
-
-    async function handleRecover() {
-        if (!onRecover) {
-            return;
-        }
-
-        await onRecover({
             password: hasSavedPassword ? null : password,
             useSavedPassword: hasSavedPassword,
         });
@@ -156,23 +108,10 @@ export function RecoverableAccessPanel({
             </form>
 
             {!isSetupFlow ? (
-                <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
-                    <p className="text-sm font-semibold text-[var(--text)]">Changed your password?</p>
-                    <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">
-                        If you already reset your password, you can restore this account securely here.
-                    </p>
-                    <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                        <RecoverableRecoveryActions
-                            isSubmitting={isSubmitting}
-                            isRecovering={isRecovering}
-                            onRecover={onRecover ? handleRecover : undefined}
-                        />
-                        <Link href="/forgot-password" className="inline-flex">
-                            <Button type="button" variant="outline" className="min-h-[44px] rounded-2xl font-bold">
-                                Reset password first
-                            </Button>
-                        </Link>
-                    </div>
+                <div className="mt-6 flex justify-center">
+                    <Link href="/forgot-password" className="text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text)]">
+                        Reset password
+                    </Link>
                 </div>
             ) : null}
         </div>

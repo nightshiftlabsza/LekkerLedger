@@ -38,6 +38,7 @@ describe("RecoverableAccessPanel", () => {
         );
 
         expect(screen.getByRole("heading", { name: "Finish opening this device" })).toBeTruthy();
+        expect(screen.queryByRole("button", { name: "Recover this account" })).toBeNull();
         fireEvent.change(screen.getByLabelText("Confirm your password"), { target: { value: "Password123!" } });
         fireEvent.click(screen.getByRole("button", { name: "Open records on this device" }));
 

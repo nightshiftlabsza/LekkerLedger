@@ -327,6 +327,19 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         user: { id: string; email?: string | null };
         password: string;
     }) => {
+        if (!user.email) {
+            throw new Error("Account email is unavailable. Please sign in again before recovery.");
+        }
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password,
+        });
+
+        if (signInError) {
+            throw new Error("That password did not match your account. Please enter the current password you use to sign in.");
+        }
+
         const { rawMasterKey } = await requestRecoveredMasterKey("password_reset");
         const masterKey = await importAccountMasterKey(rawMasterKey);
         const wrappedMasterKeyUser = await wrapMasterKeyWithPassword(masterKey, password);
@@ -464,6 +477,8 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
     const handleRecoverableSubmit = React.useCallback(async (input: { password: string | null; useSavedPassword: boolean }) => {
         const isSetupFlow = status === "recoverable_setup";
         const setError = isSetupFlow ? setSetupError : setInputError;
+        let recoveryUser: { id: string; email?: string | null } | null = null;
+        let recoveryPassword: string | null = null;
 
         setError(null);
         if (isSetupFlow) {
@@ -478,6 +493,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 redirectToLoginForExpiredSession(router, sessionExpiredLoginHref, setStatus, setError, status);
                 return;
             }
+            recoveryUser = user;
 
             const password = resolvePasswordForCurrentUser(user.email ?? null, input);
             if (!password) {
@@ -485,6 +501,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 setError("Enter your password to continue on this device.");
                 return;
             }
+            recoveryPassword = password;
 
             if (isSetupFlow) {
                 const masterKey = await generateAccountMasterKey();
@@ -525,13 +542,30 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             await unlockRecoverableAccount({ user, password });
         } catch (error) {
             console.error(error);
+            if (!isSetupFlow && recoveryUser && recoveryPassword) {
+                setIsRecovering(true);
+                try {
+                    await recoverRecoverableAccount({ user: recoveryUser, password: recoveryPassword });
+                    return;
+                } catch (recoveryError) {
+                    console.error(recoveryError);
+                    if (input.useSavedPassword) {
+                        clearCredentialHandoff();
+                        setSavedPasswordReady(false);
+                    }
+                    setInputError(formatRecoverableRecoveryError(recoveryError));
+                    setStatus("recoverable_input");
+                    return;
+                } finally {
+                    setIsRecovering(false);
+                }
+            }
+
             if (input.useSavedPassword) {
                 clearCredentialHandoff();
                 setSavedPasswordReady(false);
-                setInputError("Sign-in worked, but we could not finish opening this device with the saved password. Confirm your password again.");
-            } else {
-                setInputError(formatRecoverableUnlockError(error));
             }
+            setInputError(formatRecoverableUnlockError(error));
             setStatus(isSetupFlow ? "recoverable_setup" : "recoverable_input");
         } finally {
             if (isSetupFlow) {
@@ -540,7 +574,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 setIsSubmittingInput(false);
             }
         }
-    }, [getAuthenticatedUser, router, sessionExpiredLoginHref, setEncryptionMode, status, unlockRecoverableAccount, unlockAccount]);
+    }, [getAuthenticatedUser, recoverRecoverableAccount, router, sessionExpiredLoginHref, setEncryptionMode, status, unlockRecoverableAccount, unlockAccount]);
 
     const handleRecoverableRecovery = React.useCallback(async (input: { password: string | null; useSavedPassword: boolean }) => {
         setInputError(null);

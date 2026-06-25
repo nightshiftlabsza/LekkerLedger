@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
     initialMode: "account_locked" as "local_guest" | "account_locked" | "account_unlocked",
     routerReplaceMock: vi.fn(),
     getUserMock: vi.fn(),
+    signInWithPasswordMock: vi.fn(),
     upsertMock: vi.fn(),
     userProfilesMaybeSingleMock: vi.fn(),
     loadEncryptionProfileStateMock: vi.fn(),
@@ -95,6 +96,7 @@ vi.mock("@/lib/supabase/client", () => ({
     createClient: () => ({
         auth: {
             getUser: mocks.getUserMock,
+            signInWithPassword: mocks.signInWithPasswordMock,
         },
         from: (table: string) => ({
             select: () => ({
@@ -162,6 +164,7 @@ describe("RecoveryGate", () => {
         mocks.initialMode = "account_locked";
         mocks.routerReplaceMock.mockReset();
         mocks.getUserMock.mockReset();
+        mocks.signInWithPasswordMock.mockReset();
         mocks.upsertMock.mockReset();
         mocks.userProfilesMaybeSingleMock.mockReset();
         mocks.loadEncryptionProfileStateMock.mockReset();
@@ -193,6 +196,15 @@ describe("RecoveryGate", () => {
             },
         });
         mocks.upsertMock.mockResolvedValue({ error: null });
+        mocks.signInWithPasswordMock.mockResolvedValue({
+            data: {
+                user: {
+                    id: "user-1",
+                    email: "owner@example.com",
+                },
+            },
+            error: null,
+        });
         mocks.loadEncryptionProfileStateMock.mockResolvedValue({
             encryptionMode: "recoverable",
             modeVersion: 1,
@@ -319,9 +331,12 @@ describe("RecoveryGate", () => {
             expect(screen.getByRole("heading", { name: "Finish opening this device" })).toBeTruthy();
         });
 
+        const passwordInput = await screen.findByLabelText("Confirm your password");
+        const submitButton = await screen.findByRole("button", { name: "Open records on this device" });
+
         await act(async () => {
-            fireEvent.change(screen.getByLabelText("Confirm your password"), { target: { value: "Password123!" } });
-            fireEvent.click(screen.getByRole("button", { name: "Open records on this device" }));
+            fireEvent.change(passwordInput, { target: { value: "Password123!" } });
+            fireEvent.click(submitButton);
         });
 
         await waitFor(() => {
@@ -412,6 +427,10 @@ describe("RecoveryGate", () => {
         });
 
         expect(screen.getByText("Protected child")).toBeTruthy();
+        expect(mocks.signInWithPasswordMock).toHaveBeenCalledWith({
+            email: "owner@example.com",
+            password: "Password123!",
+        });
         expect(mocks.wrapMasterKeyWithPasswordMock).toHaveBeenCalledWith(expect.any(Object), "Password123!");
         expect(mocks.upsertMock).toHaveBeenCalledWith(expect.objectContaining({
             encryption_mode: "recoverable",
@@ -427,7 +446,9 @@ describe("RecoveryGate", () => {
         expect(screen.queryByRole("heading", { name: "Finish opening this device" })).toBeNull();
     });
 
-    it("completes recoverable recovery after a password reset", async () => {
+    it("recovers automatically from the primary password submit after a password reset", async () => {
+        mocks.unwrapMasterKeyWithPasswordMock.mockRejectedValue(new Error("The old password wrap no longer opens."));
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
         mocks.loadEncryptionProfileStateMock.mockResolvedValue({
             encryptionMode: "recoverable",
             modeVersion: 1,
@@ -452,11 +473,10 @@ describe("RecoveryGate", () => {
         renderGate();
 
         const passwordInput = await screen.findByLabelText("Confirm your password");
-        const recoverButton = await screen.findByRole("button", { name: "Recover this account" });
 
         await act(async () => {
             fireEvent.change(passwordInput, { target: { value: "Password123!" } });
-            fireEvent.click(recoverButton);
+            fireEvent.click(screen.getByRole("button", { name: "Open records on this device" }));
         });
 
         await waitFor(() => {
@@ -464,6 +484,10 @@ describe("RecoveryGate", () => {
         });
 
         expect(mocks.requestRecoveredMasterKeyMock).toHaveBeenCalledWith("password_reset");
+        expect(mocks.signInWithPasswordMock).toHaveBeenCalledWith({
+            email: "owner@example.com",
+            password: "Password123!",
+        });
         expect(mocks.wrapMasterKeyWithPasswordMock).toHaveBeenCalledWith(expect.any(Object), "Password123!");
         expect(mocks.upsertMock).toHaveBeenCalledWith(expect.objectContaining({
             encryption_mode: "recoverable",
