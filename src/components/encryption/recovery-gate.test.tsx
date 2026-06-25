@@ -364,6 +364,58 @@ describe("RecoveryGate", () => {
         expect(screen.queryByRole("heading", { name: "Finish opening this device" })).toBeNull();
     });
 
+    it("auto-recovers recoverable accounts when a reset password cannot open the old wrap", async () => {
+        mocks.hasCredentialHandoffMock.mockReturnValue(true);
+        mocks.unwrapMasterKeyWithPasswordMock.mockRejectedValue(new Error("PASSWORD_WRAP_FAILED"));
+        mocks.loadEncryptionProfileStateMock.mockResolvedValue({
+            encryptionMode: "recoverable",
+            modeVersion: 1,
+            keySetupComplete: true,
+            validationPayload: {
+                ciphertext: "ciphertext",
+                iv: "iv",
+            },
+            wrappedMasterKeyUser: {
+                ciphertext: "ciphertext",
+                iv: "iv",
+                salt: "old-salt",
+                kdf: "PBKDF2-SHA-256-310000",
+                algorithm: "AES-GCM",
+            },
+            recentRecoveryNoticeAt: null,
+            recentRecoveryEventKind: null,
+            source: "remote",
+            fallbackEncryptedRecord: null,
+        });
+
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+        renderGate();
+
+        await waitFor(() => {
+            expect(mocks.consumeCredentialHandoffMock).toHaveBeenCalledWith("owner@example.com");
+        });
+
+        await waitFor(() => {
+            expect(mocks.requestRecoveredMasterKeyMock).toHaveBeenCalledWith("password_reset");
+        });
+
+        expect(screen.getByText("Protected child")).toBeTruthy();
+        expect(mocks.wrapMasterKeyWithPasswordMock).toHaveBeenCalledWith(expect.any(Object), "Password123!");
+        expect(mocks.upsertMock).toHaveBeenCalledWith(expect.objectContaining({
+            encryption_mode: "recoverable",
+            wrapped_master_key_user: expect.objectContaining({
+                ciphertext: "new-ciphertext",
+                iv: "new-iv",
+            }),
+            user_wrap_salt: "new-salt",
+            user_wrap_kdf: "PBKDF2-SHA-256-310000",
+        }), expect.objectContaining({
+            onConflict: "id",
+        }));
+        expect(screen.queryByRole("heading", { name: "Finish opening this device" })).toBeNull();
+    });
+
     it("completes recoverable recovery after a password reset", async () => {
         mocks.loadEncryptionProfileStateMock.mockResolvedValue({
             encryptionMode: "recoverable",

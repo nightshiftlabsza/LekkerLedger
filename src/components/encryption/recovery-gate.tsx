@@ -320,6 +320,63 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         return true;
     }, [setEncryptionMode, supabase, unlockAccount]);
 
+    const recoverRecoverableAccount = React.useCallback(async ({
+        user,
+        password,
+    }: {
+        user: { id: string; email?: string | null };
+        password: string;
+    }) => {
+        const { rawMasterKey } = await requestRecoveredMasterKey("password_reset");
+        const masterKey = await importAccountMasterKey(rawMasterKey);
+        const wrappedMasterKeyUser = await wrapMasterKeyWithPassword(masterKey, password);
+        const validationPayload = await generateValidationPayload(masterKey);
+
+        const { error } = await supabase
+            .from("user_profiles")
+            .upsert({
+                id: user.id,
+                encryption_mode: "recoverable",
+                mode_version: 1,
+                key_setup_complete: true,
+                validation_payload: validationPayload,
+                wrapped_master_key_user: wrappedMasterKeyUser,
+                user_wrap_salt: wrappedMasterKeyUser.salt,
+                user_wrap_kdf: wrappedMasterKeyUser.kdf,
+            }, {
+                onConflict: "id",
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        await saveLocalRecoveryProfile(user.id, {
+            encryptionMode: "recoverable",
+            keySetupComplete: true,
+            validationPayload,
+            cachedMasterKey: rawMasterKey,
+            updatedAt: new Date().toISOString(),
+        });
+
+        clearCredentialHandoff();
+        setSavedPasswordReady(false);
+        setEncryptionMode("recoverable");
+        setProfileState({
+            encryptionMode: "recoverable",
+            modeVersion: 1,
+            keySetupComplete: true,
+            validationPayload,
+            wrappedMasterKeyUser,
+            recentRecoveryNoticeAt: new Date().toISOString(),
+            recentRecoveryEventKind: "password_reset",
+            source: "remote",
+            fallbackEncryptedRecord: null,
+        });
+        storeRecoveryNotice("recoverable");
+        await unlockAccount(masterKey, user.id);
+    }, [setEncryptionMode, supabase, unlockAccount]);
+
     React.useEffect(() => {
         if (mode !== "account_locked" || status !== "opening_device") {
             return;
@@ -330,6 +387,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         async function autoOpenRecoverableDevice() {
             setInputError(null);
             setIsSubmittingInput(true);
+            let savedPassword: string | null = null;
             try {
                 const user = await getAuthenticatedUser();
                 if (!mounted) return;
@@ -339,8 +397,8 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                     return;
                 }
 
-                const password = consumeCredentialHandoff(user.email ?? null);
-                if (!password) {
+                savedPassword = consumeCredentialHandoff(user.email ?? null);
+                if (!savedPassword) {
                     setSavedPasswordReady(false);
                     setInputError("Sign-in worked, but this device still needs your password to open the encrypted records.");
                     setStatus("recoverable_input");
@@ -352,16 +410,43 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
 
                 await unlockRecoverableAccount({
                     user,
-                    password,
+                    password: savedPassword,
                     nextProfileState,
                 });
             } catch (error) {
                 if (!mounted) return;
                 console.error(error);
-                clearCredentialHandoff();
-                setSavedPasswordReady(false);
-                setInputError("Sign-in worked, but we could not finish opening this device automatically. Confirm your password to continue.");
-                setStatus("recoverable_input");
+                if (!savedPassword) {
+                    clearCredentialHandoff();
+                    setSavedPasswordReady(false);
+                    setInputError("Sign-in worked, but this device still needs your password to open the encrypted records.");
+                    setStatus("recoverable_input");
+                    return;
+                }
+
+                setIsRecovering(true);
+                try {
+                    const user = await getAuthenticatedUser();
+                    if (!mounted) return;
+
+                    if (!user) {
+                        redirectToLoginForExpiredSession(router, sessionExpiredLoginHref, setStatus, setInputError, "recoverable_input");
+                        return;
+                    }
+
+                    await recoverRecoverableAccount({ user, password: savedPassword });
+                } catch (recoveryError) {
+                    if (!mounted) return;
+                    console.error(recoveryError);
+                    clearCredentialHandoff();
+                    setSavedPasswordReady(false);
+                    setInputError("Sign-in worked, but we could not finish account recovery automatically. Enter your current password and tap Recover this account.");
+                    setStatus("recoverable_input");
+                } finally {
+                    if (mounted) {
+                        setIsRecovering(false);
+                    }
+                }
             } finally {
                 if (mounted) {
                     setIsSubmittingInput(false);
@@ -374,7 +459,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         return () => {
             mounted = false;
         };
-    }, [getAuthenticatedUser, mode, profileState, router, sessionExpiredLoginHref, status, supabase, unlockRecoverableAccount]);
+    }, [getAuthenticatedUser, mode, profileState, recoverRecoverableAccount, router, sessionExpiredLoginHref, status, supabase, unlockRecoverableAccount]);
 
     const handleRecoverableSubmit = React.useCallback(async (input: { password: string | null; useSavedPassword: boolean }) => {
         const isSetupFlow = status === "recoverable_setup";
@@ -474,54 +559,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
                 return;
             }
 
-            const { rawMasterKey } = await requestRecoveredMasterKey("password_reset");
-            const masterKey = await importAccountMasterKey(rawMasterKey);
-            const wrappedMasterKeyUser = await wrapMasterKeyWithPassword(masterKey, password);
-            const validationPayload = await generateValidationPayload(masterKey);
-
-            const { error } = await supabase
-                .from("user_profiles")
-                .upsert({
-                    id: user.id,
-                    encryption_mode: "recoverable",
-                    mode_version: 1,
-                    key_setup_complete: true,
-                    validation_payload: validationPayload,
-                    wrapped_master_key_user: wrappedMasterKeyUser,
-                    user_wrap_salt: wrappedMasterKeyUser.salt,
-                    user_wrap_kdf: wrappedMasterKeyUser.kdf,
-                }, {
-                    onConflict: "id",
-                });
-
-            if (error) {
-                throw error;
-            }
-
-            await saveLocalRecoveryProfile(user.id, {
-                encryptionMode: "recoverable",
-                keySetupComplete: true,
-                validationPayload,
-                cachedMasterKey: rawMasterKey,
-                updatedAt: new Date().toISOString(),
-            });
-
-            clearCredentialHandoff();
-            setSavedPasswordReady(false);
-            setEncryptionMode("recoverable");
-            setProfileState({
-                encryptionMode: "recoverable",
-                modeVersion: 1,
-                keySetupComplete: true,
-                validationPayload,
-                wrappedMasterKeyUser,
-                recentRecoveryNoticeAt: new Date().toISOString(),
-                recentRecoveryEventKind: "password_reset",
-                source: "remote",
-                fallbackEncryptedRecord: null,
-            });
-            storeRecoveryNotice("recoverable");
-            await unlockAccount(masterKey, user.id);
+            await recoverRecoverableAccount({ user, password });
         } catch (error) {
             console.error(error);
             if (input.useSavedPassword) {
@@ -535,7 +573,7 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
         } finally {
             setIsRecovering(false);
         }
-    }, [getAuthenticatedUser, router, sessionExpiredLoginHref, setEncryptionMode, supabase, unlockAccount]);
+    }, [getAuthenticatedUser, recoverRecoverableAccount, router, sessionExpiredLoginHref]);
 
     let gateHeading = "Unlock your encrypted records.";
     if (status === "opening_device") {
