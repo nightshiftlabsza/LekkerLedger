@@ -10,7 +10,6 @@ import {
     FolderOpen,
     HardDrive,
     Lock,
-    ScrollText,
     Trash2,
     Upload,
     X,

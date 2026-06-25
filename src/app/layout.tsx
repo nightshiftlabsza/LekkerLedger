@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { StartupScripts } from "@/components/layout/startup-scripts";
 import { Suspense } from "react";
+import Script from "next/script";
 import { AnalyticsPageView } from "@/components/AnalyticsPageView";
 import { PwaInstallTracking } from "@/components/PwaInstallTracking";
 import { ROOT_METADATA_BASE } from "@/lib/seo";
@@ -58,6 +59,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <Script id="theme-init" src="/theme-init.js" strategy="beforeInteractive" />
         <StartupScripts gaId={gaId} gaDebug={gaDebug} />
       </head>
       <body

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { AlertCircle, ArrowLeft, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createInlinePurchaseIntent } from "@/lib/billing-client";
@@ -68,7 +68,6 @@ async function getInitialEmail() {
 }
 
 function BillingCheckoutContent() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const rawPlanId = searchParams.get("plan");
     const rawCycle = searchParams.get("cycle");

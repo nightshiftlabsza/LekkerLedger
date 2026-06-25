@@ -3,7 +3,6 @@ import { getNMW } from "./calculator";
 import { getNMWForDate } from "./legal/registry";
 import { getEmployeeIdValidationMessage, normalizeEmployeeIdNumber } from "./employee-id";
 import {
-    buildEmptyOrdinaryWorkPattern,
     hasConfirmedOrdinaryWorkPattern,
     ordinarilyWorksSundaysFromPattern,
     ORDINARY_WORK_PATTERN_KEYS,

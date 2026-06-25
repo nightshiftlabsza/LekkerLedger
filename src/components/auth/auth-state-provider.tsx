@@ -66,7 +66,7 @@ export function AuthStateProvider({
         } finally {
             setIsLoading(false);
         }
-    }, [applyUserSnapshot, supabase]);
+    }, [applyUserSnapshot, lockInitialUser, supabase]);
 
     const signOut = React.useCallback(async () => {
         try {

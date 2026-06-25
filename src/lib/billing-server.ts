@@ -8,7 +8,6 @@ import {
     BillingCreditStatus,
     BillingIntentKind,
     BillingIntentRecord,
-    BillingIssue,
     BillingMoneyCreditRecord,
     BillingAccountSummary,
     entitlementsFromSubscription,
@@ -27,7 +26,6 @@ import { PaidActivationState } from "./billing-activation";
 import { buildBillingIssue, isPaystackPlanConfigMessage } from "./billing-issues";
 import { buildProrationPreview } from "./billing-proration";
 import { getRequestAppOrigin } from "./app-origin";
-import { env } from "./env";
 import { validateConfiguredPaystackPlans, type PaystackPlanValidationSnapshot } from "./paystack-plan-validation";
 import { createAdminClient } from "./supabase/admin";
 import { createClient } from "./supabase/server";

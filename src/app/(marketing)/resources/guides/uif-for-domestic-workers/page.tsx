@@ -3,7 +3,6 @@ import { ArrowLeft, ArrowRight, ExternalLink, ShieldCheck, CheckSquare } from "l
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { ComplianceDisclaimer } from "@/components/seo/compliance-disclaimer";
 import { JsonLd, breadcrumbSchema } from "@/components/seo/json-ld";
-import { CANONICAL_SITE_URL } from "@/lib/seo";
 
 export const metadata = {
   title: "Complete Guide to UIF for Domestic Workers | LekkerLedger",

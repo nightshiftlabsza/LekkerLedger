@@ -257,7 +257,7 @@ export function describeOrdinaryWorkCalendar(
 
 export function buildOrdinaryWorkCalendarPlainLanguage(
     summary: OrdinaryWorkCalendarSummary,
-    ordinaryHoursPerDay: number,
+    _ordinaryHoursPerDay: number,
 ): OrdinaryWorkCalendarPlainLanguage {
     const selectedPatternDays = ORDINARY_WORK_PATTERN_KEYS.filter((key) => summary.workPattern[key]).length;
     if (selectedPatternDays === 0) {

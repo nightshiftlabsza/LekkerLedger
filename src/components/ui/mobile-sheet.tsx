@@ -78,6 +78,7 @@ export function MobileSheet({
 
         const previousOverflow = document.body.style.overflow;
         lastFocusedElementRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        const returnFocusTarget = returnFocusRef?.current ?? lastFocusedElementRef.current;
         document.body.style.overflow = "hidden";
 
         const focusPanel = () => {
@@ -135,10 +136,9 @@ export function MobileSheet({
             document.removeEventListener("keydown", handleKeyDown);
             document.body.style.overflow = previousOverflow;
 
-            const returnTarget = returnFocusRef?.current ?? lastFocusedElementRef.current;
-            if (returnTarget) {
+            if (returnFocusTarget) {
                 window.setTimeout(() => {
-                    returnTarget.focus();
+                    returnFocusTarget.focus();
                 }, 0);
             }
         };
