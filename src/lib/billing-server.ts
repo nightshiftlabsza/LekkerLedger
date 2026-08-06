@@ -164,7 +164,16 @@ function getRequiredEnv(name: string): string {
 }
 
 function getPaystackSecretKey(): string {
-    return getRequiredEnv("PAYSTACK_SECRET_KEY");
+    const configuredValue = getRequiredEnv("PAYSTACK_SECRET_KEY");
+    const printableValue = configuredValue.replaceAll(/[^\x20-\x7E]/g, "").trim();
+    const withoutBearerPrefix = printableValue.replace(/^Bearer\s+/i, "");
+    const withoutWrappingQuotes = withoutBearerPrefix.replace(/^(["'])(.*)\1$/, "$2").trim();
+
+    if (!withoutWrappingQuotes) {
+        throw new BillingConfigError("PAYSTACK_SECRET_KEY is empty.");
+    }
+
+    return withoutWrappingQuotes;
 }
 
 function getD1Config() {
@@ -655,12 +664,8 @@ async function ensureBillingSchema() {
 }
 
 async function paystackRequest<T>(path: string, init: RequestInit): Promise<T> {
-    const rawKey = getPaystackSecretKey();
-    const secretKey = rawKey.replaceAll(/[^\x20-\x7E]/g, "");
+    const secretKey = getPaystackSecretKey();
 
-    if (secretKey.length !== rawKey.length) {
-        console.warn(`[Billing] Stripped ${rawKey.length - secretKey.length} non-printable/non-ASCII character(s) from PAYSTACK_SECRET_KEY`);
-    }
 
     const response = await fetch(`https://api.paystack.co${path}`, {
         ...init,
