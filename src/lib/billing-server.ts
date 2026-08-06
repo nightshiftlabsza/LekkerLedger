@@ -2212,7 +2212,12 @@ async function findAuthUserByEmail(email: string): Promise<ActivationResolvedUse
     while (page <= 20) {
         const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
         if (error) {
-            throw new BillingError(error.message, 502);
+            console.error("[auth.activation] Supabase admin user lookup failed", {
+                error: error.message,
+                status: "status" in error ? error.status : undefined,
+                code: "code" in error ? error.code : undefined,
+            });
+            throw new BillingError("The account service is temporarily unavailable. Please try again shortly.", 503);
         }
 
         const users = data?.users ?? [];

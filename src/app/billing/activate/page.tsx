@@ -50,6 +50,15 @@ function validatePassword(password: string): string | null {
     return null;
 }
 
+function getActivationErrorMessage(error: unknown): string {
+    const message = error instanceof Error ? error.message : "";
+    if (/\b5\d{2}\b|temporarily unavailable|could not be resolved/i.test(message)) {
+        return "We could not confirm your payment right now. You have not been charged again. Please try again in a few minutes.";
+    }
+
+    return message || "We could not complete account activation. Please try again.";
+}
+
 function BillingActivateContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -90,7 +99,7 @@ function BillingActivateContent() {
                 referralCode: pendingCheckout?.referralCode ?? null,
             });
         } catch (activationError) {
-            setError(activationError instanceof Error ? activationError.message : "Paid activation could not be resolved.");
+            setError(getActivationErrorMessage(activationError));
             setActivation(null);
         } finally {
             setLoading(false);
@@ -339,7 +348,7 @@ function BillingActivateContent() {
                         </div>
                     ) : null}
 
-                    {status === "pending_payment" || status === "payment_failed_or_unpaid" || status === "payment_cancelled_or_abandoned" ? (
+                    {Boolean(reference) && (Boolean(error) || status === "pending_payment" || status === "payment_failed_or_unpaid" || status === "payment_cancelled_or_abandoned") ? (
                         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                             <Button type="button" onClick={() => void refreshActivation()}>
                                 <RefreshCw className="h-4 w-4" />
@@ -369,9 +378,8 @@ function BillingActivateContent() {
                             Flow
                         </p>
                         <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--text-muted)]">
-                            <p>1. Verify the Paystack reference server-side.</p>
-                            <p>2. Match the payment to the billing email and plan.</p>
-                            <p>3. Continue into account creation, setup, login, or unlock without restarting the purchase.</p>
+                            <p>We are checking your payment securely.</p>
+                            <p>Once it is confirmed, you will create a password and continue into your account.</p>
                         </div>
                     </div>
 
