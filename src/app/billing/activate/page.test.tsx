@@ -167,6 +167,40 @@ describe("BillingActivatePage", () => {
         expect(screen.getByTestId("login-form").textContent).toBe("existing@example.com|true");
     });
 
+    it("offers password resume for an existing incomplete paid account", async () => {
+        mocks.resolvePaidActivationMock.mockResolvedValue({
+            status: "payment_verified_existing_continue_setup",
+            passwordSetupAvailable: true,
+            reference: "ref_123",
+            email: "stuck@example.com",
+            planId: "standard",
+            billingCycle: "yearly",
+        });
+        mocks.createPaidActivationAccountMock.mockResolvedValue({
+            status: "payment_verified_existing_continue_setup",
+            reference: "ref_123",
+            email: "stuck@example.com",
+        });
+        mocks.signInWithPasswordMock.mockResolvedValue({ error: null });
+
+        render(<BillingActivatePage />);
+
+        await screen.findByText("Payment confirmed. Choose a password to resume.");
+        fireEvent.change(screen.getByLabelText("Create a password"), { target: { value: "Password123!" } });
+        fireEvent.click(screen.getByRole("button", { name: "Resume secure setup" }));
+
+        await waitFor(() => {
+            expect(mocks.createPaidActivationAccountMock).toHaveBeenCalledWith({
+                reference: "ref_123",
+                password: "Password123!",
+            });
+        });
+        expect(mocks.signInWithPasswordMock).toHaveBeenCalledWith({
+            email: "stuck@example.com",
+            password: "Password123!",
+        });
+    });
+
     it("shows retry checkout for failed or unpaid payments", async () => {
         mocks.resolvePaidActivationMock.mockResolvedValue({
             status: "payment_failed_or_unpaid",

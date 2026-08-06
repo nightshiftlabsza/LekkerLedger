@@ -505,12 +505,20 @@ export function RecoveryGate({ children }: { children: React.ReactNode }) {
             if (isSetupFlow) {
                 const masterKey = await generateAccountMasterKey();
                 const artifacts = await buildRecoverableSetupArtifacts(masterKey, password);
-                await sendRecoverableSetupRequest({
+                const setupResult = await sendRecoverableSetupRequest({
                     rawMasterKey: artifacts.rawMasterKey,
                     validationPayload: artifacts.validationPayload,
                     wrappedMasterKeyUser: artifacts.wrappedMasterKeyUser,
                     source: "setup",
                 });
+
+                if (setupResult.alreadyComplete) {
+                    // The previous request reached Supabase but the browser
+                    // did not finish saving its local cache. Reload so the
+                    // normal recovery path can use the authoritative profile.
+                    window.location.reload();
+                    return;
+                }
 
                 await saveLocalRecoveryProfile(user.id, {
                     encryptionMode: "recoverable",

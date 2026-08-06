@@ -16,6 +16,7 @@ function validatePassword(password: string): string | null {
 }
 
 export async function POST(request: Request) {
+    const requestId = request.headers.get("x-request-id") || crypto.randomUUID();
     try {
         const body = await request.json().catch(() => ({})) as { reference?: string; password?: string };
         const reference = body.reference?.trim() || "";
@@ -59,6 +60,10 @@ export async function POST(request: Request) {
 
         return response;
     } catch (error) {
+        console.error("[billing.activation.create-account] request failed", {
+            requestId,
+            error: error instanceof Error ? error.message : "unknown_error",
+        });
         const { status, message } = toErrorResponse(error);
         return NextResponse.json({ error: message }, { status });
     }

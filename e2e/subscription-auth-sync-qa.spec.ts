@@ -325,7 +325,7 @@ test.describe("Subscription/Auth/Sync live QA", () => {
         await expect(page.getByRole("link", { name: "Log in to restore access" })).toBeVisible();
     });
 
-    test("signup with a paid reference unlocks the account form", async ({ page }) => {
+    test("signup with a paid reference enters authoritative activation", async ({ page }) => {
         await page.route("**/api/billing/guest-confirm", async (route) => {
             await route.fulfill({
                 status: 200,
@@ -339,9 +339,7 @@ test.describe("Subscription/Auth/Sync live QA", () => {
         });
 
         await page.goto("/signup?reference=paid-ref&email=paid.user@example.com", { waitUntil: "networkidle" });
-        await expect(page.getByRole("heading", { name: "Create your secure account" })).toBeVisible();
-        await expect(page.getByLabel("Email address")).toHaveValue("paid.user@example.com");
-        await expect(page.getByRole("button", { name: "Create secure account" })).toBeVisible();
+        await expect(page).toHaveURL(/\/billing\/activate\?reference=paid-ref$/);
     });
 
     test.fixme("first-device recovery setup goes straight into the app after saving the key", async ({ page }) => {

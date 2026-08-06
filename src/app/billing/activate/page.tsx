@@ -98,7 +98,7 @@ function BillingActivateContent() {
     }, [pendingCheckout?.billingCycle, pendingCheckout?.planId, pendingCheckout?.referralCode, reference]);
 
     React.useEffect(() => {
-        refreshActivation().catch(() => undefined);
+        void refreshActivation();
     }, [refreshActivation]);
 
     React.useEffect(() => {
@@ -148,7 +148,7 @@ function BillingActivateContent() {
         }
 
         const handle = window.setTimeout(() => {
-            refreshActivation().catch(() => undefined);
+            void refreshActivation();
         }, 2500);
 
         return () => {
@@ -212,8 +212,10 @@ function BillingActivateContent() {
             ? "Payment confirmed. Create your password."
             : status === "payment_verified_existing_login"
                 ? "Payment confirmed. Log in to continue."
-                : status === "payment_verified_existing_continue_setup"
-                    ? "Payment confirmed. Continue secure setup."
+            : status === "payment_verified_existing_continue_setup"
+                    ? activation?.passwordSetupAvailable
+                        ? "Payment confirmed. Choose a password to resume."
+                        : "Payment confirmed. Continue secure setup."
                     : status === "payment_verified_existing_unlock"
                         ? "Opening your paid workspace"
                         : status === "already_active"
@@ -231,7 +233,9 @@ function BillingActivateContent() {
             : status === "payment_verified_existing_login"
                 ? "This billing email already has an account. Log in with the same email to continue directly into paid access."
                 : status === "payment_verified_existing_continue_setup"
-                    ? "This account already exists but secure setup still needs to be completed. Log in with the billing email to continue."
+                    ? activation?.passwordSetupAvailable
+                        ? "This verified payment can safely resume the interrupted account setup. Choose a new password, then continue into secure setup."
+                        : "This account already exists but secure setup still needs to be completed. Log in with the billing email to continue."
                     : status === "payment_verified_existing_unlock"
                         ? "Your payment is verified and this account is ready. LekkerLedger is opening the dashboard unlock flow."
                         : status === "already_active"
@@ -281,7 +285,7 @@ function BillingActivateContent() {
                         </div>
                     ) : null}
 
-                    {status === "payment_verified_new_user" ? (
+                    {status === "payment_verified_new_user" || (status === "payment_verified_existing_continue_setup" && activation?.passwordSetupAvailable) ? (
                         <form className="mt-8 space-y-5" onSubmit={handleCreateAccount}>
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-[var(--text)]" htmlFor="activation-password">
@@ -313,12 +317,16 @@ function BillingActivateContent() {
 
                             <Button type="submit" className="w-full sm:w-auto" disabled={submittingAccount}>
                                 {submittingAccount ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                                {submittingAccount ? "Creating account..." : "Create paid account"}
+                                {submittingAccount
+                                    ? "Saving..."
+                                    : status === "payment_verified_existing_continue_setup"
+                                        ? "Resume secure setup"
+                                        : "Create paid account"}
                             </Button>
                         </form>
                     ) : null}
 
-                    {status === "payment_verified_existing_login" || status === "payment_verified_existing_continue_setup" || (status === "already_active" && !matchedSignedInUser) ? (
+                    {status === "payment_verified_existing_login" || (status === "payment_verified_existing_continue_setup" && !activation?.passwordSetupAvailable) || (status === "already_active" && !matchedSignedInUser) ? (
                         <div className="mt-8 rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-5">
                             <LoginForm
                                 embedded
@@ -333,7 +341,7 @@ function BillingActivateContent() {
 
                     {status === "pending_payment" || status === "payment_failed_or_unpaid" || status === "payment_cancelled_or_abandoned" ? (
                         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                            <Button type="button" onClick={() => refreshActivation().catch(() => undefined)}>
+                            <Button type="button" onClick={() => void refreshActivation()}>
                                 <RefreshCw className="h-4 w-4" />
                                 Retry verification
                             </Button>

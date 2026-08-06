@@ -36,7 +36,7 @@ export async function sendRecoverableSetupRequest(input: {
     validationPayload: EncryptedPayload;
     wrappedMasterKeyUser: WrappedKeyPayload;
     source: "setup" | "migration";
-}) {
+}): Promise<{ ok: true; alreadyComplete?: boolean }> {
     const response = await fetch("/api/encryption/recoverable/setup", {
         method: "POST",
         headers: {
@@ -45,10 +45,12 @@ export async function sendRecoverableSetupRequest(input: {
         body: JSON.stringify(input),
     });
 
+    const result = await response.json().catch(() => null) as { ok?: boolean; alreadyComplete?: boolean; error?: string } | null;
     if (!response.ok) {
-        const body = await response.json().catch(() => null) as { error?: string } | null;
-        throw new Error(body?.error || "Recoverable setup could not be completed.");
+        throw new Error(result?.error || "Recoverable setup could not be completed.");
     }
+
+    return { ok: true, alreadyComplete: result?.alreadyComplete };
 }
 
 export async function requestRecoveredMasterKey(reason: "password_reset" | "manual_recovery" = "password_reset") {

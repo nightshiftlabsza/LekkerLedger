@@ -16,4 +16,6 @@ export interface PaidActivationState {
     email: string;
     planId?: "standard" | "pro";
     billingCycle?: BillingCycle;
+    /** A verified paid handoff can safely resume password setup for this account. */
+    passwordSetupAvailable?: boolean;
 }

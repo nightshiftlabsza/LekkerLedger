@@ -2166,6 +2166,29 @@ type ActivationResolution = {
     activationNonce: string | null;
 };
 
+async function ensureUserProfileRow(userId: string): Promise<void> {
+    const admin = createAdminClient();
+    // The generated Supabase types in this project do not yet include the
+    // sync tables. Keep this narrow cast local to the insert-only bootstrap.
+    const profileTable = admin as unknown as {
+        from: (table: string) => {
+            insert: (values: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+        };
+    };
+    const { error } = await profileTable
+        .from("user_profiles")
+        .insert({ id: userId });
+
+    // This is deliberately insert-only. An existing profile, including all
+    // encryption fields, must never be replaced during activation retries.
+    if (error && !/duplicate|already exists|unique constraint/i.test(error.message)) {
+        console.error("[auth.activation] profile initialization failed", {
+            userId,
+            error: error.message,
+        });
+    }
+}
+
 type PaymentSnapshot = {
     reference: string;
     intent: BillingIntentRecord | null;
@@ -2346,7 +2369,11 @@ async function fetchPaymentSnapshot(reference: string): Promise<PaymentSnapshot>
                 });
             }
         }
-    } catch {
+    } catch (error) {
+        console.warn("[billing.activation] payment verification fallback", {
+            reference: normalizedReference,
+            error: error instanceof Error ? error.message : "unknown_error",
+        });
         paymentStatus = intent?.lastPaymentStatus || null;
     }
 
@@ -2371,6 +2398,7 @@ function buildActivationState(input: {
     planId?: Exclude<PlanId, "free">;
     billingCycle?: BillingCycle;
     status: PaidActivationState["status"];
+    passwordSetupAvailable?: boolean;
 }): PaidActivationState {
     return {
         status: input.status,
@@ -2378,6 +2406,7 @@ function buildActivationState(input: {
         email: input.email,
         planId: input.planId,
         billingCycle: input.billingCycle,
+        passwordSetupAvailable: input.passwordSetupAvailable,
     };
 }
 
@@ -2476,6 +2505,13 @@ async function resolvePaidActivationInternal(reference: string, user: VerifiedUs
             ? "payment_verified_existing_login"
             : "payment_verified_existing_continue_setup";
 
+    const passwordSetupAvailable = status === "payment_verified_existing_continue_setup"
+        && Boolean(intent)
+        && !profile?.keySetupComplete;
+    const activationNonce = passwordSetupAvailable && intent
+        ? await issueActivationNonce(intent)
+        : null;
+
     return {
         state: buildActivationState({
             status,
@@ -2483,8 +2519,9 @@ async function resolvePaidActivationInternal(reference: string, user: VerifiedUs
             email,
             planId,
             billingCycle,
+            passwordSetupAvailable,
         }),
-        activationNonce: null,
+        activationNonce,
     };
 }
 
@@ -2832,8 +2869,39 @@ export async function createPaidActivationAccount(input: {
 
     const existingUser = await findAuthUserByEmail(validatedIntent.email);
     if (existingUser) {
-        await clearActivationNonce(normalizedReference);
-        return (await resolvePaidActivationInternal(normalizedReference, null)).state;
+        const admin = createAdminClient();
+        const { data: updatedUser, error: updateError } = await admin.auth.admin.updateUserById(existingUser.id, {
+            password: input.password,
+            email_confirm: true,
+        });
+
+        if (updateError || !updatedUser.user?.email) {
+            throw new BillingError(updateError?.message || "The account password could not be updated.", 502);
+        }
+
+        await ensureUserProfileRow(existingUser.id);
+
+        const verifiedUser: VerifiedUser = {
+            userId: existingUser.id,
+            email: updatedUser.user.email,
+            name: updatedUser.user.user_metadata?.full_name || updatedUser.user.email.split("@")[0],
+        };
+        await confirmPaystackTransaction(normalizedReference, verifiedUser);
+
+        const claimedIntent = await getBillingIntentByReference(normalizedReference);
+        if (claimedIntent) {
+            await markActivationClaimed(claimedIntent, verifiedUser);
+        } else {
+            await clearActivationNonce(normalizedReference);
+        }
+
+        return buildActivationState({
+            status: "payment_verified_existing_continue_setup",
+            reference: normalizedReference,
+            email: verifiedUser.email,
+            planId: validatedIntent.planId,
+            billingCycle: validatedIntent.billingCycle,
+        });
     }
 
     const admin = createAdminClient();
@@ -2846,6 +2914,8 @@ export async function createPaidActivationAccount(input: {
     if (error || !data.user?.id || !data.user.email) {
         throw new BillingError(error?.message || "The paid account could not be created.", 502);
     }
+
+    await ensureUserProfileRow(data.user.id);
 
     await confirmPaystackTransaction(normalizedReference, {
         userId: data.user.id,

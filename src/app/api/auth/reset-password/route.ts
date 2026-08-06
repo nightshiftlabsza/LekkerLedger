@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getRequestAppOrigin } from "@/lib/app-origin";
+import { getConfiguredAppOrigin, getRequestAppOrigin } from "@/lib/app-origin";
 import { createClient } from "@/lib/supabase/server";
 
 const RESET_PASSWORD_NEXT_PATH = "/reset-password";
@@ -43,25 +43,33 @@ export async function POST(request: Request) {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const origin = getRequestAppOrigin(request);
+    const origin = process.env.NODE_ENV === "production"
+        ? getConfiguredAppOrigin() || getRequestAppOrigin(request)
+        : getRequestAppOrigin(request);
     const redirectTo = `${origin}/api/auth/callback?next=${encodeURIComponent(RESET_PASSWORD_NEXT_PATH)}`;
+    const requestId = request.headers.get("x-request-id") || crypto.randomUUID();
 
     try {
         const supabase = await createClient();
         const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo });
 
         if (!error) {
+            console.info("[auth/reset-password] reset email request accepted", { requestId });
             return NextResponse.json({ ok: true });
         }
 
         const mapped = mapResetStatus(error.message);
         console.error("[auth/reset-password] Supabase reset failed", {
+            requestId,
             status: mapped.status,
             message: error.message,
         });
         return NextResponse.json({ error: mapped.error }, { status: mapped.status });
     } catch (error) {
-        console.error("[auth/reset-password] Reset request failed", error);
+        console.error("[auth/reset-password] Reset request failed", {
+            requestId,
+            error: error instanceof Error ? error.message : "unknown_error",
+        });
         return NextResponse.json({ error: GENERIC_RESET_ERROR }, { status: 502 });
     }
 }
